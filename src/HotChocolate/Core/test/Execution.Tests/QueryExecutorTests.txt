@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
                 FieldCollector.PrepareSelectionSets(schema, fragments, operation);
 
-            var perparedOperation = new PreparedOperation(
+            var preparedOperation = new PreparedOperation(
                 "abc", document, operation, schema.QueryType, selectionSets);
 
             var variables = new Mock<IVariableValueCollection>();
@@ -105,7 +105,7 @@ namespace HotChocolate.Execution
             operationContext.Initialize(
                 requestContext.Object,
                 batchDispatcher.Object,
-                perparedOperation,
+                preparedOperation,
                 new Query(new CharacterRepository()),
                 variables.Object);
 

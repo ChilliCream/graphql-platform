@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Tests;
-using Xunit;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Execution.Errors
 {
@@ -15,11 +15,12 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             await ExpectError(
+                "{ foo }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String }")
-                    .UseField(next => context => throw new Exception("Foo")),
-                s => s.AddErrorFilter(error => error.WithCode("Foo123")),
-                "{ foo }");
+                    .UseField(next => context => throw new Exception("Foo"))
+                    .Services
+                    .AddErrorFilter(error => error.WithCode("Foo123")));
         }
 
         [Fact]
@@ -27,19 +28,20 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             await ExpectError(
+                "{ foo bar }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String bar: String }")
                     .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
-                    .AddResolver("Query", "bar", ctx => throw new NullReferenceException("Foo")),
-                s => s.AddErrorFilter(error =>
-                {
-                    if (error.Exception is NullReferenceException)
+                    .AddResolver("Query", "bar", ctx => throw new NullReferenceException("Foo"))
+                    .AddErrorFilter(error =>
                     {
-                        return error.WithCode("NullRef");
-                    }
-                    return error;
-                }),
-                "{ foo bar }",
+                        if (error.Exception is NullReferenceException)
+                        {
+                            return error.WithCode("NullRef");
+                        }
+                        return error;
+                    }),
+                
                 expectedErrorCount: 2);
         }
 
@@ -48,11 +50,12 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             await ExpectError(
+                "{ foo }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String }")
-                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo")),
-                s => s.AddErrorFilter<DummyErrorFilter>(),
-                "{ foo }");
+                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
+                    .Services
+                    .AddErrorFilter<DummyErrorFilter>());
         }
 
         [Fact]
@@ -60,38 +63,32 @@ namespace HotChocolate.Execution.Errors
         {
             Snapshot.FullName();
             await ExpectError(
+                "{ foo }",
                 b => b
                     .AddDocumentFromString("type Query { foo: String }")
-                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo")),
-                s => s.AddErrorFilter(s => new DummyErrorFilter()),
-                "{ foo }");
+                    .AddResolver("Query", "foo", ctx => throw new Exception("Foo"))
+                    .Services
+                    .AddErrorFilter(s => new DummyErrorFilter()));
         }
 
         private async Task ExpectError(
-            Func<IRequestExecutorBuilder, IRequestExecutorBuilder> build,
-            Func<IServiceCollection, IServiceCollection> services,
             string query,
+            Action<IRequestExecutorBuilder> configure,
             int expectedErrorCount = 1)
         {
             int errors = 0;
 
             await TestHelper.ExpectError(
-                new TestConfiguration
+                query,
+                b => 
                 {
-                    CreateExecutor = s => build(services(new ServiceCollection())
-                        .AddGraphQL())
-                        .AddErrorFilter(error =>
-                        {
-                            errors++;
-                            return error;
-                        })
-                        .Services
-                        .BuildServiceProvider()
-                        .GetRequiredService<IRequestExecutorResolver>()
-                        .GetRequestExecutorAsync()
-                        .Result,
-                },
-                query);
+                    TestHelper.AddDefaultConfiguration(b);
+                    b.AddErrorFilter(error =>
+                    {
+                        errors++;
+                        return error;
+                    });
+                });
 
             Assert.Equal(expectedErrorCount, errors);
         }

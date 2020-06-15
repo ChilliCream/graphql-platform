@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Subscriptions;
 using Xunit;
@@ -10,45 +11,28 @@ namespace HotChocolate.Tests
 {
     public static class TestHelper
     {
-        public static Task<IExecutionResult> ExpectValid(string query)
-        {
-            return ExpectValid(new TestConfiguration(), query);
-        }
-
         public static Task<IExecutionResult> ExpectValid(
             string query,
-            Action<IQueryRequestBuilder> modifyRequest)
-        {
-            return ExpectValid(new TestConfiguration { ModifyRequest = modifyRequest }, query);
-        }
-
-        public static Task<IExecutionResult> ExpectValid(
-            Action<ISchemaBuilder> createSchema,
-            string query)
-        {
-            return ExpectValid(new TestConfiguration { CreateSchema = createSchema }, query);
-        }
-
-        public static Task<IExecutionResult> ExpectValid(
-            Action<ISchemaBuilder> createSchema,
-            string query,
-            Action<IQueryRequestBuilder> modifyRequest)
+            Action<IRequestExecutorBuilder>? configure = null,
+            Action<IQueryRequestBuilder>? request = null,
+            IServiceProvider? requestServices = null)
         {
             return ExpectValid(
+                query,
                 new TestConfiguration
                 {
-                    CreateSchema = createSchema,
-                    ModifyRequest = modifyRequest
-                },
-                query);
+                    ConfigureRequest = request,
+                    Configure = configure,
+                    Services = requestServices,
+                });
         }
 
         public static async Task<IExecutionResult> ExpectValid(
-            TestConfiguration? configuration,
-            string query)
+            string query,
+            TestConfiguration? configuration)
         {
             // arrange
-            IRequestExecutor executor = CreateExecutor(configuration);
+            IRequestExecutor executor = await CreateExecutorAsync(configuration);
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
@@ -60,47 +44,48 @@ namespace HotChocolate.Tests
         }
 
         public static Task ExpectError(
-            string query,
-            params Action<IError>[] elementInspectors)
-        {
-            return ExpectError(new TestConfiguration(), query, elementInspectors);
-        }
-
-        public static Task ExpectError(
-            string query,
-            Action<IQueryRequestBuilder> modifyRequest,
-            params Action<IError>[] elementInspectors)
-        {
-            return ExpectError(
-                new TestConfiguration { ModifyRequest = modifyRequest },
-                query,
-                elementInspectors);
-        }
-
-        public static Task ExpectError(
             string sdl,
             string query,
+            Action<IRequestExecutorBuilder>? configure = null,
+            Action<IQueryRequestBuilder>? request = null,
+            IServiceProvider? requestServices = null,
             params Action<IError>[] elementInspectors) =>
-            ExpectError(b => b.AddDocumentFromString(sdl).UseNothing(), query, elementInspectors);
+            ExpectError(
+                query,
+                b =>
+                {
+                    b.AddDocumentFromString(sdl).UseNothing();
+                    configure?.Invoke(b);
+                },
+                request,
+                requestServices,
+                elementInspectors);
 
         public static Task ExpectError(
-            Action<ISchemaBuilder> createSchema,
             string query,
+            Action<IRequestExecutorBuilder>? configure = null,
+            Action<IQueryRequestBuilder>? request = null,
+            IServiceProvider? requestServices = null,
             params Action<IError>[] elementInspectors)
         {
             return ExpectError(
-                new TestConfiguration { CreateSchema = createSchema },
                 query,
+                new TestConfiguration
+                {
+                    Configure = configure,
+                    ConfigureRequest = request,
+                    Services = requestServices
+                },
                 elementInspectors);
         }
 
         public static async Task ExpectError(
-            TestConfiguration? configuration,
             string query,
+            TestConfiguration? configuration,
             params Action<IError>[] elementInspectors)
         {
             // arrange
-            IRequestExecutor executor = CreateExecutor(configuration);
+            IRequestExecutor executor = await CreateExecutorAsync(configuration);
             IReadOnlyQueryRequest request = CreateRequest(configuration, query);
 
             // act
@@ -117,38 +102,53 @@ namespace HotChocolate.Tests
             result.MatchSnapshot();
         }
 
-        private static IRequestExecutor CreateExecutor(TestConfiguration? configuration)
+        private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
+            TestConfiguration? configuration)
         {
-            configuration ??= new TestConfiguration();
-            configuration.CreateSchema ??= b => b.AddStarWarsTypes();
-            configuration.CreateExecutor ??= s => s.MakeExecutable();
+            IRequestExecutorBuilder builder = new ServiceCollection().AddGraphQL();
 
-            var builder = SchemaBuilder.New();
-            configuration.CreateSchema(builder);
-            return configuration.CreateExecutor(builder.Create());
+            if (configuration?.Configure is { } c)
+            {
+                c.Invoke(builder);
+            }
+            else
+            {
+                AddDefaultConfiguration(builder);
+            }
+
+            return await builder.Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync();
         }
 
         private static IReadOnlyQueryRequest CreateRequest(
             TestConfiguration? configuration, string query)
         {
             configuration ??= new TestConfiguration();
-            configuration.Service ??= new ServiceCollection()
-                .AddGraphQLCore()
-                .AddStarWarsRepositories()
-                .AddInMemorySubscriptionProvider()
-                .BuildServiceProvider();
 
-            IQueryRequestBuilder builder =
-                QueryRequestBuilder.New()
-                    .SetQuery(query)
-                    .SetServices(configuration.Service);
+            IQueryRequestBuilder builder = QueryRequestBuilder.New().SetQuery(query);
 
-            if (configuration.ModifyRequest is { })
+            if (configuration.Services is { } services)
             {
-                configuration.ModifyRequest(builder);
+                builder.SetServices(services);
+            }
+
+            if (configuration.ConfigureRequest is { } configure)
+            {
+                configure(builder);
             }
 
             return builder.Create();
+        }
+
+        public static void AddDefaultConfiguration(IRequestExecutorBuilder builder)
+        {
+            builder
+                .AddStarWarsTypes()
+                .Services
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptionProvider();
         }
     }
 }

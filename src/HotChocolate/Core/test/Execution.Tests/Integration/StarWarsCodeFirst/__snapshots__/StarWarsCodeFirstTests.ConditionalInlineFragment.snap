@@ -1,0 +1,13 @@
+﻿{
+  "Data": {
+    "heroes": [
+      {
+        "name": "Luke Skywalker",
+        "height": 1.72
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

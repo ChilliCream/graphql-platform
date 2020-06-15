@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution.Options;
 using HotChocolate.Tests;
 using HotChocolate.Types;
-using Xunit;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Execution
 {
@@ -133,13 +132,10 @@ namespace HotChocolate.Execution
         {
             Snapshot.FullName();
             return TestHelper.ExpectError(
-                new TestConfiguration
-                {
-                    CreateExecutor = s => s.MakeExecutable(
-                        new RequestExecutorOptions { IncludeExceptionDetails = false }),
-                    CreateSchema = b => b.AddQueryType<QueryType>()
-                },
-                "{ error14 }");
+                "{ error14 }",
+                b => b
+                    .AddQueryType<QueryType>()
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = false));
         }
 
         private async Task ExpectError(
@@ -149,23 +145,14 @@ namespace HotChocolate.Execution
             int errors = 0;
 
             await TestHelper.ExpectError(
-                new TestConfiguration
-                {
-                    CreateExecutor = s => new ServiceCollection()
-                        .AddGraphQL()
-                        .AddQueryType<QueryType>()
-                        .AddErrorFilter(error =>
-                        {
-                            errors++;
-                            return error;
-                        })
-                        .Services
-                        .BuildServiceProvider()
-                        .GetRequiredService<IRequestExecutorResolver>()
-                        .GetRequestExecutorAsync()
-                        .Result
-                },
-                query);
+                query,
+                b => b
+                    .AddQueryType<QueryType>()
+                    .AddErrorFilter(error =>
+                    {
+                        errors++;
+                        return error;
+                    }));
 
             Assert.Equal(expectedErrorCount, errors);
         }
