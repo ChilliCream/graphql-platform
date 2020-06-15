@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
                     return casted;
                 }
 
-                // not compatible literal
+                // todo: not compatible literal
                 throw new GraphQLException(); // throw helper
             }
 

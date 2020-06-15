@@ -1,5 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "leftComparison": {
       "name": "Luke Skywalker",
       "appearsIn": [
@@ -7,20 +7,22 @@
         "EMPIRE",
         "JEDI"
       ],
-      "friends": [
-        {
-          "name": "Han Solo"
-        },
-        {
-          "name": "Leia Organa"
-        },
-        {
-          "name": "C-3PO"
-        },
-        {
-          "name": "R2-D2"
-        }
-      ]
+      "friends": {
+        "nodes": [
+          {
+            "name": "Han Solo"
+          },
+          {
+            "name": "Leia Organa"
+          },
+          {
+            "name": "C-3PO"
+          },
+          {
+            "name": "R2-D2"
+          }
+        ]
+      }
     },
     "rightComparison": {
       "name": "R2-D2",
@@ -29,20 +31,19 @@
         "EMPIRE",
         "JEDI"
       ],
-      "friends": [
-        {
-          "name": "Luke Skywalker"
-        },
-        {
-          "name": "Han Solo"
-        },
-        {
-          "name": "Leia Organa"
-        }
-      ]
+      "friends": {
+        "nodes": [
+          {
+            "name": "Luke Skywalker"
+          },
+          {
+            "name": "Han Solo"
+          },
+          {
+            "name": "Leia Organa"
+          }
+        ]
+      }
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

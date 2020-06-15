@@ -49,6 +49,8 @@ namespace HotChocolate.Execution.Utilities
 
         private bool TryCoerceArguments()
         {
+            // if we have errors on the compiled execution plan we will report the errors and
+            // signal that this resolver task has errors and shall end.
             if (_selection.Arguments.HasErrors)
             {
                 foreach (PreparedArgument argument in _selection.Arguments.Values)
@@ -62,35 +64,55 @@ namespace HotChocolate.Execution.Utilities
                 return false;
             }
 
-            if (!_selection.IsFinal)
+            try
             {
-                var args = new Dictionary<NameString, PreparedArgument>();
-
-                foreach (PreparedArgument argument in _selection.Arguments.Values)
+                // if there are arguments that have variables and need variable replacement we will
+                // rewrite the arguments that need variable replacement.
+                if (!_selection.Arguments.IsFinal)
                 {
-                    if (argument.IsFinal)
-                    {
-                        args.Add(argument.Argument.Name, argument);
-                    }
-                    else
-                    {
-                        IValueNode literal = _operationContext.ReplaceVariables(
-                            argument.ValueLiteral!, argument.Type);
+                    var args = new Dictionary<NameString, PreparedArgument>();
 
-                        args.Add(argument.Argument.Name, new PreparedArgument(
-                            argument.Argument,
-                            literal.TryGetValueKind(out ValueKind kind) ? kind : ValueKind.Unknown,
-                            argument.IsFinal,
-                            argument.IsImplicit,
-                            null,
-                            literal));
+                    foreach (PreparedArgument argument in _selection.Arguments.Values)
+                    {
+                        if (argument.IsFinal)
+                        {
+                            args.Add(argument.Argument.Name, argument);
+                        }
+                        else
+                        {
+                            IValueNode literal = VariableRewriter.Rewrite(
+                                argument.ValueLiteral!, _context.Variables);
+
+                            args.Add(argument.Argument.Name, new PreparedArgument(
+                                argument.Argument,
+                                literal.TryGetValueKind(out ValueKind kind) ? kind : ValueKind.Unknown,
+                                argument.IsFinal,
+                                argument.IsImplicit,
+                                null,
+                                literal));
+                        }
                     }
+
+                    _context.Arguments = args;
                 }
 
-                _context.Arguments = args;
+                return true;
+            }
+            catch (GraphQLException ex)
+            {
+                foreach (IError error in ex.Errors)
+                {
+                    _context.ReportError(error);
+                }
+                _context.Result = null;
+            }
+            catch (Exception ex)
+            {
+                _context.ReportError(ex);
+                _context.Result = null;
             }
 
-            return true;
+            return false;
         }
 
         private async ValueTask ExecuteResolverPipelineAsync()
@@ -136,6 +158,7 @@ namespace HotChocolate.Execution.Utilities
 
             try
             {
+                // we will only try to complete the resolver value if there are no known errors.
                 if (!withErrors)
                 {
                     if (ValueCompletion.TryComplete(
@@ -160,6 +183,8 @@ namespace HotChocolate.Execution.Utilities
 
             if (completedValue is null && _context.Field.Type.IsNonNullType())
             {
+                // if we detect a non-null violation we will stash it for later.
+                // the non-null propagation is delayed so that we can parallelize better.
                 _operationContext.Result.AddNonNullViolation(
                     _context.FieldSelection,
                     _context.Path,

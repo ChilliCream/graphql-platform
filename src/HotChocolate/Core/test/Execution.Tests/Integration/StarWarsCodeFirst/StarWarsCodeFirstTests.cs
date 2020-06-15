@@ -72,6 +72,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgAliasExample()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             {
                 empireHero: hero(episode: EMPIRE) {
@@ -87,6 +88,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgFragmentExample()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             {
                 leftComparison: hero(episode: EMPIRE) {
@@ -101,7 +103,9 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 name
                 appearsIn
                 friends {
-                    name
+                    nodes {
+                        name
+                    }
                 }
             }")
             .MatchSnapshotAsync();
@@ -110,12 +114,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgOperationNameExample()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query HeroNameAndFriends {
                 hero {
                     name
                     friends {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }")
@@ -125,12 +132,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgVariableExample()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query HeroNameAndFriends($episode: Episode) {
                 hero(episode: $episode) {
                     name
                     friends {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }",
@@ -141,12 +151,15 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgVariableWithDefaultValueExample()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query HeroNameAndFriends($episode: Episode = JEDI) {
                 hero(episode: $episode) {
                     name
                     friends {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }")
@@ -156,69 +169,85 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Fact]
         public async Task GraphQLOrgDirectiveIncludeExample1()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
                     friends @include(if: $withFriends) {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }",
             request: c => c
                 .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                .SetVariableValue("withFriends", new BooleanValueNode(false)));
+                .SetVariableValue("withFriends", new BooleanValueNode(false)))
+            .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task GraphQLOrgDirectiveIncludeExample2()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
                     friends @include(if: $withFriends) {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }",
             request: r => r
                 .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                .SetVariableValue("withFriends", new BooleanValueNode(true)));
+                .SetVariableValue("withFriends", new BooleanValueNode(true)))
+            .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task GraphQLOrgDirectiveSkipExample1()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
                     friends @skip(if: $withFriends) {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }",
             request: r => r
                 .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                .SetVariableValue("withFriends", new BooleanValueNode(false)));
+                .SetVariableValue("withFriends", new BooleanValueNode(false)))
+            .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task GraphQLOrgDirectiveSkipExample2()
         {
+            Snapshot.FullName();
             await ExpectValid(@"
             query Hero($episode: Episode, $withFriends: Boolean!) {
                 hero(episode: $episode) {
                     name
                     friends @skip(if: $withFriends) {
-                        name
+                        nodes {
+                            name
+                        }
                     }
                 }
             }",
             request: r => r
                 .SetVariableValue("episode", new EnumValueNode("JEDI"))
-                .SetVariableValue("withFriends", new BooleanValueNode(true)));
+                .SetVariableValue("withFriends", new BooleanValueNode(true)))
+            .MatchSnapshotAsync();
         }
 
         /*

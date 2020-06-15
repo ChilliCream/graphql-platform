@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public class VariableCoercionHelper
+    internal class VariableCoercionHelper
     {
         public void CoerceVariableValues(
             ISchema schema,

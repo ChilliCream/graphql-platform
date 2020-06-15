@@ -147,5 +147,13 @@ namespace HotChocolate.Execution.Utilities
                         "Either no query document exists or the document " + 
                         "validation result is invalid.")
                     .Build());
+
+        public static IReadOnlyQueryResult StateInvalidForOperationVariableCoercion() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "There is no operation on the context which can be used to coerce " + 
+                        "variables.")
+                    .Build());
     }
 }

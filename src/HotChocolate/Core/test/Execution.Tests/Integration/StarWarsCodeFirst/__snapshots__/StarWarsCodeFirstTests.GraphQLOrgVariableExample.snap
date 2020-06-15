@@ -1,21 +1,20 @@
 ﻿{
-  "Data": {
+  "data": {
     "hero": {
       "name": "R2-D2",
-      "friends": [
-        {
-          "name": "Luke Skywalker"
-        },
-        {
-          "name": "Han Solo"
-        },
-        {
-          "name": "Leia Organa"
-        }
-      ]
+      "friends": {
+        "nodes": [
+          {
+            "name": "Luke Skywalker"
+          },
+          {
+            "name": "Han Solo"
+          },
+          {
+            "name": "Leia Organa"
+          }
+        ]
+      }
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

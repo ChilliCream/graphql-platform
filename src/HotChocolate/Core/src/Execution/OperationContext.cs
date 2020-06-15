@@ -21,10 +21,5 @@ namespace HotChocolate.Execution
             SelectionSetNode selectionSet,
             ObjectType objectType) =>
             Operation.GetSelections(selectionSet, objectType);
-
-        public IValueNode ReplaceVariables(IValueNode value, IType type)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
