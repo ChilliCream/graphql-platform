@@ -44,7 +44,8 @@ using static Nuke.Common.Tools.Slack.SlackTasks;
     GitHubActionsImage.WindowsServer2019,
     On = new[] { GitHubActionsTrigger.Push },
     InvokedTargets = new[] { nameof(TestHC) },
-    ImportGitHubTokenAs = nameof(GitHubActions.GitHubToken))]
+    ImportGitHubTokenAs = nameof(GitHubActions.GitHubToken),
+    ImportSecrets = new[] { "SonarToken" })]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
@@ -104,7 +105,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             DotNetTest(_ => _
-                .SetConfiguration(Configuration)
+                .SetConfiguration(Configuration.Debug)
                 .SetNoRestore(InvokedTargets.Contains(RestoreHC))
                 .ResetVerbosity()
                 .SetResultsDirectory(TestResultDirectory)
@@ -112,8 +113,7 @@ class Build : NukeBuild
                     .EnableCollectCoverage()
                     .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
                     .SetExcludeByFile("*.Generated.cs")
-                    .When(IsServerBuild, _ => _
-                        .EnableUseSourceLink()))
+                    .When(IsServerBuild, _ => _ .EnableUseSourceLink()))
                 .CombineWith(TestProjects, (_, v) => _
                     .SetProjectFile(v)
                     .SetLogger($"trx;LogFileName={v.Name}.trx")

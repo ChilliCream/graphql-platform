@@ -28,6 +28,7 @@ jobs:
         run: ./build.cmd TestHC
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
@@ -41,6 +42,7 @@ jobs:
         run: ./build.cmd TestHC
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
@@ -54,6 +56,7 @@ jobs:
         run: ./build.cmd TestHC
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
@@ -67,6 +70,7 @@ jobs:
         run: ./build.cmd TestHC
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
@@ -80,6 +84,7 @@ jobs:
         run: ./build.cmd TestHC
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+            SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
         with:
           name: test-results
