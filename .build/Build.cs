@@ -111,7 +111,7 @@ class Build : NukeBuild
                 .SetResultsDirectory(TestResultDirectory)
                 .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
                     .EnableCollectCoverage()
-                    .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
+                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
                     .SetExcludeByFile("*.Generated.cs")
                     .When(IsServerBuild, _ => _ .EnableUseSourceLink()))
                 .CombineWith(TestProjects, (_, v) => _
