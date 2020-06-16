@@ -142,7 +142,7 @@ partial class Build : NukeBuild
         });
 
     Target SonarHC => _ => _
-        .DependsOn()
+        .DependsOn(CoverHC)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
@@ -167,24 +167,7 @@ partial class Build : NukeBuild
             DotNetBuild(c => c
                 .SetProjectFile(HotChocolateSolution)
                 .SetNoRestore(InvokedTargets.Contains(RestoreHC))
-                .SetConfiguration(Configuration.Debug)
-                .SetVersion(GitVersion.SemVer));
-
-            DotNetTest(_ => _
-                .SetConfiguration(Configuration.Debug)
-                .SetNoRestore(true)
-                .SetNoBuild(true)
-                .ResetVerbosity()
-                .SetResultsDirectory(TestResultDirectory)
-                .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
-                    .EnableCollectCoverage()
-                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-                    .SetExcludeByFile("*.Generated.cs"))
-                .CombineWith(TestProjects, (_, v) => _
-                    .SetProjectFile(v)
-                    .SetLogger($"trx;LogFileName={v.Name}.trx")
-                    .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
-                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"))));
+                .SetConfiguration(Configuration.Debug));
 
             SonarScannerEnd(c => c.SetLogin(SonarToken));
         });
