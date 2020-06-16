@@ -21,6 +21,7 @@ using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Tools.InspectCode;
 using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Tools.Slack;
+using Nuke.Common.Tools.SonarScanner;
 using Nuke.Common.Utilities;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.ChangeLog.ChangelogTasks;
@@ -33,6 +34,7 @@ using static Nuke.Common.Tools.InspectCode.InspectCodeTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.Slack.SlackTasks;
+using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 
 
 [GitHubActions(
@@ -43,12 +45,12 @@ using static Nuke.Common.Tools.Slack.SlackTasks;
     GitHubActionsImage.WindowsServer2016R2,
     GitHubActionsImage.WindowsServer2019,
     On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(TestHC) },
-    ImportGitHubTokenAs = nameof(GitHubActions.GitHubToken),
-    ImportSecrets = new[] { "SonarToken" })]
+    InvokedTargets = new[] { nameof(SonarHC) },
+    ImportGitHubTokenAs = nameof(GitHubToken),
+    ImportSecrets = new[] { nameof(SonarToken) })]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
-class Build : NukeBuild
+partial class Build : NukeBuild
 {
     public static int Main() => Execute<Build>(x => x.CompileHC);
 
@@ -60,8 +62,6 @@ class Build : NukeBuild
     Solution HotChocolateSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "HotChocolate.sln");
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
-
-
 
     [GitRepository] readonly GitRepository GitRepository;
     [GitVersion] readonly GitVersion GitVersion;
@@ -139,6 +139,43 @@ class Build : NukeBuild
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
             //.SetPackageReleaseNotes(GetNuGetReleaseNotes(ChangelogFile, GitRepository)));
+        });
+
+    Target SonarHC => _ => _
+        .DependsOn(SonarBeginHC)
+        .DependsOn(CoverHC)
+        .DependsOn(SonarEndHC)
+        .Executes(() =>
+        {
+        });
+
+    Target SonarBeginHC => _ => _
+        .DependsOn()
+        .Executes(() =>
+        {
+            SonarScannerBegin(c => c
+                .SetProjectKey("HotChocolate")
+                .SetName("HotChocolate")
+                .SetVersion(GitVersion.SemVer)
+                .SetServer("https://sonarcloud.io")
+                .SetLogin(SonarToken)
+                .AddDotCoverPaths(TestResultDirectory / "*.xml")
+                .AddXUnitTestReports(TestResultDirectory / "*.trx")
+                .SetArgumentConfigurator(t => t
+                    .Add("/o:\"{0}\"", "chillicream")
+                    .Add("/d:sonar.pullrequest.provider=\"{0}\"", "github")
+                    .Add("/d:sonar.pullrequest.github.repository=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
+                    .Add("/d:sonar.pullrequest.key=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REF"))
+                    .Add("/d:sonar.pullrequest.branch=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_HEAD_REF"))
+                    .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_BASE_REF"))
+                    .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
+        });
+
+    Target SonarEndHC => _ => _
+        .DependsOn()
+        .Executes(() =>
+        {
+            SonarScannerEnd(c => c.SetLogin(SonarToken));
         });
 
 }
