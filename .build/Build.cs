@@ -43,48 +43,48 @@ using static Nuke.Common.Tools.Slack.SlackTasks;
     GitHubActionsImage.WindowsServer2016R2,
     GitHubActionsImage.WindowsServer2019,
     On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(CompileHc) },
+    InvokedTargets = new[] { nameof(TestHC) },
     ImportGitHubTokenAs = nameof(GitHubActions.GitHubToken))]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 class Build : NukeBuild
 {
-    public static int Main() => Execute<Build>(x => x.CompileHc);
+    public static int Main() => Execute<Build>(x => x.CompileHC);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath HotChocolateDirectory => SourceDirectory / "HotChocolate";
-    AbsolutePath HotChocolateSolution => HotChocolateDirectory / "HotChocolate.sln";
+    Solution HotChocolateSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "HotChocolate.sln");
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
-    AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
+
 
 
     [GitRepository] readonly GitRepository GitRepository;
     [GitVersion] readonly GitVersion GitVersion;
 
     Target Clean => _ => _
-        .Before(RestoreHc)
+        .Before(RestoreHC)
         .Executes(() =>
         {
         });
 
-    Target RestoreHc => _ => _
+    Target RestoreHC => _ => _
         .Executes(() =>
         {
             DotNetRestore(c => c
                 .SetProjectFile(HotChocolateSolution));
         });
 
-    Target CompileHc => _ => _
-        .DependsOn(RestoreHc)
+    Target CompileHC => _ => _
+        .DependsOn(RestoreHC)
         .Executes(() =>
         {
             DotNetBuild(c => c
                 .SetProjectFile(HotChocolateSolution)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHc))
+                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
                 .SetConfiguration(Configuration)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
@@ -92,17 +92,49 @@ class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
         });
 
+    [Partition(2)] readonly Partition TestPartition;
+    AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
+    IEnumerable<Project> TestProjects => TestPartition.GetCurrent(HotChocolateSolution.GetProjects("*.Tests"));
+
+    Target TestHC => _ => _
+        .DependsOn(RestoreHC)
+        .Produces(TestResultDirectory / "*.trx")
+        .Produces(TestResultDirectory / "*.xml")
+        .Partition(() => TestPartition)
+        .Executes(() =>
+        {
+            DotNetTest(_ => _
+                .SetConfiguration(Configuration)
+                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .ResetVerbosity()
+                .SetResultsDirectory(TestResultDirectory)
+                .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
+                    .EnableCollectCoverage()
+                    .SetCoverletOutputFormat(CoverletOutputFormat.cobertura)
+                    .SetExcludeByFile("*.Generated.cs")
+                    .When(IsServerBuild, _ => _
+                        .EnableUseSourceLink()))
+                .CombineWith(TestProjects, (_, v) => _
+                    .SetProjectFile(v)
+                    .SetLogger($"trx;LogFileName={v.Name}.trx")
+                    .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
+                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"))));
+        });
+
+    Target CoverHC => _ => _
+        .DependsOn(TestHC);
+
     string ChangelogFile => RootDirectory / "CHANGELOG.md";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
 
-    Target PackHc => _ => _
-        .DependsOn(RestoreHc)
+    Target PackHC => _ => _
+        .DependsOn(RestoreHC)
         .Executes(() =>
         {
             DotNetPack(_ => _
                 .SetProject(HotChocolateSolution)
-                .SetNoBuild(InvokedTargets.Contains(CompileHc))
+                .SetNoBuild(InvokedTargets.Contains(CompileHC))
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
