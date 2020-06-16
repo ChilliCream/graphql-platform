@@ -164,9 +164,16 @@ partial class Build : NukeBuild
                     .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_BASE_REF"))
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
 
+            DotNetBuild(c => c
+                .SetProjectFile(HotChocolateSolution)
+                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .SetConfiguration(Configuration.Debug)
+                .SetVersion(GitVersion.SemVer));
+
             DotNetTest(_ => _
                 .SetConfiguration(Configuration.Debug)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .SetNoRestore(true)
+                .SetNoBuild(true)
                 .ResetVerbosity()
                 .SetResultsDirectory(TestResultDirectory)
                 .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
