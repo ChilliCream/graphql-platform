@@ -38,16 +38,21 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 
 
 [GitHubActions(
-    "continuous",
-    GitHubActionsImage.MacOs1014,
+    "sonar-pr-hotchocolate",
+    GitHubActionsImage.UbuntuLatest,
+    On = new[] { GitHubActionsTrigger.Push },
+    InvokedTargets = new[] { nameof(SonarHC) },
+    ImportGitHubTokenAs = nameof(GitHubToken),
+    ImportSecrets = new[] { nameof(SonarToken) })]
+[GitHubActions(
+    "tests-pr-hotchocolate",
     GitHubActionsImage.Ubuntu1604,
     GitHubActionsImage.Ubuntu1804,
     GitHubActionsImage.WindowsServer2016R2,
     GitHubActionsImage.WindowsServer2019,
     On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(SonarHC) },
-    ImportGitHubTokenAs = nameof(GitHubToken),
-    ImportSecrets = new[] { nameof(SonarToken) })]
+    InvokedTargets = new[] { nameof(TestHC) },
+    ImportGitHubTokenAs = nameof(GitHubToken))]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
