@@ -5,6 +5,7 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Relay;
 using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
@@ -257,7 +258,8 @@ namespace HotChocolate.Types.Selections
         {
             for (int i = 0; i < selections.Count; i++)
             {
-                if (!(selections[i].Field.Member is PropertyInfo))
+                if (!(selections[i].Field.Member is PropertyInfo) &&
+                    !IntrospectionFields.TypeName.Equals(selections[i].Field.Name))
                 {
                     return true;
                 }
