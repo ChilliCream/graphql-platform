@@ -142,15 +142,9 @@ partial class Build : NukeBuild
         });
 
     Target SonarHC => _ => _
-        .DependsOn(SonarBeginHC)
-        .DependsOn(CoverHC)
-        .DependsOn(SonarEndHC)
-        .Executes(() =>
-        {
-        });
-
-    Target SonarBeginHC => _ => _
         .DependsOn()
+        .Produces(TestResultDirectory / "*.trx")
+        .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
             SonarScannerBegin(c => c
@@ -169,13 +163,23 @@ partial class Build : NukeBuild
                     .Add("/d:sonar.pullrequest.branch=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_HEAD_REF"))
                     .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_BASE_REF"))
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
-        });
 
-    Target SonarEndHC => _ => _
-        .DependsOn()
-        .Executes(() =>
-        {
+            DotNetTest(_ => _
+                .SetConfiguration(Configuration.Debug)
+                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .ResetVerbosity()
+                .SetResultsDirectory(TestResultDirectory)
+                .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
+                    .EnableCollectCoverage()
+                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+                    .SetExcludeByFile("*.Generated.cs")
+                    .When(IsServerBuild, _ => _ .EnableUseSourceLink()))
+                .CombineWith(TestProjects, (_, v) => _
+                    .SetProjectFile(v)
+                    .SetLogger($"trx;LogFileName={v.Name}.trx")
+                    .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
+                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"))));
+
             SonarScannerEnd(c => c.SetLogin(SonarToken));
         });
-
 }

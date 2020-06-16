@@ -29,10 +29,6 @@ jobs:
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
   ubuntu-16_04:
     name: ubuntu-16_04
     runs-on: ubuntu-16.04
@@ -43,10 +39,6 @@ jobs:
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
   ubuntu-18_04:
     name: ubuntu-18_04
     runs-on: ubuntu-18.04
@@ -57,10 +49,6 @@ jobs:
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
   windows-2016:
     name: windows-2016
     runs-on: windows-2016
@@ -71,10 +59,6 @@ jobs:
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
   windows-2019:
     name: windows-2019
     runs-on: windows-2019
@@ -85,7 +69,3 @@ jobs:
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
