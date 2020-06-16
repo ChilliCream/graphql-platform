@@ -112,8 +112,7 @@ partial class Build : NukeBuild
                 .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
                     .EnableCollectCoverage()
                     .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-                    .SetExcludeByFile("*.Generated.cs")
-                    .When(IsServerBuild, _ => _ .EnableUseSourceLink()))
+                    .SetExcludeByFile("*.Generated.cs"))
                 .CombineWith(TestProjects, (_, v) => _
                     .SetProjectFile(v)
                     .SetLogger($"trx;LogFileName={v.Name}.trx")
