@@ -16,7 +16,10 @@
 
 name: tests-pr-hotchocolate
 
-on: [push]
+on: 
+  pull_request:
+    branches:
+      - master
 
 jobs:
   ubuntu-latest:
