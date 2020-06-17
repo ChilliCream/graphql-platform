@@ -23,22 +23,17 @@ jobs:
     name: ubuntu-latest
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: GITHUB_BASE_REF
-        env:
-          HC_GITHUB_BASE_REF: ${{ github.base_ref }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: GITHUB_HEAD_REF
-        env:
-          HC_GITHUB_HEAD_REF: ${{ github.head_ref }}
-        run: echo "$JOB_CONTEXT"
-      - uses: actions/checkout@v1
       - name: Run './build.cmd SonarHC'
         run: ./build.cmd SonarHC
         env:
+            GITHUB_CONTEXT: ${{ toJson(github) }}
+            HC_GITHUB_BASE_REF: ${{ github.base_ref }}
+            HC_GITHUB_HEAD_REF: ${{ github.head_ref }}
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
             SonarToken: ${{ secrets.SonarToken }}
       - uses: actions/upload-artifact@v1
