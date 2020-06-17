@@ -36,6 +36,10 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.Slack.SlackTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 
+[AzurePipelines(
+    suffix: "test-pr-hotchocolate",
+    AzurePipelinesImage.UbuntuLatest,
+    InvokedTargets = new[] { nameof(Test) })]
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
@@ -47,7 +51,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 [GitHubActions(
     "tests-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.Push },
+    On = new[] { GitHubActionsTrigger.PullRequest },
     InvokedTargets = new[] { nameof(Test) },
     ImportGitHubTokenAs = nameof(GitHubToken),
     AutoGenerate = false)]
