@@ -6,6 +6,7 @@ using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Selections.Handlers;
 using HotChocolate.Utilities;
 
@@ -42,7 +43,7 @@ namespace HotChocolate.Types.Selections
         }
 
         public bool TryProject<T>(
-            [NotNullWhen(true)]out Expression<Func<T, T>>? projection)
+            [NotNullWhen(true)] out Expression<Func<T, T>>? projection)
         {
             if (_selectionMiddlewareContext.Errors.Count == 0)
             {
@@ -54,6 +55,15 @@ namespace HotChocolate.Types.Selections
                 projection = null;
                 return false;
             }
+        }
+
+        protected override bool EnterLeaf(IFieldSelection selection)
+        {
+            if (IntrospectionFields.TypeName.Equals(selection.Field.Name))
+            {
+                return false;
+            }
+            return base.EnterLeaf(selection);
         }
 
         protected override void LeaveLeaf(IFieldSelection selection)
