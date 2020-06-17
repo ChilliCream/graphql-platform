@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run Sonar Pull-Request Analysis'
-        run: ./build.cmd Sonar
+        run: ./build.cmd SonarPr
         env:
             GITHUB_CONTEXT: ${{ toJson(github) }}
             HC_GITHUB_BASE_REF: ${{ github.base_ref }}
