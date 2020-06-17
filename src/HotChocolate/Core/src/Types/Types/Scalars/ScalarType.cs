@@ -23,7 +23,6 @@ namespace HotChocolate.Types
         private readonly ITypeConversion _converter = TypeConversion.Default;
         private readonly ExtensionData _contextData = new ExtensionData();
 
-
         /// <summary>
         /// Initializes a new instance of the
         /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
@@ -86,7 +85,7 @@ namespace HotChocolate.Types
         /// <c>true</c> if the value is a value of this type;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public virtual bool IsInstanceOfType(object value)
+        public virtual bool IsInstanceOfType(object? value)
         {
             if (value is null)
             {
@@ -110,7 +109,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="literal" /> cannot be parsed
         /// by this scalar.
         /// </exception>
-        public abstract object ParseLiteral(IValueNode literal);
+        public abstract object? ParseLiteral(IValueNode literal);
 
         /// <summary>
         /// Parses the .net value representation to a value literal.
@@ -125,7 +124,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be parsed
         /// by this scalar.
         /// </exception>
-        public abstract IValueNode ParseValue(object value);
+        public abstract IValueNode ParseValue(object? value);
 
         /// <summary>
         /// Serializes the .net value representation.
@@ -140,9 +139,9 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public virtual object Serialize(object value)
+        public virtual object Serialize(object? value)
         {
-            if (TrySerialize(value, out object s))
+            if (TrySerialize(value, out object? s))
             {
                 return s;
             }
@@ -163,7 +162,7 @@ namespace HotChocolate.Types
         /// <returns>
         /// <c>true</c> if the value was correctly serialized; otherwise, <c>false</c>.
         /// </returns>
-        public abstract bool TrySerialize(object value, out object serialized);
+        public abstract bool TrySerialize(object? value, out object? serialized);
 
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
@@ -178,7 +177,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be deserialized
         /// by this scalar.
         /// </exception>
-        public virtual object Deserialize(object serialized)
+        public virtual object Deserialize(object? serialized)
         {
             if (TryDeserialize(serialized, out object v))
             {
@@ -202,7 +201,7 @@ namespace HotChocolate.Types
         /// <returns>
         /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
         /// </returns>
-        public abstract bool TryDeserialize(object serialized, out object value);
+        public abstract bool TryDeserialize(object? serialized, out object? value);
 
         internal sealed override void Initialize(IInitializationContext context)
         {

@@ -25,7 +25,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
-        /// or enqueues this single request for bacthing if enabled.
+        /// or enqueues this single request for batching if enabled.
         /// </summary>
         /// <param name="key">A unique key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -42,7 +42,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -59,7 +59,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="keys">A list of unique keys.</param>
@@ -116,7 +116,7 @@ namespace GreenDonut
     {
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
-        /// or enqueues this single request for bacthing if enabled.
+        /// or enqueues this single request for batching if enabled.
         /// </summary>
         /// <param name="key">A unique key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -131,7 +131,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -148,7 +148,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="keys">A list of unique keys.</param>
