@@ -65,6 +65,9 @@ partial class Build : NukeBuild
     Solution HotChocolateSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "HotChocolate.sln");
     AbsolutePath GreenDonutDirectory => SourceDirectory / "GreenDonut";
     Solution GreenDonutSolution => ProjectModelTasks.ParseSolution(GreenDonutDirectory / "GreenDonut.sln");
+    AbsolutePath StrawberryShakeDirectory => SourceDirectory / "StrawberryShake";
+    Solution StrawberryShakeClientSolution => ProjectModelTasks.ParseSolution(StrawberryShakeDirectory / "Client" / "StrawberryShake.Client.sln");
+    Solution StrawberryShakeCodeGenerationSolution => ProjectModelTasks.ParseSolution(StrawberryShakeDirectory / "CodeGeneration" / "StrawberryShake.CodeGeneration.sln");
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
@@ -84,6 +87,10 @@ partial class Build : NukeBuild
                 .SetProjectFile(GreenDonutSolution));
             DotNetRestore(c => c
                 .SetProjectFile(HotChocolateSolution));
+            DotNetRestore(c => c
+                .SetProjectFile(StrawberryShakeClientSolution));
+            DotNetRestore(c => c
+                .SetProjectFile(StrawberryShakeCodeGenerationSolution));
         });
 
     Target CompileHC => _ => _
@@ -102,9 +109,12 @@ partial class Build : NukeBuild
 
     [Partition(4)] readonly Partition TestPartition;
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
+
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         GreenDonutSolution.GetProjects("*.Tests").Concat(
-            HotChocolateSolution.GetProjects("*.Tests")));
+            HotChocolateSolution.GetProjects("*.Tests")).Concat(
+            StrawberryShakeClientSolution.GetProjects("*.Tests")).Concat(
+            StrawberryShakeCodeGenerationSolution.GetProjects("*.Tests")));
 
     Target Test => _ => _
         .DependsOn(Restore)
@@ -172,7 +182,10 @@ partial class Build : NukeBuild
             }
 
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
+            DotNetBuild(SonarBuildGreenDonut);
             DotNetBuild(SonarBuildHotChocolate);
+            DotNetBuild(SonarBuildStrawberryShakeClient);
+            DotNetBuild(SonarBuildStrawberryShakeCodeGeneration);
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -184,7 +197,10 @@ partial class Build : NukeBuild
         {
             Logger.Info("Creating Sonar analysis for version: {0}", GitVersion.SemVer);
             SonarScannerBegin(SonarBeginFullSettings);
+            DotNetBuild(SonarBuildGreenDonut);
             DotNetBuild(SonarBuildHotChocolate);
+            DotNetBuild(SonarBuildStrawberryShakeClient);
+            DotNetBuild(SonarBuildStrawberryShakeCodeGeneration);
             SonarScannerEnd(SonarEndSettings);
         });
 
@@ -224,9 +240,21 @@ partial class Build : NukeBuild
             .SetLogin(SonarToken)
             .SetWorkingDirectory(RootDirectory);
 
+    DotNetBuildSettings SonarBuildGreenDonut(DotNetBuildSettings settings) =>
+        SonarBuildBaseSettings(settings)
+            .SetProjectFile(GreenDonutSolution);
+
     DotNetBuildSettings SonarBuildHotChocolate(DotNetBuildSettings settings) =>
         SonarBuildBaseSettings(settings)
             .SetProjectFile(HotChocolateSolution);
+
+    DotNetBuildSettings SonarBuildStrawberryShakeClient(DotNetBuildSettings settings) =>
+        SonarBuildBaseSettings(settings)
+            .SetProjectFile(StrawberryShakeClientSolution);
+
+    DotNetBuildSettings SonarBuildStrawberryShakeCodeGeneration(DotNetBuildSettings settings) =>
+        SonarBuildBaseSettings(settings)
+            .SetProjectFile(StrawberryShakeCodeGenerationSolution);
 
     DotNetBuildSettings SonarBuildBaseSettings(DotNetBuildSettings settings) =>
         settings
