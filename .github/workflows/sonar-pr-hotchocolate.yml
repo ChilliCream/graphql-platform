@@ -27,7 +27,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-        run: echo "$GITHUB_CONTEXT"
       - name: Run Sonar Pull-Request Analysis'
         run: ./build.cmd Sonar
         env:
