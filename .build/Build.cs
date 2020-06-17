@@ -36,7 +36,6 @@ using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
 using static Nuke.Common.Tools.Slack.SlackTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 
-
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
@@ -177,9 +176,8 @@ partial class Build : NukeBuild
                 .SetServer("https://sonarcloud.io")
                 .SetLogin(SonarToken)
                 .AddDotCoverPaths(TestResultDirectory / "*.xml")
-                .AddXUnitTestReports(TestResultDirectory / "*.trx")
                 .SetVSTestReports(TestResultDirectory / "*.trx")
-                .SetLogOutput(true)
+                // .SetLogOutput(true)
                 .SetWorkingDirectory(HotChocolateDirectory)
                 .SetArgumentConfigurator(t => t
                     .Add("/o:{0}", "chillicream")
