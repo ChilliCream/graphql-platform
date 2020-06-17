@@ -40,7 +40,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(SonarHC) },
+    InvokedTargets = new[] { nameof(SonarPrHC) },
     ImportGitHubTokenAs = nameof(GitHubToken),
     ImportSecrets = new[] { nameof(SonarToken) },
     AutoGenerate = false)]
@@ -143,49 +143,64 @@ partial class Build : NukeBuild
             //.SetPackageReleaseNotes(GetNuGetReleaseNotes(ChangelogFile, GitRepository)));
         });
 
-    /*
-      /opt/hostedtoolcache/dotnet/dotnet sonarscanner begin
-      /k:HotChocolate
-      /d:sonar.login=***
-      /d:sonar.host.url=https://sonarcloud.io
-      /o:chillicream
-      /d:sonar.cs.opencover.reportsPaths=**//*.opencover.xml
-      /d:sonar.cs.vscoveragexml.reportsPaths=**//*.trx
-      /d:sonar.pullrequest.key=2071
-      /d:sonar.pullrequest.branch=mst/feat-nuke-build
-      /d:sonar.pullrequest.base=master
-      /d:sonar.pullrequest.provider=github
-      /d:sonar.pullrequest.github.repository=ChilliCream/hotchocolate
-      /d:sonar.inclusions=** //src/HotChocolate/**//*.cs
-    */
-    Target SonarHC => _ => _
+    Target SonarPrHC => _ => _
         .DependsOn(CoverHC)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
-            Logger.Normal("GitHub Context");
-            Logger.Normal(Environment.GetEnvironmentVariable("GITHUB_CONTEXT"));
-            Logger.Normal(Environment.GetEnvironmentVariable("GITHUB_REF"));
-            Logger.Normal(Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2]);
+            string[] gitHubRefParts = GitHubRef.Split('/');
+            if (gitHubRefParts.Length < 4)
+            {
+                Logger.Error("The GitHub_Ref variable has not the expected structure. {0}", GitHubRef);
+                return;
+            }
+
+            var gitHubPrNumber = gitHubRefParts[^2];
 
             SonarScannerBegin(c => c
                 .SetProjectKey("HotChocolate")
                 .SetName("HotChocolate")
-                // .SetVersion(GitVersion.SemVer)
-                .SetServer("https://sonarcloud.io")
+                .SetServer(SonarServer)
                 .SetLogin(SonarToken)
                 .AddDotCoverPaths(TestResultDirectory / "*.xml")
                 .SetVSTestReports(TestResultDirectory / "*.trx")
-                // .SetLogOutput(true)
                 .SetWorkingDirectory(HotChocolateDirectory)
                 .SetArgumentConfigurator(t => t
                     .Add("/o:{0}", "chillicream")
                     .Add("/d:sonar.pullrequest.provider={0}", "github")
-                    .Add("/d:sonar.pullrequest.github.repository={0}", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
-                    .Add("/d:sonar.pullrequest.key={0}", Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2])
-                    .Add("/d:sonar.pullrequest.branch={0}", Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF"))
-                    .Add("/d:sonar.pullrequest.base={0}", Environment.GetEnvironmentVariable("HC_GITHUB_BASE_REF"))
+                    .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
+                    .Add("/d:sonar.pullrequest.key={0}", gitHubPrNumber)
+                    .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
+                    .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
+                    .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
+
+            DotNetBuild(c => c
+                .SetProjectFile(HotChocolateSolution)
+                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .SetConfiguration(Configuration.Debug));
+
+            SonarScannerEnd(c => c
+                .SetLogin(SonarToken)
+                .SetWorkingDirectory(HotChocolateDirectory));
+        });
+
+    Target SonarFullHC => _ => _
+        .DependsOn(CoverHC)
+        .Produces(TestResultDirectory / "*.trx")
+        .Produces(TestResultDirectory / "*.xml")
+        .Executes(() =>
+        {
+            SonarScannerBegin(c => c
+                .SetProjectKey("HotChocolate")
+                .SetName("HotChocolate")
+                .SetVersion(GitVersion.SemVer)
+                .SetServer(SonarServer)
+                .SetLogin(SonarToken)
+                .AddDotCoverPaths(TestResultDirectory / "*.xml")
+                .SetVSTestReports(TestResultDirectory / "*.trx")
+                .SetWorkingDirectory(HotChocolateDirectory)
+                .SetArgumentConfigurator(t => t
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
 
             DotNetBuild(c => c

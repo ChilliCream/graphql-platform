@@ -31,7 +31,7 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Run './build.cmd SonarHC'
+      - name: Run './build.cmd SonarPrHC'
         run: ./build.cmd SonarHC
         env:
             GITHUB_CONTEXT: ${{ toJson(github) }}
