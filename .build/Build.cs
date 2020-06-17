@@ -193,6 +193,8 @@ partial class Build : NukeBuild
                 .SetNoRestore(InvokedTargets.Contains(RestoreHC))
                 .SetConfiguration(Configuration.Debug));
 
-            SonarScannerEnd(c => c.SetLogin(SonarToken));
+            SonarScannerEnd(c => c
+                .SetLogin(SonarToken)
+                .SetWorkingDirectory(HotChocolateDirectory));
         });
 }
