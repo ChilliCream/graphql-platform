@@ -40,19 +40,18 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
-    On = new[] { GitHubActionsTrigger.Push },
+    On = new[] { GitHubActionsTrigger.PullRequest },
     InvokedTargets = new[] { nameof(SonarHC) },
     ImportGitHubTokenAs = nameof(GitHubToken),
-    ImportSecrets = new[] { nameof(SonarToken) })]
+    ImportSecrets = new[] { nameof(SonarToken) },
+    AutoGenerate = false)]
 [GitHubActions(
     "tests-pr-hotchocolate",
-    GitHubActionsImage.Ubuntu1604,
-    GitHubActionsImage.Ubuntu1804,
-    GitHubActionsImage.WindowsServer2016R2,
-    GitHubActionsImage.WindowsServer2019,
+    GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.Push },
     InvokedTargets = new[] { nameof(TestHC) },
-    ImportGitHubTokenAs = nameof(GitHubToken))]
+    ImportGitHubTokenAs = nameof(GitHubToken),
+    AutoGenerate = false)]
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
 partial class Build : NukeBuild
@@ -151,6 +150,9 @@ partial class Build : NukeBuild
         .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
+            Logger.Normal("GitHub Context");
+            Logger.Normal(Environment.GetEnvironmentVariable("GITHUB_CONTEXT"));
+
             SonarScannerBegin(c => c
                 .SetProjectKey("HotChocolate")
                 .SetName("HotChocolate")
@@ -164,8 +166,8 @@ partial class Build : NukeBuild
                     .Add("/d:sonar.pullrequest.provider=\"{0}\"", "github")
                     .Add("/d:sonar.pullrequest.github.repository=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
                     .Add("/d:sonar.pullrequest.key=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REF"))
-                    .Add("/d:sonar.pullrequest.branch=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_HEAD_REF"))
-                    .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_BASE_REF"))
+                    .Add("/d:sonar.pullrequest.branch=\"{0}\"", Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF"))
+                    .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("HC_GITHUB_BASE_REF"))
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
 
             DotNetBuild(c => c

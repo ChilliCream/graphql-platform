@@ -19,48 +19,9 @@ name: tests-pr-hotchocolate
 on: [push]
 
 jobs:
-  ubuntu-16_04:
-    name: ubuntu-16_04
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - name: Run './build.cmd TestHC'
-        run: ./build.cmd TestHC
-        env:
-            GitHubToken: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
-  ubuntu-18_04:
-    name: ubuntu-18_04
-    runs-on: ubuntu-18.04
-    steps:
-      - uses: actions/checkout@v1
-      - name: Run './build.cmd TestHC'
-        run: ./build.cmd TestHC
-        env:
-            GitHubToken: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
-  windows-2016:
-    name: windows-2016
-    runs-on: windows-2016
-    steps:
-      - uses: actions/checkout@v1
-      - name: Run './build.cmd TestHC'
-        run: ./build.cmd TestHC
-        env:
-            GitHubToken: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v1
-        with:
-          name: test-results
-          path: output/test-results
-  windows-2019:
-    name: windows-2019
-    runs-on: windows-2019
+  ubuntu-latest:
+    name: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Run './build.cmd TestHC'

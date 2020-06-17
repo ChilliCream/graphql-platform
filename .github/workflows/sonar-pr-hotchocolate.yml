@@ -16,13 +16,25 @@
 
 name: sonar-pr-hotchocolate
 
-on: [push]
+on: [pull_request]
 
 jobs:
   ubuntu-latest:
     name: ubuntu-latest
     runs-on: ubuntu-latest
     steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: GITHUB_BASE_REF
+        env:
+          HC_GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: echo "$GITHUB_CONTEXT"
+      - name: GITHUB_HEAD_REF
+        env:
+          HC_GITHUB_HEAD_REF: ${{ github.head_ref }}
+        run: echo "$JOB_CONTEXT"
       - uses: actions/checkout@v1
       - name: Run './build.cmd SonarHC'
         run: ./build.cmd SonarHC
