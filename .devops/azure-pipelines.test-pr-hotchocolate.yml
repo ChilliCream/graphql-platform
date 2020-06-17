@@ -14,6 +14,9 @@
 # </auto-generated>
 # ------------------------------------------------------------------------------
 
+pr:
+- master
+
 stages:
   - stage: ubuntu_latest
     displayName: 'ubuntu-latest'
