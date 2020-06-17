@@ -27,12 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Run './build.cmd SonarPrHC'
-        run: ./build.cmd SonarHC
+      - name: Run Sonar Pull-Request Analysis'
+        run: ./build.cmd Sonar
         env:
             GITHUB_CONTEXT: ${{ toJson(github) }}
             HC_GITHUB_BASE_REF: ${{ github.base_ref }}

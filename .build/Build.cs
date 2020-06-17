@@ -40,7 +40,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.PullRequest },
-    InvokedTargets = new[] { nameof(SonarPrHC) },
+    InvokedTargets = new[] { nameof(SonarPr) },
     ImportGitHubTokenAs = nameof(GitHubToken),
     ImportSecrets = new[] { nameof(SonarToken) },
     AutoGenerate = false)]
@@ -48,7 +48,7 @@ using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
     "tests-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
     On = new[] { GitHubActionsTrigger.Push },
-    InvokedTargets = new[] { nameof(TestHC) },
+    InvokedTargets = new[] { nameof(Test) },
     ImportGitHubTokenAs = nameof(GitHubToken),
     AutoGenerate = false)]
 [CheckBuildProjectConfigurations]
@@ -63,6 +63,8 @@ partial class Build : NukeBuild
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath HotChocolateDirectory => SourceDirectory / "HotChocolate";
     Solution HotChocolateSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "HotChocolate.sln");
+    AbsolutePath GreenDonutDirectory => SourceDirectory / "HotChocolate";
+    Solution GreenDonutSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "GreenDonut.sln");
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
@@ -70,25 +72,27 @@ partial class Build : NukeBuild
     [GitVersion] readonly GitVersion GitVersion;
 
     Target Clean => _ => _
-        .Before(RestoreHC)
+        .Before(Restore)
         .Executes(() =>
         {
         });
 
-    Target RestoreHC => _ => _
+    Target Restore => _ => _
         .Executes(() =>
         {
+            DotNetRestore(c => c
+                .SetProjectFile(GreenDonutSolution));
             DotNetRestore(c => c
                 .SetProjectFile(HotChocolateSolution));
         });
 
     Target CompileHC => _ => _
-        .DependsOn(RestoreHC)
+        .DependsOn(Restore)
         .Executes(() =>
         {
             DotNetBuild(c => c
                 .SetProjectFile(HotChocolateSolution)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
+                .SetNoRestore(InvokedTargets.Contains(Restore))
                 .SetConfiguration(Configuration)
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
@@ -96,42 +100,53 @@ partial class Build : NukeBuild
                 .SetVersion(GitVersion.SemVer));
         });
 
-    [Partition(2)] readonly Partition TestPartition;
+    [Partition(4)] readonly Partition TestPartition;
     AbsolutePath TestResultDirectory => OutputDirectory / "test-results";
-    IEnumerable<Project> TestProjects => TestPartition.GetCurrent(HotChocolateSolution.GetProjects("*.Tests"));
+    IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
+        GreenDonutSolution.GetProjects("*.Tests").Concat(
+            HotChocolateSolution.GetProjects("*.Tests")));
 
-    Target TestHC => _ => _
-        .DependsOn(RestoreHC)
+    Target Test => _ => _
+        .DependsOn(Restore)
+        .Produces(TestResultDirectory / "*.trx")
+        .Partition(() => TestPartition)
+        .Executes(() => DotNetTest(TestSettings));
+
+    Target Cover => _ => _.DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
-        .Executes(() =>
-        {
-            DotNetTest(_ => _
-                .SetConfiguration(Configuration.Debug)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
-                .ResetVerbosity()
-                .SetResultsDirectory(TestResultDirectory)
-                .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
-                    .EnableCollectCoverage()
-                    .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
-                    .SetExcludeByFile("*.Generated.cs"))
-                .CombineWith(TestProjects, (_, v) => _
-                    .SetProjectFile(v)
-                    .SetLogger($"trx;LogFileName={v.Name}.trx")
-                    .When(InvokedTargets.Contains(CoverHC) || IsServerBuild, _ => _
-                        .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"))));
-        });
+        .Executes(() => DotNetTest(CoverSettings));
 
-    Target CoverHC => _ => _
-        .DependsOn(TestHC);
+    IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
+        TestBaseSettings(settings)
+            .CombineWith(TestProjects, (_, v) => _
+                .SetProjectFile(v)
+                .SetLogger($"trx;LogFileName={v.Name}.trx"));
+
+    IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
+        TestBaseSettings(settings)
+            .EnableCollectCoverage()
+            .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetExcludeByFile("*.Generated.cs")
+            .CombineWith(TestProjects, (_, v) => _
+                .SetProjectFile(v)
+                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
+
+    DotNetTestSettings TestBaseSettings(DotNetTestSettings settings) =>
+        settings
+            .SetConfiguration(Configuration.Debug)
+            .SetNoRestore(InvokedTargets.Contains(Restore))
+            .ResetVerbosity()
+            .SetResultsDirectory(TestResultDirectory);
 
     string ChangelogFile => RootDirectory / "CHANGELOG.md";
     AbsolutePath PackageDirectory => OutputDirectory / "packages";
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
 
     Target PackHC => _ => _
-        .DependsOn(RestoreHC)
+        .DependsOn(Restore)
         .Executes(() =>
         {
             DotNetPack(_ => _
@@ -143,8 +158,8 @@ partial class Build : NukeBuild
             //.SetPackageReleaseNotes(GetNuGetReleaseNotes(ChangelogFile, GitRepository)));
         });
 
-    Target SonarPrHC => _ => _
-        .DependsOn(CoverHC)
+    Target SonarPr => _ => _
+        .DependsOn(Cover)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
@@ -156,60 +171,67 @@ partial class Build : NukeBuild
                 return;
             }
 
-            var gitHubPrNumber = gitHubRefParts[^2];
-
-            SonarScannerBegin(c => c
-                .SetProjectKey("HotChocolate")
-                .SetName("HotChocolate")
-                .SetServer(SonarServer)
-                .SetLogin(SonarToken)
-                .AddDotCoverPaths(TestResultDirectory / "*.xml")
-                .SetVSTestReports(TestResultDirectory / "*.trx")
-                .SetWorkingDirectory(HotChocolateDirectory)
-                .SetArgumentConfigurator(t => t
-                    .Add("/o:{0}", "chillicream")
-                    .Add("/d:sonar.pullrequest.provider={0}", "github")
-                    .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
-                    .Add("/d:sonar.pullrequest.key={0}", gitHubPrNumber)
-                    .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
-                    .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
-                    .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
-
-            DotNetBuild(c => c
-                .SetProjectFile(HotChocolateSolution)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
-                .SetConfiguration(Configuration.Debug));
-
-            SonarScannerEnd(c => c
-                .SetLogin(SonarToken)
-                .SetWorkingDirectory(HotChocolateDirectory));
+            SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
+            DotNetBuild(SonarBuildHotChocolate);
+            SonarScannerEnd(SonarEndSettings);
         });
 
-    Target SonarFullHC => _ => _
-        .DependsOn(CoverHC)
+    Target SonarFull => _ => _
+        .DependsOn(Cover)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
-            SonarScannerBegin(c => c
-                .SetProjectKey("HotChocolate")
-                .SetName("HotChocolate")
-                .SetVersion(GitVersion.SemVer)
-                .SetServer(SonarServer)
-                .SetLogin(SonarToken)
-                .AddDotCoverPaths(TestResultDirectory / "*.xml")
-                .SetVSTestReports(TestResultDirectory / "*.trx")
-                .SetWorkingDirectory(HotChocolateDirectory)
-                .SetArgumentConfigurator(t => t
-                    .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
-
-            DotNetBuild(c => c
-                .SetProjectFile(HotChocolateSolution)
-                .SetNoRestore(InvokedTargets.Contains(RestoreHC))
-                .SetConfiguration(Configuration.Debug));
-
-            SonarScannerEnd(c => c
-                .SetLogin(SonarToken)
-                .SetWorkingDirectory(HotChocolateDirectory));
+            Logger.Info("Creating Sonar analysis for version: {0}", GitVersion.SemVer);
+            SonarScannerBegin(SonarBeginFullSettings);
+            DotNetBuild(SonarBuildHotChocolate);
+            SonarScannerEnd(SonarEndSettings);
         });
+
+    SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings, string gitHubPrNumber) =>
+        SonarBeginBaseSettings(settings)
+            .SetArgumentConfigurator(t => t
+                .Add("/o:{0}", "chillicream")
+                .Add("/d:sonar.pullrequest.provider={0}", "github")
+                .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
+                .Add("/d:sonar.pullrequest.key={0}", gitHubPrNumber)
+                .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
+                .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
+
+    SonarScannerBeginSettings SonarBeginFullSettings(SonarScannerBeginSettings settings) =>
+        SonarBeginBaseSettings(settings).SetVersion(GitVersion.SemVer);
+
+    SonarScannerBeginSettings SonarBeginBaseSettings(SonarScannerBeginSettings settings) =>
+        SonarBaseSettings(settings)
+            .SetProjectKey("HotChocolate")
+            .SetName("HotChocolate")
+            .SetServer(SonarServer)
+            .SetLogin(SonarToken)
+            .AddOpenCoverPaths(TestResultDirectory / "*.xml")
+            .SetVSTestReports(TestResultDirectory / "*.trx")
+            .SetArgumentConfigurator(t => t
+                .Add("/o:{0}", "chillicream")
+                .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
+
+    SonarScannerBeginSettings SonarBaseSettings(SonarScannerBeginSettings settings) =>
+        settings
+            .SetLogin(SonarToken)
+            .SetWorkingDirectory(RootDirectory);
+
+    SonarScannerEndSettings SonarEndSettings(SonarScannerEndSettings settings) =>
+        settings
+            .SetLogin(SonarToken)
+            .SetWorkingDirectory(RootDirectory);
+
+    DotNetBuildSettings SonarBuildHotChocolate(DotNetBuildSettings settings) =>
+        SonarBuildBaseSettings(settings)
+            .SetProjectFile(HotChocolateSolution);
+
+    DotNetBuildSettings SonarBuildBaseSettings(DotNetBuildSettings settings) =>
+        settings
+            .SetNoRestore(InvokedTargets.Contains(Restore))
+            .SetConfiguration(Configuration.Debug)
+            .SetWorkingDirectory(RootDirectory);
 }
+

@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run './build.cmd TestHC'
-        run: ./build.cmd TestHC
+      - name: Run Tests'
+        run: ./build.cmd Test
         env:
             GitHubToken: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v1
