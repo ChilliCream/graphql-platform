@@ -63,8 +63,8 @@ partial class Build : NukeBuild
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath HotChocolateDirectory => SourceDirectory / "HotChocolate";
     Solution HotChocolateSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "HotChocolate.sln");
-    AbsolutePath GreenDonutDirectory => SourceDirectory / "HotChocolate";
-    Solution GreenDonutSolution => ProjectModelTasks.ParseSolution(HotChocolateDirectory / "GreenDonut.sln");
+    AbsolutePath GreenDonutDirectory => SourceDirectory / "GreenDonut";
+    Solution GreenDonutSolution => ProjectModelTasks.ParseSolution(GreenDonutDirectory / "GreenDonut.sln");
 
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
