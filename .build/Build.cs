@@ -183,7 +183,7 @@ partial class Build : NukeBuild
                     .Add("/o:{0}", "chillicream")
                     .Add("/d:sonar.pullrequest.provider={0}", "github")
                     .Add("/d:sonar.pullrequest.github.repository={0}", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
-                    .Add("/d:sonar.pullrequest.key={0", Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2])
+                    .Add("/d:sonar.pullrequest.key={0}", Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2])
                     .Add("/d:sonar.pullrequest.branch={0}", Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF"))
                     .Add("/d:sonar.pullrequest.base={0}", Environment.GetEnvironmentVariable("HC_GITHUB_BASE_REF"))
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
