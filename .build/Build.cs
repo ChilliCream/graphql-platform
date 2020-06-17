@@ -173,7 +173,7 @@ partial class Build : NukeBuild
             SonarScannerBegin(c => c
                 .SetProjectKey("HotChocolate")
                 .SetName("HotChocolate")
-                .SetVersion(GitVersion.SemVer)
+                // .SetVersion(GitVersion.SemVer)
                 .SetServer("https://sonarcloud.io")
                 .SetLogin(SonarToken)
                 .AddDotCoverPaths(TestResultDirectory / "*.xml")
@@ -182,12 +182,12 @@ partial class Build : NukeBuild
                 .SetLogOutput(true)
                 .SetWorkingDirectory(HotChocolateDirectory)
                 .SetArgumentConfigurator(t => t
-                    .Add("/o:\"{0}\"", "chillicream")
-                    .Add("/d:sonar.pullrequest.provider=\"{0}\"", "github")
-                    .Add("/d:sonar.pullrequest.github.repository=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
-                    .Add("/d:sonar.pullrequest.key=\"{0}\"", Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2])
-                    .Add("/d:sonar.pullrequest.branch=\"{0}\"", Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF"))
-                    .Add("/d:sonar.pullrequest.base=\"{0}\"", Environment.GetEnvironmentVariable("HC_GITHUB_BASE_REF"))
+                    .Add("/o:{0}", "chillicream")
+                    .Add("/d:sonar.pullrequest.provider={0}", "github")
+                    .Add("/d:sonar.pullrequest.github.repository={0}", Environment.GetEnvironmentVariable("GITHUB_REPOSITORY"))
+                    .Add("/d:sonar.pullrequest.key={0", Environment.GetEnvironmentVariable("GITHUB_REF")!.Split('/')[^2])
+                    .Add("/d:sonar.pullrequest.branch={0}", Environment.GetEnvironmentVariable("HC_GITHUB_HEAD_REF"))
+                    .Add("/d:sonar.pullrequest.base={0}", Environment.GetEnvironmentVariable("HC_GITHUB_BASE_REF"))
                     .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true")));
 
             DotNetBuild(c => c
