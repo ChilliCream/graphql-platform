@@ -1212,7 +1212,7 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
 <p>Before we get started, assume we have a simple query class representing our GraphQL <code class="language-text">Query</code> type:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="66340618232882590000"
+              data-toaster-id="63693586341557930000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1220,7 +1220,7 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
               onClick="copyToClipboard(`public class Query
 {
     public string SayHello() => &quot;Hello&quot;;
-}`, `66340618232882590000`)"
+}`, `63693586341557930000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1236,12 +1236,12 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
 <p>In order to create a schema from that simple type we could just do the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="38442454016951255000"
+              data-toaster-id="27424302133508084000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());`, `38442454016951255000`)"
+              onClick="copyToClipboard(`ISchema schema = Schema.Create(c => c.RegisterQueryType<Query>());`, `27424302133508084000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1260,12 +1260,12 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
 <p>All right, let us get started with the integration tests first. In order to write queries against our schema we need to create a query executor:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16777835847228561000"
+              data-toaster-id="46430332395191880000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`IQueryExecutor executor = schema.MakeExecutable();`, `16777835847228561000`)"
+              onClick="copyToClipboard(`IQueryExecutor executor = schema.MakeExecutable();`, `46430332395191880000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1280,7 +1280,7 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
 <p>The easiest way ist to create a service collection and setup whatever we need.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="93495794002117280000"
+              data-toaster-id="57103939483912150000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1288,7 +1288,7 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
               onClick="copyToClipboard(`IServiceProvider serviceProvider =
     new ServiceCollection()
         .AddSingleton<Foo, Bar>()
-        .BuildServiceProvider();`, `93495794002117280000`)"
+        .BuildServiceProvider();`, `57103939483912150000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1308,7 +1308,7 @@ Though the ASP.Net Core <em>TestServer</em> API is quite nice, it is much more c
 <p>For now, let us assume we have done that already, then the only thing that we would need to do is to set the context data when we create our request. So, lets put a simple test together to see how we can write a test:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="99501314530003570000"
+              data-toaster-id="70979765861927000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1340,7 +1340,7 @@ public async Task SayHello_HelloIsReturned()
 
     // assert
     // so how do we assert this thing???
-}`, `99501314530003570000`)"
+}`, `70979765861927000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1385,7 +1385,7 @@ public async Task SayHello_HelloIsReturned()
 <p>So, let us have a look how our test would look like with this assertion in place.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="38306170140291630000"
+              data-toaster-id="45640520159944220000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1417,7 +1417,7 @@ public async Task SayHello_HelloIsReturned()
 
     // assert
     result.MatchSnapshot();
-}`, `38306170140291630000`)"
+}`, `45640520159944220000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1457,7 +1457,7 @@ public async Task SayHello_HelloIsReturned()
 <p>This test looks very clean now, the snapshots are serializing to json which makes them easy to read.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52015603776413070000"
+              data-toaster-id="9434018715814640000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1468,7 +1468,7 @@ public async Task SayHello_HelloIsReturned()
   },
   &quot;Extensions&quot;: {},
   &quot;Errors&quot;: []
-}`, `52015603776413070000`)"
+}`, `9434018715814640000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1487,13 +1487,13 @@ public async Task SayHello_HelloIsReturned()
 <p>The awesome thing with snapshooter is that we can ignore parts of our result-graph or validate one property of the result-graph in a special way.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71493927400768900000"
+              data-toaster-id="60336029088229640000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`result.MatchSnapshot(o =>
-    o.IgnoreField(&quot;Extensions.SomeProperty&quot;));`, `71493927400768900000`)"
+    o.IgnoreField(&quot;Extensions.SomeProperty&quot;));`, `60336029088229640000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1511,14 +1511,14 @@ public async Task SayHello_HelloIsReturned()
 <p><em>Hot Chocolate</em> lets us print our schema as GraphQL SDL, this means that we can create a simple SDL representation like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="38308874528720360000"
+              data-toaster-id="91497187707981800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   sayHello: String
-}`, `38308874528720360000`)"
+}`, `91497187707981800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1533,12 +1533,12 @@ public async Task SayHello_HelloIsReturned()
 <p>In order to get this representation we just have to do the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="2139196564851309000"
+              data-toaster-id="88780386142283870000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`Schema.Create(c => c.RegisterQueryType<Query>()).ToString();`, `2139196564851309000`)"
+              onClick="copyToClipboard(`Schema.Create(c => c.RegisterQueryType<Query>()).ToString();`, `88780386142283870000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1553,7 +1553,7 @@ public async Task SayHello_HelloIsReturned()
 <p>Our test could look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="72117207942462640000"
+              data-toaster-id="66601129016491840000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1572,7 +1572,7 @@ public async Task Ensure_Schema_IsCorrect()
 
     // assert
     schemaSDL.MatchSnapshot();
-}`, `72117207942462640000`)"
+}`, `66601129016491840000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1601,7 +1601,7 @@ public async Task Ensure_Schema_IsCorrect()
 <p>In cases that you want to test a resolver or middleware pipeline of a field you can retrieve those from that type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="15664787124302326000"
+              data-toaster-id="59249256485254455000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1632,7 +1632,7 @@ public async Task SayHello_HelloIsReturned()
 
     // assert
     result.MatchSnapshot();
-}`, `15664787124302326000`)"
+}`, `59249256485254455000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1674,7 +1674,7 @@ public async Task SayHello_HelloIsReturned()
 <p>Let us grab the user from the <code class="language-text">HttpContext</code> and copy it to our context data dictionary as an example.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="19339664328175555000"
+              data-toaster-id="3201189166395823600"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1686,7 +1686,7 @@ public async Task SayHello_HelloIsReturned()
         builder.SetProperty(&quot;user&quot;, context.User);
         return Task.CompletedTask;
     }
-})`, `19339664328175555000`)"
+})`, `3201189166395823600`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1707,7 +1707,7 @@ public async Task SayHello_HelloIsReturned()
 <p>We could write a little query middleware. The middleware could be provided as delegate like the upper example or we could take the extra effort to make a class.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33963946225948537000"
+              data-toaster-id="69136454881199150000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1727,7 +1727,7 @@ public async Task SayHello_HelloIsReturned()
         context.ContextData[&quot;user&quot;] = accessor.HttpContext.User;
         return _next.Invoke(context);
     }
-}`, `33963946225948537000`)"
+}`, `69136454881199150000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1755,7 +1755,7 @@ public async Task SayHello_HelloIsReturned()
 <p>So, this code does the same as our first example but is now easily testable and can be integrated like the following to our GraphQL execution pipeline:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="39056694719497265000"
+              data-toaster-id="15122814405564533000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1764,7 +1764,7 @@ public async Task SayHello_HelloIsReturned()
     {
         c.RegisterQueryType<Query>();
     })
-    .MakeExecutable(b => b.Use<CopyUserMiddleware>().UseDefaultPipeline()));`, `39056694719497265000`)"
+    .MakeExecutable(b => b.Use<CopyUserMiddleware>().UseDefaultPipeline()));`, `15122814405564533000`)"
             >
               <div
                 class="gatsby-code-button"
