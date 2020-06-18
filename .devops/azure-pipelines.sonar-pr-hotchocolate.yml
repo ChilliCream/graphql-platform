@@ -45,15 +45,26 @@ stages:
           - task: CmdLine@2
             inputs:
               script: './build.cmd Restore --skip'
-      - job: Test
-        displayName: 'Test'
+      - job: Cover
+        displayName: 'Cover'
         dependsOn: [ Restore ]
         strategy:
           parallel: 4
         steps:
           - task: CmdLine@2
             inputs:
-              script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: test-results
+              pathtoPublish: 'output/test-results'
+      - job: SonarPr
+        displayName: 'SonarPr'
+        dependsOn: [ Cover ]
+        steps:
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd SonarPr --skip'
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: test-results
