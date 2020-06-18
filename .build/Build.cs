@@ -36,7 +36,10 @@ using static Helpers;
 [AzurePipelines(
     suffix: "test-pr-hotchocolate",
     AzurePipelinesImage.UbuntuLatest,
-    InvokedTargets = new[] { nameof(Test) })]
+    InvokedTargets = new[] { nameof(SonarPr) },
+    PullRequestsAutoCancel = true,
+    PullRequestsBranchesInclude = new [] { "master" },
+    AutoGenerate =  false)]
 [GitHubActions(
     "sonar-pr-hotchocolate",
     GitHubActionsImage.UbuntuLatest,
