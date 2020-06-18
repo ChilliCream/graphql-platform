@@ -44,6 +44,8 @@ namespace HotChocolate.Types
                     typeof(ByteArrayType), TypeContext.None) },
                 { typeof(NameString), new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
+                { typeof(TimeSpan), new ClrTypeReference(
+                    typeof(TimeSpanType), TypeContext.None) },
             };
 
         private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
