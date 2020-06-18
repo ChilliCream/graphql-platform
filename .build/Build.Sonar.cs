@@ -13,8 +13,6 @@ partial class Build : NukeBuild
 
      Target SonarPr => _ => _
         .DependsOn(Cover)
-        .Produces(TestResultDirectory / "*.trx")
-        .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
             string[] gitHubRefParts = GitHubRef.Split('/');
@@ -31,8 +29,6 @@ partial class Build : NukeBuild
 
     Target Sonar => _ => _
         .DependsOn(Cover)
-        .Produces(TestResultDirectory / "*.trx")
-        .Produces(TestResultDirectory / "*.xml")
         .Executes(() =>
         {
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);

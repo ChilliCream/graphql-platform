@@ -36,7 +36,7 @@ using static Helpers;
 [AzurePipelines(
     suffix: "test-pr-hotchocolate",
     AzurePipelinesImage.UbuntuLatest,
-    InvokedTargets = new[] { nameof(SonarPr) },
+    InvokedTargets = new[] { nameof(Test) },
     PullRequestsAutoCancel = true,
     PullRequestsBranchesInclude = new [] { "master" },
     AutoGenerate =  false)]
@@ -70,6 +70,7 @@ partial class Build : NukeBuild
         });
 
     Target EnsureAllSolutionExists => _ => _
+        .Produces(AllSolutionFile)
         .DependsOn(Clean)
         .Executes(() =>
         {

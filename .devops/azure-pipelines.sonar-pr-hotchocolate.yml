@@ -38,6 +38,10 @@ stages:
           - task: CmdLine@2
             inputs:
               script: './build.cmd EnsureAllSolutionExists --skip'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: All.sln
+              pathtoPublish: 'src/All.sln'
       - job: Restore
         displayName: 'Restore'
         dependsOn: [ EnsureAllSolutionExists ]
@@ -65,7 +69,3 @@ stages:
           - task: CmdLine@2
             inputs:
               script: './build.cmd SonarPr --skip'
-          - task: PublishBuildArtifacts@1
-            inputs:
-              artifactName: test-results
-              pathtoPublish: 'output/test-results'
