@@ -42,7 +42,7 @@ partial class Build : NukeBuild
 {
     readonly HashSet<string> ExcludedTests= new HashSet<string>
     {
-        "Types.Selections.PostgreSql.Tests"
+        "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
     [Partition(6)] readonly Partition TestPartition;
