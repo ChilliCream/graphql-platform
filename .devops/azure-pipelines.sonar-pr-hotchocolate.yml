@@ -45,8 +45,8 @@ stages:
         steps:
           - task: DownloadBuildArtifacts@0
             inputs:
-              artifactName: test-results
-              downloadPath: test-results
+              artifactName: 'test-results'
+              downloadPath: '$(Build.Repository.LocalPath)'
           - task: CmdLine@2
             inputs:
               script: './build.cmd SonarPr --skip'

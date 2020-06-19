@@ -23,7 +23,7 @@ partial class Build : NukeBuild
             Logger.Info("Test Files");
             Directory.EnumerateFiles(TestResultDirectory, "*.*", SearchOption.AllDirectories)
                 .ForEach(t => Logger.Info(t));
-            
+
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
             {
