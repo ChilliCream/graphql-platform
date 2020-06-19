@@ -62,6 +62,10 @@ stages:
         displayName: 'SonarPr'
         dependsOn: [ Cover ]
         steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              artifactName: test-results
+              downloadPath: test-results
           - task: CmdLine@2
             inputs:
               script: './build.cmd SonarPr --skip'
