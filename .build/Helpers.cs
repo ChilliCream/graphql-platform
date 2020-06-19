@@ -12,23 +12,22 @@ class Helpers
             .Where(s => !s.Contains("VisualStudio"));
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
-        string solutionFile,
-        IEnumerable<string> projects)
+        string solutionFile)
     {
         if (File.Exists(solutionFile))
         {
             return Array.Empty<Output>();
         }
 
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile));
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
         list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
 
-        foreach (var projectFile in projects)
-        {
-            list.AddRange(DotNetTasks.DotNet($"sln add \"{projectFile}\"", workingDirectory));
-        }
+        var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
+
+        list.AddRange(DotNetTasks.DotNet($"sln add {projectsArg}", workingDirectory));
 
         return list;
     }

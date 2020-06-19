@@ -46,8 +46,15 @@ partial class Build : NukeBuild
 
     Target Pack => _ => _
         .DependsOn(Restore)
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
             DotNetPack(_ => _
                 .SetProject(AllSolutionFile)
                 .SetNoBuild(InvokedTargets.Contains(Compile))

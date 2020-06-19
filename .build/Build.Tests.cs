@@ -40,22 +40,42 @@ using static Helpers;
 
 partial class Build : NukeBuild
 {
-    [Partition(4)] readonly Partition TestPartition;
+    readonly HashSet<string> ExcludedTests= new HashSet<string>
+    {
+        "HotChocolate.Types.Selections.PostgreSql.Tests"
+    };
+
+    [Partition(6)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
-        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests"));
+        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+                .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
         .DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Partition(() => TestPartition)
-        .Executes(() => DotNetTest(TestSettings));
+        .Executes(() =>
+        {
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+            return DotNetTest(TestSettings);
+        });
 
     Target Cover => _ => _.DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
-        .Executes(() => DotNetTest(CoverSettings));
+        .Executes(() =>
+        {
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+            return DotNetTest(CoverSettings);
+        });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
@@ -80,3 +100,4 @@ partial class Build : NukeBuild
             .ResetVerbosity()
             .SetResultsDirectory(TestResultDirectory);
 }
+
