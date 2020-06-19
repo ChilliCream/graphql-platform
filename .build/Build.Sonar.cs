@@ -1,10 +1,13 @@
+using System.IO;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
+using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
+using static Helpers;
 
 partial class Build : NukeBuild
 {
@@ -22,6 +25,11 @@ partial class Build : NukeBuild
                 return;
             }
 
+            if (!InvokedTargets.Contains(Cover))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
             DotNetBuild(SonarBuildAll);
             SonarScannerEnd(SonarEndSettings);
@@ -31,6 +39,15 @@ partial class Build : NukeBuild
         .DependsOn(Cover)
         .Executes(() =>
         {
+            Logger.Info("Test Files");
+            Directory.EnumerateFiles(TestResultDirectory, "*.*", SearchOption.AllDirectories)
+                .ForEach(t => Logger.Info(t));
+
+            if (!InvokedTargets.Contains(Cover))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
             Logger.Info("Creating Sonar analysis for version: {0} ...", GitVersion.SemVer);
             SonarScannerBegin(SonarBeginFullSettings);
             DotNetBuild(SonarBuildAll);

@@ -49,13 +49,27 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Partition(() => TestPartition)
-        .Executes(() => DotNetTest(TestSettings));
+        .Executes(() =>
+        {
+            if (!InvokedTargets.Contains(Cover))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+            return DotNetTest(TestSettings);
+        });
 
     Target Cover => _ => _.DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
         .Partition(() => TestPartition)
-        .Executes(() => DotNetTest(CoverSettings));
+        .Executes(() =>
+        {
+            if (!InvokedTargets.Contains(Cover))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+            return DotNetTest(CoverSettings);
+        });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)

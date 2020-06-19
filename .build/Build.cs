@@ -65,29 +65,28 @@ partial class Build : NukeBuild
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
     Target Clean => _ => _
+        .Before(Restore)
         .Executes(() =>
         {
-        });
-
-    Target EnsureAllSolutionExists => _ => _
-        .Produces(AllSolutionFile)
-        .DependsOn(Clean)
-        .Executes(() =>
-        {
-            Logger.Info("Creating all.sln solution ...");
-            IEnumerable<string> projectFiles = GetAllProjects(SourceDirectory);
-            DotNetBuildSonarSolution(AllSolutionFile, projectFiles);
         });
 
     Target Restore => _ => _
-        .DependsOn(EnsureAllSolutionExists)
         .Executes(() =>
+        {
+            DotNetBuildSonarSolution(AllSolutionFile);
             DotNetRestore(c =>
-                c.SetProjectFile(AllSolutionFile)));
+                c.SetProjectFile(AllSolutionFile));
+        });
 
     Target Compile => _ => _
         .DependsOn(Restore)
         .Executes(() =>
+        {
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
             DotNetBuild(c => c
                 .SetProjectFile(AllSolutionFile)
                 .SetNoRestore(InvokedTargets.Contains(Restore))
@@ -95,5 +94,6 @@ partial class Build : NukeBuild
                 .SetAssemblyVersion(GitVersion.AssemblySemVer)
                 .SetFileVersion(GitVersion.AssemblySemFileVer)
                 .SetInformationalVersion(GitVersion.InformationalVersion)
-                .SetVersion(GitVersion.SemVer)));
+                .SetVersion(GitVersion.SemVer));
+        });
 }

@@ -48,6 +48,11 @@ partial class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
+            if (!InvokedTargets.Contains(Restore))
+            {
+                DotNetBuildSonarSolution(AllSolutionFile);
+            }
+
             DotNetPack(_ => _
                 .SetProject(AllSolutionFile)
                 .SetNoBuild(InvokedTargets.Contains(Compile))

@@ -12,14 +12,14 @@ class Helpers
             .Where(s => !s.Contains("VisualStudio"));
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
-        string solutionFile,
-        IEnumerable<string> projects)
+        string solutionFile)
     {
         if (File.Exists(solutionFile))
         {
             return Array.Empty<Output>();
         }
 
+        IEnumerable<string> projects = GetAllProjects(Path.GetDirectoryName(solutionFile));
         var workingDirectory = Path.GetDirectoryName(solutionFile);
         var list = new List<Output>();
 
