@@ -25,9 +25,9 @@ class Helpers
 
         list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)}", workingDirectory));
 
-        var projectsArg = string.Join(", ", projects.Select(t => $"\"{t}\""));
+        var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
-        list.AddRange(DotNetTasks.DotNet($"sln add \"{projectsArg}\"", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"sln add {projectsArg}", workingDirectory));
 
         return list;
     }
