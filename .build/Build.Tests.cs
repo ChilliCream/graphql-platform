@@ -51,7 +51,7 @@ partial class Build : NukeBuild
         .Partition(() => TestPartition)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Cover))
+            if (!InvokedTargets.Contains(Restore))
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
@@ -64,7 +64,7 @@ partial class Build : NukeBuild
         .Partition(() => TestPartition)
         .Executes(() =>
         {
-            if (!InvokedTargets.Contains(Cover))
+            if (!InvokedTargets.Contains(Restore))
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
