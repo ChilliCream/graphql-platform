@@ -46,6 +46,8 @@ partial class Build : NukeBuild
 
     Target Pack => _ => _
         .DependsOn(Restore)
+        .Produces(PackageDirectory / "*.nupkg")
+        .Produces(PackageDirectory / "*.snupkg")
         .Executes(() =>
         {
             if (!InvokedTargets.Contains(Restore))

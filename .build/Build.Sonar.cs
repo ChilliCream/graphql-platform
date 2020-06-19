@@ -20,10 +20,6 @@ partial class Build : NukeBuild
         .Requires(() => GitHubBaseRef != null)
         .Executes(() =>
         {
-            Logger.Info("Test Files");
-            Directory.EnumerateFiles(TestResultDirectory, "*.*", SearchOption.AllDirectories)
-                .ForEach(t => Logger.Info(t));
-
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
             {
@@ -45,10 +41,6 @@ partial class Build : NukeBuild
         .DependsOn(Cover)
         .Executes(() =>
         {
-            Logger.Info("Test Files");
-            Directory.EnumerateFiles(TestResultDirectory, "*.*", SearchOption.AllDirectories)
-                .ForEach(t => Logger.Info(t));
-
             if (!InvokedTargets.Contains(Cover))
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
