@@ -49,7 +49,7 @@ partial class Build : NukeBuild
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
-                .Where((t => !ExcludedTests.Contains(t))));
+                .Where((t => !ExcludedTests.Contains(t.Name))));
 
     Target Test => _ => _
         .DependsOn(Restore)
