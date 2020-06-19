@@ -40,10 +40,16 @@ using static Helpers;
 
 partial class Build : NukeBuild
 {
+    readonly HashSet<string> ExcludedTests= new HashSet<string>
+    {
+        "Types.Selections.PostgreSql.Tests"
+    };
+
     [Partition(6)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
-        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests"));
+        ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
+                .Where((t => !ExcludedTests.Contains(t))));
 
     Target Test => _ => _
         .DependsOn(Restore)
