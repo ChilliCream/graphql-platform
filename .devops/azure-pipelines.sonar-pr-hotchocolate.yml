@@ -28,7 +28,7 @@ stages:
         displayName: 'Cover'
         dependsOn: [ ]
         strategy:
-          parallel: 4
+          parallel: 6
         steps:
           - task: CmdLine@2
             inputs:

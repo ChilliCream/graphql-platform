@@ -40,7 +40,7 @@ using static Helpers;
 
 partial class Build : NukeBuild
 {
-    [Partition(4)] readonly Partition TestPartition;
+    [Partition(6)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests"));
