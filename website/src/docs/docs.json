@@ -83,6 +83,10 @@
           {
             "path": "language",
             "title": "Lanugage"
+          },
+          {
+            "path": "visitors",
+            "title": "Visitors"
           }
         ]
       }
