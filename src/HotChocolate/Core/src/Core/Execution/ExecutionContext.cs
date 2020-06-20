@@ -13,14 +13,14 @@ namespace HotChocolate.Execution
         : IExecutionContext
     {
         private readonly object _syncRoot = new object();
-        private readonly IRequestContext _requestContext;
+        private readonly IRawRequestContext _requestContext;
         private readonly FieldCollector _fieldCollector;
         private readonly ICachedQuery _cachedQuery;
 
         public ExecutionContext(
             ISchema schema,
             IOperation operation,
-            IRequestContext requestContext,
+            IRawRequestContext requestContext,
             CancellationToken requestAborted)
         {
             Schema = schema ??

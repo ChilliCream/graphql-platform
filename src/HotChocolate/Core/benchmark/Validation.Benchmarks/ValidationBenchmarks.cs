@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 

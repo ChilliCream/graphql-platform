@@ -1,9 +1,6 @@
 ﻿{
-  "Data": {
+  "data": {
     "a": "2018-01-01T01:00:00.000Z",
     "b": "2018-01-01T01:00:00.000Z"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

@@ -199,5 +199,21 @@ namespace HotChocolate.Language
             Assert.Collection(tokens,
                 t => Assert.Equal(TokenKind.Name, t.Kind));
         }
+
+        [Fact]
+        public void OneGraph_Schema()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
+
+            // act
+            var reader = new Utf8GraphQLReader(sourceText);
+            while (reader.Read())
+            {
+            }
+
+            // assert
+            // the document was lexed without syntax exception
+        }
     }
 }

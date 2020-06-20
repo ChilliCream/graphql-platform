@@ -24,7 +24,7 @@ export const Pagination: FunctionComponent<PaginationProperties> = ({
 
   return (
     <Container>
-      {items.map(item => (
+      {items.map((item) => (
         <Page
           key={`page-${item.page}`}
           className={item.page === currentPage ? "active" : undefined}

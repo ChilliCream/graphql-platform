@@ -1,10 +1,11 @@
-﻿{
+{
   "Data": {
     "customer": {
       "name": "Freddy Freeman",
       "consultant": {
         "name": "Jordan Belfort"
       },
+      "complexArg": "",
       "contracts": [
         {
           "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",

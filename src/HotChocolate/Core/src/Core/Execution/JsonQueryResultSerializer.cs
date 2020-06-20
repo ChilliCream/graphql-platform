@@ -163,25 +163,7 @@ namespace HotChocolate.Execution
 
                 for (int i = 0; i < path.Count; i++)
                 {
-                    switch (path[i])
-                    {
-                        case NameString n:
-                            writer.WriteStringValue(n.Value);
-                            break;
-
-                        case string s:
-                            writer.WriteStringValue(s);
-                            break;
-
-                        case int n:
-                            writer.WriteNumberValue(n);
-                            break;
-
-                        default:
-                            throw new InvalidOperationException(
-                                "The specified value is of an invalid type " +
-                                "for the error path.");
-                    }
+                    WriteFieldValue(writer, path[i]);
                 }
 
                 writer.WriteEndArray();
@@ -323,10 +305,13 @@ namespace HotChocolate.Execution
                     writer.WriteStringValue(n.Value);
                     break;
 
+                case Uri u:
+                    writer.WriteStringValue(u.ToString());
+                    break;
+
                 default:
-                    throw new NotSupportedException(
-                        $"The specified type `{value.GetType().FullName}` " +
-                        "is not supported by the result serializer.");
+                    writer.WriteStringValue(value.ToString());
+                    break;
             }
         }
     }

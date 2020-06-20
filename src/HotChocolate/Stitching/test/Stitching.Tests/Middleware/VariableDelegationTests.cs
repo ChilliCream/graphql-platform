@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Xunit;
-using HotChocolate.AspNetCore;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
-using Moq;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter;
 using HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -117,7 +114,6 @@ namespace HotChocolate.Stitching
             executor.Schema.ToString().MatchSnapshot(
                 new SnapshotNameExtension("schema"));
         }
-
 
         [Fact]
         public async Task ObjectFieldVariableIsCorrectlyPassed()

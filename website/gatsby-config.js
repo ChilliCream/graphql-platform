@@ -1,9 +1,9 @@
 module.exports = {
   siteMetadata: {
-    title: `ChilliCream GraphQL`,
+    title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
-    baseUrl: `https://chillicream.com`,
+    siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -13,6 +13,10 @@ module.exports = {
       {
         name: `Docs`,
         link: `/docs/hotchocolate`,
+      },
+      {
+        name: `Support`,
+        link: `/support`,
       },
       {
         name: `Blog`,
@@ -65,7 +69,7 @@ module.exports = {
       resolve: `gatsby-plugin-react-svg`,
       options: {
         rule: {
-          include: /images\/.*\.svg/,
+          include: /images/,
         },
       },
     },
@@ -82,11 +86,34 @@ module.exports = {
         plugins: [
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
-          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
+              inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {
@@ -127,6 +154,7 @@ module.exports = {
         anonymize: true,
       },
     },
+    `gatsby-plugin-sitemap`,
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,

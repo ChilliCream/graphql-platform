@@ -181,6 +181,28 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void SameResponseNameDifferentFieldName()
+        {
+            ExpectErrors(@"
+                {
+                    catOrDog {
+                        ... dog
+                    }
+                    catOrDog: dogOrHuman {
+                        ... dog
+                    }
+                }
+
+                fragment dog on Dog {
+                    doesKnowCommand
+                }
+            ",
+            t => Assert.Equal(
+                "Encountered fields for the same object that cannot be merged.",
+                t.Message));
+        }
+
+        [Fact]
         public void SafeDifferingFields()
         {
             ExpectValid(@"

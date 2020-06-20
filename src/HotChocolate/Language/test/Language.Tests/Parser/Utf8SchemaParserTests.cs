@@ -1,4 +1,5 @@
 using System.Text;
+using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -67,7 +68,7 @@ namespace HotChocolate.Language
             // act
             DocumentNode document = parser.Parse();
 
-            // assert 
+            // assert
             SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
@@ -134,6 +135,19 @@ namespace HotChocolate.Language
 
             // assert
             SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
+        }
+
+        [Fact]
+        public void OneGraph_Schema()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(FileResource.Open("onegraph.graphql"));
+
+            // act
+            DocumentNode document =  Utf8GraphQLParser.Parse(sourceText);
+
+            // assert
+            document.ToString().MatchSnapshot();
         }
     }
 }

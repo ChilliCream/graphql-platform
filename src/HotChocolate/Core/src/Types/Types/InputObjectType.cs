@@ -27,8 +27,7 @@ namespace HotChocolate.Types
             _configure = Configure;
         }
 
-        public InputObjectType(
-            Action<IInputObjectTypeDescriptor> configure)
+        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
@@ -40,9 +39,7 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Fields { get; private set; }
 
-        #region IInputType
-
-        public bool IsInstanceOfType(IValueNode literal)
+        public virtual bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
             {
@@ -53,7 +50,7 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public object ParseLiteral(IValueNode literal)
+        public virtual object ParseLiteral(IValueNode literal)
         {
             if (literal is null)
             {
@@ -74,7 +71,7 @@ namespace HotChocolate.Types
                 TypeResources.InputObjectType_CannotParseLiteral);
         }
 
-        public bool IsInstanceOfType(object value)
+        public virtual bool IsInstanceOfType(object value)
         {
             if (value is null)
             {
@@ -84,7 +81,7 @@ namespace HotChocolate.Types
             return ClrType.IsInstanceOfType(value);
         }
 
-        public IValueNode ParseValue(object value)
+        public virtual IValueNode ParseValue(object value)
         {
             if (value is null)
             {
@@ -133,19 +130,9 @@ namespace HotChocolate.Types
 
         public object Deserialize(object serialized)
         {
-            if (serialized is null)
+            if (TryDeserialize(serialized, out object deserialized))
             {
-                return null;
-            }
-
-            if (serialized is IReadOnlyDictionary<string, object> dict)
-            {
-                return _deserialize(dict);
-            }
-
-            if (ClrType != typeof(object) && ClrType.IsInstanceOfType(serialized))
-            {
-                return serialized;
+                return deserialized;
             }
 
             throw new InputObjectSerializationException(
@@ -183,10 +170,6 @@ namespace HotChocolate.Types
                 return false;
             }
         }
-
-        #endregion
-
-        #region Initialization
 
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -262,7 +245,5 @@ namespace HotChocolate.Types
                 fields.Add(new InputField(fieldDefinition));
             }
         }
-
-        #endregion
     }
 }
