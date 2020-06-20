@@ -20,20 +20,18 @@ namespace HotChocolate.Types.Filters
         public FilterInputType(
             Action<IFilterInputTypeDescriptor<T>> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
         public Type EntityType { get; private set; } = typeof(object);
-
-        #region Configuration
 
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
-                typeof(T));
+                typeof(T),
+                context.DescriptorContext.GetFilterConvention());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -80,10 +78,6 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        #endregion
-
-        #region Disabled
-
         // we are disabling the default configure method so
         // that this does not lead to confusion.
         protected sealed override void Configure(
@@ -91,7 +85,5 @@ namespace HotChocolate.Types.Filters
         {
             throw new NotSupportedException();
         }
-
-        #endregion
     }
 }

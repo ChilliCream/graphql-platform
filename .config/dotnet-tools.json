@@ -7,6 +7,12 @@
       "commands": [
         "dotnet-sonarscanner"
       ]
+    },
+    "nuke.globaltool": {
+      "version": "0.24.11",
+      "commands": [
+        "nuke"
+      ]
     }
   }
 }

@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Should_Throw_IfOperationHandlersIsNull()
+        public void Create_Should_Throw_IfOperationDefinitionIsNull()
         {
             // arrange
 
@@ -21,7 +21,6 @@ namespace HotChocolate.Types.Filters
                 fooType,
                 typeof(Foo),
                 null,
-                ExpressionFieldHandlers.All,
                 TypeConversion.Default,
                 true);
             };
@@ -31,28 +30,6 @@ namespace HotChocolate.Types.Filters
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        [Fact]
-        public void Create_Should_Throw_IfFieldHandlersIsNull()
-        {
-            // arrange
-
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                ExpressionOperationHandlers.All,
-                null,
-                TypeConversion.Default,
-                true);
-            };
-
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
 
         [Fact]
         public void Create_Should_Throw_IfTypeConversionIsNull()
@@ -64,7 +41,11 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), null, true);
+                fooType,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                null,
+                true);
             };
 
             // act
@@ -82,7 +63,11 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType, null, TypeConversion.Default, true);
+                fooType,
+                null,
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             };
 
             // act
@@ -98,7 +83,11 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                null, typeof(Foo), TypeConversion.Default, true);
+                null,
+                typeof(Foo),
+                MockFilterConvention.Default.GetExpressionDefinition(),
+                TypeConversion.Default,
+                true);
             };
 
             // act
@@ -111,7 +100,6 @@ namespace HotChocolate.Types.Filters
             public bool Bar { get; set; }
         }
 
-
         public class FooFilterType
             : FilterInputType<Foo>
         {
@@ -122,6 +110,5 @@ namespace HotChocolate.Types.Filters
                     .AllowEquals().And().AllowNotEquals();
             }
         }
-
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Selections.Handlers;
 using HotChocolate.Utilities;
 
@@ -40,9 +42,28 @@ namespace HotChocolate.Types.Selections
             VisitSelections(type, selectionSet);
         }
 
-        public Expression<Func<T, T>> Project<T>()
+        public bool TryProject<T>(
+            [NotNullWhen(true)] out Expression<Func<T, T>>? projection)
         {
-            return (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
+            if (_selectionMiddlewareContext.Errors.Count == 0)
+            {
+                projection = (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
+                return true;
+            }
+            else
+            {
+                projection = null;
+                return false;
+            }
+        }
+
+        protected override bool EnterLeaf(IFieldSelection selection)
+        {
+            if (IntrospectionFields.TypeName.Equals(selection.Field.Name))
+            {
+                return false;
+            }
+            return base.EnterLeaf(selection);
         }
 
         protected override void LeaveLeaf(IFieldSelection selection)

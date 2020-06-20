@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
         private static Expression NullableSafeConstantExpression(
-            object value, Type type)
+            object? value, Type type)
         {
             return Nullable.GetUnderlyingType(type) == null
                 ? (Expression)Expression.Constant(value)
@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
         public static Expression Equals(
             Expression property,
-            object value)
+            object? value)
         {
             return Expression.Equal(
                 property,
