@@ -14,10 +14,7 @@
 # </auto-generated>
 # ------------------------------------------------------------------------------
 
-trigger:
-  branches: 
-    include: 
-      - master
+trigger: none
 
 pr:
 - master
@@ -29,16 +26,27 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
-      - job: Test
-        displayName: 'Test'
+      - job: Cover
+        displayName: 'Cover'
         dependsOn: [ ]
         strategy:
           parallel: 6
         steps:
           - task: CmdLine@2
             inputs:
-              script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: test-results
               pathtoPublish: 'output/test-results'
+      - job: SonarPr
+        displayName: 'SonarPr'
+        dependsOn: [ Cover ]
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              artifactName: 'test-results'
+              downloadPath: '$(Build.Repository.LocalPath)/output'
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd SonarPr --skip'

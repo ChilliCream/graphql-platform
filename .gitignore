@@ -306,3 +306,4 @@ artifacts/
 __mismatch__
 coverage.opencover.xml
 output
+src/All.sln
