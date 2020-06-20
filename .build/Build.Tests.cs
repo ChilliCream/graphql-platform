@@ -92,9 +92,9 @@ partial class Build : NukeBuild
 
             ReportGenerator(_ => _
                 .SetReports(TestResultDirectory / "*.xml")
-                .SetReportTypes(ReportTypes.HtmlInline)
+                .SetReportTypes(ReportTypes.Cobertura)
                 .SetTargetDirectory(CoverageReportDirectory)
-                .SetFramework("netcoreapp2.1"));
+                .SetFramework("netcoreapp3.1"));
 
             TestResultDirectory.GlobFiles("*.xml").ForEach(x =>
                 DevOpsPipeLine?.PublishCodeCoverage(
