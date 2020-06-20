@@ -10,7 +10,12 @@ import { useDispatch, useSelector } from "react-redux";
 import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
-import { closeTOC, toggleNavigationGroup, toggleTOC } from "../../state/common";
+import {
+  closeTOC,
+  expandNavigationGroup,
+  toggleNavigationGroup,
+  toggleTOC,
+} from "../../state/common";
 import { BodyStyle, FixedContainer, Navigation } from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 import { IconContainer } from "./icon-container";
@@ -137,24 +142,32 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     /*
       Ensures that all groups along the selected path are expanded on page load.
     */
-    const index =
-      selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
-    const parts = selectedPath
-      .substring(index)
-      .split("/")
-      .filter((part) => part.length > 0);
+    if (activeProduct && activeProduct.items) {
+      const index =
+        selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
+      const parts = selectedPath
+        .substring(index)
+        .split("/")
+        .filter((part) => part.length > 0);
 
-    if (parts.length > 1) {
-      const path = selectedPath.substring(
-        0,
-        selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
-      );
+      if (parts.length > 0) {
+        const rootFolder = activeProduct.items.find(
+          (item) => item!.path === parts[0] && item!.items
+        );
 
-      if (!expandedPaths.includes(path)) {
-        dispatch(toggleNavigationGroup({ path }));
+        if (rootFolder) {
+          const path = selectedPath.substring(
+            0,
+            parts.length > 1
+              ? selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
+              : selectedPath.length - 1
+          );
+
+          dispatch(expandNavigationGroup({ path }));
+        }
       }
     }
-  }, []);
+  }, [activeProduct, selectedPath, selectedProduct]);
 
   return (
     <Navigation ref={containerRef}>
@@ -272,7 +285,7 @@ const ProductSwitcher = styled.div`
   @media only screen and (min-width: 1050px) {
     position: relative;
     flex-wrap: initial;
-    overflow: initial;
+    overflow-y: initial;
   }
 `;
 

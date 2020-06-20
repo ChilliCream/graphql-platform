@@ -27,7 +27,7 @@ export const FixedContainer = styled.div`
   padding: 25px 0 0;
   width: 100vw;
   height: calc(100vh - 85px);
-  overflow: initial;
+  overflow-y: initial;
   background-color: white;
   opacity: 0;
   transition: opacity 2s ease-in-out;
@@ -87,11 +87,11 @@ export const Navigation = styled.nav`
 
 export const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
   body {
-    overflow: ${({ disableScrolling }) =>
+    overflow-y: ${({ disableScrolling }) =>
       disableScrolling ? "hidden" : "initial"};
 
     @media only screen and (min-width: 600px) {
-      overflow: initial;
+      overflow-y: initial;
     }
   }
 `;

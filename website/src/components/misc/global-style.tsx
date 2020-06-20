@@ -12,8 +12,9 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 18px;
     line-height: 30px;
-    background-color: #ccc;
+    background-color: #efefef;
     color: #667;
+    overflow-x: hidden;
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
@@ -346,7 +347,10 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .mermaid {
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
+
   }
 
   /* Inline code style */
