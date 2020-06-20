@@ -113,8 +113,7 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Asc))
-            );
+                    new EnumValueNode(SortOperationKind.Asc)));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -142,14 +141,15 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Desc))
-            );
+                    new EnumValueNode(SortOperationKind.Desc)));
 
             FooSortType sortType = CreateType(new FooSortType());
 
             IQueryable<Foo> a = new[]
             {
-                new Foo {Bar = "b"}, new Foo {Bar = "a"}, new Foo {Bar = "c"}
+                new Foo {Bar = "b"}, 
+                new Foo {Bar = "a"}, 
+                new Foo {Bar = "c"}
             }.AsQueryable();
 
             // act
@@ -258,9 +258,7 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Desc)
-                    )
-            );
+                    new EnumValueNode(SortOperationKind.Desc)));
 
             SortInputType<FooInherited> sortType = CreateType(new SortInputType<FooInherited>());
 

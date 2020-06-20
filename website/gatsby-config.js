@@ -15,6 +15,10 @@ module.exports = {
         link: `/docs/hotchocolate`,
       },
       {
+        name: `Support`,
+        link: `/support`,
+      },
+      {
         name: `Blog`,
         link: `/blog`,
       },
@@ -82,13 +86,19 @@ module.exports = {
         plugins: [
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
-          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
           {
             resolve: `gatsby-remark-code-buttons`,
             options: {
               tooltipText: `Copy`,
               toasterText: "Copied code example",
-              toasterDuration: 60000,
             },
           },
           {
@@ -96,6 +106,14 @@ module.exports = {
             options: {
               showLineNumbers: false,
               inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {

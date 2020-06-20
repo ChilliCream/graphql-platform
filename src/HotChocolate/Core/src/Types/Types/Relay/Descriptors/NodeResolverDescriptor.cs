@@ -44,7 +44,8 @@ namespace HotChocolate.Types.Relay.Descriptors
                 });
 
             return _typeDescriptor.Field(_propertyOrMethod)
-                .Type<NonNullType<IdType>>();
+                .Type<NonNullType<IdType>>()
+                .Name("id");
         }
     }
 }

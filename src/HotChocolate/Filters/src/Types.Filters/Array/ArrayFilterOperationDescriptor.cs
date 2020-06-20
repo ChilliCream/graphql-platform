@@ -1,10 +1,10 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
-
     public class ArrayFilterOperationDescriptor
         : FilterOperationDescriptorBase
         , IArrayFilterOperationDescriptor
@@ -16,14 +16,10 @@ namespace HotChocolate.Types.Filters
             ArrayFilterFieldDescriptor descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation)
-            : base(context)
+            FilterOperation operation,
+            IFilterConvention filterConventions)
+            : base(context, name, type, operation, filterConventions)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
@@ -91,13 +87,17 @@ namespace HotChocolate.Types.Filters
         /// <param name="operation">
         /// The filter operation info.
         /// </param>
+        /// <param name="filterConventions">
+        /// The filter conventions
+        /// </param>
         public static ArrayFilterOperationDescriptor New(
             IDescriptorContext context,
             ArrayFilterFieldDescriptor descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation) =>
+            FilterOperation operation,
+            IFilterConvention filterConvention) =>
             new ArrayFilterOperationDescriptor(
-                context, descriptor, name, type, operation);
+                context, descriptor, name, type, operation, filterConvention);
     }
 }

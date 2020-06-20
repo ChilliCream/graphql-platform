@@ -12,8 +12,9 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 18px;
     line-height: 30px;
-    background-color: #ccc;
+    background-color: #efefef;
     color: #667;
+    overflow-x: hidden;
     scroll-behavior: smooth;
 
     -webkit-font-smoothing: antialiased;
@@ -55,7 +56,7 @@ export const GlobalStyle = createGlobalStyle`
   h4,
   h5,
   h6 {
-    margin-bottom: 0.5em;
+    margin-bottom: 10px;
     font-family: "Roboto", sans-serif;
     font-weight: bold;
     line-height: 1.250em;
@@ -276,7 +277,7 @@ export const GlobalStyle = createGlobalStyle`
   .gatsby-highlight {
     position: relative;
     margin: 20px 0;
-    overflow: auto;
+    overflow: initial;
     font-size: 0.833em !important;
 
     * {
@@ -301,6 +302,12 @@ export const GlobalStyle = createGlobalStyle`
       }
     }
 
+    > pre[class="language-bash"]::before {
+      content: "Bash";
+      color: #333;
+      background: #0fd;
+    }
+
     > pre[class="language-csharp"]::before {
       content: "C#";
       color: #4f3903;
@@ -312,6 +319,24 @@ export const GlobalStyle = createGlobalStyle`
       color: #ffffff;
       background: #e535ab;
     }
+
+    > pre[class="language-json"]::before {
+      content: "JSON";
+      color: #ffffff;
+      background: #1da0f2;
+    }
+
+    > pre[class="language-sdl"]::before {
+      content: "SDL";
+      color: #ffffff;
+      background: #e535ab;
+    }
+
+    > pre[class="language-sql"]::before {
+      content: "SQL";
+      color: #ffffff;
+      background: #80f;
+    }
   }
 
   .gatsby-highlight-code-line {
@@ -322,6 +347,78 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   .mermaid {
+    display: flex;
+    justify-content: center;
     margin-bottom: 20px;
+
+  }
+
+  /* Inline code style */
+  :not(pre) > code[class*="language-"] {
+    border: 1px solid #aaa;
+    background-color: initial;
+    color: #666;
+
+    .token.comment,
+    .token.block-comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #999;
+    }
+
+    .token.punctuation {
+      color: #666;
+    }
+
+    .token.tag,
+    .token.attr-name,
+    .token.namespace,
+    .token.deleted {
+      color: #e2777a;
+    }
+
+    .token.function-name {
+      color: #6196cc;
+    }
+
+    .token.boolean,
+    .token.number,
+    .token.function {
+      color: #f08d49;
+    }
+
+    .token.property,
+    .token.class-name,
+    .token.constant,
+    .token.symbol {
+      color: #f8c555;
+    }
+
+    .token.selector,
+    .token.important,
+    .token.atrule,
+    .token.keyword,
+    .token.builtin {
+      color: #cc99cd;
+    }
+
+    .token.string,
+    .token.char,
+    .token.attr-value,
+    .token.regex,
+    .token.variable {
+      color: #7ec699;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url {
+      color: #67cdcc;
+    }
+
+    .token.inserted {
+      color: green;
+    }
   }
 `;
