@@ -61,7 +61,14 @@ partial class Build : NukeBuild
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
-            return DotNetTest(TestSettings);
+
+            DotNetTest(TestSettings);
+
+            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                DevOpsPipeLine?.PublishTestResults(
+                    type: AzurePipelinesTestResultsType.VSTest,
+                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                    files: new string[] { x }));
         });
 
     Target Cover => _ => _.DependsOn(Restore)
@@ -74,7 +81,26 @@ partial class Build : NukeBuild
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
-            return DotNetTest(CoverSettings);
+
+            DotNetTest(CoverSettings);
+
+            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                DevOpsPipeLine?.PublishTestResults(
+                    type: AzurePipelinesTestResultsType.VSTest,
+                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                    files: new string[] { x }));
+
+            ReportGenerator(_ => _
+                .SetReports(TestResultDirectory / "*.xml")
+                .SetReportTypes(ReportTypes.HtmlInline)
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetFramework("netcoreapp2.1"));
+
+            TestResultDirectory.GlobFiles("*.xml").ForEach(x =>
+                DevOpsPipeLine?.PublishCodeCoverage(
+                    AzurePipelinesCodeCoverageToolType.Cobertura,
+                    x,
+                    CoverageReportDirectory));
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>

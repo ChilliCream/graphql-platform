@@ -36,7 +36,7 @@ using static Helpers;
 [AzurePipelines(
     suffix: "test-pr-hotchocolate",
     AzurePipelinesImage.UbuntuLatest,
-    InvokedTargets = new[] { nameof(Test) },
+    InvokedTargets = new[] { nameof(Sonar) },
     PullRequestsAutoCancel = true,
     PullRequestsBranchesInclude = new [] { "master" },
     AutoGenerate =  false)]
@@ -63,6 +63,8 @@ partial class Build : NukeBuild
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+
+    [CI] readonly AzurePipelines DevOpsPipeLine;
 
     Target Clean => _ => _
         .Before(Restore)
