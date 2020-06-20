@@ -45,7 +45,7 @@ partial class Build : NukeBuild
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
-    [Partition(6)] readonly Partition TestPartition;
+    [Partition(8)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
