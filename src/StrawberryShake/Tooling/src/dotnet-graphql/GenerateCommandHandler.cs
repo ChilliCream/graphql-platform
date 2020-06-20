@@ -30,13 +30,15 @@ namespace StrawberryShake.Tools
                 ? LanguageVersion.CSharp_7_3
                 : LanguageVersion.CSharp_8_0;
 
+            string path = arguments.Path.Value()?.Trim() ?? FileSystem.CurrentDirectory;
+
             return new GenerateCommandContext(
-                arguments.Path.Value()?.Trim() ?? FileSystem.CurrentDirectory,
+                path,
                 languageVersion,
                 arguments.DISupport.HasValue(),
                 arguments.Namespace.Value()?.Trim() ?? "StrawberryShake",
-                arguments.PersistedQueryFile.Value() is { } path
-                    ? FileSystem.CombinePath(FileSystem.CurrentDirectory, path)
+                arguments.PersistedQueryFile.Value() is { } fileName
+                    ? FileSystem.CombinePath(path, fileName)
                     : null,
                 arguments.Search.HasValue(),
                 arguments.Force.HasValue());
@@ -86,6 +88,7 @@ namespace StrawberryShake.Tools
 
             if (context.PersistedQueryFile is { } fileName)
             {
+                using IActivity activity = Output.WriteActivity("Export queries", fileName);
                 FileSystem.EnsureDirectoryExists(FileSystem.GetDirectoryName(fileName));
                 await generator.ExportPersistedQueriesAsync(fileName).ConfigureAwait(false);
             }
