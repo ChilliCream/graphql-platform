@@ -22,15 +22,15 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
-      - job: Cover
-        displayName: 'Cover'
+      - job: Test
+        displayName: 'Test'
         dependsOn: [ ]
         strategy:
           parallel: 8
         steps:
           - task: CmdLine@2
             inputs:
-              script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
+              script: './build.cmd test --skip --test-partition $(System.JobPositionInPhase)'
           - task: PublishBuildArtifacts@1
             inputs:
               artifactName: test-results
