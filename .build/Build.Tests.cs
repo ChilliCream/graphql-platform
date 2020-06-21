@@ -47,8 +47,6 @@ partial class Build : NukeBuild
 
     [Partition(8)] readonly Partition TestPartition;
 
-    [Parameter] readonly bool GenerateCoverageReport = false;
-
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
                 .Where((t => !ExcludedTests.Contains(t.Name))));
@@ -91,21 +89,28 @@ partial class Build : NukeBuild
                     type: AzurePipelinesTestResultsType.VSTest,
                     title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
                     files: new string[] { x }));
+        });
 
-            if (GenerateCoverageReport || DevOpsPipeLine is { })
+    Target ReportCoverage => _ => _.DependsOn(Restore)
+        .DependsOn(Cover)
+        .Consumes(Cover)
+        .Executes(() =>
+        {
+            ReportGenerator(_ => _
+                .SetReports(TestResultDirectory / "*.xml")
+                .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetFramework("netcoreapp2.1"));
+
+            if (DevOpsPipeLine is { })
             {
-                ReportGenerator(_ => _
-                    .SetReports(TestResultDirectory / "*.xml")
-                    .SetReportTypes(ReportTypes.Cobertura)
-                    .SetTargetDirectory(CoverageReportDirectory)
-                    .SetFramework("netcoreapp2.1"));
+                CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
+                    DevOpsPipeLine.PublishCodeCoverage(
+                        AzurePipelinesCodeCoverageToolType.Cobertura,
+                        x,
+                        CoverageReportDirectory,
+                        Directory.GetFiles(CoverageReportDirectory, "*.htm")));
             }
-
-            CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
-                DevOpsPipeLine?.PublishCodeCoverage(
-                    AzurePipelinesCodeCoverageToolType.Cobertura,
-                    x,
-                    CoverageReportDirectory));
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
