@@ -79,6 +79,14 @@
           {
             "path": "index",
             "title": "Overview"
+          },
+          {
+            "path": "language",
+            "title": "Lanugage"
+          },
+          {
+            "path": "visitors",
+            "title": "Visitors"
           }
         ]
       }

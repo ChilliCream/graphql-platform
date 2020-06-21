@@ -45,7 +45,7 @@ partial class Build : NukeBuild
         "HotChocolate.Types.Selections.PostgreSql.Tests"
     };
 
-    [Partition(6)] readonly Partition TestPartition;
+    [Partition(8)] readonly Partition TestPartition;
 
     IEnumerable<Project> TestProjects => TestPartition.GetCurrent(
         ProjectModelTasks.ParseSolution(AllSolutionFile).GetProjects("*.Tests")
@@ -61,7 +61,14 @@ partial class Build : NukeBuild
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
-            return DotNetTest(TestSettings);
+
+            DotNetTest(TestSettings);
+
+            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                DevOpsPipeLine?.PublishTestResults(
+                    type: AzurePipelinesTestResultsType.VSTest,
+                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                    files: new string[] { x }));
         });
 
     Target Cover => _ => _.DependsOn(Restore)
@@ -74,7 +81,37 @@ partial class Build : NukeBuild
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
-            return DotNetTest(CoverSettings);
+
+            DotNetTest(CoverSettings);
+
+            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                DevOpsPipeLine?.PublishTestResults(
+                    type: AzurePipelinesTestResultsType.VSTest,
+                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                    files: new string[] { x }));
+        });
+
+    Target ReportCoverage => _ => _.DependsOn(Restore)
+        .DependsOn(Cover)
+        .Consumes(Cover)
+        .Executes(() =>
+        {
+            ReportGenerator(_ => _
+                .SetReports(TestResultDirectory / "*.xml")
+                .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
+                .SetTargetDirectory(CoverageReportDirectory)
+                .SetAssemblyFilters("-*Tests")
+                .SetFramework("netcoreapp2.1"));
+
+            if (DevOpsPipeLine is { })
+            {
+                CoverageReportDirectory.GlobFiles("*.xml").ForEach(x =>
+                    DevOpsPipeLine.PublishCodeCoverage(
+                        AzurePipelinesCodeCoverageToolType.Cobertura,
+                        x,
+                        CoverageReportDirectory,
+                        Directory.GetFiles(CoverageReportDirectory, "*.htm")));
+            }
         });
 
     IEnumerable<DotNetTestSettings> TestSettings(DotNetTestSettings settings) =>
