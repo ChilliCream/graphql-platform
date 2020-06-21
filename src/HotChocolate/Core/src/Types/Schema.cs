@@ -110,6 +110,8 @@ namespace HotChocolate
             catch
             {
 
+
+
             }
 
             return _types.TryGetClrType(
