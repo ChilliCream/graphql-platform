@@ -103,6 +103,15 @@ namespace HotChocolate
         /// </returns>
         public bool TryGetClrType(NameString typeName, out Type clrType)
         {
+            try
+            {
+                Console.WriteLine();
+            }
+            catch
+            {
+
+            }
+
             return _types.TryGetClrType(
                 typeName.EnsureNotEmpty(nameof(typeName)),
                 out clrType);
