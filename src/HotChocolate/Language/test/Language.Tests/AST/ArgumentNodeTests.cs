@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -113,6 +114,24 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void ArgumentNode_WithNewLocation_NewLocationIsSet()
+        {
+            // arrange
+            var argument = new ArgumentNode(
+                "foo",
+                new StringValueNode("bar"));
+            Assert.Null(argument.Location);
+
+            var location = new Location(0, 0, 0, 0);
+
+            // act
+            argument = argument.WithLocation(location);
+
+            // assert
+            Assert.Equal(location, argument.Location);
+        }
+
+        [Fact]
         public void Argument_ToString()
         {
             // arrange
@@ -124,6 +143,51 @@ namespace HotChocolate.Language
 
             // assert
             argument.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Argument_ToString_Indented()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var value = new StringValueNode("bar");
+
+            // act
+            var argument = new ArgumentNode(null, name, value);
+
+            // assert
+            argument.ToString(true).MatchSnapshot();
+        }
+
+        [Fact]
+        public void Argument_ToString_UnIndented()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var value = new StringValueNode("bar");
+
+            // act
+            var argument = new ArgumentNode(null, name, value);
+
+            // assert
+            argument.ToString(false).MatchSnapshot();
+        }
+
+        [Fact]
+        public void Argument_GetNodes()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var value = new StringValueNode("bar");
+            var argument = new ArgumentNode(null, name, value);
+
+            // act
+            ISyntaxNode[] nodes = argument.GetNodes().ToArray();
+
+            // assert
+            Assert.Collection(nodes,
+                n => Assert.Equal(name, n),
+                v => Assert.Equal(value, v));
         }
     }
 }
