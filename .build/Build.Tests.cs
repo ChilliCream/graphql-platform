@@ -100,6 +100,7 @@ partial class Build : NukeBuild
                 .SetReports(TestResultDirectory / "*.xml")
                 .SetReportTypes(ReportTypes.Cobertura, ReportTypes.HtmlInline_AzurePipelines)
                 .SetTargetDirectory(CoverageReportDirectory)
+                .SetAssemblyFilters("-*Tests")
                 .SetFramework("netcoreapp2.1"));
 
             if (DevOpsPipeLine is { })
