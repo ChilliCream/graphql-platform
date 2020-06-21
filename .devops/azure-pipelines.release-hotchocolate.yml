@@ -13,11 +13,7 @@
 #
 # </auto-generated>
 # ------------------------------------------------------------------------------
-
 trigger: none
-
-pr:
-- master
 
 stages:
   - stage: ubuntu_latest
@@ -39,25 +35,39 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: 'output/test-results'
-      - job: ReportCoverage
-        displayName: 'ReportCoverage'
-        dependsOn: [ Cover ]
+      - job: Pack
+        displayName: 'Pack'
+        dependsOn: [ ]
+        steps:
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd pack --skip'
+          - task: PublishBuildArtifacts@1
+            inputs:
+              artifactName: packages
+              pathtoPublish: 'output/packages'
+      - job: Publish
+        displayName: 'Publish'
+        dependsOn: [ Cover, Pack ]
         steps:
           - task: DownloadBuildArtifacts@0
             inputs:
-              artifactName: 'test-results'
+              artifactName: 'packages'
               downloadPath: '$(Build.Repository.LocalPath)/output'
           - task: CmdLine@2
             inputs:
-              script: './build.cmd ReportCoverage --skip'
-      - job: SonarPr
-        displayName: 'SonarPr'
-        dependsOn: [ Cover ]
-        steps:
-          - task: DownloadBuildArtifacts@0
+              script: './build.cmd publish --skip'
+          - task: GitHubRelease@0
+            displayName: 'GitHub release'
             inputs:
-              artifactName: 'test-results'
-              downloadPath: '$(Build.Repository.LocalPath)/output'
-          - task: CmdLine@2
-            inputs:
-              script: './build.cmd SonarPr --skip'
+              gitHubConnection: 'ChilliCream GitHub'
+              action: edit
+              tag: '$(Version)'
+              title: '$(Version)'
+              releaseNotesSource: input
+              releaseNotes: |
+              For more details click [here](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) to get to our CHANGELOG.
+              
+              assets: '$(Build.Repository.LocalPath)/output/packages/*.*'
+              assetUploadMode: replace
+              isPreRelease: true
