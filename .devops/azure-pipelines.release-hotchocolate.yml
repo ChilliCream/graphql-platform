@@ -62,12 +62,10 @@ stages:
             inputs:
               gitHubConnection: 'ChilliCream GitHub'
               action: edit
-              tag: '$(Version)'
-              title: '$(Version)'
-              releaseNotesSource: input
-              releaseNotes: |
-              For more details click [here](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) to get to our CHANGELOG.
-              
+              tag: '$(GitHubVersion)'
+              title: '$(GitHubVersion)'
               assets: '$(Build.Repository.LocalPath)/output/packages/*.*'
               assetUploadMode: replace
               isPreRelease: true
+              releaseNotesSource: input
+              releaseNotes: 'For more details click [here](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) to get to our CHANGELOG.'
