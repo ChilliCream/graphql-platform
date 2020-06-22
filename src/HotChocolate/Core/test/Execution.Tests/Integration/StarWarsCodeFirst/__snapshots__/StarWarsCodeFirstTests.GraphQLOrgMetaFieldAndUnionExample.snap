@@ -1,5 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "search": [
       {
         "__typename": "Human",
@@ -17,8 +17,5 @@
         "length": 9.2
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

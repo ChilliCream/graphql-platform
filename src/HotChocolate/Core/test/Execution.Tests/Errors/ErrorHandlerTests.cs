@@ -82,7 +82,7 @@ namespace HotChocolate.Execution.Errors
                 query,
                 b => 
                 {
-                    TestHelper.AddDefaultConfiguration(b);
+                    configure(b);
                     b.AddErrorFilter(error =>
                     {
                         errors++;
