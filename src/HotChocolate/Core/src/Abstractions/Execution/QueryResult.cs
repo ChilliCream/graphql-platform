@@ -5,7 +5,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public sealed class QueryResult : IReadOnlyQueryResult
+    public sealed class QueryResult 
+        : IQueryResult
+        , IReadOnlyQueryResult
     {
         private readonly IDisposable? _disposable;
 

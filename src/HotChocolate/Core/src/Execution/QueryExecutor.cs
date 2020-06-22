@@ -1,19 +1,20 @@
 using System.Collections.Immutable;
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
 using static HotChocolate.Execution.Utilities.ResolverExecutionHelper;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class QueryExecutor : IOperationExecutor
+    internal sealed class QueryExecutor
     {
-        public async Task<IExecutionResult> ExecuteAsync(
-            IOperationContext operationContext,
-            CancellationToken cancellationToken)
-        {
-            var scopedContext = ImmutableDictionary<string, object?>.Empty;
+        public Task<IReadOnlyQueryResult> ExecuteAsync(
+            IOperationContext operationContext) =>
+            ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
+        public async Task<IReadOnlyQueryResult> ExecuteAsync(
+            IOperationContext operationContext,
+            IImmutableDictionary<string, object?> scopedContext)
+        {
             IPreparedSelectionList rootSelections =
                 operationContext.Operation.GetRootSelections();
 

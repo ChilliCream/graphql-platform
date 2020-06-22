@@ -212,6 +212,8 @@ namespace HotChocolate.Execution.Utilities
             );
         }
 
+        public void DropResult() => _resultOwner.Dispose();
+
         private readonly struct NonNullViolation
         {
             public NonNullViolation(FieldNode selection, Path path, IResultMap parent)

@@ -2,10 +2,9 @@
 
 namespace HotChocolate.Execution
 {
-    public interface ISubscriptionExecutionResult
+    public interface ISubscriptionResult
         : IExecutionResult
         , IResponseStream
     {
-        new IDictionary<string, object> ContextData { get; }
     }
 }

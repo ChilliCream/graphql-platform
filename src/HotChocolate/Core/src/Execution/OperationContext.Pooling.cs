@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
@@ -20,6 +21,7 @@ namespace HotChocolate.Execution
 
         public void Initialize(
             IRequestContext requestContext,
+            IServiceProvider scopedServices,
             IBatchDispatcher batchDispatcher,
             IPreparedOperation operation,
             object? rootValue,
@@ -30,6 +32,7 @@ namespace HotChocolate.Execution
             Operation = operation;
             RootValue = rootValue;
             Variables = variables;
+            Services = scopedServices;
         }
 
         public void Reset()
@@ -40,6 +43,7 @@ namespace HotChocolate.Execution
             Operation = default!;
             RootValue = null;
             Variables = default!;
+            Services = default!;
         }
     }
 }

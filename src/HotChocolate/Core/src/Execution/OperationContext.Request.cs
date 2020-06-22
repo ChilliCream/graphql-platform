@@ -11,8 +11,6 @@ namespace HotChocolate.Execution
     {
         public ISchema Schema => _requestContext.Schema;
 
-        public IServiceProvider Services => _requestContext.Services;
-
         public IErrorHandler ErrorHandler => _requestContext.ErrorHandler;
 
         public ITypeConversion Converter => _requestContext.Converter;

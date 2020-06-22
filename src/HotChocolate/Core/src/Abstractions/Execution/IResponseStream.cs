@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public interface IResponseStream : IAsyncEnumerable<IReadOnlyQueryResult>
+    public interface IResponseStream 
+        : IAsyncEnumerable<IQueryResult>
+        , IAsyncDisposable
     {
     }
 }
