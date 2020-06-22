@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
 using BenchmarkDotNet.Attributes;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Benchmarks
 {

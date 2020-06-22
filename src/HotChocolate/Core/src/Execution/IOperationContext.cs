@@ -68,21 +68,6 @@ namespace HotChocolate.Execution
         /// <value></value>
         ITypeConversion Converter { get; }
 
-        // TODO : move to helper class
-        /// <summary>
-        /// Rewrites the value literals and replaces the variables.
-        /// </summary>
-        /// <param name="value">
-        /// A literal containing variables.
-        /// </param>
-        /// <param name="type">
-        /// The type of which the literal is.
-        /// </param>
-        /// <returns>
-        /// Returns a rewritten literal.
-        /// </returns>
-        IValueNode ReplaceVariables(IValueNode value, IType type);
-
         IResultHelper Result { get; }
 
         IExecutionContext Execution { get; }

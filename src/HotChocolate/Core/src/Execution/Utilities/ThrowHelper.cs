@@ -102,6 +102,15 @@ namespace HotChocolate.Execution.Utilities
                     variableName)
                 .Build());
 
+        public static GraphQLException VariableNotFound(
+            VariableNode variable) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The variable with the name `{0}` does not exist.",
+                    variable.Name.Value)
+                .AddLocation(variable)
+                .Build());
+
         public static GraphQLException VariableNotOfType(
             NameString variableName,
             Type type) =>
@@ -117,6 +126,5 @@ namespace HotChocolate.Execution.Utilities
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage("The root type `{0}` is not supported.", operationType)
                 .Build());
-
     }
 }

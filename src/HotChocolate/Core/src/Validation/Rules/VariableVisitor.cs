@@ -151,7 +151,7 @@ namespace HotChocolate.Validation.Rules
             DirectiveNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
             {
                 context.Directives.Push(d);
                 return Continue;

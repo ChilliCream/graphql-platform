@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
-using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Pipeline
 {
     internal sealed class OperationVariableCoercionMiddleware
     {
+        private static readonly IReadOnlyDictionary<string, object?> _empty = 
+            new Dictionary<string, object?>();
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly VariableCoercionHelper _coercionHelper;
@@ -29,10 +29,9 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            if (context.Operation is { })
+            if (context.Operation is { } )
             {
-                if (context.Request.VariableValues is null ||
-                    context.Request.VariableValues is { Count: 0 })
+                if (context.Operation.Definition.VariableDefinitions.Count == 0)
                 {
                     context.Variables = VariableValueCollection.Empty;
                 }
@@ -43,7 +42,7 @@ namespace HotChocolate.Execution.Pipeline
                     _coercionHelper.CoerceVariableValues(
                         context.Schema,
                         context.Operation.Definition.VariableDefinitions,
-                        context.Request.VariableValues,
+                        context.Request.VariableValues ?? _empty,
                         coercedValues);
 
                     context.Variables = new VariableValueCollection(coercedValues);
@@ -53,19 +52,8 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                // TODO : ERRORHELPER
-                context.Result = QueryResultBuilder.CreateError((IError)null);
+                context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
             }
         }
-
-        private static ObjectType ResolveRootType(
-            OperationType operationType, ISchema schema) =>
-            operationType switch
-            {
-                OperationType.Query => schema.QueryType,
-                OperationType.Mutation => schema.MutationType,
-                OperationType.Subscription => schema.SubscriptionType,
-                _ => throw new GraphQLException("THROWHELPER")
-            };
     }
 }

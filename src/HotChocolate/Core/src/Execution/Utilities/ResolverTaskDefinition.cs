@@ -23,11 +23,17 @@ namespace HotChocolate.Execution.Utilities
         }
 
         public IOperationContext OperationContext { get; }
+
         public IPreparedSelection Selection { get; }
+
         public int ResponseIndex { get; }
+
         public ResultMap ResultMap { get; }
+
         public object? Parent { get; }
+
         public Path Path { get; }
+        
         public IImmutableDictionary<string, object?> ScopedContextData { get; }
     }
 }

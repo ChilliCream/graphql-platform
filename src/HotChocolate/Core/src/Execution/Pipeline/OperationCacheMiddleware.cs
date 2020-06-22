@@ -50,7 +50,7 @@ namespace HotChocolate.Execution.Pipeline
                 {
                     context.Operation = operation;
                     addToCache = false;
-                    // _diagnosticEvents.RetrievedOperationFromCache(context);
+                    _diagnosticEvents.RetrievedOperationFromCache(context);
                 }
 
                 await _next(context).ConfigureAwait(false);
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Pipeline
                     context.ValidationResult is { HasErrors: false })
                 {
                     _operationCache.TryAddOperation(operationId, context.Operation);
-                    // _diagnosticEvents.AddedOperationToCache(context);
+                    _diagnosticEvents.AddedOperationToCache(context);
                 }
             }
         }

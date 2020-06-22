@@ -54,6 +54,21 @@ namespace HotChocolate.Execution
         public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet, Path path)
         {
+            if (typeContext is null)
+            {
+                throw new ArgumentNullException(nameof(typeContext));
+            }
+
+            if (selectionSet is null)
+            {
+                throw new ArgumentNullException(nameof(selectionSet));
+            }
+
+            if (path is null)
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
             try
             {
                 IPreparedSelectionList fields = _operationContext.CollectFields(
@@ -148,9 +163,9 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(error));
             }
 
-            _operationContext.Result.AddError(
-                _operationContext.ErrorHandler.Handle(error),
-                FieldSelection);
+            error = _operationContext.ErrorHandler.Handle(error);
+            _operationContext.Result.AddError(error, FieldSelection);
+            _operationContext.DiagnosticEvents.ResolverError(this, error);
             HasErrors = true;
         }
 
@@ -176,6 +191,11 @@ namespace HotChocolate.Execution
 
         public object Service(Type service)
         {
+            if (service is null)
+            {
+                throw new ArgumentNullException(nameof(service));
+            }
+
             return Services.GetRequiredService(service);
         }
     }

@@ -28,6 +28,10 @@ namespace HotChocolate.Execution.Instrumentation
 
         void RetrievedDocumentFromStorage(IRequestContext context);
 
+        void AddedOperationToCache(IRequestContext context);
+
+        void RetrievedOperationFromCache(IRequestContext context);
+
         void BatchDispatched(IRequestContext context);
 
         void ExecutorCreated(string name, IRequestExecutor executor);

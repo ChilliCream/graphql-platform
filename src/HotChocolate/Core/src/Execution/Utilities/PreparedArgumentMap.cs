@@ -11,24 +11,26 @@ namespace HotChocolate.Execution.Utilities
         public PreparedArgumentMap(IReadOnlyDictionary<NameString, PreparedArgument> arguments)
         {
             _arguments = arguments;
-
-            foreach (PreparedArgument argument in arguments.Values)
+            if (_arguments.Count > 0)
             {
-                if (!argument.IsFinal)
+                foreach (PreparedArgument argument in arguments.Values)
                 {
-                    IsFinal = true;
-                }
+                    if (!argument.IsFinal)
+                    {
+                        IsFinal = false;
+                    }
 
-                if (argument.IsError)
-                {
-                    HasErrors = true;
+                    if (argument.IsError)
+                    {
+                        HasErrors = true;
+                    }
                 }
             }
         }
 
         public PreparedArgument this[NameString key] => _arguments[key];
 
-        public bool IsFinal { get; }
+        public bool IsFinal { get; } = true;
 
         public bool HasErrors { get; }
 
@@ -47,8 +49,6 @@ namespace HotChocolate.Execution.Utilities
 
         public IEnumerator<KeyValuePair<NameString, PreparedArgument>> GetEnumerator() =>
             _arguments.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() =>
-            GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-
 }
