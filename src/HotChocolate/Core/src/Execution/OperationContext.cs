@@ -13,6 +13,8 @@ namespace HotChocolate.Execution
 
         public IVariableValueCollection Variables { get; private set; } = default!;
 
+        public IServiceProvider Services { get; private set; } = default!;
+
         public IResultHelper Result => _resultHelper;
 
         public IExecutionContext Execution => _executionContext;

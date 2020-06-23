@@ -37,7 +37,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -68,7 +69,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -99,7 +101,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -131,7 +134,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -162,7 +166,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -193,7 +198,8 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -225,7 +231,8 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -257,7 +264,8 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -289,7 +297,8 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }
@@ -321,7 +330,8 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            await foreach (IReadOnlyQueryResult result in 
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
                 results.Add(result);
             }

@@ -23,6 +23,8 @@ namespace HotChocolate.Execution.Utilities
             _resultOwner = new ResultMemoryOwner(resultPool);
         }
 
+        public IReadOnlyList<IError> Errors => _errors;
+
         public ResultMap RentResultMap(int capacity)
         {
             ResultMap? map;
@@ -211,6 +213,8 @@ namespace HotChocolate.Execution.Utilities
                 resultMemoryOwner: _data is null ? null : _resultOwner
             );
         }
+
+        public void DropResult() => _resultOwner.Dispose();
 
         private readonly struct NonNullViolation
         {

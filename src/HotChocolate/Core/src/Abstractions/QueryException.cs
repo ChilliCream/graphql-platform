@@ -40,6 +40,6 @@ namespace HotChocolate
         {
         }
 
-        public IReadOnlyCollection<IError> Errors { get; }
+        public IReadOnlyList<IError> Errors { get; }
     }
 }

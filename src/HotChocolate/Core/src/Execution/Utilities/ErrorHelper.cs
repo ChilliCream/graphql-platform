@@ -155,5 +155,21 @@ namespace HotChocolate.Execution.Utilities
                         "There is no operation on the context which can be used to coerce " + 
                         "variables.")
                     .Build());
+
+        public static IReadOnlyQueryResult StateInvalidForOperationExecution() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "Either now compiled operation was found or the variables " + 
+                        "have not been coerced.")
+                    .Build());
+
+        public static IReadOnlyQueryResult StateInvalidForSubscriptionExecution() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        "Either now compiled operation was found or the variables " + 
+                        "have not been coerced.")
+                    .Build());
     }
 }

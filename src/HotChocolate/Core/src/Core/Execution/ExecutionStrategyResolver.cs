@@ -23,10 +23,6 @@ namespace HotChocolate.Execution
                 {
                     OperationType.Mutation,
                     new MutationExecutionStrategy()
-                },
-                {
-                    OperationType.Subscription,
-                    new SubscriptionExecutionStrategy(options)
                 }
             };
         }

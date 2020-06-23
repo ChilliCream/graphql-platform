@@ -123,6 +123,10 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<ReadPersistedQueryMiddleware>();
 
+        public static IRequestExecutorBuilder UseSubscriptionExecution(
+            this IRequestExecutorBuilder builder) =>
+            builder.UseRequest<SubscriptionExecutionMiddleware>();
+
         public static IRequestExecutorBuilder UseWritePersistedQuery(
             this IRequestExecutorBuilder builder) =>
             builder.UseRequest<WritePersistedQueryMiddleware>();
@@ -158,7 +162,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseOperationCache()
                 .UseOperationResolver()
                 .UseOperationVariableCoercion()
-                .UseOperationExecution();
+                .UseOperationExecution()
+                .UseSubscriptionExecution();
         }
 
         public static IRequestExecutorBuilder UseActivePersistedQueryPipeline(
@@ -180,7 +185,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseOperationCache()
                 .UseOperationResolver()
                 .UseOperationVariableCoercion()
-                .UseOperationExecution();
+                .UseOperationExecution()
+                .UseSubscriptionExecution();
         }
 
         internal static void AddDefaultPipeline(this IList<RequestCoreMiddleware> pipeline)
@@ -194,6 +200,7 @@ namespace Microsoft.Extensions.DependencyInjection
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationResolverMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationVariableCoercionMiddleware>());
             pipeline.Add(RequestClassMiddlewareFactory.Create<OperationExecutionMiddleware>());
+            pipeline.Add(RequestClassMiddlewareFactory.Create<SubscriptionExecutionMiddleware>());
         }
     }
 }

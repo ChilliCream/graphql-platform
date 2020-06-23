@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
-using HotChocolate.Subscriptions;
 using Xunit;
 
 namespace HotChocolate.Tests
@@ -102,6 +101,17 @@ namespace HotChocolate.Tests
             result.MatchSnapshot();
         }
 
+        public static async Task<IRequestExecutor> CreateExecutorAsync(
+            Action<IRequestExecutorBuilder>? configure = null)
+        {
+            var configuration  =new TestConfiguration
+            {
+                Configure = configure,
+            };
+
+            return await CreateExecutorAsync(configuration);
+        }
+
         private static async ValueTask<IRequestExecutor> CreateExecutorAsync(
             TestConfiguration? configuration)
         {
@@ -146,9 +156,9 @@ namespace HotChocolate.Tests
         {
             builder
                 .AddStarWarsTypes()
+                .AddInMemorySubscriptions()
                 .Services
-                .AddStarWarsRepositories()
-                .AddInMemorySubscriptionProvider();
+                .AddStarWarsRepositories();
         }
     }
 }

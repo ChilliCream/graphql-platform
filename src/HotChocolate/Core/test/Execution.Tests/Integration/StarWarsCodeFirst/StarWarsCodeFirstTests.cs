@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
@@ -492,221 +494,223 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 .MatchSnapshotAsync();
         }
 
-        /*
-                [Fact]
-                public async Task SubscribeToReview()
-                {
-                    // arrange
-                    IQueryExecutor executor = CreateSchema().MakeExecutable();
+        [Fact]
+        public async Task SubscribeToReview()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
 
-                    // act
-                    var responseStream =
-                        (IResponseStream)await executor.ExecuteAsync(
-                            "subscription { onCreateReview(episode: NEWHOPE) " +
-                            "{ stars } }");
+            // act
+            var subscriptionResult =
+                (ISubscriptionResult)await executor.ExecuteAsync(
+                    "subscription { onReview(episode: NEWHOPE) " +
+                    "{ stars } }");
 
-                    // assert
-                    IExecutionResult result = await executor.ExecuteAsync(@"
-                        mutation {
-                            createReview(episode: NEWHOPE,
-                                review: { stars: 5 commentary: ""foo"" }) {
-                                stars
-                                commentary
-                            }
-                        }");
-
-                    IReadOnlyQueryResult eventResult = null;
-                    using (var cts = new CancellationTokenSource(2000))
-                    {
-                        await foreach (IReadOnlyQueryResult item in
-                            responseStream.WithCancellation(cts.Token))
-                        {
-                            eventResult = item;
-                            break;
+            // assert
+            IExecutionResult result = 
+                await executor.ExecuteAsync(@"
+                    mutation {
+                        createReview(episode: NEWHOPE,
+                            review: { stars: 5 commentary: ""foo"" }) {
+                            stars
+                            commentary
                         }
-                    }
+                    }");
 
-                    eventResult.MatchSnapshot();
-                }
-
-
-
-                [Fact]
-                public void ExecutionDepthShouldNotLeadToEmptyObjects()
+            IReadOnlyQueryResult eventResult = null;
+            using (var cts = new CancellationTokenSource(2000))
+            {
+                await foreach (IReadOnlyQueryResult item in
+                    subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
-                    // arrange
-                    var query = @"
-                    query ExecutionDepthShouldNotLeadToEmptyObects {
-                        hero(episode: NEWHOPE) {
+                    eventResult = item;
+                    break;
+                }
+            }
+
+            eventResult.MatchSnapshot();
+        }
+
+        /*
+
+
+
+        [Fact]
+        public void ExecutionDepthShouldNotLeadToEmptyObjects()
+        {
+            // arrange
+            var query = @"
+            query ExecutionDepthShouldNotLeadToEmptyObects {
+                hero(episode: NEWHOPE) {
+                    __typename
+                    id
+                    name
+                    ... on Human {
+                        __typename
+                        homePlanet
+                    }
+                    ... on Droid {
+                        __typename
+                        primaryFunction
+                    }
+                    friends {
+                        __typename
+                        ... on Human {
                             __typename
-                            id
-                            name
-                            ... on Human {
-                                __typename
-                                homePlanet
-                            }
-                            ... on Droid {
-                                __typename
-                                primaryFunction
-                            }
+                            homePlanet
                             friends {
                                 __typename
-                                ... on Human {
-                                    __typename
-                                    homePlanet
-                                    friends {
-                                        __typename
-                                    }
-                                }
-                                ... on Droid {
-                                    __typename
-                                    primaryFunction
-                                    friends {
-                                        __typename
-                                    }
-                                }
                             }
                         }
-                    }";
-
-                    ISchema schema = CreateSchema();
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable(
-                        new QueryExecutionOptions { MaxExecutionDepth = 3 });
-
-                    // act
-                    IExecutionResult result = executor.Execute(query);
-
-                    // assert
-                    result.MatchSnapshot();
-                }
-
-                [InlineData("true")]
-                [InlineData("false")]
-                [Theory]
-                public void Include_With_Literal(string ifValue)
-                {
-                    // arrange
-                    var query = $@"
-                    {{
-                        human(id: ""1000"") {{
-                            name @include(if: {ifValue})
-                            height
-                        }}
-                    }}";
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-                    // act
-                    IExecutionResult result = executor.Execute(query);
-
-                    // assert
-                    result.MatchSnapshot(new SnapshotNameExtension(ifValue));
-                }
-
-                [InlineData(true)]
-                [InlineData(false)]
-                [Theory]
-                public void Include_With_Variable(bool ifValue)
-                {
-                    // arrange
-                    var query = $@"
-                    query ($if: Boolean!) {{
-                        human(id: ""1000"") {{
-                            name @include(if: $if)
-                            height
-                        }}
-                    }}";
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-                    // act
-                    IExecutionResult result = executor.Execute(
-                        query,
-                        new Dictionary<string, object>
-                        {
-                            { "if", ifValue }
-                        });
-
-                    // assert
-                    result.MatchSnapshot(new SnapshotNameExtension(ifValue));
-                }
-
-                [InlineData("true")]
-                [InlineData("false")]
-                [Theory]
-                public void Skip_With_Literal(string ifValue)
-                {
-                    // arrange
-                    var query = $@"
-                    {{
-                        human(id: ""1000"") {{
-                            name @skip(if: {ifValue})
-                            height
-                        }}
-                    }}";
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-                    // act
-                    IExecutionResult result = executor.Execute(query);
-
-                    // assert
-                    result.MatchSnapshot(new SnapshotNameExtension(ifValue));
-                }
-
-                [InlineData(true)]
-                [InlineData(false)]
-                [Theory]
-                public void Skip_With_Variable(bool ifValue)
-                {
-                    // arrange
-                    var query = $@"
-                    query ($if: Boolean!) {{
-                        human(id: ""1000"") {{
-                            name @skip(if: $if)
-                            height
-                        }}
-                    }}";
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-                    // act
-                    IExecutionResult result = executor.Execute(
-                        query,
-                        new Dictionary<string, object>
-                        {
-                            { "if", ifValue }
-                        });
-
-                    // assert
-                    result.MatchSnapshot(new SnapshotNameExtension(ifValue));
-                }
-
-                [Fact]
-                public void Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
-                {
-                    // arrange
-                    var query = @"
-                    query {
-                        a: __type(name: ""Foo"") {
-                            name
+                        ... on Droid {
+                            __typename
+                            primaryFunction
+                            friends {
+                                __typename
+                            }
                         }
-                        b: __type(name: ""Query"") {
-                            name
-                        }
-                    }";
-
-                    IQueryExecutor executor = CreateSchema().MakeExecutable(
-                        new QueryExecutionOptions { MaxExecutionDepth = 3 });
-
-                    // act
-                    IExecutionResult result = executor.Execute(query);
-
-                    // assert
-                    result.MatchSnapshot();
+                    }
                 }
+            }";
 
-                */
+            ISchema schema = CreateSchema();
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable(
+                new QueryExecutionOptions { MaxExecutionDepth = 3 });
+
+            // act
+            IExecutionResult result = executor.Execute(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory]
+        public void Include_With_Literal(string ifValue)
+        {
+            // arrange
+            var query = $@"
+            {{
+                human(id: ""1000"") {{
+                    name @include(if: {ifValue})
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(query);
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void Include_With_Variable(bool ifValue)
+        {
+            // arrange
+            var query = $@"
+            query ($if: Boolean!) {{
+                human(id: ""1000"") {{
+                    name @include(if: $if)
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                query,
+                new Dictionary<string, object>
+                {
+                    { "if", ifValue }
+                });
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+        }
+
+        [InlineData("true")]
+        [InlineData("false")]
+        [Theory]
+        public void Skip_With_Literal(string ifValue)
+        {
+            // arrange
+            var query = $@"
+            {{
+                human(id: ""1000"") {{
+                    name @skip(if: {ifValue})
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(query);
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+        }
+
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public void Skip_With_Variable(bool ifValue)
+        {
+            // arrange
+            var query = $@"
+            query ($if: Boolean!) {{
+                human(id: ""1000"") {{
+                    name @skip(if: $if)
+                    height
+                }}
+            }}";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                query,
+                new Dictionary<string, object>
+                {
+                    { "if", ifValue }
+                });
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+        }
+
+        [Fact]
+        public void Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
+        {
+            // arrange
+            var query = @"
+            query {
+                a: __type(name: ""Foo"") {
+                    name
+                }
+                b: __type(name: ""Query"") {
+                    name
+                }
+            }";
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable(
+                new QueryExecutionOptions { MaxExecutionDepth = 3 });
+
+            // act
+            IExecutionResult result = executor.Execute(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        */
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -15,7 +16,8 @@ namespace HotChocolate.Execution.Pipeline
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
         private readonly MutationExecutor _mutationExecutor;
-        private object? _cachedRootValue = null;
+        private object? _cachedQueryValue = null;
+        private object? _cachedMutation = null;
 
         public OperationExecutionMiddleware(
             RequestDelegate next,
@@ -37,86 +39,74 @@ namespace HotChocolate.Execution.Pipeline
         }
 
         public async ValueTask InvokeAsync(
-            IRequestContext context, 
+            IRequestContext context,
             IBatchDispatcher batchDispatcher)
         {
             if (context.Operation is { } && context.Variables is { })
             {
-                OperationContext operationContext = _operationContextPool.Get();
-
-                try
+                if (context.Operation.Definition.Operation == OperationType.Subscription)
                 {
-                    operationContext.Initialize(
-                        context,
-                        batchDispatcher,
-                        context.Operation,
-                        ResolveRootValue(context, context.Operation.RootType),
-                        context.Variables);
-
-                    switch (context.Operation.Definition.Operation)
-                    {
-                        case OperationType.Query:
-                            context.Result = await _queryExecutor
-                                .ExecuteAsync(operationContext, context.RequestAborted)
-                                .ConfigureAwait(false);
-                            break;
-
-                        case OperationType.Mutation:
-                            context.Result = await _mutationExecutor
-                                .ExecuteAsync(operationContext, context.RequestAborted)
-                                .ConfigureAwait(false);
-                            break;
-
-                        case OperationType.Subscription:
-                            throw new NotSupportedException();
-
-                        default:
-                            // TODO : ERRORHELPER
-                            throw new NotSupportedException();
-                    }
-
                     await _next(context).ConfigureAwait(false);
                 }
-                finally
+                else
                 {
-                    _operationContextPool.Return(operationContext);
+                    OperationContext operationContext = _operationContextPool.Get();
+
+                    try
+                    {
+                        if (context.Operation.Definition.Operation == OperationType.Query)
+                        {
+                            object? query = RootValueResolver.TryResolve(
+                                context,
+                                context.Services,
+                                context.Operation.RootType,
+                                ref _cachedQueryValue);
+
+                            operationContext.Initialize(
+                                context,
+                                context.Services,
+                                batchDispatcher,
+                                context.Operation,
+                                query,
+                                context.Variables);
+
+                            context.Result = await _queryExecutor
+                                .ExecuteAsync(operationContext)
+                                .ConfigureAwait(false);
+                        }
+                        else if (context.Operation.Definition.Operation == OperationType.Mutation)
+                        {
+                            object? mutation = RootValueResolver.TryResolve(
+                                context,
+                                context.Services,
+                                context.Operation.RootType,
+                                ref _cachedMutation);
+
+                            operationContext.Initialize(
+                                context,
+                                context.Services,
+                                batchDispatcher,
+                                context.Operation,
+                                mutation,
+                                context.Variables);
+
+                            context.Result = await _mutationExecutor
+                                .ExecuteAsync(operationContext)
+                                .ConfigureAwait(false);
+                        }
+
+                        await _next(context).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _operationContextPool.Return(operationContext);
+                    }
                 }
             }
             else
             {
-                // TODO : ERRORHELPER
-                context.Result = QueryResultBuilder.CreateError((IError)null);
+                context.Result = ErrorHelper.StateInvalidForOperationExecution();
             }
-        }
-
-        private object? ResolveRootValue(IRequestContext context, ObjectType rootType)
-        {
-            if (context.Request.InitialValue is { })
-            {
-                return context.Request.InitialValue;
-            }
-
-            if (_cachedRootValue is { })
-            {
-                return _cachedRootValue;
-            }
-
-            if (rootType.ClrType != typeof(object))
-            {
-                object? rootValue = context.Services.GetService(rootType.ClrType);
-
-                if (rootValue is null &&
-                    !rootType.ClrType.IsAbstract &&
-                    !rootType.ClrType.IsInterface)
-                {
-                    rootValue = context.Activator.CreateInstance(rootType.ClrType);
-                    _cachedRootValue = rootValue;
-                }
-
-                return rootValue;
-            }
-
-            return null;
         }
     }
 }

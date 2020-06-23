@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
-    "onCreateReview": {
+  "data": {
+    "onReview": {
       "stars": 5
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

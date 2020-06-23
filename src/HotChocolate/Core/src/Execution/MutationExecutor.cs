@@ -6,11 +6,9 @@ using HotChocolate.Execution.Utilities;
 namespace HotChocolate.Execution
 {
     internal sealed class MutationExecutor
-        : IOperationExecutor
     {
-        public async Task<IExecutionResult> ExecuteAsync(
-            IOperationContext operationContext,
-            CancellationToken cancellationToken)
+        public async Task<IReadOnlyQueryResult> ExecuteAsync(
+            IOperationContext operationContext)
         {
             int responseIndex = 0;
             var scopedContext = ImmutableDictionary<string, object?>.Empty;
@@ -34,7 +32,7 @@ namespace HotChocolate.Execution
 
                     await ResolverExecutionHelper.StartExecutionTaskAsync(
                         operationContext.Execution,
-                        cancellationToken)
+                        operationContext.RequestAborted)
                         .ConfigureAwait(false);
                 }
             }
