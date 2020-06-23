@@ -44,11 +44,11 @@ namespace HotChocolate.Configuration
                 services);
 
             _handlers = new ITypeRegistrarHandler[]
-                {
+            {
                 new SchemaTypeReferenceHandler(),
                 new ClrTypeReferenceHandler(),
                 new SyntaxTypeReferenceHandler()
-                };
+            };
         }
 
         public DiscoveredTypes DiscoverTypes()
