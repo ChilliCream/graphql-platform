@@ -1064,7 +1064,7 @@ namespace HotChocolate
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result =

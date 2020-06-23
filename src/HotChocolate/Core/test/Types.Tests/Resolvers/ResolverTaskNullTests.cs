@@ -21,7 +21,7 @@ namespace HotChocolate.Resolvers
         public async Task HandleNullResolverTask(string field, string argument)
         {
             // arrange
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 Schema.Create(c => c.RegisterQueryType<QueryType>())
                     .MakeExecutable();
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Resolvers
                 $"{{ {field}(name: {arg}) }}");
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
                 field, argument ?? "null"));
         }
 
