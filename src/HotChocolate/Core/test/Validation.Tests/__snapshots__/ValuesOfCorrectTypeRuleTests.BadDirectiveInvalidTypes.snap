@@ -4,9 +4,8 @@
     "Code": null,
     "Path": {
       "Parent": null,
-      "Name": "dog",
-      "Index": null,
-      "Depth": 0
+      "Depth": 0,
+      "Name": "dog"
     },
     "Locations": [
       {
@@ -28,13 +27,11 @@
     "Path": {
       "Parent": {
         "Parent": null,
-        "Name": "dog",
-        "Index": null,
-        "Depth": 0
+        "Depth": 0,
+        "Name": "dog"
       },
-      "Name": "name",
-      "Index": null,
-      "Depth": 1
+      "Depth": 1,
+      "Name": "name"
     },
     "Locations": [
       {

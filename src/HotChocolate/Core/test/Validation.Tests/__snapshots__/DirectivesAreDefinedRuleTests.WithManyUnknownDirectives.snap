@@ -4,9 +4,8 @@
     "Code": null,
     "Path": {
       "Parent": null,
-      "Name": "dog",
-      "Index": null,
-      "Depth": 0
+      "Depth": 0,
+      "Name": "dog"
     },
     "Locations": [
       {
@@ -24,9 +23,8 @@
     "Code": null,
     "Path": {
       "Parent": null,
-      "Name": "human",
-      "Index": null,
-      "Depth": 0
+      "Depth": 0,
+      "Name": "human"
     },
     "Locations": [
       {
@@ -45,13 +43,11 @@
     "Path": {
       "Parent": {
         "Parent": null,
-        "Name": "human",
-        "Index": null,
-        "Depth": 0
+        "Depth": 0,
+        "Name": "human"
       },
-      "Name": "pets",
-      "Index": null,
-      "Depth": 1
+      "Depth": 1,
+      "Name": "pets"
     },
     "Locations": [
       {

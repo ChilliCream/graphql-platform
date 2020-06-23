@@ -1,9 +1,6 @@
-using System;
-using HotChocolate;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -19,7 +16,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IDocumentValidatorFactory, DefaultDocumentValidatorFactory>();
 
             var builder = new DefaultValidationBuilder(
-                schemaName ?? Options.Options.DefaultName, 
+                schemaName ?? Options.Options.DefaultName,
                 services);
 
             builder

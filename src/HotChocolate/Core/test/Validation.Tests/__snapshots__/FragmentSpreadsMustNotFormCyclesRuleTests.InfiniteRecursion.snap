@@ -6,17 +6,14 @@
       "Parent": {
         "Parent": {
           "Parent": null,
-          "Name": "dog",
-          "Index": null,
-          "Depth": 0
+          "Depth": 0,
+          "Name": "dog"
         },
-        "Name": "owner",
-        "Index": null,
-        "Depth": 1
+        "Depth": 1,
+        "Name": "owner"
       },
-      "Name": "pets",
-      "Index": null,
-      "Depth": 2
+      "Depth": 2,
+      "Name": "pets"
     },
     "Locations": [
       {
