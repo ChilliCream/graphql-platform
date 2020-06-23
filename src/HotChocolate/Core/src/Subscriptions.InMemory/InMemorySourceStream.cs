@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -8,14 +7,14 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Subscriptions.InMemory
 {
-    public class InMemoryEventStream<TMessage>
+    public class InMemorySourceStream<TMessage>
         : ISourceStream<TMessage>
     {
         private readonly Channel<TMessage> _channel;
         private bool _read;
         private bool _disposed;
 
-        public InMemoryEventStream(Channel<TMessage> channel)
+        public InMemorySourceStream(Channel<TMessage> channel)
         {
             _channel = channel;
         }
@@ -29,7 +28,7 @@ namespace HotChocolate.Subscriptions.InMemory
 
             if (_disposed)
             {
-                throw new ObjectDisposedException(nameof(InMemoryEventStream<TMessage>));
+                throw new ObjectDisposedException(nameof(InMemorySourceStream<TMessage>));
             }
 
             _read = true;
@@ -59,7 +58,7 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<T> GetAsyncEnumerator(
-                [EnumeratorCancellation]CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 while (await _channel.Reader.WaitToReadAsync(cancellationToken))
                 {
@@ -84,11 +83,11 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<object> GetAsyncEnumerator(
-                [EnumeratorCancellation]CancellationToken cancellationToken)
+                CancellationToken cancellationToken)
             {
                 await foreach (TMessage message in _messages.WithCancellation(cancellationToken))
                 {
-                    yield return message;
+                    yield return message!;
                 }
             }
         }

@@ -44,7 +44,7 @@ namespace HotChocolate.Subscriptions.InMemory
             Dispose();
         }
 
-        public async ValueTask<InMemoryEventStream<TMessage>> SubscribeAsync(
+        public async ValueTask<InMemorySourceStream<TMessage>> SubscribeAsync(
             CancellationToken cancellationToken)
         {
             await _semaphore.WaitAsync().ConfigureAwait(false);
@@ -52,7 +52,7 @@ namespace HotChocolate.Subscriptions.InMemory
             try
             {
                 var channel = Channel.CreateUnbounded<TMessage>();
-                var stream = new InMemoryEventStream<TMessage>(channel);
+                var stream = new InMemorySourceStream<TMessage>(channel);
                 _outgoing.Add(channel);
 
                 return stream;
