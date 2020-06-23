@@ -23,6 +23,8 @@ namespace HotChocolate.Execution.Utilities
             _resultOwner = new ResultMemoryOwner(resultPool);
         }
 
+        public IReadOnlyList<IError> Errors => _errors;
+
         public ResultMap RentResultMap(int capacity)
         {
             ResultMap? map;

@@ -126,5 +126,20 @@ namespace HotChocolate.Execution.Utilities
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage("The root type `{0}` is not supported.", operationType)
                 .Build());
+
+        public static GraphQLException SubscriptionExecutor_ContextInvalidState() =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("The request context is in an invalid state for subscriptions.")
+                .Build());
+
+        public static GraphQLException SubscriptionExecutor_SubscriptionsMustHaveOneField() =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("Subscription queries must have exactly one root field.")
+                .Build());
+
+        public static GraphQLException SubscriptionExecutor_NoSubscribeResolver() =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("You must declare a subscribe resolver for subscription fields.")
+                .Build());        
     }
 }

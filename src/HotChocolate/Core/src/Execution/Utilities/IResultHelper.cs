@@ -11,6 +11,8 @@ namespace HotChocolate.Execution.Utilities
 
         ResultList RentResultList();
 
+        IReadOnlyList<IError> Errors { get; }
+
         void SetData(ResultMap resultMap);
 
         /// <summary>

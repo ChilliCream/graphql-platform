@@ -35,6 +35,7 @@ namespace HotChocolate.Execution.Batching
 
             await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1).ConfigureAwait(false);
 
+/*
             await foreach (IReadOnlyQueryResult result in
                 responseStream.WithCancellation(cancellationToken))
             {
@@ -43,6 +44,7 @@ namespace HotChocolate.Execution.Batching
                     .ConfigureAwait(false);
                 delimiter = true;
             }
+            */
 
             await outputStream.WriteAsync(new[] { _rightBracket }, 0, 1).ConfigureAwait(false);
         }

@@ -56,6 +56,7 @@ namespace HotChocolate.Execution
                 source,
                 new FieldData(1));
 
+/*
             SubscribeResolverDelegate subscribeResolver =
                 fieldSelection.Field.SubscribeResolver
                 ?? DefaultSubscribeResolverAsync;
@@ -82,6 +83,9 @@ namespace HotChocolate.Execution
             {
                 ResolverContext.Return(subscribeContext);
             }
+            */
+
+            throw new Exception();
         }
 
         private static async ValueTask<IAsyncEnumerable<object>> DefaultSubscribeResolverAsync(

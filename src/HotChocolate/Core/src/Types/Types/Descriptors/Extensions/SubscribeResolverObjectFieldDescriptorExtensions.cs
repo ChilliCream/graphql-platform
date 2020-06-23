@@ -15,7 +15,7 @@ namespace HotChocolate.Types
             return descriptor.Subscribe(async ctx =>
             {
                 IObservable<T> observable = await subscribe(ctx).ConfigureAwait(false);
-                return new ObservableSourceStreamAdapter<T>(observable);
+                return new SourceStreamWrapper(new ObservableSourceStreamAdapter<T>(observable));
             });
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Types
             return descriptor.Subscribe(async ctx =>
             {
                 IEnumerable<T> enumerable = await subscribe(ctx).ConfigureAwait(false);
-                return new EnumerableSourceStreamAdapter<T>(enumerable);
+                return new SourceStreamWrapper(new EnumerableSourceStreamAdapter<T>(enumerable));
             });
         }
 
@@ -47,7 +47,7 @@ namespace HotChocolate.Types
             return descriptor.Subscribe(async ctx =>
             {
                 IAsyncEnumerable<T> enumerable = await subscribe(ctx).ConfigureAwait(false);
-                return new AsyncEnumerableStreamAdapter<T>(enumerable);
+                return new SourceStreamWrapper(new AsyncEnumerableStreamAdapter<T>(enumerable));
             });
         }
 
