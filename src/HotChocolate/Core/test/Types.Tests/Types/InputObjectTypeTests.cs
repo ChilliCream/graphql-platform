@@ -506,14 +506,14 @@ namespace HotChocolate.Types
                 .AddServices(services)
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foo(a: { bar: { text: \"abc\" } }) }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1026,14 +1026,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [InlineData("null")]
@@ -1046,14 +1046,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: " + value + " }) { isBarSet } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1064,14 +1064,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithImmutables>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

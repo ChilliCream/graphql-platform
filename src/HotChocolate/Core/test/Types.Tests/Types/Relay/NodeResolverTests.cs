@@ -18,7 +18,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -53,7 +53,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -112,7 +112,7 @@ namespace HotChocolate.Types
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -120,7 +120,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace HotChocolate.Types
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -160,7 +160,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

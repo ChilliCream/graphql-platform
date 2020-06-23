@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => new Foo()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -43,7 +43,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => new List<Foo> { new Foo() }))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -66,7 +66,7 @@ namespace HotChocolate.Types
                         TimeSpan.Zero)))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -87,7 +87,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => "abc"))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -108,7 +108,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => 123))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -129,7 +129,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => 1.2))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => true))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -172,7 +172,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -195,7 +195,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -218,7 +218,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -241,7 +241,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<Foo>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -264,7 +264,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -287,7 +287,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -310,7 +310,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -333,7 +333,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -356,7 +356,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -379,7 +379,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -405,7 +405,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -437,7 +437,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -463,7 +463,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -489,7 +489,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -515,7 +515,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -541,7 +541,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -567,7 +567,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.ArgumentKind("input").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -593,7 +593,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -619,7 +619,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.Argument<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

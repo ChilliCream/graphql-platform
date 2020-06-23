@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -32,18 +33,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -64,18 +65,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -96,19 +97,20 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                var result = (IReadOnlyQueryResult) queryResult;
+                results.AppendLine(result.ToJson());
             }
 
             Assert.True(observable.DisposeRaised);
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -129,19 +131,19 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
             Assert.True(observable.DisposeRaised);
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -161,18 +163,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -193,18 +195,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [InlineData("onSomething")]
@@ -226,18 +228,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -259,18 +261,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -292,18 +294,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -325,18 +327,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in 
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         public class TestObservable
