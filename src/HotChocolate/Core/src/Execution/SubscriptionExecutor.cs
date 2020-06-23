@@ -20,8 +20,7 @@ namespace HotChocolate.Execution
         private readonly IDiagnosticEvents _diagnosicEvents;
 
         public async Task<IExecutionResult> ExecuteAsync(
-            IRequestContext requestContext,
-            CancellationToken cancellationToken)
+            IRequestContext requestContext)
         {
             if (requestContext is null)
             {
@@ -59,7 +58,7 @@ namespace HotChocolate.Execution
             try
             {
                 // TODO : discuss with rafi
-                IAsyncEnumerable<object> sourceStream =
+                ISourceStream sourceStream =
                     await subscription.SubscribeAsync().ConfigureAwait(false);
 
                 IAsyncEnumerable<IQueryResult> resultStream =

@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 
 #nullable enable
 
@@ -13,6 +13,6 @@ namespace HotChocolate.Resolvers
     /// <returns>
     /// Returns the the event stream.
     /// </returns>
-    public delegate ValueTask<IAsyncEnumerable<object>> SubscribeResolverDelegate(
+    public delegate ValueTask<ISourceStream> SubscribeResolverDelegate(
         IResolverContext context);
 }

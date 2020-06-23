@@ -122,7 +122,6 @@ namespace HotChocolate.Resolvers
             "ArgumentLiteral<TValueNode>(name) or " + 
             "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
-
         T Argument<T>(NameString name);
 
         /// <summary>

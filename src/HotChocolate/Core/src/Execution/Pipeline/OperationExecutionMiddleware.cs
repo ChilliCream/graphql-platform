@@ -58,13 +58,14 @@ namespace HotChocolate.Execution.Pipeline
 
                         operationContext.Initialize(
                             context,
+                            context.Services,
                             batchDispatcher,
                             context.Operation,
                             query,
                             context.Variables);
 
                         context.Result = await _queryExecutor
-                            .ExecuteAsync(operationContext, context.RequestAborted)
+                            .ExecuteAsync(operationContext)
                             .ConfigureAwait(false);
                     }
                     else if (context.Operation.Definition.Operation == OperationType.Mutation)
@@ -77,13 +78,14 @@ namespace HotChocolate.Execution.Pipeline
 
                         operationContext.Initialize(
                             context,
+                            context.Services,
                             batchDispatcher,
                             context.Operation,
                             mutation,
                             context.Variables);
 
                         context.Result = await _mutationExecutor
-                            .ExecuteAsync(operationContext, context.RequestAborted)
+                            .ExecuteAsync(operationContext)
                             .ConfigureAwait(false);
                     }
 
@@ -96,8 +98,7 @@ namespace HotChocolate.Execution.Pipeline
             }
             else
             {
-                // TODO : ERRORHELPER
-                context.Result = QueryResultBuilder.CreateError((IError)null);
+                context.Result = ErrorHelper.StateInvalidForOperationExecution();
             }
         }
     }
