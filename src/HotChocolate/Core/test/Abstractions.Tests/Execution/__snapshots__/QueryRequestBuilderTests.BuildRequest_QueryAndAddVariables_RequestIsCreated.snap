@@ -2,7 +2,7 @@
   "Query": {
     "Text": "{ foo }"
   },
-  "QueryName": null,
+  "QueryId": null,
   "QueryHash": null,
   "OperationName": null,
   "VariableValues": {
@@ -10,7 +10,7 @@
     "two": "bar"
   },
   "InitialValue": null,
-  "Properties": {},
+  "ContextData": {},
   "Services": null,
   "Extensions": {}
 }
