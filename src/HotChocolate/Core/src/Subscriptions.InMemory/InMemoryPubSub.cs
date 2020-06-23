@@ -3,8 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-#nullable enable
-
 namespace HotChocolate.Subscriptions.InMemory
 {
     public class InMemoryPubSub

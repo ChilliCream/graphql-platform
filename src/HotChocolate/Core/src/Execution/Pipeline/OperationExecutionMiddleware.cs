@@ -44,56 +44,63 @@ namespace HotChocolate.Execution.Pipeline
         {
             if (context.Operation is { } && context.Variables is { })
             {
-                OperationContext operationContext = _operationContextPool.Get();
-
-                try
+                if (context.Operation.Definition.Operation == OperationType.Subscription)
                 {
-                    if (context.Operation.Definition.Operation == OperationType.Query)
-                    {
-                        object? query = RootValueResolver.TryResolve(
-                            context,
-                            context.Services,
-                            context.Operation.RootType,
-                            ref _cachedQueryValue);
-
-                        operationContext.Initialize(
-                            context,
-                            context.Services,
-                            batchDispatcher,
-                            context.Operation,
-                            query,
-                            context.Variables);
-
-                        context.Result = await _queryExecutor
-                            .ExecuteAsync(operationContext)
-                            .ConfigureAwait(false);
-                    }
-                    else if (context.Operation.Definition.Operation == OperationType.Mutation)
-                    {
-                        object? mutation = RootValueResolver.TryResolve(
-                            context,
-                            context.Services,
-                            context.Operation.RootType,
-                            ref _cachedMutation);
-
-                        operationContext.Initialize(
-                            context,
-                            context.Services,
-                            batchDispatcher,
-                            context.Operation,
-                            mutation,
-                            context.Variables);
-
-                        context.Result = await _mutationExecutor
-                            .ExecuteAsync(operationContext)
-                            .ConfigureAwait(false);
-                    }
-
                     await _next(context).ConfigureAwait(false);
                 }
-                finally
+                else
                 {
-                    _operationContextPool.Return(operationContext);
+                    OperationContext operationContext = _operationContextPool.Get();
+
+                    try
+                    {
+                        if (context.Operation.Definition.Operation == OperationType.Query)
+                        {
+                            object? query = RootValueResolver.TryResolve(
+                                context,
+                                context.Services,
+                                context.Operation.RootType,
+                                ref _cachedQueryValue);
+
+                            operationContext.Initialize(
+                                context,
+                                context.Services,
+                                batchDispatcher,
+                                context.Operation,
+                                query,
+                                context.Variables);
+
+                            context.Result = await _queryExecutor
+                                .ExecuteAsync(operationContext)
+                                .ConfigureAwait(false);
+                        }
+                        else if (context.Operation.Definition.Operation == OperationType.Mutation)
+                        {
+                            object? mutation = RootValueResolver.TryResolve(
+                                context,
+                                context.Services,
+                                context.Operation.RootType,
+                                ref _cachedMutation);
+
+                            operationContext.Initialize(
+                                context,
+                                context.Services,
+                                batchDispatcher,
+                                context.Operation,
+                                mutation,
+                                context.Variables);
+
+                            context.Result = await _mutationExecutor
+                                .ExecuteAsync(operationContext)
+                                .ConfigureAwait(false);
+                        }
+
+                        await _next(context).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        _operationContextPool.Return(operationContext);
+                    }
                 }
             }
             else

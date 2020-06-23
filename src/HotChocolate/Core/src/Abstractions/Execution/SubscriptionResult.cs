@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object?>? contextData = null,
             IAsyncDisposable? subscription = null)
         {
-            if (_resultStreamFactory is null && _errors is null)
+            if (resultStreamFactory is null && errors is null)
             {
                 throw new ArgumentException("Either provide a result stream factory or errors.");
             }
