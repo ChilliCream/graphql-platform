@@ -36,6 +36,6 @@ namespace HotChocolate.Execution.Instrumentation
 
         void ExecutorCreated(string name, IRequestExecutor executor);
 
-        void ExecutorEvicted(string name, IRequestExecutor executor);        
+        void ExecutorEvicted(string name, IRequestExecutor executor);
     }
 }
