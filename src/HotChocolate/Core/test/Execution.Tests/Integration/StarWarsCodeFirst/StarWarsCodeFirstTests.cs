@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
@@ -594,7 +595,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Theory]
         public async Task Include_With_Literal(string ifValue)
         {
-            Snapshot.FullName();
+            Snapshot.FullName(new SnapshotNameExtension(ifValue));
             await ExpectValid($@"
                 {{
                     human(id: ""1000"") {{
@@ -602,7 +603,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                         height
                     }}
                 }}")
-                .MatchSnapshotAsync(ifValue);
+                .MatchSnapshotAsync();
         }
 
         [InlineData(true)]
@@ -610,7 +611,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         [Theory]
         public async Task Include_With_Variable(bool ifValue)
         {
-            Snapshot.FullName();
+            Snapshot.FullName(new SnapshotNameExtension(ifValue));
             await ExpectValid($@"
                 query ($if: Boolean!) {{
                     human(id: ""1000"") {{
@@ -619,7 +620,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     }}
                 }}",
                 request: r => r.SetVariableValue("if", ifValue))
-                .MatchSnapshotAsync(ifValue);
+                .MatchSnapshotAsync();
         }
 
         /*
