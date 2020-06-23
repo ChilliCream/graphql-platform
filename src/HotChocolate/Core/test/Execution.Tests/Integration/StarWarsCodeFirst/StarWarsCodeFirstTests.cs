@@ -623,83 +623,53 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 .MatchSnapshotAsync();
         }
 
-        /*
-
         [InlineData("true")]
         [InlineData("false")]
         [Theory]
-        public void Skip_With_Literal(string ifValue)
+        public async Task Skip_With_Literal(string ifValue)
         {
-            // arrange
-            var query = $@"
-            {{
-                human(id: ""1000"") {{
-                    name @skip(if: {ifValue})
-                    height
-                }}
-            }}";
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(query);
-
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+            Snapshot.FullName(new SnapshotNameExtension(ifValue));
+            await ExpectValid($@"
+                {{
+                    human(id: ""1000"") {{
+                        name @skip(if: {ifValue})
+                        height
+                    }}
+                }}")
+                .MatchSnapshotAsync();
         }
 
         [InlineData(true)]
         [InlineData(false)]
         [Theory]
-        public void Skip_With_Variable(bool ifValue)
+        public async Task Skip_With_Variable(bool ifValue)
         {
-            // arrange
-            var query = $@"
-            query ($if: Boolean!) {{
-                human(id: ""1000"") {{
-                    name @skip(if: $if)
-                    height
-                }}
-            }}";
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                query,
-                new Dictionary<string, object>
-                {
-                    { "if", ifValue }
-                });
-
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+            Snapshot.FullName(new SnapshotNameExtension(ifValue));
+            await ExpectValid($@"
+                query ($if: Boolean!) {{
+                    human(id: ""1000"") {{
+                        name @skip(if: $if)
+                        height
+                    }}
+                }}",
+                request: r=> r.SetVariableValue("if", ifValue))
+                .MatchSnapshotAsync();
         }
 
         [Fact]
-        public void Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
+        public async Task Ensure_Type_Introspection_Returns_Null_If_Type_Not_Found()
         {
-            // arrange
-            var query = @"
-            query {
-                a: __type(name: ""Foo"") {
-                    name
-                }
-                b: __type(name: ""Query"") {
-                    name
-                }
-            }";
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable(
-                new QueryExecutionOptions { MaxExecutionDepth = 3 });
-
-            // act
-            IExecutionResult result = executor.Execute(query);
-
-            // assert
-            result.MatchSnapshot();
+            Snapshot.FullName();
+            await ExpectValid(@"
+                query {
+                    a: __type(name: ""Foo"") {
+                        name
+                    }
+                    b: __type(name: ""Query"") {
+                        name
+                    }
+                }")
+                .MatchSnapshotAsync();
         }
-
-        */
     }
 }
