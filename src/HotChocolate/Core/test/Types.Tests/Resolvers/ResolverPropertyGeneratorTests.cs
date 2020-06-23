@@ -1438,11 +1438,7 @@ namespace HotChocolate.Resolvers.Expressions
 
             public bool ResolverWithResolverContext(
                 IResolverContext context) =>
-                context != null;
-
-            public bool ResolverWithEventMessage(
-                IEventMessage message) =>
-                message != null;
+                context != null;         
 
             public bool ResolverWithFieldSelection(
                 FieldNode fieldSelection) =>

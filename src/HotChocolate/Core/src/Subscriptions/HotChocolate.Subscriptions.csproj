@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Subscriptions</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
     <ProjectReference Include="..\Abstractions\HotChocolate.Abstractions.csproj" />
   </ItemGroup>
 
