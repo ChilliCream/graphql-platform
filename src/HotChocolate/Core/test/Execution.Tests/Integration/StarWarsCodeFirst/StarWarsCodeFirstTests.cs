@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
@@ -507,7 +508,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                     "{ stars } }");
 
             // assert
-            IExecutionResult result = 
+            IExecutionResult result =
                 await executor.ExecuteAsync(@"
                     mutation {
                         createReview(episode: NEWHOPE,
@@ -520,9 +521,10 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IReadOnlyQueryResult eventResult = null;
             using (var cts = new CancellationTokenSource(2000))
             {
-                await foreach (IReadOnlyQueryResult item in
+                await foreach (IQueryResult queryResult in
                     subscriptionResult.ReadResultsAsync().WithCancellation(cts.Token))
                 {
+                    var item = (IReadOnlyQueryResult) queryResult;
                     eventResult = item;
                     break;
                 }
@@ -531,110 +533,96 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             eventResult.MatchSnapshot();
         }
 
-        /*
-
-
-
+        /// <summary>
+        /// An error caused by the violating the max execution depth rule should
+        /// not lead to partial results.
+        /// The result should consist of a single error stating the allowed depth.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
-        public void ExecutionDepthShouldNotLeadToEmptyObjects()
+        public async Task ExecutionDepthShouldNotLeadToEmptyObjects()
         {
-            // arrange
-            var query = @"
-            query ExecutionDepthShouldNotLeadToEmptyObects {
-                hero(episode: NEWHOPE) {
-                    __typename
-                    id
-                    name
-                    ... on Human {
+            Snapshot.FullName();
+            await ExpectError(@"
+                query ExecutionDepthShouldNotLeadToEmptyObjects {
+                    hero(episode: NEWHOPE) {
                         __typename
-                        homePlanet
-                    }
-                    ... on Droid {
-                        __typename
-                        primaryFunction
-                    }
-                    friends {
-                        __typename
+                        id
+                        name
                         ... on Human {
                             __typename
                             homePlanet
-                            friends {
-                                __typename
-                            }
                         }
                         ... on Droid {
                             __typename
                             primaryFunction
-                            friends {
+                        }
+                        friends {
+                            nodes {
                                 __typename
+                                ... on Human {
+                                    __typename
+                                    homePlanet
+                                    friends {
+                                        nodes {
+                                            __typename
+                                        }
+                                    }
+                                }
+                                ... on Droid {
+                                    __typename
+                                    primaryFunction
+                                    friends {
+                                        nodes {
+                                            __typename
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                }
-            }";
-
-            ISchema schema = CreateSchema();
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable(
-                new QueryExecutionOptions { MaxExecutionDepth = 3 });
-
-            // act
-            IExecutionResult result = executor.Execute(query);
-
-            // assert
-            result.MatchSnapshot();
+                }",
+                configure: c =>
+                {
+                    AddDefaultConfiguration(c);
+                    c.AddMaxExecutionDepthRule(3);
+                });
         }
 
         [InlineData("true")]
         [InlineData("false")]
         [Theory]
-        public void Include_With_Literal(string ifValue)
+        public async Task Include_With_Literal(string ifValue)
         {
-            // arrange
-            var query = $@"
-            {{
-                human(id: ""1000"") {{
-                    name @include(if: {ifValue})
-                    height
-                }}
-            }}";
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(query);
-
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+            Snapshot.FullName();
+            await ExpectValid($@"
+                {{
+                    human(id: ""1000"") {{
+                        name @include(if: {ifValue})
+                        height
+                    }}
+                }}")
+                .MatchSnapshotAsync(ifValue);
         }
 
         [InlineData(true)]
         [InlineData(false)]
         [Theory]
-        public void Include_With_Variable(bool ifValue)
+        public async Task Include_With_Variable(bool ifValue)
         {
-            // arrange
-            var query = $@"
-            query ($if: Boolean!) {{
-                human(id: ""1000"") {{
-                    name @include(if: $if)
-                    height
-                }}
-            }}";
-
-            IQueryExecutor executor = CreateSchema().MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                query,
-                new Dictionary<string, object>
-                {
-                    { "if", ifValue }
-                });
-
-            // assert
-            result.MatchSnapshot(new SnapshotNameExtension(ifValue));
+            Snapshot.FullName();
+            await ExpectValid($@"
+                query ($if: Boolean!) {{
+                    human(id: ""1000"") {{
+                        name @include(if: $if)
+                        height
+                    }}
+                }}",
+                request: r => r.SetVariableValue("if", ifValue))
+                .MatchSnapshotAsync(ifValue);
         }
+
+        /*
 
         [InlineData("true")]
         [InlineData("false")]

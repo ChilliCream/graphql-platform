@@ -48,14 +48,14 @@ namespace HotChocolate.Execution.Utilities
                 TMiddleware middleware =
                     MiddlewareCompiler<TMiddleware>
                         .CompileFactory<IRequestCoreMiddlewareContext, RequestDelegate>(
-                            (ctx, next) => CreateFactoryParameterHandlers(ctx, context.Options))
+                            (c, n) => CreateFactoryParameterHandlers(c, context.Options))
                         .Invoke(context, next);
 
                 ClassQueryDelegate<TMiddleware, IRequestContext> compiled =
                     MiddlewareCompiler<TMiddleware>.CompileDelegate<IRequestContext>(
-                        (ctx, middleware) => CreateDelegateParameterHandlers(ctx, context.Options));
+                        (c, m) => CreateDelegateParameterHandlers(c, context.Options));
 
-                return context => compiled(context, middleware);
+                return c => compiled(c, middleware);
             };
         }
 
@@ -107,9 +107,6 @@ namespace HotChocolate.Execution.Utilities
                 Expression.Constant(options)));
             parameterHandlers.Add(new TypeParameterHandler(
                 typeof(IRequestExecutorOptionsAccessor),
-                Expression.Constant(options)));
-            parameterHandlers.Add(new TypeParameterHandler(
-                typeof(IValidationOptionsAccessor),
                 Expression.Constant(options)));
         }
 

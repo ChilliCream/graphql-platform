@@ -1,23 +1,17 @@
 ﻿{
-  "Data": null,
-  "Errors": [
+  "errors": [
     {
-      "Message": "The GraphQL document has an operation complexity of 4 which exceeds the max allowed operation complexity of 3.",
-      "Code": null,
-      "Path": null,
-      "Locations": [
+      "message": "The GraphQL document has an operation complexity of 6 which exceeds the max allowed operation complexity of 3.",
+      "locations": [
         {
-          "Line": 2,
-          "Column": 13
+          "line": 2,
+          "column": 17
         }
       ],
-      "Exception": null,
-      "Extensions": {
+      "extensions": {
         "allowedComplexity": 3,
-        "detectedComplexity": 4
+        "detectedComplexity": 6
       }
     }
-  ],
-  "Extensions": null,
-  "ContextData": null
+  ]
 }
