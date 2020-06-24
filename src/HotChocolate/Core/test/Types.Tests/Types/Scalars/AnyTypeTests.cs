@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types
 {
@@ -997,6 +1000,16 @@ namespace HotChocolate.Types
             Assert.IsType<ObjectValueNode>(literal);
         }
 
+        [Fact]
+        public async Task Dictionary_Is_Handled_As_Object()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ someObject }",
+                configure: c => c.AddQueryType<QueryWithDictionary>())
+                .MatchSnapshotAsync();
+        }
+
         public class Foo
         {
             public Bar Bar { get; set; } = new Bar();
@@ -1005,6 +1018,13 @@ namespace HotChocolate.Types
         public class Bar
         {
             public string Baz { get; set; } = "Baz";
+        }
+
+        public class QueryWithDictionary
+        {
+            [GraphQLType(typeof(AnyType))]
+            public IDictionary<string, object> SomeObject =>
+                new Dictionary<string, object> { { "a", "b" } };
         }
     }
 }
