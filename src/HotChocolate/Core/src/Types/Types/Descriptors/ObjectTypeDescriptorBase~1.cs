@@ -28,6 +28,8 @@ namespace HotChocolate.Types.Descriptors
             IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
+            HashSet<string> subscribeResolver = null;
+
             if (Definition.Fields.IsImplicitBinding())
             {
                 FieldDescriptorUtilities.AddImplicitFields(
@@ -41,10 +43,34 @@ namespace HotChocolate.Types.Descriptors
                         return descriptor.CreateDefinition();
                     },
                     fields,
-                    handledMembers);
+                    handledMembers,
+                    include: IncludeField);
             }
 
             base.OnCompleteFields(fields, handledMembers);
+
+            bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
+            {
+                if (subscribeResolver is null)
+                {
+                    subscribeResolver = new HashSet<string>();
+
+                    foreach(MemberInfo member in all) 
+                    {
+                        if(member.IsDefined(typeof(SubscribeAttribute)))
+                        {
+                            SubscribeAttribute attribute = 
+                                member.GetCustomAttribute<SubscribeAttribute>();
+                            if(attribute.With is { }) 
+                            {
+                                subscribeResolver.Add(attribute.With);
+                            }
+                        }
+                    }
+                }
+
+                return !subscribeResolver.Contains(current.Name);
+            }
         }
 
         public new IObjectTypeDescriptor<T> Name(NameString value)

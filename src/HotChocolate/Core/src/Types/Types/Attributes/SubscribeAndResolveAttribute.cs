@@ -10,6 +10,10 @@ using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types
 {
+    [AttributeUsage(
+        AttributeTargets.Property | AttributeTargets.Method,
+        Inherited = true,
+        AllowMultiple = false)]
     public sealed class SubscribeAndResolveAttribute
         : ObjectFieldDescriptorAttribute
     {

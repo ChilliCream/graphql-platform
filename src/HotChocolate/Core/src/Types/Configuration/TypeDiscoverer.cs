@@ -77,7 +77,7 @@ namespace HotChocolate.Configuration
                         .Build());
                 }
             }
-            while (resolved && tries < max);
+            while (resolved && tries < max && _errors.Count == 0);
 
             CollectErrors();
 

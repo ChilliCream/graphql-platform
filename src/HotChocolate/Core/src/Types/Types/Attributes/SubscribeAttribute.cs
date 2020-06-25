@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using static HotChocolate.Utilities.ThrowHelper;
 
@@ -11,18 +12,24 @@ namespace HotChocolate.Types
     [AttributeUsage(
         AttributeTargets.Method,
         Inherited = true,
-        AllowMultiple = true)]
+        AllowMultiple = false)]
     public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
     {
+        private const string _methodName = "SubscribeToTopic";
+
         private static readonly MethodInfo _constantTopic =
             typeof(SubscribeResolverObjectFieldDescriptorExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
-                .Single(m => m.IsGenericMethod && m.GetGenericArguments().Length == 1);
+                .Single(m =>
+                    m.Name.Equals(_methodName) &&
+                    m.IsGenericMethod &&
+                    m.GetGenericArguments().Length == 1);
 
         private static readonly MethodInfo _argumentTopic =
             typeof(SubscribeResolverObjectFieldDescriptorExtensions)
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Single(m =>
+                    m.Name.Equals(_methodName) &&
                     m.IsGenericMethod &&
                     m.GetGenericArguments().Length == 2 &&
                     m.GetParameters().Length == 2 &&
@@ -32,6 +39,11 @@ namespace HotChocolate.Types
         /// The type of the message.
         /// </summary>
         public Type? MessageType { get; set; }
+
+        /// <summary>
+        /// The method that shall be used to subscribe to the pub/sub system.
+        /// </summary>
+        public string? With { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,
@@ -43,8 +55,8 @@ namespace HotChocolate.Types
             if (MessageType is null)
             {
                 ParameterInfo? messageParameter =
-                        method.GetParameters()
-                            .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
+                    method.GetParameters()
+                        .FirstOrDefault(t => t.IsDefined(typeof(EventMessageAttribute)));
 
                 if (messageParameter is null)
                 {
@@ -54,17 +66,36 @@ namespace HotChocolate.Types
                 MessageType = messageParameter.ParameterType;
             }
 
-            (string? name, string? value, Type type) topic = ResolveTopic(method);
-
-            if (topic.value is { })
+            if (string.IsNullOrEmpty(With))
             {
-                MethodInfo config = _constantTopic.MakeGenericMethod(MessageType);
-                config.Invoke(null, new object?[] { descriptor, topic.value });
+                (string? name, string? value, Type type) topic = ResolveTopic(method);
+
+                if (topic.value is { })
+                {
+                    MethodInfo config = _constantTopic.MakeGenericMethod(MessageType);
+                    config.Invoke(null, new object?[] { descriptor, topic.value });
+                }
+                else
+                {
+                    MethodInfo config = _argumentTopic.MakeGenericMethod(topic.type, MessageType);
+                    config.Invoke(null, new object?[] { descriptor, topic.name });
+                }
             }
             else
             {
-                MethodInfo config = _argumentTopic.MakeGenericMethod(topic.type, MessageType);
-                config.Invoke(null, new object?[] { descriptor, topic.name });
+                descriptor.Extend().OnBeforeCreate(d =>
+                {
+                    MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(
+                        With, BindingFlags.Public | BindingFlags.Instance);
+                    
+                    if (subscribeResolver is null)
+                    {
+                        throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
+                    }
+
+                    d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(
+                        d.SourceType!, d.ResolverType, subscribeResolver);
+                });
             }
         }
 
@@ -78,17 +109,16 @@ namespace HotChocolate.Types
             {
                 if (topicParameter is null)
                 {
+                    string name = method.GetCustomAttribute<TopicAttribute>()?.Name ?? method.Name;
+                    return (null, name, typeof(string));
+                }
 
-                }
-                else
-                {
-                    // throw schema error
-                }
+                throw SubscribeAttribute_TopicOnParameterAndMethod(method);
             }
 
             if (topicParameter is { })
             {
-
+                return (topicParameter.Name, null, topicParameter.ParameterType);
             }
 
             return (null, method.Name, typeof(string));

@@ -184,9 +184,9 @@ namespace HotChocolate.Execution
                     .To("Foo", "nonnull_prop");
                 c.BindResolver(ctx => new object())
                     .To("Foo", "nullable_prop");
-                c.BindResolver(ctx => ctx.CustomProperty<string>("a"))
+                c.BindResolver(ctx => ctx.GetGlobalValue<string>("a"))
                     .To("Bar", "a");
-                c.BindResolver(ctx => ctx.CustomProperty<string>("b"))
+                c.BindResolver(ctx => ctx.GetGlobalValue<string>("b"))
                     .To("Bar", "b");
                 c.BindResolver(ctx => ErrorBuilder.New()
                     .SetMessage("ERROR").Build())
