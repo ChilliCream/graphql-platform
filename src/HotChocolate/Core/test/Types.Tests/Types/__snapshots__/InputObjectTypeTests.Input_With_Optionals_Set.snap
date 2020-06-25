@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
+  "data": {
     "do": {
       "isBarSet": true
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
-            
+
         public Path Path =>
             _middlewareContext.Path;
 
@@ -94,8 +94,6 @@ namespace HotChocolate.Execution
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
-        public T CustomProperty<T>(string key) =>
-            _middlewareContext.CustomProperty<T>(key);
         public T Parent<T>() => _middlewareContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>
@@ -127,9 +125,6 @@ namespace HotChocolate.Execution
 
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
-
-        public void ModifyScopedContext(ModifyScopedContext modify) =>
-            _middlewareContext.ModifyScopedContext(modify);
 
         public T ArgumentValue<T>(NameString name)
         {

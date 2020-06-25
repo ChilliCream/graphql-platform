@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Subscriptions;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -27,7 +28,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => new List<string> { "a", "b", "c" }))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
@@ -38,10 +39,10 @@ namespace HotChocolate.Types
                 "subscription { test }", cts.Token);
 
             var results = new StringBuilder();
-            await foreach (IReadOnlyQueryResult result in
+            await foreach (IQueryResult queryResult in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.AppendLine(result.ToJson());
+                results.AppendLine(queryResult.ToJson());
             }
 
             results.ToString().MatchSnapshot();
@@ -58,7 +59,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IEnumerable<string>>(
                         new List<string> { "a", "b", "c" })))
                 .ModifyOptions(t => t.StrictValidation = false)
@@ -91,7 +92,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => observable))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
@@ -105,7 +106,7 @@ namespace HotChocolate.Types
             await foreach (IQueryResult queryResult in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                var result = (IReadOnlyQueryResult) queryResult;
+                var result = (IReadOnlyQueryResult)queryResult;
                 results.AppendLine(result.ToJson());
             }
 
@@ -125,7 +126,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IObservable<string>>(observable)))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
@@ -157,7 +158,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => new TestAsyncEnumerable()))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
@@ -188,7 +189,7 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IAsyncEnumerable<string>>(
                         new TestAsyncEnumerable())))
                 .ModifyOptions(t => t.StrictValidation = false)
@@ -386,7 +387,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstAsyncEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<string?> OnSomething()
             {
                 await Task.Delay(50);
@@ -395,20 +396,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IAsyncEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<object?> OnSomethingObj()
             {
                 await Task.Delay(50);
@@ -418,14 +419,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IAsyncEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<object?>>(OnSomethingObj());
@@ -434,7 +435,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<string?> OnSomething()
             {
                 yield return "a";
@@ -442,20 +443,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<object?> OnSomethingObj()
             {
                 yield return "a";
@@ -464,14 +465,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IEnumerable<object?>>(OnSomethingObj());
@@ -487,34 +488,34 @@ namespace HotChocolate.Types
                 "c"
             };
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<string?> OnSomething() => _strings.AsQueryable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IQueryable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IQueryable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<object?> OnSomethingObj() => _strings.Cast<object>().AsQueryable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IQueryable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IQueryable<object?>>(OnSomethingObj());
@@ -523,34 +524,34 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstObservable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<string?> OnSomething() => new StringObservable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IObservable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IObservable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<object?> OnSomethingObj() => new StringObservable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IObservable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IObservable<object?>>(OnSomethingObj());
@@ -600,6 +601,31 @@ namespace HotChocolate.Types
                     }
                 }
             }
+        }
+
+        public class MyMutation
+        {
+            public string WriteMessage(string userId, string message, [Service]ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync(userId, message);
+                return message;
+            }
+        }
+
+        public class MySubscription
+        {
+            [Subscribe]
+            public string OnMessage(
+                [Topic]string userId,
+                [EventMessage] string message,
+                [Service]string s) =>
+                message;
+
+            [Subscribe]
+            [Topic]
+            public string OnSysMessage(
+                [EventMessage] string message) =>
+                message;
         }
     }
 }

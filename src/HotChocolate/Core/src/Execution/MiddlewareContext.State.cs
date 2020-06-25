@@ -36,11 +36,6 @@ namespace HotChocolate.Execution
 
         public bool IsResultModified { get; private set; }
 
-        public void ModifyScopedContext(ModifyScopedContext modify)
-        {
-            ScopedContextData = modify(ScopedContextData);
-        }
-
         [return: MaybeNull]
         public T Source<T>()
         {
