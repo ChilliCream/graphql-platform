@@ -217,9 +217,9 @@ namespace HotChocolate.Stitching.Utilities
 
                     case ListValueNode list:
                         jsonWriter.WriteStartArray();
-                        for (var index = 0; index < list.Items.Count; index++)
+
+                        foreach (IValueNode item in list.Items)
                         {
-                            IValueNode item = list.Items[index];
                             WriteValue(writer, jsonWriter, item);
                         }
 
