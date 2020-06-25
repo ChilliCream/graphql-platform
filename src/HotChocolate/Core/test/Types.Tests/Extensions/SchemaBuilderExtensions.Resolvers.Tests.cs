@@ -48,9 +48,10 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolverContextObject_ResolveField()
+        public async Task AddResolverContextObject_ResolveField()
         {
             // arrange
+            Snapshot.FullName();
             var builder = new SchemaBuilder();
             builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -63,11 +64,10 @@ namespace HotChocolate
                     new Func<IResolverContext, object>(c => "bar"));
 
             // assert
-            builder.Create()
+            await builder.Create()
                 .MakeExecutable()
                 .ExecuteAsync("{ foo }")
-                .Result
-                .MatchSnapshot();
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -171,9 +171,10 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolverContextTResult_ResolveField()
+        public async Task AddResolverContextTResult_ResolveField()
         {
             // arrange
+            Snapshot.FullName();
             var builder = new SchemaBuilder();
             builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -187,11 +188,10 @@ namespace HotChocolate
                         c => "bar"));
 
             // assert
-            builder.Create()
+            await builder.Create()
                 .MakeExecutable()
                 .ExecuteAsync("{ foo }")
-                .Result
-                .MatchSnapshot();
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -294,9 +294,10 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolverObject_ResolveField()
+        public async Task AddResolverObject_ResolveField()
         {
             // arrange
+            Snapshot.FullName();
             var builder = new SchemaBuilder();
             builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -309,11 +310,10 @@ namespace HotChocolate
                     new Func<object>(() => "bar"));
 
             // assert
-            builder.Create()
+            await builder.Create()
                 .MakeExecutable()
                 .ExecuteAsync("{ foo }")
-                .Result
-                .MatchSnapshot();
+                .MatchSnapshotAsync();
         }
     }
 }
