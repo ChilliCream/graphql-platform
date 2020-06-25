@@ -36,20 +36,14 @@ namespace HotChocolate.Execution
 
         public bool IsResultModified { get; private set; }
 
-        [return: MaybeNull]
         public T Source<T>()
         {
-            if (_parent is null)
-            {
-                return default;
-            }
-
             if (_parent is T casted)
             {
                 return casted;
             }
 
-            if (_operationContext.Converter.TryConvert<object, T>(_parent, out casted))
+            if (_operationContext.Converter.TryConvert(_parent, out casted))
             {
                 return casted;
             }
@@ -58,7 +52,6 @@ namespace HotChocolate.Execution
                 $"The parent cannot be casted to {typeof(T).FullName}.");
         }
 
-        [return: MaybeNull]
         public T Parent<T>() => Source<T>();
     }
 }

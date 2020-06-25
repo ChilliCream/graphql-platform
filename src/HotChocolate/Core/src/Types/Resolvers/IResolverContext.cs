@@ -103,7 +103,6 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the previous (parent) resolver result.
         /// </returns>
-        [return: MaybeNull]
         T Parent<T>();
 
         /// <summary>

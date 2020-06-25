@@ -94,10 +94,7 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver<string>((ctx, id) =>
-                        {
-                            return Task.FromResult<object>(
-                                new Entity { Name = id });
-                        })
+                            Task.FromResult<object>(new Entity { Name = id }))
                         .Resolver(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -134,10 +131,7 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver((ctx, id) =>
-                        {
-                            return Task.FromResult<object>(
-                                new Entity { Name = (string)id });
-                        })
+                            Task.FromResult<object>(new Entity { Name = (string)id }))
                         .Resolver(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
