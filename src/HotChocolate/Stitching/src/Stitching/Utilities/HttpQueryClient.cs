@@ -260,12 +260,7 @@ namespace HotChocolate.Stitching.Utilities
             jsonWriter.Flush();
             writer.Advance(-(length+2));
             Span<byte> span = writer.GetSpan(length+2);
-
-            for (int i = 0; i < length; i++)
-            {
-                span[i] = span[i+1];
-            }
-            span[length] = span[length + 1];
+            span.Slice(1, length+1).CopyTo(span);
             writer.Advance(length);
         }
     }
