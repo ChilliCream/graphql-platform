@@ -4,6 +4,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 
 namespace HotChocolate
 {
@@ -108,9 +109,10 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolverContextTaskObject_ResolveField()
+        public async Task AddResolverContextTaskObject_ResolveField()
         {
             // arrange
+            Snapshot.FullName();
             var builder = new SchemaBuilder();
             builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -120,15 +122,14 @@ namespace HotChocolate
                     builder,
                     "Query",
                     "foo",
-                    new Func<IResolverContext, Task<object>>(
-                        c => Task.FromResult<object>("bar")));
+                    new Func<IResolverContext, ValueTask<object>>(
+                        c => new ValueTask<object>("bar")));
 
             // assert
-            builder.Create()
+            await builder.Create()
                 .MakeExecutable()
                 .ExecuteAsync("{ foo }")
-                .Result
-                .MatchSnapshot();
+                .MatchSnapshotAsync();
         }
 
         [Fact]

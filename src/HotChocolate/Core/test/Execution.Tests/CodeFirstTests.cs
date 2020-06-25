@@ -75,12 +75,73 @@ namespace HotChocolate
 
             // act
             UnionType fooBar = schema.GetType<UnionType>("FooBar");
-            ObjectType teaType = fooBar.ResolveType(context.Object, "tea");
-            ObjectType barType = fooBar.ResolveType(context.Object, "bar");
+            ObjectType teaType = fooBar.ResolveConcreteType(context.Object, "tea");
+            ObjectType barType = fooBar.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.Null(teaType);
             Assert.NotNull(barType);
+        }
+
+        [Fact]
+        public void UnionType_Contains_TypeName()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            var context = new Mock<IResolverContext>(
+                MockBehavior.Strict);
+            UnionType fooBar = schema.GetType<UnionType>("FooBar");
+
+            // act
+            bool shouldBeFalse = fooBar.ContainsType("Tea");
+            bool shouldBeTrue = fooBar.ContainsType("Bar");
+
+            // assert
+            Assert.True(shouldBeTrue);
+            Assert.False(shouldBeFalse);
+        }
+
+        [Fact]
+        public void UnionType_Contains_ObjectType()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            var context = new Mock<IResolverContext>(
+                MockBehavior.Strict);
+            UnionType fooBar = schema.GetType<UnionType>("FooBar");
+            ObjectType bar = schema.GetType<ObjectType>("Bar");
+            ObjectType tea = schema.GetType<ObjectType>("Tea");
+
+            // act
+            bool shouldBeTrue = fooBar.ContainsType(bar);
+            bool shouldBeFalse = fooBar.ContainsType(tea);
+
+            // assert
+            Assert.True(shouldBeTrue);
+            Assert.False(shouldBeFalse);
+        }
+
+        [Fact]
+        public void UnionType_Contains_IObjectType()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+
+            var context = new Mock<IResolverContext>(
+                MockBehavior.Strict);
+            IUnionType fooBar = schema.GetType<UnionType>("FooBar");
+            IObjectType tea = schema.GetType<ObjectType>("Tea");
+            IObjectType bar = schema.GetType<ObjectType>("Bar");
+
+            // act
+            bool shouldBeFalse = fooBar.ContainsType(tea);
+            bool shouldBeTrue = fooBar.ContainsType(bar);
+
+            // assert
+            Assert.True(shouldBeTrue);
+            Assert.False(shouldBeFalse);
         }
 
         [Fact]
@@ -109,8 +170,8 @@ namespace HotChocolate
 
             // act
             InterfaceType drink = schema.GetType<InterfaceType>("Drink");
-            ObjectType teaType = drink.ResolveType(context.Object, "tea");
-            ObjectType barType = drink.ResolveType(context.Object, "bar");
+            ObjectType teaType = drink.ResolveConcreteType(context.Object, "tea");
+            ObjectType barType = drink.ResolveConcreteType(context.Object, "bar");
 
             // assert
             Assert.NotNull(teaType);

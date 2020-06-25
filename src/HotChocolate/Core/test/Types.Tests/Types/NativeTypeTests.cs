@@ -28,7 +28,7 @@ namespace HotChocolate.Types
 
             // act
             Type clrType;
-            Action a = () => clrType = ((IInputType)type).ClrType;
+            Action a = () => clrType = ((IInputType)type).RuntimeType;
 
             // assert
             Assert.Throws<NotSupportedException>(a);

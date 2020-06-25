@@ -42,10 +42,10 @@ namespace HotChocolate.Configuration
             {
                 registered = result.Types
                     .Select(t => t.Type)
-                    .OfType<IHasClrType>()
+                    .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
-                        t => t.ClrType.GetTypeName()),
+                        t => t.RuntimeType.GetTypeName()),
                 clr = clrTypeReferences.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
@@ -83,10 +83,10 @@ namespace HotChocolate.Configuration
             {
                 registered = result.Types
                     .Select(t => t.Type)
-                    .OfType<IHasClrType>()
+                    .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
-                        t => t.ClrType.GetTypeName()),
+                        t => t.RuntimeType.GetTypeName()),
                 clr = clrTypeReferences.ToDictionary(
                 t => t.Key.ToString(),
                 t => t.Value.ToString())
@@ -127,10 +127,10 @@ namespace HotChocolate.Configuration
             {
                 registered = result.Types
                     .Select(t => t.Type)
-                    .OfType<IHasClrType>()
+                    .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
-                        t => t.ClrType.GetTypeName()),
+                        t => t.RuntimeType.GetTypeName()),
                 clr = clrTypeReferences.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())

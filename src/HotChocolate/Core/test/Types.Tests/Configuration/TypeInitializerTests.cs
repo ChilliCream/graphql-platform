@@ -4,7 +4,6 @@ using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -42,20 +41,22 @@ namespace HotChocolate.Configuration
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+            Dictionary<string, string> fooType = 
+                Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(BarType), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            Dictionary<string, string> barType = 
+                Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]
@@ -90,20 +91,22 @@ namespace HotChocolate.Configuration
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
+            Dictionary<string, string> fooType =
+                Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+                t => TypeVisualizer.Visualize(t.Type));                
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
                 new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            Dictionary<string, string> barType =
+                Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]

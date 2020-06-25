@@ -161,7 +161,7 @@ namespace HotChocolate.Execution
             }
             else if (type is UnionType unionType)
             {
-                return unionType.ResolveType(
+                return unionType.ResolveConcreteType(
                     ResolverContext,
                     resolverResult);
             }

@@ -134,7 +134,7 @@ namespace HotChocolate.Execution
             {
             }
 
-            public override Type ClrType => typeof(string);
+            public override Type RuntimeType => typeof(string);
 
             public override bool IsInstanceOfType(IValueNode literal)
             {

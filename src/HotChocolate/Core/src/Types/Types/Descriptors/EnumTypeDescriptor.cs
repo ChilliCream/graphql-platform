@@ -13,14 +13,14 @@ namespace HotChocolate.Types.Descriptors
         protected EnumTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
         protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            Definition.ClrType = clrType ?? throw new ArgumentNullException(nameof(clrType));
+            Definition.RuntimeType = clrType ?? throw new ArgumentNullException(nameof(clrType));
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
@@ -35,12 +35,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             EnumTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var values = Values.Select(t => t.CreateDefinition()).ToDictionary(t => t.Value);
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeDefinition.Values.IsImplicitBinding())
             {
-                foreach (object value in Context.Inspector.GetEnumValues(typeDefinition.ClrType))
+                foreach (object value in Context.Inspector.GetEnumValues(typeDefinition.RuntimeType))
                 {
                     EnumValueDefinition valueDefinition =
                         EnumValueDescriptor.New(Context, value)
@@ -167,7 +167,7 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
     }

@@ -310,7 +310,7 @@ namespace HotChocolate
                     if (reference is IClrTypeReference cr)
                     {
                         return cr.Type == objectType.GetType()
-                            || cr.Type == objectType.ClrType;
+                            || cr.Type == objectType.RuntimeType;
                     }
 
                     if (reference is ISyntaxTypeReference str)

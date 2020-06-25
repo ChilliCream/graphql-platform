@@ -45,9 +45,9 @@ namespace HotChocolate.Utilities
         {
             if (context.InputType.NamedType() is InputObjectType type)
             {
-                Type clrType = type.ClrType == typeof(object)
+                Type clrType = type.RuntimeType == typeof(object)
                     ? typeof(Dictionary<string, object>)
-                    : type.ClrType;
+                    : type.RuntimeType;
 
                 context.Object = Activator.CreateInstance(clrType);
                 context.InputFields = type.Fields;
@@ -68,7 +68,7 @@ namespace HotChocolate.Utilities
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
-                valueContext.ClrType = inputField.ClrType;
+                valueContext.ClrType = inputField.RuntimeType;
 
                 Visit(field.Value, valueContext);
 
@@ -115,7 +115,7 @@ namespace HotChocolate.Utilities
             {
                 context.Object = null;
             }
-            else if (context.InputType.ClrType.IsInstanceOfType(value))
+            else if (context.InputType.RuntimeType.IsInstanceOfType(value))
             {
                 context.Object = value;
             }

@@ -38,7 +38,7 @@ namespace HotChocolate.Types
                     context.RegisterResolver(
                         field.Name,
                         field.Member,
-                        definition.ClrType,
+                        definition.RuntimeType,
                         field.ResolverType);
                 }
             }

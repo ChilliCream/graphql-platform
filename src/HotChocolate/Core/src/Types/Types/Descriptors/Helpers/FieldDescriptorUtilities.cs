@@ -38,13 +38,13 @@ namespace HotChocolate.Types.Descriptors
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
             ISet<TMember> handledMembers)
-            where TDescriptor : IHasClrType, IHasDescriptorContext
+            where TDescriptor : IHasRuntimeType, IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
             AddImplicitFields<TDescriptor, TMember, TField>(
                 descriptor,
-                descriptor.ClrType,
+                descriptor.RuntimeType,
                 createdFieldDefinition,
                 fields,
                 handledMembers);

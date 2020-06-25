@@ -82,7 +82,7 @@ namespace HotChocolate.Types
             foreach (EnumValueDefinition enumValue in
                 extension.Values.Where(t => t.Value != null))
             {
-                if (type.ClrType.IsAssignableFrom(enumValue.Value.GetType()))
+                if (type.RuntimeType.IsAssignableFrom(enumValue.Value.GetType()))
                 {
                     EnumValueDefinition existingValue =
                         type.Values.FirstOrDefault(t =>

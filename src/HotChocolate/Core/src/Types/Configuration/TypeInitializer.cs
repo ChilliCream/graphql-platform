@@ -230,7 +230,7 @@ namespace HotChocolate.Configuration
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
                         _resolvers[reference]
-                            = initContext.Resolvers[reference].WithSourceType(type.ClrType);
+                            = initContext.Resolvers[reference].WithSourceType(type.RuntimeType);
                     }
 
                     // merge
@@ -294,7 +294,7 @@ namespace HotChocolate.Configuration
 
                         ObjectType objectType = types.Values
                             .FirstOrDefault(t => t.GetType() == sourceType
-                                || t.ClrType == sourceType);
+                                || t.RuntimeType == sourceType);
                         if (objectType != null)
                         {
                             AddResolvers(_descriptorContext, objectType, type);
@@ -312,14 +312,14 @@ namespace HotChocolate.Configuration
             foreach (MemberInfo member in
                 context.Inspector.GetMembers(resolverType))
             {
-                if (IsResolverRelevant(objectType.ClrType, member))
+                if (IsResolverRelevant(objectType.RuntimeType, member))
                 {
                     NameString fieldName = context.Naming.GetMemberName(
                         member, MemberKind.ObjectField);
                     var fieldMember = new FieldMember(
                         objectType.Name, fieldName, member);
                     var resolver = new RegisteredResolver(
-                        resolverType, objectType.ClrType, fieldMember);
+                        resolverType, objectType.RuntimeType, fieldMember);
                     _resolvers[fieldMember.ToFieldReference()] = resolver;
                 }
             }
@@ -350,7 +350,7 @@ namespace HotChocolate.Configuration
         private void RegisterImplicitInterfaceDependencies(DiscoveredTypes discoveredTypes)
         {
             var withClrType = discoveredTypes.Types
-                .Where(t => t.ClrType != typeof(object))
+                .Where(t => t.RuntimeType != typeof(object))
                 .Distinct()
                 .ToList();
 
@@ -370,12 +370,12 @@ namespace HotChocolate.Configuration
             {
                 foreach (RegisteredType interfaceType in interfaceTypes)
                 {
-                    if (interfaceType.ClrType.IsAssignableFrom(
-                        objectType.ClrType))
+                    if (interfaceType.RuntimeType.IsAssignableFrom(
+                        objectType.RuntimeType))
                     {
                         dependencies.Add(new TypeDependency(
                             new ClrTypeReference(
-                                interfaceType.ClrType,
+                                interfaceType.RuntimeType,
                                 TypeContext.Output),
                             TypeDependencyKind.Completed));
                     }

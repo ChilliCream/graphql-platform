@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Object);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
         public ObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
         internal protected override ObjectTypeDefinition Definition { get; } =
@@ -45,12 +45,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -81,10 +81,10 @@ namespace HotChocolate.Types.Descriptors
         {
             var processed = new HashSet<string>();
 
-            if (Definition.ClrType != typeof(object))
+            if (Definition.RuntimeType != typeof(object))
             {
                 foreach (Type resolverType in Context.Inspector
-                    .GetResolverTypes(Definition.ClrType))
+                    .GetResolverTypes(Definition.RuntimeType))
                 {
                     ResolverTypes.Add(resolverType);
                 }
@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Descriptors
                 AddResolvers(
                     fields,
                     processed,
-                    Definition.ClrType ?? typeof(object),
+                    Definition.RuntimeType ?? typeof(object),
                     resolverType);
             }
         }
@@ -269,7 +269,7 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 fieldDescriptor = ObjectFieldDescriptor.New(
-                    Context, member, Definition.ClrType, typeof(TResolver));
+                    Context, member, Definition.RuntimeType, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
@@ -323,7 +323,7 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = new ObjectTypeDescriptor(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
     }

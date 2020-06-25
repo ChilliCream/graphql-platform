@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// The .net type representation of this scalar.
         /// </summary>
-        public abstract Type ClrType { get; }
+        public abstract Type RuntimeType { get; }
 
         public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
@@ -91,7 +91,7 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return ClrType.IsInstanceOfType(value);
+            return RuntimeType.IsInstanceOfType(value);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public virtual object Serialize(object? value)
+        public virtual object? Serialize(object? value)
         {
             if (TrySerialize(value, out object? s))
             {
@@ -177,7 +177,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be deserialized
         /// by this scalar.
         /// </exception>
-        public virtual object Deserialize(object? serialized)
+        public virtual object? Deserialize(object? serialized)
         {
             if (TryDeserialize(serialized, out object v))
             {

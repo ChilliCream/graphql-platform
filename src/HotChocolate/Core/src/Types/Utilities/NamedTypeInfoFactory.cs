@@ -58,9 +58,9 @@ namespace HotChocolate.Utilities
                     .DeclaredConstructors
                     .FirstOrDefault(c => !c.GetParameters().Any());
 
-                if (constructor?.Invoke(Array.Empty<object>()) is IHasClrType t)
+                if (constructor?.Invoke(Array.Empty<object>()) is IHasRuntimeType t)
                 {
-                    clrType = t.ClrType;
+                    clrType = t.RuntimeType;
                     return true;
                 }
             }

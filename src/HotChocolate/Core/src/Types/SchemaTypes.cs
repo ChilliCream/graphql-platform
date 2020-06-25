@@ -67,10 +67,10 @@ namespace HotChocolate
         public bool TryGetClrType(NameString typeName, out Type clrType)
         {
             if (_types.TryGetValue(typeName, out INamedType type)
-                && type is IHasClrType ct
-                && ct.ClrType != typeof(object))
+                && type is IHasRuntimeType ct
+                && ct.RuntimeType != typeof(object))
             {
-                clrType = ct.ClrType;
+                clrType = ct.RuntimeType;
                 return true;
             }
 

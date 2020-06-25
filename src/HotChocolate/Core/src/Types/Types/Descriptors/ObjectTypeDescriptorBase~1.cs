@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     public class ObjectTypeDescriptorBase<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         public ObjectTypeDescriptorBase(IDescriptorContext context, Type clrType)
             : base(context, clrType)
@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, ObjectFieldDefinition> fields,

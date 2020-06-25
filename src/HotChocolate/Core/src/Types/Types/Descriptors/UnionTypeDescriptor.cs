@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Union);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
         protected UnionTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
         internal protected override UnionTypeDefinition Definition { get; } =
@@ -32,12 +32,12 @@ namespace HotChocolate.Types.Descriptors
 
         protected override void OnCreateDefinition(UnionTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             base.OnCreateDefinition(definition);
@@ -137,7 +137,7 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
     }

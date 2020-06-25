@@ -49,11 +49,11 @@ namespace HotChocolate.Configuration
                     _unresolved.Remove(typeReference);
                 }
 
-                if (typeSystemObject is IHasClrType hasClrType
-                    && hasClrType.ClrType != typeof(object))
+                if (typeSystemObject is IHasRuntimeType hasClrType
+                    && hasClrType.RuntimeType != typeof(object))
                 {
                     var clrRef = new ClrTypeReference(
-                        hasClrType.ClrType,
+                        hasClrType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(typeSystemObject));
                     _unresolved.Remove(clrRef);
 

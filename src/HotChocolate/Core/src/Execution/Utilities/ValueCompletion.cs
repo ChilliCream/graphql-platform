@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Utilities.ErrorHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -404,8 +405,8 @@ namespace HotChocolate.Execution.Utilities
         {
             try
             {
-                if (!fieldType.ClrType.IsInstanceOfType(result) &&
-                    operationContext.Converter.TryConvert(fieldType.ClrType, result, out object c))
+                if (!fieldType.RuntimeType.IsInstanceOfType(result) &&
+                    operationContext.Converter.TryConvert(fieldType.RuntimeType, result, out object c))
                 {
                     result = c;
                 }
@@ -461,6 +462,10 @@ namespace HotChocolate.Execution.Utilities
                 return true;
             }
 
+            middlewareContext.ReportError(
+                ValueCompletion_CouldNotResolveAbstractType(
+                    middlewareContext.FieldSelection, 
+                    path));
             completedResult = null;
             return false;
         }
@@ -486,13 +491,13 @@ namespace HotChocolate.Execution.Utilities
                 }
                 else if (fieldType is InterfaceType it)
                 {
-                    objectType = it.ResolveType(middlewareContext, result);
-                    return true;
+                    objectType = it.ResolveConcreteType(middlewareContext, result);
+                    return objectType is { };
                 }
                 else if (fieldType is UnionType ut)
                 {
-                    objectType = ut.ResolveType(middlewareContext, result);
-                    return true;
+                    objectType = ut.ResolveConcreteType(middlewareContext, result);
+                    return objectType is { };
                 }
 
                 middlewareContext.ReportError(

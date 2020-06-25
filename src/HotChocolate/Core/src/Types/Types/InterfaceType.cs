@@ -14,8 +14,7 @@ namespace HotChocolate.Types
     public class InterfaceType
         : NamedTypeBase<InterfaceTypeDefinition>
         , IInterfaceType
-        , IHasClrType
-        , INamedType
+        , IHasRuntimeType
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
         private Action<IInterfaceTypeDescriptor>? _configure;
@@ -72,7 +71,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public ObjectType ResolveType(IResolverContext context, object resolverResult)
+        public ObjectType? ResolveConcreteType(
+            IResolverContext context,
+            object resolverResult)
         {
             if (context == null)
             {
@@ -81,6 +82,11 @@ namespace HotChocolate.Types
 
             return _resolveAbstractType!.Invoke(context, resolverResult);
         }
+
+        IObjectType? IInterfaceType.ResolveConcreteType(
+            IResolverContext context,
+            object resolverResult) =>
+            ResolveConcreteType(context, resolverResult);
 
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
@@ -121,7 +127,7 @@ namespace HotChocolate.Types
                 definition.ResolveAbstractType);
 
             CompleteInterfacesHelper.Complete(
-                context, definition, ClrType, _interfaces, this, SyntaxNode);
+                context, definition, RuntimeType, _interfaces, this, SyntaxNode);
 
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }

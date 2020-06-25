@@ -366,9 +366,9 @@ namespace HotChocolate.Types
                 return ToClrType(type.InnerType());
             }
 
-            if (type is IHasClrType t && t.ClrType != null)
+            if (type is IHasRuntimeType t && t.RuntimeType != null)
             {
-                return t.ClrType;
+                return t.RuntimeType;
             }
 
             return typeof(object);
@@ -381,13 +381,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsLeafType() && type.NamedType() is IHasClrType t)
+            if (type.IsLeafType() && type.NamedType() is IHasRuntimeType t)
             {
-                if (!type.IsNonNullType() && t.ClrType.IsValueType)
+                if (!type.IsNonNullType() && t.RuntimeType.IsValueType)
                 {
-                    return typeof(Nullable<>).MakeGenericType(t.ClrType);
+                    return typeof(Nullable<>).MakeGenericType(t.RuntimeType);
                 }
-                return t.ClrType;
+                return t.RuntimeType;
             }
 
             throw new NotSupportedException();

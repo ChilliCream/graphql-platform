@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<DirectiveTypeDefinition>
         , IHasName
         , IHasDescription
-        , IHasClrType
+        , IHasRuntimeType
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
         private ITypeConversion _converter;
@@ -34,7 +34,7 @@ namespace HotChocolate.Types
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        public Type ClrType { get; private set; }
+        public Type RuntimeType { get; private set; }
 
         public bool IsRepeatable { get; private set; }
 
@@ -69,8 +69,8 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            ClrType = definition.ClrType != GetType()
-                ? definition.ClrType
+            RuntimeType = definition.RuntimeType != GetType()
+                ? definition.RuntimeType
                 : typeof(object);
             IsRepeatable = definition.IsRepeatable;
 

@@ -195,7 +195,7 @@ namespace HotChocolate.Execution
 
         private static bool TryConvertLeafValue(
             ITypeConversion converter,
-            IHasClrType leafType,
+            IHasRuntimeType leafType,
             object value,
             out object scalarValue)
         {
@@ -207,11 +207,11 @@ namespace HotChocolate.Execution
                     return true;
                 }
 
-                if (!leafType.ClrType.IsInstanceOfType(value))
+                if (!leafType.RuntimeType.IsInstanceOfType(value))
                 {
                     return converter.TryConvert(
                         typeof(object),
-                        leafType.ClrType,
+                        leafType.RuntimeType,
                         value,
                         out scalarValue);
                 }

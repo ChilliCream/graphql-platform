@@ -1,17 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Types;
-using Xunit;
-using Snapshooter.Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using System;
-using HotChocolate.Execution;
-using Moq;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate
 {
@@ -1049,7 +1049,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public async Task Execute_Agains_Interface_Without_Impl_Field()
+        public async Task Execute_Against_Interface_Without_Impl_Field()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
