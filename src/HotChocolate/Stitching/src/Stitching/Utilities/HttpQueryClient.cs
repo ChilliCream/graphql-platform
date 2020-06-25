@@ -242,12 +242,12 @@ namespace HotChocolate.Stitching.Utilities
 
                     case IntValueNode i:
                         SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
-                        WriteNumberValue(writer, i.Value, jsonWriter);
+                        WriteNumberValue(writer, i.Value);
                         break;
 
                     case FloatValueNode f:
                         SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
-                        WriteNumberValue(writer, f.Value, jsonWriter);
+                        WriteNumberValue(writer, f.Value);
                         break;
 
                     case BooleanValueNode b:
@@ -272,7 +272,7 @@ namespace HotChocolate.Stitching.Utilities
             endobj[0] = endobj[1];
         }
 
-        private static void WriteNumberValue(IBufferWriter<byte> writer, string value, Utf8JsonWriter jsonWriter)
+        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
         {
             Span<byte> span = writer.GetSpan(value.Length);
 
