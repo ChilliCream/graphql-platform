@@ -235,13 +235,13 @@ namespace HotChocolate.Stitching.Utilities
                         break;
 
                     case IntValueNode i:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, i.Value);
+                        SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
+                        WriteNumberValue(writer, i.Value, jsonWriter);
                         break;
 
                     case FloatValueNode f:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, f.Value);
+                        SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
+                        WriteNumberValue(writer, f.Value, jsonWriter);
                         break;
 
                     case BooleanValueNode b:
@@ -255,7 +255,18 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
+        private static void SetFlagToAddListSeparatorBeforeNextItem(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter)
+        {
+            // unfortunately the SetFlagToAddListSeparatorBeforeNextItem(); method is private
+            // this is why we use WriteEndObject which contains an extra byte and then move the index to write on it
+            jsonWriter.WriteEndObject();
+            jsonWriter.Flush();
+            writer.Advance(-1);
+            Span<byte> endobj = writer.GetSpan(2);
+            endobj[0] = endobj[1];
+        }
+
+        private static void WriteNumberValue(IBufferWriter<byte> writer, string value, Utf8JsonWriter jsonWriter)
         {
             Span<byte> span = writer.GetSpan(value.Length);
 
