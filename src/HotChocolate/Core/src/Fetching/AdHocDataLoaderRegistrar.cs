@@ -42,7 +42,7 @@ namespace HotChocolate.Fetching
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            if (_instances.TryGetValue(name, out IDataLoader cachedInstance))
+            if (_instances.TryGetValue(name, out IDataLoader? cachedInstance))
             {
                 if (cachedInstance is TDataLoader instance)
                 {
