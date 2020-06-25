@@ -149,25 +149,13 @@ namespace HotChocolate.Execution
 
         public ObjectType ResolveObjectType(IType type, object resolverResult)
         {
-            if (type is ObjectType objectType)
+            return type switch
             {
-                return objectType;
-            }
-            else if (type is InterfaceType interfaceType)
-            {
-                return interfaceType.ResolveType(
-                    ResolverContext,
-                    resolverResult);
-            }
-            else if (type is UnionType unionType)
-            {
-                return unionType.ResolveConcreteType(
-                    ResolverContext,
-                    resolverResult);
-            }
-
-            throw new NotSupportedException(
-                CoreResources.ResolveObjectType_TypeNotSupported);
+                ObjectType objectType => objectType,
+                InterfaceType interfaceType => interfaceType.ResolveConcreteType(ResolverContext, resolverResult),
+                UnionType unionType => unionType.ResolveConcreteType(ResolverContext, resolverResult),
+                _ => throw new NotSupportedException(CoreResources.ResolveObjectType_TypeNotSupported)
+            };
         }
 
         public ObjectType ResolveObjectType(NameString typeName)

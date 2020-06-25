@@ -9,7 +9,7 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; set; } = 
+        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; set; } =
             default!;
 
         public T Argument<T>(NameString name)
@@ -97,6 +97,27 @@ namespace HotChocolate.Execution
                 _operationContext.Converter.TryConvert<object, T>(value, out castedValue))
             {
                 return castedValue;
+            }
+
+            // If the object is internally held as a dictionary structure we will try to
+            // create from this the required argument value.
+            // This however comes with a performance impact of traversing the dictionary structure
+            // and creating from this the object.
+            if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
+            {
+                var dictToObjConverter = new DictionaryToObjectConverter(_operationContext.Converter);
+                if (typeof(T).IsInterface)
+                {
+                    object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);
+                    if (o is T c)
+                    {
+                        return c;
+                    }
+                }
+                else
+                {
+                    return (T)dictToObjConverter.Convert(value, typeof(T));
+                }
             }
 
             // not compatible literal
