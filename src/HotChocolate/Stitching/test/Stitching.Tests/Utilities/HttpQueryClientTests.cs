@@ -49,8 +49,18 @@ namespace HotChocolate.Stitching.Utilities
                             new List<FloatValueNode>
                             {
                                 new FloatValueNode(1.23m),
-                                new FloatValueNode(1.80m)
+                                new FloatValueNode(1.80m),
+                                new FloatValueNode(2.80m)
                             }) ))
+                .AddVariableValue("listStringVal",
+                    new ListValueNode(
+                        new ReadOnlyCollection<StringValueNode>(
+                            new List<StringValueNode>
+                            {
+                                new StringValueNode("a"),
+                                new StringValueNode("b"),
+                                new StringValueNode("c")
+                            })))
                 .AddVariableValue("enumVal", new EnumValueNode(System.Net.HttpStatusCode.OK))
                 .AddVariableValue("otherStrVar", new StringValueNode("some-other-string"))
                 .Create();

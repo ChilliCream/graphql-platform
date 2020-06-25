@@ -221,12 +221,6 @@ namespace HotChocolate.Stitching.Utilities
                         {
                             IValueNode item = list.Items[index];
                             WriteValue(writer, jsonWriter, item);
-                            if (index < list.Items.Count - 1 && (item is FloatValueNode || item is IntValueNode))
-                            {
-                                Span<byte> endobj = writer.GetSpan(1);
-                                endobj[0] = (byte)',';
-                                writer.Advance(1);
-                            }
                         }
 
                         jsonWriter.WriteEndArray();
@@ -241,13 +235,13 @@ namespace HotChocolate.Stitching.Utilities
                         break;
 
                     case IntValueNode i:
-                        SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
-                        WriteNumberValue(writer, i.Value);
+                        jsonWriter.WriteStringValue(i.Value);
+                        RemoveQuotes(writer, jsonWriter, i.Value.Length);
                         break;
 
                     case FloatValueNode f:
-                        SetFlagToAddListSeparatorBeforeNextItem(writer, jsonWriter);
-                        WriteNumberValue(writer, f.Value);
+                        jsonWriter.WriteStringValue(f.Value);
+                        RemoveQuotes(writer, jsonWriter, f.Value.Length);
                         break;
 
                     case BooleanValueNode b:
@@ -261,27 +255,18 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static void SetFlagToAddListSeparatorBeforeNextItem(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter)
+        private static void RemoveQuotes(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter, int length)
         {
-            // unfortunately the SetFlagToAddListSeparatorBeforeNextItem(); method is private
-            // this is why we use WriteEndObject which contains an extra byte and then move the index to write on it
-            jsonWriter.WriteEndObject();
             jsonWriter.Flush();
-            writer.Advance(-1);
-            Span<byte> endobj = writer.GetSpan(2);
-            endobj[0] = endobj[1];
-        }
+            writer.Advance(-(length+2));
+            Span<byte> span = writer.GetSpan(length+2);
 
-        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
-        {
-            Span<byte> span = writer.GetSpan(value.Length);
-
-            for (int i = 0; i < value.Length; i++)
+            for (int i = 0; i < length; i++)
             {
-                span[i] = (byte)value[i];
+                span[i] = span[i+1];
             }
-
-            writer.Advance(value.Length);
+            span[length] = span[length + 1];
+            writer.Advance(length);
         }
     }
 }
