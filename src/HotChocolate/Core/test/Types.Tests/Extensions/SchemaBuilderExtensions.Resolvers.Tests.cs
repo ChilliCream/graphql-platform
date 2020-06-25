@@ -233,9 +233,10 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddResolverContextTaskTResult_ResolveField()
+        public async  Task AddResolverContextTaskTResult_ResolveField()
         {
             // arrange
+            Snapshot.FullName();
             var builder = new SchemaBuilder();
             builder.AddDocumentFromString("type Query { foo: String }");
 
@@ -245,15 +246,14 @@ namespace HotChocolate
                     builder,
                     "Query",
                     "foo",
-                    new Func<IResolverContext, Task<string>>(
-                        c => Task.FromResult("bar")));
+                    new Func<IResolverContext, ValueTask<string>>(
+                        c => new ValueTask<string>("bar")));
 
             // assert
-            builder.Create()
+            await builder.Create()
                 .MakeExecutable()
                 .ExecuteAsync("{ foo }")
-                .Result
-                .MatchSnapshot();
+                .MatchSnapshotAsync();
         }
 
         [Fact]
