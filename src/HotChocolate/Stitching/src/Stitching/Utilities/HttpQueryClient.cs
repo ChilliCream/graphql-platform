@@ -258,9 +258,9 @@ namespace HotChocolate.Stitching.Utilities
         private static void RemoveQuotes(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter, int length)
         {
             jsonWriter.Flush();
-            writer.Advance(-(length+2));
-            Span<byte> span = writer.GetSpan(length+2);
-            span.Slice(1, length+1).CopyTo(span);
+            writer.Advance(-(length + 2));
+            Span<byte> span = writer.GetSpan(length + 2);
+            span.Slice(1, length + 1).CopyTo(span);
             writer.Advance(length);
         }
     }
