@@ -241,7 +241,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (context.ContextData.TryGetValue(
+            if (context.ScopedContextData.TryGetValue(
                 WellKnownContextData.EventMessage, 
                 out object? value) && value is { })
             {
