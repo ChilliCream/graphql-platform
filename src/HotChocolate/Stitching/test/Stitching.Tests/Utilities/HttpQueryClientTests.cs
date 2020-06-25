@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -42,6 +43,14 @@ namespace HotChocolate.Stitching.Utilities
                 .AddVariableValue("intVal", new IntValueNode(42))
                 .AddVariableValue("floatVal", new FloatValueNode(1.23m))
                 .AddVariableValue("boolVal", new BooleanValueNode(true))
+                .AddVariableValue("listVal",
+                    new ListValueNode(
+                        new ReadOnlyCollection<FloatValueNode>(
+                            new List<FloatValueNode>
+                            {
+                                new FloatValueNode(1.23m),
+                                new FloatValueNode(1.80m)
+                            }) ))
                 .AddVariableValue("enumVal", new EnumValueNode(System.Net.HttpStatusCode.OK))
                 .AddVariableValue("otherStrVar", new StringValueNode("some-other-string"))
                 .Create();

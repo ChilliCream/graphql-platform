@@ -217,10 +217,16 @@ namespace HotChocolate.Stitching.Utilities
 
                     case ListValueNode list:
                         jsonWriter.WriteStartArray();
-
-                        foreach (IValueNode item in list.Items)
+                        for (var index = 0; index < list.Items.Count; index++)
                         {
+                            IValueNode item = list.Items[index];
                             WriteValue(writer, jsonWriter, item);
+                            if (index < list.Items.Count - 1 && (item is FloatValueNode || item is IntValueNode))
+                            {
+                                Span<byte> endobj = writer.GetSpan(1);
+                                endobj[0] = (byte)',';
+                                writer.Advance(1);
+                            }
                         }
 
                         jsonWriter.WriteEndArray();
