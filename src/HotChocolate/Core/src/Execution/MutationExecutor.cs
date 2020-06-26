@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
             IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
             ResultMap resultMap = operationContext.Result.RentResultMap(rootSelections.Count);
 
-            for (int i = 0; i < rootSelections.Count; i++)
+            for (var i = 0; i < rootSelections.Count; i++)
             {
                 IPreparedSelection selection = rootSelections[i];
                 if (selection.IsVisible(operationContext.Variables))
