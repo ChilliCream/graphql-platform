@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {})
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_contains: null})
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not_contains: null})
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_starts_with: null})
@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not_starts_with: null})
@@ -110,7 +110,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_ends_with: null})
@@ -131,7 +131,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -139,7 +139,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not_ends_with: null})
@@ -152,7 +152,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -160,7 +160,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_in: null})
@@ -173,7 +173,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -181,7 +181,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not_in: null})
@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -202,7 +202,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_in: null})
@@ -215,7 +215,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not_in: null})
@@ -236,7 +236,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -244,7 +244,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable: null})
@@ -257,7 +257,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -265,7 +265,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not: null})
@@ -278,7 +278,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -286,7 +286,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_gt: null})
@@ -299,7 +299,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -307,7 +307,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not_gt: null})
@@ -320,7 +320,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -328,7 +328,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_gte: null})
@@ -341,7 +341,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -349,7 +349,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not_gte: null})
@@ -362,7 +362,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -370,7 +370,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_lt: null})
@@ -383,7 +383,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -391,7 +391,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not_lt: null})
@@ -404,7 +404,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -412,7 +412,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_lte: null})
@@ -425,7 +425,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -433,7 +433,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {comparable_not_lte: null})
@@ -446,7 +446,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -454,7 +454,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {nested: null})
@@ -467,7 +467,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -475,7 +475,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {array_any: null})
@@ -488,7 +488,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -496,7 +496,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {array_some: null})
@@ -509,7 +509,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -517,7 +517,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {array_all: null})
@@ -530,7 +530,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -538,7 +538,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {array_none: null})
@@ -551,7 +551,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -559,7 +559,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string: null})
@@ -572,7 +572,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -580,7 +580,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not: null})
@@ -593,7 +593,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -601,7 +601,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {string_not: null})
@@ -614,7 +614,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -622,7 +622,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {nullableComparable: null})
@@ -635,7 +635,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -643,7 +643,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = CreateSchema();
-            IQueryExecutor executer = schema.MakeExecutable();
+            IRequestExecutor executer = schema.MakeExecutable();
             const string query = @"
             {
                 foos(where: {nullableComparable_not: null})
@@ -656,7 +656,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executer.ExecuteAsync(query).ConfigureAwait(false);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
 

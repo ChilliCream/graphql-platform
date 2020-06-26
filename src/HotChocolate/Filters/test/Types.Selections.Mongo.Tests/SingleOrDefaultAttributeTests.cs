@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foos { bar baz} }");
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Selections
                     d.Field(t => t.FoosMultiple)
                         .Resolver(resolver))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -130,7 +130,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -160,7 +160,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foosAsync { bar baz} }");
@@ -191,7 +191,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

@@ -41,8 +41,7 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             Type? objectType)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => new ValueTask();
 
             descriptor
                 .Use(placeholder)
@@ -94,9 +93,7 @@ namespace HotChocolate.Types
                 context.DescriptorContext.GetSortingNamingConvention().ArgumentName;
             Type middlewareType = _middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType,
-                    SelectionMiddlewareContext.Create(
-                        filterConvention, sortingConventionArgumentName));
+                FieldClassMiddlewareFactory.Create(middlewareType);
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

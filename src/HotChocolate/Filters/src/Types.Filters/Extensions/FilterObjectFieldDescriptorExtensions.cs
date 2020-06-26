@@ -66,8 +66,7 @@ namespace HotChocolate.Types
             Type? filterType,
             ITypeSystemMember? filterTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                _ => _ => Task.CompletedTask;
+            FieldMiddleware placeholder = n => c => default;
 
             descriptor
                 .Use(placeholder)
@@ -142,9 +141,7 @@ namespace HotChocolate.Types
                 context.DescriptorContext.GetFilterConvention();
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
-            FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType,
-                    FilterMiddlewareContext.Create(convention));
+            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

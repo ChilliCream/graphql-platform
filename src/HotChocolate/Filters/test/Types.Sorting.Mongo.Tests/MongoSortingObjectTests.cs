@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { model { foo } } }")
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -127,7 +127,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -139,7 +139,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
 
@@ -165,7 +165,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { model: { foo: DESC } }) { model { foo } } }")
@@ -176,7 +176,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -201,7 +201,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -214,7 +214,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
 
@@ -240,7 +240,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { model: { qux: DESC } }) { model { bar } } }")
@@ -251,7 +251,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType

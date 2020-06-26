@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -153,7 +153,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -185,7 +185,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -198,7 +198,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType

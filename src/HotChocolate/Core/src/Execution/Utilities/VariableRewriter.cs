@@ -3,8 +3,26 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal static class VariableRewriter
+    /// <summary>
+    /// The variable rewriter is a utility that rewrites a value node and replaces all 
+    /// occurrences of <see cref="VariableNode" /> with concrete <see cref="IValueNode" />.
+    /// </summary>
+    public static class VariableRewriter
     {
+        /// <summary>
+        /// Rewrites <paramref name="node" /> and replaces all occurrences of 
+        /// <see cref="VariableNode" /> with concrete <see cref="IValueNode" /> 
+        /// from the <paramref name="variableValues" />.
+        /// </summary>
+        /// <param name="node">
+        /// The value that shall be rewritten.
+        /// </param>
+        /// <param name="variableValues">
+        /// The variable values.
+        /// </param>
+        /// <returns>
+        /// Returns a <see cref="IValueNode" /> that has no variables.
+        /// </returns>
         public static IValueNode Rewrite(
             IValueNode node,
             IVariableValueCollection variableValues)

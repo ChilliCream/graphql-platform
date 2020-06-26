@@ -22,7 +22,7 @@ namespace HotChocolate
             HasValue = true;
         }
 
-        internal Optional(T value, bool hasValue)
+        private Optional(T value, bool hasValue)
         {
             Value = value;
             HasValue = hasValue;
@@ -147,8 +147,15 @@ namespace HotChocolate
         /// Implicitly gets the optional value.
         /// </summary>
         /// <param name="name"></param>
-        [return : MaybeNull]
+        [return: MaybeNull]
         public static implicit operator T(Optional<T> optional) =>
             optional.Value;
+
+        /// <summary>
+        /// Creates an empty optional that provides a default value.
+        /// </summary>
+        /// <param name="defaultValue">The default value.</param>
+        public static Optional<T> Empty([MaybeNull]T defaultValue = default) =>
+            new Optional<T>(defaultValue, false);
     }
 }

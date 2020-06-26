@@ -16,11 +16,12 @@ namespace HotChocolate.Types.Selections.Handlers
         {
             IFilterConvention convention = context.SelectionContext.FilterConvention;
             NameString argumentName = convention.GetArgumentName();
+
             if (context.TryGetValueNode(argumentName, out IValueNode? filter) &&
                 selection.Field.Arguments[argumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit &&
                 convention.TryGetVisitorDefinition(
-                    out FilterExpressionVisitorDefinition? defintion))
+                out FilterExpressionVisitorDefinition? defintion))
             {
                 var visitorContext = new QueryableFilterVisitorContext(
                     iot,

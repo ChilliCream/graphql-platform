@@ -48,7 +48,9 @@ namespace HotChocolate.Execution
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
-            return new Optional<T>(CoerceArgumentValue<T>(argument), !argument.IsImplicit);
+            return argument.IsImplicit 
+                ? Optional<T>.Empty(CoerceArgumentValue<T>(argument))
+                : new Optional<T>(CoerceArgumentValue<T>(argument));
         }
 
         public T ArgumentLiteral<T>(NameString name) where T : IValueNode
