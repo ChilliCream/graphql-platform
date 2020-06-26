@@ -209,7 +209,7 @@ namespace HotChocolate.Types.Selections
                 selection.Field.Type.NamedType() is ObjectType edgeType)
             {
                 return Context
-                    .CollectFields(edgeType, selection.Selection.SelectionSet)
+                    .CollectFields(edgeType, selection.Selection.SelectionSet!)
                     .FirstOrDefault(x => x.Field.Name == "node");
             }
             return default;
