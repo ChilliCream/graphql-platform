@@ -1,5 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "s": {
       "edges": [
         {
@@ -16,8 +16,5 @@
       },
       "totalCount": 7
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

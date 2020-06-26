@@ -147,7 +147,11 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+                ErrorBuilder.New()
+                    .SetMessage(TypeResourceHelper.Scalar_Cannot_Serialize(Name))
+                    .SetExtension("actualValue", value?.ToString() ?? "null")
+                    .SetExtension("actualType", value?.GetType().FullName ?? "null")
+                    .Build());
         }
 
         /// <summary>

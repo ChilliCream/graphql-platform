@@ -140,6 +140,65 @@ namespace HotChocolate.Execution.Utilities
         public static GraphQLException SubscriptionExecutor_NoSubscribeResolver() =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage("You must declare a subscribe resolver for subscription fields.")
-                .Build());        
+                .Build());
+
+        public static GraphQLException ResolverContext_LiteralsNotSupported(
+            FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The ArgumentValue method on the resolver context only allows for runtime " +
+                    "values. If you want to retrieve the argument value as GraphQL literal use " +
+                    "the ArgumentLiteral method instead.")
+                .SetPath(path)
+                .AddLocation(field)
+                .SetExtension("fieldName", field.Name)
+                .SetExtension("argumentName", argumentName)
+                .SetExtension("requestedType", requestedType.FullName)
+                .Build());
+
+        public static GraphQLException ResolverContext_CannotConvertArgument(
+            FieldNode field, Path path, NameString argumentName, Type requestedType) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "Unable to convert the value if the argument `{0}` to `{1}`. " +
+                    "Check if the requested type is correct or register a custom type converter.",
+                    argumentName,
+                    requestedType.FullName ?? requestedType.Name)
+                .SetPath(path)
+                .AddLocation(field)
+                .SetExtension("fieldName", field.Name)
+                .SetExtension("argumentName", argumentName)
+                .SetExtension("requestedType", requestedType.FullName)
+                .Build());
+
+        public static GraphQLException ResolverContext_LiteralNotCompatible(
+            FieldNode field, Path path, NameString argumentName,
+            Type requestedType, Type actualType) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The argument literal representation is `{0}` which is not compatible " +
+                    "with the request literal type `{1}`.",
+                    actualType.FullName ?? actualType.Name,
+                    requestedType.FullName ?? actualType.Name)
+                .SetPath(path)
+                .AddLocation(field)
+                .SetExtension("fieldName", field.Name)
+                .SetExtension("argumentName", argumentName)
+                .SetExtension("requestedType", requestedType.FullName)
+                .SetExtension("actualType", actualType.FullName)
+                .Build());
+
+        public static GraphQLException ResolverContext_ArgumentDoesNotExist(
+            FieldNode field, Path path, NameString argumentName) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "There was no argument with the name `{0}` found on the field `{1}`.",
+                    argumentName,
+                    field.Name.Value)
+                .SetPath(path)
+                .AddLocation(field)
+                .SetExtension("fieldName", field.Name)
+                .SetExtension("argumentName", argumentName)
+                .Build());
     }
 }

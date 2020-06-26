@@ -47,25 +47,20 @@ namespace HotChocolate
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
                 c.BindResolver(
-                    ctx => "hello world " + ctx.Argument<string>("a"))
+                    ctx => "hello world " + ctx.ArgumentValue<string>("a"))
                     .To("Query", "b");
                 c.BindResolver(
-                    () => ResolverResult<string>
-                        .CreateValue("hello world x"))
+                    () => "hello world x")
                     .To("Query", "x");
                 c.BindResolver(
-                    () => ResolverResult<string>
-                        .CreateError("hello world y"))
+                    () => "hello world y")
                     .To("Query", "y");
                 c.BindResolver(
-                    async () => await Task.FromResult(
-                        ResolverResult<string>
-                            .CreateValue("hello world xasync")))
+                    async () => await Task.FromResult("hello world xasync"))
                     .To("Query", "xasync");
                 c.BindResolver(
                     async () => await Task.FromResult(
-                        ResolverResult<string>
-                            .CreateError("hello world yasync")))
+                        new Error("hello world yasync")))
                     .To("Query", "yasync");
             });
         }

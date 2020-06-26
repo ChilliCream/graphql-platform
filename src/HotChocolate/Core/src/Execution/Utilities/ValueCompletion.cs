@@ -418,7 +418,6 @@ namespace HotChocolate.Execution.Utilities
                 middlewareContext.ReportError(
                     ErrorHelper.InvalidLeafValue(
                         ex,
-                        operationContext.ErrorHandler,
                         middlewareContext.FieldSelection,
                         path));
             }

@@ -108,7 +108,7 @@ namespace HotChocolate.Utilities
 
         private static bool IsNonEssentialComponent(IExtendedType type)
         {
-            return IsTaskType(type) || IsResolverResultType(type);
+            return IsTaskType(type);
         }
 
         public static IExtendedType? GetInnerType(IExtendedType type)
@@ -119,8 +119,7 @@ namespace HotChocolate.Utilities
             }
 
             if (IsTaskType(type)
-                || IsNonNullType(type)
-                || IsResolverResultType(type))
+                || IsNonNullType(type))
             {
                 return type.TypeArguments[0];
             }
@@ -184,13 +183,6 @@ namespace HotChocolate.Utilities
             return type.IsGeneric
                 && (typeof(Task<>) == type.Definition
                     || typeof(ValueTask<>) == type.Definition);
-        }
-
-        private static bool IsResolverResultType(IExtendedType type)
-        {
-            return type.IsGeneric
-                && (typeof(IResolverResult<>) == type.Definition
-                || typeof(ResolverResult<>) == type.Definition);
         }
 
         private static bool IsNonNullType(IExtendedType type)

@@ -45,13 +45,10 @@ namespace HotChocolate.Execution.Utilities
 
         public static IError InvalidLeafValue(
             ScalarSerializationException exception,
-            IErrorHandler errorHandler,
             FieldNode field,
             Path path)
         {
-            return errorHandler
-                .CreateUnexpectedError(exception)
-                .SetMessage(exception.Message)
+            return ErrorBuilder.FromError(exception.Errors[0])
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)

@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution
 {
@@ -16,13 +17,15 @@ namespace HotChocolate.Execution
         {
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
-                if (ArgumentLiteral<IValueNode>(name) is T casted)
+                IValueNode literal = ArgumentLiteral<IValueNode>(name);
+
+                if (literal is T casted)
                 {
                     return casted;
                 }
 
-                // todo: not compatible literal
-                throw new GraphQLException(); // throw helper
+                throw ResolverContext_LiteralNotCompatible(
+                    FieldSelection, Path, name,  typeof(T), literal.GetType());
             }
 
             return ArgumentValue<T>(name);
@@ -32,7 +35,7 @@ namespace HotChocolate.Execution
         {
             if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
-                throw new GraphQLException(); // throw helper
+                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
             return CoerceArgumentValue<T>(argument);
@@ -42,7 +45,7 @@ namespace HotChocolate.Execution
         {
             if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
-                throw new GraphQLException(); // throw helper
+                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
             return new Optional<T>(CoerceArgumentValue<T>(argument), !argument.IsImplicit);
@@ -52,7 +55,7 @@ namespace HotChocolate.Execution
         {
             if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
-                throw new GraphQLException(); // throw helper
+                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
             IValueNode literal = argument.ValueLiteral!;
@@ -62,15 +65,15 @@ namespace HotChocolate.Execution
                 return castedLiteral;
             }
 
-            // not compatible literal
-            throw new GraphQLException(); // throw helper
+            throw ResolverContext_LiteralNotCompatible(
+                FieldSelection, Path, name,  typeof(T), literal.GetType());
         }
 
         public ValueKind ArgumentKind(NameString name)
         {
             if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
             {
-                throw new GraphQLException(); // throw helper
+                throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
             // There can only be no kind if there was an error which would have
@@ -82,6 +85,8 @@ namespace HotChocolate.Execution
         {
             object? value = argument.Value;
 
+            // if the argument is final and has an already coerced 
+            // runtime version we can skip over parsing it.
             if (!argument.IsFinal)
             {
                 value = argument.Type.ParseLiteral(argument.ValueLiteral!);
@@ -97,6 +102,13 @@ namespace HotChocolate.Execution
                 _operationContext.Converter.TryConvert<object, T>(value, out castedValue))
             {
                 return castedValue;
+            }
+
+            // GraphQL literals are not allowed.
+            if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+            {
+                throw ResolverContext_LiteralsNotSupported(
+                    FieldSelection, Path, argument.Argument.Name, typeof(T));
             }
 
             // If the object is internally held as a dictionary structure we will try to
@@ -120,8 +132,9 @@ namespace HotChocolate.Execution
                 }
             }
 
-            // not compatible literal
-            throw new GraphQLException(); // throw helper
+            // we are unable to convert the argument to the request type.
+            throw ResolverContext_CannotConvertArgument(
+                FieldSelection, Path, argument.Argument.Name, typeof(T));
         }
     }
 }

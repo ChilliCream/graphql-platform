@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Relay
                 c => c.RegisterQueryType<QueryType>());
             IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s(last:2)
                 {
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Relay
                 c => c.RegisterQueryType<QueryType2>());
             IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s(last:2)
                 {
@@ -137,7 +137,7 @@ namespace HotChocolate.Types.Relay
 
             IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s
                 {

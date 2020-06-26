@@ -515,7 +515,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.ArgumentValue<ObjectValueNode>("input")))
+                    .Resolver(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -541,7 +541,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.ArgumentValue<ObjectValueNode>("input")))
+                    .Resolver(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
