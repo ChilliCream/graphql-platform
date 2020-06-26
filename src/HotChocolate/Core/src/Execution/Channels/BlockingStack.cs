@@ -12,15 +12,26 @@ namespace HotChocolate.Execution.Channels
 
         public bool TryPop([MaybeNullWhen(false)]out T item)
         {
-            bool lockTaken = false;
+            var lockTaken = false;
             try
             {
                 _lock.Enter(ref lockTaken);
+#if NETSTANDARD2_0
+                if (_list.Count > 0)
+                {
+                    item = _list.Pop();
+                    IsEmpty = _list.Count == 0;
+                    return true;
+                }
+
+                item = default;
+#else
                 if (_list.TryPop(out item))
                 {
                     IsEmpty = _list.Count == 0;
                     return true;
                 }
+#endif
 
                 return false;
             }
