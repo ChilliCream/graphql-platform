@@ -76,7 +76,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
 
             return _database.StringSetAsync(
                 queryId,
-                query.ToSpan().ToArray());
+                query.AsSpan().ToArray());
         }
     }
 }
