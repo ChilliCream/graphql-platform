@@ -1,8 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -36,19 +32,6 @@ namespace HotChocolate.Execution.Channels
             }
             _size++;
         }
-
-        //// Uncomment if/when enqueueing at the head is needed
-        //public void EnqueueHead(T item)
-        //{
-        //    if (_size == _array.Length)
-        //    {
-        //        Grow();
-        //    }
-        //
-        //    _head = (_head == 0 ? _array.Length : _head) - 1;
-        //    _array[_head] = item;
-        //    _size++;
-        //}
 
         public T DequeueHead()
         {
