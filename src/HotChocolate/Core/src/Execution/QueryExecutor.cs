@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
@@ -15,24 +16,24 @@ namespace HotChocolate.Execution
             IOperationContext operationContext,
             IImmutableDictionary<string, object?> scopedContext)
         {
+            if (operationContext is null)
+            {
+                throw new ArgumentNullException(nameof(operationContext));
+            }
+
+            if (scopedContext is null)
+            {
+                throw new ArgumentNullException(nameof(scopedContext));
+            }
+
             IPreparedSelectionList rootSelections =
                 operationContext.Operation.GetRootSelections();
 
             ResultMap resultMap = rootSelections.EnqueueResolverTasks(
-                operationContext, n => Path.New(n), scopedContext,
+                operationContext, Path.New, scopedContext,
                 operationContext.RootValue);
 
-            int proposedTaskCount = operationContext.Operation.ProposedTaskCount;
-            var tasks = new Task[proposedTaskCount];
-
-            for (int i = 0; i < proposedTaskCount; i++)
-            {
-                tasks[i] = StartExecutionTaskAsync(
-                    operationContext.Execution,
-                    operationContext.RequestAborted);
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await ExecuteTasksAsync(operationContext);
 
             operationContext.Result.SetData(resultMap);
             return operationContext.Result.BuildResult();
