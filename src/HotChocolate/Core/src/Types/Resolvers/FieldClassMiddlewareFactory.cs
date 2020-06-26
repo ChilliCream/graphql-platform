@@ -20,32 +20,56 @@ namespace HotChocolate.Resolvers
         private static readonly PropertyInfo _services =
             typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
-        public static FieldMiddleware Create<TMiddleware>()
+        public static FieldMiddleware Create<TMiddleware>(params object[] services)
             where TMiddleware : class
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            var parameters = new List<IParameterHandler>();
+
+            foreach (object service in services)
+            {
+                if (service is { })
+                {
+                    parameters.Add(new TypeParameterHandler(
+                        service.GetType(), 
+                        Expression.Constant(service)));
+                }
+            }
+
             return next =>
             {
                 MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
-                    MiddlewareCompiler<TMiddleware>
-                        .CompileFactory<IServiceProvider, FieldDelegate>(
-                            (services, next) =>
-                            new IParameterHandler[] { new ServiceParameterHandler(services) });
+                    MiddlewareCompiler<TMiddleware>.CompileFactory<IServiceProvider, FieldDelegate>(
+                        (services, next) =>
+                        {
+                            parameters.Add(new ServiceParameterHandler(services));
+                            return parameters;
+                        });
 
                 return CreateDelegate((s, n) => factory(s, n), next);
             };
         }
 
-        public static FieldMiddleware Create(Type middlewareType)
+        public static FieldMiddleware Create(Type middlewareType, params object[] services)
         {
             return (FieldMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)
-                .Invoke(null, null);
+                .Invoke(null, new object[] { services });
         }
 
         public static FieldMiddleware Create<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             return next => CreateDelegate(factory, next);
         }
 

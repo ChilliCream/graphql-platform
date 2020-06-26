@@ -9,20 +9,19 @@ namespace HotChocolate.Types.Filters
     {
         private readonly FieldDelegate _next;
         private readonly ITypeConversion _converter;
-        private readonly FilterMiddlewareContext _contextData;
+        private readonly FilterMiddlewareContext _filterContext;
 
         public FilterMiddleware(
             FieldDelegate next,
-            FilterMiddlewareContext contextData,
+            FilterMiddlewareContext filterContext,
             ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _filterContext = filterContext ?? throw new ArgumentNullException(nameof(filterContext));
             _converter = converter ?? TypeConversion.Default;
-            _contextData = contextData ??
-                throw new ArgumentNullException(nameof(contextData));
         }
 
         public Task InvokeAsync(IMiddlewareContext context) =>
-            _contextData.Convention.ApplyFilterAsync<T>(_next, _converter, context);
+            _filterContext.Convention.ApplyFilterAsync<T>(_next, _converter, context);
     }
 }

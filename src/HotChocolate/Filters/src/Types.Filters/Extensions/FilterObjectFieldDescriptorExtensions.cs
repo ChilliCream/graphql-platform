@@ -137,11 +137,12 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            IFilterConvention convention =
-                context.DescriptorContext.GetFilterConvention();
+            IFilterConvention convention = context.DescriptorContext.GetFilterConvention();
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
-            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
+            var filterContext = new FilterMiddlewareContext(convention);
+            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
+                middlewareType, filterContext);
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
