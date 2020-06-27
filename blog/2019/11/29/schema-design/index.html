@@ -1216,7 +1216,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>A simple query like ...</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="13688780543281443000"
+              data-toaster-id="39889084760708420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1230,7 +1230,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     {
         return name is null ? &quot;Hello!&quot; : \$&quot;Hello {name}!&quot;
     }
-}`, `13688780543281443000`)"
+}`, `39889084760708420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1252,7 +1252,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>... is now correctly inferred to:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="79488865509255380000"
+              data-toaster-id="68948352577233110000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1260,7 +1260,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
               onClick="copyToClipboard(`type Query {
   &quot;This field says hello.&quot;
   sayHello(name: String): String!
-}`, `79488865509255380000`)"
+}`, `68948352577233110000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1279,7 +1279,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Since version 10.0.0 <em>Hot Chocolate</em> is able to infer interface types from API usage. This means that we will correctly infer the interfaces that you use and the types that implement those interfaces.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="50248341673513290000"
+              data-toaster-id="86063182857195780000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1314,7 +1314,7 @@ SchemaBuilder.New()
     .AddQuery<Query>()
     .AddType<Dog>()
     .AddType<Cat>()
-    .Create();`, `50248341673513290000`)"
+    .Create();`, `86063182857195780000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1356,7 +1356,7 @@ SchemaBuilder<span class="token punctuation">.</span><span class="token function
     <span class="token punctuation">.</span><span class="token function">Create</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></div>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="15565197730024782000"
+              data-toaster-id="24155656295841420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1376,7 +1376,7 @@ type Dog implements Pet {
 
 type Cat implements Pet {
     // fields
-}`, `15565197730024782000`)"
+}`, `24155656295841420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1408,7 +1408,7 @@ type Cat implements Pet {
 <p>Let us say we want to create a simple middleware that can be put on properties and methods and that applies a <code class="language-text">ToUpper</code> on every resulting <code class="language-text">string</code> on the annotated member.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="59131433819537334000"
+              data-toaster-id="85142209774178940000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1427,7 +1427,7 @@ type Cat implements Pet {
             }
         })
     }
-}`, `59131433819537334000`)"
+}`, `85142209774178940000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1454,7 +1454,7 @@ type Cat implements Pet {
 <p>The neat thing is that we have full access to all the things we have on our fluent API. The attributes very cleanly packages all the logic and makes it very easy applicable. By just applying an attribute to a property or method I can add huge functionality to that member (resolver).</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73456657524452030000"
+              data-toaster-id="74282507320788400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1469,7 +1469,7 @@ type Cat implements Pet {
     {
         return name is null ? &quot;Hello!&quot; : \$&quot;Hello {name}!&quot;
     }
-}`, `73456657524452030000`)"
+}`, `74282507320788400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1500,7 +1500,7 @@ type Cat implements Pet {
 <p>First, we did not have a generic type extension type. This means that defining fields can sometimes be a pain. We had to either declare fields and provide the declaring type with them or we had to specify the field with a string name.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73629135967607900000"
+              data-toaster-id="84109278794298620000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1513,7 +1513,7 @@ type Cat implements Pet {
         descriptor.Field<Foo>(t => t.Bar).Use(...);
         descriptor.Field(&quot;baz&quot;).Use(...);
     }
-}`, `73629135967607900000`)"
+}`, `84109278794298620000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1534,7 +1534,7 @@ type Cat implements Pet {
 <p>With the new version we can now basically do the same than we do with standard types by providing a type parameter:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94818448405782450000"
+              data-toaster-id="97856087422917750000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1546,7 +1546,7 @@ type Cat implements Pet {
         descriptor.Name(&quot;Foo&quot;);
         descriptor.Field(t => t.Bar).Use(...);
     }
-}`, `94818448405782450000`)"
+}`, `97856087422917750000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1567,7 +1567,7 @@ type Cat implements Pet {
 <p>You also can just type in the name like before. Or you provide as with the type that you want to actually extend.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1702729361273469400"
+              data-toaster-id="13508201356949123000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1579,7 +1579,7 @@ type Cat implements Pet {
         descriptor.Extend<FooType>()
         descriptor.Field(t => t.Bar).Use(...);
     }
-}`, `1702729361273469400`)"
+}`, `13508201356949123000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1601,7 +1601,7 @@ type Cat implements Pet {
 <p>So, we are porting it now back to the server. In your resolvers you can now use for every argument the optional wrapper type and this will tell you if the argument was not provided. This will allow you to easily do partial updates. We could do partial updates before but not as elegant as now. With version 11 we will improve on that by having a nice patch type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="19139251396827840000"
+              data-toaster-id="65296035969788410000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1609,7 +1609,7 @@ type Cat implements Pet {
               onClick="copyToClipboard(`public async Task<Foo> GetMyFoo(Optional<string> id)
 {
     // ...
-}`, `19139251396827840000`)"
+}`, `65296035969788410000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1625,7 +1625,7 @@ type Cat implements Pet {
 <p>Also you can use optionals in input objects.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62704117043381590000"
+              data-toaster-id="29015109687271612000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1633,7 +1633,7 @@ type Cat implements Pet {
               onClick="copyToClipboard(`public class Foo
 {
     public Optional<string> Bar { get; set; }
-}`, `62704117043381590000`)"
+}`, `29015109687271612000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1649,12 +1649,12 @@ type Cat implements Pet {
 <p>The nice thing with the inputs are that they implicitly convert.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="28845332266524082000"
+              data-toaster-id="77759720873988820000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`var foo = new Foo { Bar = &quot;My String&quot; };`, `28845332266524082000`)"
+              onClick="copyToClipboard(`var foo = new Foo { Bar = &quot;My String&quot; };`, `77759720873988820000`)"
             >
               <div
                 class="gatsby-code-button"
