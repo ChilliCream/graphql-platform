@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Buffers.Text;
 using System.Text;
+using HotChocolate.Execution;
 
 #nullable enable
 
@@ -17,12 +18,12 @@ namespace HotChocolate.Types.Relay
             Index = index;
         }
 
-        public int Index { get; set; }
+        public int Index { get; }
 
         public static IndexEdge<T> Create(T node, int index)
         {
             Span<byte> buffer = stackalloc byte[27 / 3 * 4];
-            Utf8Formatter.TryFormat(index, buffer, out int written);
+            Utf8Formatter.TryFormat(index, buffer, out var written);
             Base64.EncodeToUtf8InPlace(buffer, written, out written);
             string cursor = CreateString(buffer.Slice(0, written));
             return new IndexEdge<T>(node, cursor, index);
@@ -40,7 +41,7 @@ namespace HotChocolate.Types.Relay
         {
             fixed (char* cPtr = cursor)
             {
-                int count = _utf8.GetByteCount(cPtr, cursor.Length);
+                var count = _utf8.GetByteCount(cPtr, cursor.Length);
                 byte[]? rented = null;
 
                 Span<byte> buffer = count <= 128
@@ -49,20 +50,18 @@ namespace HotChocolate.Types.Relay
 
                 try
                 {
-                    int written = 0;
                     fixed (byte* bytePtr = buffer)
                     {
-                        written = _utf8.GetBytes(cPtr, cursor.Length, bytePtr, buffer.Length);
+                        _utf8.GetBytes(cPtr, cursor.Length, bytePtr, buffer.Length);
                     }
 
-                    Base64.DecodeFromUtf8InPlace(buffer, out written);
+                    Base64.DecodeFromUtf8InPlace(buffer, out var written);
                     if (Utf8Parser.TryParse(buffer.Slice(0, written), out int index, out _))
                     {
                         return index;
                     }
 
-                    // todo : throwhelper => should be graphqlexeception => formatexception
-                    throw new ArgumentOutOfRangeException("The cursor has an invalid format.");
+                    throw new QueryException("The cursor has an invalid format.");
                 }
                 finally
                 {
