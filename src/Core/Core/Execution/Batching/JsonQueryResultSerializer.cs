@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Batching
     public sealed class JsonArrayResponseStreamSerializer
         : IResponseStreamSerializer
     {
-        private const string _contentType = "application/json";
+        private const string _contentType = "application/json; charset=utf-8";
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
