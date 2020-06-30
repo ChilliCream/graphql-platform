@@ -34,7 +34,7 @@ namespace HotChocolate.Subscriptions.InMemory
 
             if (_outgoing.Count > 0)
             {
-                for (int i = 0; i < _outgoing.Count; i++)
+                for (var i = 0; i < _outgoing.Count; i++)
                 {
                     _outgoing[i].Writer.TryComplete();
                 }
