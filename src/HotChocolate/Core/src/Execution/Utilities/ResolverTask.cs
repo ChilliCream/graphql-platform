@@ -29,8 +29,12 @@ namespace HotChocolate.Execution.Utilities
                 {
                     bool errors = true;
 
-                    if (TryCoerceArguments())
+                    if (_selection.Arguments.TryCoerceArguments(
+                        _context.Variables, 
+                        _context.ReportError, 
+                        out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs)) 
                     {
+                        _context.Arguments = coercedArgs;
                         await ExecuteResolverPipelineAsync().ConfigureAwait(false);
                         errors = false;
                     }
@@ -42,6 +46,19 @@ namespace HotChocolate.Execution.Utilities
 
                     CompleteValue(withErrors: errors);
                 }
+                catch (GraphQLException ex)
+                {
+                    foreach (IError error in ex.Errors)
+                    {
+                        _context.ReportError(error);
+                    }
+                    _context.Result = null;
+                }
+                catch (Exception ex)
+                {
+                    _context.ReportError(ex);
+                    _context.Result = null;
+                }
                 finally
                 {
                     _operationContext.Execution.TaskStats.TaskCompleted();
@@ -50,110 +67,24 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private bool TryCoerceArguments()
-        {
-            // if we have errors on the compiled execution plan we will report the errors and
-            // signal that this resolver task has errors and shall end.
-            if (_selection.Arguments.HasErrors)
-            {
-                foreach (PreparedArgument argument in _selection.Arguments.Values)
-                {
-                    if (argument.IsError)
-                    {
-                        _context.ReportError(argument.Error!.WithPath(_context.Path));
-                    }
-                }
-
-                return false;
-            }
-
-            try
-            {
-                // if there are arguments that have variables and need variable replacement we will
-                // rewrite the arguments that need variable replacement.
-                if (!_selection.Arguments.IsFinal)
-                {
-                    var args = new Dictionary<NameString, PreparedArgument>();
-
-                    foreach (PreparedArgument argument in _selection.Arguments.Values)
-                    {
-                        if (argument.IsFinal)
-                        {
-                            args.Add(argument.Argument.Name, argument);
-                        }
-                        else
-                        {
-                            IValueNode literal = VariableRewriter.Rewrite(
-                                argument.ValueLiteral!, _context.Variables);
-
-                            args.Add(argument.Argument.Name, new PreparedArgument(
-                                argument.Argument,
-                                literal.TryGetValueKind(out ValueKind kind) 
-                                    ? kind 
-                                    : ValueKind.Unknown,
-                                argument.IsFinal,
-                                argument.IsImplicit,
-                                null,
-                                literal));
-                        }
-                    }
-
-                    _context.Arguments = args;
-                }
-
-                return true;
-            }
-            catch (GraphQLException ex)
-            {
-                foreach (IError error in ex.Errors)
-                {
-                    _context.ReportError(error);
-                }
-                _context.Result = null;
-            }
-            catch (Exception ex)
-            {
-                _context.ReportError(ex);
-                _context.Result = null;
-            }
-
-            return false;
-        }
-
         private async ValueTask ExecuteResolverPipelineAsync()
         {
-            try
-            {
-                await _context.ResolverPipeline(_context).ConfigureAwait(false);
+            await _context.ResolverPipeline(_context).ConfigureAwait(false);
 
-                switch (_context.Result)
-                {
-                    case IError error:
-                        _context.ReportError(error);
-                        _context.Result = null;
-                        break;
-
-                    case IEnumerable<IError> errors:
-                        foreach (IError error in errors)
-                        {
-                            _context.ReportError(error);
-                        }
-                        _context.Result = null;
-                        break;
-                }
-            }
-            catch (GraphQLException ex)
+            switch (_context.Result)
             {
-                foreach (IError error in ex.Errors)
-                {
+                case IError error:
                     _context.ReportError(error);
-                }
-                _context.Result = null;
-            }
-            catch (Exception ex)
-            {
-                _context.ReportError(ex);
-                _context.Result = null;
+                    _context.Result = null;
+                    break;
+
+                case IEnumerable<IError> errors:
+                    foreach (IError error in errors)
+                    {
+                        _context.ReportError(error);
+                    }
+                    _context.Result = null;
+                    break;
             }
         }
 

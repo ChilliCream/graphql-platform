@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Utilities
             Kind = kind;
             IsFinal = isFinal;
             IsImplicit = isImplicit;
-            IsError = false;
+            HasError = false;
             Error = null;
             Value = value;
             ValueLiteral = valueLiteral ?? throw new ArgumentNullException(nameof(valueLiteral));
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Utilities
         {
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Error = error ?? throw new ArgumentNullException(nameof(error));
-            IsError = true;
+            HasError = true;
             IsFinal = true;
             Kind = null;
             Value = null;
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Utilities
 
         public bool IsFinal { get; }
 
-        public bool IsError { get; }
+        public bool HasError { get; }
 
         public bool IsImplicit { get; }
 
