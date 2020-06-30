@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Subscriptions.InMemory.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Subscriptions.InMemory</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>
