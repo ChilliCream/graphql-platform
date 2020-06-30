@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(new FooFilterTypeDefaults());
+            var schema = CreateSchema(new FooFilterTypeDefaults());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -23,116 +23,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(new FooFilterType());
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
-        {
-            // arrange
-            // act
-            IComparableFilterFieldDescriptor first = null;
-            IComparableFilterFieldDescriptor second = null;
-            ISchema schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor =>
-                {
-                    first = descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .BindFiltersExplicitly()
-                        .AllowEquals().Name("this_should_not_be_visible").And()
-                        .AllowNotEquals().Name("this_should_not_be_visible").And()
-                        .AllowIn().Name("this_should_not_be_visible").And()
-                        .AllowNotIn().Name("this_should_not_be_visible").And()
-                        .AllowGreaterThan().Name("this_should_not_be_visible").And()
-                        .AllowNotGreaterThan().Name("this_should_not_be_visible").And()
-                        .AllowGreaterThanOrEquals().Name("this_should_not_be_visible").And()
-                        .AllowNotGreaterThanOrEquals().Name("this_should_not_be_visible").And()
-                        .AllowLowerThan().Name("this_should_not_be_visible").And()
-                        .AllowNotLowerThan().Name("this_should_not_be_visible").And()
-                        .AllowLowerThanOrEquals().Name("this_should_not_be_visible").And()
-                        .AllowNotLowerThanOrEquals().Name("this_should_not_be_visible").And();
-                    second = descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .AllowEquals().Name("eq").And()
-                        .AllowNotEquals().Name("neq").And()
-                        .AllowIn().Name("in").And()
-                        .AllowNotIn().Name("nin").And()
-                        .AllowGreaterThan().Name("gt").And()
-                        .AllowNotGreaterThan().Name("ngt").And()
-                        .AllowGreaterThanOrEquals().Name("gte").And()
-                        .AllowNotGreaterThanOrEquals().Name("ngte").And()
-                        .AllowLowerThan().Name("lt").And()
-                        .AllowNotLowerThan().Name("nlt").And()
-                        .AllowLowerThanOrEquals().Name("lte").And()
-                        .AllowNotLowerThanOrEquals().Name("nlte").And();
-                }));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-            Assert.Equal(first, second);
-        }
-
-
-        [Fact]
-        public void Bind_Filter_FilterDescirptor_Override()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor =>
-                {
-                    descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .BindFiltersImplicitly();
-                    descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .BindFiltersExplicitly().AllowNotEquals();
-                }));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor =>
-                {
-                    descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .BindFiltersExplicitly().AllowNotEquals();
-                    descriptor.Ignore(x => x.BarShort);
-                }));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor =>
-                {
-                    descriptor.Ignore(x => x.BarShort);
-                    descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.BarShort)
-                        .BindFiltersExplicitly().AllowNotEquals();
-                }));
+            var schema = CreateSchema(new FooFilterType());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -146,7 +37,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor
                 .BindFieldsExplicitly()
@@ -175,7 +66,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.BarInt)
                     .BindFiltersExplicitly()
@@ -192,7 +83,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.BarInt)
                     .BindFiltersExplicitly()
@@ -209,7 +100,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.BarInt)
@@ -230,7 +121,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.BarInt)
@@ -255,7 +146,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.BarInt)
@@ -275,7 +166,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.BarInt)
@@ -295,7 +186,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(descriptor =>
                 {
                     descriptor
@@ -314,7 +205,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Ignore(f => f.BarShort)));
 
@@ -327,7 +218,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.BarShort)
                     .Ignore()));
@@ -341,7 +232,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(
+            var schema = CreateSchema(
                 new FilterInputType<FooNullable>(
                     d => d.Filter(f => f.BarShort)));
 
@@ -354,7 +245,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(
+            var schema = CreateSchema(
                 new FilterInputType<FooNullable>());
 
             // assert
@@ -375,12 +266,6 @@ namespace HotChocolate.Types.Filters
             public float BarFloat { get; set; }
             public double BarDouble { get; set; }
             public decimal BarDecimal { get; set; }
-            public short? BarShortNullable { get; set; }
-            public int? BarIntNullable { get; set; }
-            public long? BarLongNullable { get; set; }
-            public float? BarFloatNullable { get; set; }
-            public double? BarDoubleNullable { get; set; }
-            public decimal? BarDecimalNullable { get; set; }
             public FooBar FooBar { get; set; }
         }
 
@@ -407,12 +292,6 @@ namespace HotChocolate.Types.Filters
                 descriptor.Filter(x => x.BarFloat);
                 descriptor.Filter(x => x.BarDouble);
                 descriptor.Filter(x => x.BarDecimal);
-                descriptor.Filter(x => x.BarShortNullable);
-                descriptor.Filter(x => x.BarIntNullable);
-                descriptor.Filter(x => x.BarLongNullable);
-                descriptor.Filter(x => x.BarFloatNullable);
-                descriptor.Filter(x => x.BarDoubleNullable);
-                descriptor.Filter(x => x.BarDecimalNullable);
                 descriptor.Filter(x => x.FooBar);
             }
         }

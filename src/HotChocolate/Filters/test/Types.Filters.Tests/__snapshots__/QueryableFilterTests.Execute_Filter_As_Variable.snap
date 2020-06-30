@@ -1,5 +1,21 @@
 ﻿{
-  "data": {
-    "foos": []
-  }
+  "Data": {
+    "foos": [
+      {
+        "bar": "aa"
+      },
+      {
+        "bar": "ab"
+      },
+      {
+        "bar": "ac"
+      },
+      {
+        "bar": "ad"
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
 }

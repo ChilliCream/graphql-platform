@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
@@ -11,7 +8,7 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterTests
     {
         [Fact]
-        public void Create_Schema_With_FilterType()
+        public void Create_Schema_With_FilteType()
         {
             // arrange
             // act
@@ -24,7 +21,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Schema_With_FilterType_With_Fluent_API()
+        public void Create_Schema_With_FilteType_With_Fluent_API()
         {
             // arrange
             // act
@@ -50,14 +47,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_starts_with: \"a\" }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -68,7 +65,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -84,7 +81,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = executor.Execute(request);
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -95,7 +92,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -114,7 +111,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = executor.Execute(request);
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -125,79 +122,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Execute_ObjectStringEqualWithNull_Expression_Array()
-        {
-            // arrange
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(x =>
-                   x.Field("list")
-                   .Type<ListType<ObjectType<FooObject>>>()
-                   .Resolver(
-                       x => new FooObject[] {
-                           null,
-                           new FooObject { FooNested = new FooNested { Bar = "a" }
-                           }
-                        }
-                    )
-                   .UseFiltering()
-                    )
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ list(where: { fooNested: { bar: \"a\" } }) { fooNested { bar } } }")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Execute_ObjectStringEqualWithNull_Expression_InMemoryQueryable()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    x => x.Field("list")
-                    .Type<ListType<ObjectType<FooObject>>>()
-                    .Resolver(x =>
-                        new FooObject[] {
-                            null,
-                            new FooObject { FooNested = new FooNested { Bar = "a" } }
-                            }
-                            .AsQueryable()
-                        )
-                   .UseFiltering()
-                    )
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested { bar } } }")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -208,14 +140,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_starts_with: \"a\" }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -226,14 +158,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar: null }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -244,14 +176,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_not: null }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -262,14 +194,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_in: [ \"aa\" \"ab\" ] }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -280,14 +212,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { baz_in: [ 1 0 ] }) { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -298,14 +230,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { qux: 1 }) { bar qux } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -316,14 +248,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { qux: null }) { bar qux } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -334,7 +266,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -342,7 +274,7 @@ namespace HotChocolate.Types.Filters
                 " { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -353,7 +285,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -361,84 +293,7 @@ namespace HotChocolate.Types.Filters
                 " { bar } }");
 
             // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Execute_DateTime_Filter()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryFooDateTime>(d => d
-                    .Name("Query")
-                    .Field(y => y.Foo)
-                    .UseFiltering())
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) { foo } }")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Execute_DateTime_Filter_With_Variables()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryFooDateTime>(d => d
-                    .Name("Query")
-                    .Field(y => y.Foo)
-                    .UseFiltering())
-                .Create();
-
-            IRequestExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery(
-                    "query TestQuery($where: FooDateTimeFilter) {" +
-                    "foo(where: $where) { foo } }")
-                .SetVariableValue("where", new Dictionary<string, object>
-                {
-                    { "foo_gte", "2019-06-01" }
-                })
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.ToJson().MatchSnapshot();
-        }
-
-        public class FooDateTime
-        {
-            public DateTime Foo { get; set; }
-        }
-
-        public class QueryFooDateTime
-        {
-            public IEnumerable<FooDateTime> Foo { get; set; } = new List<FooDateTime>
-            {
-                new FooDateTime { Foo = new DateTime(2020,01,01, 18, 0, 0, DateTimeKind.Utc) },
-                new FooDateTime { Foo = new DateTime(2018,01,01, 18, 0, 0, DateTimeKind.Utc) }
-            };
-        }
-
-        public class FooObject
-        {
-            public FooNested FooNested { get; set; }
-        }
-        public class FooNested
-        {
-            public string Bar { get; set; }
+            result.MatchSnapshot();
         }
 
         public class QueryType

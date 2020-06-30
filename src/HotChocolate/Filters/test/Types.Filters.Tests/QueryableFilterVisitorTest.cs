@@ -1,28 +1,24 @@
 using System;
-using HotChocolate.Types.Filters.Expressions;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorContextTests
+    public class QueryableFilterVisitorTests
         : TypeTestBase
     {
         [Fact]
-        public void Create_Should_Throw_IfOperationDefinitionIsNull()
+        public void Create_Should_Throw_IfOperationHandlersIsNull()
         {
             // arrange
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+            var fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                null,
-                TypeConversion.Default,
-                true);
+                new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default, null);
             };
 
             // act
@@ -30,22 +26,17 @@ namespace HotChocolate.Types.Filters
             Assert.Throws<ArgumentNullException>(action);
         }
 
-
         [Fact]
         public void Create_Should_Throw_IfTypeConversionIsNull()
         {
             // arrange
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+            var fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                null,
-                true);
+                new QueryableFilterVisitor(
+                fooType, typeof(Foo), null);
             };
 
             // act
@@ -58,16 +49,12 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+            var fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                fooType,
-                null,
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
+                new QueryableFilterVisitor(
+                fooType, null, TypeConversion.Default);
             };
 
             // act
@@ -82,12 +69,8 @@ namespace HotChocolate.Types.Filters
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                null,
-                typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
+                new QueryableFilterVisitor(
+                null, typeof(Foo), TypeConversion.Default);
             };
 
             // act
@@ -100,6 +83,7 @@ namespace HotChocolate.Types.Filters
             public bool Bar { get; set; }
         }
 
+
         public class FooFilterType
             : FilterInputType<Foo>
         {
@@ -110,5 +94,6 @@ namespace HotChocolate.Types.Filters
                     .AllowEquals().And().AllowNotEquals();
             }
         }
+
     }
 }

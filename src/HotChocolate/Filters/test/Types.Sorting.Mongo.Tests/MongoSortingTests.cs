@@ -1,12 +1,12 @@
-using MongoDB.Driver;
-using MongoDB.Bson;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using Xunit;
 using System.Threading.Tasks;
-using Snapshooter.Xunit;
+using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using Snapshooter.Xunit;
 using Squadron;
+using Xunit;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { foo } }")
@@ -55,8 +55,8 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.ToJson().MatchSnapshot();
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { foo: DESC }) { foo } }")
@@ -92,8 +92,8 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.ToJson().MatchSnapshot();
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(order_by: { foo: DESC }) { nodes { foo } } }")
@@ -129,8 +129,8 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.ToJson().MatchSnapshot();
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
         }
 
 
@@ -157,7 +157,7 @@ namespace HotChocolate.Types.Sorting
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IRequestExecutor executor = schema.MakeExecutable();
+            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { qux: DESC }) { bar } }")
@@ -167,8 +167,8 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            Assert.Null(result.Errors);
-            result.ToJson().MatchSnapshot();
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
         }
 
         public class QueryType : ObjectType

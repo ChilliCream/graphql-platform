@@ -1,9 +1,12 @@
 ﻿{
-  "data": {
+  "Data": {
     "items": [
       {
         "date": "2016-01-01"
       }
     ]
-  }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
 }

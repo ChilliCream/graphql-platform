@@ -5,16 +5,15 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
-using HotChocolate.Types.Filters.Conventions;
-using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
-        private const string _whereArgumentNamePlaceholder = "placeholder";
-        private static readonly Type _middlewareDefinition = typeof(FilterMiddleware<>);
+        private const string _whereArgumentName = "where";
+        private static readonly Type _middlewareDefinition =
+            typeof(QueryableFilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor)
@@ -63,60 +62,63 @@ namespace HotChocolate.Types
 
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
-            Type? filterType,
-            ITypeSystemMember? filterTypeInstance = null)
+            Type filterType,
+            ITypeSystemMember filterTypeInstance = null)
         {
-            FieldMiddleware placeholder = n => c => default;
+            FieldMiddleware placeholder =
+                next => context => Task.CompletedTask;
 
             descriptor
                 .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    Type? argumentType = filterType;
+                    Type argumentType = filterType;
 
-                    if (argumentType == null)
+                    if (filterType == null)
                     {
                         if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType,
-                            out TypeInfo typeInfo))
+                            definition.ResultType, out TypeInfo typeInfo))
                         {
+                            // TODO : resources
                             throw new ArgumentException(
-                                FilterResources.FilterObjectFieldDescriptor_InvalidType,
+                                "Cannot handle the specified type.",
                                 nameof(descriptor));
                         }
 
-                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
+                        argumentType =
+                            typeof(FilterInputType<>).MakeGenericType(
+                                typeInfo.ClrType);
                     }
 
-                    ITypeReference argumentTypeReference =
-                        filterTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(argumentType, TypeContext.Input)
-                            : new SchemaTypeReference(filterTypeInstance);
+                    var argumentTypeReference = filterTypeInstance is null
+                        ? (ITypeReference)new ClrTypeReference(
+                            argumentType, TypeContext.Input)
+                        : new SchemaTypeReference(filterTypeInstance);
 
                     if (argumentType == typeof(object))
                     {
+                        // TODO : resources
                         throw new SchemaException(
                             SchemaErrorBuilder.New()
                                 .SetMessage(
-                                    FilterResources.FilterObjectFieldDescriptor_InvalidType_Msg)
+                                    "The filter type cannot be " +
+                                    "infered from `System.Object`.")
                                 .SetCode(ErrorCodes.Filtering.FilterObjectType)
                                 .Build());
                     }
 
-                    var argumentDefinition = new ArgumentDefinition
-                    {
-                        Type = new ClrTypeReference(argumentType, TypeContext.Input)
-                    };
-
-                    argumentDefinition.ConfigureArgumentName();
+                    var argumentDefinition = new ArgumentDefinition();
+                    argumentDefinition.Name = _whereArgumentName;
+                    argumentDefinition.Type = new ClrTypeReference(
+                        argumentType, TypeContext.Input);
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, definition) =>
+                            .Configure((context, defintion) =>
                                 CompileMiddleware(
                                     context,
                                     definition,
@@ -137,57 +139,40 @@ namespace HotChocolate.Types
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            IFilterConvention convention = context.DescriptorContext.GetFilterConvention();
-            IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
-            Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
-            var filterContext = new FilterMiddlewareContext(convention);
-            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
-                middlewareType, filterContext);
-            var index = definition.MiddlewareComponents.IndexOf(placeholder);
+            IFilterInputType type =
+                context.GetType<IFilterInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition
+                .MakeGenericType(type.EntityType);
+            FieldMiddleware middleware =
+                FieldClassMiddlewareFactory.Create(middlewareType);
+            int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
+        }
+
+        private static IObjectFieldDescriptor AddFilterArguments(
+            this IObjectFieldDescriptor descriptor,
+            Type filterType)
+        {
+            return descriptor.Argument(_whereArgumentName, a =>
+                a.Extend().OnBeforeCreate(d =>
+                    d.Type = new ClrTypeReference(
+                        filterType, TypeContext.Input)));
         }
 
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(
             this IObjectFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
         {
-            return descriptor.Argument(_whereArgumentNamePlaceholder,
-                a => a.Type<TFilter>().Extend().ConfigureArgumentName());
+            return descriptor.Argument(_whereArgumentName,
+                a => a.Type<TFilter>());
         }
 
         public static IInterfaceFieldDescriptor AddFilterArguments<TFilter>(
             this IInterfaceFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
         {
-            return descriptor.Argument(_whereArgumentNamePlaceholder,
-                a => a.Type<TFilter>().Extend().ConfigureArgumentName());
-        }
-
-        private static IDescriptorExtension<ArgumentDefinition> ConfigureArgumentName(
-            this IDescriptorExtension<ArgumentDefinition> descriptor)
-        {
-            descriptor.OnBeforeCreate(x => x.ConfigureArgumentName());
-            return descriptor;
-        }
-
-        private static ArgumentDefinition ConfigureArgumentName(
-            this ArgumentDefinition definition)
-        {
-            ILazyTypeConfiguration lazyArgumentConfiguration =
-                LazyTypeConfigurationBuilder
-                    .New<ArgumentDefinition>()
-                    .Definition(definition)
-                    .Configure((context, definition) =>
-                    {
-                        IFilterConvention convention =
-                            context.DescriptorContext.GetFilterConvention();
-                        definition.Name = convention.GetArgumentName();
-                    })
-                   .On(ApplyConfigurationOn.Completion)
-                   .Build();
-
-            definition.Configurations.Add(lazyArgumentConfiguration);
-            return definition;
+            return descriptor.Argument(_whereArgumentName,
+                a => a.Type<TFilter>());
         }
     }
 }

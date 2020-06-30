@@ -2,7 +2,7 @@ namespace HotChocolate.Types.Filters
 {
     public interface IFilterOperationField
         : IInputField
-        , IHasRuntimeType
+        , IHasClrType
     {
         FilterOperation Operation { get; }
     }

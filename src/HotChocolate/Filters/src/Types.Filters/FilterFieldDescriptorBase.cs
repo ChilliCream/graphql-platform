@@ -5,7 +5,6 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -14,15 +13,12 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterFieldDefintion>
     {
         protected FilterFieldDescriptorBase(
-            FilterKind filterKind,
             IDescriptorContext context,
-            PropertyInfo property,
-            IFilterConvention filterConventions)
+            PropertyInfo property)
             : base(context)
         {
-            FilterConvention = filterConventions;
-            Definition.Kind = filterKind;
-            Definition.Property = property ?? throw new ArgumentNullException(nameof(property));
+            Definition.Property = property
+                ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
                 property, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
@@ -30,18 +26,15 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
-            AllowedOperations = FilterConvention.GetAllowedOperations(Definition);
         }
 
-        internal protected sealed override FilterFieldDefintion Definition { get; } =
+        protected override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
-
-        protected readonly IFilterConvention FilterConvention;
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
-        protected IReadOnlyCollection<FilterOperationKind> AllowedOperations { get; }
+        protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
             new HashSet<FilterOperationKind>
@@ -49,11 +42,6 @@ namespace HotChocolate.Types.Filters
                 FilterOperationKind.In,
                 FilterOperationKind.NotIn
             };
-
-        protected void Name(NameString value)
-        {
-            Definition.Name = value.EnsureNotEmpty(nameof(value));
-        }
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
@@ -70,8 +58,6 @@ namespace HotChocolate.Types.Filters
             OnCompleteFilters(fields, handledOperations);
 
             Definition.Filters.AddRange(fields.Values);
-
-            base.OnCreateDefinition(definition);
         }
 
         private void AddExplicitFilters(
@@ -79,14 +65,14 @@ namespace HotChocolate.Types.Filters
             ISet<FilterOperationKind> handledFilterKinds)
         {
             foreach (FilterOperationDefintion filterDefinition in
-                Filters.Select(t => t.CreateDefinition()).Where(x => x.Operation is { }))
+                Filters.Select(t => t.CreateDefinition()))
             {
                 if (!filterDefinition.Ignore)
                 {
                     fields[filterDefinition.Name] = filterDefinition;
                 }
 
-                handledFilterKinds.Add(filterDefinition.Operation!.Kind);
+                handledFilterKinds.Add(filterDefinition.Operation.Kind);
             }
         }
 
@@ -129,56 +115,6 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        protected void Type<TInputType>()
-            where TInputType : IInputType
-        {
-            Type(typeof(TInputType));
-        }
-
-        protected void Type<TInputType>(TInputType inputType)
-            where TInputType : class, IInputType
-        {
-            if (inputType == null)
-            {
-                throw new ArgumentNullException(nameof(inputType));
-            }
-
-            if (!inputType.IsInputType())
-            {
-                // TODO : resource
-                throw new ArgumentException(
-                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
-            }
-
-            Definition.Type = new SchemaTypeReference(inputType);
-        }
-
-        protected void Type(Type type)
-        {
-            Type extractedType = Context.Inspector.ExtractType(type);
-
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IInputType).IsAssignableFrom(extractedType))
-            {
-                // TODO : resource
-                throw new ArgumentException(
-                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
-            }
-
-            Definition.SetMoreSpecificType(
-                type,
-                TypeContext.Input);
-        }
-
-        protected void Type(ITypeNode typeNode)
-        {
-            if (typeNode == null)
-            {
-                throw new ArgumentNullException(nameof(typeNode));
-            }
-            Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
-        }
-
         protected ITypeReference RewriteTypeListType()
         {
             ITypeReference reference = Definition.Type;
@@ -213,11 +149,7 @@ namespace HotChocolate.Types.Filters
         protected ITypeReference RewriteTypeToNullableType()
         {
             ITypeReference reference = Definition.Type;
-            return RewriteTypeToNullableType(reference);
-        }
 
-        protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
-        {
             if (reference is IClrTypeReference clrRef
                 && TypeInspector.Default.TryCreate(
                     clrRef.Type,
@@ -235,19 +167,17 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    Type type = clrRef.Type;
-                    if (type.IsGenericType &&
-                        System.Nullable.GetUnderlyingType(type) is Type nullableType)
+                    if (clrRef.Type.IsValueType)
                     {
-                        type = nullableType;
+                        if (Nullable.GetUnderlyingType(clrRef.Type) == null)
+                        {
+                            return clrRef.WithType(
+                                typeof(Nullable<>).MakeGenericType(clrRef.Type));
+                        }
+                        return clrRef;
                     }
-                    if (type.IsValueType)
-                    {
-                        return clrRef.WithType(
-                            typeof(Nullable<>).MakeGenericType(type));
-                    }
-                    else if (type.IsGenericType
-                        && type.GetGenericTypeDefinition() ==
+                    else if (clrRef.Type.IsGenericType
+                        && clrRef.Type.GetGenericTypeDefinition() ==
                             typeof(NonNullType<>))
                     {
                         return clrRef.WithType(typeInfo.Components[1]);
@@ -259,14 +189,14 @@ namespace HotChocolate.Types.Filters
             if (reference is ISchemaTypeReference schemaRef)
             {
                 return schemaRef.Type is NonNullType nnt
-                    ? schemaRef.WithType(nnt)
+                    ? schemaRef.WithType(nnt.Type)
                     : schemaRef;
             }
 
             if (reference is ISyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.Type is NonNullTypeNode nnt
-                    ? syntaxRef.WithType(nnt)
+                    ? syntaxRef.WithType(nnt.Type)
                     : syntaxRef;
             }
 
@@ -275,11 +205,56 @@ namespace HotChocolate.Types.Filters
 
         protected NameString CreateFieldName(FilterOperationKind kind)
         {
-            if (typeof(ISingleFilter).IsAssignableFrom(Definition.Property.DeclaringType))
+            switch (kind)
             {
-                Definition.Name = FilterConvention.GetArrayFilterPropertyName();
+                case FilterOperationKind.Equals:
+                    return Definition.Name;
+                case FilterOperationKind.NotEquals:
+                    return Definition.Name + "_not";
+
+                case FilterOperationKind.Contains:
+                    return Definition.Name + "_contains";
+                case FilterOperationKind.NotContains:
+                    return Definition.Name + "_not_contains";
+
+                case FilterOperationKind.In:
+                    return Definition.Name + "_in";
+                case FilterOperationKind.NotIn:
+                    return Definition.Name + "_not_in";
+
+                case FilterOperationKind.StartsWith:
+                    return Definition.Name + "_starts_with";
+                case FilterOperationKind.NotStartsWith:
+                    return Definition.Name + "_not_starts_with";
+
+                case FilterOperationKind.EndsWith:
+                    return Definition.Name + "_ends_with";
+                case FilterOperationKind.NotEndsWith:
+                    return Definition.Name + "_not_ends_with";
+
+                case FilterOperationKind.GreaterThan:
+                    return Definition.Name + "_gt";
+                case FilterOperationKind.NotGreaterThan:
+                    return Definition.Name + "_not_gt";
+
+                case FilterOperationKind.GreaterThanOrEquals:
+                    return Definition.Name + "_gte";
+                case FilterOperationKind.NotGreaterThanOrEquals:
+                    return Definition.Name + "_not_gte";
+
+                case FilterOperationKind.LowerThan:
+                    return Definition.Name + "_lt";
+                case FilterOperationKind.NotLowerThan:
+                    return Definition.Name + "_not_lt";
+
+                case FilterOperationKind.LowerThanOrEquals:
+                    return Definition.Name + "_lte";
+                case FilterOperationKind.NotLowerThanOrEquals:
+                    return Definition.Name + "_not_lte";
+
+                default:
+                    throw new NotSupportedException();
             }
-            return FilterConvention.CreateFieldName(Definition, kind);
         }
 
         protected virtual ITypeReference RewriteType(
