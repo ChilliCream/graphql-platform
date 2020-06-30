@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -60,8 +59,11 @@ namespace HotChocolate.Subscriptions.Redis
 
         public async ValueTask DisposeAsync()
         {
-            await _channel.UnsubscribeAsync().ConfigureAwait(false);
-            _disposed = true;
+            if (!_disposed)
+            {
+                await _channel.UnsubscribeAsync().ConfigureAwait(false);
+                _disposed = true;
+            }
         }
 
         private class EnumerateMessages<T>

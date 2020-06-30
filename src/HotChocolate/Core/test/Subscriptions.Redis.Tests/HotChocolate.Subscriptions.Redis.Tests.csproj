@@ -6,7 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Subscriptions.Redis.csproj" />
+    <ProjectReference Include="..\..\src\Subscriptions.Redis\HotChocolate.Subscriptions.Redis.csproj" />
+    <ProjectReference Include="..\Utilities\HotChocolate.Tests.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Squadron.Redis" Version="0.5.0" />
   </ItemGroup>
 
 </Project>

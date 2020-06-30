@@ -104,7 +104,7 @@ namespace HotChocolate.Tests
         public static async Task<IRequestExecutor> CreateExecutorAsync(
             Action<IRequestExecutorBuilder>? configure = null)
         {
-            var configuration  =new TestConfiguration
+            var configuration = new TestConfiguration
             {
                 Configure = configure,
             };

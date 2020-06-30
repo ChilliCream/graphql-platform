@@ -16,16 +16,16 @@ namespace HotChocolate.Execution
     {
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
-        private readonly IDiagnosticEvents _diagnosicEvents;
+        private readonly IDiagnosticEvents _diagnosticEvents;
 
         public SubscriptionExecutor(
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            IDiagnosticEvents diagnosicEvents)
+            IDiagnosticEvents diagnosticEvents)
         {
             _operationContextPool = operationContextPool;
             _queryExecutor = queryExecutor;
-            _diagnosicEvents = diagnosicEvents;
+            _diagnosticEvents = diagnosticEvents;
         }
 
         public async Task<IExecutionResult> ExecuteAsync(
@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
                     requestContext,
                     requestContext.Operation.RootType,
                     rootSelections,
-                    _diagnosicEvents)
+                    _diagnosticEvents)
                     .ConfigureAwait(false);
 
                 return new SubscriptionResult(
@@ -147,10 +147,15 @@ namespace HotChocolate.Execution
             public async IAsyncEnumerable<IQueryResult> ExecuteAsync()
             {
                 await using IAsyncEnumerator<object> enumerator =
-                    _sourceStream.ReadEventsAsync().GetAsyncEnumerator();
+                    _sourceStream.ReadEventsAsync().GetAsyncEnumerator(
+                        _requestContext.RequestAborted);
 
                 while (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
+                    if (_requestContext.RequestAborted.IsCancellationRequested)
+                    {
+                        break;
+                    }
                     yield return await OnEvent(enumerator.Current).ConfigureAwait(false);
                 }
             }
