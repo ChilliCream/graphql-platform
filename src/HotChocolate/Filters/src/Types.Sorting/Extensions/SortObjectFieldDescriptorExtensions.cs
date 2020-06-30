@@ -168,7 +168,9 @@ namespace HotChocolate.Types
 
             ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
-            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
+            SortMiddlewareContext middlewareContext = SortMiddlewareContext.Create(convention.ArgumentName);
+            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
+                middlewareType, middlewareContext);
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
