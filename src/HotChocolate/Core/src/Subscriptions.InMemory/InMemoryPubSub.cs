@@ -7,7 +7,7 @@ namespace HotChocolate.Subscriptions.InMemory
 {
     public class InMemoryPubSub
         : ITopicEventReceiver
-            , ITopicEventSender
+        , ITopicEventSender
     {
         private readonly ConcurrentDictionary<object, IEventTopic> _topics =
             new ConcurrentDictionary<object, IEventTopic>();

@@ -6,8 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
     <ProjectReference Include="..\Types.Sorting.Tests\HotChocolate.Types.Sorting.Tests.csproj" />
   </ItemGroup>

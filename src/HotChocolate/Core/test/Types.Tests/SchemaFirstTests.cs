@@ -26,16 +26,16 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
         public async Task Interfaces_Impl_Interfaces_Are_Correctly_Exposed_Through_Introspection()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type Query {
                     c: C
                 }
@@ -52,7 +52,7 @@ namespace HotChocolate
                     a: String
                 }
             ";
-            string query = FileResource.Open("IntrospectionQuery.graphql");
+            var query = FileResource.Open("IntrospectionQuery.graphql");
 
             // act
             ISchema schema = Schema.Create(
@@ -64,9 +64,9 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -87,10 +87,10 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ __schema { description } }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -106,10 +106,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -151,10 +151,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -174,10 +174,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
 
@@ -194,10 +194,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

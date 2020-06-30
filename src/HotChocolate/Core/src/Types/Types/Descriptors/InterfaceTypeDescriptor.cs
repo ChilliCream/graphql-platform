@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
         internal protected override InterfaceTypeDefinition Definition { get; } =
@@ -44,12 +44,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
@@ -205,7 +205,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context, Type schemaType)
         {
             var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
     }

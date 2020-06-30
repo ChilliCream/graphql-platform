@@ -6,15 +6,12 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        private readonly static IImmutableDictionary<string, object?> _emptyContext = 
-            ImmutableDictionary<string, object?>.Empty;
-
         public void Initialize(
-            IOperationContext operationContext, 
+            IOperationContext operationContext,
             IPreparedSelection selection,
             ResultMap resultMap,
             int responseIndex,
-            object? parent, 
+            object? parent,
             Path path,
             IImmutableDictionary<string, object?> scopedContextData)
         {
@@ -25,6 +22,7 @@ namespace HotChocolate.Execution
             _parent = parent;
             Path = path;
             ScopedContextData = scopedContextData;
+            LocalContextData = ImmutableDictionary<string, object?>.Empty;
             Arguments = _selection.Arguments;
         }
 
@@ -39,7 +37,7 @@ namespace HotChocolate.Execution
 
             Path = default!;
             ScopedContextData = default!;
-            LocalContextData = _emptyContext;
+            LocalContextData = default!;
             IsResultModified = false;
             ValueType = null;
             ResponseIndex = default;

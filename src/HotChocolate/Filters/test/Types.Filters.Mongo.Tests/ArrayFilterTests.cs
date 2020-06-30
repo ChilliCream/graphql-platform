@@ -1,13 +1,15 @@
 using System;
-using MongoDB.Bson;
-using Xunit;
-using Squadron;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Driver;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Snapshooter.Xunit;
+using Squadron;
+using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types.Filters
 {
@@ -24,46 +26,30 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public async Task Array_Filter_On_Scalar_Types()
         {
-            // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                return database.GetCollection<Foo>("col");
-            });
+            Snapshot.FullName();
+            await ExpectValid(
+                "{" +
+                "foos(where: { bars_some: { element: \"e\" } }) { bars } " +
+                "}",
+                configure: c => c
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .AddSingleton<IMongoCollection<Foo>>(sp =>
+                    {
+                        IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
-            IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
-
-            await collection.InsertOneAsync(new Foo
-            {
-                BarCollection = new List<string> { "a", "b", "c" },
-                BazCollection = new List<Baz> { new Baz { Quux = "a" }, new Baz { Quux = "b" } },
-                Bars = new[] { "d", "e", "f" },
-                Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
-                Quux = "abc"
-            });
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(services)
-                .BindClrType<ObjectId, IdType>()
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery(
-                    "{" +
-                    "foos(where: { bars_some: { element: \"e\" } }) { bars } " +
-                    "}")
-                .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
-            // assert
-            result.MatchSnapshot();
+                        IMongoCollection<Foo> collection = database.GetCollection<Foo>("col");
+                        collection.InsertOne(new Foo
+                        {
+                            BarCollection = new List<string> { "a", "b", "c" },
+                            BazCollection = new List<Baz> { new Baz { Quux = "a" }, new Baz { Quux = "b" } },
+                            Bars = new[] { "d", "e", "f" },
+                            Bazs = new[] { new Baz { Quux = "c" }, new Baz { Quux = "d" } },
+                            Quux = "abc"
+                        });
+                        return collection;
+                    }))
+                .MatchSnapshotAsync();
         }
 
         [Fact]
@@ -95,7 +81,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -108,7 +94,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -140,7 +126,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -153,7 +139,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -185,7 +171,7 @@ namespace HotChocolate.Types.Filters
                 .BindClrType<ObjectId, IdType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -198,7 +184,7 @@ namespace HotChocolate.Types.Filters
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType

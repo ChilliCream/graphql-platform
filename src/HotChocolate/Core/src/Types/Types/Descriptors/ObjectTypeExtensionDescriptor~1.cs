@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
                     p =>
                     {
                         ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
-                            Context, p, Definition.ClrType, Definition.FieldBindingType);
+                            Context, p, Definition.RuntimeType, Definition.FieldBindingType);
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },

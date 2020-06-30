@@ -38,18 +38,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -79,18 +79,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
                 t => t.Key.ToString(),
                 t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -123,18 +123,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
         }
 
         public class FooType

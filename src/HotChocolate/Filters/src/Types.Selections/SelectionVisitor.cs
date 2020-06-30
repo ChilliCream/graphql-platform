@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Introspection;
@@ -120,7 +121,7 @@ namespace HotChocolate.Types.Selections
                     Expression.Property(
                         Closures.Peek().Instance.Peek(), propertyInfo);
 
-                if (selection is FieldSelection fieldSelection)
+                if (selection is IPreparedSelection fieldSelection)
                 {
                     var context = new SelectionVisitorContext(
                         Context,
@@ -178,7 +179,7 @@ namespace HotChocolate.Types.Selections
             {
                 var nextClosure =
                     new SelectionClosure(
-                        selection.Field.ClrType, "e" + Closures.Count);
+                        selection.Field.RuntimeType, "e" + Closures.Count);
 
                 nextClosure.Instance.Push(
                     Expression.Property(

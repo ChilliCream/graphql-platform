@@ -214,7 +214,7 @@ namespace HotChocolate.Discovery
             {
             }
 
-            public override Type ClrType => typeof(byte[]);
+            public override Type RuntimeType => typeof(byte[]);
 
             public override bool IsInstanceOfType(IValueNode literal)
             {

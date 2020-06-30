@@ -30,14 +30,14 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_starts_with: \"a\" }) { bar } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType : ObjectType<Query>

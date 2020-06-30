@@ -12,7 +12,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<TDefinition>
         , INamedType
         , IHasDirectives
-        , IHasClrType
+        , IHasRuntimeType
         , IHasTypeIdentity
         where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
     {
@@ -36,7 +36,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {
@@ -59,8 +59,8 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            _clrType = definition is IHasClrType clr && clr.ClrType != GetType()
-                ? clr.ClrType
+            _clrType = definition is IHasRuntimeType clr && clr.RuntimeType != GetType()
+                ? clr.RuntimeType
                 : typeof(object);
 
             context.RegisterDependencyRange(
@@ -94,9 +94,9 @@ namespace HotChocolate.Types
                     nameof(typeDefinition));
             }
 
-            if (ClrType != typeof(object))
+            if (RuntimeType != typeof(object))
             {
-                TypeIdentity = typeDefinition.MakeGenericType(ClrType);
+                TypeIdentity = typeDefinition.MakeGenericType(RuntimeType);
             }
         }
     }

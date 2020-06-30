@@ -10,7 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Configuration
 {
     internal sealed class RegisteredType
-        : IHasClrType
+        : IHasRuntimeType
     {
         public RegisteredType(
             ITypeReference reference,
@@ -53,13 +53,13 @@ namespace HotChocolate.Configuration
 
         public bool IsDirectiveType { get; }
 
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {
-                if (Type is IHasClrType hasClrType)
+                if (Type is IHasRuntimeType hasClrType)
                 {
-                    return hasClrType.ClrType;
+                    return hasClrType.RuntimeType;
                 }
                 return typeof(object);
             }

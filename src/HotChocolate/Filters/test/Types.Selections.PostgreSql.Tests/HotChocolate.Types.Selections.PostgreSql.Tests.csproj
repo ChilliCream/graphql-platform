@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
     <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
     <ProjectReference Include="..\..\src\Types.Selections\HotChocolate.Types.Selections.csproj" />

@@ -21,15 +21,15 @@ namespace HotChocolate.Execution.Utilities
                 return cachedValue;
             }
 
-            if (rootType.ClrType != typeof(object))
+            if (rootType.RuntimeType != typeof(object))
             {
-                object? rootValue = services.GetService(rootType.ClrType);
+                object? rootValue = services.GetService(rootType.RuntimeType);
 
                 if (rootValue is null &&
-                    !rootType.ClrType.IsAbstract &&
-                    !rootType.ClrType.IsInterface)
+                    !rootType.RuntimeType.IsAbstract &&
+                    !rootType.RuntimeType.IsInterface)
                 {
-                    rootValue = context.Activator.CreateInstance(rootType.ClrType);
+                    rootValue = context.Activator.CreateInstance(rootType.RuntimeType);
                     cachedValue = rootValue;
                 }
 

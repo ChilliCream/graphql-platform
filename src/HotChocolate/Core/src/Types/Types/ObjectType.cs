@@ -17,7 +17,7 @@ namespace HotChocolate.Types
     public class ObjectType
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
-        , IHasClrType
+        , IHasRuntimeType
         , IHasSyntaxNode
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
                 Fields = new FieldCollection<ObjectField>(fields);
 
                 CompleteInterfacesHelper.Complete(
-                    context, definition, ClrType, _interfaces, this, SyntaxNode);
+                    context, definition, RuntimeType, _interfaces, this, SyntaxNode);
 
                 CompleteIsOfType(context);
                 FieldInitHelper.CompleteFields(context, definition, Fields);
@@ -144,7 +144,7 @@ namespace HotChocolate.Types
                     IsOfTypeFallback isOfType = context.IsOfType;
                     _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
                 }
-                else if (ClrType == typeof(object))
+                else if (RuntimeType == typeof(object))
                 {
                     _isOfType = IsOfTypeWithName;
                 }
@@ -193,7 +193,7 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return ClrType.IsInstanceOfType(result);
+            return RuntimeType.IsInstanceOfType(result);
         }
 
         private bool IsOfTypeWithName(

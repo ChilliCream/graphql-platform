@@ -44,31 +44,10 @@ namespace HotChocolate.Execution
                 context.Exception = ex;
                 context.Result = QueryResultBuilder.CreateError(error);
             }
-            catch (ScalarSerializationException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetMessage(ex.Message)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-            }
-            catch (InputObjectSerializationException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetMessage(ex.Message)
-                    .Build();
-
-                error = _errorHandler.Handle(error);
-
-                context.Exception = ex;
-                context.Result = QueryResultBuilder.CreateError(error);
-            }
             catch (Exception ex)
             {
                 IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetMessage(ex.Message)
                     .Build();
 
                 error = _errorHandler.Handle(error);

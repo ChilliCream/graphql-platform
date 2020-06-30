@@ -18,14 +18,14 @@ namespace HotChocolate.Types.Relay
                 t.UseGlobalObjectIdentifier();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result =
                 await executor.ExecuteAsync("{ id string }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class SomeQuery

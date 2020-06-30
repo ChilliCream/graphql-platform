@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
+  "data": {
     "human": {
       "height": 1.72
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

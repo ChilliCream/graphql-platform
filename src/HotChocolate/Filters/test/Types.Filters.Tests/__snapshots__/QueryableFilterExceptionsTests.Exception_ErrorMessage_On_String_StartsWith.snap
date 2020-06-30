@@ -1,22 +1,17 @@
 ﻿{
-  "Data": {
-    "foos": []
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "The provided value for filter `string_starts_with` of type FooFilter is invalid. Null values are not supported.",
-      "Code": null,
-      "Path": [
-        "foos"
-      ],
-      "Locations": [
+      "message": "The provided value for filter \u0060string_starts_with\u0060 of type FooFilter is invalid. Null values are not supported.",
+      "locations": [
         {
-          "Line": 3,
-          "Column": 50
+          "line": 3,
+          "column": 50
         }
       ],
-      "Exception": null,
-      "Extensions": {
+      "path": [
+        "foos"
+      ],
+      "extensions": {
         "expectedType": "String!",
         "filterKind": "String",
         "operationKind": "StartsWith",
@@ -24,6 +19,7 @@
       }
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "foos": []
+  }
 }

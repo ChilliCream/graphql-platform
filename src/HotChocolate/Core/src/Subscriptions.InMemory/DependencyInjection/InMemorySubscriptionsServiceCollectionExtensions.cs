@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
 using HotChocolate.Subscriptions.InMemory;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -15,10 +16,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<InMemoryPubSub>();
-            services.AddSingleton<ITopicEventSender>(sp =>
+            services.TryAddSingleton<InMemoryPubSub>();
+            services.TryAddSingleton<ITopicEventSender>(sp =>
                 sp.GetRequiredService<InMemoryPubSub>());
-            services.AddSingleton<ITopicEventReceiver>(sp =>
+            services.TryAddSingleton<ITopicEventReceiver>(sp =>
                 sp.GetRequiredService<InMemoryPubSub>());
             return services;
         }

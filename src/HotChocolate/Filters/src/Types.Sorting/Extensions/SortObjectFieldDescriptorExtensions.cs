@@ -64,8 +64,7 @@ namespace HotChocolate.Types
             Type? sortType,
             ITypeSystemMember? sortTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -169,13 +168,10 @@ namespace HotChocolate.Types
 
             ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
-
-            FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(
-                    middlewareType,
-                    SortMiddlewareContext.Create(convention.ArgumentName));
-
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
+            SortMiddlewareContext middlewareContext = SortMiddlewareContext.Create(convention.ArgumentName);
+            FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
+                middlewareType, middlewareContext);
+            var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
     }

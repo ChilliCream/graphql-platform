@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
 
                 var finalFields = new List<IFieldSelection>();
 
-                for (int i = 0; i < fields.Count; i++)
+                for (var i = 0; i < fields.Count; i++)
                 {
                     IPreparedSelection selection = fields[i];
                     if (selection.IsFinal || selection.IsVisible(_operationContext.Variables))
@@ -96,32 +96,6 @@ namespace HotChocolate.Execution
             {
                 throw new GraphQLException(ex.Errors.Select(error => error.WithPath(path)));
             }
-        }
-
-        [return: MaybeNull]
-        public T CustomProperty<T>(string key)
-        {
-            if (key is null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (ContextData.TryGetValue(key, out object? value))
-            {
-                if (value is null)
-                {
-                    return default;
-                }
-
-                if (value is T v)
-                {
-                    return v;
-                }
-            }
-
-            // TODO : Copy resource
-            throw new ArgumentException(
-                "CoreResources.ResolverContext_CustomPropertyNotExists");
         }
 
         public void ReportError(string errorMessage)

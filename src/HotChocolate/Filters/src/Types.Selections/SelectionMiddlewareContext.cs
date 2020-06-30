@@ -6,10 +6,10 @@ namespace HotChocolate.Types
     public class SelectionMiddlewareContext
     {
         private SelectionMiddlewareContext(
-            IFilterConvention fiterConvention,
+            IFilterConvention filterConvention,
             string sortingArgumentName)
         {
-            FilterConvention = fiterConvention;
+            FilterConvention = filterConvention;
             SortingArgumentName = sortingArgumentName;
         }
 
@@ -21,8 +21,8 @@ namespace HotChocolate.Types
             new List<IError>();
 
         public static SelectionMiddlewareContext Create(
-            IFilterConvention fiterConvention,
+            IFilterConvention filterConvention,
             string sortingArgumentName) =>
-                new SelectionMiddlewareContext(fiterConvention, sortingArgumentName);
+            new SelectionMiddlewareContext(filterConvention, sortingArgumentName);
     }
 }

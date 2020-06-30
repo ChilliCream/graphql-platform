@@ -32,7 +32,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)

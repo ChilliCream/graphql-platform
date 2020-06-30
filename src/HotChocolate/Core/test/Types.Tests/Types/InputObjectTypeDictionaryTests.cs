@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         public async Task Dictionary_Is_Correctly_Deserialized()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .Create()
                 .MakeExecutable();
@@ -36,7 +36,7 @@ namespace HotChocolate.Types
                 "query { foo(input: { contextData: [ { key: \"abc\" value: \"abc\" } ] }) }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

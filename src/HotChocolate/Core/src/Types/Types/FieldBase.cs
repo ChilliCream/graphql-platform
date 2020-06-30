@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     public abstract class FieldBase<TType, TDefinition>
         : IField
         , IHasDirectives
-        , IHasClrType
+        , IHasRuntimeType
         where TType : IType
         where TDefinition : FieldDefinitionBase, IHasSyntaxNode
     {
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
             Type = default!;
             ContextData = default!;
             Directives = default!;
-            ClrType = default!;
+            RuntimeType = default!;
         }
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
@@ -50,7 +50,7 @@ namespace HotChocolate.Types
 
         public IDirectiveCollection Directives { get; private set; }
 
-        public virtual Type ClrType { get; private set; }
+        public virtual Type RuntimeType { get; private set; }
 
         public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
         {
             DeclaringType = context.Type;
             Type = context.GetType<TType>(definition.Type);
-            ClrType = Type is IHasClrType hasClrType ? hasClrType.ClrType : typeof(object);
+            RuntimeType = Type is IHasRuntimeType hasClrType ? hasClrType.RuntimeType : typeof(object);
 
             var directives = new DirectiveCollection(this, definition.Directives);
             directives.CompleteCollection(context);

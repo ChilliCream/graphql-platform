@@ -218,7 +218,7 @@ namespace HotChocolate.Execution.Batching
                 out INamedInputType inputType)
                 && _typeConversion.TryConvert(
                     typeof(object),
-                    inputType.ClrType,
+                    inputType.RuntimeType,
                     exported.Value,
                     out var converted))
             {
@@ -257,7 +257,7 @@ namespace HotChocolate.Execution.Batching
                 {
                     if (_typeConversion.TryConvert(
                         typeof(object),
-                        inputType.ClrType,
+                        inputType.RuntimeType,
                         o,
                         out var converted))
                     {
@@ -273,7 +273,7 @@ namespace HotChocolate.Execution.Batching
             {
                 if (_typeConversion.TryConvert(
                     typeof(object),
-                    inputType.ClrType,
+                    inputType.RuntimeType,
                     exported.Value,
                     out var converted))
                 {

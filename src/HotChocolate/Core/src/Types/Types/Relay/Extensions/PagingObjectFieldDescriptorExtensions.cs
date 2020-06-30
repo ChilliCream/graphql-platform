@@ -35,10 +35,10 @@ namespace HotChocolate.Types.Relay
                         typeof(TSchemaType),
                         TypeContext.Output);
                     IOutputType type = context.GetType<IOutputType>(reference);
-                    if (type.NamedType() is IHasClrType hasClrType)
+                    if (type.NamedType() is IHasRuntimeType hasClrType)
                     {
                         Type middlewareType = middlewareDefinition.MakeGenericType(
-                            hasClrType.ClrType);
+                            hasClrType.RuntimeType);
                         FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(
                             middlewareType);
                         int index = defintion.MiddlewareComponents.IndexOf(placeholder);

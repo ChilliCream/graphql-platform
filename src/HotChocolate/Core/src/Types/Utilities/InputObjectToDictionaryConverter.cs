@@ -109,12 +109,12 @@ namespace HotChocolate.Utilities
             INamedInputType type, object obj,
             Action<object> setValue, ISet<object> processed)
         {
-            if (type is IHasClrType hasClrType)
+            if (type is IHasRuntimeType hasClrType)
             {
                 Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.ClrType
+                object normalized = currentType == hasClrType.RuntimeType
                     ? obj
-                    : _converter.Convert(currentType, hasClrType.ClrType, obj);
+                    : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
                 setValue(obj);
             }
         }

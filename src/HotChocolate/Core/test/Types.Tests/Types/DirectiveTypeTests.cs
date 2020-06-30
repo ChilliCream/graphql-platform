@@ -23,7 +23,7 @@ namespace HotChocolate.Types
             // assert
             Assert.True(directiveType.IsExecutable);
             Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
             Assert.Collection(directiveType.Arguments,
                 t => Assert.Equal("argument", t.Name.Value));
         }
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
             // assert
             Assert.True(directiveType.IsExecutable);
             Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
             Assert.Empty(directiveType.Arguments);
         }
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Types
             // assert
             Assert.True(directiveType.IsExecutable);
             Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Equal(typeof(CustomDirective), directiveType.RuntimeType);
             Assert.Empty(directiveType.Arguments);
         }
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Types
             // assert
             Assert.True(directiveType.IsExecutable);
             Assert.NotEmpty(directiveType.MiddlewareComponents);
-            Assert.Equal(typeof(object), directiveType.ClrType);
+            Assert.Equal(typeof(object), directiveType.RuntimeType);
         }
 
         [Fact]

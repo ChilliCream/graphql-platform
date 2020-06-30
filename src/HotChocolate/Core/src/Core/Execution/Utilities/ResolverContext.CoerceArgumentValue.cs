@@ -106,7 +106,7 @@ namespace HotChocolate.Execution
                 var dictToObjConverter = new DictionaryToObjectConverter(Converter);
                 if (typeof(T).IsInterface)
                 {
-                    object o = dictToObjConverter.Convert(value, argumentValue.Type.ClrType);
+                    object o = dictToObjConverter.Convert(value, argumentValue.Type.RuntimeType);
                     if (o is T c)
                     {
                         return c;
@@ -123,7 +123,7 @@ namespace HotChocolate.Execution
                     CultureInfo.InvariantCulture,
                     CoreResources.ResolverContext_ArgumentConversion,
                     name,
-                    argumentValue.Type.ClrType.FullName,
+                    argumentValue.Type.RuntimeType.FullName,
                     typeof(T).FullName))
                 .SetPath(Path)
                 .AddLocation(FieldSelection)

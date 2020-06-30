@@ -45,13 +45,10 @@ namespace HotChocolate.Execution.Utilities
 
         public static IError InvalidLeafValue(
             ScalarSerializationException exception,
-            IErrorHandler errorHandler,
             FieldNode field,
             Path path)
         {
-            return errorHandler
-                .CreateUnexpectedError(exception)
-                .SetMessage(exception.Message)
+            return ErrorBuilder.FromError(exception.Errors[0])
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
@@ -144,7 +141,7 @@ namespace HotChocolate.Execution.Utilities
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "Either no query document exists or the document " + 
+                        "Either no query document exists or the document " +
                         "validation result is invalid.")
                     .Build());
 
@@ -152,7 +149,7 @@ namespace HotChocolate.Execution.Utilities
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "There is no operation on the context which can be used to coerce " + 
+                        "There is no operation on the context which can be used to coerce " +
                         "variables.")
                     .Build());
 
@@ -160,7 +157,7 @@ namespace HotChocolate.Execution.Utilities
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "Either now compiled operation was found or the variables " + 
+                        "Either now compiled operation was found or the variables " +
                         "have not been coerced.")
                     .Build());
 
@@ -168,8 +165,17 @@ namespace HotChocolate.Execution.Utilities
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "Either now compiled operation was found or the variables " + 
+                        "Either now compiled operation was found or the variables " +
                         "have not been coerced.")
                     .Build());
+
+        public static IError ValueCompletion_CouldNotResolveAbstractType(
+            FieldNode field,
+            Path path) =>
+             ErrorBuilder.New()
+                    .SetMessage("Could not resolve the actual object type from `System.String` for the abstract type `Bar`.")
+                    .SetPath(path)
+                    .AddLocation(field)
+                    .Build();
     }
 }

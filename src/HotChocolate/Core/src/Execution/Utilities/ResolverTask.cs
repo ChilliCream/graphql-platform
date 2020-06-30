@@ -88,7 +88,9 @@ namespace HotChocolate.Execution.Utilities
 
                             args.Add(argument.Argument.Name, new PreparedArgument(
                                 argument.Argument,
-                                literal.TryGetValueKind(out ValueKind kind) ? kind : ValueKind.Unknown,
+                                literal.TryGetValueKind(out ValueKind kind) 
+                                    ? kind 
+                                    : ValueKind.Unknown,
                                 argument.IsFinal,
                                 argument.IsImplicit,
                                 null,

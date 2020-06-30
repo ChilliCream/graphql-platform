@@ -31,7 +31,7 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        public override Type ClrType => typeof(object);
+        public override Type RuntimeType => typeof(object);
 
         protected override void OnCompleteType(
             ICompletionContext context,

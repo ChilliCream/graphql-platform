@@ -100,7 +100,7 @@ namespace HotChocolate.Types
             if (arguments.TryGetValue(argumentName, out ArgumentNode argValue)
                 && Type.Arguments.TryGetField(argumentName, out Argument arg))
             {
-                if (typeof(T).IsAssignableFrom(arg.Type.ClrType))
+                if (typeof(T).IsAssignableFrom(arg.Type.RuntimeType))
                 {
                     return (T)arg.Type.ParseLiteral(argValue.Value);
                 }

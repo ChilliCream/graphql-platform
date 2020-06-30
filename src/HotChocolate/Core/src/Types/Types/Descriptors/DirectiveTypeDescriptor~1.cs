@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
     public class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteArguments(
             IDictionary<NameString, DirectiveArgumentDefinition> arguments,

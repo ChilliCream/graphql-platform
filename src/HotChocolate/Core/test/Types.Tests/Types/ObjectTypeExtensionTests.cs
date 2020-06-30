@@ -69,7 +69,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<FooType>()
                 .AddType<GenericFooTypeExtension>()
                 .Create()
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
 
             // assert
             IExecutionResult result = await executor.ExecuteAsync("{ test }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             executor.Execute("{ description }").MatchSnapshot();
         }
 

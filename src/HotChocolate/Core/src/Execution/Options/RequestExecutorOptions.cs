@@ -10,15 +10,12 @@ namespace HotChocolate.Execution.Options
     public class RequestExecutorOptions
         : IRequestExecutorOptionsAccessor
     {
-        private const int _minMaxExecutionDepth = 1;
         private const int _minQueryCacheSize = 10;
         private static readonly TimeSpan _minExecutionTimeout =
             TimeSpan.FromMilliseconds(100);
 
         private TimeSpan _executionTimeout = TimeSpan.FromSeconds(30);
-        private int? _maxExecutionDepth;
         private int _queryCacheSize = 100;
-        private int? _maxOperationComplexity;
 
         /// <summary>
         /// Gets or sets maximum allowed execution time of a query. The default
@@ -43,45 +40,6 @@ namespace HotChocolate.Execution.Options
         /// </summary>
         public bool IncludeExceptionDetails { get; set; } =
             Debugger.IsAttached;
-
-        /// <summary>
-        /// Gets or sets the maximum allowed depth of a query. The default
-        /// value is <see langword="null"/>. The minimum allowed value is
-        /// <c>1</c>.
-        /// </summary>
-        public int? MaxExecutionDepth
-        {
-            get => _maxExecutionDepth;
-            set
-            {
-                if (value.HasValue && value < _minMaxExecutionDepth)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(value),
-                        value,
-                        "MaxExecutionDepth mustn't be below one.");
-                }
-
-                _maxExecutionDepth = value;
-            }
-        }
-
-        public int? MaxOperationComplexity
-        {
-            get => _maxOperationComplexity;
-            set
-            {
-                if (value.HasValue && value < _maxOperationComplexity)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(value),
-                        value,
-                        "MaxOperationComplexity mustn't be below one.");
-                }
-
-                _maxOperationComplexity = value;
-            }
-        }
 
         /// <summary>
         /// Gets or sets the maximum amount of queries that can be cached. The

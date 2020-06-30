@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Sorting
                 context.DescriptorContext.GetSortingNamingConvention();
 
             definition.Name = convention.GetSortingOperationKindTypeName(
-                context.DescriptorContext, definition.ClrType);
+                context.DescriptorContext, definition.RuntimeType);
 
             foreach (EnumValueDefinition value in definition.Values)
             {

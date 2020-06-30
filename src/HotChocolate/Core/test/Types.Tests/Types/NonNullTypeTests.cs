@@ -27,7 +27,7 @@ namespace HotChocolate.Types
             var type = new NonNullType(new StringType());
 
             // assert
-            Assert.Equal(typeof(string), type.ClrType);
+            Assert.Equal(typeof(string), type.RuntimeType);
         }
 
         [Fact]

@@ -4,7 +4,7 @@ namespace HotChocolate.Types
 {
     public interface IInputType
         : ISerializableType
-        , IHasClrType
+        , IHasRuntimeType
     {
         bool IsInstanceOfType(IValueNode literal);
 

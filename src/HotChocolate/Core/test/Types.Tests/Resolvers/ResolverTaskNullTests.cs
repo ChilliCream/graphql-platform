@@ -21,17 +21,17 @@ namespace HotChocolate.Resolvers
         public async Task HandleNullResolverTask(string field, string argument)
         {
             // arrange
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 Schema.Create(c => c.RegisterQueryType<QueryType>())
                     .MakeExecutable();
 
             // act
-            string arg = argument == null ? "null" : $"\"{argument}\"";
+            var arg = argument == null ? "null" : $"\"{argument}\"";
             IExecutionResult result = await executor.ExecuteAsync(
                 $"{{ {field}(name: {arg}) }}");
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
                 field, argument ?? "null"));
         }
 
@@ -47,10 +47,10 @@ namespace HotChocolate.Resolvers
                     .Type<StringType>()
                     .Resolver(new FieldResolverDelegate(ctx =>
                     {
-                        string name = ctx.Argument<string>("name");
+                        var name = ctx.ArgumentValue<string>("name");
                         if (name == null)
                         {
-                            return new ValueTask<object>(null);
+                            return new ValueTask<object>(default(object));
                         }
                         return new ValueTask<object>(name);
                     }));

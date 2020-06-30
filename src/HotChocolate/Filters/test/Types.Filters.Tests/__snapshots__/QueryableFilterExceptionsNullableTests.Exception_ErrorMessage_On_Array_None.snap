@@ -1,22 +1,17 @@
 ﻿{
-  "Data": {
-    "foos": []
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "The provided value for filter `array_none` of type ISingleFilterOfStringFilter is invalid. Null values are not supported.",
-      "Code": null,
-      "Path": [
-        "foos"
-      ],
-      "Locations": [
+      "message": "The provided value for filter \u0060array_none\u0060 of type ISingleFilterOfStringFilter is invalid. Null values are not supported.",
+      "locations": [
         {
-          "Line": 3,
-          "Column": 42
+          "line": 3,
+          "column": 42
         }
       ],
-      "Exception": null,
-      "Extensions": {
+      "path": [
+        "foos"
+      ],
+      "extensions": {
         "expectedType": "ISingleFilterOfStringFilter!",
         "filterKind": "Array",
         "operationKind": "ArrayNone",
@@ -24,6 +19,7 @@
       }
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "foos": []
+  }
 }

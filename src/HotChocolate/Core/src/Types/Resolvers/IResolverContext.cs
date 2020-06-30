@@ -103,7 +103,6 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the previous (parent) resolver result.
         /// </returns>
-        [return: MaybeNull]
         T Parent<T>();
 
         /// <summary>
@@ -119,7 +118,7 @@ namespace HotChocolate.Resolvers
         /// Returns the value of the specified field argument.
         /// </returns>
         [Obsolete("Use ArgumentValue<T>(name) or " +
-            "ArgumentLiteral<TValueNode>(name) or " + 
+            "ArgumentLiteral<TValueNode>(name) or " +
             "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
         T Argument<T>(NameString name);
@@ -198,18 +197,6 @@ namespace HotChocolate.Resolvers
         object Service(Type service);
 
         /// <summary>
-        /// Gets a custom request property that was provided with the request.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The property value type.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the value of the custom request property.
-        /// </returns>
-        [return: MaybeNull]
-        T CustomProperty<T>(string key);
-
-        /// <summary>
         /// Gets a resolver object containing one or more resolvers.
         /// </summary>
         /// <typeparam name="T">
@@ -237,8 +224,8 @@ namespace HotChocolate.Resolvers
         /// the field selection that is associated with the current
         /// resolver context.
         /// </summary>
-        /// <param name="errorMessage">
-        /// The error message.
+        /// <param name="error">
+        /// The error.
         /// </param>
         void ReportError(IError error);
 
@@ -251,7 +238,8 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(ObjectType typeContext);
+        IReadOnlyList<IFieldSelection> CollectFields(
+            ObjectType typeContext);
 
         /// <summary>
         /// Collects the fields of a selection set with the specified
@@ -288,10 +276,5 @@ namespace HotChocolate.Resolvers
             ObjectType typeContext,
             SelectionSetNode selectionSet,
             Path path);
-
-        /// <summary>
-        /// Helper method to modify the scoped context data.
-        /// </summary>
-        void ModifyScopedContext(ModifyScopedContext modify);
     }
 }

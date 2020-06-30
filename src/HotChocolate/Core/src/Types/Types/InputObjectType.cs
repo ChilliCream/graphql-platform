@@ -78,7 +78,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return ClrType.IsInstanceOfType(value);
+            return RuntimeType.IsInstanceOfType(value);
         }
 
         public virtual IValueNode ParseValue(object value)
@@ -155,7 +155,7 @@ namespace HotChocolate.Types
                     return true;
                 }
 
-                if (ClrType != typeof(object) && ClrType.IsInstanceOfType(serialized))
+                if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(serialized))
                 {
                     value = serialized;
                     return true;
@@ -215,7 +215,7 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<InputField>(fields);
             FieldInitHelper.CompleteFields(context, definition, Fields);
 
-            if (ClrType == typeof(object) || Fields.Any(t => t.Property is null))
+            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
                 _parseLiteral = ov => InputObjectParserHelper.Parse(this, ov, converter);
                 _deserialize = map => InputObjectParserHelper.Deserialize(this, map, converter);
@@ -223,7 +223,7 @@ namespace HotChocolate.Types
             else
             {
                 ConstructorInfo constructor = InputObjectConstructorResolver.GetConstructor(
-                    this.ClrType,
+                    this.RuntimeType,
                     Fields.Select(t => t.Property));
                 InputObjectFactory factory = InputObjectFactoryCompiler.Compile(this, constructor);
 

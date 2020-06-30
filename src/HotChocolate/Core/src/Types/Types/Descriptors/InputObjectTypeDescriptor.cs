@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(
                 clrType, TypeKind.InputObject);
             Definition.Description = context.Naming.GetTypeDescription(
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
         protected InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
         internal protected override InputObjectTypeDefinition Definition { get; } =
@@ -43,12 +43,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var fields = new Dictionary<NameString, InputFieldDefinition>();
@@ -148,7 +148,7 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
     }

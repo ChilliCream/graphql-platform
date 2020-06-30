@@ -1,17 +1,18 @@
 using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using GreenDonut;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class RequestExecutorServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds the <see cref="IRequestExecutorResolver"/> and related services 
+        /// Adds the <see cref="IRequestExecutorResolver"/> and related services
         /// to the <see cref="IServiceCollection"/>.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
@@ -46,7 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
-        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the 
+        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
         /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
         /// </summary>
         /// <param name="services">
@@ -67,10 +68,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(services));
             }
 
-            name = name ?? Options.Options.DefaultName;
+            name ??= Options.Options.DefaultName;
 
-            AddGraphQLCore(services);
-            services.AddValidation(name);
+            services
+                .AddGraphQLCore()
+                .AddValidation(name);
 
             return new DefaultRequestExecutorBuilder(services, name);
         }

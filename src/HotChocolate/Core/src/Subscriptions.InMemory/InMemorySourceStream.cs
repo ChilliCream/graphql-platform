@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -36,7 +37,7 @@ namespace HotChocolate.Subscriptions.InMemory
         }
 
         IAsyncEnumerable<object> ISourceStream.ReadEventsAsync() =>
-                new EnumerateMessages(ReadEventsAsync());
+            new EnumerateMessages(ReadEventsAsync());
 
         public ValueTask DisposeAsync()
         {
@@ -58,7 +59,7 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<T> GetAsyncEnumerator(
-                CancellationToken cancellationToken)
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
             {
                 while (await _channel.Reader.WaitToReadAsync(cancellationToken))
                 {
@@ -83,7 +84,7 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<object> GetAsyncEnumerator(
-                CancellationToken cancellationToken)
+                [EnumeratorCancellation] CancellationToken cancellationToken = default)
             {
                 await foreach (TMessage message in _messages.WithCancellation(cancellationToken))
                 {

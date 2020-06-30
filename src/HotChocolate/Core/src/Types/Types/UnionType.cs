@@ -8,18 +8,19 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class UnionType
         : NamedTypeBase<UnionTypeDefinition>
-        , INamedOutputType
+        , IUnionType
     {
         private const string _typeReference = "typeReference";
-
         private readonly Action<IUnionTypeDescriptor> _configure;
         private readonly Dictionary<NameString, ObjectType> _typeMap =
             new Dictionary<NameString, ObjectType>();
-        private ResolveAbstractType _resolveAbstractType;
+        private ResolveAbstractType? _resolveAbstractType;
 
         protected UnionType()
         {
@@ -34,9 +35,11 @@ namespace HotChocolate.Types
 
         public override TypeKind Kind => TypeKind.Union;
 
-        public UnionTypeDefinitionNode SyntaxNode { get; private set; }
+        public UnionTypeDefinitionNode? SyntaxNode { get; private set; }
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
+
+        IReadOnlyCollection<IObjectType> IUnionType.Types => _typeMap.Values;
 
         public override bool IsAssignableFrom(INamedType namedType)
         {
@@ -53,9 +56,39 @@ namespace HotChocolate.Types
             }
         }
 
-        public ObjectType ResolveType(
-            IResolverContext context, object resolverResult) =>
-            _resolveAbstractType(context, resolverResult);
+        public bool ContainsType(ObjectType objectType)
+        {
+            if (objectType is null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            return _typeMap.ContainsKey(objectType.Name);
+        }
+
+
+        bool IUnionType.ContainsType(IObjectType objectType)
+        {
+            if (objectType is null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            return _typeMap.ContainsKey(objectType.Name);
+        }
+
+        public bool ContainsType(NameString typeName) => 
+            _typeMap.ContainsKey(typeName.EnsureNotEmpty(nameof(typeName)));
+
+        public ObjectType? ResolveConcreteType(
+            IResolverContext context,
+            object resolverResult) =>
+            _resolveAbstractType?.Invoke(context, resolverResult);
+
+        IObjectType? IUnionType.ResolveConcreteType(
+            IResolverContext context,
+            object resolverResult) =>
+            ResolveConcreteType(context, resolverResult);
 
         protected override UnionTypeDefinition CreateDefinition(
             IInitializationContext context)

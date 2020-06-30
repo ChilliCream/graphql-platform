@@ -103,7 +103,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = schema.MakeExecutable().Execute(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
 

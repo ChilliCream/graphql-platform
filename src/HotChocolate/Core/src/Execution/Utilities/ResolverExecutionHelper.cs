@@ -5,7 +5,23 @@ namespace HotChocolate.Execution.Utilities
 {
     internal static class ResolverExecutionHelper
     {
-        public static Task StartExecutionTaskAsync(
+        public static async Task ExecuteTasksAsync(
+            IOperationContext operationContext)
+        {
+            int proposedTaskCount = operationContext.Operation.ProposedTaskCount;
+            var tasks = new Task[proposedTaskCount];
+
+            for (int i = 0; i < proposedTaskCount; i++)
+            {
+                tasks[i] = StartExecutionTaskAsync(
+                    operationContext.Execution,
+                    operationContext.RequestAborted);
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        private static Task StartExecutionTaskAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken) =>
             Task.Run(() => ExecuteResolvers(executionContext, cancellationToken));

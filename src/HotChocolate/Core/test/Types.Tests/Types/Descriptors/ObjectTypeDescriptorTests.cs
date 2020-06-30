@@ -187,13 +187,13 @@ namespace HotChocolate.Types
         {
             // arrange
             ISchema schema = Schema.Create(c => c.RegisterQueryType<BarType>());
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ a b c}");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class Foo
