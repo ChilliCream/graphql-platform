@@ -59,22 +59,30 @@ namespace HotChocolate.Data.Filters
         IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 
         /// <summary>
-        /// Defines a <see cref="FilterOperationField"> property.
+        /// Defines a <see cref="FilterOperationField"> field.
         /// </summary>
         /// <param name="operation">
-        /// The operation identifier for the operation 
+        /// The operation identifier for the operation
         /// </param>
-        IFilterOperationFieldDescriptor Field(
-            int operation);
+        IFilterOperationFieldDescriptor Operation(int operation);
 
         /// <summary>
         /// Defines a <see cref="FilterField"> for the given property.
         /// </summary>
         /// <param name="property">
-        /// The property for which a field should be created 
+        /// The property for which a field should be created
         /// </param>
-        IFilterFieldDescriptor Field(
-            Expression<Func<T, string>> property);
+        IFilterOperationFieldDescriptor  Operation<TField>(
+            Expression<Func<T, TField>> property);
+
+        /// <summary>
+        /// Defines a <see cref="FilterField"> for the given property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a field should be created
+        /// </param>
+        IFilterFieldDescriptor Field<TField>(
+            Expression<Func<T, TField>> property);
 
         /// <summary>
         /// Ignore the specified property.
