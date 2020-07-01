@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using Nullable = System.Nullable;
 
 namespace HotChocolate.Types.Filters
 {
@@ -28,7 +29,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override FilterFieldDefintion Definition { get; } =
+        protected internal override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =

@@ -6,7 +6,6 @@ namespace HotChocolate.Types.Sorting
     public class SortOperationDescriptor
         : ArgumentDescriptorBase<SortOperationDefintion>
     {
-
         protected SortOperationDescriptor(
             IDescriptorContext context,
             NameString name,
@@ -21,7 +20,7 @@ namespace HotChocolate.Types.Sorting
                 ?? throw new ArgumentNullException(nameof(operation));
         }
 
-        protected sealed override SortOperationDefintion Definition { get; } =
+        protected internal sealed override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
 
         protected override void OnCreateDefinition(

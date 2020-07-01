@@ -34,19 +34,18 @@ namespace HotChocolate.Types
 
         private static IObjectFieldDescriptor UseSelection(
             IObjectFieldDescriptor descriptor,
-            Type objectType)
+            Type? objectType)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    Type selectionType = objectType;
+                    Type? selectionType = objectType;
 
-                    if (objectType == null)
+                    if (selectionType is null)
                     {
                         if (!TypeInspector.Default.TryCreate(
                             definition.ResultType, out TypeInfo typeInfo))

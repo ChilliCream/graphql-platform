@@ -32,7 +32,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
         {
             Type middlewareType = middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
+            var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
 

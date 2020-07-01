@@ -1,22 +1,27 @@
 using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
+using HotChocolate.Tests;
 using HotChocolate.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorBooleanTests
-        : TypeTestBase
     {
         [Fact]
-        public void Create_BooleanEqual_Expression()
+        public async Task Create_BooleanEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(true)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -33,14 +38,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_BooleanNotEqual_Expression()
+        public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(false)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -57,14 +62,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableBooleanEqual_Expression()
+        public async Task Create_NullableBooleanEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(true)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -84,14 +89,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableBooleanNotEqual_Expression()
+        public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new BooleanValueNode(false)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(

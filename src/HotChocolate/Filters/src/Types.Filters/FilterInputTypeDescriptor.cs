@@ -7,6 +7,7 @@ using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using Nullable = System.Nullable;
 
 namespace HotChocolate.Types.Filters
 {
@@ -14,7 +15,6 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters
         {
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
 
             // TODO : should we rework get type name?
             Definition.Name = context.Naming.GetTypeName(
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override FilterInputTypeDefinition Definition { get; } =
+        protected internal override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =

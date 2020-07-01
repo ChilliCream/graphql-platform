@@ -66,8 +66,7 @@ namespace HotChocolate.Types
             Type sortType,
             ITypeSystemMember sortTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -138,7 +137,7 @@ namespace HotChocolate.Types
                     SchemaErrorBuilder.New()
                         .SetMessage(
                             "The sort type cannot be " +
-                            "infered from `System.Object`.")
+                            "inferred from `System.Object`.")
                         .SetCode(ErrorCodes.Filtering.FilterObjectType)
                         .Build());
             }

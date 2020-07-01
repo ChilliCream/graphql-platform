@@ -110,6 +110,5 @@ namespace HotChocolate.Types.Selections
 
             return args;
         }
-
     }
 }

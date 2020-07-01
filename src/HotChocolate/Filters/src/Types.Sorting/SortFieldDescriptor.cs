@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        protected sealed override SortFieldDefinition Definition { get; } =
+        protected internal sealed override SortFieldDefinition Definition { get; } =
             new SortFieldDefinition();
 
         protected ICollection<SortOperationDescriptor> SortOperations { get; } =

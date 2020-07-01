@@ -1,19 +1,20 @@
 using System;
-using HotChocolate.Language;
+using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorTests
-        : TypeTestBase
     {
         [Fact]
-        public void Create_Should_Throw_IfOperationHandlersIsNull()
+        public async Task Create_Should_Throw_IfOperationHandlersIsNull()
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             Action action = () =>
             {
@@ -27,11 +28,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Should_Throw_IfTypeConversionIsNull()
+        public async Task Create_Should_Throw_IfTypeConversionIsNull()
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             Action action = () =>
             {
@@ -45,11 +46,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Should_Throw_IfTypeIsNull()
+        public async Task Create_Should_Throw_IfTypeIsNull()
         {
             // arrange
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             Action action = () =>
             {
@@ -63,7 +64,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Should_Throw_IfInputTypeIsNull()
+        public async Task Create_Should_Throw_IfInputTypeIsNull()
         {
             // arrange 
 

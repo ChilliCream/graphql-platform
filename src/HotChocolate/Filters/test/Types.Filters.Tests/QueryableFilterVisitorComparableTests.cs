@@ -1,23 +1,25 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorComparableTests
-        : TypeTestBase
     {
 
         [Fact]
-        public void Create_ShortEqual_Expression()
+        public async Task Create_ShortEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -34,14 +36,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotEqual_Expression()
+        public async Task Create_ShortNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -59,14 +61,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_ShortGreaterThan_Expression()
+        public async Task Create_ShortGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_gt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -86,14 +88,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotGreaterThan_Expression()
+        public async Task Create_ShortNotGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_gt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -114,14 +116,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_ShortGreaterThanOrEquals_Expression()
+        public async Task Create_ShortGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_gte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -141,14 +143,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotGreaterThanOrEquals_Expression()
+        public async Task Create_ShortNotGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_gte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -170,14 +172,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_ShortLowerThan_Expression()
+        public async Task Create_ShortLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_lt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -197,14 +199,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotLowerThan_Expression()
+        public async Task Create_ShortNotLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_lt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -225,14 +227,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_ShortLowerThanOrEquals_Expression()
+        public async Task Create_ShortLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_lte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -252,14 +254,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotLowerThanOrEquals_Expression()
+        public async Task Create_ShortNotLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_lte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -279,19 +281,19 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortIn_Expression()
+        public async Task Create_ShortIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_in",
                 new ListValueNode(new[]
                 {
-                    new IntValueNode("13"),
-                    new IntValueNode("14")
+                    new IntValueNode(13),
+                    new IntValueNode(14)
                 }))
             );
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -308,16 +310,16 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ShortNotIn_Expression()
+        public async Task Create_ShortNotIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_in",
-                new ListValueNode(new[] { new IntValueNode("13"), new IntValueNode("14") }
+                new ListValueNode(new[] { new IntValueNode(13), new IntValueNode(14) }
                 ))
             );
 
-            var fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
@@ -333,14 +335,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortEqual_Expression()
+        public async Task Create_NullableShortEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -360,14 +362,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotEqual_Expression()
+        public async Task Create_NullableShortNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -388,14 +390,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_NullableShortGreaterThan_Expression()
+        public async Task Create_NullableShortGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_gt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -418,14 +420,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotGreaterThan_Expression()
+        public async Task Create_NullableShortNotGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_gt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -449,14 +451,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_NullableShortGreaterThanOrEquals_Expression()
+        public async Task Create_NullableShortGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_gte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -479,14 +481,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotGreaterThanOrEquals_Expression()
+        public async Task Create_NullableShortNotGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_gte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -511,14 +513,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_NullableShortLowerThan_Expression()
+        public async Task Create_NullableShortLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_lt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -541,14 +543,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotLowerThan_Expression()
+        public async Task Create_NullableShortNotLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_lt",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -572,14 +574,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_NullableShortLowerThanOrEquals_Expression()
+        public async Task Create_NullableShortLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_lte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -602,14 +604,14 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotLowerThanOrEquals_Expression()
+        public async Task Create_NullableShortNotLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_lte",
-                    new IntValueNode("12")));
+                    new IntValueNode(12)));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -632,19 +634,18 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortIn_Expression()
+        public async Task Create_NullableShortIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_in",
                 new ListValueNode(new[]
                 {
-                    new IntValueNode("13"),
-                    new IntValueNode("14")
-                }))
-            );
+                    new IntValueNode(13),
+                    new IntValueNode(14)
+                })));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(
@@ -664,16 +665,16 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_NullableShortNotIn_Expression()
+        public async Task Create_NullableShortNotIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_not_in",
-                new ListValueNode(new[] { new IntValueNode("13"), new IntValueNode("14") }
-                ))
-            );
+                new ListValueNode(new[] { 
+                    new IntValueNode(13), 
+                    new IntValueNode(14) })));
 
-            var fooNullableType = CreateType(new FooNullableFilterType());
+            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
 
             // act
             var filter = new QueryableFilterVisitor(fooNullableType, typeof(FooNullable), TypeConversion.Default);

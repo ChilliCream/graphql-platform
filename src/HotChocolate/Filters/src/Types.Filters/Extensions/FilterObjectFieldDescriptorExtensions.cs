@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -65,8 +64,7 @@ namespace HotChocolate.Types
             Type filterType,
             ITypeSystemMember filterTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)

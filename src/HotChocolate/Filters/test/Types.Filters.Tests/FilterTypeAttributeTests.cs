@@ -1,15 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterTypeAttributeTests
-        : TypeTestBase
     {
         [Fact]
         public void GenericTypeDescriptorAttribute_Changes_Name()
@@ -39,8 +35,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                        .Fields
-                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.StringField));
+                    .Fields
+                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.StringField));
         }
 
         [Fact]
@@ -55,8 +51,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                        .Fields
-                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.ComparableField));
+                    .Fields
+                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.ComparableField));
         }
 
         [Fact]
@@ -71,8 +67,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                        .Fields
-                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.BooleanField));
+                    .Fields
+                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.BooleanField));
         }
 
         [GenericTypeFilterAttribute]
@@ -124,17 +120,23 @@ namespace HotChocolate.Types.Filters
                 if (d is IComparableFilterFieldDescriptor fieldComparableDescriptor)
                 {
                     fieldComparableDescriptor
-                        .BindFiltersExplicitly().AllowEquals().Name(ComparableField);
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name(ComparableField);
                 }
                 if (d is IBooleanFilterFieldDescriptor fieldBooleanDescriptor)
                 {
                     fieldBooleanDescriptor
-                        .BindFiltersExplicitly().AllowEquals().Name(BooleanField);
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name(BooleanField);
                 }
                 if (d is IStringFilterFieldDescriptor fieldStringDescriptor)
                 {
                     fieldStringDescriptor
-                        .BindFiltersExplicitly().AllowEquals().Name(StringField);
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Name(StringField);
                 }
             }
         }

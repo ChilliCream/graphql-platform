@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -122,7 +122,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -140,7 +140,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -158,7 +158,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -176,7 +176,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -212,7 +212,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -230,7 +230,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -248,7 +248,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -266,7 +266,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -285,7 +285,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

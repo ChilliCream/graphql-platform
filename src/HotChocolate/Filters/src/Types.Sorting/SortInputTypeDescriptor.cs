@@ -21,14 +21,14 @@ namespace HotChocolate.Types.Sorting
         {
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
             Definition.Name = context.Naming.GetTypeName(
                 entityType, TypeKind.Object) + "Sort";
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
         }
 
-        protected sealed override SortInputTypeDefinition Definition { get; } =
+        protected internal sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
         protected ICollection<SortFieldDescriptor> Fields { get; } =
