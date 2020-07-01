@@ -102,7 +102,7 @@ namespace HotChocolate.Tests
             result.MatchSnapshot();
         }
 
-        public static async Task<T> CreateTypeAsync<T>(T type) 
+        public static async Task<T> CreateTypeAsync<T>(T type)
             where T : INamedType
         {
             ISchema schema = await CreateSchemaAsync(type);
@@ -115,13 +115,19 @@ namespace HotChocolate.Tests
             return CreateSchemaAsync(c => c
                 .AddQueryType(d => d
                     .Name("Query").Field("foo").Resolver("result"))
-                .AddType(type));
+                .AddType(type)
+                .ModifyOptions(o => o.StrictValidation = false));
         }
 
         public static async Task<ISchema> CreateSchemaAsync(
-            Action<IRequestExecutorBuilder>? configure = null)
+            Action<IRequestExecutorBuilder> configure,
+            bool strict = false)
         {
-            IRequestExecutor executor = await CreateExecutorAsync(configure);
+            IRequestExecutor executor = await CreateExecutorAsync(c =>
+            {
+                configure.Invoke(c);
+                c.ModifyOptions(o => o.StrictValidation = strict);
+            });
             return executor.Schema;
         }
 

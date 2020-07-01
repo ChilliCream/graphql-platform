@@ -1,12 +1,4 @@
-﻿schema {
-  query: Query
-}
-
-type Query {
-  foo: String
-}
-
-input FooFilter {
+﻿input FooFilter {
   AND: [FooFilter!]
   barDecimal: Decimal
   barDecimal_gt: Decimal

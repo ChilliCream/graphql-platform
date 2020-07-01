@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -101,17 +102,15 @@ namespace HotChocolate.Types.Filters
                             bar
                         }
                     }")
-                .SetVariableValue("a", new Dictionary<string, object>
-                {
-                    { "bar_starts_with", "a" }
-                })
+                .SetVariableValue("a", new ObjectValueNode(
+                    new ObjectFieldNode("bar_starts_with", "a")))
                 .Create();
 
             // act
             IExecutionResult result = executor.Execute(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

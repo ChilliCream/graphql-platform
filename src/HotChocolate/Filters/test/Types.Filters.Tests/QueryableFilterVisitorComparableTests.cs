@@ -10,7 +10,6 @@ namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorComparableTests
     {
-
         [Fact]
         public async Task Create_ShortEqual_Expression()
         {

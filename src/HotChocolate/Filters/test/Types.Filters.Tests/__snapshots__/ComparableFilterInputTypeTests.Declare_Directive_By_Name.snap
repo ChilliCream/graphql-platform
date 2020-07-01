@@ -1,12 +1,4 @@
-﻿schema {
-  query: Query
-}
-
-type Query {
-  foo: String
-}
-
-input FooFilter {
+﻿input FooFilter {
   AND: [FooFilter!]
   barDecimal: Decimal
   barDecimal_gt: Decimal
@@ -105,6 +97,3 @@ scalar Long
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
 scalar Short
-
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String
