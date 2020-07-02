@@ -147,8 +147,8 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new DecimalType();
-            var input = 1234567.89m;
-            var output = "1234567.890000";
+            var input = 1234567.1234567m;
+            var output = "1234567.1234567";
 
             // act
             var result = type.ParseValue(input);
@@ -165,7 +165,7 @@ namespace HotChocolate.Types
             // arrange
             var type = new DecimalType();
             var input = 1234567.891123456789m;
-            var output = "1234567.891123";
+            var output = "1234567.891123456789";
 
             // act
             var result = type.ParseValue(input);
@@ -177,12 +177,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsShort()
+        public void ParseValue_Handle12Digits()
         {
             // arrange
-            var type = new DecimalType(2);
+            var type = new DecimalType();
             var input = 1234567.890123456789m;
-            var output = "1234567.89";
+            var output = "1234567.890123456789";
 
             // act
             var result = type.ParseValue(input);
@@ -197,7 +197,7 @@ namespace HotChocolate.Types
         public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsLong()
         {
             // arrange
-            var type = new DecimalType(12);
+            var type = new DecimalType();
             var input = 1234567.890123456789m;
             var output = "1234567.890123456789";
 

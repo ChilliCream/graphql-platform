@@ -8,17 +8,9 @@ namespace HotChocolate.Types
     public sealed class DecimalType
         : ScalarType
     {
-        private Int16 NumberDecimalDigits { get; } = 6;
-
-        public DecimalType()
-            : base("Decimal")
+        public DecimalType() : base("Decimal")
         {
             Description = TypeResources.DecimalType_Description;
-        }
-
-        public DecimalType(Int16 numberDecimalDigits) : this()
-        {
-            NumberDecimalDigits = numberDecimalDigits;
         }
 
         public override Type ClrType => typeof(decimal);
@@ -145,6 +137,6 @@ namespace HotChocolate.Types
                 out d);
 
         private string SerializeDecimal(decimal value) =>
-            value.ToString($"F{NumberDecimalDigits}", CultureInfo.InvariantCulture);
+            value.ToString("G", CultureInfo.InvariantCulture);
     }
 }
