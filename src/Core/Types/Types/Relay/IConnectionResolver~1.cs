@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Relay
         /// </param>
         /// <param name="source">
         /// The data source.
-        /// </param>        
+        /// </param>
         /// <param name="arguments">
         /// The connection arguments passed in from the query.
         /// </param>

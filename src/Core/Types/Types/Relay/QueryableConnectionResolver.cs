@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
+
+#nullable  enable
 
 namespace HotChocolate.Types.Relay
 {
@@ -18,10 +19,8 @@ namespace HotChocolate.Types.Relay
             bool withTotalCount = false,
             CancellationToken cancellationToken = default)
         {
-            int? count = withTotalCount
-                ? (int?)await Task.Run(() => source.Count(), cancellationToken)
-                    .ConfigureAwait(false)
-                : null;
+            var count = await Task.Run(source.Count, cancellationToken)
+                .ConfigureAwait(false);
 
             int? after = arguments.After is { } a
                 ? (int?)IndexEdge<T>.DeserializeCursor(a)
@@ -36,11 +35,11 @@ namespace HotChocolate.Types.Relay
                     source, arguments.First, arguments.Last, after, before, cancellationToken)
                     .ConfigureAwait(false);
 
-            IndexEdge<T> firstEdge = selectedEdges[0];
-            IndexEdge<T> lastEdge = selectedEdges[selectedEdges.Count - 1];
+            IndexEdge<T>? firstEdge = selectedEdges.Count == 0 ? null : selectedEdges[0];
+            IndexEdge<T>? lastEdge = selectedEdges.Count == 0 ? null : selectedEdges[selectedEdges.Count - 1];
 
             var pageInfo = new PageInfo(
-                lastEdge?.Index < (count.Value - 1),
+                lastEdge?.Index < count - 1,
                 firstEdge?.Index > 0,
                 firstEdge?.Cursor,
                 lastEdge?.Cursor,
@@ -72,13 +71,13 @@ namespace HotChocolate.Types.Relay
         {
             IQueryable<T> edges = GetEdgesToReturn(
                 allEdges, first, last, after, before,
-                out int offset);
+                out var offset);
 
             var list = new List<IndexEdge<T>>();
 
             if (edges is IAsyncEnumerable<T> enumerable)
             {
-                int index = offset;
+                var index = offset;
                 await foreach (T item in enumerable.WithCancellation(cancellationToken)
                     .ConfigureAwait(false))
                 {
@@ -89,7 +88,7 @@ namespace HotChocolate.Types.Relay
             {
                 await Task.Run(() =>
                 {
-                    int index = offset;
+                    var index = offset;
                     foreach (T item in edges)
                     {
                         if (cancellationToken.IsCancellationRequested)
@@ -156,8 +155,8 @@ namespace HotChocolate.Types.Relay
 
             IQueryable<T> temp = edges;
 
-            int count = temp.Count();
-            int skip = count - last;
+            var count = temp.Count();
+            var skip = count - last;
 
             if (skip > 1)
             {

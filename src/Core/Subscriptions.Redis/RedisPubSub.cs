@@ -1,6 +1,6 @@
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis
@@ -24,8 +24,8 @@ namespace HotChocolate.Subscriptions.Redis
             where TTopic : notnull
         {
             ISubscriber subscriber = _connection.GetSubscriber();
-            string serializedTopic = topic is string s ? s : JsonSerializer.Serialize(topic);
-            string serializedMessage = JsonSerializer.Serialize(message);
+            var serializedTopic = topic is string s ? s : JsonConvert.SerializeObject(topic);
+            var serializedMessage = JsonConvert.SerializeObject(message);
             await subscriber.PublishAsync(serializedTopic, serializedMessage).ConfigureAwait(false);
         }
 
@@ -33,7 +33,7 @@ namespace HotChocolate.Subscriptions.Redis
             where TTopic : notnull
         {
             ISubscriber subscriber = _connection.GetSubscriber();
-            string serializedTopic = topic is string s ? s : JsonSerializer.Serialize(topic);
+            string serializedTopic = topic is string s ? s : JsonConvert.SerializeObject(topic);
             await subscriber.PublishAsync(serializedTopic, Completed).ConfigureAwait(false);
         }
 

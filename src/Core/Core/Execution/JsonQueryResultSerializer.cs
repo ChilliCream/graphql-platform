@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
-        private const string _contentType = "application/json";
+        private const string _contentType = "application/json; charset=utf-8";
         private const string _data = "data";
         private const string _errors = "errors";
         private const string _extensions = "extensions";
