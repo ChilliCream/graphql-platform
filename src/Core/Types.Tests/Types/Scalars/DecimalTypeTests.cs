@@ -20,10 +20,10 @@ namespace HotChocolate.Types
         protected override decimal GetSerializedAssertValue => ((decimal)1.0m);
 
         protected override decimal GetMaxValue => decimal.MaxValue;
-        protected override string GetAssertMaxValue => "79228162514264337593543950335.000000";
+        protected override string GetAssertMaxValue => "79228162514264337593543950335";
 
         protected override decimal GetMinValue => decimal.MinValue;
-        protected override string GetAssertMinValue => "-79228162514264337593543950335.000000";
+        protected override string GetAssertMinValue => "-79228162514264337593543950335";
 
         [Fact]
         public void IsInstanceOfType_IntLiteral_True()
