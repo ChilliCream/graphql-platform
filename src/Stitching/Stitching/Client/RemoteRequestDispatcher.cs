@@ -107,6 +107,7 @@ namespace HotChocolate.Stitching.Client
                         .SetOperation(operationName.Value)
                         .SetVariableValues(variableValues)
                         .SetServices(_services)
+                        .SetProperties(requests[0].Request.Properties)
                         .Create();
 
                 var mergedResult = (IReadOnlyQueryResult)await _queryExecutor

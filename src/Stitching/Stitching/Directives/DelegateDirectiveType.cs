@@ -9,9 +9,10 @@ namespace HotChocolate.Stitching
         protected override void Configure(
             IDirectiveTypeDescriptor<DelegateDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Delegate);
-
-            descriptor.Location(Types.DirectiveLocation.FieldDefinition);
+            descriptor
+                .Name(DirectiveNames.Delegate)
+                .Location(Types.DirectiveLocation.FieldDefinition)
+                .Repeatable();
 
             descriptor.Argument(t => t.Path)
                 .Name(DirectiveFieldNames.Delegate_Path)

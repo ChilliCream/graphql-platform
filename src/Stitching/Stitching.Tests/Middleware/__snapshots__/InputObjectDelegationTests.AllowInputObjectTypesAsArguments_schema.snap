@@ -11,7 +11,7 @@ input Bar @source(name: "Bar", schema: "server_1") {
   a: String
 }
 
-directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
+directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) repeatable on FIELD_DEFINITION
 
 "Annotates the original name of a type."
 directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
