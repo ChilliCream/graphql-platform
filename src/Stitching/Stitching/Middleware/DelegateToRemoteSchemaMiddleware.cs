@@ -57,7 +57,11 @@ namespace HotChocolate.Stitching
                     object data = ExtractData(result.Data, path.Count());
                     errors = result.Errors;
 
-                    context.Result = new SerializedData(data);
+                    if (data is { })
+                    {
+                        context.Result = new SerializedData(data);
+                        break;
+                    }
                 }
 
                 if (errors is { } && errors.Count > 0)
