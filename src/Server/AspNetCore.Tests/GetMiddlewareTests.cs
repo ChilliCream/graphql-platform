@@ -61,7 +61,7 @@ namespace HotChocolate.AspNetCore
             // assert
             Assert.Collection(
                 message.Content.Headers.GetValues("Content-Type"),
-                t => Assert.Equal("application/json", t));
+                t => Assert.Equal("application/json; charset=utf-8", t));
         }
     }
 }

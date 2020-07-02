@@ -8,8 +8,7 @@ namespace HotChocolate.Types
     public sealed class DecimalType
         : ScalarType
     {
-        public DecimalType()
-            : base("Decimal")
+        public DecimalType() : base("Decimal")
         {
             Description = TypeResources.DecimalType_Description;
         }
@@ -137,7 +136,7 @@ namespace HotChocolate.Types
                 CultureInfo.InvariantCulture,
                 out d);
 
-        private static string SerializeDecimal(decimal value) =>
-            value.ToString("E", CultureInfo.InvariantCulture);
+        private string SerializeDecimal(decimal value) =>
+            value.ToString("G", CultureInfo.InvariantCulture);
     }
 }

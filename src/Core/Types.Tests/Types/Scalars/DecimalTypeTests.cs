@@ -20,10 +20,10 @@ namespace HotChocolate.Types
         protected override decimal GetSerializedAssertValue => ((decimal)1.0m);
 
         protected override decimal GetMaxValue => decimal.MaxValue;
-        protected override string GetAssertMaxValue => "7.922816E+028";
+        protected override string GetAssertMaxValue => "79228162514264337593543950335";
 
         protected override decimal GetMinValue => decimal.MinValue;
-        protected override string GetAssertMinValue => "-7.922816E+028";
+        protected override string GetAssertMinValue => "-79228162514264337593543950335";
 
         [Fact]
         public void IsInstanceOfType_IntLiteral_True()
@@ -140,6 +140,74 @@ namespace HotChocolate.Types
             // assert
             Assert.True(success);
             Assert.Null(value);
+        }
+
+        [Fact]
+        public void ParseValue_HandlesMoreThan6Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.1234567m;
+            var output = "1234567.1234567";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToDefaultSignificantDigits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.891123456789m;
+            var output = "1234567.891123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_Handle12Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsLong()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
         }
     }
 }

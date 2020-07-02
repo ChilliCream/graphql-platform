@@ -20,7 +20,7 @@ namespace HotChocolate.Subscriptions.Redis
         public RedisIntegrationTests(RedisResource redisResource)
         {
             _connection = redisResource.GetConnection();
-            _sender = new RedisPubSub(_connection);
+            _sender = new RedisPubSub(_connection, new JsonMessageSerializer());
         }
 
         [Fact]
