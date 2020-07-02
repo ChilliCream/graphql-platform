@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Subscriptions.Redis;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions
@@ -36,9 +37,24 @@ namespace HotChocolate.Subscriptions
             return services;
         }
 
+        public static IServiceCollection AddRedisSubscriptions(
+            this IServiceCollection services,
+            Func<IServiceProvider, IConnectionMultiplexer>  connection)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services.AddSingleton<IConnectionMultiplexer>(connection);
+            AddServices(services);
+            return services;
+        }
+
         private static IServiceCollection AddServices(
             IServiceCollection services)
         {
+            services.TryAddSingleton<IMessageSerializer, JsonMessageSerializer>();
             services
                 .AddSingleton<RedisPubSub>()
                 .AddSingleton<ITopicEventSender>(sp =>

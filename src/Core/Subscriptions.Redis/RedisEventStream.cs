@@ -10,12 +10,16 @@ namespace HotChocolate.Subscriptions.Redis
         : IEventStream<TMessage>
     {
         private readonly ChannelMessageQueue _channel;
+        private readonly IMessageSerializer _messageSerializer;
         private RedisEventStreamEnumerator _enumerator;
         private bool _isCompleted;
 
-        public RedisEventStream(ChannelMessageQueue channel)
+        public RedisEventStream(
+            ChannelMessageQueue channel, 
+            IMessageSerializer messageSerializer)
         {
             _channel = channel;
+            _messageSerializer = messageSerializer;
         }
 
         public IAsyncEnumerator<TMessage> GetAsyncEnumerator(
@@ -31,6 +35,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 _enumerator = new RedisEventStreamEnumerator(
                     _channel,
+                    _messageSerializer,
                     cancellationToken);
             }
 
@@ -51,14 +56,17 @@ namespace HotChocolate.Subscriptions.Redis
             : IAsyncEnumerator<TMessage>
         {
             private readonly ChannelMessageQueue _channel;
+            private readonly IMessageSerializer _messageSerializer;
             private readonly CancellationToken _cancellationToken;
             private bool _isCompleted;
 
             public RedisEventStreamEnumerator(
                 ChannelMessageQueue channel,
+                IMessageSerializer messageSerializer,
                 CancellationToken cancellationToken)
             {
                 _channel = channel;
+                _messageSerializer = messageSerializer;
                 _cancellationToken = cancellationToken;
             }
 
@@ -86,7 +94,7 @@ namespace HotChocolate.Subscriptions.Redis
                         return false;
                     }
 
-                    Current = JsonSerializer.Deserialize<TMessage>(body);
+                    Current = _messageSerializer.Deserialize<TMessage>(body);
                     return true;
                 }
                 catch
