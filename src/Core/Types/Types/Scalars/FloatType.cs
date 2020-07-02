@@ -155,6 +155,6 @@ namespace HotChocolate.Types
                 out d);
 
         private static string SerializeDouble(double value) =>
-            value.ToString(CultureInfo.InvariantCulture);
+            value.ToString("G", CultureInfo.InvariantCulture);
     }
 }
