@@ -5,12 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Utilities;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution
 {
@@ -47,22 +50,22 @@ namespace HotChocolate.Execution
         }
 
         public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
-            string? name = null,
+            NameString schemaName = default,
             CancellationToken cancellationToken = default)
         {
-            name = name ?? Microsoft.Extensions.Options.Options.DefaultName;
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-            if (!_executors.TryGetValue(name, out IRequestExecutor? executor))
+            if (!_executors.TryGetValue(schemaName, out IRequestExecutor? executor))
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
 
                 try
                 {
-                    if (!_executors.TryGetValue(name, out executor))
+                    if (!_executors.TryGetValue(schemaName, out executor))
                     {
-                        executor = await CreateRequestExecutorAsync(name, cancellationToken)
+                        executor = await CreateRequestExecutorAsync(schemaName, cancellationToken)
                             .ConfigureAwait(false);
-                        _diagnosticEvents.ExecutorCreated(name, executor);
+                        _diagnosticEvents.ExecutorCreated(schemaName, executor);
                     }
                 }
                 finally
@@ -74,25 +77,26 @@ namespace HotChocolate.Execution
             return executor;
         }
 
-        public void EvictRequestExecutor(string? name = null)
+        public void EvictRequestExecutor(NameString schemaName = default)
         {
-            name = name ?? Microsoft.Extensions.Options.Options.DefaultName;
-            if (_executors.TryRemove(name, out IRequestExecutor? executor))
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            if (_executors.TryRemove(schemaName, out IRequestExecutor? executor))
             {
-                _diagnosticEvents.ExecutorEvicted(name, executor);
+                _diagnosticEvents.ExecutorEvicted(schemaName, executor);
                 RequestExecutorEvicted?.Invoke(
                     this,
-                    new RequestExecutorEvictedEventArgs(name, executor));
+                    new RequestExecutorEvictedEventArgs(schemaName, executor));
             }
         }
 
         private async Task<IRequestExecutor> CreateRequestExecutorAsync(
-            string name,
+            NameString schemaName,
             CancellationToken cancellationToken = default)
         {
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(name);
+            RequestExecutorFactoryOptions options = _optionsMonitor.Get(schemaName);
 
-            ISchema schema = await CreateSchemaAsync(options, cancellationToken);
+            ISchema schema = await CreateSchemaAsync(schemaName, options, cancellationToken);
 
             RequestExecutorOptions executorOptions =
                 await CreateExecutorOptionsAsync(options, cancellationToken);
@@ -100,7 +104,7 @@ namespace HotChocolate.Execution
             IErrorHandler errorHandler = new DefaultErrorHandler(errorFilters, executorOptions);
             IActivator activator = new DefaultActivator(_serviceProvider);
             RequestDelegate pipeline =
-                CreatePipeline(name, options.Pipeline, activator, errorHandler, executorOptions);
+                CreatePipeline(schemaName, options.Pipeline, activator, errorHandler, executorOptions);
 
             return new RequestExecutor(
                 schema,
@@ -113,11 +117,13 @@ namespace HotChocolate.Execution
         }
 
         private async ValueTask<ISchema> CreateSchemaAsync(
+            NameString schemaName,
             RequestExecutorFactoryOptions options,
             CancellationToken cancellationToken)
         {
-            if(options.Schema is { }) 
+            if (options.Schema is { })
             {
+                AssertSchemaNameValid(options.Schema, schemaName);
                 return options.Schema;
             }
 
@@ -136,7 +142,21 @@ namespace HotChocolate.Execution
                 }
             }
 
-            return schemaBuilder.Create();
+            schemaBuilder.AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
+
+            ISchema schema = schemaBuilder.Create();
+            AssertSchemaNameValid(schema, schemaName);
+            return schema;
+        }
+
+        private void AssertSchemaNameValid(ISchema schema, NameString expectedSchemaName)
+        {
+            if (!schema.Name.Equals(expectedSchemaName))
+            {
+                throw RequestExecutorResolver_SchemaNameDoesNotMatch(
+                    expectedSchemaName,
+                    schema.Name);
+            }
         }
 
         private async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
@@ -162,7 +182,7 @@ namespace HotChocolate.Execution
         }
 
         private RequestDelegate CreatePipeline(
-            string name,
+            NameString schemaName,
             IList<RequestCoreMiddleware> pipeline,
             IActivator activator,
             IErrorHandler errorHandler,
@@ -174,7 +194,7 @@ namespace HotChocolate.Execution
             }
 
             var factoryContext = new RequestCoreMiddlewareContext(
-                name, _serviceProvider, activator, errorHandler, executorOptions);
+                schemaName, _serviceProvider, activator, errorHandler, executorOptions);
 
             RequestDelegate next = context =>
             {
@@ -211,6 +231,27 @@ namespace HotChocolate.Execution
                 _executors.Clear();
                 _semaphore.Dispose();
                 _disposed = true;
+            }
+        }
+
+        private sealed class SetSchemaNameInterceptor : TypeInitializationInterceptor
+        {
+            private readonly NameString _schemaName;
+
+            public SetSchemaNameInterceptor(NameString schemaName)
+            {
+                _schemaName = schemaName;
+            }
+
+            public override bool CanHandle(ITypeSystemObjectContext context) =>
+                context.IsSchema;
+
+            public override void OnBeforeCompleteName(
+                ICompletionContext context,
+                DefinitionBase definition,
+                IDictionary<string, object> contextData)
+            {
+                definition.Name = _schemaName;
             }
         }
     }

@@ -15,6 +15,8 @@ namespace HotChocolate.Configuration
 
         bool IsDirective { get; }
 
+        bool IsSchema { get; }
+
         IServiceProvider Services { get; }
 
         IDictionary<string, object> ContextData { get; }

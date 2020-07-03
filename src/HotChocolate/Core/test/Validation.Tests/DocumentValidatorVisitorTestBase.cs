@@ -22,7 +22,7 @@ namespace HotChocolate.Validation
 
             IServiceProvider services = serviceCollection.BuildServiceProvider();
             Rule = services.GetRequiredService<IValidationConfiguration>()
-                .GetRules(Microsoft.Extensions.Options.Options.DefaultName).First();
+                .GetRules(Schema.DefaultName).First();
             StarWars = SchemaBuilder.New().AddStarWarsTypes().Create();
         }
 

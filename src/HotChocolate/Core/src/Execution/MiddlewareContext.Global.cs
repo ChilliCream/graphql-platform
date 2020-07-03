@@ -121,13 +121,23 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            IError error = _operationContext.ErrorHandler
-                .CreateUnexpectedError(exception)
-                .SetPath(Path)
-                .AddLocation(FieldSelection)
-                .Build();
+            if (exception is GraphQLException graphQLException)
+            {
+                foreach (IError error in graphQLException.Errors)
+                {
+                    ReportError(error);
+                }
+            }
+            else
+            {
+                IError error = _operationContext.ErrorHandler
+                    .CreateUnexpectedError(exception)
+                    .SetPath(Path)
+                    .AddLocation(FieldSelection)
+                    .Build();
 
-            ReportError(error);
+                ReportError(error);
+            }
         }
 
         public void ReportError(IError error)

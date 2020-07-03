@@ -16,12 +16,13 @@ namespace HotChocolate.Validation
             _configuration = configuration;
         }
 
-        public IDocumentValidator CreateValidator(string? schemaName = null)
-        {            
+        public IDocumentValidator CreateValidator(NameString schemaName = default)
+        {
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
             return new DocumentValidator(
                 _contextPool, 
-                _configuration.GetRules(schemaName ??  
-                    Microsoft.Extensions.Options.Options.DefaultName));
+                _configuration.GetRules(schemaName));
         }
     }
 }

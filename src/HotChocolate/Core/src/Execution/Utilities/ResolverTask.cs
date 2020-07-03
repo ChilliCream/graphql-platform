@@ -18,46 +18,17 @@ namespace HotChocolate.Execution.Utilities
         public void BeginExecute()
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = ExecuteInternalAsync();
+            _task = TryExecuteAndCompleteAsync();
         }
 
-        private async ValueTask ExecuteInternalAsync()
+        private async ValueTask TryExecuteAndCompleteAsync()
         {
             using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
             {
                 try
                 {
-                    bool errors = true;
-
-                    if (_selection.Arguments.TryCoerceArguments(
-                        _context.Variables, 
-                        _context.ReportError, 
-                        out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs)) 
-                    {
-                        _context.Arguments = coercedArgs;
-                        await ExecuteResolverPipelineAsync().ConfigureAwait(false);
-                        errors = false;
-                    }
-
-                    if (_context.RequestAborted.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    CompleteValue(withErrors: errors);
-                }
-                catch (GraphQLException ex)
-                {
-                    foreach (IError error in ex.Errors)
-                    {
-                        _context.ReportError(error);
-                    }
-                    _context.Result = null;
-                }
-                catch (Exception ex)
-                {
-                    _context.ReportError(ex);
-                    _context.Result = null;
+                    bool success = await TryExecuteAsync().ConfigureAwait(false);
+                    CompleteValue(success);
                 }
                 finally
                 {
@@ -65,6 +36,28 @@ namespace HotChocolate.Execution.Utilities
                     _operationContext.Execution.TaskPool.Return(this);
                 }
             }
+        }
+
+        private async ValueTask<bool> TryExecuteAsync()
+        {
+            try
+            {
+                if (_selection.Arguments.TryCoerceArguments(
+                    _context.Variables,
+                    _context.ReportError,
+                    out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs))
+                {
+                    _context.Arguments = coercedArgs;
+                    await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _context.ReportError(ex);
+                _context.Result = null;
+            }
+            return false;
         }
 
         private async ValueTask ExecuteResolverPipelineAsync()
@@ -88,14 +81,14 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private void CompleteValue(bool withErrors)
+        private void CompleteValue(bool success)
         {
             object? completedValue = null;
 
             try
             {
                 // we will only try to complete the resolver value if there are no known errors.
-                if (!withErrors)
+                if (success)
                 {
                     if (ValueCompletion.TryComplete(
                         _operationContext,

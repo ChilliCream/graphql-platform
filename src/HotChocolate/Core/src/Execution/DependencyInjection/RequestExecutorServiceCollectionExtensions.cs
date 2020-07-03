@@ -6,6 +6,7 @@ using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
+using HotChocolate;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -61,20 +62,20 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         public static IRequestExecutorBuilder AddGraphQL(
             this IServiceCollection services,
-            string? name = null)
+            NameString schemaName = default)
         {
             if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            name ??= Options.Options.DefaultName;
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
             services
                 .AddGraphQLCore()
-                .AddValidation(name);
+                .AddValidation(schemaName);
 
-            return new DefaultRequestExecutorBuilder(services, name);
+            return new DefaultRequestExecutorBuilder(services, schemaName);
         }
 
         public static IServiceCollection AddDocumentCache(

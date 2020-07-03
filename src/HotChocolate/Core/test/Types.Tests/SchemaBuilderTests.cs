@@ -1093,7 +1093,19 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddTypeInterceptor(null);
+                .AddTypeInterceptor((Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterceptor_InterceptorIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddTypeInterceptor((ITypeInitializationInterceptor)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
