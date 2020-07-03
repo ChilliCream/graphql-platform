@@ -1,12 +1,9 @@
 ﻿{
-  "Data": {
+  "data": {
     "items": [
       {
         "foo": "abc"
       }
     ]
-  },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  }
 }

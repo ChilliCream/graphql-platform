@@ -1,5 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "paging": {
       "nodes": [
         {
@@ -7,8 +7,5 @@
         }
       ]
     }
-  },
-  "Extensions": {},
-  "Errors": [],
-  "ContextData": {}
+  }
 }

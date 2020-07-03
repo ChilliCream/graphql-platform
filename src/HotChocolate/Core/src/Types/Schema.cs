@@ -176,6 +176,11 @@ namespace HotChocolate
         /// <summary>
         /// Returns the schema SDL representation.
         /// </summary>
-        public override string ToString() => SchemaSerializer.Serialize(this);
+        public string Print() => SchemaSerializer.Serialize(this);
+
+        /// <summary>
+        /// Returns the schema SDL representation.
+        /// </summary>
+        public override string ToString() => Print();
     }
 }

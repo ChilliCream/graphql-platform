@@ -43,7 +43,6 @@ namespace HotChocolate.Types.Filters
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
             SetTypeIdentity(typeof(FilterInputType<>));
         }
 

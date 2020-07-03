@@ -16,7 +16,6 @@ namespace HotChocolate.Configuration
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
-
         {
             foreach (IClrTypeReference typeReference in typeReferences.OfType<IClrTypeReference>())
             {
