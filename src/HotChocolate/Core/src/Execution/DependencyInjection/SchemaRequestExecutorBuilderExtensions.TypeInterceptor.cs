@@ -68,8 +68,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onBeforeRegisterDependencies));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
                     canHandle,
@@ -92,8 +90,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onBeforeRegisterDependencies));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor<T>(
                     canHandle,
@@ -114,8 +110,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new ArgumentNullException(nameof(onAfterRegisterDependencies));
             }
-
-            canHandle ??= ctx => true;
 
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
@@ -162,8 +156,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onBeforeCompleteName));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
                     canHandle,
@@ -209,8 +201,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onAfterCompleteName));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
                     canHandle,
@@ -233,8 +223,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onAfterCompleteName));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor<T>(
                     canHandle,
@@ -255,8 +243,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new ArgumentNullException(nameof(onBeforeCompleteType));
             }
-
-            canHandle ??= ctx => true;
 
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
@@ -280,8 +266,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(onBeforeCompleteType));
             }
 
-            canHandle ??= ctx => true;
-
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor<T>(
                     canHandle,
@@ -302,8 +286,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new ArgumentNullException(nameof(onAfterCompleteType));
             }
-
-            canHandle ??= ctx => true;
 
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
@@ -326,8 +308,6 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 throw new ArgumentNullException(nameof(onAfterCompleteType));
             }
-
-            canHandle ??= ctx => true;
 
             return builder.ConfigureSchema(b => b
                 .AddTypeInterceptor(new DelegateTypeInitializationInterceptor<T>(

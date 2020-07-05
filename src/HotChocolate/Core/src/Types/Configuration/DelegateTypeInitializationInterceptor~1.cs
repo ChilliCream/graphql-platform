@@ -28,7 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
             OnCompleteType<T>? onBeforeCompleteType = null,
             OnCompleteType<T>? onAfterCompleteType = null)
         {
-            _canHandle ??= c => true;
+            _canHandle = canHandle ?? (c => true);
             _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
             _onAfterRegisterDependencies = onAfterRegisterDependencies;
             _onBeforeCompleteName = onBeforeCompleteName;
