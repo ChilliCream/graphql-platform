@@ -15,11 +15,9 @@ namespace HotChocolate.Types.Sorting
         public void Ctor_InitialTypeNull_ShouldThrowArgumentNullException()
         {
             // arrange
-
             // act
-            Func<QueryableSortVisitor> createVisitor
-                = () => new QueryableSortVisitor(
-                    null, typeof(Foo));
+            Func<QueryableSortVisitor> createVisitor = 
+                () => new QueryableSortVisitor(null, typeof(Foo));
 
             // assert
             Assert.Throws<ArgumentNullException>(createVisitor);
@@ -36,13 +34,11 @@ namespace HotChocolate.Types.Sorting
                 }.AsQueryable().OrderBy(x => x.Baz);
 
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(ctx =>
-                {
-                    ctx.Field("foo")
+                .AddQueryType(ctx =>ctx
+                    .Field("foo")
                     .Resolver(data)
                     .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
-                    .UseSorting();
-                })
+                    .UseSorting())
                 .Create();
 
             IReadOnlyQueryRequest request =
@@ -54,7 +50,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = schema.MakeExecutable().Execute(request);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -63,15 +59,15 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Asc)
-                    )
-            );
+                    new EnumValueNode(SortOperationKind.Asc)));
 
             FooSortType sortType = CreateType(new FooSortType());
 
             IQueryable<Foo> a = new[]
             {
-                new Foo {Bar = "b"}, new Foo {Bar = "a"}, new Foo {Bar = "c"}
+                new Foo {Bar = "b"}, 
+                new Foo {Bar = "a"}, 
+                new Foo {Bar = "c"}
             }.AsQueryable();
 
             // act
