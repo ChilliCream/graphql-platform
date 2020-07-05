@@ -12,8 +12,7 @@ namespace HotChocolate.Types.Selections
 {
     public abstract class SingleOrDefaultTestsBase
     {
-        private readonly static Foo[] Sample =
-            new[] { Foo.Create("aa", 1) };
+        private static readonly Foo[] _sample = { Foo.Create("aa", 1) };
 
         private readonly IResolverProvider _provider;
 
@@ -29,7 +28,8 @@ namespace HotChocolate.Types.Selections
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
-                new[] { Foo.Create("aa", 1), Foo.Create("aa", 2) });
+                Foo.Create("aa", 1),
+                Foo.Create("aa", 2));
 
             ISchema schema = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foos { bar baz} }");
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute("{ foos { bar  } }");
@@ -88,7 +88,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -105,7 +105,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -124,7 +124,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -141,7 +141,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -160,7 +160,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -177,7 +177,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -196,7 +196,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Foo resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -213,7 +213,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -232,7 +232,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(Sample);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -249,7 +249,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

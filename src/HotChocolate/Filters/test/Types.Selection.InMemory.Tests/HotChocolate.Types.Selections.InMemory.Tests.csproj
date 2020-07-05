@@ -1,14 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+  
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Filters.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Selections.InMemory.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
-    <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\*.*">
@@ -19,10 +14,12 @@
     </None>
   </ItemGroup>
 
-
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\HotChocolate.Types.Selections.Abstractions.Tests.csproj" />
   </ItemGroup>
 
 </Project>

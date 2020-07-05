@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foos { bar baz} }");
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Selections
                     d.Field(t => t.FoosMultiple)
                         .Resolver(resolver))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -130,11 +130,10 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            executor.Execute(
-                 "{ foosAsync { bar baz } }");
+            executor.Execute("{ foosAsync { bar baz } }");
 
             // assert
             Assert.NotNull(resultCtx);
@@ -160,7 +159,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foosAsync { bar baz} }");
@@ -191,7 +190,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as Foo;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

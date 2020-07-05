@@ -1,13 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Filters.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Filters</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Selections.Abstractions.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
+    <ProjectReference Include="..\..\src\Types.Selection\HotChocolate.Types.Selections.csproj" />
+    <ProjectReference Include="..\..\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,7 +20,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 
   <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>

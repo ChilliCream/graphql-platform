@@ -2,16 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionAttributeTestsBase
     {
-
         private readonly IResolverProvider _provider;
         private readonly bool _setId;
 
@@ -43,11 +42,11 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
-                 "{ foos { bar baz } }");
+                "{ foos { bar baz } }");
 
             // assert
             Assert.NotNull(resultCtx);

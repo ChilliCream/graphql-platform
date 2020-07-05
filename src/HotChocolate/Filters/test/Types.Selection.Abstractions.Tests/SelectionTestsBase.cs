@@ -2,20 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
 {
     public abstract class SelectionTestsBase
     {
-        private readonly static Foo[] SAMPLE =
-            new[] {
+        private readonly static Foo[] _sample =
+            new[]
+            {
                 Foo.Create("aa", 1),
-                Foo.Create("bb", 2) };
+                Foo.Create("bb", 2)
+            };
 
         private readonly IResolverProvider _provider;
 
@@ -30,7 +32,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -45,7 +47,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -76,7 +78,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -91,7 +93,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -122,7 +124,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -137,7 +139,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -168,7 +170,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -183,7 +185,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -214,7 +216,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -229,7 +231,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
@@ -264,7 +266,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -279,28 +281,28 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
                 "{ foos { bar computedField } }") as IReadOnlyQueryResult;
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
-            var foos = result.Data["foos"] as IList<object>;
+            var foos = result.Data["foos"] as IReadOnlyList<object>;
 
             Assert.Collection(foos.ToArray(),
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("aa", casted["bar"]);
                     Assert.Equal("aa1", casted["computedField"]);
                 },
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("bb", casted["bar"]);
                     Assert.Equal("bb2", casted["computedField"]);
@@ -313,7 +315,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -328,28 +330,28 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
                 "{ foos { bar computedFieldParent } }") as IReadOnlyQueryResult;
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
-            var foos = result.Data["foos"] as IList<object>;
+            var foos = result.Data["foos"] as IReadOnlyList<object>;
 
             Assert.Collection(foos.ToArray(),
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("aa", casted["bar"]);
                     Assert.Equal("aa1", casted["computedFieldParent"]);
                 },
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("bb", casted["bar"]);
                     Assert.Equal("bb2", casted["computedFieldParent"]);
@@ -362,7 +364,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -380,28 +382,28 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
                 "{ foos { bar computedLambdaField } }") as IReadOnlyQueryResult;
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
-            var foos = result.Data["foos"] as IList<object>;
+            var foos = result.Data["foos"] as IReadOnlyList<object>;
 
             Assert.Collection(foos.ToArray(),
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("aa", casted["bar"]);
                     Assert.Equal("aa1", casted["computedLambdaField"]);
                 },
                 x =>
                 {
-                    var casted = x as IDictionary<string, object>;
+                    var casted = x as IReadOnlyDictionary<string, object>;
                     Assert.NotNull(casted);
                     Assert.Equal("bb", casted["bar"]);
                     Assert.Equal("bb2", casted["computedLambdaField"]);
@@ -414,7 +416,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -429,7 +431,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -464,7 +466,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -479,7 +481,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -514,7 +516,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -529,7 +531,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -564,7 +566,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -579,7 +581,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -614,7 +616,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -629,7 +631,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -665,7 +667,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -680,7 +682,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -716,7 +718,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -731,7 +733,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -767,7 +769,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -782,7 +784,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -823,7 +825,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -838,7 +840,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -867,7 +869,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -882,7 +884,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -925,7 +927,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -943,14 +945,14 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                  "{ foos(order_by: {bar: DESC}) { nodes { bar } } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
             Assert.Collection(resultCtx.Edges.ToArray(),
                 x =>
@@ -975,7 +977,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -993,14 +995,14 @@ namespace HotChocolate.Types.Selections
                         .UseFiltering()
                         .UseSorting())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                  "{ foos(where: {bar: \"aa\"}) { nodes { id } } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
             Assert.Collection(resultCtx.Edges.ToArray(),
                 x =>
@@ -1018,7 +1020,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1036,14 +1038,14 @@ namespace HotChocolate.Types.Selections
                         .UseFiltering()
                         .UseSorting())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                  "{ foos(order_by: {id: DESC}) { nodes { bar } } }");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
             Assert.Collection(resultCtx.Edges.ToArray(),
                 x =>
@@ -1068,7 +1070,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1086,14 +1088,14 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                  "{ foos { nodes { bar} totalCount pageInfo {startCursor}}}");
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
             Assert.NotNull(resultCtx);
             Assert.Collection(resultCtx.Edges.ToArray(),
                 x =>
@@ -1118,7 +1120,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1136,7 +1138,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute("{ foos { totalCount pageInfo {startCursor}}}")
@@ -1144,13 +1146,13 @@ namespace HotChocolate.Types.Selections
 
             // assert
             Assert.NotNull(result);
-            Assert.Empty(result.Errors);
+            Assert.Null(result.Errors);
 
-            var foosResult = result.Data["foos"] as IDictionary<string, object>;
+            var foosResult = result.Data["foos"] as IReadOnlyDictionary<string, object>;
             Assert.NotNull(foosResult);
             Assert.Equal(2, foosResult["totalCount"]);
 
-            var pageInfoResult = foosResult["pageInfo"] as IDictionary<string, object>;
+            var pageInfoResult = foosResult["pageInfo"] as IReadOnlyDictionary<string, object>;
             Assert.NotNull(pageInfoResult);
             Assert.Equal("MA==",
                 pageInfoResult["startCursor"]);
@@ -1179,7 +1181,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1197,7 +1199,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1232,7 +1234,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1250,7 +1252,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1281,7 +1283,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             Connection<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1299,7 +1301,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1334,7 +1336,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1351,7 +1353,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1389,7 +1391,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1406,7 +1408,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1431,7 +1433,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1448,7 +1450,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1486,7 +1488,7 @@ namespace HotChocolate.Types.Selections
             // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
-            (services, resolver) = _provider.CreateResolver(SAMPLE);
+            (services, resolver) = _provider.CreateResolver(_sample);
 
             IQueryable<Foo> resultCtx = null;
             ISchema schema = SchemaBuilder.New()
@@ -1503,7 +1505,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
