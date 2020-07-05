@@ -1,10 +1,8 @@
 ﻿using System;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Options;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Options;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -74,14 +72,14 @@ namespace HotChocolate
             return false;
         }
 
-        private static bool IsType(ObjectType left, IType right)
+        private static bool IsType(ObjectType? left, IType right)
         {
             if (left is null)
             {
                 return false;
             }
 
-            return object.ReferenceEquals(left, right);
+            return ReferenceEquals(left, right);
         }
     }
 }

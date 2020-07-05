@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -66,6 +67,18 @@ namespace HotChocolate.Execution.Utilities
 
             switch (_context.Result)
             {
+                case IQueryable queryable:
+                    _context.Result = await Task.Run(() =>
+                    {
+                        var items = new List<object?>();
+                        foreach (object? o in queryable)
+                        {
+                            items.Add(o);
+                        }
+                        return items;
+                    });
+                    break;
+
                 case IError error:
                     _context.ReportError(error);
                     _context.Result = null;
