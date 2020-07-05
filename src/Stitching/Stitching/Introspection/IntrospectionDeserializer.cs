@@ -143,7 +143,7 @@ namespace HotChocolate.Stitching.Introspection
                     null,
                     new NameNode(value.Name),
                     CreateDescription(value.Description),
-                    CreateDepricatedDirective(
+                    CreateDeprecatedDirective(
                         value.IsDepricated,
                         value.DeprecationReason)
                 ));
@@ -227,8 +227,8 @@ namespace HotChocolate.Stitching.Introspection
                     CreateDescription(field.Description),
                     CreateInputVals(field.Args),
                     CreateTypeReference(field.Type),
-                    CreateDepricatedDirective(
-                        field.IsDepricated,
+                    CreateDeprecatedDirective(
+                        field.IsDeprecated,
                         field.DeprecationReason)
                 ));
             }
@@ -325,10 +325,10 @@ namespace HotChocolate.Stitching.Introspection
             return list;
         }
 
-        private static IReadOnlyList<DirectiveNode> CreateDepricatedDirective(
-            bool isDepricated, string deprecationReason)
+        private static IReadOnlyList<DirectiveNode> CreateDeprecatedDirective(
+            bool isDeprecated, string deprecationReason)
         {
-            if (isDepricated)
+            if (isDeprecated)
             {
                 return new List<DirectiveNode>
                 {
