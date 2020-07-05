@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using Xunit;
 
 namespace HotChocolate.Types.Selections
@@ -21,32 +23,34 @@ namespace HotChocolate.Types.Selections
         }
 
         [Fact]
-        public void Execute_Selection_MultipleScalar()
+        public async Task Execute_Selection_MultipleScalar()
         {
-            // arrange
             IServiceCollection services;
             Func<IResolverContext, IEnumerable<Foo>> resolver;
             (services, resolver) = _provider.CreateResolver(
                 Foo.Create("aa", 1, _setId),
                 Foo.Create("bb", 2, _setId));
 
-            IQueryable<Foo> resultCtx = null;
-            ISchema schema = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
-                .AddQueryType<Query>(d =>
-                    d.Field(t => t.Foos)
-                        .Resolver(resolver)
-                        .Use(next => async ctx =>
-                        {
-                            await next(ctx).ConfigureAwait(false);
-                            resultCtx = ctx.Result as IQueryable<Foo>;
-                        }))
-                .Create();
-            IRequestExecutor executor = schema.MakeExecutable();
-
             // act
-            executor.Execute(
-                "{ foos { bar baz } }");
+            IQueryable<Foo> resultCtx = null;
+           await TestHelper.ExpectValid(
+                "{ foos { bar baz } }",
+                configure: r =>
+                {
+                    r.AddQueryType<Query>(d =>
+                        d.Field(t => t.Foos)
+                            .Resolver(resolver)
+                            .Use(next => async ctx =>
+                            {
+                                await next(ctx).ConfigureAwait(false);
+                                resultCtx = ctx.Result as IQueryable<Foo>;
+                            }));
+
+                    foreach (ServiceDescriptor service in services)
+                    {
+                        r.Services.Add(service);
+                    }
+                });
 
             // assert
             Assert.NotNull(resultCtx);
