@@ -1,12 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-  
+
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Selections.InMemory.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.Types.Selections</RootNamespace>
+    <AssemblyName>HotChocolate.Types.Sorting.Mongo.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Types.Selection.Abstractions.Tests\HotChocolate.Types.Selections.Abstractions.Tests.csproj" />
+    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
   </ItemGroup>
 
   <ItemGroup>
