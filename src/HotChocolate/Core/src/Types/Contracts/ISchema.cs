@@ -133,7 +133,12 @@ namespace HotChocolate
             [NotNullWhen(true)]out DirectiveType? directiveType);
 
         /// <summary>
-        /// Returns the schema SDL representation.
+        /// Prints the schema SDL representation.
+        /// </summary>
+        string Print();
+
+        /// <summary>
+        /// Prints the schema SDL representation
         /// </summary>
         string ToString();
     }

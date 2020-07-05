@@ -52,11 +52,12 @@ namespace HotChocolate
         /// <summary>
         /// Gets all the directives that are supported by this schema.
         /// </summary>
-        public IReadOnlyCollection<DirectiveType> DirectiveTypes
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; private set; }
+
+        /// <summary>
+        /// Gets the default schema name.
+        /// </summary>
+        public static NameString DefaultName { get; } = "_Default";
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -83,7 +84,7 @@ namespace HotChocolate
         /// <c>true</c>, if a type with the name exists and is of the specified
         /// kind, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)]out T type)
+        public bool TryGetType<T>(NameString typeName, [NotNullWhen(true)] out T type)
             where T : INamedType =>
             _types.TryGetType(typeName.EnsureNotEmpty(nameof(typeName)), out type);
 
@@ -167,7 +168,7 @@ namespace HotChocolate
         /// </returns>
         public bool TryGetDirectiveType(
             NameString directiveName,
-            [NotNullWhen(true)]out DirectiveType? directiveType) =>
+            [NotNullWhen(true)] out DirectiveType? directiveType) =>
             _directiveTypes.TryGetValue(
                 directiveName.EnsureNotEmpty(nameof(directiveName)),
                 out directiveType);
@@ -175,6 +176,11 @@ namespace HotChocolate
         /// <summary>
         /// Returns the schema SDL representation.
         /// </summary>
-        public override string ToString() => SchemaSerializer.Serialize(this);
+        public string Print() => SchemaSerializer.Serialize(this);
+
+        /// <summary>
+        /// Returns the schema SDL representation.
+        /// </summary>
+        public override string ToString() => Print();
     }
 }

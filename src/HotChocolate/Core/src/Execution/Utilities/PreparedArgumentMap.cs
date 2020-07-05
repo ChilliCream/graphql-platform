@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Utilities
                         IsFinal = false;
                     }
 
-                    if (argument.IsError)
+                    if (argument.HasError)
                     {
                         HasErrors = true;
                     }

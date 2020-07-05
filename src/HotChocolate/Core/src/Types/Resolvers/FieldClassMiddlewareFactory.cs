@@ -12,10 +12,8 @@ namespace HotChocolate.Resolvers
         private static readonly MethodInfo _createGeneric =
             typeof(FieldClassMiddlewareFactory)
             .GetTypeInfo().DeclaredMethods.First(t =>
-            {
-                return t.Name.EqualsOrdinal(nameof(FieldClassMiddlewareFactory.Create)) &&
-                    t.IsGenericMethod;
-            });
+                t.Name.EqualsOrdinal(nameof(FieldClassMiddlewareFactory.Create)) &&
+                t.IsGenericMethod);
 
         private static readonly PropertyInfo _services =
             typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
@@ -35,7 +33,7 @@ namespace HotChocolate.Resolvers
                 if (service is { })
                 {
                     parameters.Add(new TypeParameterHandler(
-                        service.GetType(), 
+                        service.GetType(),
                         Expression.Constant(service)));
                 }
             }
@@ -44,9 +42,9 @@ namespace HotChocolate.Resolvers
             {
                 MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
                     MiddlewareCompiler<TMiddleware>.CompileFactory<IServiceProvider, FieldDelegate>(
-                        (services, next) =>
+                        (s, n) =>
                         {
-                            parameters.Add(new ServiceParameterHandler(services));
+                            parameters.Add(new ServiceParameterHandler(s));
                             return parameters;
                         });
 
@@ -78,14 +76,14 @@ namespace HotChocolate.Resolvers
             FieldDelegate next)
             where TMiddleware : class
         {
-            object sync = new object();
+            var sync = new object();
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
                 MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
-                    (context, middleware) => new List<IParameterHandler>
+                    (c, m) => new List<IParameterHandler>
                     {
-                        new ServiceParameterHandler(Expression.Property(context, _services))
+                        new ServiceParameterHandler(Expression.Property(c, _services))
                     });
 
             return context =>
@@ -94,7 +92,7 @@ namespace HotChocolate.Resolvers
                 {
                     lock (sync)
                     {
-                        middleware = middleware ?? factory(context.Services, next);
+                        middleware ??= factory(context.Services, next);
                     }
                 }
 

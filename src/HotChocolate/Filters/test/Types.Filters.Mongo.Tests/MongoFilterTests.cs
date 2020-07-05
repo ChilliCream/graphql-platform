@@ -32,10 +32,9 @@ namespace HotChocolate.Types.Filters
                 configure: c => c
                     .AddQueryType<QueryType>()
                     .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
+                    .AddSingleton(sp =>
                     {
                         IMongoDatabase database = _mongoResource.CreateDatabase();
-
                         IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                         collection.InsertMany(new[]
                         {
@@ -56,133 +55,9 @@ namespace HotChocolate.Types.Filters
                 configure: c => c
                     .AddQueryType<QueryType>()
                     .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
+                    .AddSingleton(sp =>
                     {
                         IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task GetItems_ObjectEqualsFilter_FirstItems_Is_Returned()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ items(where: { nested:{ nested: { foo: \"abc\" " +
-                "} } }) { nested { nested { foo } } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model
-                            {
-                                Nested = null
-                            },
-                            new Model
-                            {
-                                Nested = new Model
-                                {
-                                    Nested = new Model
-                                    {
-                                        Foo = "abc",
-                                        Bar = 1,
-                                        Baz = true
-                                    }
-                                }
-                            },
-                            new Model
-                            {
-                                Nested = new Model
-                                {
-                                    Nested= new Model
-                                    {
-                                        Foo = "def",
-                                        Bar = 2,
-                                        Baz = false
-                                    }
-                                }
-                            },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task GetItems_With_Paging_EqualsFilter_FirstItems_Is_Returned()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { foo: \"abc\" }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task Boolean_Filter_Equals()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { baz: true }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
-        }
-
-        [Fact]
-        public async Task Boolean_Filter_Not_Equals()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { baz_not: false }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-
                         IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                         collection.InsertMany(new[]
                         {
@@ -203,20 +78,19 @@ namespace HotChocolate.Types.Filters
                 configure: c => c
                     .AddQueryType<QueryType>()
                     .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
+                    .AddSingleton(sp =>
                     {
                         IMongoDatabase database = _mongoResource.CreateDatabase();
-
                         IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                         collection.InsertMany(new[]
                         {
-                            new Model 
-                            { 
-                                Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) 
+                            new Model
+                            {
+                                Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc)
                             },
-                            new Model 
-                            { 
-                                Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc) 
+                            new Model
+                            {
+                                Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc)
                             },
                         });
                         return collection;
@@ -233,21 +107,89 @@ namespace HotChocolate.Types.Filters
                 configure: c => c
                     .AddQueryType<QueryType>()
                     .Services
-                    .AddSingleton<IMongoCollection<Model>>(sp =>
+                    .AddSingleton(sp =>
                     {
                         IMongoDatabase database = _mongoResource.CreateDatabase();
-
                         IMongoCollection<Model> collection = database.GetCollection<Model>("col");
                         collection.InsertMany(new[]
                         {
-                            new Model 
+                            new Model
                             {
-                                Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date 
+                                Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date
                             },
-                            new Model 
-                            { 
-                                Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date 
+                            new Model
+                            {
+                                Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date
                             },
+                        });
+                        return collection;
+                    }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task GetItems_With_Paging_EqualsFilter_FirstItems_Is_Returned()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ paging(where: { foo: \"abc\" }) { nodes { foo } } }",
+                configure: c => c
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .AddSingleton(sp =>
+                    {
+                        IMongoDatabase database = _mongoResource.CreateDatabase();
+                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                        collection.InsertMany(new[]
+                        {
+                            new Model { Foo = "abc", Bar = 1, Baz = true },
+                            new Model { Foo = "def", Bar = 2, Baz = false },
+                        });
+                        return collection;
+                    }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Boolean_Filter_Equals()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ paging(where: { baz: true }) { nodes { foo } } }",
+                configure: c => c
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .AddSingleton(sp =>
+                    {
+                        IMongoDatabase database = _mongoResource.CreateDatabase();
+                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                        collection.InsertMany(new[]
+                        {
+                            new Model { Foo = "abc", Bar = 1, Baz = true },
+                            new Model { Foo = "def", Bar = 2, Baz = false },
+                        });
+                        return collection;
+                    }))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Boolean_Filter_Not_Equals()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ paging(where: { baz_not: false }) { nodes { foo } } }",
+                configure: c => c
+                    .AddQueryType<QueryType>()
+                    .Services
+                    .AddSingleton(sp =>
+                    {
+                        IMongoDatabase database = _mongoResource.CreateDatabase();
+                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                        collection.InsertMany(new[]
+                        {
+                            new Model { Foo = "abc", Bar = 1, Baz = true },
+                            new Model { Foo = "def", Bar = 2, Baz = false },
                         });
                         return collection;
                     }))
@@ -262,14 +204,12 @@ namespace HotChocolate.Types.Filters
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(ctx =>
-                        ctx.Service<IMongoCollection<Model>>().AsQueryable());
+                    .Resolver(c => c.Service<IMongoCollection<Model>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(ctx =>
-                        ctx.Service<IMongoCollection<Model>>().AsQueryable());
+                    .Resolver(c => c.Service<IMongoCollection<Model>>().AsQueryable());
             }
         }
 
@@ -293,19 +233,10 @@ namespace HotChocolate.Types.Filters
         public class Model
         {
             public ObjectId Id { get; set; }
-
             public string Foo { get; set; }
-
             public int Bar { get; set; }
-
             public bool Baz { get; set; }
-
-            public Model Nested { get; set; }
-
-            [GraphQLType(typeof(NonNullType<DateTimeType>))]
             public DateTime Time { get; set; }
-
-            [GraphQLType(typeof(NonNullType<DateType>))]
             public DateTime Date { get; set; }
         }
     }

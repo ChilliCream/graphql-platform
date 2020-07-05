@@ -8,11 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
-    <ProjectReference Include="..\..\..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\FilterResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -26,5 +21,10 @@
       <LastGenOutput>FilterResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
 
 </Project>

@@ -341,11 +341,17 @@ namespace HotChocolate
             }
 
             var serviceFactory = new ServiceFactory { Services = services };
-            Type interceptorType = typeof(ITypeInitializationInterceptor);
-            foreach (Type type in _interceptors.Where(t => interceptorType.IsAssignableFrom(t)))
+            foreach (object interceptorOrType in _interceptors)
             {
-                obj = serviceFactory.CreateInstance(type);
-                if (obj is ITypeInitializationInterceptor interceptor)
+                if (interceptorOrType is Type type)
+                {
+                    obj = serviceFactory.CreateInstance(type);
+                    if (obj is ITypeInitializationInterceptor casted)
+                    {
+                        list.Add(casted);
+                    }
+                }
+                else if (interceptorOrType is ITypeInitializationInterceptor interceptor)
                 {
                     list.Add(interceptor);
                 }

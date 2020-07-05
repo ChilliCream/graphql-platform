@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
@@ -11,70 +12,18 @@ namespace HotChocolate.Types.Sorting
         : TypeTestBase
     {
         [Fact]
-        public void Sort_ComparablemMultiple_ShouldSortByStringAscThenByStringAsc()
+        public void Ctor_InitialTypeNull_ShouldThrowArgumentNullException()
         {
             // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("baz",
-                    new EnumValueNode(SortOperationKind.Asc)),
-                new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Asc)));
-
-            FooSortType sortType = CreateType(new FooSortType());
-
-            IQueryable<Foo> a = new[]
-            {
-                new Foo {Bar = "b",Baz = "b"},
-                new Foo {Bar = "a",Baz = "b"},
-                new Foo {Bar = "c",Baz = "a"}
-            }.AsQueryable();
-
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            IQueryable<Foo> temp = context.Sort(a);
-            ICollection<Foo> aFiltered = temp.ToList();
+            Func<QueryableSortVisitor> createVisitor = 
+                () => new QueryableSortVisitor(null, typeof(Foo));
 
             // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Equal("c", foo.Bar),
-                foo => Assert.Equal("a", foo.Bar),
-                foo => Assert.Equal("b", foo.Bar)
-            );
+            Assert.Throws<ArgumentNullException>(createVisitor);
         }
 
         [Fact]
-        public void Sort_ObjectMultiple_ShouldSortByStringAscThenByStringAsc()
-        {
-            // arrange
-            var value = new ObjectValueNode(new ObjectFieldNode("foo",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Asc)),
-                    new ObjectFieldNode("bar",
-                         new EnumValueNode(SortOperationKind.Asc)))));
-
-            FooNestedSortType sortType = CreateType(new FooNestedSortType());
-
-            IQueryable<FooNested> a = new[]
-            {
-                new FooNested{Foo =new Foo {Bar = "b",Baz = "b"}},
-                new FooNested{Foo =new Foo {Bar = "a",Baz = "b"}},
-                new FooNested{Foo =new Foo {Bar = "c",Baz = "a"}}
-            }.AsQueryable();
-
-            // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(FooNested), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<FooNested> aFiltered = context.Sort(a).ToList();
-
-            // assert
-            Assert.Collection(aFiltered,
-                foo => Assert.Equal("c", foo.Foo.Bar),
-                foo => Assert.Equal("a", foo.Foo.Bar),
-                foo => Assert.Equal("b", foo.Foo.Bar)
-            );
-        }
         public void Sort_ComparableAsc_PrefilterInResolver()
         {
             // arrange
@@ -85,13 +34,11 @@ namespace HotChocolate.Types.Sorting
                 }.AsQueryable().OrderBy(x => x.Baz);
 
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(ctx =>
-                {
-                    ctx.Field("foo")
+                .AddQueryType(ctx =>ctx
+                    .Field("foo")
                     .Resolver(data)
                     .Type<NonNullType<ListType<NonNullType<ObjectType<Foo>>>>>()
-                    .UseSorting();
-                })
+                    .UseSorting())
                 .Create();
 
             IReadOnlyQueryRequest request =
@@ -106,7 +53,6 @@ namespace HotChocolate.Types.Sorting
             result.ToJson().MatchSnapshot();
         }
 
-
         [Fact]
         public void Sort_ComparableAsc_ShouldSortByStringAsc()
         {
@@ -119,13 +65,16 @@ namespace HotChocolate.Types.Sorting
 
             IQueryable<Foo> a = new[]
             {
-                new Foo {Bar = "b"}, new Foo {Bar = "a"}, new Foo {Bar = "c"}
+                new Foo {Bar = "b"}, 
+                new Foo {Bar = "a"}, 
+                new Foo {Bar = "c"}
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -141,21 +90,22 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Desc)));
+                    new EnumValueNode(SortOperationKind.Desc)
+                    )
+            );
 
             FooSortType sortType = CreateType(new FooSortType());
 
             IQueryable<Foo> a = new[]
             {
-                new Foo {Bar = "b"}, 
-                new Foo {Bar = "a"}, 
-                new Foo {Bar = "c"}
+                new Foo {Bar = "b"}, new Foo {Bar = "a"}, new Foo {Bar = "c"}
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            ICollection<Foo> aFiltered = filter.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -179,9 +129,10 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            IQueryable<Foo> aFiltered = context.Sort(a);
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            IQueryable<Foo> aFiltered = filter.Sort(a);
 
             // assert
             Assert.Same(a, aFiltered);
@@ -198,7 +149,9 @@ namespace HotChocolate.Types.Sorting
             // arrange 
             var value = new ObjectValueNode(
                 new ObjectFieldNode("nullableInt",
-                    new EnumValueNode(SortOperationKind.Asc)));
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+            );
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -210,9 +163,10 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            IQueryable<Foo> aFiltered = filter.Sort(a);
 
             // assert 
             Assert.Collection(aFiltered,
@@ -228,7 +182,9 @@ namespace HotChocolate.Types.Sorting
             // arrange 
             var value = new ObjectValueNode(
                 new ObjectFieldNode("nullableInt",
-                    new EnumValueNode(SortOperationKind.Desc)));
+                    new EnumValueNode(SortOperationKind.Desc)
+                    )
+            );
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -240,9 +196,10 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(Foo), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<Foo> aFiltered = context.Sort(a).ToList();
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(Foo));
+            value.Accept(filter);
+            IQueryable<Foo> aFiltered = filter.Sort(a);
 
             // assert 
             Assert.Collection(aFiltered,
@@ -258,7 +215,9 @@ namespace HotChocolate.Types.Sorting
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
-                    new EnumValueNode(SortOperationKind.Desc)));
+                    new EnumValueNode(SortOperationKind.Desc)
+                    )
+            );
 
             SortInputType<FooInherited> sortType = CreateType(new SortInputType<FooInherited>());
 
@@ -270,9 +229,10 @@ namespace HotChocolate.Types.Sorting
             }.AsQueryable();
 
             // act
-            var context = new QueryableSortVisitorContext(sortType, typeof(FooInherited), false);
-            QueryableSortVisitor.Default.Visit(value, context);
-            ICollection<FooInherited> aFiltered = context.Sort(a).ToList();
+            var filter = new QueryableSortVisitor(
+                sortType, typeof(FooInherited));
+            value.Accept(filter);
+            ICollection<FooInherited> aFiltered = filter.Sort(a).ToList();
 
             // assert
             Assert.Collection(aFiltered,
@@ -290,21 +250,6 @@ namespace HotChocolate.Types.Sorting
             {
                 descriptor.Sortable(t => t.Bar);
             }
-        }
-
-        public class FooNestedSortType
-            : SortInputType<FooNested>
-        {
-            protected override void Configure(
-                ISortInputTypeDescriptor<FooNested> descriptor)
-            {
-                descriptor.SortableObject(t => t.Foo);
-            }
-        }
-
-        public class FooNested
-        {
-            public Foo Foo { get; set; }
         }
 
         public class Foo

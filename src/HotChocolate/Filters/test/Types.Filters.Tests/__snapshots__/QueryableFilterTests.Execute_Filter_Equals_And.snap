@@ -1,5 +1,8 @@
 ﻿{
-  "data": {
+  "Data": {
     "foos": []
-  }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

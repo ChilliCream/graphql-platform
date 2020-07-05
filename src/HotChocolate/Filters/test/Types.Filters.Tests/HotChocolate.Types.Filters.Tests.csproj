@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <AssemblyName>HotChocolate.Types.Filters.Tests</AssemblyName>
@@ -8,12 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj" />
     <ProjectReference Include="..\..\src\Types.Filters\HotChocolate.Types.Filters.csproj" />
-    <ProjectReference Include="..\Types.Sorting.Tests\HotChocolate.Types.Sorting.Tests.csproj" />
-  </ItemGroup>
-
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,4 +18,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+
+  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+  </ItemGroup>
+
 </Project>

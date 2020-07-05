@@ -46,7 +46,7 @@ namespace HotChocolate.Configuration
                 foreach (ITypeReference typeReference in registeredType.References)
                 {
                     _registered[typeReference] = registeredType;
-                    _unresolved.Remove(typeReference);
+                    MarkResolved(typeReference);
                 }
 
                 if (typeSystemObject is IHasRuntimeType hasClrType
@@ -55,7 +55,6 @@ namespace HotChocolate.Configuration
                     var clrRef = new ClrTypeReference(
                         hasClrType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(typeSystemObject));
-                    _unresolved.Remove(clrRef);
 
                     bool autoBind = true;
 
@@ -65,9 +64,14 @@ namespace HotChocolate.Configuration
                         autoBind = false;
                     }
 
-                    if (autoBind && !_clrTypeReferences.ContainsKey(clrRef))
+                    if (autoBind)
                     {
-                        _clrTypeReferences.Add(clrRef, registeredType.References[0]);
+                        MarkResolved(clrRef);
+
+                        if (!_clrTypeReferences.ContainsKey(clrRef))
+                        {
+                            _clrTypeReferences.Add(clrRef, registeredType.References[0]);
+                        }
                     }
                 }
             }
@@ -125,15 +129,22 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<ITypeReference> GetUnhandled()
         {
+            // we are having a list and the hashset here to keep the order.
             var unhandled = new List<ITypeReference>();
+            var registered = new HashSet<ITypeReference>();
 
             foreach (RegisteredType type in _registered.Values)
             {
                 if (_handled.Add(type))
                 {
-                    unhandled.AddRange(
-                        type.InitializationContext
-                            .TypeDependencies.Select(t => t.TypeReference));
+                    foreach (ITypeReference typeReference in type.InitializationContext
+                        .TypeDependencies.Select(t => t.TypeReference))
+                    {
+                        if (registered.Add(typeReference))
+                        {
+                            unhandled.Add(typeReference);
+                        }
+                    }
                 }
             }
 

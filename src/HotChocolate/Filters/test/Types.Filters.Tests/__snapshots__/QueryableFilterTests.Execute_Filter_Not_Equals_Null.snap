@@ -1,5 +1,5 @@
 ﻿{
-  "data": {
+  "Data": {
     "foos": [
       {
         "bar": "aa"
@@ -20,5 +20,8 @@
         "bar": "ad"
       }
     ]
-  }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

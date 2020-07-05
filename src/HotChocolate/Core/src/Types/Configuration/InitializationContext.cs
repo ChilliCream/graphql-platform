@@ -34,6 +34,7 @@ namespace HotChocolate.Configuration
             Interceptor = interceptor
                 ?? throw new ArgumentNullException(nameof(interceptor));
             IsDirective = type is DirectiveType;
+            IsSchema = type is Schema;
 
             if (type is INamedType nt)
             {
@@ -53,6 +54,8 @@ namespace HotChocolate.Configuration
         public bool IsIntrospectionType { get; }
 
         public bool IsDirective { get; }
+
+        public bool IsSchema { get; }
 
         public IServiceProvider Services { get; }
 

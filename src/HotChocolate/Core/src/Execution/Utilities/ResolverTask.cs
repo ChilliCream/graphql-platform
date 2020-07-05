@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -18,29 +19,17 @@ namespace HotChocolate.Execution.Utilities
         public void BeginExecute()
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = ExecuteInternalAsync();
+            _task = TryExecuteAndCompleteAsync();
         }
 
-        private async ValueTask ExecuteInternalAsync()
+        private async ValueTask TryExecuteAndCompleteAsync()
         {
             using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
             {
                 try
                 {
-                    bool errors = true;
-
-                    if (TryCoerceArguments())
-                    {
-                        await ExecuteResolverPipelineAsync().ConfigureAwait(false);
-                        errors = false;
-                    }
-
-                    if (_context.RequestAborted.IsCancellationRequested)
-                    {
-                        return;
-                    }
-
-                    CompleteValue(withErrors: errors);
+                    bool success = await TryExecuteAsync().ConfigureAwait(false);
+                    CompleteValue(success);
                 }
                 finally
                 {
@@ -50,121 +39,69 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private bool TryCoerceArguments()
+        private async ValueTask<bool> TryExecuteAsync()
         {
-            // if we have errors on the compiled execution plan we will report the errors and
-            // signal that this resolver task has errors and shall end.
-            if (_selection.Arguments.HasErrors)
-            {
-                foreach (PreparedArgument argument in _selection.Arguments.Values)
-                {
-                    if (argument.IsError)
-                    {
-                        _context.ReportError(argument.Error!.WithPath(_context.Path));
-                    }
-                }
-
-                return false;
-            }
-
             try
             {
-                // if there are arguments that have variables and need variable replacement we will
-                // rewrite the arguments that need variable replacement.
-                if (!_selection.Arguments.IsFinal)
+                if (_selection.Arguments.TryCoerceArguments(
+                    _context.Variables,
+                    _context.ReportError,
+                    out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs))
                 {
-                    var args = new Dictionary<NameString, PreparedArgument>();
-
-                    foreach (PreparedArgument argument in _selection.Arguments.Values)
-                    {
-                        if (argument.IsFinal)
-                        {
-                            args.Add(argument.Argument.Name, argument);
-                        }
-                        else
-                        {
-                            IValueNode literal = VariableRewriter.Rewrite(
-                                argument.ValueLiteral!, _context.Variables);
-
-                            args.Add(argument.Argument.Name, new PreparedArgument(
-                                argument.Argument,
-                                literal.TryGetValueKind(out ValueKind kind) 
-                                    ? kind 
-                                    : ValueKind.Unknown,
-                                argument.IsFinal,
-                                argument.IsImplicit,
-                                null,
-                                literal));
-                        }
-                    }
-
-                    _context.Arguments = args;
+                    _context.Arguments = coercedArgs;
+                    await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                    return true;
                 }
-
-                return true;
-            }
-            catch (GraphQLException ex)
-            {
-                foreach (IError error in ex.Errors)
-                {
-                    _context.ReportError(error);
-                }
-                _context.Result = null;
             }
             catch (Exception ex)
             {
                 _context.ReportError(ex);
                 _context.Result = null;
             }
-
             return false;
         }
 
         private async ValueTask ExecuteResolverPipelineAsync()
         {
-            try
+            await _context.ResolverPipeline(_context).ConfigureAwait(false);
+
+            switch (_context.Result)
             {
-                await _context.ResolverPipeline(_context).ConfigureAwait(false);
-
-                switch (_context.Result)
-                {
-                    case IError error:
-                        _context.ReportError(error);
-                        _context.Result = null;
-                        break;
-
-                    case IEnumerable<IError> errors:
-                        foreach (IError error in errors)
+                case IQueryable queryable:
+                    _context.Result = await Task.Run(() =>
+                    {
+                        var items = new List<object?>();
+                        foreach (object? o in queryable)
                         {
-                            _context.ReportError(error);
+                            items.Add(o);
                         }
-                        _context.Result = null;
-                        break;
-                }
-            }
-            catch (GraphQLException ex)
-            {
-                foreach (IError error in ex.Errors)
-                {
+                        return items;
+                    });
+                    break;
+
+                case IError error:
                     _context.ReportError(error);
-                }
-                _context.Result = null;
-            }
-            catch (Exception ex)
-            {
-                _context.ReportError(ex);
-                _context.Result = null;
+                    _context.Result = null;
+                    break;
+
+                case IEnumerable<IError> errors:
+                    foreach (IError error in errors)
+                    {
+                        _context.ReportError(error);
+                    }
+                    _context.Result = null;
+                    break;
             }
         }
 
-        private void CompleteValue(bool withErrors)
+        private void CompleteValue(bool success)
         {
             object? completedValue = null;
 
             try
             {
                 // we will only try to complete the resolver value if there are no known errors.
-                if (!withErrors)
+                if (success)
                 {
                     if (ValueCompletion.TryComplete(
                         _operationContext,

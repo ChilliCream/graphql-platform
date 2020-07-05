@@ -4,7 +4,7 @@ namespace HotChocolate.Execution.Configuration
 {
     public interface IRequestExecutorBuilder
     {
-        string Name { get; }
+        NameString Name { get; }
 
         IServiceCollection Services { get; }
     }

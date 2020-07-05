@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
+using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Tests
@@ -99,6 +100,35 @@ namespace HotChocolate.Tests
             }
 
             result.MatchSnapshot();
+        }
+
+        public static async Task<T> CreateTypeAsync<T>(T type)
+            where T : INamedType
+        {
+            ISchema schema = await CreateSchemaAsync(type);
+            return schema.GetType<T>(type.Name);
+        }
+
+        public static Task<ISchema> CreateSchemaAsync(
+            INamedType type)
+        {
+            return CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query").Field("foo").Resolver("result"))
+                .AddType(type)
+                .ModifyOptions(o => o.StrictValidation = false));
+        }
+
+        public static async Task<ISchema> CreateSchemaAsync(
+            Action<IRequestExecutorBuilder> configure,
+            bool strict = false)
+        {
+            IRequestExecutor executor = await CreateExecutorAsync(c =>
+            {
+                configure.Invoke(c);
+                c.ModifyOptions(o => o.StrictValidation = strict);
+            });
+            return executor.Schema;
         }
 
         public static async Task<IRequestExecutor> CreateExecutorAsync(

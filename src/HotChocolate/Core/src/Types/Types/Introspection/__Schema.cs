@@ -10,11 +10,10 @@ namespace HotChocolate.Types.Introspection
     {
         protected override void Configure(IObjectTypeDescriptor<ISchema> descriptor)
         {
-            descriptor.Name("__Schema");
-
-            descriptor.Description(TypeResources.Schema_Description);
-
-            descriptor.BindFields(BindingBehavior.Explicit);
+            descriptor
+                .Name("__Schema")
+                .Description(TypeResources.Schema_Description)
+                .BindFields(BindingBehavior.Explicit);
 
             descriptor.Field("description")
                 .Type<StringType>()

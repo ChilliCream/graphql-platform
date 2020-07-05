@@ -1,9 +1,5 @@
 using System;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Utilities;
-using HotChocolate.Execution.Pipeline;
-using System.Collections.Generic;
 using HotChocolate.Validation.Options;
 
 namespace Microsoft.Extensions.DependencyInjection

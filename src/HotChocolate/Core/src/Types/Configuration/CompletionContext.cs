@@ -54,6 +54,8 @@ namespace HotChocolate.Configuration
 
         public bool IsDirective => _initializationContext.IsDirective;
 
+        public bool IsSchema => _initializationContext.IsSchema;
+
         public IServiceProvider Services => _initializationContext.Services;
 
         public IDictionary<string, object> ContextData => _initializationContext.ContextData;

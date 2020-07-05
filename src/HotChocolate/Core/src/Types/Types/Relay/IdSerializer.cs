@@ -24,18 +24,25 @@ namespace HotChocolate.Types.Relay
 
         private static readonly Encoding _utf8 = Encoding.UTF8;
 
+        private readonly bool _includeSchemaName;
+
+        public IdSerializer(bool includeSchemaName = false)
+        {
+            _includeSchemaName = includeSchemaName;
+        }
+
         public string Serialize<T>(NameString typeName, T id) =>
             Serialize(default, typeName, id);
 
         public string Serialize<T>(NameString schemaName, NameString typeName, T id)
         {
-            if (id == null)
+            if (id is null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
             typeName.EnsureNotEmpty(nameof(typeName));
-
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
             string idString = null;
 
@@ -58,7 +65,7 @@ namespace HotChocolate.Types.Relay
 
             int bytesWritten;
 
-            var schemaSize = checked(schemaName.HasValue
+            var schemaSize = checked(_includeSchemaName
                 ? GetAllocationSize(schemaName.Value)
                 : 0);
 
@@ -80,7 +87,7 @@ namespace HotChocolate.Types.Relay
             {
                 var position = 0;
 
-                if (schemaName.HasValue)
+                if (_includeSchemaName)
                 {
                     serialized[position++] = _schema;
                     position += CopyString(schemaName.Value,

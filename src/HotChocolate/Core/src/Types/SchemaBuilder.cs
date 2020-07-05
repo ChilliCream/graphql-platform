@@ -32,7 +32,7 @@ namespace HotChocolate
             new Dictionary<Type, CreateConvention>();
         private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
             new Dictionary<IClrTypeReference, ITypeReference>();
-        private readonly List<Type> _interceptors = new List<Type>();
+        private readonly List<object> _interceptors = new List<object>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -403,6 +403,17 @@ namespace HotChocolate
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_Interceptor_NotSuppported,
                     nameof(interceptor));
+            }
+
+            _interceptors.Add(interceptor);
+            return this;
+        }
+
+        public ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
             }
 
             _interceptors.Add(interceptor);

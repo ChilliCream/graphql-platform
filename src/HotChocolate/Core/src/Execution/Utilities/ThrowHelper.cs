@@ -200,5 +200,10 @@ namespace HotChocolate.Execution.Utilities
                 .SetExtension("fieldName", field.Name)
                 .SetExtension("argumentName", argumentName)
                 .Build());
+
+        public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
+            NameString configurationSchemaName, NameString schemaName) =>
+            throw new InvalidOperationException(
+                "The schema name must allign with the schema name expected by the configuration.");
     }
 }

@@ -22,6 +22,22 @@ namespace HotChocolate.Tests
             return result;
         }
 
+        public static async Task<ISchema> MatchSnapshotAsync(
+            this Task<ISchema> task)
+        {
+            ISchema result = await task;
+            result.Print().MatchSnapshot();
+            return result;
+        }
+
+        public static async ValueTask<ISchema> MatchSnapshotAsync(
+            this ValueTask<ISchema> task)
+        {
+            ISchema result = await task;
+            result.Print().MatchSnapshot();
+            return result;
+        }
+
         public static IExecutionResult MatchSnapshot(
             this IExecutionResult result,
             string snapshotNameExtension)

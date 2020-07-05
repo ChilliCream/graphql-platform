@@ -1,16 +1,6 @@
-﻿schema {
-  query: Query
-}
-
-type Query {
-  foo: String
-}
-
-input FooFilter {
+﻿input FooFilter {
   AND: [FooFilter!]
   bar: Boolean @bar
-  barNullable: Boolean
-  barNullable_not: Boolean
   OR: [FooFilter!]
 }
 
@@ -18,6 +8,3 @@ directive @bar on INPUT_FIELD_DEFINITION
 
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean
-
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String

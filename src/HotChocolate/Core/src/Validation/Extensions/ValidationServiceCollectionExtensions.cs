@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
+using HotChocolate;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -8,16 +9,16 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IValidationBuilder AddValidation(
             this IServiceCollection services,
-            string? schemaName = null)
+            NameString schemaName = default)
         {
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
             services.AddOptions();
             services.TryAddSingleton<IValidationConfiguration, ValidationConfiguration>();
             services.TryAddSingleton(sp => new DocumentValidatorContextPool(8));
             services.TryAddSingleton<IDocumentValidatorFactory, DefaultDocumentValidatorFactory>();
 
-            var builder = new DefaultValidationBuilder(
-                schemaName ?? Options.Options.DefaultName,
-                services);
+            var builder = new DefaultValidationBuilder(schemaName, services);
 
             builder
                 .AddDocumentRules()

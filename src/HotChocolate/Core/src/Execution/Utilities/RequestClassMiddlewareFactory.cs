@@ -12,9 +12,9 @@ namespace HotChocolate.Execution.Utilities
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
 
-        private static readonly PropertyInfo _getConfigName =
+        private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
-                .GetProperty(nameof(IRequestCoreMiddlewareContext.Name))!;
+                .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
 
         private static readonly PropertyInfo _requestServices =
             typeof(IRequestContext)
@@ -63,21 +63,21 @@ namespace HotChocolate.Execution.Utilities
             Expression context,
             IRequestExecutorOptionsAccessor options)
         {
-            Expression configName = Expression.Property(context, _getConfigName);
+            Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
             Expression activator = Expression.Property(context, _activator);
             Expression errorHandler = Expression.Property(context, _errorHandler);
             Expression validatorFactory = Expression.Convert(Expression.Call(
                 services, _getService, Expression.Constant(_validatorFactory)), _validatorFactory);
             Expression getValidator = Expression.Call(
-                validatorFactory, _createValidator, configName);
+                validatorFactory, _createValidator, schemaName);
 
             var list = new List<IParameterHandler>();
             list.Add(new TypeParameterHandler(typeof(IDocumentValidator), getValidator));
             list.Add(new TypeParameterHandler(typeof(IActivator), activator));
             list.Add(new TypeParameterHandler(typeof(IErrorHandler), errorHandler));
             AddOptions(list, options);
-            list.Add(new ConfigNameParameterHandler(configName));
+            list.Add(new SchemaNameParameterHandler(schemaName));
             list.Add(new ServiceParameterHandler(services));
             return list;
         }
@@ -110,24 +110,24 @@ namespace HotChocolate.Execution.Utilities
                 Expression.Constant(options)));
         }
 
-        private class ConfigNameParameterHandler : IParameterHandler
+        private class SchemaNameParameterHandler : IParameterHandler
         {
-            private Expression _configName;
+            private Expression _schemaName;
 
-            public ConfigNameParameterHandler(Expression configName)
+            public SchemaNameParameterHandler(Expression schemaName)
             {
-                _configName = configName;
+                _schemaName = schemaName;
             }
 
             public bool CanHandle(ParameterInfo parameter)
             {
-                return parameter.ParameterType == typeof(string) &&
-                    parameter.Name == "configName";
+                return parameter.ParameterType == typeof(NameString) &&
+                    parameter.Name == "schemaName";
             }
 
             public Expression CreateExpression(ParameterInfo parameter)
             {
-                return _configName;
+                return _schemaName;
             }
         }
     }

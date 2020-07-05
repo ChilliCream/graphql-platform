@@ -9,20 +9,20 @@ namespace HotChocolate.Execution
         : IRequestCoreMiddlewareContext
     {
         public RequestCoreMiddlewareContext(
-            string name,
+            NameString schemaName,
             IServiceProvider services,
             IActivator activator,
             IErrorHandler errorHandler,
             IRequestExecutorOptionsAccessor options)
         {
-            Name = name;
+            SchemaName = schemaName;
             Services = services;
             Activator = activator;
             ErrorHandler = errorHandler;
             Options = options;
         }
 
-        public string Name { get; }
+        public NameString SchemaName { get; }
 
         public IServiceProvider Services { get; }
 
