@@ -17,16 +17,21 @@ namespace HotChocolate
     {
         public Schema Create()
         {
-            IServiceProvider services = _services
-                ?? new EmptyServiceProvider();
+            IServiceProvider services = _services ?? new EmptyServiceProvider();
 
             var descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
-                CreateConventions(services));
+                CreateConventions(services),
+                _contextData);
+
+            foreach (Action<IDescriptorContext> action in _onBeforeCreate)
+            {
+                action(descriptorContext);
+            }
 
             IBindingLookup bindingLookup =
-                 _bindingCompiler.Compile(descriptorContext);
+                _bindingCompiler.Compile(descriptorContext);
 
             IReadOnlyCollection<ITypeReference> types =
                 GetTypeReferences(services, bindingLookup);
@@ -156,7 +161,6 @@ namespace HotChocolate
             var initializer = new TypeInitializer(
                 services,
                 descriptorContext,
-                _contextData,
                 types,
                 _resolverTypes,
                 interceptor,

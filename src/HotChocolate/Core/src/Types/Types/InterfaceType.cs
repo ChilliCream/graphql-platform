@@ -89,7 +89,7 @@ namespace HotChocolate.Types
             ResolveConcreteType(context, resolverResult);
 
         protected override InterfaceTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = InterfaceTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -104,7 +104,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InterfaceTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InterfaceTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -133,7 +133,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteAbstractTypeResolver(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ResolveAbstractType? resolveAbstractType)
         {
             if (resolveAbstractType == null)

@@ -54,7 +54,7 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
-        internal void CompleteField(ICompletionContext context)
+        internal void CompleteField(ITypeCompletionContext context)
         {
             OnCompleteField(context, _definition!);
 
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             DeclaringType = context.Type;

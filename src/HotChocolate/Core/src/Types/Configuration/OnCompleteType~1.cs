@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate void OnCompleteType<T>(
-        ICompletionContext context,
+        ITypeCompletionContext context,
         T? definition,
         IDictionary<string, object?> contextData)
         where T : DefinitionBase;

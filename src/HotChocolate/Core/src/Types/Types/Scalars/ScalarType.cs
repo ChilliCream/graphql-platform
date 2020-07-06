@@ -207,7 +207,7 @@ namespace HotChocolate.Types
         /// </returns>
         public abstract bool TryDeserialize(object? serialized, out object? value);
 
-        internal sealed override void Initialize(IInitializationContext context)
+        internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
             context.Interceptor.OnBeforeRegisterDependencies(context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
@@ -216,12 +216,12 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             IDictionary<string, object?> contextData)
         {
         }
 
-        internal sealed override void CompleteName(ICompletionContext context)
+        internal sealed override void CompleteName(ITypeCompletionContext context)
         {
             context.Interceptor.OnBeforeCompleteName(context, null, _contextData);
             OnCompleteName(context, _contextData);
@@ -230,12 +230,12 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object?> contextData)
         {
         }
 
-        internal sealed override void CompleteType(ICompletionContext context)
+        internal sealed override void CompleteType(ITypeCompletionContext context)
         {
             context.Interceptor.OnBeforeCompleteType(context, null, _contextData);
             OnCompleteType(context, _contextData);
@@ -244,7 +244,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object?> contextData)
         {
             Directives = DirectiveCollection.CreateAndComplete(

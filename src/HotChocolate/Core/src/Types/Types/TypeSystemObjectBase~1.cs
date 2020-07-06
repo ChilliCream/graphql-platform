@@ -23,11 +23,7 @@ namespace HotChocolate.Types
         {
             get
             {
-                if (_contextData is null)
-                {
-                    throw new TypeInitializationException();
-                }
-                return _contextData;
+                return _contextData ?? throw new TypeInitializationException();
             }
         }
 
@@ -39,7 +35,7 @@ namespace HotChocolate.Types
             }
         }
 
-        internal sealed override void Initialize(IInitializationContext context)
+        internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
             _definition = CreateDefinition(context);
 
@@ -60,15 +56,15 @@ namespace HotChocolate.Types
         }
 
         protected abstract TDefinition CreateDefinition(
-            IInitializationContext context);
+            ITypeDiscoveryContext context);
 
         protected virtual void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
         }
 
-        internal sealed override void CompleteName(ICompletionContext context)
+        internal sealed override void CompleteName(ITypeCompletionContext context)
         {
             if (_definition is null)
             {
@@ -99,7 +95,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             if (definition.Name.HasValue)
@@ -108,7 +104,7 @@ namespace HotChocolate.Types
             }
         }
 
-        internal sealed override void CompleteType(ICompletionContext context)
+        internal sealed override void CompleteType(ITypeCompletionContext context)
         {
             if (_definition is null)
             {
@@ -133,13 +129,13 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
         }
 
         private static void RegisterConfigurationDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
             foreach (var group in definition.GetConfigurations()
@@ -153,7 +149,7 @@ namespace HotChocolate.Types
         }
 
         private static void ExecuteConfigurations(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition,
             ApplyConfigurationOn kind)
         {
@@ -165,7 +161,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
@@ -174,7 +170,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
@@ -183,7 +179,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
@@ -192,7 +188,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
@@ -201,7 +197,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
@@ -210,7 +206,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {

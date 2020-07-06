@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class TypeDependency
@@ -15,8 +17,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
             ITypeReference typeReference,
             TypeDependencyKind kind)
         {
-            TypeReference = typeReference
-                ?? throw new ArgumentNullException(nameof(typeReference));
+            TypeReference = typeReference ?? 
+                throw new ArgumentNullException(nameof(typeReference));
             Kind = kind;
         }
 

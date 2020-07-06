@@ -41,7 +41,7 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        internal void CompleteCollection(ICompletionContext context)
+        internal void CompleteCollection(ITypeCompletionContext context)
         {
             if (context == null)
             {
@@ -66,7 +66,7 @@ namespace HotChocolate.Types
         }
 
         private bool TryCompleteDirective(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DirectiveDefinition definition,
             ISet<string> processed,
             out Directive directive)
@@ -112,7 +112,7 @@ namespace HotChocolate.Types
             return directive != null;
         }
 
-        private void ValidateArguments(ICompletionContext context, Directive directive)
+        private void ValidateArguments(ITypeCompletionContext context, Directive directive)
         {
             Dictionary<string, ArgumentNode> arguments =
                 directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
@@ -191,7 +191,7 @@ namespace HotChocolate.Types
         }
 
         public static DirectiveCollection CreateAndComplete(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {

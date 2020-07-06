@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    public interface ICompletionContext
+    public interface ITypeCompletionContext
         : ITypeSystemObjectContext
     {
         bool? IsQueryType { get; }

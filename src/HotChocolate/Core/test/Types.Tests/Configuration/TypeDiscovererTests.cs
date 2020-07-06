@@ -27,7 +27,6 @@ namespace HotChocolate.Configuration
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -68,7 +67,6 @@ namespace HotChocolate.Configuration
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -112,7 +110,6 @@ namespace HotChocolate.Configuration
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 

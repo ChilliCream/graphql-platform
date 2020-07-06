@@ -63,7 +63,7 @@ namespace HotChocolate.Types
         public MemberInfo? ClrMember => Member;
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteExecutableDirectives(
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
             var processed = new HashSet<string>();
 
@@ -101,7 +101,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolver(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
             bool isIntrospectionField = IsIntrospectionField

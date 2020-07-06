@@ -18,21 +18,18 @@ namespace HotChocolate.Configuration
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
         private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
-        private readonly IDictionary<string, object> _contextData;
         private readonly ITypeInitializationInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
             IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
             ITypeInitializationInterceptor interceptor,
             IServiceProvider services)
         {
             _registered = registeredTypes;
             _clrTypeReferences = clrTypeReferences;
             _descriptorContext = descriptorContext;
-            _contextData = contextData;
             _interceptor = interceptor;
             _serviceFactory.Services = services;
         }
@@ -157,11 +154,10 @@ namespace HotChocolate.Configuration
         {
             try
             {
-                var initializationContext = new InitializationContext(
+                var initializationContext = new TypeDiscoveryContext(
                     typeSystemObject,
                     _serviceFactory.Services,
                     _descriptorContext,
-                    _contextData,
                     _interceptor);
 
                 typeSystemObject.Initialize(initializationContext);

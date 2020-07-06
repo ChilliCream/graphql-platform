@@ -21,10 +21,10 @@ namespace HotChocolate.Configuration
     {
         private static readonly TypeInspector _typeInspector =
             new TypeInspector();
-        private readonly List<InitializationContext> _initContexts =
-            new List<InitializationContext>();
-        private readonly Dictionary<RegisteredType, CompletionContext> _completionContext =
-            new Dictionary<RegisteredType, CompletionContext>();
+        private readonly List<TypeDiscoveryContext> _initContexts =
+            new List<TypeDiscoveryContext>();
+        private readonly Dictionary<RegisteredType, TypeCompletionContext> _completionContext =
+            new Dictionary<RegisteredType, TypeCompletionContext>();
         private readonly Dictionary<NameString, ITypeReference> _named =
             new Dictionary<NameString, ITypeReference>();
         private readonly Dictionary<ITypeReference, ITypeReference> _dependencyLookup =
@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration
         private readonly IDescriptorContext _descriptorContext;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
-        private readonly IDictionary<string, object> _contextData;
+        private readonly IDictionary<string, object?> _contextData;
         private readonly ITypeInitializationInterceptor _interceptor;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
@@ -46,7 +46,6 @@ namespace HotChocolate.Configuration
         public TypeInitializer(
             IServiceProvider services,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
             ITypeInitializationInterceptor interceptor,
@@ -55,7 +54,7 @@ namespace HotChocolate.Configuration
         {
             _services = services;
             _descriptorContext = descriptorContext;
-            _contextData = contextData;
+            _contextData = _descriptorContext.ContextData;
             _initialTypes = initialTypes.ToList();
             _externalResolverTypes = externalResolverTypes.ToList();
             _interceptor = interceptor;
@@ -97,7 +96,6 @@ namespace HotChocolate.Configuration
                 new HashSet<ITypeReference>(_initialTypes),
                 ClrTypes,
                 _descriptorContext,
-                _contextData,
                 _interceptor,
                 _services);
 
@@ -163,7 +161,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterResolvers(DiscoveredTypes discoveredTypes)
         {
-            foreach (InitializationContext context in
+            foreach (TypeDiscoveryContext context in
                 discoveredTypes.Types.Select(t => t.InitializationContext))
             {
                 foreach (FieldReference reference in context.Resolvers.Keys)
@@ -226,7 +224,7 @@ namespace HotChocolate.Configuration
                             .Build());
                     }
 
-                    InitializationContext initContext = extension.InitializationContext;
+                    TypeDiscoveryContext initContext = extension.InitializationContext;
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
                         _resolvers[reference]
@@ -234,7 +232,7 @@ namespace HotChocolate.Configuration
                     }
 
                     // merge
-                    CompletionContext context = _completionContext[extension];
+                    TypeCompletionContext context = _completionContext[extension];
                     context.Status = TypeStatus.Named;
                     m.Merge(context, targetType);
 
@@ -249,8 +247,8 @@ namespace HotChocolate.Configuration
         }
 
         private static void CopyAlternateNames(
-            CompletionContext source,
-            CompletionContext destination)
+            TypeCompletionContext source,
+            TypeCompletionContext destination)
         {
             foreach (NameString name in source.AlternateTypeNames)
             {
@@ -399,11 +397,11 @@ namespace HotChocolate.Configuration
                 TypeDependencyKind.Named,
                 registeredType =>
                 {
-                    InitializationContext initializationContext =
+                    TypeDiscoveryContext initializationContext =
                         _initContexts.First(t =>
                             t.Type == registeredType.Type);
 
-                    var completionContext = new CompletionContext(
+                    var completionContext = new TypeCompletionContext(
                         initializationContext, this,
                         _isOfType, schemaResolver);
 
@@ -464,7 +462,7 @@ namespace HotChocolate.Configuration
                 {
                     if (!registeredType.IsExtension)
                     {
-                        CompletionContext context = _completionContext[registeredType];
+                        TypeCompletionContext context = _completionContext[registeredType];
                         context.Status = TypeStatus.Named;
                         context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
                         registeredType.Type.CompleteType(context);
@@ -671,7 +669,7 @@ namespace HotChocolate.Configuration
         {
             var errors = new List<ISchemaError>(_errors);
 
-            foreach (InitializationContext context in _initContexts)
+            foreach (TypeDiscoveryContext context in _initContexts)
             {
                 errors.AddRange(context.Errors);
             }

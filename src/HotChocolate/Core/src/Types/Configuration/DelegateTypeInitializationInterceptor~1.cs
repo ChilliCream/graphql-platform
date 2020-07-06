@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
             _canHandle(context);
 
         public void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -85,7 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
@@ -96,7 +96,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {

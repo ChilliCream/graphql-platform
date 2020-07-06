@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private ApplyConfigurationOn _on = ApplyConfigurationOn.Naming;
         private TypeDependencyKind _completeKind = TypeDependencyKind.Named;
-        private Action<ICompletionContext, T> _configure;
+        private Action<ITypeCompletionContext, T> _configure;
         private T _definition;
         private readonly List<(ITypeReference r, bool c)> _dependencies =
             new List<(ITypeReference, bool)>();
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public LazyTypeConfigurationBuilder<T> Configure(
-            Action<ICompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             if (configure is null)
             {

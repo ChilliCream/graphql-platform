@@ -15,7 +15,7 @@ namespace HotChocolate.Configuration
         public RegisteredType(
             ITypeReference reference,
             TypeSystemObjectBase type,
-            InitializationContext initializationContext,
+            TypeDiscoveryContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
             bool isInferred)
             : this(new[] { reference }, type, initializationContext, dependencies, isInferred)
@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration
         public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
-            InitializationContext initializationContext,
+            TypeDiscoveryContext initializationContext,
             IReadOnlyList<TypeDependency> dependencies,
             bool isInferred)
         {
@@ -43,7 +43,7 @@ namespace HotChocolate.Configuration
 
         public TypeSystemObjectBase Type { get; }
 
-        public InitializationContext InitializationContext { get; }
+        public TypeDiscoveryContext InitializationContext { get; }
 
         public bool IsInferred { get; }
 

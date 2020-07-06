@@ -11,16 +11,16 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class CompletionContext
-        : ICompletionContext
+    internal sealed class TypeCompletionContext
+        : ITypeCompletionContext
     {
-        private readonly InitializationContext _initializationContext;
+        private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
         private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
 
-        public CompletionContext(
-            InitializationContext initializationContext,
+        public TypeCompletionContext(
+            TypeDiscoveryContext initializationContext,
             TypeInitializer typeInitializer,
             IsOfTypeFallback isOfType,
             Func<ISchema> schemaResolver)

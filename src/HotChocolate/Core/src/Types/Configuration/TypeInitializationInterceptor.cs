@@ -9,42 +9,42 @@ namespace HotChocolate.Configuration
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public virtual void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {

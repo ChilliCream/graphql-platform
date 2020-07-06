@@ -25,7 +25,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -73,7 +72,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -123,7 +121,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -152,7 +149,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),

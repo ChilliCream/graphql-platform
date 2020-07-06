@@ -1595,7 +1595,7 @@ namespace HotChocolate
                 descriptor.Name("ConventionTestType");
                 base.Configure(descriptor);
             }
-            protected override void OnCompleteName(ICompletionContext context, ObjectTypeDefinition definition)
+            protected override void OnCompleteName(ITypeCompletionContext context, ObjectTypeDefinition definition)
             {
                 base.OnCompleteName(context, definition);
                 Context = context.DescriptorContext;
@@ -1706,7 +1706,7 @@ namespace HotChocolate
             : TypeInitializationInterceptor
         {
             public override void OnAfterCompleteType(
-                ICompletionContext context,
+                ITypeCompletionContext context,
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {

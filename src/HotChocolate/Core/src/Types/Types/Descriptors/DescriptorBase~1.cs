@@ -68,15 +68,15 @@ namespace HotChocolate.Types.Descriptors
         }
 
         INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
-            Action<ICompletionContext, T> configure) =>
+            Action<ITypeCompletionContext, T> configure) =>
             OnBeforeNaming(configure);
 
         INamedDependencyDescriptor IDescriptorExtension.OnBeforeNaming(
-            Action<ICompletionContext, DefinitionBase> configure) =>
+            Action<ITypeCompletionContext, DefinitionBase> configure) =>
             OnBeforeNaming(configure);
 
         private INamedDependencyDescriptor OnBeforeNaming(
-           Action<ICompletionContext, T> configure)
+           Action<ITypeCompletionContext, T> configure)
         {
             if (configure == null)
             {
@@ -93,15 +93,15 @@ namespace HotChocolate.Types.Descriptors
         }
 
         ICompletedDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
-            Action<ICompletionContext, T> configure) =>
+            Action<ITypeCompletionContext, T> configure) =>
             OnBeforeCompletion(configure);
 
         ICompletedDependencyDescriptor IDescriptorExtension.OnBeforeCompletion(
-            Action<ICompletionContext, DefinitionBase> configure) =>
+            Action<ITypeCompletionContext, DefinitionBase> configure) =>
             OnBeforeCompletion(configure);
 
         private ICompletedDependencyDescriptor OnBeforeCompletion(
-            Action<ICompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             var configuration = new TypeConfiguration<T>();
             configuration.Definition = Definition;

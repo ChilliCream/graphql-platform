@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
                 context.DescriptorContext,
@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteTypeSet(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             UnionTypeDefinition definition,
             ISet<ObjectType> typeSet)
         {

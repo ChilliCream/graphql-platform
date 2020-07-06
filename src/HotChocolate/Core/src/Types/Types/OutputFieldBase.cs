@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         public string DeprecationReason { get; }
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             base.OnCompleteField(context, definition);

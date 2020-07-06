@@ -33,6 +33,8 @@ namespace HotChocolate
         private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
             new Dictionary<IClrTypeReference, ITypeReference>();
         private readonly List<object> _interceptors = new List<object>();
+        private readonly List<Action<IDescriptorContext>> _onBeforeCreate = 
+            new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -367,27 +369,16 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddContextData(string key, object value)
-        {
-            _contextData.Add(key, value);
-            return this;
-        }
-
         public ISchemaBuilder SetContextData(string key, object value)
         {
             _contextData[key] = value;
             return this;
         }
 
-        public ISchemaBuilder RemoveContextData(string key)
+        public ISchemaBuilder SetContextData(string key, Func<object, object> update)
         {
-            _contextData.Remove(key);
-            return this;
-        }
-
-        public ISchemaBuilder ClearContextData()
-        {
-            _contextData.Clear();
+            _contextData.TryGetValue(key, out var value);
+            _contextData[key] = update(value);
             return this;
         }
 
@@ -420,7 +411,18 @@ namespace HotChocolate
             return this;
         }
 
-        public static SchemaBuilder New() => new SchemaBuilder();
+        public ISchemaBuilder OnBeforeCreate(
+            Action<IDescriptorContext> action)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
 
+            _onBeforeCreate.Add(action);
+            return this;
+        }
+
+        public static SchemaBuilder New() => new SchemaBuilder();
     }
 }

@@ -24,7 +24,6 @@ namespace HotChocolate.Configuration
             ISet<ITypeReference> initialTypes,
             IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
             ITypeInitializationInterceptor interceptor,
             IServiceProvider services)
         {
@@ -39,7 +38,6 @@ namespace HotChocolate.Configuration
                 _registeredTypes,
                 clrTypeReferences,
                 descriptorContext,
-                contextData,
                 interceptor,
                 services);
 
@@ -133,7 +131,7 @@ namespace HotChocolate.Configuration
 
         private void CollectErrors()
         {
-            foreach (InitializationContext context in
+            foreach (TypeDiscoveryContext context in
                 _registeredTypes.Values.Distinct().Select(t => t.InitializationContext))
             {
                 _errors.AddRange(context.Errors);

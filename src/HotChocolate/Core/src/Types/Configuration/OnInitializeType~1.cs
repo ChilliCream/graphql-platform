@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace Microsoft.Extensions.DependencyInjection
 {
     public delegate void OnInitializeType<T>(
-        IInitializationContext context,
+        ITypeDiscoveryContext context,
         T? definition,
         IDictionary<string, object?> contextData)
         where T : DefinitionBase;

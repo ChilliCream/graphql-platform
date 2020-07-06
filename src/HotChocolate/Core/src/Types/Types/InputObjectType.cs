@@ -172,7 +172,7 @@ namespace HotChocolate.Types
         }
 
         protected override InputObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = InputObjectTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -186,7 +186,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -195,7 +195,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -236,7 +236,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {

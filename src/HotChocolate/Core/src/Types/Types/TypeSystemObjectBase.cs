@@ -64,17 +64,17 @@ namespace HotChocolate.Types
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        internal virtual void Initialize(IInitializationContext context)
+        internal virtual void Initialize(ITypeDiscoveryContext context)
         {
             _status = TypeStatus.Initialized;
         }
 
-        internal virtual void CompleteName(ICompletionContext context)
+        internal virtual void CompleteName(ITypeCompletionContext context)
         {
             _status = TypeStatus.Named;
         }
 
-        internal virtual void CompleteType(ICompletionContext context)
+        internal virtual void CompleteType(ITypeCompletionContext context)
         {
             _status = TypeStatus.Completed;
         }

@@ -40,37 +40,37 @@ namespace Microsoft.Extensions.DependencyInjection
             _canHandle(context);
 
         public void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onBeforeRegisterDependencies?.Invoke(context, definition, contextData);
 
         public void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onAfterRegisterDependencies?.Invoke(context, definition, contextData);
 
         public void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onBeforeCompleteName?.Invoke(context, definition, contextData);
 
         public void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onAfterCompleteName?.Invoke(context, definition, contextData);
 
         public void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onBeforeCompleteType?.Invoke(context, definition, contextData);
 
         public void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onAfterCompleteType?.Invoke(context, definition, contextData);

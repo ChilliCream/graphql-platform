@@ -56,7 +56,7 @@ namespace HotChocolate.Types
         public IReadOnlyDictionary<string, object> ContextData =>
             _contextData;
 
-        internal void CompleteValue(ICompletionContext context)
+        internal void CompleteValue(ITypeCompletionContext context)
         {
             var directives = new DirectiveCollection(
                 this, _definition.Directives);
@@ -71,7 +71,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteValue(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             EnumValueDefinition definition)
         {
         }

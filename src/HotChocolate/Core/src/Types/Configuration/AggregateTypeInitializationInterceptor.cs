@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration
         public bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
@@ -39,7 +39,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
@@ -54,7 +54,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
@@ -68,7 +68,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
@@ -82,7 +82,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
@@ -96,7 +96,7 @@ namespace HotChocolate.Configuration
         }
 
         public void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {

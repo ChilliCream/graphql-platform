@@ -201,7 +201,7 @@ namespace HotChocolate.Types
         #region Initialization
 
         protected override EnumTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = EnumTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -213,7 +213,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             EnumTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -222,7 +222,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             EnumTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
