@@ -161,14 +161,6 @@ namespace HotChocolate.Execution.Utilities
                         "have not been coerced.")
                     .Build());
 
-        public static IReadOnlyQueryResult StateInvalidForSubscriptionExecution() =>
-            QueryResultBuilder.CreateError(
-                ErrorBuilder.New()
-                    .SetMessage(
-                        "Either now compiled operation was found or the variables " +
-                        "have not been coerced.")
-                    .Build());
-
         public static IError ValueCompletion_CouldNotResolveAbstractType(
             FieldNode field,
             Path path) =>
