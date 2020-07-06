@@ -33,6 +33,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.RuntimeType = typeof(object);
         }
 
+        public ObjectTypeDescriptor(IDescriptorContext context, ObjectTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
         internal protected override ObjectTypeDefinition Definition { get; } =
             new ObjectTypeDefinition();
 
@@ -300,6 +306,11 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public static ObjectTypeDescriptor From(
+            IDescriptorContext context, 
+            ObjectTypeDefinition definition) =>
+            new ObjectTypeDescriptor(context, definition);
 
         public static ObjectTypeDescriptor New(
             IDescriptorContext context) =>

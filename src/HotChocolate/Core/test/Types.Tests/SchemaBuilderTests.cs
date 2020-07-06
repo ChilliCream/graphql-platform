@@ -1543,6 +1543,47 @@ namespace HotChocolate
             Assert.IsType<TestConvention2>(convention);
         }
 
+        [Fact]
+        public void AggregateState()
+        {
+            int sum = 0;
+            ISchema schema = SchemaBuilder.New()
+                .SetContextData("abc", o => 1)
+                .SetContextData("abc", o => ((int)o) + 1)
+                .SetContextData("abc", o => sum = (int)o)
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+            Assert.Equal(2, sum);
+        }
+
+        [Fact]
+        public void UseStateAndDelayedConfiguration()
+        {
+            SchemaBuilder.New()
+                .SetContextData("name", "QueryRoot")
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .OnBeforeCreate(c => c.ContextData["name"] = c.ContextData["name"] + "1")
+                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                    onAfterRegisterDependencies: (c, d, cd) =>
+                    {
+                        if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
+                        {
+                            ObjectTypeDescriptor
+                                .From(c.DescriptorContext, def)
+                                .Name(c.ContextData["name"].ToString());
+                        }
+                    }))
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1663,7 +1704,7 @@ namespace HotChocolate
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolverOnType
         {
-            public string GetFoo([Parent]object o) => "QueryResolverOnType";
+            public string GetFoo([Parent] object o) => "QueryResolverOnType";
         }
 
         [GraphQLResolverOf("Query")]
