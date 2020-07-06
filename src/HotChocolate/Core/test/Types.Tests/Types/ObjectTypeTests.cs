@@ -9,6 +9,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Moq;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -1473,7 +1474,11 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+            #if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             schema.ToString().MatchSnapshot();
+            #endif
         }
 
         [Fact]

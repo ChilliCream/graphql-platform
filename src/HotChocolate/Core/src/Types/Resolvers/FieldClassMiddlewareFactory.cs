@@ -26,25 +26,25 @@ namespace HotChocolate.Resolvers
                 throw new ArgumentNullException(nameof(services));
             }
 
-            var parameters = new List<IParameterHandler>();
-
-            foreach (object service in services)
-            {
-                if (service is { })
-                {
-                    parameters.Add(new TypeParameterHandler(
-                        service.GetType(),
-                        Expression.Constant(service)));
-                }
-            }
-
             return next =>
             {
+                var parameters = new List<IParameterHandler>();
+
+                foreach (object service in services)
+                {
+                    if (service is { })
+                    {
+                        parameters.Add(new TypeParameterHandler(
+                            service.GetType(),
+                            Expression.Constant(service)));
+                    }
+                }
+
                 MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
                     MiddlewareCompiler<TMiddleware>.CompileFactory<IServiceProvider, FieldDelegate>(
-                        (s, n) =>
+                        (services, next) =>
                         {
-                            parameters.Add(new ServiceParameterHandler(s));
+                            parameters.Add(new ServiceParameterHandler(services));
                             return parameters;
                         });
 
@@ -81,9 +81,9 @@ namespace HotChocolate.Resolvers
 
             ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
                 MiddlewareCompiler<TMiddleware>.CompileDelegate<IMiddlewareContext>(
-                    (c, m) => new List<IParameterHandler>
+                    (context, middleware) => new List<IParameterHandler>
                     {
-                        new ServiceParameterHandler(Expression.Property(c, _services))
+                        new ServiceParameterHandler(Expression.Property(context, _services))
                     });
 
             return context =>
