@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public class TypeReferenceBase
@@ -5,6 +7,7 @@ namespace HotChocolate.Types.Descriptors
     {
         protected TypeReferenceBase(
             TypeContext context,
+            string? scope,
             bool? isTypeNullable,
             bool? isElementTypeNullable)
         {
@@ -14,6 +17,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public TypeContext Context { get; }
+
+        public string? Scope { get; }
 
         public bool? IsTypeNullable { get; }
 

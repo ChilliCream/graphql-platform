@@ -21,6 +21,13 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
+        protected internal InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
         Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(

@@ -30,7 +30,13 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override EnumValueDefinition Definition { get; } =
+        public EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override EnumValueDefinition Definition { get; protected set; } =
             new EnumValueDefinition();
 
         protected override void OnCreateDefinition(EnumValueDefinition definition)
@@ -138,5 +144,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             object value) =>
             new EnumValueDescriptor(context, value);
+
+        public static EnumValueDescriptor From(
+            IDescriptorContext context,
+            EnumValueDefinition definition) =>
+            new EnumValueDescriptor(context, definition);
     }
 }

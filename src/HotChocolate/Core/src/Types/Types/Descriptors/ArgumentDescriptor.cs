@@ -49,6 +49,14 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            ArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
         protected override void OnCreateDefinition(ArgumentDefinition definition)
         {
             if (Definition.Parameter is { })
@@ -154,5 +162,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             ParameterInfo parameter) =>
             new ArgumentDescriptor(context, parameter);
+
+        public static ArgumentDescriptor From(
+            IDescriptorContext context,
+            ArgumentDefinition argumentDefinition) =>
+            new ArgumentDescriptor(context, argumentDefinition);
     }
 }

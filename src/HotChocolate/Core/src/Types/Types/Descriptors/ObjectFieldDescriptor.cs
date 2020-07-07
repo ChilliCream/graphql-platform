@@ -68,7 +68,15 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override ObjectFieldDefinition Definition { get; } =
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            ObjectFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override ObjectFieldDefinition Definition { get; protected set; } =
             new ObjectFieldDefinition();
 
         protected override void OnCreateDefinition(
@@ -278,5 +286,10 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor From(
+            IDescriptorContext context,
+            ObjectFieldDefinition definition) =>
+            new ObjectFieldDescriptor(context, definition);
     }
 }

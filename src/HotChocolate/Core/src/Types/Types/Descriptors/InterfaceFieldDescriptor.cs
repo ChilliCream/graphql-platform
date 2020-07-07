@@ -20,6 +20,14 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
+         public InterfaceFieldDescriptor(
+            IDescriptorContext context,
+            InterfaceFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
         public InterfaceFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member)
@@ -46,7 +54,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override InterfaceFieldDefinition Definition { get; } =
+        internal protected override InterfaceFieldDefinition Definition { get; protected set; } =
             new InterfaceFieldDefinition();
 
         protected override void OnCreateDefinition(
@@ -186,5 +194,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             MemberInfo member) =>
             new InterfaceFieldDescriptor(context, member);
+
+        public static InterfaceFieldDescriptor From(
+            IDescriptorContext context,
+            InterfaceFieldDefinition definition) =>
+            new InterfaceFieldDescriptor(context, definition);
     }
 }

@@ -37,7 +37,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override DirectiveTypeDefinition Definition { get; } =
+        protected DirectiveTypeDescriptor(
+            IDescriptorContext context, 
+            DirectiveTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override DirectiveTypeDefinition Definition { get; protected set; } =
             new DirectiveTypeDefinition();
 
         protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
@@ -204,5 +212,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static DirectiveTypeDescriptor From(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor(context, definition);
+
+        public static DirectiveTypeDescriptor From<T>(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor<T>(context, definition);
     }
 }

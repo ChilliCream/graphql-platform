@@ -35,7 +35,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override InterfaceTypeDefinition Definition { get; } =
+        protected InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override InterfaceTypeDefinition Definition { get; protected set; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -208,5 +216,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static InterfaceTypeDescriptor From(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor(context, definition);
+
+        public static InterfaceTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor<T>(context, definition);
     }
 }

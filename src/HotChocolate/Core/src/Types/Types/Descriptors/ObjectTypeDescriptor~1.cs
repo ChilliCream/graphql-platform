@@ -1,3 +1,5 @@
+using HotChocolate.Types.Descriptors.Definitions;
+
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectTypeDescriptor<T>
@@ -7,6 +9,12 @@ namespace HotChocolate.Types.Descriptors
             : base(context, typeof(T))
         {
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+        }
+
+        public ObjectTypeDescriptor(IDescriptorContext context, ObjectTypeDefinition definition)
+            : base(context, typeof(T))
+        {
+            Definition = definition;
         }
     }
 }

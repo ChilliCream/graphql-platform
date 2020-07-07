@@ -15,6 +15,11 @@ namespace HotChocolate.Types
         private string? _description;
 
         protected TypeSystemObjectBase() { }
+        
+        /// <summary>
+        /// Gets a scope name that was provided by an extension.
+        /// </summary>
+        public string? Scope { get; }
 
         /// <summary>
         /// Gets the GraphQL type name.

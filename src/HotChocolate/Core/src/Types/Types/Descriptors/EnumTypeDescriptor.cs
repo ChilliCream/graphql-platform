@@ -26,7 +26,13 @@ namespace HotChocolate.Types.Descriptors
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        internal protected override EnumTypeDefinition Definition { get; } =
+        protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override EnumTypeDefinition Definition { get; protected set; } =
             new EnumTypeDefinition();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
@@ -170,5 +176,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static EnumTypeDescriptor From(
+            IDescriptorContext context,
+            EnumTypeDefinition definition) =>
+            new EnumTypeDescriptor(context, definition);
+
+        public static EnumTypeDescriptor From<T>(
+            IDescriptorContext context,
+            EnumTypeDefinition definition) =>
+            new EnumTypeDescriptor<T>(context, definition);
     }
 }

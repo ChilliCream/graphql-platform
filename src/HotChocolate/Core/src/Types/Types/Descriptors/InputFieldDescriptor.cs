@@ -19,6 +19,14 @@ namespace HotChocolate.Types.Descriptors
 
         public InputFieldDescriptor(
             IDescriptorContext context,
+            InputFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        public InputFieldDescriptor(
+            IDescriptorContext context,
             PropertyInfo property)
             : base(context)
         {
@@ -147,5 +155,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             PropertyInfo property) =>
             new InputFieldDescriptor(context, property);
+
+        public static InputFieldDescriptor From(
+            IDescriptorContext context,
+            InputFieldDefinition definition) =>
+            new InputFieldDescriptor(context, definition);
     }
 }

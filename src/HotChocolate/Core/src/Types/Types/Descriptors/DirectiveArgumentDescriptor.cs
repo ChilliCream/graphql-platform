@@ -35,6 +35,14 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+         public DirectiveArgumentDescriptor(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
         {
             if (Definition.Property is { })
@@ -125,5 +133,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             PropertyInfo property) =>
             new DirectiveArgumentDescriptor(context, property);
+
+        public static DirectiveArgumentDescriptor From(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition) =>
+            new DirectiveArgumentDescriptor(context, definition);
     }
 }
