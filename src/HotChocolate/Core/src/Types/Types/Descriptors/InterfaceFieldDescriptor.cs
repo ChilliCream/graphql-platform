@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _argumentsInitialized;
 
-        public InterfaceFieldDescriptor(
+        protected internal InterfaceFieldDescriptor(
             IDescriptorContext context,
             NameString fieldName)
             : base(context)
@@ -20,15 +20,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-         public InterfaceFieldDescriptor(
+        protected internal InterfaceFieldDescriptor(
             IDescriptorContext context,
             InterfaceFieldDefinition definition)
             : base(context)
         {
-            Definition = definition;
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        public InterfaceFieldDescriptor(
+        protected internal InterfaceFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member)
             : base(context)

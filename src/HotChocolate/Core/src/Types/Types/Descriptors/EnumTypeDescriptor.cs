@@ -10,14 +10,14 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumTypeDefinition>
         , IEnumTypeDescriptor
     {
-        protected EnumTypeDescriptor(IDescriptorContext context)
+        protected internal EnumTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected internal EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             Definition.RuntimeType = clrType ?? throw new ArgumentNullException(nameof(clrType));
@@ -26,10 +26,10 @@ namespace HotChocolate.Types.Descriptors
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
+        protected internal EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
             : base(context)
         {
-            Definition = definition;
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         internal protected override EnumTypeDefinition Definition { get; protected set; } =

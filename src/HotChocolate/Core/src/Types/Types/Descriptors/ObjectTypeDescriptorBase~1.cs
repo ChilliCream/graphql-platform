@@ -12,13 +12,23 @@ namespace HotChocolate.Types.Descriptors
         , IObjectTypeDescriptor<T>
         , IHasRuntimeType
     {
-        public ObjectTypeDescriptorBase(IDescriptorContext context, Type clrType)
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context, 
+            Type clrType)
             : base(context, clrType)
         {
         }
 
-        public ObjectTypeDescriptorBase(IDescriptorContext context)
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context)
             : base(context)
+        {
+        }
+
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition)
+            : base(context, definition)
         {
         }
 

@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<UnionTypeDefinition>
         , IUnionTypeDescriptor
     {
-        protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected internal UnionTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -21,7 +21,9 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
-        protected UnionTypeDescriptor(IDescriptorContext context, UnionTypeDefinition definition)
+        protected internal UnionTypeDescriptor(
+            IDescriptorContext context,
+            UnionTypeDefinition definition)
             : base(context)
         {
             Definition = definition;

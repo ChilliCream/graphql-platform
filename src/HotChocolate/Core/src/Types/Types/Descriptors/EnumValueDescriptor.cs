@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
 
-        public EnumValueDescriptor(IDescriptorContext context, object value)
+        protected internal EnumValueDescriptor(IDescriptorContext context, object value)
             : base(context)
         {
             if (value == null)
@@ -30,10 +30,10 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
+        protected internal EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
             : base(context)
         {
-            Definition = definition;
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         internal protected override EnumValueDefinition Definition { get; protected set; } =

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<DirectiveTypeDefinition>
         , IDirectiveTypeDescriptor
     {
-        protected DirectiveTypeDescriptor(
+        protected internal DirectiveTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -31,18 +31,18 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
         }
 
-        protected DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        protected DirectiveTypeDescriptor(
-            IDescriptorContext context, 
+        protected internal DirectiveTypeDescriptor(
+            IDescriptorContext context,
             DirectiveTypeDefinition definition)
             : base(context)
         {
-            Definition = definition;
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         internal protected override DirectiveTypeDefinition Definition { get; protected set; } =
@@ -113,7 +113,7 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            descriptor = new DirectiveArgumentDescriptor(
+            descriptor = DirectiveArgumentDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);

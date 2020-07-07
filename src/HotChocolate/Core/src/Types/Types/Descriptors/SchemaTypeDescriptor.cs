@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<SchemaTypeDefinition>
         , ISchemaTypeDescriptor
     {
-        public SchemaTypeDescriptor(IDescriptorContext context, Type type)
+        protected internal SchemaTypeDescriptor(IDescriptorContext context, Type type)
             : base(context)
         {
             if (type == null)
@@ -18,7 +18,9 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetTypeName(type);
         }
 
-        public SchemaTypeDescriptor(IDescriptorContext context, SchemaTypeDefinition definition)
+        protected internal SchemaTypeDescriptor(
+            IDescriptorContext context, 
+            SchemaTypeDefinition definition)
             : base(context)
         {
             Definition = definition;

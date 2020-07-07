@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors
     public class ObjectTypeExtensionDescriptor<T>
         : ObjectTypeDescriptorBase<T>
     {
-        public ObjectTypeExtensionDescriptor(IDescriptorContext context)
+        protected internal ObjectTypeExtensionDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.Name = context.Naming.GetTypeName(typeof(T), TypeKind.Object);
