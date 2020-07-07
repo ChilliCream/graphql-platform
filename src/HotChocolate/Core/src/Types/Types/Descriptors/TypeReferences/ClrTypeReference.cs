@@ -1,27 +1,24 @@
 using System;
-using HotChocolate.Properties;
 using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class ClrTypeReference
-        : TypeReferenceBase
+        : TypeReference
         , IClrTypeReference
         , IEquatable<ClrTypeReference>
         , IEquatable<IClrTypeReference>
     {
         public ClrTypeReference(
-            Type type, TypeContext context)
-            : this(type, context, null, null)
+            Type type,
+            TypeContext context,
+            string? scope = null,
+            bool[]? nullable = null)
+            : base(context, scope, nullable)
         {
-        }
-
-        public ClrTypeReference(
-            Type type, TypeContext context,
-            bool? isTypeNullable, bool? isElementTypeNullable)
-            : base(context, isTypeNullable, isElementTypeNullable)
-        {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Type = type;
         }
 
         public Type Type { get; }
@@ -39,7 +36,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public bool Equals(ClrTypeReference other)
+        public bool Equals(ClrTypeReference? other)
         {
             if (other is null)
             {
@@ -51,19 +48,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (Context != other.Context
-                && Context != TypeContext.None
-                && other.Context != TypeContext.None)
+            if (!IsEqual(other))
             {
                 return false;
             }
 
-            return Type.Equals(other.Type)
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            return Type.Equals(other.Type);
         }
 
-        public bool Equals(IClrTypeReference other)
+        public bool Equals(IClrTypeReference? other)
         {
             if (other is null)
             {
@@ -75,19 +68,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (Context != other.Context
-                && Context != TypeContext.None
-                && other.Context != TypeContext.None)
+            if (!IsEqual(other))
             {
                 return false;
             }
 
-            return Type.Equals(other.Type)
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            return Type.Equals(other.Type);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -116,10 +105,7 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = Type.GetHashCode() * 397;
-                hash = hash ^ (IsTypeNullable?.GetHashCode() ?? 0 * 11);
-                hash = hash ^ (IsElementTypeNullable?.GetHashCode() ?? 0 * 13);
-                return hash;
+                return base.GetHashCode() ^ Type.GetHashCode() * 397;
             }
         }
 
@@ -128,11 +114,22 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type.GetTypeName()}";
         }
 
-        public IClrTypeReference WithoutContext()
+        public IClrTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return new ClrTypeReference(
-                Type, TypeContext.None,
-                IsTypeNullable, IsElementTypeNullable);
+                Type,
+                context,
+                Scope,
+                Nullable);
+        }
+
+        public IClrTypeReference WithScope(string? scope = null)
+        {
+            return new ClrTypeReference(
+                Type,
+                Context,
+                scope,
+                Nullable);
         }
 
         public IClrTypeReference WithType(Type type)
@@ -145,34 +142,26 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(
                 type,
                 Context,
-                IsTypeNullable,
-                IsElementTypeNullable);
+                Scope,
+                Nullable);
         }
 
-        public static ClrTypeReference FromSchemaType<T>()
-            where T : ITypeSystemMember
+        public IClrTypeReference With(
+            Optional<Type> type = default,
+            Optional<TypeContext> context = default,
+            Optional<string?> scope = default,
+            Optional<bool[]?> nullable = default)
         {
+            if (type.HasValue && type.Value is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return new ClrTypeReference(
-                typeof(T),
-                SchemaTypeReference.InferTypeContext(typeof(T)));
-        }
-
-        public static ClrTypeReference FromSchemaType(Type schemaType)
-        {
-            if (schemaType == null)
-            {
-                throw new ArgumentNullException(nameof(schemaType));
-            }
-
-            if (typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
-            {
-                return new ClrTypeReference(
-                    schemaType,
-                    SchemaTypeReference.InferTypeContext(schemaType));
-            }
-
-            throw new ArgumentException(
-                TypeResources.ClrTypeReference_OnlyTsosAreAllowed);
+                type.HasValue ? type.Value! : Type,
+                context.HasValue ? context.Value : Context,
+                scope.HasValue ? scope.Value : Scope,
+                nullable.HasValue ? nullable.Value : Nullable);
         }
     }
 }

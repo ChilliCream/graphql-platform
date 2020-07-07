@@ -652,7 +652,7 @@ namespace HotChocolate.Configuration
                             typeReference.Context);
 
                         if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
-                            || ClrTypes.TryGetValue(n.WithoutContext(), out r)))
+                            || ClrTypes.TryGetValue(n.WithContext(), out r)))
                         {
                             normalized = r;
                             return true;

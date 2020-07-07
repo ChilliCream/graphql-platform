@@ -15,38 +15,38 @@ namespace HotChocolate.Configuration
         {
             if (IsObjectTypeExtension(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(ObjectTypeExtension<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type),
+                    context: TypeContext.Output);
             }
             else if (IsUnionType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(UnionType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(UnionType<>).MakeGenericType(unresolvedType.Type),
+                    context: TypeContext.Output);
             }
             else if (IsInterfaceType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InterfaceType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type),
+                    context: TypeContext.Output);
             }
             else if (IsObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(ObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(ObjectType<>).MakeGenericType(unresolvedType.Type),
+                    context: TypeContext.Output);
             }
             else if (IsInputObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InputObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Input);
+                schemaType = unresolvedType.With(
+                    type: typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type),
+                    context: TypeContext.Input);
             }
             else if (IsEnumType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(EnumType<>)
-                    .MakeGenericType(unresolvedType.Type),
+                schemaType = unresolvedType.With(
+                    typeof(EnumType<>).MakeGenericType(unresolvedType.Type),
                     unresolvedType.Context);
             }
             else
