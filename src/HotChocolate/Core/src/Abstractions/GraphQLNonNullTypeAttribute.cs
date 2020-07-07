@@ -1,5 +1,7 @@
 ﻿using System;
 
+#nullable enable
+
 namespace HotChocolate
 {
     [AttributeUsage(
@@ -9,8 +11,6 @@ namespace HotChocolate
     public sealed class GraphQLNonNullTypeAttribute
         : Attribute
     {
-        public bool IsElementNullable { get; set; }
-
-        public bool IsNullable { get; set; }
+        public bool[]? Nullable { get; set; }
     }
 }

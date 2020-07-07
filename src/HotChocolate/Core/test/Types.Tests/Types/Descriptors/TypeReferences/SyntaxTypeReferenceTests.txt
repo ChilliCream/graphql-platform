@@ -26,15 +26,13 @@ namespace HotChocolate.Types.Descriptors
             var typeReference = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             // assert
             Assert.Equal(typeName, typeReference.Type.ToString());
             Assert.Equal(context, typeReference.Context);
-            Assert.Equal(isTypeNullable, typeReference.IsTypeNullable);
-            Assert.Equal(isElementTypeNullable,
-                typeReference.IsElementTypeNullable);
+            Assert.Equal(isTypeNullable, typeReference.Nullable[0]);
+            Assert.Equal(isElementTypeNullable, typeReference.Nullable[1]);
         }
 
         [InlineData("def", TypeContext.Input, false, null)]
@@ -57,14 +55,12 @@ namespace HotChocolate.Types.Descriptors
             var x = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             var y = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             // act
             bool result = x.Equals(y);
@@ -93,14 +89,12 @@ namespace HotChocolate.Types.Descriptors
             var x = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             ISyntaxTypeReference y = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             // act
             bool result = x.Equals(y);
@@ -129,14 +123,12 @@ namespace HotChocolate.Types.Descriptors
             var x = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             object y = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
             // act
             bool result = x.Equals(y);
@@ -152,14 +144,12 @@ namespace HotChocolate.Types.Descriptors
             var x = new SyntaxTypeReference(
                 new NamedTypeNode("abc"),
                 TypeContext.Input,
-                true,
-                false);
+                nullable: new bool[] { true, false });
 
             var y = new SyntaxTypeReference(
                 new NamedTypeNode("cde"),
                 TypeContext.Input,
-                true,
-                false);
+                nullable: new bool[] { true, false });
 
             // act
             bool result = x.Equals(y);

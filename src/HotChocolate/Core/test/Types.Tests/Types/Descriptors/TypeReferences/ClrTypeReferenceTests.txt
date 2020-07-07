@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
 {
     public class ClrTypeReferenceTests
     {
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
+        [InlineData(typeof(string[]), TypeContext.Input, new bool[] { false })]
         [InlineData(typeof(string[]), TypeContext.Input, null, false)]
         [InlineData(typeof(string), TypeContext.Input, true, false)]
         [InlineData(typeof(string), TypeContext.None, true, false)]
@@ -27,8 +27,7 @@ namespace HotChocolate.Types.Descriptors
             var typeReference = new ClrTypeReference(
                 clrType,
                 context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { true, false });
 
             // assert
             Assert.Equal(clrType, typeReference.Type);
@@ -68,7 +67,7 @@ namespace HotChocolate.Types.Descriptors
                 isElementTypeNullable);
 
             // act
-            IClrTypeReference compiled = typeReference.Compile();
+            IClrTypeReference compiled = typeReference.ApplyNullability();
 
             // assert
             Assert.Equal(rewrittenClrType, compiled.Type);

@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Relay
             base.OnRegisterDependencies(context, definition);
 
             context.RegisterDependency(
-                ClrTypeReference.FromSchemaType<EdgeType<T>>(),
+                TypeReference.Create<EdgeType<T>>(),
                 TypeDependencyKind.Default);
         }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EdgeType = context.GetType<EdgeType<T>>(
-                ClrTypeReference.FromSchemaType<EdgeType<T>>());
+                TypeReference.Create<EdgeType<T>>());
         }
     }
 }

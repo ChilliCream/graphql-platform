@@ -6,16 +6,19 @@ namespace HotChocolate.Types.Descriptors
 {
     public interface IClrTypeReference
         : ITypeReference
+        , IEquatable<IClrTypeReference>
     {
         Type Type { get; }
 
-        IClrTypeReference Compile();
-
-        new IClrTypeReference WithContext(TypeContext context = TypeContext.None);
-
-        new IClrTypeReference WithScope(string? scope = null);
+        IClrTypeReference ApplyNullability();
 
         IClrTypeReference WithType(Type type);
+
+        IClrTypeReference WithContext(TypeContext context = TypeContext.None);
+
+        IClrTypeReference WithScope(string? scope = null);
+
+        IClrTypeReference WithNullable(bool[]? nullable = null);
 
         IClrTypeReference With(
             Optional<Type> type = default,

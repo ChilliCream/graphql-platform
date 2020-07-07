@@ -1,5 +1,7 @@
 using System;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Types.Descriptors.SchemaTypeReference;
 
 #nullable enable
 
@@ -76,6 +78,8 @@ namespace HotChocolate.Types.Descriptors
             return true;
         }
 
+        public abstract bool Equals(ITypeReference? other);
+
         public override int GetHashCode()
         {
             unchecked
@@ -100,16 +104,29 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public static ClrTypeReference FromType<T>(
-            TypeContext? context = null,
+        public static SchemaTypeReference Create(
+            ITypeSystemMember type,
+            string? scope = null,
+            bool[]? nullable = null) =>
+            new SchemaTypeReference(type, scope: scope, nullable: nullable);
+
+        public static SyntaxTypeReference Create(
+            ITypeNode type,
+            TypeContext context = TypeContext.None,
+            string? scope = null,
+            bool[]? nullable = null) =>
+            new SyntaxTypeReference(type, context, scope, nullable);
+
+        public static ClrTypeReference Create<T>(
+            TypeContext context = TypeContext.None,
             string? scope = null,
             bool[]? nullable = null)
             where T : ITypeSystemMember =>
-            FromType(typeof(T));
+            Create(typeof(T), context, scope, nullable);
 
-        public static ClrTypeReference FromType(
+        public static ClrTypeReference Create(
             Type type,
-            TypeContext? context = null,
+            TypeContext context = TypeContext.None,
             string? scope = null,
             bool[]? nullable = null)
         {
@@ -117,7 +134,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return new ClrTypeReference(
                     type,
-                    SchemaTypeReference.InferTypeContext(type),
+                    InferTypeContext(type),
                     scope,
                     nullable);
             }
@@ -125,7 +142,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return new ClrTypeReference(
                     type,
-                    context ?? TypeContext.None,
+                    context,
                     scope,
                     nullable);
             }

@@ -96,9 +96,8 @@ namespace HotChocolate.Types.Descriptors
                 return new ClrTypeReference(
                     returnType,
                     context,
-                    attribute.IsNullable,
-                    attribute.IsElementNullable)
-                    .Compile();
+                    nullable: attribute.Nullable)
+                    .ApplyNullability();
             }
 
             return new ClrTypeReference(returnType, context);
@@ -145,15 +144,14 @@ namespace HotChocolate.Types.Descriptors
                 GraphQLNonNullTypeAttribute attribute =
                     parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
-                return new ClrTypeReference(
+                return TypeReference.Create(
                     argumentType,
                     TypeContext.Input,
-                    attribute.IsNullable,
-                    attribute.IsElementNullable)
-                    .Compile();
+                    nullable: attribute.Nullable)
+                    .ApplyNullability();
             }
 
-            return new ClrTypeReference(argumentType, TypeContext.Input);
+            return TypeReference.Create(argumentType, TypeContext.Input);
         }
 
         private Type GetArgumentTypeInternal(ParameterInfo parameter)

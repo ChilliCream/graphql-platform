@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Descriptors
         : TypeReference
         , IClrTypeReference
         , IEquatable<ClrTypeReference>
-        , IEquatable<IClrTypeReference>
     {
         public ClrTypeReference(
             Type type,
@@ -18,13 +17,14 @@ namespace HotChocolate.Types.Descriptors
             bool[]? nullable = null)
             : base(context, scope, nullable)
         {
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public Type Type { get; }
 
-        public IClrTypeReference Compile()
+        public IClrTypeReference ApplyNullability()
         {
+            /*
             if (IsTypeNullable.HasValue || IsElementTypeNullable.HasValue)
             {
                 Type rewritten = DotNetTypeInfoFactory.Rewrite(
@@ -33,6 +33,7 @@ namespace HotChocolate.Types.Descriptors
                     !(IsElementTypeNullable ?? false));
                 return new ClrTypeReference(rewritten, Context);
             }
+            */
             return this;
         }
 
@@ -68,12 +69,32 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (!IsEqual(other))
+            if (other is ClrTypeReference c)
+            {
+                return Equals(c);
+            }
+
+            return false;
+        }
+
+        public override bool Equals(ITypeReference? other)
+        {
+            if (other is null)
             {
                 return false;
             }
 
-            return Type.Equals(other.Type);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (other is ClrTypeReference c)
+            {
+                return Equals(c);
+            }
+
+            return false;
         }
 
         public override bool Equals(object? obj)
@@ -93,11 +114,6 @@ namespace HotChocolate.Types.Descriptors
                 return Equals(c);
             }
 
-            if (obj is IClrTypeReference ic)
-            {
-                return Equals(ic);
-            }
-
             return false;
         }
 
@@ -112,6 +128,20 @@ namespace HotChocolate.Types.Descriptors
         public override string ToString()
         {
             return $"{Context}: {Type.GetTypeName()}";
+        }
+
+        public IClrTypeReference WithType(Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new ClrTypeReference(
+                type,
+                Context,
+                Scope,
+                Nullable);
         }
 
         public IClrTypeReference WithContext(TypeContext context = TypeContext.None)
@@ -132,18 +162,13 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public IClrTypeReference WithType(Type type)
+        public IClrTypeReference WithNullable(bool[]? nullable = null)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             return new ClrTypeReference(
-                type,
+                Type,
                 Context,
                 Scope,
-                Nullable);
+                nullable);
         }
 
         public IClrTypeReference With(
