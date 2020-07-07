@@ -1,7 +1,7 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Types;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
@@ -28,10 +28,11 @@ namespace HotChocolate.Data.Filters
         IFilterInputTypeDescriptor<T> Description(string value);
 
         /// <summary>
-        /// Defines the filter binding behavior.
-        ///
+        /// <para>Defines the filter binding behavior.</para>
+        /// <para>
         /// The default binding behavior is set to
-        /// <see cref="BindinrBehavior.Implicit"/>.
+        /// <see cref="BindingBehavior.Implicit"/>.
+        /// </para>
         /// </summary>
         /// <param name="bindingBehavior">
         /// The binding behavior.
@@ -58,6 +59,7 @@ namespace HotChocolate.Data.Filters
         /// </summary>
         IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 
+
         /// <summary>
         /// Defines a <see cref="FilterOperationField"> field.
         /// </summary>
@@ -72,8 +74,8 @@ namespace HotChocolate.Data.Filters
         /// <param name="property">
         /// The property for which a field should be created
         /// </param>
-        IFilterOperationFieldDescriptor  Operation<TField>(
-            Expression<Func<T, TField>> property);
+        IFilterMethodDescriptor Method<TField>(
+            Expression<Func<T, TField>> method);
 
         /// <summary>
         /// Defines a <see cref="FilterField"> for the given property.
@@ -83,6 +85,7 @@ namespace HotChocolate.Data.Filters
         /// </param>
         IFilterFieldDescriptor Field<TField>(
             Expression<Func<T, TField>> property);
+
 
         /// <summary>
         /// Ignore the specified property.
@@ -101,7 +104,5 @@ namespace HotChocolate.Data.Filters
         IFilterInputTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
-        public class RequireStruct<TStruct> where TStruct : struct { }
     }
 }
