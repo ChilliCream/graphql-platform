@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Descriptors
                     returnType,
                     context,
                     nullable: attribute.Nullable)
-                    .ApplyNullability();
+                    .Rewrite();
             }
 
             return new ClrTypeReference(returnType, context);
@@ -148,7 +148,7 @@ namespace HotChocolate.Types.Descriptors
                     argumentType,
                     TypeContext.Input,
                     nullable: attribute.Nullable)
-                    .ApplyNullability();
+                    .Rewrite();
             }
 
             return TypeReference.Create(argumentType, TypeContext.Input);

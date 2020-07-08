@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         Type Type { get; }
 
-        IClrTypeReference ApplyNullability();
+        IClrTypeReference Rewrite();
 
         IClrTypeReference WithType(Type type);
 

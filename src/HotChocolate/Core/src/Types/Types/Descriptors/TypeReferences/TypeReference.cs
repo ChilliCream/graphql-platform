@@ -20,6 +20,8 @@ namespace HotChocolate.Types.Descriptors
             bool[]? nullable)
         {
             Context = context;
+            Scope = scope;
+            Nullable = nullable;
         }
 
         /// <summary>
@@ -120,8 +122,7 @@ namespace HotChocolate.Types.Descriptors
         public static ClrTypeReference Create<T>(
             TypeContext context = TypeContext.None,
             string? scope = null,
-            bool[]? nullable = null)
-            where T : ITypeSystemMember =>
+            bool[]? nullable = null) =>
             Create(typeof(T), context, scope, nullable);
 
         public static ClrTypeReference Create(

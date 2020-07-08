@@ -22,19 +22,22 @@ namespace HotChocolate.Types.Descriptors
 
         public Type Type { get; }
 
-        public IClrTypeReference ApplyNullability()
+        public IClrTypeReference Rewrite()
         {
-            /*
-            if (IsTypeNullable.HasValue || IsElementTypeNullable.HasValue)
+            if (Nullable is null)
             {
-                Type rewritten = DotNetTypeInfoFactory.Rewrite(
-                    Type,
-                    !(IsTypeNullable ?? false),
-                    !(IsElementTypeNullable ?? false));
-                return new ClrTypeReference(rewritten, Context);
+                return this;
             }
-            */
-            return this;
+
+            var nullable = new Utilities.Nullable[Nullable.Length];
+
+            for (int i = 0; i < Nullable.Length; i++)
+            {
+                nullable[i] = Nullable[i] ? Utilities.Nullable.Yes : Utilities.Nullable.No;
+            }
+
+            ExtendedType extendedType = ExtendedType.FromType(Type);
+            return WithType(ExtendedTypeRewriter.Rewrite(extendedType, nullable));
         }
 
         public bool Equals(ClrTypeReference? other)
