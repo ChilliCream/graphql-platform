@@ -6,7 +6,6 @@ namespace HotChocolate.Types.Descriptors
 {
     public sealed class SchemaTypeReference
         : TypeReference
-        , ISchemaTypeReference
         , IEquatable<SchemaTypeReference>
     {
         public SchemaTypeReference(
@@ -39,26 +38,6 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return Type.Equals(other.Type);
-        }
-
-        public bool Equals(ISchemaTypeReference? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is SchemaTypeReference str)
-            {
-                return Equals(str);
-            }
-
-            return false;
         }
 
         public override bool Equals(ITypeReference? other)
@@ -114,7 +93,7 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type}";
         }
 
-        public ISchemaTypeReference WithType(ITypeSystemMember type)
+        public SchemaTypeReference WithType(ITypeSystemMember type)
         {
             if (type is null)
             {
@@ -128,7 +107,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISchemaTypeReference WithContext(TypeContext context = TypeContext.None)
+        public SchemaTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return new SchemaTypeReference(
                 Type,
@@ -137,7 +116,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISchemaTypeReference WithScope(string? scope = null)
+        public SchemaTypeReference WithScope(string? scope = null)
         {
             return new SchemaTypeReference(
                 Type,
@@ -146,7 +125,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISchemaTypeReference WithNullable(bool[]? nullable = null)
+        public SchemaTypeReference WithNullable(bool[]? nullable = null)
         {
             return new SchemaTypeReference(
                 Type,
@@ -155,7 +134,7 @@ namespace HotChocolate.Types.Descriptors
                 nullable);
         }
 
-        public ISchemaTypeReference With(
+        public SchemaTypeReference With(
             Optional<ITypeSystemMember> type = default,
             Optional<TypeContext> context = default,
             Optional<string?> scope = default(Optional<string>),

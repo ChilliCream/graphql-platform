@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Descriptors
         [InlineData("abc", TypeContext.Output, true, null)]
         [InlineData("abc", TypeContext.Output, null, null)]
         [Theory]
-        public void ISyntaxTypeReference_Equals_True(
+        public void SyntaxTypeReference_Equals_True(
             string typeName,
             TypeContext context,
             bool? isTypeNullable,
@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Descriptors
                 context,
                 nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
 
-            ISyntaxTypeReference y = new SyntaxTypeReference(
+            SyntaxTypeReference y = new SyntaxTypeReference(
                 new NamedTypeNode(typeName),
                 context,
                 nullable: new bool[] { isTypeNullable ?? false, isElementTypeNullable ?? false });
@@ -159,7 +159,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public void ISyntaxTypeReference_Equals_False()
+        public void SyntaxTypeReference_Equals_False()
         {
             // arrange
             var x = new SyntaxTypeReference(
@@ -168,7 +168,7 @@ namespace HotChocolate.Types.Descriptors
                 true,
                 false);
 
-            ISyntaxTypeReference y = new SyntaxTypeReference(
+            SyntaxTypeReference y = new SyntaxTypeReference(
                 new NamedTypeNode("cde"),
                 TypeContext.Input,
                 true,
@@ -222,7 +222,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public void ISyntaxTypeReference_RefEquals_True()
+        public void SyntaxTypeReference_RefEquals_True()
         {
             // arrange
             var x = new SyntaxTypeReference(
@@ -232,7 +232,7 @@ namespace HotChocolate.Types.Descriptors
                 false);
 
             // act
-            bool result = x.Equals((ISyntaxTypeReference)x);
+            bool result = x.Equals((SyntaxTypeReference)x);
 
             // assert
             Assert.True(result);
@@ -273,7 +273,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public void ISyntaxTypeReference_NullEquals_False()
+        public void SyntaxTypeReference_NullEquals_False()
         {
             // arrange
             var x = new SyntaxTypeReference(
@@ -283,7 +283,7 @@ namespace HotChocolate.Types.Descriptors
                 false);
 
             // act
-            bool result = x.Equals((ISyntaxTypeReference)null);
+            bool result = x.Equals((SyntaxTypeReference)null);
 
             // assert
             Assert.False(result);

@@ -16,13 +16,13 @@ namespace HotChocolate.Configuration
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
         private readonly ITypeInitializationInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
             ITypeInitializationInterceptor interceptor,
             IServiceProvider services)
@@ -91,7 +91,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (typeReference is IClrTypeReference clrTypeReference)
+            if (typeReference is ClrTypeReference clrTypeReference)
             {
                 return _clrTypeReferences.ContainsKey(clrTypeReference);
             }

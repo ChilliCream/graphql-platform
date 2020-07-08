@@ -20,7 +20,7 @@ namespace HotChocolate
             // act
             bool success = SchemaTypeResolver.TryInferSchemaType(
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ClrTypeReference schemaType);
 
             // assert
             Assert.True(success);
@@ -41,7 +41,7 @@ namespace HotChocolate
             // act
             bool success = SchemaTypeResolver.TryInferSchemaType(
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ClrTypeReference schemaType);
 
             // assert
             Assert.True(success);
@@ -60,7 +60,7 @@ namespace HotChocolate
             // act
             bool success = SchemaTypeResolver.TryInferSchemaType(
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ClrTypeReference schemaType);
 
             // assert
             Assert.True(success);
@@ -82,7 +82,7 @@ namespace HotChocolate
             // act
             bool success = SchemaTypeResolver.TryInferSchemaType(
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ClrTypeReference schemaType);
 
             // assert
             Assert.True(success);

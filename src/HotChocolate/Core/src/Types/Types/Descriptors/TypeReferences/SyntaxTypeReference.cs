@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Descriptors
 {
     public sealed class SyntaxTypeReference
         : TypeReference
-        , ISyntaxTypeReference
         , IEquatable<SyntaxTypeReference>
     {
         public SyntaxTypeReference(
@@ -41,26 +40,6 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return Type.IsEqualTo(other.Type);
-        }
-
-        public bool Equals(ISyntaxTypeReference? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is SyntaxTypeReference c)
-            {
-                return Equals(c);
-            }
-
-            return false;
         }
 
         public override bool Equals(ITypeReference? other)
@@ -116,7 +95,7 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type}";
         }
 
-        public ISyntaxTypeReference WithType(ITypeNode type)
+        public SyntaxTypeReference WithType(ITypeNode type)
         {
             if (type is null)
             {
@@ -130,7 +109,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
+        public SyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return new SyntaxTypeReference(
                 Type, 
@@ -139,7 +118,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISyntaxTypeReference WithScope(string? scope = null)
+        public SyntaxTypeReference WithScope(string? scope = null)
         {
             return new SyntaxTypeReference(
                 Type, 
@@ -148,7 +127,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public ISyntaxTypeReference WithNullable(bool[]? nullable = null)
+        public SyntaxTypeReference WithNullable(bool[]? nullable = null)
         {
             return new SyntaxTypeReference(
                 Type, 
@@ -157,7 +136,7 @@ namespace HotChocolate.Types.Descriptors
                 nullable);
         }
 
-        public ISyntaxTypeReference With(
+        public SyntaxTypeReference With(
             Optional<ITypeNode> type = default, 
             Optional<TypeContext> context = default, 
             Optional<string?> scope = default, 

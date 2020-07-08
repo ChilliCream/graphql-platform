@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Descriptors
             ITypeReference typeReference,
             Type type)
         {
-            if (typeReference is ISchemaTypeReference)
+            if (typeReference is SchemaTypeReference)
             {
                 return false;
             }
@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (typeReference is IClrTypeReference clr
+            if (typeReference is ClrTypeReference clr
                 && !BaseTypes.IsSchemaType(clr.Type))
             {
                 return true;
@@ -61,14 +61,14 @@ namespace HotChocolate.Types.Descriptors
            ITypeReference typeReference,
            ITypeNode typeNode)
         {
-            if (typeReference is ISchemaTypeReference)
+            if (typeReference is SchemaTypeReference)
             {
                 return false;
             }
 
             return typeNode != null
                 && (typeReference == null
-                    || typeReference is ISyntaxTypeReference);
+                    || typeReference is SyntaxTypeReference);
         }
     }
 }

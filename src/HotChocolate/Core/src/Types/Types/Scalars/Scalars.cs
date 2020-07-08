@@ -7,8 +7,8 @@ namespace HotChocolate.Types
 {
     public static class Scalars
     {
-        private static readonly Dictionary<Type, IClrTypeReference> _lookup =
-            new Dictionary<Type, IClrTypeReference>
+        private static readonly Dictionary<Type, ClrTypeReference> _lookup =
+            new Dictionary<Type, ClrTypeReference>
             {
                 { typeof(string), new ClrTypeReference(
                     typeof(StringType), TypeContext.None) },
@@ -48,8 +48,8 @@ namespace HotChocolate.Types
                     typeof(TimeSpanType), TypeContext.None) },
             };
 
-        private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
-           new Dictionary<NameString, IClrTypeReference>
+        private static readonly Dictionary<NameString, ClrTypeReference> _nameLookup =
+           new Dictionary<NameString, ClrTypeReference>
            {
                 { ScalarNames.String, new ClrTypeReference(
                     typeof(StringType), TypeContext.None) },
@@ -119,7 +119,7 @@ namespace HotChocolate.Types
 
         internal static bool TryGetScalar(
             Type clrType,
-            out IClrTypeReference schemaType)
+            out ClrTypeReference schemaType)
         {
             if (clrType == null)
             {
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
 
         internal static bool TryGetScalar(
             NameString typeName,
-            out IClrTypeReference schemaType)
+            out ClrTypeReference schemaType)
         {
             return _nameLookup.TryGetValue(
                 typeName.EnsureNotEmpty(nameof(typeName)),

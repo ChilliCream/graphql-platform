@@ -21,7 +21,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
@@ -61,7 +61,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
@@ -104,7 +104,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,

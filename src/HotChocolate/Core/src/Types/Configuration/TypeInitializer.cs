@@ -68,8 +68,8 @@ namespace HotChocolate.Configuration
 
         public DiscoveredTypes? DiscoveredTypes => _discoveredTypes;
 
-        public IDictionary<IClrTypeReference, ITypeReference> ClrTypes { get; } =
-            new Dictionary<IClrTypeReference, ITypeReference>();
+        public IDictionary<ClrTypeReference, ITypeReference> ClrTypes { get; } =
+            new Dictionary<ClrTypeReference, ITypeReference>();
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers => _resolvers;
 
@@ -600,7 +600,7 @@ namespace HotChocolate.Configuration
 
             switch (typeReference)
             {
-                case IClrTypeReference r:
+                case ClrTypeReference r:
                     if (TryNormalizeClrReference(r, out ITypeReference? cnr))
                     {
                         _dependencyLookup[typeReference] = cnr!;
@@ -609,13 +609,13 @@ namespace HotChocolate.Configuration
                     }
                     break;
 
-                case ISchemaTypeReference r:
+                case SchemaTypeReference r:
                     var internalReference = new ClrTypeReference(r.Type.GetType(), r.Context);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
 
-                case ISyntaxTypeReference r:
+                case SyntaxTypeReference r:
                     if (_named.TryGetValue(r.Type.NamedType().Name.Value, out ITypeReference? snr))
                     {
                         _dependencyLookup[typeReference] = snr;
@@ -630,7 +630,7 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryNormalizeClrReference(
-            IClrTypeReference typeReference,
+            ClrTypeReference typeReference,
             out ITypeReference? normalized)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)

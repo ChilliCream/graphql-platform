@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Utilities;
 using Xunit;
+using Nullable = System.Nullable;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -25,7 +26,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create(
+            ClrTypeReference typeReference = TypeReference.Create(
                 clrType,
                 context,
                 scope: scope,
@@ -43,18 +44,18 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create<int>(
+            ClrTypeReference typeReference = TypeReference.Create<int>(
                 TypeContext.Input,
                 scope: "abc",
                 nullable: new bool[] { true, false });
 
             // assert
             Assert.Equal(typeof(int), typeReference.Type);
-            Assert.Equal(TypeContext.None, typeReference.Context);
+            Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable,
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(typeReference.Nullable!,
+                Assert.True,
+                Assert.False);
         }
 
         [Fact]
@@ -62,7 +63,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create(
+            ClrTypeReference typeReference = TypeReference.Create(
                 typeof(ObjectType<string>),
                 scope: "abc",
                 nullable: new bool[] { true, false });
@@ -71,9 +72,9 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeof(ObjectType<string>), typeReference.Type);
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable,
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(typeReference.Nullable!,
+                Assert.True,
+                Assert.False);
         }
 
         [Fact]
@@ -81,18 +82,18 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create(
+            ClrTypeReference typeReference = TypeReference.Create(
                 typeof(InputObjectType<string>),
                 scope: "abc",
                 nullable: new bool[] { true, false });
 
             // assert
             Assert.Equal(typeof(InputObjectType<string>), typeReference.Type);
-            Assert.Equal(TypeContext.Output, typeReference.Context);
+            Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable,
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(typeReference.Nullable!,
+                Assert.True,
+                Assert.False);
         }
 
         [Fact]
@@ -100,7 +101,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create<ObjectType<string>>(
+            ClrTypeReference typeReference = TypeReference.Create<ObjectType<string>>(
                 scope: "abc",
                 nullable: new bool[] { true, false });
 
@@ -108,9 +109,9 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeof(ObjectType<string>), typeReference.Type);
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable,
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(typeReference.Nullable!,
+                Assert.True,
+                Assert.False);
         }
 
         [Fact]
@@ -118,28 +119,40 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            var typeReference = TypeReference.Create<InputObjectType<string>>(
+            ClrTypeReference typeReference = TypeReference.Create<InputObjectType<string>>(
                 scope: "abc",
                 nullable: new bool[] { true, false });
 
             // assert
             Assert.Equal(typeof(InputObjectType<string>), typeReference.Type);
-            Assert.Equal(TypeContext.Output, typeReference.Context);
+            Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable,
-                t => Assert.True(t),
-                t => Assert.False(t));
+            Assert.Collection(typeReference.Nullable!,
+                Assert.True,
+                Assert.False);
         }
 
 
         [InlineData(
-            typeof(string), 
-            new bool [] { false }, 
+            typeof(string),
+            new bool[] { false },
             typeof(NonNullType<NativeType<string>>))]
         [InlineData(
-            typeof(List<List<string>>), 
-            new bool [] { false, true, false }, 
+            typeof(string),
+            new bool[] { true },
+            typeof(string))]
+        [InlineData(
+            typeof(string),
+            null,
+            typeof(string))]
+        [InlineData(
+            typeof(List<List<string>>),
+            new bool[] { false, true, false },
             typeof(NonNullType<NativeType<List<List<NonNullType<NativeType<string>>>>>>))]
+        [InlineData(
+            typeof(List<List<string>>),
+            new bool[] { false },
+            typeof(NonNullType<NativeType<List<List<string>>>>))]
         [Theory]
         public void ClrTypeReference_RewriteType(
             Type type,
@@ -147,489 +160,737 @@ namespace HotChocolate.Types.Descriptors
             Type expectedRewrittenType)
         {
             // arrange
-            var typeReference = TypeReference.Create(
+            ClrTypeReference typeReference = TypeReference.Create(
                 type,
                 nullable: nullable);
 
             // act
-            var rewritten = typeReference.Rewrite();
+            ClrTypeReference rewritten = typeReference.Rewrite();
 
             // assert
-            string s = rewritten.Type.GetTypeName();
+            var s = rewritten.Type.GetTypeName();
             Assert.Equal(expectedRewrittenType.GetTypeName(), rewritten.Type.GetTypeName());
         }
 
-        /*
-
-
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void ClrTypeReference_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
+        [Fact]
+        public void ClrTypeReference_Equals_To_Null()
         {
             // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            // act
+            var result = x.Equals((ClrTypeReference)null);
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void ClrTypeReference_Equals_To_Same()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            // act
+            var xx = x.Equals((ClrTypeReference)x);
+
+            // assert
+            Assert.True(xx);
+        }
+
+        [Fact]
+        public void ClrTypeReference_Equals_Context_None_Does_Not_Matter()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
 
             var y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+                typeof(string),
+                TypeContext.Output);
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
 
             // act
-            bool result = x.Equals(y);
+            var xy = x.Equals(y);
+            var xz = x.Equals(z);
+            var yz = y.Equals(z);
 
             // assert
-            Assert.True(result);
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
         }
 
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void ClrTypeReference_CtxNone_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
+        [Fact]
+        public void ClrTypeReference_Equals_Scope_Different()
         {
             // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                scope: "a");
 
             var y = new ClrTypeReference(
-                clrType,
-                TypeContext.None,
-                isTypeNullable,
-                isElementTypeNullable);
+                typeof(string),
+                TypeContext.Output,
+                scope: "a");
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
 
             // act
-            bool result = x.Equals(y);
+            var xy = x.Equals(y);
+            var xz = x.Equals(z);
+            var yz = y.Equals(z);
 
             // assert
-            Assert.True(result);
-        }
-
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void IClrTypeReference_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            IClrTypeReference y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void IClrTypeReference_CtxNone_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            IClrTypeReference y = new ClrTypeReference(
-                clrType,
-                TypeContext.None,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void Object_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            IClrTypeReference y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
-        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
-        [InlineData(typeof(string), TypeContext.None, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Output, false, true)]
-        [InlineData(typeof(string), TypeContext.Output, null, true)]
-        [InlineData(typeof(string), TypeContext.Output, true, null)]
-        [InlineData(typeof(string), TypeContext.Output, null, null)]
-        [Theory]
-        public void Object_CtxNone_Equals_True(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            IClrTypeReference y = new ClrTypeReference(
-                clrType,
-                TypeContext.None,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
         }
 
         [Fact]
-        public void ClrTypeReference_EqualsToNull_False()
+        public void ClrTypeReference_Equals_Nullability()
         {
             // arrange
-            var x = new ClrTypeReference(
+            ClrTypeReference x = TypeReference.Create(
                 typeof(string),
                 TypeContext.None,
-                true,
-                false);
+                nullable: new bool[] { true, false });
 
-            // act
-            bool result = x.Equals((ClrTypeReference)null);
-
-            // assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IClrTypeReference_EqualsToNull_False()
-        {
-            // arrange
-            var x = new ClrTypeReference(
+            var y = new ClrTypeReference(
                 typeof(string),
-                TypeContext.None,
-                true,
-                false);
+                TypeContext.Output,
+                nullable: new bool[] { false, false });
 
-            // act
-            bool result = x.Equals((IClrTypeReference)null);
-
-            // assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void Object_EqualsToNull_False()
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                typeof(string),
-                TypeContext.None,
-                true,
-                false);
-
-            // act
-            bool result = x.Equals((object)null);
-
-            // assert
-            Assert.False(result);
-        }
-
-        [InlineData(typeof(string), TypeContext.None, true, null)]
-        [InlineData(typeof(string), TypeContext.None, null, false)]
-        [InlineData(typeof(string), TypeContext.None, true, true)]
-        [InlineData(typeof(string), TypeContext.None, false, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(int), TypeContext.None, true, false)]
-        [InlineData(typeof(object), TypeContext.None, true, false)]
-        [Theory]
-        public void ClrTypeReference_EqualsToDifferent_False(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
+            var z = new ClrTypeReference(
                 typeof(string),
                 TypeContext.Input,
-                true,
-                false);
-
-            var y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+                nullable: new bool[] { true, false });
 
             // act
-            bool result = x.Equals((ClrTypeReference)y);
+            var xy = x.Equals(y);
+            var xz = x.Equals(z);
+            var yz = y.Equals(z);
 
             // assert
-            Assert.False(result);
+            Assert.False(xy);
+            Assert.True(xz);
+            Assert.False(yz);
         }
 
-        [InlineData(typeof(string), TypeContext.None, true, null)]
-        [InlineData(typeof(string), TypeContext.None, null, false)]
-        [InlineData(typeof(string), TypeContext.None, true, true)]
-        [InlineData(typeof(string), TypeContext.None, false, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(int), TypeContext.None, true, false)]
-        [InlineData(typeof(object), TypeContext.None, true, false)]
-        [Theory]
-        public void IClrTypeReference_EqualsToDifferent_False(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
+        [Fact]
+        public void ITypeReference_Equals_To_Null()
         {
             // arrange
-            var x = new ClrTypeReference(
+            ClrTypeReference x = TypeReference.Create(
                 typeof(string),
-                TypeContext.Input,
-                true,
-                false);
-
-            var y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+                TypeContext.None);
 
             // act
-            bool result = x.Equals((IClrTypeReference)y);
-
-            // assert
-            Assert.False(result);
-        }
-
-        [InlineData(typeof(string), TypeContext.None, true, null)]
-        [InlineData(typeof(string), TypeContext.None, null, false)]
-        [InlineData(typeof(string), TypeContext.None, true, true)]
-        [InlineData(typeof(string), TypeContext.None, false, false)]
-        [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(int), TypeContext.None, true, false)]
-        [InlineData(typeof(object), TypeContext.None, true, false)]
-        [Theory]
-        public void Object_EqualsToDifferent_False(
-            Type clrType,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                typeof(string),
-                TypeContext.Input,
-                true,
-                false);
-
-            var y = new ClrTypeReference(
-                clrType,
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            bool result = x.Equals((object)y);
+            var result = x.Equals((ITypeReference)null);
 
             // assert
             Assert.False(result);
         }
 
         [Fact]
-        public void ClrTypeReference_RefEquals_True()
+        public void ITypeReference_Equals_To_Same()
         {
             // arrange
-            var x = new ClrTypeReference(
+            ClrTypeReference x = TypeReference.Create(
                 typeof(string),
-                TypeContext.None,
-                true,
-                false);
+                TypeContext.None);
 
             // act
-            bool result = x.Equals((ClrTypeReference)x);
+            var xx = x.Equals((ITypeReference)x);
 
             // assert
-            Assert.True(result);
+            Assert.True(xx);
         }
 
         [Fact]
-        public void IClrTypeReference_RefEquals_True()
+        public void ITypeReference_Equals_To_SyntaxTypeRef()
         {
             // arrange
-            var x = new ClrTypeReference(
+            ClrTypeReference x = TypeReference.Create(
                 typeof(string),
-                TypeContext.None,
-                true,
-                false);
+                TypeContext.None);
 
             // act
-            bool result = x.Equals((IClrTypeReference)x);
+            var xx = x.Equals(TypeReference.Create(new NameType("foo")));
 
             // assert
-            Assert.True(result);
+            Assert.False(xx);
         }
 
         [Fact]
-        public void Object_RefEquals_True()
+        public void ITypeReference_Equals_Context_None_Does_Not_Matter()
         {
             // arrange
-            var x = new ClrTypeReference(
+            ClrTypeReference x = TypeReference.Create(
                 typeof(string),
-                TypeContext.None,
-                true,
-                false);
-
-            // act
-            bool result = x.Equals((object)x);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [InlineData(typeof(string), null, false)]
-        [InlineData(typeof(string), true, true)]
-        [InlineData(typeof(string), false, false)]
-        [InlineData(typeof(int), true, false)]
-        [InlineData(typeof(object), true, false)]
-        [Theory]
-        public void ClrTypeReference_GetHashCode_NotEquals(
-            Type clrType,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new ClrTypeReference(
-                typeof(string),
-                TypeContext.None,
-                true,
-                false);
+                TypeContext.None);
 
             var y = new ClrTypeReference(
-                clrType,
-                TypeContext.Input,
-                isTypeNullable,
-                isElementTypeNullable);
+                typeof(string),
+                TypeContext.Output);
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
 
             // act
-            int xhash = x.GetHashCode();
-            int yhash = y.GetHashCode();
+            var xy = x.Equals((ITypeReference)y);
+            var xz = x.Equals((ITypeReference)z);
+            var yz = y.Equals((ITypeReference)z);
 
             // assert
-            Assert.NotEqual(xhash, yhash);
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_Scope_Different()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                scope: "a");
+
+            var y = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Output,
+                scope: "a");
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals((ITypeReference)y);
+            var xz = x.Equals((ITypeReference)z);
+            var yz = y.Equals((ITypeReference)z);
+
+            // assert
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_Nullability()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                nullable: new bool[] { true, false });
+
+            var y = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Output,
+                nullable: new bool[] { false, false });
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input,
+                nullable: new bool[] { true, false });
+
+            // act
+            var xy = x.Equals((ITypeReference)y);
+            var xz = x.Equals((ITypeReference)z);
+            var yz = y.Equals((ITypeReference)z);
+
+            // assert
+            Assert.False(xy);
+            Assert.True(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void Object_Equals_To_Null()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            // act
+            var result = x.Equals((object)null);
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void Object_Equals_To_Same()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            // act
+            var xx = x.Equals((object)x);
+
+            // assert
+            Assert.True(xx);
+        }
+
+        [Fact]
+        public void Object_Equals_To_Object()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            // act
+            var xx = x.Equals(new object());
+
+            // assert
+            Assert.False(xx);
+        }
+
+        [Fact]
+        public void Object_Equals_Context_None_Does_Not_Matter()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            var y = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Output);
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals((object)y);
+            var xz = x.Equals((object)z);
+            var yz = y.Equals((object)z);
+
+            // assert
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void Object_Equals_Scope_Different()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                scope: "a");
+
+            var y = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Output,
+                scope: "a");
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals((object)y);
+            var xz = x.Equals((object)z);
+            var yz = y.Equals((object)z);
+
+            // assert
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void Object_Equals_Nullability()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                nullable: new bool[] { true, false });
+
+            var y = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Output,
+                nullable: new bool[] { false, false });
+
+            var z = new ClrTypeReference(
+                typeof(string),
+                TypeContext.Input,
+                nullable: new bool[] { true, false });
+
+            // act
+            var xy = x.Equals((object)y);
+            var xz = x.Equals((object)z);
+            var yz = y.Equals((object)z);
+
+            // assert
+            Assert.False(xy);
+            Assert.True(xz);
+            Assert.False(yz);
         }
 
         [Fact]
         public void ClrTypeReference_ToString()
         {
             // arrange
-            var typeReference = new ClrTypeReference(
+            ClrTypeReference typeReference = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
             // act
-            string result = typeReference.ToString();
+            var result = typeReference.ToString();
 
             // assert
             Assert.Equal("Input: System.String", result);
         }
-        */
+
+        [Fact]
+        public void ClrTypeReference_WithType()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithType(typeof(int));
+
+            // assert
+            Assert.Equal(typeof(int), typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithType_Null()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            Action action = () => typeReference1.WithType(null!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithContext()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.Output, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithContext_Nothing()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithContext();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.None, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithScope()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithScope("bar");
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithScope_Nothing()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithScope();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Null(typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithNullable()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithNullable(new [] { false });
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Collection(typeReference2.Nullable!, Assert.False);
+        }
+
+        [Fact]
+        public void ClrTypeReference_WithNullable_Nothing()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.WithNullable();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Null(typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With(
+                typeof(int),
+                TypeContext.Output,
+                scope: "bar",
+                nullable: new [] { false });
+
+            // assert
+            Assert.Equal(typeof(int), typeReference2.Type);
+            Assert.Equal(TypeContext.Output, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+            Assert.Collection(typeReference2.Nullable!, Assert.False);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Nothing()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Type()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With(typeof(int));
+
+            // assert
+            Assert.Equal(typeof(int), typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Type_Null()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            Action action = () => typeReference1.With(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Context()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.None, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Scope()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With(scope: "bar");
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_With_Nullable()
+        {
+            // arrange
+            ClrTypeReference typeReference1 = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input,
+                scope: "foo",
+                nullable: new [] { true });
+
+            // act
+            ClrTypeReference typeReference2 = typeReference1.With(nullable: null);
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+            Assert.Null(typeReference2.Nullable);
+        }
+
+        [Fact]
+        public void ClrTypeReference_GetHashCode()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                scope: "foo",
+                nullable: new[] { false });
+
+            ClrTypeReference y = TypeReference.Create(
+                typeof(string),
+                TypeContext.None,
+                scope: "foo",
+                nullable: new[] { false });
+
+            ClrTypeReference z = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input);
+
+            // act
+            var xh = x.GetHashCode();
+            var yh = y.GetHashCode();
+            var zh = z.GetHashCode();
+
+            // assert
+            Assert.Equal(xh, yh);
+            Assert.NotEqual(xh, zh);
+        }
     }
 }

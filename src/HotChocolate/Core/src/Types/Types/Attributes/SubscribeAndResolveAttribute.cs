@@ -27,7 +27,7 @@ namespace HotChocolate.Types
                 ITypeReference typeReference = context.Inspector.GetReturnType(
                     member, TypeContext.Output);
 
-                if (typeReference is IClrTypeReference clrTypeRef
+                if (typeReference is ClrTypeReference clrTypeRef
                     && !NamedTypeInfoFactory.Default.TryCreate(clrTypeRef.Type, out _))
                 {
                     Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));

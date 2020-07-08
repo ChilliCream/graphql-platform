@@ -17,7 +17,7 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (IClrTypeReference typeReference in typeReferences.OfType<IClrTypeReference>())
+            foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
             {
                 if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                     && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))

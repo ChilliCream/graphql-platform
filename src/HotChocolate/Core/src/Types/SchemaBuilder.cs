@@ -30,8 +30,8 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly Dictionary<Type, CreateConvention> _conventions =
             new Dictionary<Type, CreateConvention>();
-        private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
-            new Dictionary<IClrTypeReference, ITypeReference>();
+        private readonly Dictionary<ClrTypeReference, ITypeReference> _clrTypes =
+            new Dictionary<ClrTypeReference, ITypeReference>();
         private readonly List<object> _interceptors = new List<object>();
         private readonly List<Action<IDescriptorContext>> _onBeforeCreate = 
             new List<Action<IDescriptorContext>>();

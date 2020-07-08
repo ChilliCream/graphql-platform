@@ -187,7 +187,7 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            foreach (KeyValuePair<IClrTypeReference, ITypeReference> binding in
+            foreach (KeyValuePair<ClrTypeReference, ITypeReference> binding in
                 _clrTypes)
             {
                 initializer.ClrTypes[binding.Key] = binding.Value;
@@ -273,19 +273,19 @@ namespace HotChocolate
             else if (_operations.TryGetValue(operation,
                 out ITypeReference reference))
             {
-                if (reference is ISchemaTypeReference sr)
+                if (reference is SchemaTypeReference sr)
                 {
                     return (ObjectType)sr.Type;
                 }
 
-                if (reference is IClrTypeReference cr
+                if (reference is ClrTypeReference cr
                     && initializer.TryGetRegisteredType(cr,
                     out RegisteredType registeredType))
                 {
                     return (ObjectType)registeredType.Type;
                 }
 
-                if (reference is ISyntaxTypeReference str)
+                if (reference is SyntaxTypeReference str)
                 {
                     NamedTypeNode namedType = str.Type.NamedType();
                     return initializer.DiscoveredTypes!.Types
@@ -306,18 +306,18 @@ namespace HotChocolate
                 if (_operations.TryGetValue(OperationType.Query,
                     out ITypeReference reference))
                 {
-                    if (reference is ISchemaTypeReference sr)
+                    if (reference is SchemaTypeReference sr)
                     {
                         return sr.Type == objectType;
                     }
 
-                    if (reference is IClrTypeReference cr)
+                    if (reference is ClrTypeReference cr)
                     {
                         return cr.Type == objectType.GetType()
                             || cr.Type == objectType.RuntimeType;
                     }
 
-                    if (reference is ISyntaxTypeReference str)
+                    if (reference is SyntaxTypeReference str)
                     {
                         return objectType.Name.Equals(
                             str.Type.NamedType().Name.Value);

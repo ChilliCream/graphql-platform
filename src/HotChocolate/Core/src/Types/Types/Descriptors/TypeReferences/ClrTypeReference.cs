@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Descriptors
 {
     public sealed class ClrTypeReference
         : TypeReference
-        , IClrTypeReference
         , IEquatable<ClrTypeReference>
     {
         public ClrTypeReference(
@@ -22,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
 
         public Type Type { get; }
 
-        public IClrTypeReference Rewrite()
+        public ClrTypeReference Rewrite()
         {
             if (Nullable is null)
             {
@@ -57,27 +56,7 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            return Type.Equals(other.Type);
-        }
-
-        public bool Equals(IClrTypeReference? other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
-            if (other is ClrTypeReference c)
-            {
-                return Equals(c);
-            }
-
-            return false;
+            return Type == other.Type;
         }
 
         public override bool Equals(ITypeReference? other)
@@ -133,7 +112,7 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type.GetTypeName()}";
         }
 
-        public IClrTypeReference WithType(Type type)
+        public ClrTypeReference WithType(Type type)
         {
             if (type is null)
             {
@@ -147,7 +126,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public IClrTypeReference WithContext(TypeContext context = TypeContext.None)
+        public ClrTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return new ClrTypeReference(
                 Type,
@@ -156,7 +135,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public IClrTypeReference WithScope(string? scope = null)
+        public ClrTypeReference WithScope(string? scope = null)
         {
             return new ClrTypeReference(
                 Type,
@@ -165,7 +144,7 @@ namespace HotChocolate.Types.Descriptors
                 Nullable);
         }
 
-        public IClrTypeReference WithNullable(bool[]? nullable = null)
+        public ClrTypeReference WithNullable(bool[]? nullable = null)
         {
             return new ClrTypeReference(
                 Type,
@@ -174,7 +153,7 @@ namespace HotChocolate.Types.Descriptors
                 nullable);
         }
 
-        public IClrTypeReference With(
+        public ClrTypeReference With(
             Optional<Type> type = default,
             Optional<TypeContext> context = default,
             Optional<string?> scope = default,

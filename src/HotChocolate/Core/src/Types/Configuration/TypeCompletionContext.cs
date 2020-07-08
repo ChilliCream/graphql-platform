@@ -97,19 +97,19 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            if (reference is ISchemaTypeReference schemaRef
+            if (reference is SchemaTypeReference schemaRef
                 && TryGetType(schemaRef, out type))
             {
                 return true;
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef
+            if (reference is SyntaxTypeReference syntaxRef
                 && TryGetType(syntaxRef, out type))
             {
                 return true;
             }
 
-            if (reference is IClrTypeReference clrRef
+            if (reference is ClrTypeReference clrRef
                 && _typeInitializer.TryNormalizeReference(
                     clrRef, out ITypeReference normalized)
                 && _typeInitializer.DiscoveredTypes is { }
@@ -129,7 +129,7 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryGetType<T>(
-            ISchemaTypeReference reference,
+            SchemaTypeReference reference,
             out T type)
             where T : IType
         {
@@ -150,7 +150,7 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryGetType<T>(
-            ISyntaxTypeReference reference,
+            SyntaxTypeReference reference,
             out T type)
             where T : IType
         {
