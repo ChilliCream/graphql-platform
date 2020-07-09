@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -11,25 +12,16 @@ namespace HotChocolate.Data.Filters
         , IFilterOperationFieldDescriptor
     {
         protected FilterOperationFieldDescriptor(
-            int fieldKind,
-            int operation,
             IDescriptorContext context,
-            IFilterConvention convention)
+            int operation)
             : base(context)
         {
-            if (convention == null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-            Definition.FieldKind = fieldKind;
+            IFilterConvention? convention = context.GetFilterConvention();
             Definition.Operation = operation;
-            Definition.Name = convention.GetOperationName(fieldKind, operation);
-            Definition.Description = convention.GetOperationDescription(fieldKind, operation);
-            Definition.Type = convention.GetOperationType(fieldKind, operation);
+            Definition.Name = convention.GetOperationName(context, operation);
+            Definition.Description = convention.GetOperationDescription(context, operation);
+            Definition.Type = convention.GetOperationType(context, operation);
         }
-
-        protected sealed override FilterOperationFieldDefinition Definition { get; } =
-            new FilterOperationFieldDefinition();
 
         protected override void OnCreateDefinition(
             FilterOperationFieldDefinition definition)
@@ -58,18 +50,6 @@ namespace HotChocolate.Data.Filters
         public IFilterOperationFieldDescriptor Ignore(bool ignore = true)
         {
             Definition.Ignore = ignore;
-            return this;
-        }
-
-        public IFilterOperationFieldDescriptor Operation(int operation)
-        {
-            Definition.Operation = operation;
-            return this;
-        }
-
-        public IFilterOperationFieldDescriptor FieldKind(int fieldKind)
-        {
-            Definition.FieldKind = fieldKind;
             return this;
         }
 
@@ -103,6 +83,12 @@ namespace HotChocolate.Data.Filters
         public new IFilterOperationFieldDescriptor Type(Type type)
         {
             base.Type(type);
+            return this;
+        }
+
+        public IFilterOperationFieldDescriptor Operation(int operation)
+        {
+            Definition.Operation = operation;
             return this;
         }
 
@@ -141,5 +127,12 @@ namespace HotChocolate.Data.Filters
             base.Directive(name, arguments);
             return this;
         }
+
+        public InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+
+        public static FilterOperationFieldDescriptor New(
+            IDescriptorContext context,
+            int operation)
+            => new FilterOperationFieldDescriptor(context, operation);
     }
 }

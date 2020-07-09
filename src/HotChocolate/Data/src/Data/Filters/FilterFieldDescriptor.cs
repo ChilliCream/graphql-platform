@@ -1,7 +1,9 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {
@@ -10,23 +12,27 @@ namespace HotChocolate.Data.Filters
         , IFilterFieldDescriptor
     {
         protected FilterFieldDescriptor(
-            int fieldKind,
             IDescriptorContext context,
-            IFilterConvention convention)
+            NameString fieldName)
             : base(context)
         {
-            if (convention == null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-            Definition.FieldKind = fieldKind;
-            Definition.Name = convention.GetFieldName(fieldKind);
-            Definition.Description = convention.GetFieldDescription(fieldKind);
-            Definition.Type = convention.GetFieldType(fieldKind);
+            Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-        protected sealed override FilterFieldDefinition Definition { get; } =
-            new FilterFieldDefinition();
+        protected FilterFieldDescriptor(
+            IDescriptorContext context,
+            MemberInfo member)
+            : base(context)
+        {
+            IFilterConvention? convention = context.GetFilterConvention();
+
+            Definition.Member = member
+                ?? throw new ArgumentNullException(nameof(member));
+
+            Definition.Name = convention.GetFieldName(context, member);
+            Definition.Description = convention.GetFieldDescription(context, member);
+            Definition.Type = convention.GetFieldType(context, member);
+        }
 
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
@@ -55,12 +61,6 @@ namespace HotChocolate.Data.Filters
         public IFilterFieldDescriptor Ignore(bool ignore = true)
         {
             Definition.Ignore = ignore;
-            return this;
-        }
-
-        public IFilterFieldDescriptor FieldKind(int fieldKind)
-        {
-            Definition.FieldKind = fieldKind;
             return this;
         }
 
@@ -132,5 +132,13 @@ namespace HotChocolate.Data.Filters
             base.Directive(name, arguments);
             return this;
         }
+
+        public InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+
+        public static FilterFieldDescriptor New(
+            IDescriptorContext context,
+            NameString fieldName)
+            => new FilterFieldDescriptor(context, fieldName);
+
     }
 }

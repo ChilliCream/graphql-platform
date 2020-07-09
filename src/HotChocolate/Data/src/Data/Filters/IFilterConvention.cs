@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
@@ -7,29 +6,23 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {
-    public interface IFilterConvention
+    public interface IFilterConvention : IConvention
     {
-        NameString GetOperationName(int fieldKind, int operationKind);
+        NameString GetOperationName(IDescriptorContext context, int operation);
 
-        NameString GetOperationDescription(int fieldKind, int operationKind);
+        NameString GetOperationDescription(IDescriptorContext context, int operation);
 
-        ITypeReference GetOperationType(int fieldKind, int operationKind);
+        ITypeReference GetOperationType(IDescriptorContext context, int operation);
 
-        NameString GetFieldName(int fieldKind);
+        NameString GetFieldName(IDescriptorContext context, MemberInfo member);
 
-        NameString GetFieldDescription(int fieldKind);
+        NameString GetFieldDescription(IDescriptorContext context, MemberInfo member);
 
-        ITypeReference GetFieldType(int fieldKind);
+        ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member);
 
-        NameString GetMethodName(int fieldKind);
+        NameString GetTypeName(IDescriptorContext context, Type entityType);
 
-        NameString GetMethodDescription(int fieldKind);
-
-        ITypeReference GetMethodType(int fieldKind);
-
-        NameString GetTypeName(Type entityType);
-
-        NameString GetTypeDescription(Type entityType);
+        NameString GetTypeDescription(IDescriptorContext context, Type entityType);
 
         bool TryCreateImplicitFilter(
             PropertyInfo property,

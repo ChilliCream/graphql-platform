@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters.Conventions
         PropertyInfo property,
         IFilterConvention filterConventions,
         [NotNullWhen(true)] out FilterFieldDefintion? definition);
-
+        
     public delegate NameString CreateFieldName(
         FilterFieldDefintion definition,
         FilterOperationKind kind);

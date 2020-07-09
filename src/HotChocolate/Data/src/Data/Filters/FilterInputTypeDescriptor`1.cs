@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,69 +10,39 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterInputTypeDescriptor<T>
+    public class FilterInputTypeDescriptor
         : DescriptorBase<FilterInputTypeDefinition>
-        , IFilterInputTypeDescriptor<T>
+        , IFilterInputTypeDescriptor
     {
-        private readonly IFilterConvention _convention;
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
-            Type entityType,
-            IFilterConvention convention)
+            Type entityType)
             : base(context)
         {
-            _convention = convention;
-
+            Convention = context.GetFilterConvention();
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
-            Definition.Name = _convention.GetTypeName(entityType);
-            Definition.Description = _convention.GetTypeDescription(entityType);
-            Definition.Fields.BindingBehavior =
-                context.Options.DefaultBindingBehavior;
+            Definition.Name = Convention.GetTypeName(context, entityType);
+            Definition.Description = Convention.GetTypeDescription(context, entityType);
+            Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected sealed override FilterInputTypeDefinition Definition { get; } =
+        protected FilterInputTypeDescriptor(IDescriptorContext context)
+            : base(context)
+        {
+            Convention = context.GetFilterConvention();
+            Definition.EntityType = typeof(object);
+        }
+
+        internal protected sealed override FilterInputTypeDefinition Definition { get; } =
             new FilterInputTypeDefinition();
 
-        protected BindableList<IFilterFieldDescriptorBase> Fields { get; } =
-            new BindableList<IFilterFieldDescriptorBase>();
+        protected BindableList<FilterFieldDescriptor> Fields { get; } =
+            new BindableList<FilterFieldDescriptor>();
 
-        public IFilterInputTypeDescriptor<T> Name(NameString value)
-        {
-            Definition.Name = value.EnsureNotEmpty(nameof(value));
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor<T> Description(
-            string value)
-        {
-            Definition.Description = value;
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>(
-            TDirective directiveInstance)
-            where TDirective : class
-        {
-            Definition.AddDirective(directiveInstance);
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor<T> Directive<TDirective>()
-            where TDirective : class, new()
-        {
-            Definition.AddDirective(new TDirective());
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor<T> Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            Definition.AddDirective(name, arguments);
-            return this;
-        }
+        protected BindableList<FilterOperationFieldDescriptor> Operations { get; } =
+            new BindableList<FilterOperationFieldDescriptor>();
+        protected IFilterConvention Convention { get; }
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
@@ -87,7 +56,8 @@ namespace HotChocolate.Data.Filters
             var handledProperties = new HashSet<PropertyInfo>();
 
             FieldDescriptorUtilities.AddExplicitFields(
-                Fields.Select(t => t.CreateFieldDefinition()),
+                Fields.Select(t => t.CreateDefinition())
+                    .Concat(Operations.Select(t => t.CreateDefinition())),
                 f => f.Property,
                 fields,
                 handledProperties);
@@ -101,58 +71,93 @@ namespace HotChocolate.Data.Filters
             IDictionary<NameString, InputFieldDefinition> fields,
             ISet<PropertyInfo> handledProperties)
         {
-            if (Definition.Fields.IsImplicitBinding()
-                && Definition.EntityType != typeof(object))
-            {
-                foreach (PropertyInfo property in Context.Inspector
-                    .GetMembers(Definition.EntityType)
-                    .OfType<PropertyInfo>())
-                {
-                    if (!handledProperties.Contains(property)
-                        && _convention.TryCreateImplicitFilter(property,
-                            out InputFieldDefinition? definition)
-                        && !fields.ContainsKey(definition.Name))
-                    {
-                        fields[definition.Name] = definition;
-                    }
-                }
-            }
         }
 
+        public IFilterInputTypeDescriptor Name(NameString value)
+        {
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
+        }
 
-        public IFilterInputTypeDescriptor<T> BindFields(
+        public IFilterInputTypeDescriptor Description(
+            string value)
+        {
+            Definition.Description = value;
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class
+        {
+            Definition.AddDirective(directiveInstance);
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor Directive<TDirective>()
+            where TDirective : class, new()
+        {
+            Definition.AddDirective(new TDirective());
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            Definition.AddDirective(name, arguments);
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor BindFields(
             BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
+        public IFilterInputTypeDescriptor BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
-
-        public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context,
-            Type entityType,
-            IFilterConvention convention) =>
-                new FilterInputTypeDescriptor<T>(context, entityType, convention);
 
         public IFilterOperationFieldDescriptor Operation(int operation)
         {
-            throw new NotImplementedException();
+            FilterOperationFieldDescriptor fieldDescriptor =
+                Operations.FirstOrDefault(t => t.Definition.Operation == operation);
+
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = FilterOperationFieldDescriptor.New(Context, operation);
+
+            Operations.Add(fieldDescriptor);
+            return fieldDescriptor;
         }
 
-        public IFilterOperationFieldDescriptor Operation<TField>(Expression<Func<T, TField>> property)
+        public IFilterFieldDescriptor Field(NameString name)
         {
-            throw new NotImplementedException();
+            FilterFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name == name);
+
+            if (fieldDescriptor is { })
+            {
+                return fieldDescriptor;
+            }
+
+            fieldDescriptor = FilterFieldDescriptor.New(Context, name);
+
+            Fields.Add(fieldDescriptor);
+            return fieldDescriptor;
         }
 
-        public IFilterFieldDescriptor Field<TField>(Expression<Func<T, TField>> property)
-        {
-            throw new NotImplementedException();
-        }
+        public static FilterInputTypeDescriptor New(
+            IDescriptorContext context,
+            Type entityType)
+            => new FilterInputTypeDescriptor(context, entityType);
+
     }
-
 }

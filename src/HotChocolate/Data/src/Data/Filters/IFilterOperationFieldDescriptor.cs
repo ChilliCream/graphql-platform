@@ -7,7 +7,6 @@ namespace HotChocolate.Data.Filters
     public interface IFilterOperationFieldDescriptor
         : IDescriptor<FilterOperationFieldDefinition>
         , IFluent
-        , IFilterFieldDescriptorBase
     {
         IFilterOperationFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinitionNode);
@@ -31,6 +30,8 @@ namespace HotChocolate.Data.Filters
         IFilterOperationFieldDescriptor DefaultValue(IValueNode value);
 
         IFilterOperationFieldDescriptor DefaultValue(object value);
+
+        IFilterOperationFieldDescriptor Operation(int operation);
 
         IFilterOperationFieldDescriptor Directive<T>(T directiveInstance)
             where T : class;

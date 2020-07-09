@@ -8,7 +8,6 @@ namespace HotChocolate.Data.Filters
     public interface IFilterFieldDescriptor
         : IDescriptor<FilterFieldDefinition>
         , IFluent
-        , IFilterFieldDescriptorBase
     {
         IFilterFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinitionNode);
