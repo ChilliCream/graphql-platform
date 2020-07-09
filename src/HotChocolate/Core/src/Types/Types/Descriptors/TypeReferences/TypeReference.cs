@@ -120,7 +120,7 @@ namespace HotChocolate.Types.Descriptors
             new SyntaxTypeReference(type, context, scope, nullable);
 
         public static SyntaxTypeReference Create(
-            string typeName,
+            NameString typeName,
             TypeContext context = TypeContext.None,
             string? scope = null,
             bool[]? nullable = null) =>

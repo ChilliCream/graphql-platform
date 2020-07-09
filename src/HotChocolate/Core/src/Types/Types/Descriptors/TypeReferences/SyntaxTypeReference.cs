@@ -30,11 +30,11 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Span<bool> segments = stackalloc bool[8];
-            bool nullable = true;
+            var nullable = true;
             ITypeNode? current = Type;
 
-            int i = 0;
-            int l = 0;
+            var i = 0;
+            var l = 0;
             while (current is { })
             {
                 if (current is NonNullTypeNode)
@@ -63,9 +63,9 @@ namespace HotChocolate.Types.Descriptors
 
                         if (l > 0)
                         {
-                            for (int j = l - 1; j >= 0; j--)
+                            for (var j = l - 1; j >= 0; j--)
                             {
-                                rewritten = segments[j] 
+                                rewritten = segments[j]
                                     ? (ITypeNode)new ListTypeNode(rewritten)
                                     : new NonNullTypeNode(new ListTypeNode(rewritten));
                             }
