@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using HotChocolate.Language;
 
 #nullable enable
@@ -21,7 +22,66 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeNode Type { get; }
 
-        
+        public SyntaxTypeReference Rewrite()
+        {
+            if (Nullable is null)
+            {
+                return this;
+            }
+
+            Span<bool> segments = stackalloc bool[8];
+            bool nullable = true;
+            ITypeNode? current = Type;
+
+            int i = 0;
+            int l = 0;
+            while (current is { })
+            {
+                if (current is NonNullTypeNode)
+                {
+                    nullable = false;
+                }
+                else
+                {
+                    if (i < Nullable.Length)
+                    {
+                        nullable = Nullable[i++];
+                    }
+
+                    if (current is ListTypeNode)
+                    {
+                        segments[l++] = nullable;
+                        nullable = true;
+                    }
+                    else
+                    {
+                        Debug.Assert(current is NamedTypeNode);
+
+                        ITypeNode rewritten = nullable
+                            ? current
+                            : new NonNullTypeNode((INullableTypeNode)current);
+
+                        if (l > 0)
+                        {
+                            for (int j = l - 1; j >= 0; j--)
+                            {
+                                rewritten = segments[j] 
+                                    ? (ITypeNode)new ListTypeNode(rewritten)
+                                    : new NonNullTypeNode(new ListTypeNode(rewritten));
+                            }
+                        }
+
+                        return WithType(rewritten);
+                    }
+                }
+
+                current = current.InnerType();
+            }
+
+            throw new InvalidOperationException();
+        }
+
+
         public bool Equals(SyntaxTypeReference? other)
         {
             if (other is null)
@@ -103,7 +163,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return new SyntaxTypeReference(
-                type, 
+                type,
                 Context,
                 Scope,
                 Nullable);
@@ -112,7 +172,7 @@ namespace HotChocolate.Types.Descriptors
         public SyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return new SyntaxTypeReference(
-                Type, 
+                Type,
                 context,
                 Scope,
                 Nullable);
@@ -121,7 +181,7 @@ namespace HotChocolate.Types.Descriptors
         public SyntaxTypeReference WithScope(string? scope = null)
         {
             return new SyntaxTypeReference(
-                Type, 
+                Type,
                 Context,
                 scope,
                 Nullable);
@@ -130,16 +190,16 @@ namespace HotChocolate.Types.Descriptors
         public SyntaxTypeReference WithNullable(bool[]? nullable = null)
         {
             return new SyntaxTypeReference(
-                Type, 
+                Type,
                 Context,
                 Scope,
                 nullable);
         }
 
         public SyntaxTypeReference With(
-            Optional<ITypeNode> type = default, 
-            Optional<TypeContext> context = default, 
-            Optional<string?> scope = default, 
+            Optional<ITypeNode> type = default,
+            Optional<TypeContext> context = default,
+            Optional<string?> scope = default,
             Optional<bool[]?> nullable = default)
         {
             if (type.HasValue && type.Value is null)

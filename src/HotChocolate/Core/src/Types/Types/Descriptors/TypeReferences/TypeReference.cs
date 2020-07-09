@@ -8,7 +8,7 @@ using static HotChocolate.Types.Descriptors.SchemaTypeReference;
 namespace HotChocolate.Types.Descriptors
 {
     /// <summary>
-    /// A type reference is used to refer to a type in the type system. 
+    /// A type reference is used to refer to a type in the type system.
     /// This allows us to loosly couple types.
     /// </summary>
     public abstract class TypeReference
@@ -69,7 +69,7 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            for (int i = 0; i < Nullable.Length; i++)
+            for (var i = 0; i < Nullable.Length; i++)
             {
                 if (Nullable[i] != other.Nullable[i])
                 {
@@ -118,6 +118,13 @@ namespace HotChocolate.Types.Descriptors
             string? scope = null,
             bool[]? nullable = null) =>
             new SyntaxTypeReference(type, context, scope, nullable);
+
+        public static SyntaxTypeReference Create(
+            string typeName,
+            TypeContext context = TypeContext.None,
+            string? scope = null,
+            bool[]? nullable = null) =>
+            new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope, nullable);
 
         public static ClrTypeReference Create<T>(
             TypeContext context = TypeContext.None,

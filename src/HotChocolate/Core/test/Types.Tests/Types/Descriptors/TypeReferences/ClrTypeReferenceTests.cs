@@ -168,7 +168,6 @@ namespace HotChocolate.Types.Descriptors
             ClrTypeReference rewritten = typeReference.Rewrite();
 
             // assert
-            var s = rewritten.Type.GetTypeName();
             Assert.Equal(expectedRewrittenType.GetTypeName(), rewritten.Type.GetTypeName());
         }
 
