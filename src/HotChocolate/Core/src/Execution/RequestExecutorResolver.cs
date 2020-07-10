@@ -247,7 +247,7 @@ namespace HotChocolate.Execution
                 context.IsSchema;
 
             public override void OnBeforeCompleteName(
-                ITypeCompletionContext context,
+                ITypeCompletionContext completionContext,
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {

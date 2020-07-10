@@ -29,114 +29,114 @@ namespace HotChocolate.Configuration
         public bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public void OnBeforeInitialize(
-            ITypeDiscoveryContext context)
+            ITypeDiscoveryContext discoveryContext)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(discoveryContext))
                 {
-                    interceptor.OnBeforeInitialize(context);
+                    interceptor.OnBeforeInitialize(discoveryContext);
                 }
             }
         }
 
         public void OnAfterInitialize(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(discoveryContext))
                 {
                     interceptor.OnAfterInitialize(
-                        context, definition, contextData);
+                        discoveryContext, definition, contextData);
                 }
             }
         }
 
         public void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(discoveryContext))
                 {
                     interceptor.OnAfterRegisterDependencies(
-                        context, definition, contextData);
+                        discoveryContext, definition, contextData);
                 }
             }
         }
 
         public void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(discoveryContext))
                 {
                     interceptor.OnBeforeRegisterDependencies(
-                        context, definition, contextData);
+                        discoveryContext, definition, contextData);
                 }
             }
         }
 
         public void OnBeforeCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(completionContext))
                 {
-                    interceptor.OnBeforeCompleteName(context, definition, contextData);
+                    interceptor.OnBeforeCompleteName(completionContext, definition, contextData);
                 }
             }
         }
 
         public void OnAfterCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(completionContext))
                 {
-                    interceptor.OnAfterCompleteName(context, definition, contextData);
+                    interceptor.OnAfterCompleteName(completionContext, definition, contextData);
                 }
             }
         }
 
         public void OnBeforeCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(completionContext))
                 {
-                    interceptor.OnBeforeCompleteType(context, definition, contextData);
+                    interceptor.OnBeforeCompleteType(completionContext, definition, contextData);
                 }
             }
         }
 
         public void OnAfterCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
-                if (interceptor.CanHandle(context))
+                if (interceptor.CanHandle(completionContext))
                 {
-                    interceptor.OnAfterCompleteType(context, definition, contextData);
+                    interceptor.OnAfterCompleteType(completionContext, definition, contextData);
                 }
             }
         }

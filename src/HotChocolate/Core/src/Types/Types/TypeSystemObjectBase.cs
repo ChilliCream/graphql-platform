@@ -13,6 +13,7 @@ namespace HotChocolate.Types
     {
         private TypeStatus _status;
         private NameString _name;
+        private string? _scope;
         private string? _description;
 
         protected TypeSystemObjectBase() { }
@@ -20,7 +21,19 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets a scope name that was provided by an extension.
         /// </summary>
-        public string? Scope { get; }
+        public string? Scope
+        {
+            get => _scope;
+            protected set
+            {
+                if (IsInitialized)
+                {
+                    throw new InvalidOperationException(
+                        "The type scope is immutable.");
+                }
+                _scope = value;
+            }
+        }
 
         /// <summary>
         /// Gets the GraphQL type name.
@@ -89,7 +102,7 @@ namespace HotChocolate.Types
         {
             Debug.Assert(_status == TypeStatus.Uninitialized);
 
-            if(_status != TypeStatus.Uninitialized) 
+            if (_status != TypeStatus.Uninitialized)
             {
                 throw new InvalidOperationException();
             }
@@ -101,7 +114,7 @@ namespace HotChocolate.Types
         {
             Debug.Assert(_status == TypeStatus.Initialized);
 
-            if(_status != TypeStatus.Initialized) 
+            if (_status != TypeStatus.Initialized)
             {
                 throw new InvalidOperationException();
             }
@@ -113,7 +126,7 @@ namespace HotChocolate.Types
         {
             Debug.Assert(_status == TypeStatus.Named);
 
-            if(_status != TypeStatus.Named) 
+            if (_status != TypeStatus.Named)
             {
                 throw new InvalidOperationException();
             }

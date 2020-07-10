@@ -109,8 +109,14 @@ namespace HotChocolate.Types.Descriptors
         public static SchemaTypeReference Create(
             ITypeSystemMember type,
             string? scope = null,
-            bool[]? nullable = null) =>
-            new SchemaTypeReference(type, scope: scope, nullable: nullable);
+            bool[]? nullable = null)
+        {
+            if (scope is null && type is IHasScope withScope && withScope.Scope is { })
+            {
+                scope = withScope.Scope;
+            }
+            return new SchemaTypeReference(type, scope: scope, nullable: nullable);
+        }
 
         public static SyntaxTypeReference Create(
             ITypeNode type,
@@ -138,7 +144,7 @@ namespace HotChocolate.Types.Descriptors
             string? scope = null,
             bool[]? nullable = null)
         {
-            
+
             if (TypeInspector.Default.TryCreate(type, out TypeInfo typeInfo) &&
                 typeof(IType).IsAssignableFrom(typeInfo.ClrType))
             {

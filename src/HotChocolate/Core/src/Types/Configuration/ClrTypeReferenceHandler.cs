@@ -26,12 +26,13 @@ namespace HotChocolate.Configuration
 
                     if (IsTypeSystemObject(type))
                     {
-                        ClrTypeReference namedTypeReference = TypeReference.Create(type);
+                        ClrTypeReference namedTypeReference = typeReference.With(type);
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
                             typeRegistrar.Register(
                                 typeRegistrar.CreateInstance(type),
+                                typeReference.Scope,
                                 BaseTypes.IsGenericBaseType(type));
                         }
                     }
@@ -40,7 +41,8 @@ namespace HotChocolate.Configuration
                         TryMapToExistingRegistration(
                             typeRegistrar,
                             typeInfo,
-                            typeReference.Context);
+                            typeReference.Context,
+                            typeReference.Scope);
                     }
                 }
             }
@@ -49,7 +51,8 @@ namespace HotChocolate.Configuration
         private void TryMapToExistingRegistration(
             ITypeRegistrar typeRegistrar,
             TypeInfo typeInfo,
-            TypeContext context)
+            TypeContext context,
+            string? scope)
         {
             ClrTypeReference? normalizedTypeRef = null;
             bool resolved = false;
@@ -58,7 +61,8 @@ namespace HotChocolate.Configuration
             {
                 normalizedTypeRef = TypeReference.Create(
                     typeInfo.Components[i],
-                    context);
+                    context,
+                    scope: scope);
 
                 if (typeRegistrar.IsResolved(normalizedTypeRef))
                 {

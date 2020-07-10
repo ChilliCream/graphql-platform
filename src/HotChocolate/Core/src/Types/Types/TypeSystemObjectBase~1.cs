@@ -42,6 +42,7 @@ namespace HotChocolate.Types
 
             OnBeforeInitialize(context);
 
+            Scope = context.Scope;
             _definition = CreateDefinition(context);
 
             if (_definition is null)

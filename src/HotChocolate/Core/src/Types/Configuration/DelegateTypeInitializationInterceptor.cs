@@ -45,50 +45,50 @@ namespace Microsoft.Extensions.DependencyInjection
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
 
-        public void OnBeforeInitialize(ITypeDiscoveryContext context) =>
-            _onBeforeInitialize?.Invoke(context);
+        public void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext) =>
+            _onBeforeInitialize?.Invoke(discoveryContext);
 
         public void OnAfterInitialize(
-            ITypeDiscoveryContext context, 
-            DefinitionBase? definition, 
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterInitialize?.Invoke(context, definition, contextData);
-        
+            _onAfterInitialize?.Invoke(discoveryContext, definition, contextData);
+
 
         public void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeRegisterDependencies?.Invoke(context, definition, contextData);
+            _onBeforeRegisterDependencies?.Invoke(discoveryContext, definition, contextData);
 
         public void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterRegisterDependencies?.Invoke(context, definition, contextData);
+            _onAfterRegisterDependencies?.Invoke(discoveryContext, definition, contextData);
 
         public void OnBeforeCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeCompleteName?.Invoke(context, definition, contextData);
+            _onBeforeCompleteName?.Invoke(completionContext, definition, contextData);
 
         public void OnAfterCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterCompleteName?.Invoke(context, definition, contextData);
+            _onAfterCompleteName?.Invoke(completionContext, definition, contextData);
 
         public void OnBeforeCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeCompleteType?.Invoke(context, definition, contextData);
+            _onBeforeCompleteType?.Invoke(completionContext, definition, contextData);
 
         public void OnAfterCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterCompleteType?.Invoke(context, definition, contextData);
+            _onAfterCompleteType?.Invoke(completionContext, definition, contextData);
     }
 }

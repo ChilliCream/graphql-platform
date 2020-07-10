@@ -18,12 +18,14 @@ namespace HotChocolate.Configuration
 
         public TypeDiscoveryContext(
             ITypeSystemObject type,
+            string scope,
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
+            Scope = scope;
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
             DescriptorContext = descriptorContext
@@ -46,6 +48,8 @@ namespace HotChocolate.Configuration
 
         public ITypeSystemObject Type { get; }
 
+        public string Scope { get; }
+
         public bool IsType { get; }
 
         public bool IsIntrospectionType { get; }
@@ -62,7 +66,7 @@ namespace HotChocolate.Configuration
         public ICollection<IDirectiveReference> DirectiveReferences =>
             _directiveReferences;
 
-        public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } = 
+        public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } =
             new Dictionary<FieldReference, RegisteredResolver>();
 
         public ICollection<ISchemaError> Errors { get; } =

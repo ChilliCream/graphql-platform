@@ -48,6 +48,8 @@ namespace HotChocolate.Configuration
 
         public ITypeSystemObject Type => _initializationContext.Type;
 
+        public string Scope => _initializationContext.Scope;
+
         public bool IsType => _initializationContext.IsType;
 
         public bool IsIntrospectionType => _initializationContext.IsIntrospectionType;
@@ -65,7 +67,6 @@ namespace HotChocolate.Configuration
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
         public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
-
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {

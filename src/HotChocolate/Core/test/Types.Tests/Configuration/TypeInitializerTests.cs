@@ -40,7 +40,7 @@ namespace HotChocolate.Configuration
                 out RegisteredType type);
 
             Assert.True(exists);
-            Dictionary<string, string> fooType = 
+            Dictionary<string, string> fooType =
                 Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
                     t => t.Name.ToString(),
                     t => TypeVisualizer.Visualize(t.Type));
@@ -50,7 +50,7 @@ namespace HotChocolate.Configuration
                 out type);
 
             Assert.True(exists);
-            Dictionary<string, string> barType = 
+            Dictionary<string, string> barType =
                 Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
                     t => t.Name.ToString(),
                     t => TypeVisualizer.Visualize(t.Type));
@@ -92,7 +92,7 @@ namespace HotChocolate.Configuration
             Dictionary<string, string> fooType =
                 Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type));                
+                t => TypeVisualizer.Visualize(t.Type));
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
                 TypeReference.Create(typeof(ObjectType<Bar>), TypeContext.Output),

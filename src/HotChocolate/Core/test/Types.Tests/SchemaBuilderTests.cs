@@ -1747,7 +1747,7 @@ namespace HotChocolate
             : TypeInitializationInterceptor
         {
             public override void OnAfterCompleteType(
-                ITypeCompletionContext context,
+                ITypeCompletionContext completionContext,
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {

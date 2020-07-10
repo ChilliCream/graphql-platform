@@ -162,7 +162,7 @@ namespace HotChocolate.Configuration
         private void RegisterResolvers(DiscoveredTypes discoveredTypes)
         {
             foreach (TypeDiscoveryContext context in
-                discoveredTypes.Types.Select(t => t.InitializationContext))
+                discoveredTypes.Types.Select(t => t.DiscoveryContext))
             {
                 foreach (FieldReference reference in context.Resolvers.Keys)
                 {
@@ -224,7 +224,7 @@ namespace HotChocolate.Configuration
                             .Build());
                     }
 
-                    TypeDiscoveryContext initContext = extension.InitializationContext;
+                    TypeDiscoveryContext initContext = extension.DiscoveryContext;
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
                         _resolvers[reference]
@@ -382,7 +382,7 @@ namespace HotChocolate.Configuration
                 if (dependencies.Count > 0)
                 {
                     dependencies.AddRange(objectType.Dependencies);
-                    discoveredTypes.UpdateType(objectType.WithDependencies(dependencies));
+                    discoveredTypes.UpdateType(objectType.WithDependencies(dependencies));                    
                     dependencies = new List<TypeDependency>();
                 }
             }
@@ -610,7 +610,8 @@ namespace HotChocolate.Configuration
                     break;
 
                 case SchemaTypeReference r:
-                    var internalReference = TypeReference.Create(r.Type.GetType(), r.Context);
+                    var internalReference = TypeReference.Create(
+                        r.Type.GetType(), r.Context, scope: typeReference.Scope);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
@@ -638,18 +639,14 @@ namespace HotChocolate.Configuration
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {
-                    normalized = TypeReference.Create(
-                        typeInfo.ClrType,
-                        SchemaTypeReference.InferTypeContext(typeInfo.ClrType));
+                    normalized = typeReference.With(typeInfo.ClrType);
                     return true;
                 }
                 else
                 {
                     for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        var n = TypeReference.Create(
-                            typeInfo.Components[i],
-                            typeReference.Context);
+                        var n = typeReference.With(typeInfo.Components[i]);
 
                         if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
                             || ClrTypes.TryGetValue(n.WithContext(), out r)))

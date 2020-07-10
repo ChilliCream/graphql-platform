@@ -9,54 +9,54 @@ namespace HotChocolate.Configuration
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public virtual void OnBeforeInitialize(
-            ITypeDiscoveryContext context)
+            ITypeDiscoveryContext discoveryContext)
         {
         }
 
         public virtual void OnAfterInitialize(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnAfterCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnBeforeCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
         }
 
         public virtual void OnAfterCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {

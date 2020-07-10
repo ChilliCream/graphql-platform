@@ -19,6 +19,11 @@ namespace HotChocolate.Configuration
         ITypeSystemObject Type { get; }
 
         /// <summary>
+        /// Gets a scope name that was provided by an extension.
+        /// </summary>
+        string? Scope { get;}
+
+        /// <summary>
         /// Defines if <see cref="Type" /> is a type like the object type or interface type.
         /// </summary>
         bool IsType { get; }

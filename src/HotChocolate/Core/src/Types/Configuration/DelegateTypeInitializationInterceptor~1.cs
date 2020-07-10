@@ -46,82 +46,82 @@ namespace Microsoft.Extensions.DependencyInjection
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
 
-        public void OnBeforeInitialize(ITypeDiscoveryContext context)
+        public void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext)
         {
-            _onBeforeInitialize?.Invoke(context);
+            _onBeforeInitialize?.Invoke(discoveryContext);
         }
 
-        public void OnAfterInitialize(ITypeDiscoveryContext context, DefinitionBase? definition, IDictionary<string, object?> contextData)
+        public void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase? definition, IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onAfterInitialize?.Invoke(context, casted, contextData);
+                _onAfterInitialize?.Invoke(discoveryContext, casted, contextData);
             }
         }
 
         public void OnBeforeRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onBeforeRegisterDependencies?.Invoke(context, casted, contextData);
+                _onBeforeRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
             }
         }
 
         public void OnAfterRegisterDependencies(
-            ITypeDiscoveryContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onAfterRegisterDependencies?.Invoke(context, casted, contextData);
+                _onAfterRegisterDependencies?.Invoke(discoveryContext, casted, contextData);
             }
         }
 
         public void OnBeforeCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onBeforeCompleteName?.Invoke(context, casted, contextData);
+                _onBeforeCompleteName?.Invoke(completionContext, casted, contextData);
             }
         }
 
         public void OnAfterCompleteName(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onAfterCompleteName?.Invoke(context, casted, contextData);
+                _onAfterCompleteName?.Invoke(completionContext, casted, contextData);
             }
         }
 
         public void OnBeforeCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onBeforeCompleteType?.Invoke(context, casted, contextData);
+                _onBeforeCompleteType?.Invoke(completionContext, casted, contextData);
             }
         }
 
         public void OnAfterCompleteType(
-            ITypeCompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             if (definition is T casted)
             {
-                _onAfterCompleteType?.Invoke(context, casted, contextData);
+                _onAfterCompleteType?.Invoke(completionContext, casted, contextData);
             }
         }
     }

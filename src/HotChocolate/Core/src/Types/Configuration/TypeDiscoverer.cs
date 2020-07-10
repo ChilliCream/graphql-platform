@@ -133,7 +133,7 @@ namespace HotChocolate.Configuration
         private void CollectErrors()
         {
             foreach (TypeDiscoveryContext context in
-                _registeredTypes.Values.Distinct().Select(t => t.InitializationContext))
+                _registeredTypes.Values.Distinct().Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);
             }
