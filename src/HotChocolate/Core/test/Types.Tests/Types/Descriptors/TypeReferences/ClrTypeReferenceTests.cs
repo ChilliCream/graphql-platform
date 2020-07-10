@@ -42,10 +42,10 @@ namespace HotChocolate.Types.Descriptors
         [Fact]
         public void Foo()
         {
-            TypeReference ref1 =  TypeReference.Create(typeof(string), TypeContext.None);
-            TypeReference ref2 =  TypeReference.Create(typeof(string), TypeContext.None);
-            TypeReference ref3 =  TypeReference.Create(typeof(string), TypeContext.Output);
-            
+            TypeReference ref1 = TypeReference.Create(typeof(string), TypeContext.None);
+            TypeReference ref2 = TypeReference.Create(typeof(string), TypeContext.None);
+            TypeReference ref3 = TypeReference.Create(typeof(string), TypeContext.Output);
+
             var set = new HashSet<TypeReference>();
             set.Add(ref1);
 
@@ -904,6 +904,32 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal(xh, yh);
             Assert.NotEqual(xh, zh);
+        }
+
+        [Fact]
+        public void ClrTypeReference_GetHashCode_Context_HasNoEffect()
+        {
+            // arrange
+            ClrTypeReference x = TypeReference.Create(
+                typeof(string),
+                TypeContext.None);
+
+            ClrTypeReference y = TypeReference.Create(
+                typeof(string),
+                TypeContext.Output);
+
+            ClrTypeReference z = TypeReference.Create(
+                typeof(string),
+                TypeContext.Input);
+
+            // act
+            var xh = x.GetHashCode();
+            var yh = y.GetHashCode();
+            var zh = z.GetHashCode();
+
+            // assert
+            Assert.Equal(xh, yh);
+            Assert.Equal(xh, zh);
         }
     }
 }

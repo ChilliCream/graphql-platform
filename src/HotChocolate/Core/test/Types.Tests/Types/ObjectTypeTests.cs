@@ -9,6 +9,9 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Moq;
+#if NETCOREAPP2_1
+using Snapshooter;
+#endif
 using Snapshooter.Xunit;
 using Xunit;
 
