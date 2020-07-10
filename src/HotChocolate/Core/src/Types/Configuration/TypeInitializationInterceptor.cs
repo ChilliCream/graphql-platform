@@ -3,9 +3,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    public class TypeInitializationInterceptor
+    public class TypeInterceptor
         : ITypeInitializationInterceptor
     {
+        public virtual bool TriggerAggregations => false;
+
         public virtual bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public virtual void OnBeforeInitialize(
@@ -17,6 +19,10 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
+        {
+        }
+        public virtual void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {
         }
 
@@ -48,6 +54,11 @@ namespace HotChocolate.Configuration
         {
         }
 
+        public virtual void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+        }
+
         public virtual void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
@@ -59,6 +70,11 @@ namespace HotChocolate.Configuration
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
+        {
+        }
+
+        public virtual void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
         {
         }
     }

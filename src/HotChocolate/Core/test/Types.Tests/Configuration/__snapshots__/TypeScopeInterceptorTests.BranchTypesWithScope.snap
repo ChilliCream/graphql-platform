@@ -2,25 +2,21 @@
   query: Foo
 }
 
-type Bar {
-  baz: Baz
+type A_Bar {
+  baz: C_Baz
 }
 
-type Baz {
+type B_Bar {
+  baz: C_Baz
+}
+
+type C_Baz {
   someString: String
 }
 
 type Foo {
-  bar1: Scope_Bar
-  bar2: Bar
-}
-
-type Scope_Bar {
-  baz: Scope_Baz
-}
-
-type Scope_Baz {
-  someString: String
+  bar1: A_Bar
+  bar2: B_Bar
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

@@ -10,21 +10,27 @@ namespace HotChocolate.Configuration
         : ITypeInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
+        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
         private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
 
         public AggregateTypeInitializationInterceptor()
         {
             _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
+            _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
+            TriggerAggregations = false;
         }
 
         public AggregateTypeInitializationInterceptor(
             IReadOnlyCollection<object> interceptors)
         {
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
+            _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
             _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
-
+            TriggerAggregations = _agrInterceptors.Count > 0;
         }
+
+        public bool TriggerAggregations { get; private set; }
 
         public bool CanHandle(ITypeSystemObjectContext context) => true;
 
@@ -51,6 +57,30 @@ namespace HotChocolate.Configuration
                 {
                     interceptor.OnAfterInitialize(
                         discoveryContext, definition, contextData);
+                }
+            }
+        }
+
+        public void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (_agrInterceptors.Count > 0)
+            {
+                var list = new List<ITypeDiscoveryContext>();
+
+                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+                {
+                    list.Clear();
+
+                    foreach (ITypeDiscoveryContext discoveryContext in discoveryContexts)
+                    {
+                        if (interceptor.CanHandle(discoveryContext))
+                        {
+                            list.Add(discoveryContext);
+                        }
+                    }
+
+                    interceptor.OnTypesInitialized(list);
                 }
             }
         }
@@ -113,6 +143,30 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
+            if (_agrInterceptors.Count > 0)
+            {
+                var list = new List<ITypeCompletionContext>();
+
+                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+                {
+                    list.Clear();
+
+                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    {
+                        if (interceptor.CanHandle(completionContext))
+                        {
+                            list.Add(completionContext);
+                        }
+                    }
+
+                    interceptor.OnTypesCompletedName(list);
+                }
+            }
+        }
+
         public void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
@@ -155,6 +209,30 @@ namespace HotChocolate.Configuration
 
             typeDependencies = null;
             return false;
+        }
+
+        public void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContexts)
+        {
+            if (_agrInterceptors.Count > 0)
+            {
+                var list = new List<ITypeCompletionContext>();
+
+                foreach (ITypeInitializationInterceptor interceptor in _agrInterceptors)
+                {
+                    list.Clear();
+
+                    foreach (ITypeCompletionContext completionContext in completionContexts)
+                    {
+                        if (interceptor.CanHandle(completionContext))
+                        {
+                            list.Add(completionContext);
+                        }
+                    }
+
+                    interceptor.OnTypesCompleted(list);
+                }
+            }
         }
     }
 }

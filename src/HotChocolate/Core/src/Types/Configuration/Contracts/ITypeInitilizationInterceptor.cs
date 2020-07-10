@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -8,6 +7,8 @@ namespace HotChocolate.Configuration
 {
     public interface ITypeInitializationInterceptor
     {
+        bool TriggerAggregations { get; }
+
         bool CanHandle(ITypeSystemObjectContext context);
 
         void OnBeforeInitialize(
@@ -17,6 +18,9 @@ namespace HotChocolate.Configuration
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData);
+
+        void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts);
 
         void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
@@ -38,6 +42,9 @@ namespace HotChocolate.Configuration
             DefinitionBase? definition,
             IDictionary<string, object?> contextData);
 
+        void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext);
+
         void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
@@ -47,18 +54,8 @@ namespace HotChocolate.Configuration
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData);
-    }
 
-    public interface ITypeScopeInterceptor
-    {
-        bool TryCreateScope(
-            ITypeDiscoveryContext discoveryContext,
-            [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies);
-    }
-
-    public interface ITypeInterceptor
-        : ITypeInitializationInterceptor
-        , ITypeScopeInterceptor
-    {
+        void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext);
     }
 }

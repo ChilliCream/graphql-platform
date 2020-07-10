@@ -25,13 +25,16 @@ namespace HotChocolate.Configuration
 
         public class Foo
         {
-            [Scope]
+            [Scope(Scope = "A")]
             public Bar Bar1 => new Bar();
+
+            [Scope(Scope = "B")]
             public Bar Bar2 => new Bar();
         }
 
         public class Bar
         {
+            [Scope(Scope = "C")]
             public Baz Baz => new Baz();
         }
 
@@ -42,6 +45,8 @@ namespace HotChocolate.Configuration
 
         public class ScopeAttribute : ObjectFieldDescriptorAttribute
         {
+            public string Scope { get; set; }
+
             public override void OnConfigure(
                 IDescriptorContext context,
                 IObjectFieldDescriptor descriptor,
@@ -51,18 +56,18 @@ namespace HotChocolate.Configuration
                     .Extend()
                     .OnBeforeCreate(d =>
                     {
-                        d.Type = ((ClrTypeReference)d.Type).WithScope("Scope");
+                        d.Type = ((ClrTypeReference)d.Type).WithScope(Scope);
                     });
             }
         }
 
         public class TypeScopeInterceptor
-            : TypeInitializationInterceptor
+            : TypeInterceptor
             , ITypeScopeInterceptor
         {
             public override bool CanHandle(
                 ITypeSystemObjectContext context) =>
-                context is { Scope: "Scope" };
+                context is { Scope: { } };
 
             public override void OnBeforeRegisterDependencies(
                 ITypeDiscoveryContext discoveryContext,
@@ -73,7 +78,10 @@ namespace HotChocolate.Configuration
                 {
                     foreach (ObjectFieldDefinition field in def.Fields)
                     {
-                        field.Type = field.Type.With(scope: discoveryContext.Scope);
+                        if (field.Type.Scope is null)
+                        {
+                            field.Type = field.Type.With(scope: discoveryContext.Scope);
+                        }
                     }
                 }
             }
@@ -83,17 +91,20 @@ namespace HotChocolate.Configuration
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {
-                definition.Name = "Scope_" + definition.Name;
+                definition.Name = completionContext.Scope + "_" + definition.Name;
             }
 
             public bool TryCreateScope(
                 ITypeDiscoveryContext discoveryContext,
                 [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
             {
-                if (discoveryContext is { Scope: "Scope" })
+                if (discoveryContext is { Scope: { } })
                 {
                     typeDependencies = discoveryContext.TypeDependencies
-                        .Select(t => t.With(((ClrTypeReference)t.TypeReference).WithScope("Scope")))
+                        .Where(t => t.TypeReference.Scope is null)
+                        .Select(t => t
+                            .With(((ClrTypeReference)t.TypeReference)
+                            .WithScope(discoveryContext.Scope)))
                         .ToList();
                     return true;
                 }

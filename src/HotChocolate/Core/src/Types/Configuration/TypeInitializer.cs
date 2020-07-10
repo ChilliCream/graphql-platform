@@ -73,7 +73,7 @@ namespace HotChocolate.Configuration
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers => _resolvers;
 
-        public bool TryGetType(NameString typeName, [NotNullWhen(true)]out IType? type)
+        public bool TryGetType(NameString typeName, [NotNullWhen(true)] out IType? type)
         {
             if (_discoveredTypes is { }
                 && _named.TryGetValue(typeName, out ITypeReference? reference)
@@ -103,6 +103,11 @@ namespace HotChocolate.Configuration
 
             if (_discoveredTypes.Errors.Count == 0)
             {
+                if (_interceptor.TriggerAggregations)
+                {
+                    _interceptor.OnTypesInitialized(
+                        _discoveredTypes.Types.Select(t => t.DiscoveryContext).ToList());
+                }
                 RegisterResolvers(_discoveredTypes);
                 RegisterImplicitInterfaceDependencies(_discoveredTypes);
                 CompleteNames(_discoveredTypes, schemaResolver);
@@ -382,7 +387,7 @@ namespace HotChocolate.Configuration
                 if (dependencies.Count > 0)
                 {
                     dependencies.AddRange(objectType.Dependencies);
-                    discoveredTypes.UpdateType(objectType.WithDependencies(dependencies));                    
+                    discoveredTypes.UpdateType(objectType.WithDependencies(dependencies));
                     dependencies = new List<TypeDependency>();
                 }
             }
@@ -433,6 +438,12 @@ namespace HotChocolate.Configuration
             if (success)
             {
                 UpdateDependencyLookup();
+
+                if (_interceptor.TriggerAggregations)
+                {
+                    _interceptor.OnTypesCompletedName(
+                        _completionContext.Values.Where(t => t is { }).ToList());
+                }
             }
 
             EnsureNoErrors();
@@ -471,6 +482,12 @@ namespace HotChocolate.Configuration
                 });
 
             EnsureNoErrors();
+
+            if (_interceptor.TriggerAggregations)
+            {
+                _interceptor.OnTypesCompleted(
+                    _completionContext.Values.Where(t => t is { }).ToList());
+            }
         }
 
         private bool CompleteTypes(
@@ -569,7 +586,7 @@ namespace HotChocolate.Configuration
         private bool TryNormalizeDependencies(
             RegisteredType registeredType,
             IEnumerable<ITypeReference> dependencies,
-            [NotNullWhen(true)]out IReadOnlyList<ITypeReference>? normalized)
+            [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
         {
             var n = new List<ITypeReference>();
 

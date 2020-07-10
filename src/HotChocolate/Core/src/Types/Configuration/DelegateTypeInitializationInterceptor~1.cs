@@ -43,6 +43,8 @@ namespace Microsoft.Extensions.DependencyInjection
             _onAfterCompleteType = onAfterCompleteType;
         }
 
+        public bool TriggerAggregations => false;
+
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
 
@@ -123,6 +125,21 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 _onAfterCompleteType?.Invoke(completionContext, casted, contextData);
             }
+        }
+
+        public void OnTypesInitialized(IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnTypesCompletedName(IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void OnTypesCompleted(IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+            throw new NotImplementedException();
         }
     }
 }

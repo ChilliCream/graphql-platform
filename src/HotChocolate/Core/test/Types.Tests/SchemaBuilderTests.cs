@@ -1569,7 +1569,7 @@ namespace HotChocolate
                     .Field("foo")
                     .Resolver("bar"))
                 .OnBeforeCreate(c => c.ContextData["name"] = c.ContextData["name"] + "1")
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     onAfterRegisterDependencies: (c, d, cd) =>
                     {
                         if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
@@ -1744,7 +1744,7 @@ namespace HotChocolate
         }
 
         public class MyInterceptor
-            : TypeInitializationInterceptor
+            : TypeInterceptor
         {
             public override void OnAfterCompleteType(
                 ITypeCompletionContext completionContext,

@@ -234,7 +234,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private sealed class SetSchemaNameInterceptor : TypeInitializationInterceptor
+        private sealed class SetSchemaNameInterceptor : TypeInterceptor
         {
             private readonly NameString _schemaName;
 

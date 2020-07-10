@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class DelegateTypeInitializationInterceptor
+    public class DelegateTypeInterceptor
         : ITypeInitializationInterceptor
     {
         private readonly Func<ITypeSystemObjectContext, bool> _canHandle;
@@ -20,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private readonly OnCompleteType? _onBeforeCompleteType;
         private readonly OnCompleteType? _onAfterCompleteType;
 
-        public DelegateTypeInitializationInterceptor(
+        public DelegateTypeInterceptor(
             Func<ITypeSystemObjectContext, bool>? canHandle = null,
             Action<ITypeDiscoveryContext>? onBeforeInitialize = null,
             OnInitializeType? onAfterInitialize = null,
@@ -41,6 +41,8 @@ namespace Microsoft.Extensions.DependencyInjection
             _onBeforeCompleteType = onBeforeCompleteType;
             _onAfterCompleteType = onAfterCompleteType;
         }
+
+        public bool TriggerAggregations => false;
 
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
@@ -90,5 +92,20 @@ namespace Microsoft.Extensions.DependencyInjection
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
             _onAfterCompleteType?.Invoke(completionContext, definition, contextData);
+
+        public void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+        }
+
+        public void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+        }
+
+        public void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+        }
     }
 }
