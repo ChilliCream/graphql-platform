@@ -45,7 +45,7 @@ namespace HotChocolate.Types
                                 .Build());
                     }
 
-                    typeReference = new ClrTypeReference(rewritten, TypeContext.Output);
+                    typeReference = TypeReference.Create(rewritten, TypeContext.Output);
                 }
 
                 d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(

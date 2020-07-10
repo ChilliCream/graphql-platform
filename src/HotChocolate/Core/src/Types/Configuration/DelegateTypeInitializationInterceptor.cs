@@ -11,6 +11,8 @@ namespace Microsoft.Extensions.DependencyInjection
         : ITypeInitializationInterceptor
     {
         private readonly Func<ITypeSystemObjectContext, bool> _canHandle;
+        private readonly Action<ITypeDiscoveryContext>? _onBeforeInitialize;
+        private readonly OnInitializeType? _onAfterInitialize;
         private readonly OnInitializeType? _onBeforeRegisterDependencies;
         private readonly OnInitializeType? _onAfterRegisterDependencies;
         private readonly OnCompleteType? _onBeforeCompleteName;
@@ -20,6 +22,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public DelegateTypeInitializationInterceptor(
             Func<ITypeSystemObjectContext, bool>? canHandle = null,
+            Action<ITypeDiscoveryContext>? onBeforeInitialize = null,
+            OnInitializeType? onAfterInitialize = null,
             OnInitializeType? onBeforeRegisterDependencies = null,
             OnInitializeType? onAfterRegisterDependencies = null,
             OnCompleteType? onBeforeCompleteName = null,
@@ -28,6 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
             OnCompleteType? onAfterCompleteType = null)
         {
             _canHandle = canHandle ?? (c => true);
+            _onBeforeInitialize = onBeforeInitialize;
+            _onAfterInitialize = onAfterInitialize;
             _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
             _onAfterRegisterDependencies = onAfterRegisterDependencies;
             _onBeforeCompleteName = onBeforeCompleteName;
@@ -38,6 +44,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
+
+        public void OnBeforeInitialize(ITypeDiscoveryContext context) =>
+            _onBeforeInitialize?.Invoke(context);
+
+        public void OnAfterInitialize(
+            ITypeDiscoveryContext context, 
+            DefinitionBase? definition, 
+            IDictionary<string, object?> contextData) =>
+            _onAfterInitialize?.Invoke(context, definition, contextData);
+        
 
         public void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext context,

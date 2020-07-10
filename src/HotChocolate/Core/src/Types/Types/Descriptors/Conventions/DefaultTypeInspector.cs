@@ -93,14 +93,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 var attribute = member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
-                return new ClrTypeReference(
+                return TypeReference.Create(
                     returnType,
                     context,
                     nullable: attribute.Nullable)
                     .Rewrite();
             }
 
-            return new ClrTypeReference(returnType, context);
+            return TypeReference.Create(returnType, context);
         }
 
         protected Type GetReturnType(MemberInfo member)

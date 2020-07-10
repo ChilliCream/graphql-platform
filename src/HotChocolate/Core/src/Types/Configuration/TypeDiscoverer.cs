@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration
             ISet<ITypeReference> initialTypes,
             IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            ITypeInitializationInterceptor interceptor,
+            ITypeInterceptor interceptor,
             IServiceProvider services)
         {
             _unregistered.AddRange(IntrospectionTypes.All);
@@ -52,8 +52,8 @@ namespace HotChocolate.Configuration
         public DiscoveredTypes DiscoverTypes()
         {
             const int max = 1000;
-            int tries = 0;
-            bool resolved = false;
+            var tries = 0;
+            var resolved = false;
 
             do
             {
@@ -101,9 +101,10 @@ namespace HotChocolate.Configuration
 
         private bool TryInferTypes()
         {
-            bool inferred = false;
+            var inferred = false;
 
-            foreach (ClrTypeReference unresolvedType in _typeRegistrar.GetUnresolved())
+            foreach (ClrTypeReference unresolvedType in
+                _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
             {
                 if (Scalars.TryGetScalar(unresolvedType.Type, out ClrTypeReference schemaType))
                 {
@@ -141,7 +142,7 @@ namespace HotChocolate.Configuration
 
             if (_errors.Count == 0 && unresolved.Count > 0)
             {
-                foreach (ClrTypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
+                foreach (ITypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
                 {
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(

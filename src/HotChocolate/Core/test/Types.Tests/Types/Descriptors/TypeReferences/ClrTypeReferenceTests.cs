@@ -209,11 +209,11 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.None);
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output);
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -237,12 +237,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 scope: "a");
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 scope: "a");
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -266,12 +266,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 nullable: new bool[] { true, false });
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 nullable: new bool[] { false, false });
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input,
                 nullable: new bool[] { true, false });
@@ -340,11 +340,11 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.None);
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output);
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -368,12 +368,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 scope: "a");
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 scope: "a");
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -397,12 +397,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 nullable: new bool[] { true, false });
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 nullable: new bool[] { false, false });
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input,
                 nullable: new bool[] { true, false });
@@ -471,11 +471,11 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.None);
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output);
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -499,12 +499,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 scope: "a");
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 scope: "a");
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input);
 
@@ -528,12 +528,12 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None,
                 nullable: new bool[] { true, false });
 
-            var y = new ClrTypeReference(
+            var y = TypeReference.Create(
                 typeof(string),
                 TypeContext.Output,
                 nullable: new bool[] { false, false });
 
-            var z = new ClrTypeReference(
+            var z = TypeReference.Create(
                 typeof(string),
                 TypeContext.Input,
                 nullable: new bool[] { true, false });

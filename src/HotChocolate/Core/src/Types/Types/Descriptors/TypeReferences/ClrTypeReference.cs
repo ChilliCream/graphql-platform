@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 type,
                 Context,
                 Scope,
@@ -128,7 +128,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ClrTypeReference WithContext(TypeContext context = TypeContext.None)
         {
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 Type,
                 context,
                 Scope,
@@ -137,7 +137,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ClrTypeReference WithScope(string? scope = null)
         {
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 Type,
                 Context,
                 scope,
@@ -146,7 +146,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ClrTypeReference WithNullable(bool[]? nullable = null)
         {
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 Type,
                 Context,
                 Scope,
@@ -164,7 +164,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 type.HasValue ? type.Value! : Type,
                 context.HasValue ? context.Value : Context,
                 scope.HasValue ? scope.Value : Scope,

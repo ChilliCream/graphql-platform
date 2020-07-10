@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Configuration
 
             // assert
             bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(FooType), TypeContext.Output),
+                TypeReference.Create(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
@@ -46,7 +46,7 @@ namespace HotChocolate.Configuration
                     t => TypeVisualizer.Visualize(t.Type));
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(BarType), TypeContext.Output),
+                TypeReference.Create(typeof(BarType), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
@@ -63,7 +63,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Configuration
 
             // assert
             bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(ObjectType<Foo>),
                     TypeContext.Output),
                 out RegisteredType type);
@@ -95,7 +95,7 @@ namespace HotChocolate.Configuration
                 t => TypeVisualizer.Visualize(t.Type));                
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
+                TypeReference.Create(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
@@ -112,7 +112,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -140,7 +140,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 

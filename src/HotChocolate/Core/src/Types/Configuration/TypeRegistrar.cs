@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -18,13 +19,13 @@ namespace HotChocolate.Configuration
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
         private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
-        private readonly ITypeInitializationInterceptor _interceptor;
+        private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
             IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            ITypeInitializationInterceptor interceptor,
+            ITypeInterceptor interceptor,
             IServiceProvider services)
         {
             _registered = registeredTypes;
@@ -49,19 +50,14 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasRuntimeType hasClrType
                     && hasClrType.RuntimeType != typeof(object))
                 {
-                    var clrRef = new ClrTypeReference(
+                    var clrRef = TypeReference.Create(
                         hasClrType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(typeSystemObject));
 
-                    bool autoBind = true;
+                    var explicitBind = typeSystemObject is ScalarType scalar
+                        && scalar.Bind == BindingBehavior.Explicit;
 
-                    if (typeSystemObject is ScalarType scalar
-                        && scalar.Bind == BindingBehavior.Explicit)
-                    {
-                        autoBind = false;
-                    }
-
-                    if (autoBind)
+                    if (!explicitBind)
                     {
                         MarkResolved(clrRef);
 
@@ -154,24 +150,24 @@ namespace HotChocolate.Configuration
         {
             try
             {
-                var initializationContext = new TypeDiscoveryContext(
+                var discoveryContext = new TypeDiscoveryContext(
                     typeSystemObject,
                     _serviceFactory.Services,
                     _descriptorContext,
                     _interceptor);
 
-                typeSystemObject.Initialize(initializationContext);
+                typeSystemObject.Initialize(discoveryContext);
 
                 var references = new List<ITypeReference>();
 
                 if (!isInferred)
                 {
-                    references.Add(new SchemaTypeReference(typeSystemObject));
+                    references.Add(TypeReference.Create(typeSystemObject));
                 }
 
                 if (!BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    references.Add(new ClrTypeReference(
+                    references.Add(TypeReference.Create(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject)));
                 }
@@ -179,7 +175,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
                     && hasTypeIdentity.TypeIdentity is { })
                 {
-                    var reference = new ClrTypeReference(
+                    var reference = TypeReference.Create(
                         hasTypeIdentity.TypeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject));
 
@@ -192,8 +188,8 @@ namespace HotChocolate.Configuration
                 var registeredType = new RegisteredType(
                     references,
                     typeSystemObject,
-                    initializationContext,
-                    initializationContext.TypeDependencies,
+                    discoveryContext,
+                    CollectDependencies(discoveryContext),
                     isInferred);
 
                 return registeredType;
@@ -207,6 +203,19 @@ namespace HotChocolate.Configuration
                         .SetTypeSystemObject(typeSystemObject)
                         .Build());
             }
+        }
+
+        private IReadOnlyList<TypeDependency> CollectDependencies(
+            ITypeDiscoveryContext discoveryContext)
+        {
+            if(discoveryContext.Interceptor.TryCreateScope(
+                discoveryContext, 
+                out IReadOnlyList<TypeDependency>? dependencies)) 
+            {
+                return dependencies;
+            }
+
+            return discoveryContext.TypeDependencies;
         }
     }
 }

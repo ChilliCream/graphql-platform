@@ -14,6 +14,11 @@ namespace HotChocolate.Configuration
         : ITypeSystemObjectContext
     {
         /// <summary>
+        /// The collected type dependencies.
+        /// </summary>
+        IReadOnlyList<TypeDependency> TypeDependencies { get; }
+
+        /// <summary>
         /// Register a reference to a type on which <see cref="Type" /> depends. 
         /// Such a reference could for instance represent a type of a field that 
         /// <see cref="Type" /> exposes.

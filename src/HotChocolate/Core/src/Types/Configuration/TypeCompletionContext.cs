@@ -64,7 +64,7 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
-        public ITypeInitializationInterceptor Interceptor => _initializationContext.Interceptor;
+        public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
 
         public T GetType<T>(ITypeReference reference)
             where T : IType
@@ -193,7 +193,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                var clrTypeReference = new ClrTypeReference(
+                var clrTypeReference = TypeReference.Create(
                     cr.ClrType, TypeContext.None);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,

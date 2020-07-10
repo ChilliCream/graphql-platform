@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -59,7 +60,7 @@ namespace HotChocolate.Configuration
         /// The type initialization interceptor that allows to intercept 
         /// objects that er being initialized.
         /// </summary>
-        ITypeInitializationInterceptor Interceptor { get; }
+        ITypeInterceptor Interceptor { get; }
 
         /// <summary>
         /// Report a schema initialization error.

@@ -13,7 +13,7 @@ namespace HotChocolate
         public void InferObjectType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
+            var typeReference = TypeReference.Create(
                 typeof(Bar),
                 context);
 
@@ -34,7 +34,7 @@ namespace HotChocolate
         public void InferInterfaceType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
+            var typeReference = TypeReference.Create(
                 typeof(IBar),
                 context);
 
@@ -53,7 +53,7 @@ namespace HotChocolate
         public void InferInputObjectType()
         {
             // arrange
-            var typeReference = new ClrTypeReference(
+            var typeReference = TypeReference.Create(
                 typeof(Bar),
                 TypeContext.Input);
 
@@ -75,7 +75,7 @@ namespace HotChocolate
         public void InferEnumType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
+            var typeReference = TypeReference.Create(
                 typeof(Foo),
                 context);
 

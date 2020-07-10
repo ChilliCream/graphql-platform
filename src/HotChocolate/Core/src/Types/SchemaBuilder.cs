@@ -51,7 +51,7 @@ namespace HotChocolate
 
             if (typeof(Schema).IsAssignableFrom(type))
             {
-                _schema = new ClrTypeReference(type, TypeContext.None);
+                _schema = TypeReference.Create(type, TypeContext.None);
             }
             else
             {
@@ -148,7 +148,7 @@ namespace HotChocolate
             }
             else
             {
-                _types.Add(new ClrTypeReference(
+                _types.Add(TypeReference.Create(
                     type,
                     SchemaTypeReference.InferTypeContext(type)));
             }
@@ -195,8 +195,8 @@ namespace HotChocolate
 
             TypeContext context =
                 SchemaTypeReference.InferTypeContext(schemaType);
-            _clrTypes[new ClrTypeReference(clrType, context)] =
-                new ClrTypeReference(schemaType, context);
+            _clrTypes[TypeReference.Create(clrType, context)] =
+                TypeReference.Create(schemaType, context);
 
             return this;
         }
@@ -215,7 +215,7 @@ namespace HotChocolate
                     if (typeof(ObjectType).IsAssignableFrom(schemaType)
                         && !BaseTypes.IsNonGenericBaseType(schemaType))
                     {
-                        _types.Add(new ClrTypeReference(
+                        _types.Add(TypeReference.Create(
                             schemaType,
                             SchemaTypeReference.InferTypeContext(schemaType)));
                     }
@@ -287,7 +287,7 @@ namespace HotChocolate
                     nameof(type));
             }
 
-            var reference = new ClrTypeReference(type, TypeContext.Output);
+            var reference = TypeReference.Create(type, TypeContext.Output);
             _operations.Add(operation, reference);
             _types.Add(reference);
             return this;

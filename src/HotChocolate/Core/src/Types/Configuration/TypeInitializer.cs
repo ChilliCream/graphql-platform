@@ -38,7 +38,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
         private readonly IDictionary<string, object?> _contextData;
-        private readonly ITypeInitializationInterceptor _interceptor;
+        private readonly ITypeInterceptor _interceptor;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
         private DiscoveredTypes? _discoveredTypes = null;
@@ -48,7 +48,7 @@ namespace HotChocolate.Configuration
             IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
-            ITypeInitializationInterceptor interceptor,
+            ITypeInterceptor interceptor,
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
@@ -372,7 +372,7 @@ namespace HotChocolate.Configuration
                         objectType.RuntimeType))
                     {
                         dependencies.Add(new TypeDependency(
-                            new ClrTypeReference(
+                            TypeReference.Create(
                                 interfaceType.RuntimeType,
                                 TypeContext.Output),
                             TypeDependencyKind.Completed));
@@ -610,7 +610,7 @@ namespace HotChocolate.Configuration
                     break;
 
                 case SchemaTypeReference r:
-                    var internalReference = new ClrTypeReference(r.Type.GetType(), r.Context);
+                    var internalReference = TypeReference.Create(r.Type.GetType(), r.Context);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
@@ -638,7 +638,7 @@ namespace HotChocolate.Configuration
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {
-                    normalized = new ClrTypeReference(
+                    normalized = TypeReference.Create(
                         typeInfo.ClrType,
                         SchemaTypeReference.InferTypeContext(typeInfo.ClrType));
                     return true;
@@ -647,7 +647,7 @@ namespace HotChocolate.Configuration
                 {
                     for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        var n = new ClrTypeReference(
+                        var n = TypeReference.Create(
                             typeInfo.Components[i],
                             typeReference.Context);
 

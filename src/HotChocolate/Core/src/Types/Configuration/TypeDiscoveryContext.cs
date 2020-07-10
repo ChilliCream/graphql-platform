@@ -20,7 +20,7 @@ namespace HotChocolate.Configuration
             ITypeSystemObject type,
             IServiceProvider services,
             IDescriptorContext descriptorContext,
-            ITypeInitializationInterceptor interceptor)
+            ITypeInterceptor interceptor)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
@@ -62,8 +62,8 @@ namespace HotChocolate.Configuration
         public ICollection<IDirectiveReference> DirectiveReferences =>
             _directiveReferences;
 
-        public IDictionary<FieldReference, RegisteredResolver> Resolvers
-        { get; } = new Dictionary<FieldReference, RegisteredResolver>();
+        public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } = 
+            new Dictionary<FieldReference, RegisteredResolver>();
 
         public ICollection<ISchemaError> Errors { get; } =
             new List<ISchemaError>();
@@ -72,7 +72,7 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext { get; private set; }
 
-        public ITypeInitializationInterceptor Interceptor { get; }
+        public ITypeInterceptor Interceptor { get; }
 
         public void RegisterDependency(
             ITypeReference reference,

@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Relay
                 .Extend()
                 .OnBeforeCompletion((context, defintion) =>
                 {
-                    var reference = new ClrTypeReference(
+                    var reference = TypeReference.Create(
                         typeof(TSchemaType),
                         TypeContext.Output);
                     IOutputType type = context.GetType<IOutputType>(reference);

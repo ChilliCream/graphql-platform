@@ -26,9 +26,7 @@ namespace HotChocolate.Configuration
 
                     if (IsTypeSystemObject(type))
                     {
-                        var namedTypeReference = new ClrTypeReference(
-                            type,
-                            SchemaTypeReference.InferTypeContext(type));
+                        ClrTypeReference namedTypeReference = TypeReference.Create(type);
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
@@ -58,7 +56,7 @@ namespace HotChocolate.Configuration
 
             for (int i = 0; i < typeInfo.Components.Count; i++)
             {
-                normalizedTypeRef = new ClrTypeReference(
+                normalizedTypeRef = TypeReference.Create(
                     typeInfo.Components[i],
                     context);
 

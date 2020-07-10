@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 
@@ -15,7 +16,7 @@ namespace HotChocolate.Types
         private string? _description;
 
         protected TypeSystemObjectBase() { }
-        
+
         /// <summary>
         /// Gets a scope name that was provided by an extension.
         /// </summary>
@@ -71,16 +72,52 @@ namespace HotChocolate.Types
 
         internal virtual void Initialize(ITypeDiscoveryContext context)
         {
-            _status = TypeStatus.Initialized;
+            MarkInitialized();
         }
 
         internal virtual void CompleteName(ITypeCompletionContext context)
         {
-            _status = TypeStatus.Named;
+            MarkNamed();
         }
 
         internal virtual void CompleteType(ITypeCompletionContext context)
         {
+            MarkCompleted();
+        }
+
+        protected void MarkInitialized()
+        {
+            Debug.Assert(_status == TypeStatus.Uninitialized);
+
+            if(_status != TypeStatus.Uninitialized) 
+            {
+                throw new InvalidOperationException();
+            }
+
+            _status = TypeStatus.Initialized;
+        }
+
+        protected void MarkNamed()
+        {
+            Debug.Assert(_status == TypeStatus.Initialized);
+
+            if(_status != TypeStatus.Initialized) 
+            {
+                throw new InvalidOperationException();
+            }
+
+            _status = TypeStatus.Named;
+        }
+
+        protected void MarkCompleted()
+        {
+            Debug.Assert(_status == TypeStatus.Named);
+
+            if(_status != TypeStatus.Named) 
+            {
+                throw new InvalidOperationException();
+            }
+
             _status = TypeStatus.Completed;
         }
     }

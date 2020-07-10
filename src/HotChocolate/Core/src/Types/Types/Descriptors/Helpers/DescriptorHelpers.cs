@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (IsTypeMoreSpecific(definition.Type, type))
             {
-                definition.Type = new ClrTypeReference(type, context);
+                definition.Type = TypeReference.Create(type, context);
             }
             return definition;
         }

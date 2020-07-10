@@ -15,7 +15,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
@@ -55,7 +55,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -95,10 +95,10 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(ObjectType<Foo>),
                 TypeContext.Output));
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 

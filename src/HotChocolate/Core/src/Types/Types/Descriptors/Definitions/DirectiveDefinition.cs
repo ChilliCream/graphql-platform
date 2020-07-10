@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 ?? throw new ArgumentNullException(nameof(customDirective));
             Reference = new ClrTypeDirectiveReference(
                 customDirective.GetType());
-            TypeReference = new ClrTypeReference(
+            TypeReference = Descriptors.TypeReference.Create(
                 customDirective.GetType(),
                 TypeContext.None);
         }

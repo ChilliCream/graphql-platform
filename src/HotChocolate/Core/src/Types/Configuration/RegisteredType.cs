@@ -13,16 +13,6 @@ namespace HotChocolate.Configuration
         : IHasRuntimeType
     {
         public RegisteredType(
-            ITypeReference reference,
-            TypeSystemObjectBase type,
-            TypeDiscoveryContext initializationContext,
-            IReadOnlyList<TypeDependency> dependencies,
-            bool isInferred)
-            : this(new[] { reference }, type, initializationContext, dependencies, isInferred)
-        {
-        }
-
-        public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
             TypeDiscoveryContext initializationContext,

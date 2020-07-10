@@ -1,34 +1,66 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInitializationInterceptor
-        : ITypeInitializationInterceptor
+        : ITypeInterceptor
     {
-        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _interceptors;
+        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
+        private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
 
         public AggregateTypeInitializationInterceptor()
         {
-            _interceptors = Array.Empty<ITypeInitializationInterceptor>();
+            _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
+            _scopeInterceptors = Array.Empty<ITypeScopeInterceptor>();
         }
 
         public AggregateTypeInitializationInterceptor(
-            IReadOnlyCollection<ITypeInitializationInterceptor> interceptors)
+            IReadOnlyCollection<object> interceptors)
         {
-            _interceptors = interceptors
-                ?? throw new ArgumentNullException(nameof(interceptors));
+            _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
+            _scopeInterceptors = interceptors.OfType<ITypeScopeInterceptor>().ToList();
+
         }
 
         public bool CanHandle(ITypeSystemObjectContext context) => true;
+
+        public void OnBeforeInitialize(
+            ITypeDiscoveryContext context)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            {
+                if (interceptor.CanHandle(context))
+                {
+                    interceptor.OnBeforeInitialize(context);
+                }
+            }
+        }
+
+        public void OnAfterInitialize(
+            ITypeDiscoveryContext context,
+            DefinitionBase definition,
+            IDictionary<string, object> contextData)
+        {
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
+            {
+                if (interceptor.CanHandle(context))
+                {
+                    interceptor.OnAfterInitialize(
+                        context, definition, contextData);
+                }
+            }
+        }
 
         public void OnAfterRegisterDependencies(
             ITypeDiscoveryContext context,
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -43,7 +75,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -58,7 +90,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -72,7 +104,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -86,7 +118,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -100,13 +132,29 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _initInterceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
                     interceptor.OnAfterCompleteType(context, definition, contextData);
                 }
             }
+        }
+
+        public bool TryCreateScope(
+            ITypeDiscoveryContext discoveryContext,
+            [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
+        {
+            foreach (ITypeScopeInterceptor interceptor in _scopeInterceptors)
+            {
+                if (interceptor.TryCreateScope(discoveryContext, out typeDependencies))
+                {
+                    return true;
+                }
+            }
+
+            typeDependencies = null;
+            return false;
         }
     }
 }
