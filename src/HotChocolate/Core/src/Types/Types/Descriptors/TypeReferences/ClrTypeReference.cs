@@ -36,7 +36,9 @@ namespace HotChocolate.Types.Descriptors
             }
 
             ExtendedType extendedType = ExtendedType.FromType(Type);
-            return WithType(ExtendedTypeRewriter.Rewrite(extendedType, nullable));
+            return With(
+                type: ExtendedTypeRewriter.Rewrite(extendedType, nullable),
+                nullable: null);
         }
 
         public bool Equals(ClrTypeReference? other)

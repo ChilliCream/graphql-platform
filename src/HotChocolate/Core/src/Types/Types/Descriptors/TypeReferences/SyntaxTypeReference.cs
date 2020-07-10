@@ -71,7 +71,9 @@ namespace HotChocolate.Types.Descriptors
                             }
                         }
 
-                        return WithType(rewritten);
+                        return With(
+                            type: new Optional<ITypeNode>(rewritten),
+                            nullable: null);
                     }
                 }
 
