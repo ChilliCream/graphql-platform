@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = Context.GetHashCode() * 397;
+                int hash = 0;
 
                 if (Scope is { })
                 {
@@ -138,7 +138,9 @@ namespace HotChocolate.Types.Descriptors
             string? scope = null,
             bool[]? nullable = null)
         {
-            if (typeof(ITypeSystemMember).IsAssignableFrom(type))
+            
+            if (TypeInspector.Default.TryCreate(type, out TypeInfo typeInfo) &&
+                typeof(IType).IsAssignableFrom(typeInfo.ClrType))
             {
                 return new ClrTypeReference(
                     type,

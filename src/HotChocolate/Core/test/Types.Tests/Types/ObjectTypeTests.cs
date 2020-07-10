@@ -9,7 +9,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Moq;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -110,7 +109,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsinferredAsNonNullType()
+        public void IntArgumentIsInferredAsNonNullType()
         {
             // arrange
             // act
@@ -1474,11 +1473,11 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            #if NETCOREAPP2_1
+#if NETCOREAPP2_1
             schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-            #else
+#else
             schema.ToString().MatchSnapshot();
-            #endif
+#endif
         }
 
         [Fact]
@@ -1491,7 +1490,41 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+#if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
             schema.ToString().MatchSnapshot();
+#endif
+        }
+
+        [Fact]
+        public void NonNull_Attribute_With_Explicit_Nullability_Definition()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<AnnotatedNestedList>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Infer_Non_Null_Filed()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .Create();
+
+            // assert
+            #if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
+            schema.ToString().MatchSnapshot();
+            #endif
         }
 
         [Fact]
@@ -1716,7 +1749,7 @@ namespace HotChocolate.Types
         {
             public string GetBar(string foo) => "hello foo";
 
-            public string GetDescription([Parent]Foo foo) => foo.Description;
+            public string GetDescription([Parent] Foo foo) => foo.Description;
         }
 
         public class QueryWithIntArg
@@ -1724,11 +1757,13 @@ namespace HotChocolate.Types
             public string GetBar(int foo) => "hello foo";
         }
 
+#nullable enable
         public class Bar
         {
             [GraphQLNonNullType]
             public string Baz { get; set; }
         }
+#nullable disable
 
         public class Baz
         {
@@ -1846,8 +1881,8 @@ namespace HotChocolate.Types
                 string b = "abc") => null;
 
             public string Field2(
-                [DefaultValue(null)]string a,
-                [DefaultValue("abc")]string b) => null;
+                [DefaultValue(null)] string a,
+                [DefaultValue("abc")] string b) => null;
         }
 
         [ExtendObjectType(Name = "Some")]
@@ -1868,6 +1903,12 @@ namespace HotChocolate.Types
                         new FooIgnore()
                     }
                 };
+        }
+
+        public class AnnotatedNestedList
+        {
+            [GraphQLNonNullType(true, false, false)]
+            public List<List<string>> NestedList { get; set; }
         }
     }
 }

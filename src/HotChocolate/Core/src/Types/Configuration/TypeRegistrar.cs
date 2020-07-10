@@ -57,6 +57,11 @@ namespace HotChocolate.Configuration
                     var explicitBind = typeSystemObject is ScalarType scalar
                         && scalar.Bind == BindingBehavior.Explicit;
 
+                    if(typeSystemObject is ScalarType)
+                    {
+                        
+                    }
+
                     if (!explicitBind)
                     {
                         MarkResolved(clrRef);
@@ -208,9 +213,9 @@ namespace HotChocolate.Configuration
         private IReadOnlyList<TypeDependency> CollectDependencies(
             ITypeDiscoveryContext discoveryContext)
         {
-            if(discoveryContext.Interceptor.TryCreateScope(
-                discoveryContext, 
-                out IReadOnlyList<TypeDependency>? dependencies)) 
+            if (discoveryContext.Interceptor.TryCreateScope(
+                discoveryContext,
+                out IReadOnlyList<TypeDependency>? dependencies))
             {
                 return dependencies;
             }

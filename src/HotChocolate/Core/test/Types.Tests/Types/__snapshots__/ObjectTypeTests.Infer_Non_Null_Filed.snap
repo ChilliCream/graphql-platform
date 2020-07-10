@@ -1,18 +1,9 @@
 ﻿schema {
-  query: FooWithDict
+  query: Bar
 }
 
 type Bar {
   baz: [String]!
-}
-
-type FooWithDict {
-  map: [KeyValuePairOfStringAndBar!]
-}
-
-type KeyValuePairOfStringAndBar {
-  key: String!
-  value: Bar!
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

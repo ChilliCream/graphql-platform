@@ -40,6 +40,20 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
+        public void Foo()
+        {
+            TypeReference ref1 =  TypeReference.Create(typeof(string), TypeContext.None);
+            TypeReference ref2 =  TypeReference.Create(typeof(string), TypeContext.None);
+            TypeReference ref3 =  TypeReference.Create(typeof(string), TypeContext.Output);
+            
+            var set = new HashSet<TypeReference>();
+            set.Add(ref1);
+
+            bool r2 = set.Contains(ref2);
+            bool r3 = set.Contains(ref3);
+        }
+
+        [Fact]
         public void TypeReference_Create_Generic()
         {
             // arrange
@@ -572,7 +586,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithType(typeof(int));
@@ -592,7 +606,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             Action action = () => typeReference1.WithType(null!);
@@ -609,7 +623,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
@@ -629,7 +643,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithContext();
@@ -649,7 +663,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithScope("bar");
@@ -669,7 +683,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithScope();
@@ -689,10 +703,10 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.WithNullable(new [] { false });
+            ClrTypeReference typeReference2 = typeReference1.WithNullable(new[] { false });
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -709,7 +723,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.WithNullable();
@@ -729,14 +743,14 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With(
                 typeof(int),
                 TypeContext.Output,
                 scope: "bar",
-                nullable: new [] { false });
+                nullable: new[] { false });
 
             // assert
             Assert.Equal(typeof(int), typeReference2.Type);
@@ -753,7 +767,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With();
@@ -773,7 +787,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With(typeof(int));
@@ -793,7 +807,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             Action action = () => typeReference1.With(null);
@@ -810,7 +824,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
@@ -830,7 +844,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With(scope: "bar");
@@ -850,7 +864,7 @@ namespace HotChocolate.Types.Descriptors
                 typeof(string),
                 TypeContext.Input,
                 scope: "foo",
-                nullable: new [] { true });
+                nullable: new[] { true });
 
             // act
             ClrTypeReference typeReference2 = typeReference1.With(nullable: null);

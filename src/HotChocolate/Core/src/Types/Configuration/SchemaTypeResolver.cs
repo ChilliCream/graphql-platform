@@ -16,38 +16,32 @@ namespace HotChocolate.Configuration
             if (IsObjectTypeExtension(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type),
-                    context: TypeContext.Output);
+                    type: typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsUnionType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: typeof(UnionType<>).MakeGenericType(unresolvedType.Type),
-                    context: TypeContext.Output);
+                    type: typeof(UnionType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsInterfaceType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type),
-                    context: TypeContext.Output);
+                    type: typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsObjectType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: typeof(ObjectType<>).MakeGenericType(unresolvedType.Type),
-                    context: TypeContext.Output);
+                    type: typeof(ObjectType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsInputObjectType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type),
-                    context: TypeContext.Input);
+                    type: typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsEnumType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    typeof(EnumType<>).MakeGenericType(unresolvedType.Type),
-                    unresolvedType.Context);
+                    type: typeof(EnumType<>).MakeGenericType(unresolvedType.Type));
             }
             else
             {
