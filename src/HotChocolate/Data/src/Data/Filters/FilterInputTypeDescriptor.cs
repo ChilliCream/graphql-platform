@@ -33,15 +33,15 @@ namespace HotChocolate.Data.Filters
             Definition.EntityType = typeof(object);
         }
 
-        internal protected sealed override FilterInputTypeDefinition Definition { get; } =
-            new FilterInputTypeDefinition();
-
         protected BindableList<FilterFieldDescriptor> Fields { get; } =
             new BindableList<FilterFieldDescriptor>();
 
         protected BindableList<FilterOperationFieldDescriptor> Operations { get; } =
             new BindableList<FilterOperationFieldDescriptor>();
         protected IFilterConvention Convention { get; }
+
+        protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
+            new FilterInputTypeDefinition();
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
@@ -186,6 +186,15 @@ namespace HotChocolate.Data.Filters
 
             fieldDescriptor.Ignore();
             return this;
+        }
+
+        public static FilterInputTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            FilterInputTypeDescriptor? descriptor = New(context, schemaType);
+            descriptor.Definition.RuntimeType = typeof(object);
+            return descriptor;
         }
     }
 }
