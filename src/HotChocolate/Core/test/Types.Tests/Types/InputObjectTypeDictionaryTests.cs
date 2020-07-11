@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,18 +16,26 @@ namespace HotChocolate.Types
         [Fact]
         public void Nullable_Dictionary_Is_Correctly_Detected()
         {
+            #if NETCOREAPP2_1
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Create()
+                .ToString()
+                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .Create()
                 .ToString()
                 .MatchSnapshot();
+            #endif
         }
 
         [Fact]
         public async Task Dictionary_Is_Correctly_Deserialized()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .Create()
                 .MakeExecutable();
@@ -36,7 +45,7 @@ namespace HotChocolate.Types
                 "query { foo(input: { contextData: [ { key: \"abc\" value: \"abc\" } ] }) }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

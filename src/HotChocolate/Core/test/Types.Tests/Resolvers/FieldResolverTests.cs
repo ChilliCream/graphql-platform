@@ -312,13 +312,13 @@ namespace HotChocolate.Resolvers
         private FieldResolverDelegate GetResolverA()
         {
             return new FieldResolverDelegate(
-                a => Task.FromResult<object>(null));
+                a => new ValueTask<object>(null));
         }
 
         private FieldResolverDelegate GetResolverB()
         {
             return new FieldResolverDelegate(
-                a => Task.FromResult<object>(null));
+                a => new ValueTask<object>(null));
         }
 
         private class Foo

@@ -1,0 +1,11 @@
+﻿{
+  "data": {
+    "human": {
+      "id": "1001",
+      "name": "Darth Vader",
+      "otherHuman": {
+        "name": "Wilhuff Tarkin"
+      }
+    }
+  }
+}

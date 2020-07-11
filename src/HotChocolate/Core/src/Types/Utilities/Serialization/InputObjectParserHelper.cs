@@ -146,9 +146,9 @@ namespace HotChocolate.Utilities.Serialization
             object value)
         {
             if (value is { }
-                && field.ClrType != typeof(object))
+                && field.RuntimeType != typeof(object))
             {
-                Type type = field.ClrType;
+                Type type = field.RuntimeType;
 
                 if (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Optional<>))

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<DirectiveTypeDefinition>
         , IDirectiveTypeDescriptor
     {
-        protected DirectiveTypeDescriptor(
+        protected internal DirectiveTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -24,20 +24,28 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(
                 clrType, TypeKind.Directive);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.Directive);
         }
 
-        protected DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override DirectiveTypeDefinition Definition { get; } =
+        protected internal DirectiveTypeDescriptor(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        internal protected override DirectiveTypeDefinition Definition { get; protected set; } =
             new DirectiveTypeDefinition();
 
         protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
@@ -46,12 +54,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             DirectiveTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var arguments =
@@ -105,7 +113,7 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            descriptor = new DirectiveArgumentDescriptor(
+            descriptor = DirectiveArgumentDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);
@@ -201,8 +209,18 @@ namespace HotChocolate.Types.Descriptors
             Type schemaType)
         {
             var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static DirectiveTypeDescriptor From(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor(context, definition);
+
+        public static DirectiveTypeDescriptor From<T>(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor<T>(context, definition);
     }
 }

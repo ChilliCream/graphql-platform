@@ -7,85 +7,85 @@ namespace HotChocolate.Types
 {
     public static class Scalars
     {
-        private static readonly Dictionary<Type, IClrTypeReference> _lookup =
-            new Dictionary<Type, IClrTypeReference>
+        private static readonly Dictionary<Type, ClrTypeReference> _lookup =
+            new Dictionary<Type, ClrTypeReference>
             {
-                { typeof(string), new ClrTypeReference(
+                { typeof(string), TypeReference.Create(
                     typeof(StringType), TypeContext.None) },
-                { typeof(bool), new ClrTypeReference(
+                { typeof(bool), TypeReference.Create(
                     typeof(BooleanType), TypeContext.None) },
-                { typeof(byte), new ClrTypeReference(
+                { typeof(byte), TypeReference.Create(
                     typeof(ByteType), TypeContext.None) },
-                { typeof(short), new ClrTypeReference(
+                { typeof(short), TypeReference.Create(
                     typeof(ShortType), TypeContext.None) },
-                { typeof(int), new ClrTypeReference(
+                { typeof(int), TypeReference.Create(
                     typeof(IntType), TypeContext.None) },
-                { typeof(long), new ClrTypeReference(
+                { typeof(long), TypeReference.Create(
                     typeof(LongType), TypeContext.None) },
 
-                { typeof(float), new ClrTypeReference(
+                { typeof(float), TypeReference.Create(
                     typeof(FloatType), TypeContext.None) },
-                { typeof(double), new ClrTypeReference(
+                { typeof(double), TypeReference.Create(
                     typeof(FloatType), TypeContext.None) },
-                { typeof(decimal), new ClrTypeReference(
+                { typeof(decimal), TypeReference.Create(
                     typeof(DecimalType), TypeContext.None) },
 
-                { typeof(Uri), new ClrTypeReference(
+                { typeof(Uri), TypeReference.Create(
                     typeof(UrlType), TypeContext.None) },
-                { typeof(Guid), new ClrTypeReference(
+                { typeof(Guid), TypeReference.Create(
                     typeof(UuidType), TypeContext.None) },
-                { typeof(DateTime), new ClrTypeReference(
+                { typeof(DateTime), TypeReference.Create(
                     typeof(DateTimeType), TypeContext.None) },
-                { typeof(DateTimeOffset), new ClrTypeReference(
+                { typeof(DateTimeOffset), TypeReference.Create(
                     typeof(DateTimeType), TypeContext.None) },
-                { typeof(MultiplierPathString), new ClrTypeReference(
+                { typeof(MultiplierPathString), TypeReference.Create(
                     typeof(MultiplierPathType), TypeContext.None) },
-                { typeof(byte[]), new ClrTypeReference(
+                { typeof(byte[]), TypeReference.Create(
                     typeof(ByteArrayType), TypeContext.None) },
-                { typeof(NameString), new ClrTypeReference(
+                { typeof(NameString), TypeReference.Create(
                     typeof(NameType), TypeContext.None) },
-                { typeof(TimeSpan), new ClrTypeReference(
+                { typeof(TimeSpan), TypeReference.Create(
                     typeof(TimeSpanType), TypeContext.None) },
             };
 
-        private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
-           new Dictionary<NameString, IClrTypeReference>
+        private static readonly Dictionary<NameString, ClrTypeReference> _nameLookup =
+           new Dictionary<NameString, ClrTypeReference>
            {
-                { ScalarNames.String, new ClrTypeReference(
+                { ScalarNames.String, TypeReference.Create(
                     typeof(StringType), TypeContext.None) },
-                { ScalarNames.ID, new ClrTypeReference(
+                { ScalarNames.ID, TypeReference.Create(
                     typeof(IdType), TypeContext.None) },
-                { ScalarNames.Boolean, new ClrTypeReference(
+                { ScalarNames.Boolean, TypeReference.Create(
                     typeof(BooleanType), TypeContext.None) },
-                { ScalarNames.Byte, new ClrTypeReference(
+                { ScalarNames.Byte, TypeReference.Create(
                     typeof(ByteType), TypeContext.None) },
-                { ScalarNames.Short, new ClrTypeReference(
+                { ScalarNames.Short, TypeReference.Create(
                     typeof(ShortType), TypeContext.None) },
-                { ScalarNames.Int, new ClrTypeReference(
+                { ScalarNames.Int, TypeReference.Create(
                     typeof(IntType), TypeContext.None) },
-                { ScalarNames.Long, new ClrTypeReference(
+                { ScalarNames.Long, TypeReference.Create(
                     typeof(LongType), TypeContext.None) },
 
-                { ScalarNames.Float, new ClrTypeReference(
+                { ScalarNames.Float, TypeReference.Create(
                     typeof(FloatType), TypeContext.None) },
-                { ScalarNames.Decimal, new ClrTypeReference(
+                { ScalarNames.Decimal, TypeReference.Create(
                     typeof(DecimalType), TypeContext.None) },
 
-                { ScalarNames.Url, new ClrTypeReference(
+                { ScalarNames.Url, TypeReference.Create(
                     typeof(UrlType), TypeContext.None) },
-                { ScalarNames.Uuid, new ClrTypeReference(
+                { ScalarNames.Uuid, TypeReference.Create(
                     typeof(UuidType), TypeContext.None) },
-                { ScalarNames.DateTime, new ClrTypeReference(
+                { ScalarNames.DateTime, TypeReference.Create(
                     typeof(DateTimeType), TypeContext.None) },
-                { ScalarNames.Date, new ClrTypeReference(
+                { ScalarNames.Date, TypeReference.Create(
                     typeof(DateType), TypeContext.None) },
-                { ScalarNames.MultiplierPath, new ClrTypeReference(
+                { ScalarNames.MultiplierPath, TypeReference.Create(
                     typeof(MultiplierPathType), TypeContext.None) },
-                { ScalarNames.Name, new ClrTypeReference(
+                { ScalarNames.Name, TypeReference.Create(
                     typeof(NameType), TypeContext.None) },
-                { ScalarNames.PaginationAmount, new ClrTypeReference(
+                { ScalarNames.PaginationAmount, TypeReference.Create(
                     typeof(PaginationAmountType), TypeContext.None) },
-                { ScalarNames.ByteArray, new ClrTypeReference(
+                { ScalarNames.ByteArray, TypeReference.Create(
                     typeof(ByteArrayType), TypeContext.None) },
            };
 
@@ -119,7 +119,7 @@ namespace HotChocolate.Types
 
         internal static bool TryGetScalar(
             Type clrType,
-            out IClrTypeReference schemaType)
+            out ClrTypeReference schemaType)
         {
             if (clrType == null)
             {
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
 
         internal static bool TryGetScalar(
             NameString typeName,
-            out IClrTypeReference schemaType)
+            out ClrTypeReference schemaType)
         {
             return _nameLookup.TryGetValue(
                 typeName.EnsureNotEmpty(nameof(typeName)),

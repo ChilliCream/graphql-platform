@@ -153,17 +153,37 @@ namespace HotChocolate.Execution
             writer.WriteEndObject();
         }
 
-        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object> path)
+        private static void WritePath(Utf8JsonWriter writer, Path path)
         {
-            if (path is { } && path.Count > 0)
+            if (path is { })
             {
                 writer.WritePropertyName(_path);
 
                 writer.WriteStartArray();
 
-                for (int i = 0; i < path.Count; i++)
+                IReadOnlyList<object> list = path.ToList();
+
+                for (var i = 0; i < list.Count; i++)
                 {
-                    WriteFieldValue(writer, path[i]);
+                    switch (list[i])
+                    {
+                        case NameString n:
+                            writer.WriteStringValue(n.Value);
+                            break;
+
+                        case string s:
+                            writer.WriteStringValue(s);
+                            break;
+
+                        case int n:
+                            writer.WriteNumberValue(n);
+                            break;
+
+                        default:
+                            throw new InvalidOperationException(
+                                "The specified value is of an invalid type " +
+                                "for the error path.");
+                    }
                 }
 
                 writer.WriteEndArray();

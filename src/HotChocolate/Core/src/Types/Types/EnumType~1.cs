@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         }
 
         protected override EnumTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = EnumTypeDescriptor.New<T>(
                 context.DescriptorContext);

@@ -1,16 +1,6 @@
-﻿schema {
-  query: Query
-}
-
-type Query {
-  foo: String
-}
-
-input FooFilter {
+﻿input FooFilter {
   AND: [FooFilter!]
   bar: Boolean @Bar
-  barNullable: Boolean
-  barNullable_not: Boolean
   OR: [FooFilter!]
 }
 

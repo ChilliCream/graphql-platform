@@ -12,10 +12,10 @@ The core contains the parser, the type system and the query engine.
   Fundamental classes and interfaces that are use by the type system and the execution.
 
 - Types
-  The type API contains the type system, resolvers and the field middleware.
+  The type API contains the type system, resolvers and field middleware.
 
 - Core
-  The core project hosts the query engine (execution) and validation. We plan to spearate those two in the future.
+  The core project hosts the query engine (execution) and validation. We plan to separate those two in the future.
 
 - Subscriptions
   The subscription API provides interfaces defining a Pub/Sub-system for the execution engine and a default InMemory implementation for the Pub/Sub-system.

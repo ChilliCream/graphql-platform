@@ -3,7 +3,6 @@ using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -16,19 +15,18 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -38,18 +36,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -57,19 +55,18 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -79,18 +76,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
                 t => t.Key.ToString(),
                 t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            }.MatchSnapshot();
         }
 
         [Fact]
@@ -98,22 +95,21 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(ObjectType<Foo>),
                 TypeContext.Output));
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -123,18 +119,18 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Empty(result.Errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
-
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
         }
 
         public class FooType

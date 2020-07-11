@@ -9,26 +9,26 @@
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Name-Uniqueness"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified fragment `fragA` is not used within the current document.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 8,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "fragA",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
-    }
+    },
+    "Exception": null
   }
 ]

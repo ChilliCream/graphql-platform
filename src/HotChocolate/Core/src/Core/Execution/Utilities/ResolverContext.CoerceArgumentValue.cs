@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -12,6 +13,10 @@ namespace HotChocolate.Execution
     internal partial class ResolverContext
         : IMiddlewareContext
     {
+        public IServiceProvider Services => throw new NotImplementedException();
+
+        public IType ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public T Argument<T>(NameString name)
         {
             name.EnsureNotEmpty(nameof(name));
@@ -101,7 +106,7 @@ namespace HotChocolate.Execution
                 var dictToObjConverter = new DictionaryToObjectConverter(Converter);
                 if (typeof(T).IsInterface)
                 {
-                    object o = dictToObjConverter.Convert(value, argumentValue.Type.ClrType);
+                    object o = dictToObjConverter.Convert(value, argumentValue.Type.RuntimeType);
                     if (o is T c)
                     {
                         return c;
@@ -118,7 +123,7 @@ namespace HotChocolate.Execution
                     CultureInfo.InvariantCulture,
                     CoreResources.ResolverContext_ArgumentConversion,
                     name,
-                    argumentValue.Type.ClrType.FullName,
+                    argumentValue.Type.RuntimeType.FullName,
                     typeof(T).FullName))
                 .SetPath(Path)
                 .AddLocation(FieldSelection)
@@ -137,6 +142,26 @@ namespace HotChocolate.Execution
 
             converted = default;
             return false;
+        }
+
+        public T ArgumentValue<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T ArgumentLiteral<T>(NameString name) where T : IValueNode
+        {
+            throw new NotImplementedException();
+        }
+
+        public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IMiddlewareContext.ResolveAsync<T>()
+        {
+            throw new NotImplementedException();
         }
     }
 }

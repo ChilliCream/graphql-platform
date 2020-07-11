@@ -10,7 +10,7 @@ namespace HotChocolate.Validation.Options
         /// <summary>
         /// Gets the name of the schema for which this rule is configure.
         /// </summary>
-        string Name { get; }
+        NameString Name { get; }
 
         /// <summary>
         /// Gets the application service collection.

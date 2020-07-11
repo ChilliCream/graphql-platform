@@ -3,8 +3,9 @@
   <PropertyGroup>
     <PackageId>HotChocolate.Subscriptions.InMemory</PackageId>
     <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
-    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
+    <RootNamespace>HotChocolate.Subscriptions.InMemory</RootNamespace>
     <Description>Contains an in-memory implementation for a Hot Chocolate GraphQL subscription provider.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Subscriptions\HotChocolate.Subscriptions.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
 
   <ItemGroup>

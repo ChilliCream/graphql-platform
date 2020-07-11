@@ -6,7 +6,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal class ConverterContext
+    public class ConverterContext
     {
         public string Name { get; set; }
 

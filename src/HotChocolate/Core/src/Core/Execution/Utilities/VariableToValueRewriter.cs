@@ -216,10 +216,10 @@ namespace HotChocolate.Execution
                 }
 
                 if (v is { }
-                    && !type.ClrType.IsInstanceOfType(v)
+                    && !type.RuntimeType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
-                        type.ClrType,
+                        type.RuntimeType,
                         v,
                         out v))
                 {

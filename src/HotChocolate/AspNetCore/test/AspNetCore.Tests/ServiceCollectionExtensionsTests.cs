@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore
                 services,
                 SchemaBuilder.New()
                     .AddDocumentFromString("type Query { a: String }")
-                    .Use(next => context => Task.CompletedTask));
+                    .Use(next => context => default(ValueTask)));
 
             // assert
             services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))

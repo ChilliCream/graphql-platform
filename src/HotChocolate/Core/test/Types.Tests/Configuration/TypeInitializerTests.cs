@@ -4,7 +4,6 @@ using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -17,7 +16,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
@@ -26,7 +25,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -38,24 +36,26 @@ namespace HotChocolate.Configuration
 
             // assert
             bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(FooType), TypeContext.Output),
+                TypeReference.Create(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+            Dictionary<string, string> fooType =
+                Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(BarType), TypeContext.Output),
+                TypeReference.Create(typeof(BarType), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            Dictionary<string, string> barType =
+                Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -72,7 +72,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -84,26 +83,28 @@ namespace HotChocolate.Configuration
 
             // assert
             bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(ObjectType<Foo>),
                     TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
+            Dictionary<string, string> fooType =
+                Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+                t => TypeVisualizer.Visualize(t.Type));
 
             exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
+                TypeReference.Create(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            Dictionary<string, string> barType =
+                Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => TypeVisualizer.Visualize(t.Type));
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]
@@ -111,7 +112,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -120,7 +121,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
@@ -140,7 +140,7 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
@@ -149,7 +149,6 @@ namespace HotChocolate.Configuration
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 initialTypes,
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),

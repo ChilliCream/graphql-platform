@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// The .net type representation of this scalar.
         /// </summary>
-        public abstract Type ClrType { get; }
+        public abstract Type RuntimeType { get; }
 
         public override IReadOnlyDictionary<string, object?> ContextData => _contextData;
 
@@ -91,7 +91,7 @@ namespace HotChocolate.Types
             {
                 return true;
             }
-            return ClrType.IsInstanceOfType(value);
+            return RuntimeType.IsInstanceOfType(value);
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public virtual object Serialize(object? value)
+        public virtual object? Serialize(object? value)
         {
             if (TrySerialize(value, out object? s))
             {
@@ -147,7 +147,11 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+                ErrorBuilder.New()
+                    .SetMessage(TypeResourceHelper.Scalar_Cannot_Serialize(Name))
+                    .SetExtension("actualValue", value?.ToString() ?? "null")
+                    .SetExtension("actualType", value?.GetType().FullName ?? "null")
+                    .Build());
         }
 
         /// <summary>
@@ -177,7 +181,7 @@ namespace HotChocolate.Types
         /// The specified <paramref name="value" /> cannot be deserialized
         /// by this scalar.
         /// </exception>
-        public virtual object Deserialize(object? serialized)
+        public virtual object? Deserialize(object? serialized)
         {
             if (TryDeserialize(serialized, out object v))
             {
@@ -203,7 +207,7 @@ namespace HotChocolate.Types
         /// </returns>
         public abstract bool TryDeserialize(object? serialized, out object? value);
 
-        internal sealed override void Initialize(IInitializationContext context)
+        internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
             context.Interceptor.OnBeforeRegisterDependencies(context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
@@ -212,12 +216,12 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             IDictionary<string, object?> contextData)
         {
         }
 
-        internal sealed override void CompleteName(ICompletionContext context)
+        internal sealed override void CompleteName(ITypeCompletionContext context)
         {
             context.Interceptor.OnBeforeCompleteName(context, null, _contextData);
             OnCompleteName(context, _contextData);
@@ -226,12 +230,12 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object?> contextData)
         {
         }
 
-        internal sealed override void CompleteType(ICompletionContext context)
+        internal sealed override void CompleteType(ITypeCompletionContext context)
         {
             context.Interceptor.OnBeforeCompleteType(context, null, _contextData);
             OnCompleteType(context, _contextData);
@@ -240,7 +244,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object?> contextData)
         {
             Directives = DirectiveCollection.CreateAndComplete(

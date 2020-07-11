@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
         }
 
         protected override void VisitObject(
-            IDictionary<string, object> dictionary,
+            IReadOnlyDictionary<string, object> dictionary,
             ConverterContext context)
         {
             if (!context.InputType.IsInputObjectType())
@@ -104,7 +104,7 @@ namespace HotChocolate.Execution
         }
 
         protected override void VisitList(
-            IList<object> list,
+            IReadOnlyList<object> list,
             ConverterContext context)
         {
             if (!context.InputType.IsListType())

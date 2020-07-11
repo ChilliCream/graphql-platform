@@ -2,21 +2,23 @@
   {
     "Message": "The argument `idArg` is required.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 43
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "nonNullIdArgField",
       "argument": "idArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   }
 ]

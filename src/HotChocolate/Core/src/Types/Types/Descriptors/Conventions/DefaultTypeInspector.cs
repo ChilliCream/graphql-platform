@@ -93,15 +93,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 var attribute = member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
-                return new ClrTypeReference(
+                return TypeReference.Create(
                     returnType,
                     context,
-                    attribute.IsNullable,
-                    attribute.IsElementNullable)
-                    .Compile();
+                    nullable: attribute.Nullable)
+                    .Rewrite();
             }
 
-            return new ClrTypeReference(returnType, context);
+            return TypeReference.Create(returnType, context);
         }
 
         protected Type GetReturnType(MemberInfo member)
@@ -145,15 +144,14 @@ namespace HotChocolate.Types.Descriptors
                 GraphQLNonNullTypeAttribute attribute =
                     parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
-                return new ClrTypeReference(
+                return TypeReference.Create(
                     argumentType,
                     TypeContext.Input,
-                    attribute.IsNullable,
-                    attribute.IsElementNullable)
-                    .Compile();
+                    nullable: attribute.Nullable)
+                    .Rewrite();
             }
 
-            return new ClrTypeReference(argumentType, TypeContext.Input);
+            return TypeReference.Create(argumentType, TypeContext.Input);
         }
 
         private Type GetArgumentTypeInternal(ParameterInfo parameter)

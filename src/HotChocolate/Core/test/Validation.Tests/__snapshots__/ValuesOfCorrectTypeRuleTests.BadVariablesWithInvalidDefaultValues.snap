@@ -2,33 +2,33 @@
   {
     "Message": "The specified input object field `requiredField` does not exist.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 5,
         "Column": 42
       }
     ],
-    "Exception": null,
     "Extensions": {
       "field": "requiredField",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified input object field `intField` does not exist.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 5,
         "Column": 63
       }
     ],
-    "Exception": null,
     "Extensions": {
       "field": "intField",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
-    }
+    },
+    "Exception": null
   }
 ]

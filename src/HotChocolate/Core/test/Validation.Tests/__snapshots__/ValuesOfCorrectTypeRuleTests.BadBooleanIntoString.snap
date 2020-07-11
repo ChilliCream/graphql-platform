@@ -2,22 +2,27 @@
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "stringArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "stringArgField"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 51
       }
     ],
-    "Exception": null,
     "Extensions": {
       "argument": "stringArg",
       "argumentValue": "true",
       "locationType": "String",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   }
 ]

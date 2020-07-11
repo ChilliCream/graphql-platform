@@ -129,9 +129,6 @@
   <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
   </data>
-  <data name="ClrTypeReference_OnlyTsosAreAllowed" xml:space="preserve">
-    <value>Only type system objects are allowed.</value>
-  </data>
   <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
   </data>

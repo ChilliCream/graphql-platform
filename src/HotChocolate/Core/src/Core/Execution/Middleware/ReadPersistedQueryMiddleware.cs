@@ -91,7 +91,7 @@ namespace HotChocolate.Execution
         {
             return context.Request is null
                 || (context.Request.Query is null
-                    && context.Request.QueryName is null);
+                    && context.Request.QueryId is null);
         }
     }
 }

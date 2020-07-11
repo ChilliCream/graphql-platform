@@ -82,25 +82,7 @@ namespace HotChocolate.Execution
             get => _result;
             set
             {
-                if (value is IResolverResult r)
-                {
-                    if (r.IsError)
-                    {
-                        _result = ErrorBuilder.New()
-                            .SetMessage(r.ErrorMessage)
-                            .SetPath(Path)
-                            .AddLocation(FieldSelection)
-                            .Build();
-                    }
-                    else
-                    {
-                        _result = r.Value;
-                    }
-                }
-                else
-                {
-                    _result = value;
-                }
+                _result = value;
                 IsResultModified = true;
             }
         }

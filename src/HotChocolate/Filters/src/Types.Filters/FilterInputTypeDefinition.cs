@@ -6,6 +6,6 @@ namespace HotChocolate.Types.Filters
     public class FilterInputTypeDefinition
         : InputObjectTypeDefinition
     {
-        public Type? EntityType { get; set; }
+        public Type EntityType { get; set; }
     }
 }
