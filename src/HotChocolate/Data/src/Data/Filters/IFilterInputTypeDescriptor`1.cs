@@ -76,6 +76,18 @@ namespace HotChocolate.Data.Filters
         /// </param>
         IFilterFieldDescriptor Field(NameString name);
 
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// ram name="property">The property that hall be ignored.</param>
+        IFilterInputTypeDescriptor Ignore(NameString name);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// ram name="property">The property that hall be ignored.</param>
+        IFilterInputTypeDescriptor Ignore(int operation);
+
         IFilterInputTypeDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
@@ -156,7 +168,7 @@ namespace HotChocolate.Data.Filters
         /// <param name="property">
         /// The property for which a field should be created
         /// </param>
-        IFilterOperationFieldDescriptor Operation<TField>(
+        IFilterFieldDescriptor Operation<TField>(
             Expression<Func<T, TField>> method);
 
         /// <summary>
@@ -174,6 +186,19 @@ namespace HotChocolate.Data.Filters
         /// ram name="property">The property that hall be ignored.</param>
         IFilterInputTypeDescriptor<T> Ignore(
             Expression<Func<T, object>> property);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// ram name="property">The property that hall be ignored.</param>
+        new IFilterInputTypeDescriptor Ignore(NameString name);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// ram name="property">The property that hall be ignored.</param>
+        new IFilterInputTypeDescriptor Ignore(int operation);
+
         new IFilterInputTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;

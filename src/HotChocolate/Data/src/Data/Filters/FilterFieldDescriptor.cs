@@ -137,8 +137,12 @@ namespace HotChocolate.Data.Filters
 
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
+            MemberInfo member)
+            => new FilterFieldDescriptor(context, member);
+
+        public static FilterFieldDescriptor New(
+            IDescriptorContext context,
             NameString fieldName)
             => new FilterFieldDescriptor(context, fieldName);
-
     }
 }
