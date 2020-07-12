@@ -15,6 +15,7 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
+            string? scope,
             Type entityType)
             : base(context)
         {
@@ -24,13 +25,17 @@ namespace HotChocolate.Data.Filters
             Definition.Name = Convention.GetTypeName(context, entityType);
             Definition.Description = Convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
+            Definition.Scope = scope;
         }
 
-        protected FilterInputTypeDescriptor(IDescriptorContext context)
+        protected FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            string? scope)
             : base(context)
         {
             Convention = context.GetFilterConvention();
             Definition.EntityType = typeof(object);
+            Definition.Scope = scope;
         }
 
         protected BindableList<FilterFieldDescriptor> Fields { get; } =
@@ -38,6 +43,7 @@ namespace HotChocolate.Data.Filters
 
         protected BindableList<FilterOperationFieldDescriptor> Operations { get; } =
             new BindableList<FilterOperationFieldDescriptor>();
+
         protected IFilterConvention Convention { get; }
 
         protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
@@ -155,8 +161,9 @@ namespace HotChocolate.Data.Filters
 
         public static FilterInputTypeDescriptor New(
             IDescriptorContext context,
+            string? scope,
             Type entityType)
-            => new FilterInputTypeDescriptor(context, entityType);
+            => new FilterInputTypeDescriptor(context, scope, entityType);
 
         public IFilterInputTypeDescriptor Ignore(NameString name)
         {
@@ -190,9 +197,10 @@ namespace HotChocolate.Data.Filters
 
         public static FilterInputTypeDescriptor FromSchemaType(
             IDescriptorContext context,
+            string? scope,
             Type schemaType)
         {
-            FilterInputTypeDescriptor? descriptor = New(context, schemaType);
+            FilterInputTypeDescriptor? descriptor = New(context, scope, schemaType);
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }

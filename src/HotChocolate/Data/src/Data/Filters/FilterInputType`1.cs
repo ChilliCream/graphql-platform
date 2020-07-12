@@ -25,6 +25,7 @@ namespace HotChocolate.Data.Filters
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
+                context.Scope,
                 typeof(T));
 
             _configure(descriptor);

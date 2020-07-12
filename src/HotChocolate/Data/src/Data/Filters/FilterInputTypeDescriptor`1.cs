@@ -13,12 +13,16 @@ namespace HotChocolate.Data.Filters
         : FilterInputTypeDescriptor
         , IFilterInputTypeDescriptor<T>
     {
-        protected FilterInputTypeDescriptor(IDescriptorContext context, Type entityType)
-            : base(context, entityType)
+        protected FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            string? scope,
+            Type entityType)
+            : base(context, scope, entityType)
         {
         }
 
-        protected FilterInputTypeDescriptor(IDescriptorContext context) : base(context)
+        protected FilterInputTypeDescriptor(IDescriptorContext context, string? scope)
+            : base(context, scope)
         {
         }
 
@@ -159,7 +163,8 @@ namespace HotChocolate.Data.Filters
 
         public new static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context,
+            string? scope,
             Type entityType)
-            => new FilterInputTypeDescriptor<T>(context, entityType);
+            => new FilterInputTypeDescriptor<T>(context, scope, entityType);
     }
 }
