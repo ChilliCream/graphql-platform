@@ -94,6 +94,12 @@ namespace HotChocolate.Configuration
                 definition.Name = completionContext.Scope + "_" + definition.Name;
             }
 
+            public override void OnTypesInitialized(
+                IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            {
+
+            }
+
             public bool TryCreateScope(
                 ITypeDiscoveryContext discoveryContext,
                 [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
