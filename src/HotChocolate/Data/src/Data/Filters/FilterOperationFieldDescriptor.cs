@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters
             int operation)
             : base(context)
         {
-            IFilterConvention? convention = context.GetFilterConvention();
+            IFilterConvention? convention = context.GetFilterConvention(scope);
             Definition.Operation = operation;
             Definition.Name = convention.GetOperationName(context, operation);
             Definition.Description = convention.GetOperationDescription(context, operation);

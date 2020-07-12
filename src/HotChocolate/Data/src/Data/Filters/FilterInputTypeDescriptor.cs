@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Filters
             Type entityType)
             : base(context)
         {
-            Convention = context.GetFilterConvention();
+            Convention = context.GetFilterConvention(scope);
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
             Definition.Name = Convention.GetTypeName(context, entityType);
@@ -33,7 +33,7 @@ namespace HotChocolate.Data.Filters
             string? scope)
             : base(context)
         {
-            Convention = context.GetFilterConvention();
+            Convention = context.GetFilterConvention(scope);
             Definition.EntityType = typeof(object);
             Definition.Scope = scope;
         }

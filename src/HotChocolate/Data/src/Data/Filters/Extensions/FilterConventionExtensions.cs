@@ -5,7 +5,8 @@ namespace HotChocolate.Data.Filters
     public static class FilterConventionExtensions
     {
         public static IFilterConvention GetFilterConvention(
-            this IDescriptorContext context)
+            this IDescriptorContext context,
+            string? scope)
             => context.GetConventionOrDefault(FilterConvention.Default);
     }
 }

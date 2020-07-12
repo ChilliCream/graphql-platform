@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Filters
             MemberInfo member)
             : base(context)
         {
-            IFilterConvention? convention = context.GetFilterConvention();
+            IFilterConvention? convention = context.GetFilterConvention(scope);
 
             Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
