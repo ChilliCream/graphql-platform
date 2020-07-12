@@ -156,5 +156,10 @@ namespace HotChocolate.Data.Filters
             base.Ignore(operation);
             return this;
         }
+
+        public new static FilterInputTypeDescriptor<T> New(
+            IDescriptorContext context,
+            Type entityType)
+            => new FilterInputTypeDescriptor<T>(context, entityType);
     }
 }
