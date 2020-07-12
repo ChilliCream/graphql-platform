@@ -12,8 +12,6 @@ namespace HotChocolate.Data.Filters
 
         NameString GetOperationDescription(IDescriptorContext context, int operation);
 
-        ITypeReference GetOperationType(IDescriptorContext context, int operation);
-
         NameString GetFieldName(IDescriptorContext context, MemberInfo member);
 
         NameString GetFieldDescription(IDescriptorContext context, MemberInfo member);

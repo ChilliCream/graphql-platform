@@ -32,8 +32,9 @@ namespace HotChocolate.Data.Filters
         public NameString GetTypeName(IDescriptorContext context, Type entityType)
             => context.Naming.GetTypeName(entityType, TypeKind.InputObject);
 
-
-        public bool TryCreateImplicitFilter(PropertyInfo property, [NotNullWhen(true)] out InputFieldDefinition? definition)
+        public bool TryCreateImplicitFilter(
+            PropertyInfo property,
+            [NotNullWhen(true)] out InputFieldDefinition? definition)
         {
             throw new NotImplementedException();
         }

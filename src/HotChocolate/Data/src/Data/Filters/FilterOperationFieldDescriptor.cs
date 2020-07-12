@@ -21,7 +21,6 @@ namespace HotChocolate.Data.Filters
             Definition.Operation = operation;
             Definition.Name = convention.GetOperationName(context, operation);
             Definition.Description = convention.GetOperationDescription(context, operation);
-            // Definition.Type = convention.GetOperationType(context, operation);
             Definition.Scope = scope;
         }
 

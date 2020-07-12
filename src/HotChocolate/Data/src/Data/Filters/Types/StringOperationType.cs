@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-
     public static class Operations
     {
         public const int Equals = 0;
@@ -67,14 +66,8 @@ namespace HotChocolate.Data.Filters
         {
             descriptor.Operation(Operations.Equals).Type(typeof(T));
             descriptor.Operation(Operations.NotEquals).Type(typeof(T));
-            descriptor.Operation(Operations.Contains).Type(typeof(T));
-            descriptor.Operation(Operations.NotContains).Type(typeof(T));
             descriptor.Operation(Operations.In).Type(typeof(T));
             descriptor.Operation(Operations.NotIn).Type(typeof(T));
-            descriptor.Operation(Operations.StartsWith).Type(typeof(T));
-            descriptor.Operation(Operations.NotStartsWith).Type(typeof(T));
-            descriptor.Operation(Operations.EndsWith).Type(typeof(T));
-            descriptor.Operation(Operations.NotEndsWith).Type(typeof(T));
             descriptor.Operation(Operations.GreaterThan).Type(typeof(T));
             descriptor.Operation(Operations.NotGreaterThan).Type(typeof(T));
             descriptor.Operation(Operations.GreaterThanOrEquals).Type(typeof(T));
@@ -84,8 +77,8 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(Operations.LowerThanOrEquals).Type(typeof(T));
             descriptor.Operation(Operations.NotLowerThanOrEquals).Type(typeof(T));
         }
-
     }
+
     public class BooleanOperationType : FilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)

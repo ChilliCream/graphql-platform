@@ -191,13 +191,13 @@ namespace HotChocolate.Data.Filters
         /// Ignore the specified property.
         /// </summary>
         /// ram name="property">The property that hall be ignored.</param>
-        new IFilterInputTypeDescriptor Ignore(NameString name);
+        new IFilterInputTypeDescriptor<T> Ignore(NameString name);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// ram name="property">The property that hall be ignored.</param>
-        new IFilterInputTypeDescriptor Ignore(int operation);
+        new IFilterInputTypeDescriptor<T> Ignore(int operation);
 
         new IFilterInputTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)

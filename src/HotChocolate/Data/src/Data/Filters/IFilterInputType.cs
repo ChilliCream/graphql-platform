@@ -1,5 +1,5 @@
-using System;
 using HotChocolate.Types;
+using System;
 
 namespace HotChocolate.Data.Filters
 {
