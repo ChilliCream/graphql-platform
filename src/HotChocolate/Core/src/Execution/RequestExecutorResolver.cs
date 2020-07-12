@@ -234,7 +234,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private sealed class SetSchemaNameInterceptor : TypeInitializationInterceptor
+        private sealed class SetSchemaNameInterceptor : TypeInterceptor
         {
             private readonly NameString _schemaName;
 
@@ -247,7 +247,7 @@ namespace HotChocolate.Execution
                 context.IsSchema;
 
             public override void OnBeforeCompleteName(
-                ICompletionContext context,
+                ITypeCompletionContext completionContext,
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {

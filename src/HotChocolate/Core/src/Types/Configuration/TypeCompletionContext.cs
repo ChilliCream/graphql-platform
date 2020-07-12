@@ -11,16 +11,16 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class CompletionContext
-        : ICompletionContext
+    internal sealed class TypeCompletionContext
+        : ITypeCompletionContext
     {
-        private readonly InitializationContext _initializationContext;
+        private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
         private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
 
-        public CompletionContext(
-            InitializationContext initializationContext,
+        public TypeCompletionContext(
+            TypeDiscoveryContext initializationContext,
             TypeInitializer typeInitializer,
             IsOfTypeFallback isOfType,
             Func<ISchema> schemaResolver)
@@ -48,6 +48,8 @@ namespace HotChocolate.Configuration
 
         public ITypeSystemObject Type => _initializationContext.Type;
 
+        public string Scope => _initializationContext.Scope;
+
         public bool IsType => _initializationContext.IsType;
 
         public bool IsIntrospectionType => _initializationContext.IsIntrospectionType;
@@ -64,8 +66,7 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
-        public ITypeInitializationInterceptor Interceptor => _initializationContext.Interceptor;
-
+        public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {
@@ -97,19 +98,19 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            if (reference is ISchemaTypeReference schemaRef
+            if (reference is SchemaTypeReference schemaRef
                 && TryGetType(schemaRef, out type))
             {
                 return true;
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef
+            if (reference is SyntaxTypeReference syntaxRef
                 && TryGetType(syntaxRef, out type))
             {
                 return true;
             }
 
-            if (reference is IClrTypeReference clrRef
+            if (reference is ClrTypeReference clrRef
                 && _typeInitializer.TryNormalizeReference(
                     clrRef, out ITypeReference normalized)
                 && _typeInitializer.DiscoveredTypes is { }
@@ -129,7 +130,7 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryGetType<T>(
-            ISchemaTypeReference reference,
+            SchemaTypeReference reference,
             out T type)
             where T : IType
         {
@@ -150,7 +151,7 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryGetType<T>(
-            ISyntaxTypeReference reference,
+            SyntaxTypeReference reference,
             out T type)
             where T : IType
         {
@@ -193,7 +194,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                var clrTypeReference = new ClrTypeReference(
+                var clrTypeReference = TypeReference.Create(
                     cr.ClrType, TypeContext.None);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,

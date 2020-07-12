@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,11 +16,19 @@ namespace HotChocolate.Types
         [Fact]
         public void Nullable_Dictionary_Is_Correctly_Detected()
         {
+            #if NETCOREAPP2_1
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Create()
+                .ToString()
+                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .Create()
                 .ToString()
                 .MatchSnapshot();
+            #endif
         }
 
         [Fact]

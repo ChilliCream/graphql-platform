@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<UnionTypeDefinition>
         , IUnionTypeDescriptor
     {
-        protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected internal UnionTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -21,13 +21,21 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
+        protected internal UnionTypeDescriptor(
+            IDescriptorContext context,
+            UnionTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
         protected UnionTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override UnionTypeDefinition Definition { get; } =
+        internal protected override UnionTypeDefinition Definition { get; protected set; } =
             new UnionTypeDefinition();
 
         protected override void OnCreateDefinition(UnionTypeDefinition definition)
@@ -65,7 +73,7 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType
         {
-            Definition.Types.Add(new ClrTypeReference(
+            Definition.Types.Add(TypeReference.Create(
                 typeof(TObjectType), TypeContext.Output));
             return this;
         }
@@ -140,5 +148,10 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static UnionTypeDescriptor From(
+            IDescriptorContext context,
+            UnionTypeDefinition definition) =>
+            new UnionTypeDescriptor(context, definition);
     }
 }

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<DirectiveTypeDefinition>
         , IDirectiveTypeDescriptor
     {
-        protected DirectiveTypeDescriptor(
+        protected internal DirectiveTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -31,13 +31,21 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
         }
 
-        protected DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override DirectiveTypeDefinition Definition { get; } =
+        protected internal DirectiveTypeDescriptor(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        internal protected override DirectiveTypeDefinition Definition { get; protected set; } =
             new DirectiveTypeDefinition();
 
         protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
@@ -105,7 +113,7 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            descriptor = new DirectiveArgumentDescriptor(
+            descriptor = DirectiveArgumentDescriptor.New(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);
@@ -204,5 +212,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static DirectiveTypeDescriptor From(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor(context, definition);
+
+        public static DirectiveTypeDescriptor From<T>(
+            IDescriptorContext context,
+            DirectiveTypeDefinition definition) =>
+            new DirectiveTypeDescriptor<T>(context, definition);
     }
 }

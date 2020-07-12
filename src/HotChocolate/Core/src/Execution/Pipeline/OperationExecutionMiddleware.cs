@@ -16,6 +16,7 @@ namespace HotChocolate.Execution.Pipeline
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
         private readonly MutationExecutor _mutationExecutor;
+        private readonly SubscriptionExecutor _subscriptionExecutor;
         private object? _cachedQueryValue = null;
         private object? _cachedMutation = null;
 
@@ -24,7 +25,8 @@ namespace HotChocolate.Execution.Pipeline
             IDiagnosticEvents diagnosticEvents,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            MutationExecutor mutationExecutor)
+            MutationExecutor mutationExecutor,
+            SubscriptionExecutor subscriptionExecutor)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -36,6 +38,8 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(queryExecutor));
             _mutationExecutor = mutationExecutor ??
                 throw new ArgumentNullException(nameof(mutationExecutor));
+            _subscriptionExecutor = subscriptionExecutor ??
+                throw new ArgumentNullException(nameof(subscriptionExecutor));
         }
 
         public async ValueTask InvokeAsync(
@@ -46,6 +50,10 @@ namespace HotChocolate.Execution.Pipeline
             {
                 if (context.Operation.Definition.Operation == OperationType.Subscription)
                 {
+                    context.Result = await _subscriptionExecutor
+                        .ExecuteAsync(context)
+                        .ConfigureAwait(false);
+
                     await _next(context).ConfigureAwait(false);
                 }
                 else

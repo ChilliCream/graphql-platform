@@ -30,9 +30,11 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly Dictionary<Type, CreateConvention> _conventions =
             new Dictionary<Type, CreateConvention>();
-        private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
-            new Dictionary<IClrTypeReference, ITypeReference>();
+        private readonly Dictionary<ClrTypeReference, ITypeReference> _clrTypes =
+            new Dictionary<ClrTypeReference, ITypeReference>();
         private readonly List<object> _interceptors = new List<object>();
+        private readonly List<Action<IDescriptorContext>> _onBeforeCreate = 
+            new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -49,7 +51,7 @@ namespace HotChocolate
 
             if (typeof(Schema).IsAssignableFrom(type))
             {
-                _schema = new ClrTypeReference(type, TypeContext.None);
+                _schema = TypeReference.Create(type, TypeContext.None);
             }
             else
             {
@@ -146,7 +148,7 @@ namespace HotChocolate
             }
             else
             {
-                _types.Add(new ClrTypeReference(
+                _types.Add(TypeReference.Create(
                     type,
                     SchemaTypeReference.InferTypeContext(type)));
             }
@@ -193,8 +195,8 @@ namespace HotChocolate
 
             TypeContext context =
                 SchemaTypeReference.InferTypeContext(schemaType);
-            _clrTypes[new ClrTypeReference(clrType, context)] =
-                new ClrTypeReference(schemaType, context);
+            _clrTypes[TypeReference.Create(clrType, context)] =
+                TypeReference.Create(schemaType, context);
 
             return this;
         }
@@ -213,7 +215,7 @@ namespace HotChocolate
                     if (typeof(ObjectType).IsAssignableFrom(schemaType)
                         && !BaseTypes.IsNonGenericBaseType(schemaType))
                     {
-                        _types.Add(new ClrTypeReference(
+                        _types.Add(TypeReference.Create(
                             schemaType,
                             SchemaTypeReference.InferTypeContext(schemaType)));
                     }
@@ -285,7 +287,7 @@ namespace HotChocolate
                     nameof(type));
             }
 
-            var reference = new ClrTypeReference(type, TypeContext.Output);
+            var reference = TypeReference.Create(type, TypeContext.Output);
             _operations.Add(operation, reference);
             _types.Add(reference);
             return this;
@@ -367,27 +369,16 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddContextData(string key, object value)
-        {
-            _contextData.Add(key, value);
-            return this;
-        }
-
         public ISchemaBuilder SetContextData(string key, object value)
         {
             _contextData[key] = value;
             return this;
         }
 
-        public ISchemaBuilder RemoveContextData(string key)
+        public ISchemaBuilder SetContextData(string key, Func<object, object> update)
         {
-            _contextData.Remove(key);
-            return this;
-        }
-
-        public ISchemaBuilder ClearContextData()
-        {
-            _contextData.Clear();
+            _contextData.TryGetValue(key, out var value);
+            _contextData[key] = update(value);
             return this;
         }
 
@@ -420,7 +411,18 @@ namespace HotChocolate
             return this;
         }
 
-        public static SchemaBuilder New() => new SchemaBuilder();
+        public ISchemaBuilder OnBeforeCreate(
+            Action<IDescriptorContext> action)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
 
+            _onBeforeCreate.Add(action);
+            return this;
+        }
+
+        public static SchemaBuilder New() => new SchemaBuilder();
     }
 }

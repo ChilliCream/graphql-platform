@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Descriptors
         public static void DiscoverArguments(
             IDescriptorContext context,
             ICollection<ArgumentDefinition> arguments,
-            MemberInfo member)
+            MemberInfo? member)
         {
             if (arguments == null)
             {

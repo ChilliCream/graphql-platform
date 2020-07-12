@@ -7,10 +7,12 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public class DelegateTypeInitializationInterceptor
+    public class DelegateTypeInterceptor
         : ITypeInitializationInterceptor
     {
         private readonly Func<ITypeSystemObjectContext, bool> _canHandle;
+        private readonly Action<ITypeDiscoveryContext>? _onBeforeInitialize;
+        private readonly OnInitializeType? _onAfterInitialize;
         private readonly OnInitializeType? _onBeforeRegisterDependencies;
         private readonly OnInitializeType? _onAfterRegisterDependencies;
         private readonly OnCompleteType? _onBeforeCompleteName;
@@ -18,8 +20,10 @@ namespace Microsoft.Extensions.DependencyInjection
         private readonly OnCompleteType? _onBeforeCompleteType;
         private readonly OnCompleteType? _onAfterCompleteType;
 
-        public DelegateTypeInitializationInterceptor(
+        public DelegateTypeInterceptor(
             Func<ITypeSystemObjectContext, bool>? canHandle = null,
+            Action<ITypeDiscoveryContext>? onBeforeInitialize = null,
+            OnInitializeType? onAfterInitialize = null,
             OnInitializeType? onBeforeRegisterDependencies = null,
             OnInitializeType? onAfterRegisterDependencies = null,
             OnCompleteType? onBeforeCompleteName = null,
@@ -28,6 +32,8 @@ namespace Microsoft.Extensions.DependencyInjection
             OnCompleteType? onAfterCompleteType = null)
         {
             _canHandle = canHandle ?? (c => true);
+            _onBeforeInitialize = onBeforeInitialize;
+            _onAfterInitialize = onAfterInitialize;
             _onBeforeRegisterDependencies = onBeforeRegisterDependencies;
             _onAfterRegisterDependencies = onAfterRegisterDependencies;
             _onBeforeCompleteName = onBeforeCompleteName;
@@ -36,43 +42,70 @@ namespace Microsoft.Extensions.DependencyInjection
             _onAfterCompleteType = onAfterCompleteType;
         }
 
+        public bool TriggerAggregations => false;
+
         public bool CanHandle(ITypeSystemObjectContext context) =>
             _canHandle(context);
 
-        public void OnBeforeRegisterDependencies(
-            IInitializationContext context,
+        public void OnBeforeInitialize(ITypeDiscoveryContext discoveryContext) =>
+            _onBeforeInitialize?.Invoke(discoveryContext);
+
+        public void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeRegisterDependencies?.Invoke(context, definition, contextData);
+            _onAfterInitialize?.Invoke(discoveryContext, definition, contextData);
+
+
+        public void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData) =>
+            _onBeforeRegisterDependencies?.Invoke(discoveryContext, definition, contextData);
 
         public void OnAfterRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterRegisterDependencies?.Invoke(context, definition, contextData);
+            _onAfterRegisterDependencies?.Invoke(discoveryContext, definition, contextData);
 
         public void OnBeforeCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeCompleteName?.Invoke(context, definition, contextData);
+            _onBeforeCompleteName?.Invoke(completionContext, definition, contextData);
 
         public void OnAfterCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterCompleteName?.Invoke(context, definition, contextData);
+            _onAfterCompleteName?.Invoke(completionContext, definition, contextData);
 
         public void OnBeforeCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onBeforeCompleteType?.Invoke(context, definition, contextData);
+            _onBeforeCompleteType?.Invoke(completionContext, definition, contextData);
 
         public void OnAfterCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData) =>
-            _onAfterCompleteType?.Invoke(context, definition, contextData);
+            _onAfterCompleteType?.Invoke(completionContext, definition, contextData);
+
+        public void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+        }
+
+        public void OnTypesCompletedName(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+        }
+
+        public void OnTypesCompleted(
+            IReadOnlyCollection<ITypeCompletionContext> completionContext)
+        {
+        }
     }
 }

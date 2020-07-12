@@ -13,25 +13,15 @@ namespace HotChocolate.Configuration
         : IHasRuntimeType
     {
         public RegisteredType(
-            ITypeReference reference,
-            TypeSystemObjectBase type,
-            InitializationContext initializationContext,
-            IReadOnlyList<TypeDependency> dependencies,
-            bool isInferred)
-            : this(new[] { reference }, type, initializationContext, dependencies, isInferred)
-        {
-        }
-
-        public RegisteredType(
             IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
-            InitializationContext initializationContext,
+            TypeDiscoveryContext discoveryContext,
             IReadOnlyList<TypeDependency> dependencies,
             bool isInferred)
         {
             References = references;
             Type = type;
-            InitializationContext = initializationContext;
+            DiscoveryContext = discoveryContext;
             Dependencies = dependencies;
             IsInferred = isInferred;
             IsExtension = Type is INamedTypeExtensionMerger;
@@ -43,7 +33,7 @@ namespace HotChocolate.Configuration
 
         public TypeSystemObjectBase Type { get; }
 
-        public InitializationContext InitializationContext { get; }
+        public TypeDiscoveryContext DiscoveryContext { get; }
 
         public bool IsInferred { get; }
 
@@ -73,7 +63,7 @@ namespace HotChocolate.Configuration
             return new RegisteredType(
                 References,
                 Type,
-                InitializationContext,
+                DiscoveryContext,
                 dependencies,
                 IsInferred);
         }
@@ -87,7 +77,7 @@ namespace HotChocolate.Configuration
             return new RegisteredType(
                 References,
                 Type,
-                InitializationContext,
+                DiscoveryContext,
                 merged,
                 IsInferred);
         }

@@ -6,6 +6,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
+using System.Linq;
 
 namespace HotChocolate.Tests
 {
@@ -100,6 +101,17 @@ namespace HotChocolate.Tests
             }
 
             result.MatchSnapshot();
+        }
+
+        public static async Task<T> CreateTypeAsync<T>()
+            where T : INamedType
+        {
+            ISchema schema = await CreateSchemaAsync(c => c
+                .AddQueryType(d => d
+                    .Name("Query").Field("foo").Resolver("result"))
+                .AddType<T>()
+                .ModifyOptions(o => o.StrictValidation = false));
+            return schema.Types.OfType<T>().Single();
         }
 
         public static async Task<T> CreateTypeAsync<T>(T type)

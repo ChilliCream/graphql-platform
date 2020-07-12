@@ -16,8 +16,8 @@ namespace HotChocolate.Types
         internal static IReadOnlyList<ITypeReference> All { get; } =
             new List<ITypeReference>
             {
-                new ClrTypeReference(typeof(SkipDirectiveType), TypeContext.None),
-                new ClrTypeReference(typeof(IncludeDirectiveType), TypeContext.None),
+                TypeReference.Create(typeof(SkipDirectiveType), TypeContext.None),
+                TypeReference.Create(typeof(IncludeDirectiveType), TypeContext.None),
             };
 
         public static bool IsBuiltIn(NameString typeName)

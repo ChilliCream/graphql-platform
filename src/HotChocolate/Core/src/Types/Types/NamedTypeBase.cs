@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             ReferenceEquals(type, this);
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             base.OnCompleteType(context, definition);

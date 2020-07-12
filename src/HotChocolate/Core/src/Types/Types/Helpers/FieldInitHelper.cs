@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     internal static class FieldInitHelper
     {
         public static IValueNode CreateDefaultValue(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ArgumentDefinition definition,
             IInputType fieldType)
         {
@@ -41,7 +41,7 @@ namespace HotChocolate.Types
         }
 
         public static void CompleteFields<TTypeDef, TFieldType, TFieldDef>(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TTypeDef definition,
             IReadOnlyCollection<FieldBase<TFieldType, TFieldDef>> fields)
             where TTypeDef : DefinitionBase, IHasSyntaxNode

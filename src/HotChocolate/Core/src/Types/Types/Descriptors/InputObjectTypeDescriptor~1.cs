@@ -21,6 +21,13 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
+        protected internal InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
         Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(

@@ -8,29 +8,28 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class InitializationContext
-        : IInitializationContext
+    internal sealed class TypeDiscoveryContext
+        : ITypeDiscoveryContext
     {
         private readonly List<TypeDependency> _typeDependencies =
             new List<TypeDependency>();
         private readonly List<IDirectiveReference> _directiveReferences =
             new List<IDirectiveReference>();
 
-        public InitializationContext(
+        public TypeDiscoveryContext(
             ITypeSystemObject type,
+            string scope,
             IServiceProvider services,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
-            ITypeInitializationInterceptor interceptor)
+            ITypeInterceptor interceptor)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
+            Scope = scope;
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
             DescriptorContext = descriptorContext
                 ?? throw new ArgumentNullException(nameof(descriptorContext));
-            ContextData = contextData
-                ?? throw new ArgumentNullException(nameof(contextData));
             Interceptor = interceptor
                 ?? throw new ArgumentNullException(nameof(interceptor));
             IsDirective = type is DirectiveType;
@@ -49,6 +48,8 @@ namespace HotChocolate.Configuration
 
         public ITypeSystemObject Type { get; }
 
+        public string Scope { get; }
+
         public bool IsType { get; }
 
         public bool IsIntrospectionType { get; }
@@ -65,17 +66,17 @@ namespace HotChocolate.Configuration
         public ICollection<IDirectiveReference> DirectiveReferences =>
             _directiveReferences;
 
-        public IDictionary<FieldReference, RegisteredResolver> Resolvers
-        { get; } = new Dictionary<FieldReference, RegisteredResolver>();
+        public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } =
+            new Dictionary<FieldReference, RegisteredResolver>();
 
         public ICollection<ISchemaError> Errors { get; } =
             new List<ISchemaError>();
 
-        public IDictionary<string, object> ContextData { get; }
+        public IDictionary<string, object> ContextData => DescriptorContext.ContextData;
 
         public IDescriptorContext DescriptorContext { get; private set; }
 
-        public ITypeInitializationInterceptor Interceptor { get; }
+        public ITypeInterceptor Interceptor { get; }
 
         public void RegisterDependency(
             ITypeReference reference,

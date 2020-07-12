@@ -16,16 +16,15 @@ namespace HotChocolate.Configuration
             new Dictionary<ITypeReference, RegisteredType>();
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
 
         public TypeDiscoverer(
             ISet<ITypeReference> initialTypes,
-            IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
-            ITypeInitializationInterceptor interceptor,
+            ITypeInterceptor interceptor,
             IServiceProvider services)
         {
             _unregistered.AddRange(IntrospectionTypes.All);
@@ -39,7 +38,6 @@ namespace HotChocolate.Configuration
                 _registeredTypes,
                 clrTypeReferences,
                 descriptorContext,
-                contextData,
                 interceptor,
                 services);
 
@@ -54,8 +52,8 @@ namespace HotChocolate.Configuration
         public DiscoveredTypes DiscoverTypes()
         {
             const int max = 1000;
-            int tries = 0;
-            bool resolved = false;
+            var tries = 0;
+            var resolved = false;
 
             do
             {
@@ -103,11 +101,12 @@ namespace HotChocolate.Configuration
 
         private bool TryInferTypes()
         {
-            bool inferred = false;
+            var inferred = false;
 
-            foreach (IClrTypeReference unresolvedType in _typeRegistrar.GetUnresolved())
+            foreach (ClrTypeReference unresolvedType in
+                _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type, out IClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type, out ClrTypeReference schemaType))
                 {
                     inferred = true;
 
@@ -133,8 +132,8 @@ namespace HotChocolate.Configuration
 
         private void CollectErrors()
         {
-            foreach (InitializationContext context in
-                _registeredTypes.Values.Distinct().Select(t => t.InitializationContext))
+            foreach (TypeDiscoveryContext context in
+                _registeredTypes.Values.Distinct().Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);
             }
@@ -143,7 +142,7 @@ namespace HotChocolate.Configuration
 
             if (_errors.Count == 0 && unresolved.Count > 0)
             {
-                foreach (IClrTypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
+                foreach (ITypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
                 {
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
-        public ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected internal ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -27,13 +27,21 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
-        public ObjectTypeDescriptor(IDescriptorContext context)
+        protected internal ObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override ObjectTypeDefinition Definition { get; } =
+        protected internal ObjectTypeDescriptor(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        internal protected override ObjectTypeDefinition Definition { get; protected set; } =
             new ObjectTypeDefinition();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
@@ -326,5 +334,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static ObjectTypeDescriptor From(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition) =>
+            new ObjectTypeDescriptor(context, definition);
+
+        public static ObjectTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition) =>
+            new ObjectTypeDescriptor<T>(context, definition);
     }
 }

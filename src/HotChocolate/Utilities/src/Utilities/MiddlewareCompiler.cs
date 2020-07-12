@@ -37,8 +37,8 @@ namespace HotChocolate.Utilities
             CreateFactoryHandlers? createParameters = null)
         {
             Type type = typeof(TMiddleware);
-            ParameterExpression context = Expression.Parameter(typeof(TContext));
-            ParameterExpression next = Expression.Parameter(typeof(TNext));
+            ParameterExpression context = Expression.Parameter(typeof(TContext), "context");
+            ParameterExpression next = Expression.Parameter(typeof(TNext), "next");
 
             var handlers = new List<IParameterHandler>();
             handlers.Add(new TypeParameterHandler(typeof(TNext), next));

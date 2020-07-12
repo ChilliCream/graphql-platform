@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<InputObjectTypeDefinition>
         , IInputObjectTypeDescriptor
     {
-        protected InputObjectTypeDescriptor(
+        protected internal InputObjectTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -28,13 +28,21 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.InputObject);
         }
 
-        protected InputObjectTypeDescriptor(IDescriptorContext context)
+        protected internal InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override InputObjectTypeDefinition Definition { get; } =
+        protected internal InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        internal protected override InputObjectTypeDefinition Definition { get; protected set; } =
             new InputObjectTypeDefinition();
 
         protected List<InputFieldDescriptor> Fields { get; } =
@@ -151,5 +159,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static InputObjectTypeDescriptor From(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition) =>
+            new InputObjectTypeDescriptor(context, definition);
+
+        public static InputObjectTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition) =>
+            new InputObjectTypeDescriptor<T>(context, definition);
     }
 }

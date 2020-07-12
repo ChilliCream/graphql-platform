@@ -4,6 +4,7 @@ namespace HotChocolate.Types
         : IHasName
         , IHasDescription
         , IHasContextData
+        , IHasScope
         , ITypeSystemMember
     {
     }

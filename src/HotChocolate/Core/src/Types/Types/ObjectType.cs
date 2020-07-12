@@ -63,7 +63,7 @@ namespace HotChocolate.Types
             interfaceType is InterfaceType i && _interfaces.IndexOf(i) != -1;
 
         protected override ObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = ObjectTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             ObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -111,7 +111,7 @@ namespace HotChocolate.Types
         }
 
         private void AddIntrospectionFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ICollection<ObjectField> fields)
         {
             if (context.IsQueryType.HasValue && context.IsQueryType.Value)
@@ -124,7 +124,7 @@ namespace HotChocolate.Types
         }
 
         private void AddRelayNodeField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ICollection<ObjectField> fields)
         {
             if (context.IsQueryType.HasValue
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private void CompleteIsOfType(ICompletionContext context)
+        private void CompleteIsOfType(ITypeCompletionContext context)
         {
             if (_isOfType == null)
             {
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
         }
 
         private bool ValidateFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
             ObjectFieldDefinition[] invalidFields =

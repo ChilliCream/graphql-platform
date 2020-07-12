@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<DirectiveArgumentDefinition>
         , IDirectiveArgumentDescriptor
     {
-        public DirectiveArgumentDescriptor(
+        protected internal DirectiveArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName)
             : base(context)
@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = argumentName;
         }
 
-        public DirectiveArgumentDescriptor(
+        protected internal DirectiveArgumentDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
@@ -33,6 +33,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
+        }
+
+        protected internal DirectiveArgumentDescriptor(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
@@ -125,5 +133,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             PropertyInfo property) =>
             new DirectiveArgumentDescriptor(context, property);
+
+        public static DirectiveArgumentDescriptor From(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition) =>
+            new DirectiveArgumentDescriptor(context, definition);
     }
 }

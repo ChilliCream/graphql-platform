@@ -23,6 +23,14 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
+        protected internal DirectiveTypeDescriptor(
+            IDescriptorContext context, 
+            DirectiveTypeDefinition definition)
+            : base(context, definition)
+        {
+            Definition = definition;
+        }
+
         Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteArguments(
@@ -42,10 +50,6 @@ namespace HotChocolate.Types.Descriptors
 
             base.OnCompleteArguments(arguments, handledProperties);
         }
-
-
-
-        #region IDirectiveDescriptor<T>
 
         public new IDirectiveTypeDescriptor<T> SyntaxNode(
             DirectiveDefinitionNode directiveDefinitionNode)
@@ -164,7 +168,5 @@ namespace HotChocolate.Types.Descriptors
             base.Repeatable();
             return this;
         }
-
-        #endregion
     }
 }

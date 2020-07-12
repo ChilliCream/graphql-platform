@@ -91,7 +91,7 @@ namespace HotChocolate.Types
             ResolveConcreteType(context, resolverResult);
 
         protected override UnionTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = UnionTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             UnionTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -120,7 +120,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             UnionTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -130,7 +130,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteTypeSet(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             UnionTypeDefinition definition)
         {
             var typeSet = new HashSet<ObjectType>();
@@ -154,7 +154,7 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteTypeSet(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             UnionTypeDefinition definition,
             ISet<ObjectType> typeSet)
         {

@@ -15,19 +15,18 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -56,19 +55,18 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(Foo),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 
@@ -97,22 +95,21 @@ namespace HotChocolate.Configuration
         {
             // arrange
             var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(ObjectType<Foo>),
                 TypeContext.Output));
-            initialTypes.Add(new ClrTypeReference(
+            initialTypes.Add(TypeReference.Create(
                 typeof(FooType),
                 TypeContext.Output));
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
                 clrTypeReferences,
                 DescriptorContext.Create(),
-                new Dictionary<string, object>(),
                 new AggregateTypeInitializationInterceptor(),
                 serviceProvider);
 

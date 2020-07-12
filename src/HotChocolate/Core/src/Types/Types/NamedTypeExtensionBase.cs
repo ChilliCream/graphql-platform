@@ -12,11 +12,11 @@ namespace HotChocolate.Types
         public abstract TypeKind Kind { get; }
 
         internal abstract void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type);
 
         void INamedTypeExtensionMerger.Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type) => Merge(context, type);
     }
 }

@@ -154,7 +154,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);

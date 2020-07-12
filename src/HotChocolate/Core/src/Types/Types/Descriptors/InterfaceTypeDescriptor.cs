@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<InterfaceTypeDefinition>
         , IInterfaceTypeDescriptor
     {
-        protected InterfaceTypeDescriptor(
+        protected internal InterfaceTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -28,14 +28,22 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
-        protected InterfaceTypeDescriptor(
+        protected internal InterfaceTypeDescriptor(
             IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override InterfaceTypeDefinition Definition { get; } =
+        protected internal InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        internal protected override InterfaceTypeDefinition Definition { get; protected set; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -208,5 +216,15 @@ namespace HotChocolate.Types.Descriptors
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static InterfaceTypeDescriptor From(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor(context, definition);
+
+        public static InterfaceTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor<T>(context, definition);
     }
 }

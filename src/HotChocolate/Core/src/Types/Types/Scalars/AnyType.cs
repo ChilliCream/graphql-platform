@@ -34,7 +34,7 @@ namespace HotChocolate.Types
         public override Type RuntimeType => typeof(object);
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object> contextData)
         {
             _converter = context.Services.GetTypeConversion();

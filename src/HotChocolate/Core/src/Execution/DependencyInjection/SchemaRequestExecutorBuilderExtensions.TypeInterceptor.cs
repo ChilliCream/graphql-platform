@@ -69,7 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onBeforeRegisterDependencies: onBeforeRegisterDependencies)));
         }
@@ -112,7 +112,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onAfterRegisterDependencies: onAfterRegisterDependencies)));
         }
@@ -157,7 +157,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onBeforeCompleteName: onBeforeCompleteName)));
         }
@@ -202,7 +202,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onAfterCompleteName: onAfterCompleteName)));
         }
@@ -245,7 +245,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onBeforeCompleteType: onBeforeCompleteType)));
         }
@@ -288,7 +288,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchema(b => b
-                .AddTypeInterceptor(new DelegateTypeInitializationInterceptor(
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
                     canHandle,
                     onAfterCompleteType: onAfterCompleteType)));
         }
