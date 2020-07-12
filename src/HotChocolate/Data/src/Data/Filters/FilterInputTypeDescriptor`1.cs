@@ -68,7 +68,7 @@ namespace HotChocolate.Data.Filters
                     return fieldDescriptor;
                 }
 
-                fieldDescriptor = FilterFieldDescriptor.New(Context, m);
+                fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
 
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
@@ -91,7 +91,7 @@ namespace HotChocolate.Data.Filters
                     return fieldDescriptor;
                 }
 
-                fieldDescriptor = FilterFieldDescriptor.New(Context, m);
+                fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
 
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
@@ -111,7 +111,7 @@ namespace HotChocolate.Data.Filters
 
                 if (fieldDescriptor == null)
                 {
-                    fieldDescriptor = FilterFieldDescriptor.New(Context, m);
+                    fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, m);
 
                     Fields.Add(fieldDescriptor);
                 }

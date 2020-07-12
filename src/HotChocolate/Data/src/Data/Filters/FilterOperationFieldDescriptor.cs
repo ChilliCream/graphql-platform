@@ -13,6 +13,7 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterOperationFieldDescriptor(
             IDescriptorContext context,
+            string? scope,
             int operation)
             : base(context)
         {
@@ -21,6 +22,7 @@ namespace HotChocolate.Data.Filters
             Definition.Name = convention.GetOperationName(context, operation);
             Definition.Description = convention.GetOperationDescription(context, operation);
             Definition.Type = convention.GetOperationType(context, operation);
+            Definition.Scope = scope;
         }
 
         protected override void OnCreateDefinition(
@@ -132,7 +134,8 @@ namespace HotChocolate.Data.Filters
 
         public static FilterOperationFieldDescriptor New(
             IDescriptorContext context,
+            string? scope,
             int operation)
-            => new FilterOperationFieldDescriptor(context, operation);
+            => new FilterOperationFieldDescriptor(context, scope, operation);
     }
 }

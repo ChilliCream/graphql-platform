@@ -13,14 +13,17 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterFieldDescriptor(
             IDescriptorContext context,
+            string? scope,
             NameString fieldName)
             : base(context)
         {
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+            Definition.Scope = scope;
         }
 
         protected FilterFieldDescriptor(
             IDescriptorContext context,
+            string? scope,
             MemberInfo member)
             : base(context)
         {
@@ -32,6 +35,7 @@ namespace HotChocolate.Data.Filters
             Definition.Name = convention.GetFieldName(context, member);
             Definition.Description = convention.GetFieldDescription(context, member);
             Definition.Type = convention.GetFieldType(context, member);
+            Definition.Scope = scope;
         }
 
         protected override void OnCreateDefinition(
@@ -137,12 +141,14 @@ namespace HotChocolate.Data.Filters
 
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
+            string? scope,
             MemberInfo member)
-            => new FilterFieldDescriptor(context, member);
+            => new FilterFieldDescriptor(context, scope, member);
 
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
+            string? scope,
             NameString fieldName)
-            => new FilterFieldDescriptor(context, fieldName);
+            => new FilterFieldDescriptor(context, scope, fieldName);
     }
 }
