@@ -32,6 +32,14 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            SetTypeIdentity(typeof(FilterInputType<T>));
+        }
+
         protected virtual void Configure(
             IFilterInputTypeDescriptor<T> descriptor)
         {
