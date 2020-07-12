@@ -158,6 +158,7 @@ namespace HotChocolate.Utilities
 
         private static ExtendedType FromSystemType(Type type)
         {
+            type = RemoveNonEssentialTypes(type);
             if (type.IsValueType)
             {
                 if (type.IsGenericType
@@ -169,6 +170,14 @@ namespace HotChocolate.Utilities
                         ExtendedTypeKind.Unknown);
                 }
                 return new ExtendedType(type, false, ExtendedTypeKind.Unknown);
+            }
+            if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
+            {
+                return new ExtendedType(
+                    type.GetGenericArguments()[0],
+                    false,
+                    ExtendedTypeKind.Unknown);
             }
             return new ExtendedType(type, true, ExtendedTypeKind.Unknown);
         }
@@ -247,6 +256,15 @@ namespace HotChocolate.Utilities
                 || type.IsGenericType
                     && (typeof(ListType<>) == type.GetGenericTypeDefinition()
                         || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
+        }
+
+        private static Type RemoveNonEssentialTypes(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            {
+                return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
+            }
+            return type;
         }
     }
 }
