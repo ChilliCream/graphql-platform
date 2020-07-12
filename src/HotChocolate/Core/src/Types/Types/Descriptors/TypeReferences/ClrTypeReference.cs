@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
 
             var nullable = new Utilities.Nullable[Nullable.Length];
 
-            for (int i = 0; i < Nullable.Length; i++)
+            for (var i = 0; i < Nullable.Length; i++)
             {
                 nullable[i] = Nullable[i] ? Utilities.Nullable.Yes : Utilities.Nullable.No;
             }
