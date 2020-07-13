@@ -42,7 +42,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 for (int i = 0; i < document.Definitions.Count; i++)
                 {
-                    if (document.Definitions[i] is OperationDefinitionNode { Name: not null } op &&
+                    if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
                         op.Name!.Value.EqualsOrdinal(operationName))
                     {
                         return op;

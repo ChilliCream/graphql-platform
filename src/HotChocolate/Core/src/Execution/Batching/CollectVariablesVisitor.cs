@@ -251,7 +251,7 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (node.TypeCondition is not null && 
+            if (node.TypeCondition is { } && 
                 _schema.TryGetType(
                     node.TypeCondition.Name.Value,
                     out INamedType? type))
