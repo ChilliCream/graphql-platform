@@ -85,13 +85,15 @@ namespace HotChocolate.Types.Descriptors
 
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
             {
-                var attribute = member.GetCustomAttribute<GraphQLTypeAttribute>();
+                GraphQLTypeAttribute attribute =
+                    member.GetCustomAttribute<GraphQLTypeAttribute>()!;
                 returnType = attribute.Type;
             }
 
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
-                var attribute = member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+                GraphQLNonNullTypeAttribute attribute =
+                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
 
                 return TypeReference.Create(
                     returnType,

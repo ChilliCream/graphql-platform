@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _argumentsInitialized;
 
-        protected internal ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             NameString fieldName)
             : base(context)
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.ResultType = typeof(object);
         }
 
-        protected internal ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
             Type sourceType)
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
-        protected internal ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
             Type sourceType,
@@ -42,7 +42,6 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
-
             Definition.Name = context.Naming.GetMemberName(
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
