@@ -16,9 +16,9 @@ namespace HotChocolate.Regressions
             // arrange
             IQueryExecutor executor = CreateSchema().MakeExecutable();
             const string Query = @"
-mutation {
-  eat(topping: { pickles: [{ butterPickle: { size: 5 } }] })
-}";
+                mutation {
+                  eat(topping: { pickles: [{ butterPickle: { size: 5 } }] })
+                }";
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(Query);
@@ -33,14 +33,17 @@ mutation {
             // arrange
             IQueryExecutor executor = CreateSchema().MakeExecutable();
             const string Query = @"
-mutation a($input: ButterPickleInput!)
-{
-  eat(topping: { pickles: [{ butterPickle: $input }] })
-}";
+                mutation a($input: ButterPickleInput!)
+                {
+                  eat(topping: { pickles: [{ butterPickle: $input }] })
+                }";
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(Query,
-                new Dictionary<string, object> {{"input", new Dictionary<string, object> {{"size", 5}}}});
+                new Dictionary<string, object> 
+                { 
+                    {"input", new Dictionary<string, object> { {"size", 5} } } 
+                });
 
             // assert
             Assert.Empty(result.Errors);
