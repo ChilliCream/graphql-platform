@@ -17,6 +17,7 @@ namespace HotChocolate.Data.Filters
                         .Name("Query")
                         .Field("foo")
                         .Type<StringType>()
+                        .Resolver("foo")
                         .Argument("test", a => a.Type<StringOperationType>()))
                 .Create();
 
