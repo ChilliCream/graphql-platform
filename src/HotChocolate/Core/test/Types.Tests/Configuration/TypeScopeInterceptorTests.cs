@@ -94,6 +94,15 @@ namespace HotChocolate.Configuration
                 definition.Name = completionContext.Scope + "_" + definition.Name;
             }
 
+<<<<<<< HEAD
+=======
+            public override void OnTypesInitialized(
+                IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+            {
+
+            }
+
+>>>>>>> feat-filters
             public bool TryCreateScope(
                 ITypeDiscoveryContext discoveryContext,
                 [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)

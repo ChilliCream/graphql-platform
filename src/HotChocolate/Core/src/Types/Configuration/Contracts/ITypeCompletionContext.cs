@@ -9,6 +9,9 @@ namespace HotChocolate.Configuration
     public interface ITypeCompletionContext
         : ITypeSystemObjectContext
     {
+        /// <summary>
+        /// Defines if the type that is being completed is the query type.
+        /// </summary>
         bool? IsQueryType { get; }
 
         IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
