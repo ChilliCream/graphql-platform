@@ -8,43 +8,25 @@ type Query {
 
 input StringOperationTypeInput {
   AND: [StringOperationTypeInput!]
-  "desc0"
-  operation0: String
-  "desc1"
-  operation1: String
-  "desc16"
-  operation16: String
-  "desc17"
-  operation17: String
-  "desc18"
-  operation18: String
-  "desc19"
-  operation19: String
-  "desc2"
-  operation2: String
-  "desc20"
-  operation20: String
-  "desc21"
-  operation21: String
-  "desc22"
-  operation22: String
-  "desc23"
-  operation23: String
-  "desc3"
-  operation3: String
-  "desc4"
-  operation4: String
-  "desc5"
-  operation5: String
-  "desc6"
-  operation6: String
-  "desc7"
-  operation7: String
-  "desc8"
-  operation8: String
-  "desc9"
-  operation9: String
+  contains: String
+  endsWith: String
+  eq: String
+  gt: String
+  gte: String
+  in: String
+  lt: String
+  lte: String
+  ncontains: String
+  nendsWith: String
+  neq: String
+  ngt: String
+  ngte: String
+  nin: String
+  nlt: String
+  nlte: String
+  nstartsWith: String
   OR: [StringOperationTypeInput!]
+  startsWith: String
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

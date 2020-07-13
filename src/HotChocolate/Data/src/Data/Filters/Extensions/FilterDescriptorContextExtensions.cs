@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-    public static class FilterDescriptorContextExtensions
+    public static class FilterDescriptorContetExtensions
     {
         public static IFilterConvention GetFilterConvention(
             this IDescriptorContext context,

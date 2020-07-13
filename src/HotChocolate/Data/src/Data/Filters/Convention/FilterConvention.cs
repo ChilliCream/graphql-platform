@@ -95,6 +95,13 @@ namespace HotChocolate.Data.Filters
             throw new NotImplementedException();
         }
 
-        internal static readonly IFilterConvention Default = new FilterConvention();
+        internal static readonly IFilterConvention Default = TemporaryInitializer();
+
+        internal static IFilterConvention TemporaryInitializer()
+        {
+            var convention = new FilterConvention(x => x.UseDefault());
+            convention.Initialize(new ConventionContext(null, null));
+            return convention;
+        }
     }
 }
