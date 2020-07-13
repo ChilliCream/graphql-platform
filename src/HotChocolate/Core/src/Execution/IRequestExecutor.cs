@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
@@ -12,7 +13,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the schema to which this executor is bound to.
         /// </summary>
-        /// <value></value>
         ISchema Schema { get; }
 
         /// <summary>
@@ -41,6 +41,26 @@ namespace HotChocolate.Execution
         /// </returns>
         Task<IExecutionResult> ExecuteAsync(
             IReadOnlyQueryRequest request,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the given GraphQL <paramref name="requestBatch" />.
+        /// </summary>
+        /// <param name="requestBatch">
+        /// The GraphQL request batch.
+        /// </param>
+        /// <param name="allowParallelExecution">
+        /// Defines if the executor is allowed to execute the batch in parallel.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        /// <returns>
+        /// Returns a stream of query results.
+        /// </returns>
+        Task<IBatchQueryResult> ExecuteBatchAsync(
+            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            bool allowParallelExecution = false,
             CancellationToken cancellationToken = default);
     }
 }

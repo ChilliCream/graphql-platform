@@ -19,10 +19,10 @@ namespace HotChocolate.Validation.Benchmarks
         public ValidationBenchmarks()
         {
             _services = new ServiceCollection()
-                .AddValidation()
+                .AddGraphQL()
+                .AddStarWarsTypes()
                 .Services
                 .AddStarWarsRepositories()
-                .AddGraphQLSchema(b => b.AddStarWarsTypes())
                 .BuildServiceProvider();
 
             var factory = _services.GetRequiredService<IDocumentValidatorFactory>();

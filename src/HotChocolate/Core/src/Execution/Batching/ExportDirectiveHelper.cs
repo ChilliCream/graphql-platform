@@ -22,7 +22,7 @@ namespace HotChocolate.Execution.Batching
         public static void ExportValueAsVariable(
             this IDirectiveContext context)
         {
-            if (context.ContextData.TryGetValue(ExportedVariables, out object o)
+            if (context.ContextData.TryGetValue(ExportedVariables, out object? o)
                 && o is ConcurrentBag<ExportedVariable> exp)
             {
                 exp.Add(new ExportedVariable(

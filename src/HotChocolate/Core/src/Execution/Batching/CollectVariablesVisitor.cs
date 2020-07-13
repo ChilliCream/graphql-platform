@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -185,7 +185,7 @@ namespace HotChocolate.Execution.Batching
 
                 if (_variables.TryGetValue(
                     node.Name.Value,
-                    out VariableDefinitionNode d))
+                    out VariableDefinitionNode? d))
                 {
                     if (type.IsNonNullType()
                         && d.Type is INullableTypeNode nullable)
@@ -205,12 +205,7 @@ namespace HotChocolate.Execution.Batching
 
                         if (inputType == null)
                         {
-                            throw new QueryException(ErrorBuilder.New()
-                                .SetMessage(CoreResources.BatchColVars_NoCompatibleType)
-                                .SetCode(ErrorCodes.Execution.AutoMapVarError)
-                                .SetPath(path)
-                                .AddLocation(node)
-                                .Build());
+                            throw CollectVariablesVisitor_NoCompatibleType(node, path);
                         }
 
                         d = new VariableDefinitionNode
@@ -256,9 +251,10 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (_schema.TryGetType(
-                node.TypeCondition.Name.Value,
-                out INamedType type))
+            if (node.TypeCondition is not null && 
+                _schema.TryGetType(
+                    node.TypeCondition.Name.Value,
+                    out INamedType? type))
             {
                 _type.Push(type);
                 _action.Push(VisitorAction.Continue);

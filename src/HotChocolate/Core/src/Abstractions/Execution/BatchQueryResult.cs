@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -6,21 +6,17 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public sealed class SubscriptionResult
-        : ISubscriptionResult
+    public class BatchQueryResult : IBatchQueryResult
     {
-        private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
-        private readonly IReadOnlyList<IError>? _errors;
-        private readonly IReadOnlyDictionary<string, object?>? _extensions;
-        private readonly IReadOnlyDictionary<string, object?>? _contextData;
+        private Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
         private readonly IAsyncDisposable? _session;
-        private bool _isRead = false;
+         private bool _isRead = false;
         private bool _disposed = false;
 
-        public SubscriptionResult(
+        public BatchQueryResult(
             Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
-            IReadOnlyList<IError>? errors,
-            IReadOnlyDictionary<string, object?>? extensions = null,
+            IReadOnlyList<IError>? errors, 
+            IReadOnlyDictionary<string, object?>? extensions = null, 
             IReadOnlyDictionary<string, object?>? contextData = null,
             IAsyncDisposable? session = null)
         {
@@ -29,18 +25,17 @@ namespace HotChocolate.Execution
                 throw new ArgumentException("Either provide a result stream factory or errors.");
             }
 
-            _resultStreamFactory = resultStreamFactory;
-            _errors = errors;
-            _extensions = extensions;
-            _contextData = contextData;
-            _session = session;
+            _resultStreamFactory= resultStreamFactory;
+            Errors = errors;
+            Extensions = extensions;
+            ContextData = contextData;
         }
 
-        public IReadOnlyList<IError>? Errors => _errors;
+        public IReadOnlyList<IError>? Errors {get;}
 
-        public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
+        public IReadOnlyDictionary<string, object?>? Extensions {get;}
 
-        public IReadOnlyDictionary<string, object?>? ContextData => _contextData;
+        public IReadOnlyDictionary<string, object?>? ContextData {get;}
 
         public IAsyncEnumerable<IQueryResult> ReadResultsAsync()
         {
@@ -78,6 +73,5 @@ namespace HotChocolate.Execution
                 _disposed = true;
             }
         }
-
     }
 }
