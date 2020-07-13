@@ -4,10 +4,10 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    public class StringOperationTypeTest
+    public class ComparableOperationInputTests
     {
         [Fact]
-        public void CreateStringOperationType()
+        public void CreateIntOperationType()
         {
             // arrange
             // act
@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<StringOperationType>()))
+                        .Argument("test", a => a.Type<ComparableOperationInput<int>>()))
                 .Create();
 
             // assert

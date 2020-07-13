@@ -3,11 +3,11 @@
 }
 
 type Query {
-  foo(test: StringOperationTypeInput): String
+  foo(test: StringOperationInput): String
 }
 
-input StringOperationTypeInput {
-  AND: [StringOperationTypeInput!]
+input StringOperationInput {
+  AND: [StringOperationInput!]
   contains: String
   endsWith: String
   eq: String
@@ -25,7 +25,7 @@ input StringOperationTypeInput {
   nlt: String
   nlte: String
   nstartsWith: String
-  OR: [StringOperationTypeInput!]
+  OR: [StringOperationInput!]
   startsWith: String
 }
 
