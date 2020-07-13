@@ -8,9 +8,8 @@ namespace HotChocolate
     /// The optional type is used to differentiate between not set and set input values.
     /// </summary>
     public readonly struct Optional<T>
-        : IEquatable<Optional<T>>
+        : IEquatable<Optional<T>>, IOptional
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Optional{T}"/> struct.
         /// </summary>
@@ -25,6 +24,8 @@ namespace HotChocolate
         /// The name value.
         /// </summary>
         public T Value { get; }
+
+        object? IOptional.Value => Value;
 
         /// <summary>
         /// <c>true</c> if the optional has a value.
@@ -84,6 +85,7 @@ namespace HotChocolate
             {
                 return IsEmpty;
             }
+
             return obj is Optional<T> n && Equals(n);
         }
 

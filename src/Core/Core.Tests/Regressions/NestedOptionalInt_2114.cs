@@ -62,6 +62,11 @@ mutation a($input: ButterPickleInput!)
             {
                 return true;
             }
+
+            public bool Consume(ButterPickleInput input)
+            {
+                return true;
+            }
         }
 
         public class ToppingInput
