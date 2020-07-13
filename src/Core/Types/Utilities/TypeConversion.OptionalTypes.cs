@@ -35,8 +35,9 @@ namespace HotChocolate.Utilities
 
         private static Type GetUnderlyingOptionalType(Type type)
         {
-            if (type.IsValueType && type.IsGenericType
-                                 && type.GetGenericTypeDefinition() == typeof(Optional<>))
+            if (type.IsValueType 
+                && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Optional<>))
             {
                 return type.GetGenericArguments()[0];
             }
