@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.Demo</PackageId>
+    <AssemblyName>HotChocolate.Data.Demo</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Demo</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj" />
+    <ProjectReference Include="..\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Playground\HotChocolate.AspNetCore.Playground.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Voyager\HotChocolate.AspNetCore.Voyager.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    </ItemGroup>
+
+  </ItemGroup>
+
+</Project>

@@ -27,7 +27,7 @@ class Helpers
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
-        list.AddRange(DotNetTasks.DotNet($"sln add {projectsArg}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
     }
