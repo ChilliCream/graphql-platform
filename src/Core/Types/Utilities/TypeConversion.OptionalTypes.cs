@@ -33,13 +33,14 @@ namespace HotChocolate.Utilities
             return null;
         }
 
-        private Type GetUnderlyingOptionalType(Type type)
+        private static Type GetUnderlyingOptionalType(Type type)
         {
             if (type.IsValueType && type.IsGenericType
                                  && type.GetGenericTypeDefinition() == typeof(Optional<>))
             {
                 return type.GetGenericArguments()[0];
             }
+
             return type;
         }
     }

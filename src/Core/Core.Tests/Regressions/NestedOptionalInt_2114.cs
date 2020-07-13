@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Xunit;
 
+#nullable enable
+
 namespace HotChocolate.Regressions
 {
     // Relates to issue https://github.com/ChilliCream/hotchocolate/issues/2114
