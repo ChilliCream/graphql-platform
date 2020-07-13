@@ -97,6 +97,7 @@ namespace HotChocolate.Data.Filters
 
         internal static readonly IFilterConvention Default = TemporaryInitializer();
 
+        //TODO: Replace with named conventions!
         internal static IFilterConvention TemporaryInitializer()
         {
             var convention = new FilterConvention(x => x.UseDefault());
