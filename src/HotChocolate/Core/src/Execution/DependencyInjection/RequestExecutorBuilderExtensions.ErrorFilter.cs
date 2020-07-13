@@ -6,12 +6,9 @@ using HotChocolate.Execution.Errors;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    /// <summary>
-    /// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
-    /// </summary>
     public static partial class RequestExecutorBuilderExtensions
     {
-         public static IRequestExecutorBuilder AddErrorFilter(
+        public static IRequestExecutorBuilder AddErrorFilter(
             this IRequestExecutorBuilder builder,
             Func<IError, IError> errorFilter)
         {

@@ -8,6 +8,7 @@ using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -80,7 +81,17 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddNoOpDiagnostics(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<IDiagnosticEvents, NoopDiagnosticEvents>();
+            services.TryAddSingleton<IDiagnosticEvents>(sp =>
+            {
+                IDiagnosticEventListener[] listeners =
+                    sp.GetServices<IDiagnosticEventListener>().ToArray();
+                return listeners.Length switch
+                {
+                    0 => new NoopDiagnosticEvents(),
+                    1 => listeners[0],
+                    _ => new AggregateDiagnosticEvents(listeners)
+                };
+            });
             return services;
         }
 

@@ -7,9 +7,6 @@ using System.Collections.Generic;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    /// <summary>
-    /// Extension methods for configuring an <see cref="IRequestExecutorBuilder"/>
-    /// </summary>
     public static partial class RequestExecutorBuilderExtensions
     {
         /// <summary>
