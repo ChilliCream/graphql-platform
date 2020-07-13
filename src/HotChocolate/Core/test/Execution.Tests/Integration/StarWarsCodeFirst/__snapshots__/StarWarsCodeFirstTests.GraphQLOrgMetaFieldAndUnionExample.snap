@@ -1,0 +1,21 @@
+﻿{
+  "data": {
+    "search": [
+      {
+        "__typename": "Human",
+        "name": "Han Solo",
+        "height": 1.72
+      },
+      {
+        "__typename": "Human",
+        "name": "Leia Organa",
+        "height": 1.72
+      },
+      {
+        "__typename": "Starship",
+        "name": "TIE Advanced x1",
+        "length": 9.2
+      }
+    ]
+  }
+}

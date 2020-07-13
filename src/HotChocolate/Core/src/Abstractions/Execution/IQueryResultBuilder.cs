@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 #nullable enable
 
@@ -6,7 +7,9 @@ namespace HotChocolate.Execution
 {
     public interface IQueryResultBuilder
     {
-        IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data);
+        IQueryResultBuilder SetData(
+            IReadOnlyDictionary<string, object?>? data, 
+            IDisposable? disposable = null);
 
         IQueryResultBuilder AddError(IError error);
 

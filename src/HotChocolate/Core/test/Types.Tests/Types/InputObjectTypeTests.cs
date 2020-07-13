@@ -6,6 +6,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -412,8 +413,14 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+            #if NETCOREAPP2_1
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot(
+                    new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             Assert.Throws<SchemaException>(a)
                 .Errors.First().Message.MatchSnapshot();
+            #endif
         }
 
         [Fact]
@@ -506,14 +513,14 @@ namespace HotChocolate.Types
                 .AddServices(services)
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foo(a: { bar: { text: \"abc\" } }) }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1026,14 +1033,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [InlineData("null")]
@@ -1046,14 +1053,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: " + value + " }) { isBarSet } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1064,14 +1071,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithImmutables>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

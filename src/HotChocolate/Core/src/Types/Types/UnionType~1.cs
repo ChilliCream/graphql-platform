@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        protected override UnionTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
                 context.DescriptorContext,
@@ -32,20 +32,20 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteTypeSet(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             UnionTypeDefinition definition,
             ISet<ObjectType> typeSet)
         {
             base.OnCompleteTypeSet(context, definition, typeSet);
 
-            Type markerType = definition.ClrType;
+            Type markerType = definition.RuntimeType;
 
             if (markerType != typeof(object))
             {
                 foreach (ObjectType type in context.GetTypes<ObjectType>())
                 {
-                    if (type.ClrType != typeof(object)
-                        && markerType.IsAssignableFrom(type.ClrType))
+                    if (type.RuntimeType != typeof(object)
+                        && markerType.IsAssignableFrom(type.RuntimeType))
                     {
                         typeSet.Add(type);
                     }

@@ -1,9 +1,15 @@
-﻿namespace HotChocolate.Execution.Utilities
+﻿using System;
+
+namespace HotChocolate.Execution.Utilities
 {
-    public interface IActivator
+    public interface IActivator : IDisposable
     {
-        TResolver GetOrCreateResolver<TResolver>();
+        T GetOrCreate<T>();
+
+        object? GetOrCreate(Type type);
 
         T CreateInstance<T>();
+
+        object? CreateInstance(Type type);
     }
 }

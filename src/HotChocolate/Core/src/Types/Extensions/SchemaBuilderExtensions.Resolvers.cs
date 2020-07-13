@@ -3,6 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
@@ -28,7 +30,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, object> resolver)
+            Func<IResolverContext, object?> resolver)
         {
             if (builder == null)
             {
@@ -41,14 +43,14 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(resolver(ctx)));
+                ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, Task<object>> resolver)
+            Func<IResolverContext, ValueTask<object?>> resolver)
         {
             if (builder == null)
             {
@@ -81,14 +83,14 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(resolver(ctx)));
+                ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, Task<TResult>> resolver)
+            Func<IResolverContext, ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {
@@ -101,15 +103,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                async ctx =>
-                {
-                    Task<TResult> resolverTask = resolver(ctx);
-                    if (resolverTask == null)
-                    {
-                        return default;
-                    }
-                    return await resolverTask.ConfigureAwait(false);
-                });
+                async ctx => await resolver(ctx).ConfigureAwait(false));
         }
 
         // Resolver()
@@ -118,7 +112,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<object> resolver)
+            Func<object?> resolver)
         {
             if (builder == null)
             {
@@ -131,14 +125,14 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(resolver()));
+                ctx => new ValueTask<object?>(resolver()));
         }
 
         public static ISchemaBuilder AddResolver(
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<Task<object>> resolver)
+            Func<ValueTask<object?>> resolver)
         {
             if (builder == null)
             {
@@ -150,8 +144,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return AddResolverInternal(builder, typeName, fieldName,
-                ctx => resolver());
+            return AddResolverInternal(builder, typeName, fieldName, ctx => resolver());
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -171,14 +164,14 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(resolver()));
+                ctx => new ValueTask<object?>(resolver()));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<Task<TResult>> resolver)
+            Func<ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {
@@ -190,18 +183,11 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            FieldResolverDelegate resolverDelegate = async ctx =>
-            {
-                Task<TResult> resolverTask = resolver();
-                if (resolverTask == null)
-                {
-                    return default;
-                }
-                return await resolverTask.ConfigureAwait(false);
-            };
-
             return AddResolverInternal(
-                builder, typeName, fieldName, resolverDelegate);
+                builder,
+                typeName,
+                fieldName,
+                async ctx => await resolver().ConfigureAwait(false));
         }
 
         // Resolver(IResolverContext, CancellationToken)
@@ -210,7 +196,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, CancellationToken, object> resolver)
+            Func<IResolverContext, CancellationToken, object?> resolver)
         {
             if (builder == null)
             {
@@ -223,7 +209,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(resolver(ctx, ctx.RequestAborted)));
+                ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -243,15 +229,14 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(
-                    resolver(ctx, ctx.RequestAborted)));
+                ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, CancellationToken, Task<TResult>> resolver)
+            Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {
@@ -263,19 +248,11 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            FieldResolverDelegate resolverDelegate = async ctx =>
-            {
-                Task<TResult> resolverTask = resolver(
-                    ctx, ctx.RequestAborted);
-                if (resolverTask == null)
-                {
-                    return default;
-                }
-                return await resolverTask.ConfigureAwait(false);
-            };
-
             return AddResolverInternal(
-                builder, typeName, fieldName, resolverDelegate);
+                builder,
+                typeName,
+                fieldName,
+                async ctx => await resolver(ctx, ctx.RequestAborted));
         }
 
         // Constant
@@ -284,7 +261,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
-            object constantResult)
+            object? constantResult)
         {
             if (builder == null)
             {
@@ -292,7 +269,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult(constantResult));
+                ctx => new ValueTask<object?>(constantResult));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -307,7 +284,7 @@ namespace HotChocolate
             }
 
             return AddResolverInternal(builder, typeName, fieldName,
-                ctx => Task.FromResult<object>(constantResult));
+                ctx => new ValueTask<object?>(constantResult));
         }
     }
 }

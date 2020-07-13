@@ -13,7 +13,6 @@
         "Column": 21
       }
     ],
-    "Exception": null,
     "Extensions": {
       "declaringTypeA": "Query",
       "declaringTypeB": "Query",
@@ -24,6 +23,7 @@
       "responseNameA": "catOrDog",
       "responseNameB": "catOrDog",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             // arrange
             var schema = Schema.Create(
                 "type Query { foo: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             // arrange
             var schema = Schema.Create(
                 "type Query { foo: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 

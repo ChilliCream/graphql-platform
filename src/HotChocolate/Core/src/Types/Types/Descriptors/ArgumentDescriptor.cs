@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<ArgumentDefinition>
         , IArgumentDescriptor
     {
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName)
             : base(context)
@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
         }
 
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName,
             Type argumentType)
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Type = argumentType.GetInputType();
         }
 
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             ParameterInfo parameter)
             : base(context)
@@ -47,6 +47,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
+        }
+
+        protected internal ArgumentDescriptor(
+            IDescriptorContext context,
+            ArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         protected override void OnCreateDefinition(ArgumentDefinition definition)
@@ -154,5 +162,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             ParameterInfo parameter) =>
             new ArgumentDescriptor(context, parameter);
+
+        public static ArgumentDescriptor From(
+            IDescriptorContext context,
+            ArgumentDefinition argumentDefinition) =>
+            new ArgumentDescriptor(context, argumentDefinition);
     }
 }

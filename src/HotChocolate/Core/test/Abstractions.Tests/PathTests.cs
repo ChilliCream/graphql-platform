@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Instrumentation
         }
 
         [Fact]
-        public void Path_ToCollection()
+        public void Path_ToList()
         {
             // arrange
             Path path = Path
@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Instrumentation
                 .Append("name");
 
             // act
-            IReadOnlyCollection<object> result = path.ToCollection();
+            IReadOnlyList<object> result = path.ToList();
 
             // assert
             result.MatchSnapshot();

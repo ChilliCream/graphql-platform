@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Sorting
             IExecutionResult result = schema.MakeExecutable().Execute(request);
 
             // assert
-            result.MatchSnapshot(scenarioName);
+            result.ToJson().MatchSnapshot(scenarioName);
         }
 
         private class Foo

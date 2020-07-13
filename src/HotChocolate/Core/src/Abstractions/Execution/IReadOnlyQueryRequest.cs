@@ -1,26 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     public interface IReadOnlyQueryRequest
     {
-        IQuery Query { get; }
+        IQuery? Query { get; }
 
-        string QueryName { get; }
+        string? QueryId { get; }
 
-        string QueryHash { get; }
+        string? QueryHash { get; }
 
-        string OperationName { get; }
+        string? OperationName { get; }
 
-        IReadOnlyDictionary<string, object> VariableValues { get; }
+        IReadOnlyDictionary<string, object?>? VariableValues { get; }
 
-        object InitialValue { get; }
+        object? InitialValue { get; }
 
-        IReadOnlyDictionary<string, object> Properties { get; }
+        IReadOnlyDictionary<string, object?>? ContextData { get; }
 
-        IReadOnlyDictionary<string, object> Extensions { get; }
+        IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        IServiceProvider Services { get; }
+        IServiceProvider? Services { get; }
     }
 }

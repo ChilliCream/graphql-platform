@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -264,8 +265,14 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
+            #if NETCOREAPP2_1
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot(
+                    new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot();
+            #endif
         }
 
         [Fact]
@@ -281,8 +288,14 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
+            #if NETCOREAPP2_1
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot(
+                    new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot();
+            #endif
         }
 
         [Fact]

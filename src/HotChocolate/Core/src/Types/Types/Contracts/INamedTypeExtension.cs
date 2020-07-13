@@ -12,6 +12,6 @@ namespace HotChocolate.Types
     internal interface INamedTypeExtensionMerger
         : INamedTypeExtension
     {
-        void Merge(ICompletionContext context, INamedType type);
+        void Merge(ITypeCompletionContext context, INamedType type);
     }
 }

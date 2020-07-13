@@ -57,9 +57,6 @@ namespace HotChocolate.Execution
         public FieldNode FieldSelection =>
             _middlewareContext.FieldSelection;
 
-        public IImmutableStack<object> Source =>
-            _middlewareContext.Source;
-
         public Path Path =>
             _middlewareContext.Path;
 
@@ -90,11 +87,13 @@ namespace HotChocolate.Execution
             set => _middlewareContext.LocalContextData = value;
         }
 
+        public IServiceProvider Services => throw new NotImplementedException();
+
+        public IType ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
-        public T CustomProperty<T>(string key) =>
-            _middlewareContext.CustomProperty<T>(key);
         public T Parent<T>() => _middlewareContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>
@@ -112,9 +111,6 @@ namespace HotChocolate.Execution
         public object Service(Type service) =>
             _middlewareContext.Service(service);
 
-        public Task<T> ResolveAsync<T>() =>
-            _middlewareContext.ResolveAsync<T>();
-
         public IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext) =>
             _middlewareContext.CollectFields(typeContext);
@@ -130,7 +126,24 @@ namespace HotChocolate.Execution
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
 
-        public void ModifyScopedContext(ModifyScopedContext modify) =>
-            _middlewareContext.ModifyScopedContext(modify);
+        public T ArgumentValue<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T ArgumentLiteral<T>(NameString name) where T : IValueNode
+        {
+            throw new NotImplementedException();
+        }
+
+        public Optional<T> ArgumentOptional<T>(NameString name)
+        {
+            throw new NotImplementedException();
+        }
+
+        ValueTask<T> IMiddlewareContext.ResolveAsync<T>()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

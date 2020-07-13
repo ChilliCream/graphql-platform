@@ -158,6 +158,7 @@ namespace HotChocolate.Utilities
 
         private static ExtendedType FromSystemType(Type type)
         {
+            type = RemoveNonEssentialTypes(type);
             if (type.IsValueType)
             {
                 if (type.IsGenericType
@@ -169,6 +170,14 @@ namespace HotChocolate.Utilities
                         ExtendedTypeKind.Unknown);
                 }
                 return new ExtendedType(type, false, ExtendedTypeKind.Unknown);
+            }
+            if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
+            {
+                return new ExtendedType(
+                    RemoveNonEssentialTypes(type.GetGenericArguments()[0]),
+                    false,
+                    ExtendedTypeKind.Unknown);
             }
             return new ExtendedType(type, true, ExtendedTypeKind.Unknown);
         }
@@ -206,7 +215,7 @@ namespace HotChocolate.Utilities
 
             while (components.Count > 0)
             {
-                bool nullable = true;
+                var nullable = true;
                 current = components.Pop();
 
                 if (components.Count > 0
@@ -238,15 +247,37 @@ namespace HotChocolate.Utilities
 
         private static bool IsSchemaType(Type type)
         {
-            return typeof(ScalarType).IsAssignableFrom(type)
+            if (typeof(ScalarType).IsAssignableFrom(type)
                 || typeof(ObjectType).IsAssignableFrom(type)
                 || typeof(InterfaceType).IsAssignableFrom(type)
                 || typeof(EnumType).IsAssignableFrom(type)
                 || typeof(UnionType).IsAssignableFrom(type)
-                || typeof(InputObjectType).IsAssignableFrom(type)
-                || type.IsGenericType
-                    && (typeof(ListType<>) == type.GetGenericTypeDefinition()
-                        || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
+                || typeof(InputObjectType).IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            if (type.IsGenericType)
+            {
+                Type definition = type.GetGenericTypeDefinition();
+                if (typeof(ListType<>) == definition
+                    || typeof(NonNullType<>) == definition
+                    || typeof(NativeType<>) == definition)
+                {
+                    return IsSchemaType(type.GetGenericArguments()[0]);
+                }
+            }
+
+            return false;
+        }
+
+        private static Type RemoveNonEssentialTypes(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            {
+                return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
+            }
+            return type;
         }
     }
 }

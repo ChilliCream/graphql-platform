@@ -38,13 +38,13 @@ namespace HotChocolate.Types.Descriptors
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
             ISet<TMember> handledMembers)
-            where TDescriptor : IHasClrType, IHasDescriptorContext
+            where TDescriptor : IHasRuntimeType, IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
             AddImplicitFields<TDescriptor, TMember, TField>(
                 descriptor,
-                descriptor.ClrType,
+                descriptor.RuntimeType,
                 createdFieldDefinition,
                 fields,
                 handledMembers);
@@ -55,21 +55,26 @@ namespace HotChocolate.Types.Descriptors
             Type fieldBindingType,
             Func<TMember, TField> createdFieldDefinition,
             IDictionary<NameString, TField> fields,
-            ISet<TMember> handledMembers)
+            ISet<TMember> handledMembers,
+            Func<IReadOnlyList<TMember>, TMember, bool>? include = null)
             where TDescriptor : IHasDescriptorContext
             where TMember : MemberInfo
             where TField : FieldDefinitionBase
         {
             if (fieldBindingType != typeof(object))
             {
-                foreach (TMember member in descriptor.Context.Inspector
+                List<TMember> members = descriptor.Context.Inspector
                     .GetMembers(fieldBindingType)
-                    .OfType<TMember>())
+                    .OfType<TMember>()
+                    .ToList();
+
+                foreach (TMember member in members)
                 {
                     TField fieldDefinition = createdFieldDefinition(member);
 
                     if (!handledMembers.Contains(member)
-                        && !fields.ContainsKey(fieldDefinition.Name))
+                        && !fields.ContainsKey(fieldDefinition.Name)
+                        && (include?.Invoke(members, member) ?? true))
                     {
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
@@ -81,7 +86,7 @@ namespace HotChocolate.Types.Descriptors
         public static void DiscoverArguments(
             IDescriptorContext context,
             ICollection<ArgumentDefinition> arguments,
-            MemberInfo member)
+            MemberInfo? member)
         {
             if (arguments == null)
             {

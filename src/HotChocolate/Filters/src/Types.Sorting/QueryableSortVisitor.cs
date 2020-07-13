@@ -1,70 +1,181 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Sorting
 {
     public class QueryableSortVisitor
-            : SortVisitorBase<QueryableSortVisitorContext>
+            : SyntaxNodeVisitor
     {
-        protected QueryableSortVisitor()
+        private readonly ParameterExpression _parameter;
+
+        public QueryableSortVisitor(
+            InputObjectType initialType,
+            Type source)
         {
+            if (initialType is null)
+            {
+                throw new ArgumentNullException(nameof(initialType));
+            }
+
+            Types.Push(initialType);
+            _parameter = Expression.Parameter(source);
+        }
+
+        protected Queue<SortOperationInvocation> Instance { get; } =
+            new Queue<SortOperationInvocation>();
+
+        protected Stack<IType> Types { get; } =
+            new Stack<IType>();
+
+        public IQueryable<TSource> Sort<TSource>(
+            IQueryable<TSource> source)
+        {
+            if (Instance.Count == 0)
+            {
+                return source;
+            }
+            return source.Provider.CreateQuery<TSource>(Compile(source.Expression));
+        }
+
+        public Expression Compile(
+            Expression source)
+        {
+            if (Instance.Count == 0)
+            {
+                return source;
+            }
+
+            if (!OrderingMethodFinder.OrderMethodExists(source))
+            {
+                source = source.CompileInitialSortOperation(
+                    Instance.Dequeue(), _parameter);
+            }
+
+            while (Instance.Count != 0)
+            {
+                source = source.CompileSortOperation(
+                        Instance.Dequeue(), _parameter);
+            }
+
+            return source;
         }
 
         #region Object Value
 
-        protected override ISyntaxVisitorAction Enter(
-            ObjectValueNode node, QueryableSortVisitorContext context) => Continue;
+        public override VisitorAction Enter(
+            ObjectValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
 
-        protected override ISyntaxVisitorAction Leave(
-            ObjectValueNode node, QueryableSortVisitorContext context) => Continue;
+        public override VisitorAction Leave(
+            ObjectValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
 
         #endregion
 
         #region Object Field
 
-        protected override ISyntaxVisitorAction Enter(
+        public override VisitorAction Enter(
             ObjectFieldNode node,
-            QueryableSortVisitorContext context)
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            base.Enter(node, context);
-
-            if (context.Operations.Peek() is SortOperationField sortField &&
-                sortField?.Operation is { } &&
-                sortField?.Operation?.Property is { })
+            if (!(Types.Peek().NamedType() is InputObjectType inputType))
             {
-                context.Closure.EnqueueProperty(sortField.Operation.Property);
-                if (!sortField.Operation.IsObject)
-                {
-                    var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
-                    context.SortOperations.Enqueue(context.CreateSortOperation(kind));
-                }
+                // TODO : resources - invalid type
+                throw new NotSupportedException();
             }
 
-            return Continue;
+            if (!inputType.Fields.TryGetField(node.Name.Value,
+                out IInputField field))
+            {
+                // TODO : resources - invalid field
+                throw new InvalidOperationException();
+            }
+
+            if (field is SortOperationField sortField)
+            {
+                Instance.Enqueue(
+                    new SortOperationInvocation(
+                        (SortOperationKind)sortField.Type.Deserialize(node.Value.Value),
+                        sortField.Operation.Property));
+            }
+
+            return VisitorAction.Continue;
         }
 
-        protected override ISyntaxVisitorAction Leave(
+        public override VisitorAction Leave(
             ObjectFieldNode node,
-            QueryableSortVisitorContext context)
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (context.Operations.Peek() is SortOperationField)
-            {
-                context.Closure.Pop();
-            }
-            return base.Leave(node, context);
+            return VisitorAction.Continue;
         }
 
         #endregion
 
         #region List
 
-        protected override ISyntaxVisitorAction Enter(
+        public override VisitorAction Enter(
             ListValueNode node,
-            QueryableSortVisitorContext context) => Continue;
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
 
         #endregion
 
-        public static readonly QueryableSortVisitor Default
-            = new QueryableSortVisitor();
+        // Adapted from internal System.Web.Util.OrderingMethodFinder
+        // http://referencesource.microsoft.com/#System.Web/Util/OrderingMethodFinder.cs
+        private class OrderingMethodFinder : ExpressionVisitor
+        {
+            bool _orderingMethodFound = false;
+
+            public override Expression Visit(Expression node)
+            {
+                if (_orderingMethodFound)
+                {
+                    return node;
+                }
+                return base.Visit(node);
+            }
+
+            protected override Expression VisitMethodCall(MethodCallExpression node)
+            {
+                var name = node.Method.Name;
+
+                if (node.Method.DeclaringType == typeof(Queryable) && (
+                    name.StartsWith(nameof(Queryable.OrderBy), StringComparison.Ordinal) ||
+                    name.StartsWith(nameof(Queryable.ThenBy), StringComparison.Ordinal)))
+                {
+                    _orderingMethodFound = true;
+                }
+
+                return base.VisitMethodCall(node);
+            }
+
+            public static bool OrderMethodExists(Expression expression)
+            {
+                var visitor = new OrderingMethodFinder();
+                visitor.Visit(expression);
+                return visitor._orderingMethodFound;
+            }
+        }
     }
 }

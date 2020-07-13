@@ -2,53 +2,62 @@
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
-    "Path": [
-      "dog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "dog"
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
-    "Path": [
-      "human"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "human"
+    },
     "Locations": [
       {
         "Line": 6,
         "Column": 27
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified directive `unknown` is not supported by the current schema.",
     "Code": null,
-    "Path": [
-      "human",
-      "pets"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "human"
+      },
+      "Depth": 1,
+      "Name": "pets"
+    },
     "Locations": [
       {
         "Line": 8,
         "Column": 30
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Defined"
-    }
+    },
+    "Exception": null
   }
 ]

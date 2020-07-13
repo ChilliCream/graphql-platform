@@ -8,13 +8,17 @@ namespace HotChocolate.Execution
         internal static QueryMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
+            /*
             return next =>
             {
                 MiddlewareFactory<TMiddleware, QueryDelegate> factory =
-                    MiddlewareActivator.CompileFactory<TMiddleware, QueryDelegate>();
+                    MiddlewareCompiler.CompileFactory<TMiddleware, QueryDelegate>();
 
                 return CreateDelegate((s, n) => factory(s, n), next);
             };
+            */
+
+            throw new NotImplementedException();
         }
 
         internal static QueryMiddleware Create<TMiddleware>(
@@ -29,11 +33,12 @@ namespace HotChocolate.Execution
             QueryDelegate next)
             where TMiddleware : class
         {
+            /*
             object sync = new object();
             TMiddleware middleware = null;
 
             ClassQueryDelegate<TMiddleware, IQueryContext> compiled =
-                MiddlewareActivator.CompileMiddleware<TMiddleware, IQueryContext>();
+                MiddlewareCompiler.CompileMiddleware<TMiddleware, IQueryContext>();
 
             return context =>
             {
@@ -48,8 +53,12 @@ namespace HotChocolate.Execution
                     }
                 }
 
-                return compiled(context, context.Services, middleware);
+                throw new NotImplementedException();
+
+                // return compiled(context, context.Services, middleware);
             };
+            */
+            throw new NotImplementedException();
         }
     }
 }

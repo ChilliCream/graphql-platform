@@ -1,29 +1,41 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterVisitorBase<TContext>
-        : SyntaxWalker<TContext>
-        where TContext : IFilterVisitorContextBase
+    public class FilterVisitorBase
+        : SyntaxNodeVisitor
     {
-        protected FilterVisitorBase()
+        protected FilterVisitorBase(InputObjectType initialType)
         {
+            if (initialType is null)
+            {
+                throw new ArgumentNullException(nameof(initialType));
+            }
+            Types.Push(initialType);
         }
 
-        protected override ISyntaxVisitorAction Enter(
+        protected Stack<IType> Types { get; } =
+            new Stack<IType>();
+
+        protected Stack<IInputField> Operations { get; } =
+            new Stack<IInputField>();
+
+        public override VisitorAction Enter(
             ObjectFieldNode node,
-            TContext context)
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (context.Types.Peek().NamedType() is InputObjectType inputType)
+            if (Types.Peek().NamedType() is InputObjectType inputType)
             {
                 if (inputType.Fields.TryGetField(node.Name.Value,
                     out IInputField field))
                 {
-                    context.Operations.Push(field);
-                    context.Types.Push(field.Type);
-                    return Continue;
+                    Operations.Push(field);
+                    Types.Push(field.Type);
+                    return VisitorAction.Continue;
                 }
 
                 // TODO : resources - invalid field
@@ -36,13 +48,15 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        protected override ISyntaxVisitorAction Leave(
+        public override VisitorAction Leave(
             ObjectFieldNode node,
-            TContext context)
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
         {
-            context.Operations.Pop();
-            context.Types.Pop();
-            return Continue;
+            Operations.Pop();
+            Types.Pop();
+            return VisitorAction.Continue;
         }
     }
 }

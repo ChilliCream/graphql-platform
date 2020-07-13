@@ -201,7 +201,7 @@ namespace HotChocolate.Execution.Batching
                         Type clrType = complexType.ToClrType();
                         InputObjectType inputType =
                             _schema.Types.OfType<InputObjectType>()
-                                .First(t => t.ClrType == clrType);
+                                .First(t => t.RuntimeType == clrType);
 
                         if (inputType == null)
                         {

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -69,12 +68,9 @@ namespace HotChocolate.Types
         {
             return async ctx =>
             {
-                if (!ctx.IsResultModified && fieldResolver != null)
+                if (!ctx.IsResultModified && fieldResolver is { })
                 {
-                    Task<object> task = fieldResolver.Invoke(ctx);
-                    ctx.Result = task == null
-                        ? null
-                        : await task.ConfigureAwait(false);
+                    ctx.Result = await fieldResolver(ctx).ConfigureAwait(false);
                 }
             };
         }

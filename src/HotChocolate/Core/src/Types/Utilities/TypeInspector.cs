@@ -4,10 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Utilities
 {
-    public class TypeInspector
-        : ITypeInfoFactory
+    public class TypeInspector : ITypeInfoFactory
     {
-        private static readonly ITypeInfoFactory[] _factories =
+        private readonly ITypeInfoFactory[] _factories =
         {
             new NamedTypeInfoFactory(),
             new DotNetTypeInfoFactory()
@@ -43,6 +42,8 @@ namespace HotChocolate.Utilities
             typeInfo = default;
             return false;
         }
+
+        public void Clear() => _cache.Clear();
 
         public static TypeInspector Default { get; } = new TypeInspector();
     }

@@ -162,7 +162,7 @@ namespace HotChocolate.Types.Descriptors
             if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
-                    new ClrTypeReference(
+                    TypeReference.Create(
                         typeof(DeprecatedDirectiveType),
                         TypeContext.None),
                     TypeDependencyKind.Completed));

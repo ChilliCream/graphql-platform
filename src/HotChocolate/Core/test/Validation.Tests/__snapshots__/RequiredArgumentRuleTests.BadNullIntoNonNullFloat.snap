@@ -2,21 +2,23 @@
   {
     "Message": "The argument `floatArg` is required.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 46
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "nonNullFloatArgField",
       "argument": "floatArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   }
 ]

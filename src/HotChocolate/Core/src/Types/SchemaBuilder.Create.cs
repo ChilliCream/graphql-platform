@@ -17,16 +17,21 @@ namespace HotChocolate
     {
         public Schema Create()
         {
-            IServiceProvider services = _services
-                ?? new EmptyServiceProvider();
+            IServiceProvider services = _services ?? new EmptyServiceProvider();
 
             var descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
-                CreateConventions(services));
+                CreateConventions(services),
+                _contextData);
+
+            foreach (Action<IDescriptorContext> action in _onBeforeCreate)
+            {
+                action(descriptorContext);
+            }
 
             IBindingLookup bindingLookup =
-                 _bindingCompiler.Compile(descriptorContext);
+                _bindingCompiler.Compile(descriptorContext);
 
             IReadOnlyCollection<ITypeReference> types =
                 GetTypeReferences(services, bindingLookup);
@@ -58,6 +63,7 @@ namespace HotChocolate
 
             schema.CompleteSchema(definition);
             lazy.Schema = schema;
+            TypeInspector.Default.Clear();
             return schema;
         }
 
@@ -155,7 +161,6 @@ namespace HotChocolate
             var initializer = new TypeInitializer(
                 services,
                 descriptorContext,
-                _contextData,
                 types,
                 _resolverTypes,
                 interceptor,
@@ -182,7 +187,7 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            foreach (KeyValuePair<IClrTypeReference, ITypeReference> binding in
+            foreach (KeyValuePair<ClrTypeReference, ITypeReference> binding in
                 _clrTypes)
             {
                 initializer.ClrTypes[binding.Key] = binding.Value;
@@ -268,19 +273,19 @@ namespace HotChocolate
             else if (_operations.TryGetValue(operation,
                 out ITypeReference reference))
             {
-                if (reference is ISchemaTypeReference sr)
+                if (reference is SchemaTypeReference sr)
                 {
                     return (ObjectType)sr.Type;
                 }
 
-                if (reference is IClrTypeReference cr
+                if (reference is ClrTypeReference cr
                     && initializer.TryGetRegisteredType(cr,
                     out RegisteredType registeredType))
                 {
                     return (ObjectType)registeredType.Type;
                 }
 
-                if (reference is ISyntaxTypeReference str)
+                if (reference is SyntaxTypeReference str)
                 {
                     NamedTypeNode namedType = str.Type.NamedType();
                     return initializer.DiscoveredTypes!.Types
@@ -301,18 +306,18 @@ namespace HotChocolate
                 if (_operations.TryGetValue(OperationType.Query,
                     out ITypeReference reference))
                 {
-                    if (reference is ISchemaTypeReference sr)
+                    if (reference is SchemaTypeReference sr)
                     {
                         return sr.Type == objectType;
                     }
 
-                    if (reference is IClrTypeReference cr)
+                    if (reference is ClrTypeReference cr)
                     {
                         return cr.Type == objectType.GetType()
-                            || cr.Type == objectType.ClrType;
+                            || cr.Type == objectType.RuntimeType;
                     }
 
-                    if (reference is ISyntaxTypeReference str)
+                    if (reference is SyntaxTypeReference str)
                     {
                         return objectType.Name.Equals(
                             str.Type.NamedType().Name.Value);
@@ -340,11 +345,17 @@ namespace HotChocolate
             }
 
             var serviceFactory = new ServiceFactory { Services = services };
-            Type interceptorType = typeof(ITypeInitializationInterceptor);
-            foreach (Type type in _interceptors.Where(t => interceptorType.IsAssignableFrom(t)))
+            foreach (object interceptorOrType in _interceptors)
             {
-                obj = serviceFactory.CreateInstance(type);
-                if (obj is ITypeInitializationInterceptor interceptor)
+                if (interceptorOrType is Type type)
+                {
+                    obj = serviceFactory.CreateInstance(type);
+                    if (obj is ITypeInitializationInterceptor casted)
+                    {
+                        list.Add(casted);
+                    }
+                }
+                else if (interceptorOrType is ITypeInitializationInterceptor interceptor)
                 {
                     list.Add(interceptor);
                 }

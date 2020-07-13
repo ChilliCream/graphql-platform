@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     {
         protected FluentWrapperType() { }
 
-        Type IHasClrType.ClrType => throw new NotSupportedException();
+        Type IHasRuntimeType.RuntimeType => throw new NotSupportedException();
 
         TypeKind IType.Kind => throw new NotSupportedException();
 

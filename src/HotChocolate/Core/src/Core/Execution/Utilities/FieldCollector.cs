@@ -339,7 +339,7 @@ namespace HotChocolate.Execution
                         argument.Name,
                         TypeVisualizer.Visualize(report.Type)))
                     .AddLocation(fieldInfo.Selection)
-                    .SetExtension(_argumentProperty, report.Path.ToCollection())
+                    .SetExtension(_argumentProperty, report.Path.ToList())
                     .SetPath(fieldInfo.Path.AppendOrCreate(
                         fieldInfo.ResponseName))
                     .Build();

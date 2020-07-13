@@ -253,13 +253,13 @@ namespace HotChocolate.Execution
             return new QueryRequest
             {
                 Query = _query,
-                QueryName = _queryName,
+                QueryId = _queryName,
                 QueryHash = _queryHash,
                 OperationName = _operationName,
                 InitialValue = _initialValue,
                 Services = _services,
                 VariableValues = GetVariableValues(),
-                Properties = GetProperties(),
+                ContextData = GetProperties(),
                 Extensions = GetExtensions()
             };
         }
@@ -337,12 +337,12 @@ namespace HotChocolate.Execution
         {
             var builder = new QueryRequestBuilder();
             builder._query = request.Query;
-            builder._queryName = request.QueryName;
+            builder._queryName = request.QueryId;
             builder._queryHash = request.QueryHash;
             builder._operationName = request.OperationName;
             builder._readOnlyVariableValues = request.VariableValues;
             builder._initialValue = request.InitialValue;
-            builder._readOnlyProperties = request.Properties;
+            builder._readOnlyProperties = request.ContextData;
             builder._readOnlyExtensions = request.Extensions;
             builder._services = request.Services;
 

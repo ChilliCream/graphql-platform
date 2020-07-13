@@ -1,0 +1,3 @@
+﻿Unknown format. Guid supports the following format chars: { `N`, `D`, `B`, `P` }.
+https://docs.microsoft.com/en-us/dotnet/api/system.buffers.text.utf8parser.tryparse?view=netcore-3.1#System_Buffers_Text_Utf8Parser_TryParse_System_ReadOnlySpan_System_Byte__System_Guid__System_Int32__System_Char_
+Parameter name: format

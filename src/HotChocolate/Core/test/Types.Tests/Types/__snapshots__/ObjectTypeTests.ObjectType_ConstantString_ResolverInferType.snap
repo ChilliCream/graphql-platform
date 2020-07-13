@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "_123": "fooBar"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

@@ -1,1 +1,1 @@
-﻿Unable to create service `HotChocolate.Utilities.ServiceFactoryTests+ClassWithNoException` see inner exception for more details.
+﻿Could not create an instance of `HotChocolate.Utilities.ServiceFactoryTests+ClassWithException`

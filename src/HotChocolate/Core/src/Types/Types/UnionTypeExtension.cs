@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind => TypeKind.Union;
 
         protected override UnionTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
                 context.DescriptorContext);
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             UnionTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         }
 
         internal override void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type)
         {
             if (type is UnionType unionType)

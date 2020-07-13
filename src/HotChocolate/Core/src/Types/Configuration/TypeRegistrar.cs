@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -16,61 +17,70 @@ namespace HotChocolate.Configuration
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<IClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
-        private readonly IDictionary<string, object> _contextData;
-        private readonly ITypeInitializationInterceptor _interceptor;
+        private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<IClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData,
-            ITypeInitializationInterceptor interceptor,
+            ITypeInterceptor interceptor,
             IServiceProvider services)
         {
             _registered = registeredTypes;
             _clrTypeReferences = clrTypeReferences;
             _descriptorContext = descriptorContext;
-            _contextData = contextData;
             _interceptor = interceptor;
             _serviceFactory.Services = services;
         }
 
-        public void Register(TypeSystemObjectBase typeSystemObject, bool isInferred = false)
+        public void Register(
+            TypeSystemObjectBase typeSystemObject,
+            string? scope,
+            bool isInferred = false)
         {
-            RegisteredType registeredType = InitializeType(typeSystemObject, isInferred);
+            RegisteredType registeredType = InitializeType(
+                typeSystemObject, 
+                scope,
+                isInferred);
 
             if (registeredType.References.Count > 0)
             {
-                foreach (ITypeReference typeReference in registeredType.References)
+                ResolveReferences(registeredType);
+
+                if (typeSystemObject is IHasRuntimeType hasClrType
+                    && hasClrType.RuntimeType != typeof(object))
                 {
-                    _registered[typeReference] = registeredType;
-                    _unresolved.Remove(typeReference);
-                }
+                    var clrRef = TypeReference.Create(
+                        hasClrType.RuntimeType,
+                        SchemaTypeReference.InferTypeContext(typeSystemObject),
+                        scope: scope);
 
-                if (typeSystemObject is IHasClrType hasClrType
-                    && hasClrType.ClrType != typeof(object))
-                {
-                    var clrRef = new ClrTypeReference(
-                        hasClrType.ClrType,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject));
-                    _unresolved.Remove(clrRef);
+                    var explicitBind = typeSystemObject is ScalarType scalar
+                        && scalar.Bind == BindingBehavior.Explicit;
 
-                    bool autoBind = true;
-
-                    if (typeSystemObject is ScalarType scalar
-                        && scalar.Bind == BindingBehavior.Explicit)
+                    if (!explicitBind)
                     {
-                        autoBind = false;
-                    }
+                        MarkResolved(clrRef);
 
-                    if (autoBind && !_clrTypeReferences.ContainsKey(clrRef))
-                    {
-                        _clrTypeReferences.Add(clrRef, registeredType.References[0]);
+                        if (!_clrTypeReferences.ContainsKey(clrRef))
+                        {
+                            _clrTypeReferences.Add(clrRef, registeredType.References[0]);
+                        }
                     }
                 }
             }
+        }
+
+        private void ResolveReferences(RegisteredType registeredType)
+        {
+            foreach (ITypeReference typeReference in registeredType.References)
+            {
+                _registered[typeReference] = registeredType;
+                MarkResolved(typeReference);
+            }
+
         }
 
         public void MarkUnresolved(ITypeReference typeReference)
@@ -90,7 +100,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (typeReference is IClrTypeReference clrTypeReference)
+            if (typeReference is ClrTypeReference clrTypeReference)
             {
                 return _clrTypeReferences.ContainsKey(clrTypeReference);
             }
@@ -102,7 +112,7 @@ namespace HotChocolate.Configuration
         {
             try
             {
-                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType);
+                return (TypeSystemObjectBase)_serviceFactory.CreateInstance(namedSchemaType)!;
             }
             catch (Exception ex)
             {
@@ -125,15 +135,22 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyCollection<ITypeReference> GetUnhandled()
         {
+            // we are having a list and the hashset here to keep the order.
             var unhandled = new List<ITypeReference>();
+            var registered = new HashSet<ITypeReference>();
 
             foreach (RegisteredType type in _registered.Values)
             {
                 if (_handled.Add(type))
                 {
-                    unhandled.AddRange(
-                        type.InitializationContext
-                            .TypeDependencies.Select(t => t.TypeReference));
+                    foreach (ITypeReference typeReference in type.DiscoveryContext
+                        .TypeDependencies.Select(t => t.TypeReference))
+                    {
+                        if (registered.Add(typeReference))
+                        {
+                            unhandled.Add(typeReference);
+                        }
+                    }
                 }
             }
 
@@ -142,39 +159,44 @@ namespace HotChocolate.Configuration
 
         private RegisteredType InitializeType(
             TypeSystemObjectBase typeSystemObject,
+            string? scope,
             bool isInferred)
         {
             try
             {
-                var initializationContext = new InitializationContext(
+                var discoveryContext = new TypeDiscoveryContext(
                     typeSystemObject,
+                    scope,
                     _serviceFactory.Services,
                     _descriptorContext,
-                    _contextData,
                     _interceptor);
 
-                typeSystemObject.Initialize(initializationContext);
+                typeSystemObject.Initialize(discoveryContext);
 
                 var references = new List<ITypeReference>();
 
                 if (!isInferred)
                 {
-                    references.Add(new SchemaTypeReference(typeSystemObject));
+                    references.Add(TypeReference.Create(
+                        typeSystemObject,
+                        scope: scope));
                 }
 
                 if (!BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    references.Add(new ClrTypeReference(
+                    references.Add(TypeReference.Create(
                         typeSystemObject.GetType(),
-                        SchemaTypeReference.InferTypeContext(typeSystemObject)));
+                        SchemaTypeReference.InferTypeContext(typeSystemObject),
+                        scope: scope));
                 }
 
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
                     && hasTypeIdentity.TypeIdentity is { })
                 {
-                    var reference = new ClrTypeReference(
+                    var reference = TypeReference.Create(
                         hasTypeIdentity.TypeIdentity,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject));
+                        SchemaTypeReference.InferTypeContext(typeSystemObject),
+                        scope: scope);
 
                     if (!references.Contains(reference))
                     {
@@ -185,8 +207,8 @@ namespace HotChocolate.Configuration
                 var registeredType = new RegisteredType(
                     references,
                     typeSystemObject,
-                    initializationContext,
-                    initializationContext.TypeDependencies,
+                    discoveryContext,
+                    CollectDependencies(discoveryContext),
                     isInferred);
 
                 return registeredType;
@@ -200,6 +222,19 @@ namespace HotChocolate.Configuration
                         .SetTypeSystemObject(typeSystemObject)
                         .Build());
             }
+        }
+
+        private IReadOnlyList<TypeDependency> CollectDependencies(
+            ITypeDiscoveryContext discoveryContext)
+        {
+            if (discoveryContext.Interceptor.TryCreateScope(
+                discoveryContext,
+                out IReadOnlyList<TypeDependency>? dependencies))
+            {
+                return dependencies;
+            }
+
+            return discoveryContext.TypeDependencies;
         }
     }
 }

@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "__type": {
+      "name": "Foo",
+      "fields": [
+        {
+          "name": "a",
+          "type": {
+            "name": "String"
+          }
+        }
+      ]
+    }
+  }
+}

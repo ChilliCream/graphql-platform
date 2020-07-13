@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Batching
@@ -39,6 +40,11 @@ namespace HotChocolate.Execution.Batching
 
         public IReadOnlyDictionary<string, object> ContextData => _empty;
 
+        public ValueTask DisposeAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public IAsyncEnumerator<IReadOnlyQueryResult> GetAsyncEnumerator(
             CancellationToken cancellationToken = default)
         {
@@ -59,6 +65,11 @@ namespace HotChocolate.Execution.Batching
             }
 
             return _enumerator;
+        }
+
+        public IAsyncEnumerable<IQueryResult> ReadResultsAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

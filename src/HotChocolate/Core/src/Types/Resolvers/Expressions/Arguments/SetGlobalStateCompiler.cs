@@ -9,10 +9,10 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         where T : IResolverContext
     {
         private static readonly MethodInfo _setGlobalState =
-            typeof(ExpressionHelper).GetMethod("SetGlobalState");
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetGlobalState));
 
         private static readonly MethodInfo _setGlobalStateGeneric =
-            typeof(ExpressionHelper).GetMethod("SetGlobalStateGeneric");
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.SetGlobalStateGeneric));
 
         protected override bool CanHandle(Type parameterType)
         {

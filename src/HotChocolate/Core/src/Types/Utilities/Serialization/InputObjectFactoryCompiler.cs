@@ -34,10 +34,10 @@ namespace HotChocolate.Utilities.Serialization
             ParameterExpression converter =
                 Expression.Parameter(typeof(ITypeConversion));
 
-            ParameterExpression variable = Expression.Variable(inputType.ClrType, "obj");
+            ParameterExpression variable = Expression.Variable(inputType.RuntimeType, "obj");
 
             Expression instance = constructor is null
-                ? Expression.New(inputType.ClrType)
+                ? Expression.New(inputType.RuntimeType)
                 : CreateInstance(inputType, constructor, data, converter);
 
             ParameterInfo[] parameters = constructor is null

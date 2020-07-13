@@ -38,7 +38,7 @@ namespace HotChocolate
 
         public ISchemaErrorBuilder SetPath(Path path)
         {
-            _error.Path = path.ToCollection();
+            _error.Path = path.ToList();
             return this;
         }
 

@@ -94,13 +94,13 @@ namespace HotChocolate.Execution
 
         private string ResolveQueryKey(IReadOnlyQueryRequest request)
         {
-            string queryKey = request.QueryName;
+            string queryKey = request.QueryId;
 
             if (queryKey is null || request.Query != null)
             {
                 queryKey = request.QueryHash is null
                     ? _documentHashProvider.ComputeHash(
-                        request.Query.ToSpan())
+                        request.Query.AsSpan())
                     : request.QueryHash;
             }
 
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution
 
             if (query is QuerySourceText source)
             {
-                return _parser.Parse(source.ToSpan());
+                return _parser.Parse(source.AsSpan());
             }
 
             throw new NotSupportedException(
@@ -127,7 +127,7 @@ namespace HotChocolate.Execution
         {
             return context.Request is null
                 || (context.Request.Query is null
-                    && context.Request.QueryName is null);
+                    && context.Request.QueryId is null);
         }
     }
 

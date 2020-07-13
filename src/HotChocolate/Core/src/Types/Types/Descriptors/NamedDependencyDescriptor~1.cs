@@ -1,7 +1,5 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Configuration;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
 {

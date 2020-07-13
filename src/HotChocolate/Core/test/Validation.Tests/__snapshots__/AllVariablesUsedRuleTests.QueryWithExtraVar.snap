@@ -2,16 +2,16 @@
   {
     "Message": "The following variables were not used: extra.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 8,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variables-Used"
-    }
+    },
+    "Exception": null
   }
 ]

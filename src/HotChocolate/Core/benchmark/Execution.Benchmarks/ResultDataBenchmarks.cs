@@ -32,7 +32,7 @@ namespace HotChocolate.Execution.Benchmarks
 
             for (int i = 0; i < Size; i++)
             {
-                buffer[i] = new ResultValue(i.ToString(), i);
+                buffer[i] = new ResultValue(i.ToString(), i, true);
             }
 
             ArrayPool<ResultValue>.Shared.Return(buffer);
@@ -49,7 +49,7 @@ namespace HotChocolate.Execution.Benchmarks
                 _resultMap.SetValue(i, i.ToString(), i);
             }
 
-            _resultMap.Clear();
+            _resultMap.Reset();
             return _resultMap;
         }
     }

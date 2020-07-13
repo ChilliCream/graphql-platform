@@ -1,0 +1,31 @@
+﻿schema {
+  query: Query
+  mutation: MyMutation
+  subscription: MySubscription
+}
+
+type MyMutation {
+  writeFixedMessage(message: String!): String!
+  writeMessage(message: String! userId: String!): String!
+  writeOnExplicit(message: String!): String!
+  writeOnInferTopic(message: String!): String!
+  writeSysMessage(message: String!): String!
+}
+
+type MySubscription {
+  onExplicit: String!
+  onExplicitNonGeneric: String!
+  onExplicitNonGenericSync: String!
+  onExplicitSync: String!
+  onFixedMessage: String!
+  onInferTopic: String!
+  onMessage(userId: String!): String!
+  onSysMessage: String!
+}
+
+type Query {
+  a: String
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

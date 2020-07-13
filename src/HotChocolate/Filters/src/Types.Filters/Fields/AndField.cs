@@ -1,4 +1,4 @@
-using HotChocolate.Types.Descriptors;
+﻿using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Filters
         private static InputFieldDefinition CreateDefinition(
             IDescriptorContext context, InputObjectType filterType)
         {
-            InputFieldDefinition definition = InputFieldDescriptor
+            var definition = InputFieldDescriptor
                 .New(context, "AND")
                 .CreateDefinition();
 

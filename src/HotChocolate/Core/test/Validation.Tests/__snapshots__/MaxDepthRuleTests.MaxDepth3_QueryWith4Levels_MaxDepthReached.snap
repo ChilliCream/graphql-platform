@@ -9,10 +9,10 @@
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "allowedComplexity": 3,
       "detectedComplexity": 4
-    }
+    },
+    "Exception": null
   }
 ]

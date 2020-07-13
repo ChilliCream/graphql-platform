@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<DirectiveTypeDefinition>
         , IHasName
         , IHasDescription
-        , IHasClrType
+        , IHasRuntimeType
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
         private ITypeConversion _converter;
@@ -28,13 +28,13 @@ namespace HotChocolate.Types
 
         public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? 
+                throw new ArgumentNullException(nameof(configure));
         }
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        public Type ClrType { get; private set; }
+        public Type RuntimeType { get; private set; }
 
         public bool IsRepeatable { get; private set; }
 
@@ -42,15 +42,14 @@ namespace HotChocolate.Types
 
         public FieldCollection<Argument> Arguments { get; private set; }
 
-        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents
-        { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; }
 
         public bool IsExecutable { get; private set; }
 
         #region Initialization
 
         protected override DirectiveTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = DirectiveTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
@@ -64,13 +63,13 @@ namespace HotChocolate.Types
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             DirectiveTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
 
-            ClrType = definition.ClrType != GetType()
-                ? definition.ClrType
+            RuntimeType = definition.RuntimeType != GetType()
+                ? definition.RuntimeType
                 : typeof(object);
             IsRepeatable = definition.IsRepeatable;
 
@@ -78,7 +77,7 @@ namespace HotChocolate.Types
         }
 
         private void RegisterDependencies(
-           IInitializationContext context,
+           ITypeDiscoveryContext context,
            DirectiveTypeDefinition definition)
         {
             var dependencies = new List<ITypeReference>();
@@ -89,7 +88,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DirectiveTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);

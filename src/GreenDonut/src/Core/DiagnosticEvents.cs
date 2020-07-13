@@ -8,24 +8,16 @@ namespace GreenDonut
     internal static class DiagnosticEvents
     {
         private const string _diagnosticSourceName = "GreenDonut";
-        private const string _batchActivityName = _diagnosticSourceName +
-            ".ExecuteBatchRequest";
-        private const string _singleActivityName = _diagnosticSourceName +
-            ".ExecuteSingleRequest";
-        private const string _batchErrorEventName = _diagnosticSourceName +
-            ".BatchError";
-        private const string _cachedValueEventName = _diagnosticSourceName +
-            ".CachedValue";
-        private const string _errorEventName = _diagnosticSourceName +
-            ".Error";
+        private const string _batchActivityName = _diagnosticSourceName + ".ExecuteBatchRequest";
+        private const string _batchErrorEventName = _diagnosticSourceName + ".BatchError";
+        private const string _cachedValueEventName = _diagnosticSourceName + ".CachedValue";
+        private const string _errorEventName = _diagnosticSourceName + ".Error";
 
-        private static readonly DiagnosticSource _source =
-            new DiagnosticListener(_diagnosticSourceName);
+        private static readonly DiagnosticSource _source = new DiagnosticListener(
+            _diagnosticSourceName);
 
-        public static void ReceivedBatchError<TKey>(
-            IReadOnlyList<TKey> keys,
-            Exception exception)
-                where TKey : notnull
+        public static void ReceivedBatchError<TKey>(IReadOnlyList<TKey> keys, Exception exception)
+            where TKey : notnull
         {
             var payload = new
             {
@@ -39,10 +31,8 @@ namespace GreenDonut
             }
         }
 
-        public static void ReceivedError<TKey>(
-            TKey key,
-            Exception exception)
-                where TKey : notnull
+        public static void ReceivedError<TKey>(TKey key, Exception exception)
+            where TKey : notnull
         {
             var payload = new
             {
@@ -75,9 +65,8 @@ namespace GreenDonut
             }
         }
 
-        public static Activity? StartBatching<TKey>(
-            IReadOnlyList<TKey> keys)
-                where TKey : notnull
+        public static Activity? StartBatching<TKey>(IReadOnlyList<TKey> keys)
+            where TKey : notnull
         {
             var payload = new
             {
@@ -111,47 +100,6 @@ namespace GreenDonut
                 };
 
                 if (_source.IsEnabled(_batchActivityName, payload))
-                {
-                    _source.StopActivity(activity, payload);
-                }
-            }
-        }
-
-        public static Activity? StartSingle<TKey>(TKey key)
-            where TKey : notnull
-        {
-            var payload = new
-            {
-                key
-            };
-
-            if (_source.IsEnabled(_singleActivityName, payload))
-            {
-                var activity = new Activity(_singleActivityName);
-
-                _source.StartActivity(activity, payload);
-
-                return activity;
-            }
-
-            return null;
-        }
-
-        public static void StopSingle<TKey, TValue>(
-            Activity? activity,
-            TKey key,
-            IReadOnlyCollection<TValue> values)
-                where TKey : notnull
-        {
-            if (activity != null)
-            {
-                var payload = new
-                {
-                    key,
-                    values
-                };
-
-                if (_source.IsEnabled(_singleActivityName, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }

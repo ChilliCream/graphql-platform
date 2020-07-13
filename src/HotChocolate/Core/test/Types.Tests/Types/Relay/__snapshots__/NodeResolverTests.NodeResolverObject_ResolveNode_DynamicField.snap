@@ -1,11 +1,8 @@
 ﻿{
-  "Data": {
+  "data": {
     "node": {
       "id": "RW50aXR5CmRmb28=",
       "name": "foo"
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

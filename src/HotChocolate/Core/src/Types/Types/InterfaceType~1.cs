@@ -22,7 +22,7 @@ namespace HotChocolate.Types
         }
 
         protected override InterfaceTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = InterfaceTypeDescriptor.New<T>(
                 context.DescriptorContext);

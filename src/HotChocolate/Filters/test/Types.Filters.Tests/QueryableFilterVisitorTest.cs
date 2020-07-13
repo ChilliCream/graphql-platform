@@ -1,51 +1,25 @@
 using System;
-using HotChocolate.Types.Filters.Expressions;
+using System.Threading.Tasks;
 using HotChocolate.Utilities;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorContextTests
-        : TypeTestBase
+    public class QueryableFilterVisitorTests
     {
         [Fact]
-        public void Create_Should_Throw_IfOperationDefinitionIsNull()
+        public async Task Create_Should_Throw_IfOperationHandlersIsNull()
         {
             // arrange
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                null,
-                TypeConversion.Default,
-                true);
-            };
-
-            // act
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-
-        [Fact]
-        public void Create_Should_Throw_IfTypeConversionIsNull()
-        {
-            // arrange
-
-            FooFilterType fooType = CreateType(new FooFilterType());
-
-            Action action = () =>
-            {
-                new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                null,
-                true);
+                new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default, null);
             };
 
             // act
@@ -54,20 +28,16 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Should_Throw_IfTypeIsNull()
+        public async Task Create_Should_Throw_IfTypeConversionIsNull()
         {
             // arrange
 
-            FooFilterType fooType = CreateType(new FooFilterType());
+            var fooType = await CreateTypeAsync(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                fooType,
-                null,
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
+                new QueryableFilterVisitor(
+                fooType, typeof(Foo), null);
             };
 
             // act
@@ -76,18 +46,32 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_Should_Throw_IfInputTypeIsNull()
+        public async Task Create_Should_Throw_IfTypeIsNull()
+        {
+            // arrange
+
+            var fooType = await CreateTypeAsync(new FooFilterType());
+
+            Action action = () =>
+            {
+                new QueryableFilterVisitor(
+                fooType, null, TypeConversion.Default);
+            };
+
+            // act
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public async Task Create_Should_Throw_IfInputTypeIsNull()
         {
             // arrange 
 
             Action action = () =>
             {
-                new QueryableFilterVisitorContext(
-                null,
-                typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
-                true);
+                new QueryableFilterVisitor(
+                null, typeof(Foo), TypeConversion.Default);
             };
 
             // act
@@ -100,6 +84,7 @@ namespace HotChocolate.Types.Filters
             public bool Bar { get; set; }
         }
 
+
         public class FooFilterType
             : FilterInputType<Foo>
         {
@@ -110,5 +95,6 @@ namespace HotChocolate.Types.Filters
                     .AllowEquals().And().AllowNotEquals();
             }
         }
+
     }
 }
