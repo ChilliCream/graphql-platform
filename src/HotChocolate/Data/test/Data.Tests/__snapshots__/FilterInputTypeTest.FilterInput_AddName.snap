@@ -3,25 +3,7 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilter): String
-}
-
-input BooleanOperationInputFilter {
-  eq: Boolean
-  neq: Boolean
-}
-
-input FooFilterTypeFilter {
-  and: [FooFilterTypeFilter!]
-  or: [FooFilterTypeFilter!]
-  string: ListFilterInputOfStringOperationInputFilter
-}
-
-input ListFilterInputOfStringOperationInputFilter {
-  all: StringOperationInputFilter
-  any: BooleanOperationInputFilter
-  none: StringOperationInputFilter
-  some: StringOperationInputFilter
+  foo: String
 }
 
 input StringOperationInputFilter {
@@ -47,8 +29,11 @@ input StringOperationInputFilter {
   startsWith: String
 }
 
-"The `Boolean` scalar type represents `true` or `false`."
-scalar Boolean
+input Test {
+  and: [Test!]
+  bar: StringOperationInputFilter
+  or: [Test!]
+}
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String

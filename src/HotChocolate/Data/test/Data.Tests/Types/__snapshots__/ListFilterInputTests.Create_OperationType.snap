@@ -3,23 +3,23 @@
 }
 
 type Query {
-  foo(test: ListFilterInputOfStringOperationInput): String
+  foo(test: ListFilterInputOfStringOperationInputFilter): String
 }
 
-input BooleanOperationInput {
+input BooleanOperationInputFilter {
   eq: Boolean
   neq: Boolean
 }
 
-input ListFilterInputOfStringOperationInput {
-  all: StringOperationInput
-  any: BooleanOperationInput
-  none: StringOperationInput
-  some: StringOperationInput
+input ListFilterInputOfStringOperationInputFilter {
+  all: StringOperationInputFilter
+  any: BooleanOperationInputFilter
+  none: StringOperationInputFilter
+  some: StringOperationInputFilter
 }
 
-input StringOperationInput {
-  and: [StringOperationInput!]
+input StringOperationInputFilter {
+  and: [StringOperationInputFilter!]
   contains: String
   endsWith: String
   eq: String
@@ -37,7 +37,7 @@ input StringOperationInput {
   nlt: String
   nlte: String
   nstartsWith: String
-  or: [StringOperationInput!]
+  or: [StringOperationInputFilter!]
   startsWith: String
 }
 

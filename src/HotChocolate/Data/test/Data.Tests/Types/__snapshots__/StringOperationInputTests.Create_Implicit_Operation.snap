@@ -3,18 +3,18 @@
 }
 
 type Query {
-  foo(test: FooInput): String
+  foo(test: FooFilter): String
 }
 
-input FooInput {
-  and: [FooInput!]
-  or: [FooInput!]
-  string: StringOperationInput
-  stringNullable: StringOperationInput
+input FooFilter {
+  and: [FooFilter!]
+  or: [FooFilter!]
+  string: StringOperationInputFilter
+  stringNullable: StringOperationInputFilter
 }
 
-input StringOperationInput {
-  and: [StringOperationInput!]
+input StringOperationInputFilter {
+  and: [StringOperationInputFilter!]
   contains: String
   endsWith: String
   eq: String
@@ -32,7 +32,7 @@ input StringOperationInput {
   nlt: String
   nlte: String
   nstartsWith: String
-  or: [StringOperationInput!]
+  or: [StringOperationInputFilter!]
   startsWith: String
 }
 

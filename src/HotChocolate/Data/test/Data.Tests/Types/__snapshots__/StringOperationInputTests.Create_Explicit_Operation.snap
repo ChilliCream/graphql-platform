@@ -3,17 +3,17 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeInput): String
+  foo(test: FooFilterTypeFilter): String
 }
 
-input FooFilterTypeInput {
-  and: [FooFilterTypeInput!]
-  or: [FooFilterTypeInput!]
-  string: StringOperationInput
+input FooFilterTypeFilter {
+  and: [FooFilterTypeFilter!]
+  or: [FooFilterTypeFilter!]
+  string: StringOperationInputFilter
 }
 
-input StringOperationInput {
-  and: [StringOperationInput!]
+input StringOperationInputFilter {
+  and: [StringOperationInputFilter!]
   contains: String
   endsWith: String
   eq: String
@@ -31,7 +31,7 @@ input StringOperationInput {
   nlt: String
   nlte: String
   nstartsWith: String
-  or: [StringOperationInput!]
+  or: [StringOperationInputFilter!]
   startsWith: String
 }
 
