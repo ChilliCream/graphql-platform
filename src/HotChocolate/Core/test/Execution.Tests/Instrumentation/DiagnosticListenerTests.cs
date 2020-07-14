@@ -16,11 +16,11 @@ namespace HotChocolate.Execution.Instrumentation
         {
             // arrange
             var listener = new TestListener();
-            IRequestExecutor executor =  await CreateExecutorAsync(c => c
-                .AddDiagnosticEventListener(sp => listener)
-                .AddStarWarsTypes()
-                .Services
-                .AddStarWarsRepositories());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+               .AddDiagnosticEventListener(sp => listener)
+               .AddStarWarsTypes()
+               .Services
+               .AddStarWarsRepositories());
 
             // act
             await executor.ExecuteAsync("{ hero { name } }");
@@ -37,12 +37,12 @@ namespace HotChocolate.Execution.Instrumentation
             // arrange
             var listener_a = new TestListener();
             var listener_b = new TestListener();
-            IRequestExecutor executor =  await CreateExecutorAsync(c => c
-                .AddDiagnosticEventListener(sp => listener_a)
-                .AddDiagnosticEventListener(sp => listener_b)
-                .AddStarWarsTypes()
-                .Services
-                .AddStarWarsRepositories());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+               .AddDiagnosticEventListener(sp => listener_a)
+               .AddDiagnosticEventListener(sp => listener_b)
+               .AddStarWarsTypes()
+               .Services
+               .AddStarWarsRepositories());
 
             // act
             await executor.ExecuteAsync("{ hero { name } }");
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Instrumentation
                 r => Assert.IsType<Droid>(r),
                 r => Assert.IsType<string>(r));
         }
-        
+
 
         private class TestListener : DiagnosticEventListener
         {

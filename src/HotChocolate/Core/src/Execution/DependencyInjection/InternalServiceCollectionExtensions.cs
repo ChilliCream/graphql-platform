@@ -62,6 +62,13 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
+        internal static IServiceCollection TryAddTimespanProvider(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<ITimestampProvider, DefaultTimestampProvider>();
+            return services;
+        }
+
         internal static IServiceCollection TryAddRequestExecutorResolver(
             this IServiceCollection services)
         {
