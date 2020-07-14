@@ -23,8 +23,8 @@ namespace HotChocolate.Data.Filters
 
         public FilterConvention(Action<IFilterConventionDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ??
+                throw new ArgumentNullException(nameof(configure));
         }
 
         protected override FilterConventionDefinition CreateDefinition(
@@ -73,13 +73,7 @@ namespace HotChocolate.Data.Filters
             {
                 return operationConvention.Name;
             }
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "Operation with identifier {0} has no name defined. Add a name to the " +
-                        "filter convention",
-                        operation)
-                    .Build());
+            throw ThrowHelper.FilterConvention_OperationNameNotFound(operation);
         }
 
         public NameString GetTypeDescription(IDescriptorContext context, Type entityType)
