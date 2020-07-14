@@ -1,33 +1,24 @@
-using System;
-using HotChocolate.Execution;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Tests;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Integration.EmbeddedResolvers
 {
     public class EmbeddedResolverTests
     {
         [Fact]
-        public void ResolverResultIsObject()
+        public async Task ResolverResultIsObject()
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            // act
-            IExecutionResult result = executor.Execute(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ foo { bar { baz }}}")
-                    .Create());
-
-            // assert
-            result.MatchSnapshot();
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ foo { bar { baz }}}",
+                configure: c => c.AddQueryType<QueryType>())
+                .MatchSnapshotAsync();;
         }
-
 
         public class QueryType
             : ObjectType
