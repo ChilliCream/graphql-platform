@@ -4,7 +4,7 @@ namespace HotChocolate.Data.Filters
 {
     internal static class ThrowHelper
     {
-        public static SchemaException FilterConvention_TypeOfMemberisUnknown(MemberInfo member) =>
+        public static SchemaException FilterConvention_TypeOfMemberIsUnknown(MemberInfo member) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
