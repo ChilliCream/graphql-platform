@@ -109,7 +109,7 @@ namespace HotChocolate.Data.Filters
             => context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
 
         public NameString GetTypeName(IDescriptorContext context, Type entityType)
-            => context.Naming.GetTypeName(entityType, TypeKind.InputObject);
+            => context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
 
         private bool TryGetTypeOfMember(
             MemberInfo member,
