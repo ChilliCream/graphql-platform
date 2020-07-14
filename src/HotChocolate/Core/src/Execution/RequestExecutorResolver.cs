@@ -142,7 +142,10 @@ namespace HotChocolate.Execution
                 }
             }
 
-            schemaBuilder.AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
+            schemaBuilder
+                .AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
+                .AddServices(_serviceProvider);
+        
 
             ISchema schema = schemaBuilder.Create();
             AssertSchemaNameValid(schema, schemaName);
