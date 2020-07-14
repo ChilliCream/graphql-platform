@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Spatial.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Data.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

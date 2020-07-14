@@ -8,6 +8,7 @@ namespace HotChocolate.Data.Filters
     public interface IFilterInputTypeDescriptor
         : IDescriptor<FilterInputTypeDefinition>
         , IFluent
+        , IHasRuntimeType
     {
         /// <summary>
         /// Defines the name of the <see cref="FilterInputType{T}"/>.

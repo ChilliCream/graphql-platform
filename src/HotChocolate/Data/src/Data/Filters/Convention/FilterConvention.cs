@@ -3,8 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using System.Collections.Immutable;
+using System.Linq;
+using System.Collections.Generic;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
@@ -12,8 +13,6 @@ namespace HotChocolate.Data.Filters
         ConventionBase<FilterConventionDefinition>
         , IFilterConvention
     {
-        public IImmutableDictionary<int, OperationConvention> Operations { get; private set; }
-
         private readonly Action<IFilterConventionDescriptor> _configure;
 
         protected FilterConvention()
@@ -26,6 +25,10 @@ namespace HotChocolate.Data.Filters
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
+
+        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -46,7 +49,8 @@ namespace HotChocolate.Data.Filters
         {
             Operations = definition
                 .Operations
-                .ToImmutableDictionary(x => x.Operation, x => new OperationConvention(x));
+                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
+            Bindings = definition.Bindings;
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member)
@@ -56,7 +60,26 @@ namespace HotChocolate.Data.Filters
             => context.Naming.GetMemberName(member, MemberKind.InputObjectField);
 
         public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
-            => context.Inspector.GetInputReturnType(member);
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            if (TryGetType(member, out Type? reflectedType))
+            {
+                return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
+            }
+
+            throw new SchemaException(
+                SchemaErrorBuilder
+                    .New()
+                    .SetMessage(
+                        "The type of the member {0} of the declaring type {1} is unknown",
+                        member.Name,
+                        member.DeclaringType.Name)
+                    .Build());
+        }
 
         public NameString GetOperationDescription(IDescriptorContext context, int operation)
         {
@@ -88,11 +111,49 @@ namespace HotChocolate.Data.Filters
         public NameString GetTypeName(IDescriptorContext context, Type entityType)
             => context.Naming.GetTypeName(entityType, TypeKind.InputObject);
 
-        public bool TryCreateImplicitFilter(
-            PropertyInfo property,
-            [NotNullWhen(true)] out InputFieldDefinition? definition)
+        private bool TryGetType(
+            MemberInfo member,
+            [NotNullWhen(true)] out Type? type)
         {
-            throw new NotImplementedException();
+            if (member is PropertyInfo p)
+            {
+                Type reflectedType = p.PropertyType;
+
+                if (reflectedType.IsGenericType
+                    && System.Nullable.GetUnderlyingType(reflectedType) is { } nullableType)
+                {
+                    reflectedType = nullableType;
+                }
+
+                if (Bindings.TryGetValue(reflectedType, out type))
+                {
+                    return true;
+                }
+
+                if (DotNetTypeInfoFactory.IsListType(reflectedType))
+                {
+                    if (!TypeInspector.Default.TryCreate(reflectedType, out Utilities.TypeInfo typeInfo))
+                    {
+                        throw new ArgumentException(
+                            string.Format(
+                                "The type {0} of the property {1} of the declaring type {2} is unknown",
+                                p.PropertyType?.Name,
+                                p.Name,
+                                p.DeclaringType?.Name),
+                            nameof(member));
+                    }
+                    type = typeInfo.ClrType;
+                    return true;
+                }
+
+                if (reflectedType.IsClass)
+                {
+                    type = typeof(FilterInputType<>).MakeGenericType(reflectedType);
+                    return true;
+                }
+            }
+            type = null;
+            return false;
         }
 
         internal static readonly IFilterConvention Default = TemporaryInitializer();

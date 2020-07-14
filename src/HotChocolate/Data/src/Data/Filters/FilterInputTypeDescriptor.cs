@@ -22,6 +22,7 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
+            Definition.RuntimeType = entityType;
             Definition.Name = Convention.GetTypeName(context, entityType);
             Definition.Description = Convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
@@ -34,6 +35,7 @@ namespace HotChocolate.Data.Filters
             : base(context)
         {
             Convention = context.GetFilterConvention(scope);
+            Definition.RuntimeType = typeof(object);
             Definition.EntityType = typeof(object);
             Definition.Scope = scope;
         }
@@ -48,6 +50,8 @@ namespace HotChocolate.Data.Filters
 
         protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
             new FilterInputTypeDefinition();
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
@@ -159,12 +163,6 @@ namespace HotChocolate.Data.Filters
             return fieldDescriptor;
         }
 
-        public static FilterInputTypeDescriptor New(
-            IDescriptorContext context,
-            string? scope,
-            Type entityType)
-            => new FilterInputTypeDescriptor(context, scope, entityType);
-
         public IFilterInputTypeDescriptor Ignore(NameString name)
         {
             FilterFieldDescriptor fieldDescriptor =
@@ -196,6 +194,12 @@ namespace HotChocolate.Data.Filters
             fieldDescriptor.Ignore();
             return this;
         }
+
+        public static FilterInputTypeDescriptor New(
+            IDescriptorContext context,
+            string? scope,
+            Type entityType)
+            => new FilterInputTypeDescriptor(context, scope, entityType);
 
         public static FilterInputTypeDescriptor FromSchemaType(
             IDescriptorContext context,

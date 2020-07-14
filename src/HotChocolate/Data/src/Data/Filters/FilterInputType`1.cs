@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters
     {
         private readonly Action<IFilterInputTypeDescriptor<T>> _configure;
 
-        protected FilterInputType()
+        public FilterInputType()
         {
             _configure = Configure;
         }
@@ -30,14 +30,6 @@ namespace HotChocolate.Data.Filters
 
             _configure(descriptor);
             return descriptor.CreateDefinition();
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            SetTypeIdentity(typeof(FilterInputType<T>));
         }
 
         protected virtual void Configure(

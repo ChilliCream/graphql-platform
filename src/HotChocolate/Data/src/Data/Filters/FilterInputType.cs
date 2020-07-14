@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters
     {
         private readonly Action<IFilterInputTypeDescriptor> _configure;
 
-        protected FilterInputType()
+        public FilterInputType()
         {
             _configure = Configure;
         }
@@ -58,6 +58,14 @@ namespace HotChocolate.Data.Filters
                     fields.Add(new FilterField(field));
                 }
             }
+        }
+
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            SetTypeIdentity(typeof(FilterInputType<>));
         }
 
         // we are disabling the default configure method so

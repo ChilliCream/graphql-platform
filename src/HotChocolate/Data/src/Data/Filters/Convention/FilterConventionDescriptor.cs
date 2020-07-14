@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -5,7 +6,7 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterConventionDescriptor : IFilterConventionDescriptor
     {
-        protected ICollection<FilterOperationConventionDescriptor> Operations { get; set; } =
+        protected ICollection<FilterOperationConventionDescriptor> Operations { get; } =
             new List<FilterOperationConventionDescriptor>();
 
         protected FilterConventionDescriptor(IConventionContext context)
@@ -33,6 +34,12 @@ namespace HotChocolate.Data.Filters
         {
             Definition.Operations = Operations.Select(x => x.CreateDefinition());
             return Definition;
+        }
+
+        public IFilterConventionDescriptor Binding<TRuntime, TInput>()
+        {
+            Definition.Bindings.Add(typeof(TRuntime), typeof(TInput));
+            return this;
         }
 
         public static FilterConventionDescriptor New(IConventionContext context)

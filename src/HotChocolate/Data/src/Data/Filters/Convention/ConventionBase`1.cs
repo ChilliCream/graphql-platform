@@ -13,8 +13,11 @@ namespace HotChocolate.Data.Filters
             }
         }
 
+        public string? Scope { get; set; }
+
         internal void Initialize(IConventionContext context)
         {
+            Scope = context.Scope;
             _definition = CreateDefinition(context);
             OnComplete(context, Definition);
         }
