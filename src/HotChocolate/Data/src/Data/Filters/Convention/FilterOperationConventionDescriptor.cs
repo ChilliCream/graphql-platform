@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public static FilterOperationConventionDescriptor New(int operation)
-            => new FilterOperationConventionDescriptor(operation);
+        public static FilterOperationConventionDescriptor New(int operation) =>
+            new FilterOperationConventionDescriptor(operation);
     }
 }
