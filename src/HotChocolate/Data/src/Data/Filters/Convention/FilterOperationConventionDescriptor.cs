@@ -7,8 +7,8 @@ namespace HotChocolate.Data.Filters
             Definition.Operation = operation;
         }
 
-        internal FilterOperationConventionDefinition Definition { get; }
-            = new FilterOperationConventionDefinition();
+        internal FilterOperationConventionDefinition Definition { get; } =
+            new FilterOperationConventionDefinition();
 
         public FilterOperationConventionDefinition CreateDefinition() => Definition;
 
@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public static FilterOperationConventionDescriptor New(int operation)
-            => new FilterOperationConventionDescriptor(operation);
+        public static FilterOperationConventionDescriptor New(int operation) =>
+            new FilterOperationConventionDescriptor(operation);
     }
 }

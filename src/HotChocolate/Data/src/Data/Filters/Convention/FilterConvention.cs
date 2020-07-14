@@ -22,8 +22,8 @@ namespace HotChocolate.Data.Filters
 
         public FilterConvention(Action<IFilterConventionDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ??
+                throw new ArgumentNullException(nameof(configure));
         }
 
         public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
@@ -53,11 +53,11 @@ namespace HotChocolate.Data.Filters
             Bindings = definition.Bindings;
         }
 
-        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member)
-            => context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
+        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
+            context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
 
-        public NameString GetFieldName(IDescriptorContext context, MemberInfo member)
-            => context.Naming.GetMemberName(member, MemberKind.InputObjectField);
+        public NameString GetFieldName(IDescriptorContext context, MemberInfo member) =>
+            context.Naming.GetMemberName(member, MemberKind.InputObjectField);
 
         public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
         {
@@ -96,20 +96,14 @@ namespace HotChocolate.Data.Filters
             {
                 return operationConvention.Name;
             }
-            throw new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "Operation with identifier {0} has no name defined. Add a name to the " +
-                        "filter convention",
-                        operation)
-                    .Build());
+            throw ThrowHelper.FilterConvention_OperationNameNotFound(operation);
         }
 
-        public NameString GetTypeDescription(IDescriptorContext context, Type entityType)
-            => context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
+        public NameString GetTypeDescription(IDescriptorContext context, Type entityType) =>
+            context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
 
-        public NameString GetTypeName(IDescriptorContext context, Type entityType)
-            => context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
+        public NameString GetTypeName(IDescriptorContext context, Type entityType) =>
+            context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
 
         private bool TryGetTypeOfMember(
             MemberInfo member,

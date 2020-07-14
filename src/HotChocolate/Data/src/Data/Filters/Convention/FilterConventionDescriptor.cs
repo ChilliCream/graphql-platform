@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public static FilterConventionDescriptor New(IConventionContext context)
-            => new FilterConventionDescriptor(context);
+        public static FilterConventionDescriptor New(IConventionContext context) =>
+            new FilterConventionDescriptor(context);
     }
 }

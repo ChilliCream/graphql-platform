@@ -5,8 +5,8 @@ namespace HotChocolate.Data.Filters
     public static class FilterConventionExtensions
     {
         public static IFilterConventionDescriptor UseDefault(
-            this IFilterConventionDescriptor descriptor)
-            => descriptor.UseDefaultOperations().UseDefaultFields();
+            this IFilterConventionDescriptor descriptor) =>
+                descriptor.UseDefaultOperations().UseDefaultFields();
 
         public static IFilterConventionDescriptor UseDefaultOperations(
             this IFilterConventionDescriptor descriptor)

@@ -196,7 +196,7 @@ namespace HotChocolate.Data.Filters
         public new static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context,
             string? scope,
-            Type entityType)
-            => new FilterInputTypeDescriptor<T>(context, scope, entityType);
+            Type entityType) =>
+            new FilterInputTypeDescriptor<T>(context, scope, entityType);
     }
 }
