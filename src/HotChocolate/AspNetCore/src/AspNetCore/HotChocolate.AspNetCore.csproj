@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.0" />
   </ItemGroup>
 
