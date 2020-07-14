@@ -49,14 +49,14 @@ namespace HotChocolate.Data.Filters
                 .ToImmutableDictionary(x => x.Operation, x => new OperationConvention(x));
         }
 
-        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member)
-            => context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
+        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
+            context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
 
-        public NameString GetFieldName(IDescriptorContext context, MemberInfo member)
-            => context.Naming.GetMemberName(member, MemberKind.InputObjectField);
+        public NameString GetFieldName(IDescriptorContext context, MemberInfo member) =>
+            context.Naming.GetMemberName(member, MemberKind.InputObjectField);
 
-        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
-            => context.Inspector.GetInputReturnType(member);
+        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member) =>
+            context.Inspector.GetInputReturnType(member);
 
         public NameString GetOperationDescription(IDescriptorContext context, int operation)
         {
@@ -76,11 +76,11 @@ namespace HotChocolate.Data.Filters
             throw ThrowHelper.FilterConvention_OperationNameNotFound(operation);
         }
 
-        public NameString GetTypeDescription(IDescriptorContext context, Type entityType)
-            => context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
+        public NameString GetTypeDescription(IDescriptorContext context, Type entityType) =>
+            context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
 
-        public NameString GetTypeName(IDescriptorContext context, Type entityType)
-            => context.Naming.GetTypeName(entityType, TypeKind.InputObject);
+        public NameString GetTypeName(IDescriptorContext context, Type entityType) =>
+            context.Naming.GetTypeName(entityType, TypeKind.InputObject);
 
         public bool TryCreateImplicitFilter(
             PropertyInfo property,
