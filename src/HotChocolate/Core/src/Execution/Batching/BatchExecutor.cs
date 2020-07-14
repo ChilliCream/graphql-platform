@@ -16,19 +16,19 @@ namespace HotChocolate.Execution.Batching
     {
         private readonly IRequestExecutor _requestExecutor;
         private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConversion _typeConversion;
+        private readonly ITypeConverter _typeConverter;
 
         public BatchExecutor(
             IRequestExecutor requestExecutor,
             IErrorHandler errorHandler,
-            ITypeConversion typeConversion)
+            ITypeConverter typeConverter)
         {
             _requestExecutor = requestExecutor ??
                 throw new ArgumentNullException(nameof(requestExecutor));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
-            _typeConversion = typeConversion ??
-                throw new ArgumentNullException(nameof(typeConversion));
+            _typeConverter = typeConverter ??
+                throw new ArgumentNullException(nameof(typeConverter));
         }
 
         public IAsyncEnumerable<IQueryResult> ExecuteAsync(
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution.Batching
             CancellationToken cancellationToken = default)
         {
             return new BatchExecutorEnumerable(
-                requestBatch, _requestExecutor, _errorHandler, _typeConversion);
+                requestBatch, _requestExecutor, _errorHandler, _typeConverter);
         }
     }
 }

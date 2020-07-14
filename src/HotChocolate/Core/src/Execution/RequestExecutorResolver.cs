@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
         private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
         private readonly IServiceProvider _serviceProvider;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly ITypeConversion _typeConversion;
+        private readonly ITypeConverter _typeConverter;
         private bool _disposed;
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
             IOptionsMonitor<RequestExecutorFactoryOptions> optionsMonitor,
             IServiceProvider serviceProvider,
             IDiagnosticEvents diagnosticEvents,
-            ITypeConversion typeConversion)
+            ITypeConverter typeConverter)
         {
             _optionsMonitor = optionsMonitor ??
                 throw new ArgumentNullException(nameof(optionsMonitor));
@@ -44,8 +44,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(serviceProvider));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
-            _typeConversion = typeConversion ??
-                throw new ArgumentNullException(nameof(typeConversion));
+            _typeConverter = typeConverter ??
+                throw new ArgumentNullException(nameof(typeConverter));
             _optionsMonitor.OnChange((options, name) => EvictRequestExecutor(name));
         }
 
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
                 schema,
                 _serviceProvider,
                 errorHandler,
-                _typeConversion,
+                _typeConverter,
                 activator,
                 _diagnosticEvents,
                 pipeline);

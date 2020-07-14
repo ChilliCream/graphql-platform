@@ -50,15 +50,17 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddTransient<OperationContext>();
             services.TryAddSingleton<ObjectPool<OperationContext>>(
-                sp => new OperationContextPool(() => sp.GetRequiredService<OperationContext>(),
+                sp => new OperationContextPool(
+                    () => sp.GetRequiredService<OperationContext>(),
                 maximumRetained));
             return services;
         }
 
-        internal static IServiceCollection TryAddTypeConversion(
+        internal static IServiceCollection TryAddTypeConverter(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<ITypeConversion, TypeConversion>();
+            services.TryAddSingleton<ITypeConverter>(
+                sp => new DefaultTypeConverter(sp.GetServices<IChangeTypeProvider>()));
             return services;
         }
 

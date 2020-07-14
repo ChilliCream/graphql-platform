@@ -33,7 +33,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToObjectValueConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert
@@ -63,7 +63,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToObjectValueConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert
@@ -93,7 +93,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToObjectValueConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert

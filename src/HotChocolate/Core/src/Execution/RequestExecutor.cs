@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
     {
         private readonly IServiceProvider _services;
         private readonly IErrorHandler _errorHandler;
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly IActivator _activator;
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly RequestDelegate _requestDelegate;
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
             ISchema schema,
             IServiceProvider services,
             IErrorHandler errorHandler,
-            ITypeConversion converter,
+            ITypeConverter converter,
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
             RequestDelegate requestDelegate)
