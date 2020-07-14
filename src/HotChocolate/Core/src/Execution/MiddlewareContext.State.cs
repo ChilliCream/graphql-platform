@@ -38,6 +38,11 @@ namespace HotChocolate.Execution
 
         public T Source<T>()
         {
+            if (_parent is null)
+            {
+                return default!;
+            }
+
             if (_parent is T casted)
             {
                 return casted;

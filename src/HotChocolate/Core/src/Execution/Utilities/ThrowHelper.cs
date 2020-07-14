@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -205,5 +206,49 @@ namespace HotChocolate.Execution.Utilities
             NameString configurationSchemaName, NameString schemaName) =>
             throw new InvalidOperationException(
                 "The schema name must allign with the schema name expected by the configuration.");
+
+        public static GraphQLException OperationResolverHelper_NoOperationFound(
+            DocumentNode documentNode) =>
+            throw new GraphQLException(ErrorBuilder.New()
+                .SetMessage("There are now operations in the GraphQL document.")
+                .AddLocation(documentNode)
+                .Build());
+
+        public static GraphQLException OperationResolverHelper_MultipleOperation(
+            OperationDefinitionNode firstOperation,
+            OperationDefinitionNode secondOperation) =>
+            throw new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The operation name can only be omitted if there is just one operation " +
+                    "in a GraphQL document.")
+                .AddLocation(firstOperation)
+                .AddLocation(secondOperation)
+                .Build());
+
+        public static GraphQLException OperationResolverHelper_InvalidOperationName(
+            DocumentNode documentNode, string operationName) =>
+            throw new GraphQLException(ErrorBuilder.New()
+                .SetMessage("The specified operation `{0}` cannot be found.", operationName)
+                .AddLocation(documentNode)
+                .SetExtension("operationName", operationName)
+                .Build());
+
+        public static GraphQLException BatchExecutor_CannotSerializeVariable(
+            string variableName) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("Could not serialize the specified variable `{0}`.", variableName)
+                .SetCode(ErrorCodes.Execution.CannotSerialize)
+                .Build());
+
+        public static GraphQLException CollectVariablesVisitor_NoCompatibleType(
+            ISyntaxNode node,
+            IReadOnlyList<object> path) =>
+            throw new GraphQLException(ErrorBuilder.New()
+                .SetMessage("Unable to find a compatible input type for the exported object type.")
+                .SetCode(ErrorCodes.Execution.AutoMapVarError)
+                .SetPath(path)
+                .AddLocation(node)
+                .Build());
+
     }
 }

@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -24,17 +26,14 @@ namespace HotChocolate.Execution.Utilities
                         }
                         else
                         {
-                            // todo : throwhelper
-                            throw new GraphQLException(
-                                "CoreResources.GetOperation_MultipleOperations");
+                            throw OperationResolverHelper_MultipleOperation(operation, op);
                         }
                     }
                 }
 
                 if (operation is null)
                 {
-                    // todo : throwhelper
-                    throw new GraphQLException("no ops");
+                    throw OperationResolverHelper_NoOperationFound(document);
                 }
 
                 return operation;
@@ -43,19 +42,23 @@ namespace HotChocolate.Execution.Utilities
             {
                 for (int i = 0; i < document.Definitions.Count; i++)
                 {
-                    if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
+                    if (document.Definitions[i] is OperationDefinitionNode { Name: { } } op &&
                         op.Name!.Value.EqualsOrdinal(operationName))
                     {
                         return op;
                     }
                 }
 
-                // todo : throwhelper
-                throw new GraphQLException(string.Format(
-                    CultureInfo.CurrentCulture,
-                    "CoreResources.GetOperation_InvalidOperationName",
-                    operationName));
+                throw OperationResolverHelper_InvalidOperationName(document, operationName);
             }
+        }
+
+        public static Dictionary<string, FragmentDefinitionNode> GetFragments(
+            this DocumentNode document)
+        {
+            return document.Definitions
+                .OfType<FragmentDefinitionNode>()
+                .ToDictionary(t => t.Name.Value);
         }
     }
 }

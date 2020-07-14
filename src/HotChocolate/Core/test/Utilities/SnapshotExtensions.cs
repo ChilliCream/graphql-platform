@@ -30,6 +30,22 @@ namespace HotChocolate.Tests
             return result;
         }
 
+        public static async Task<string> MatchSnapshotAsync(
+            this Task<string> task)
+        {
+            string result = await task;
+            result.MatchSnapshot();
+            return result;
+        }
+
+        public static async ValueTask<string> MatchSnapshotAsync(
+            this ValueTask<string> task)
+        {
+            string result = await task;
+            result.MatchSnapshot();
+            return result;
+        }
+
         public static async ValueTask<ISchema> MatchSnapshotAsync(
             this ValueTask<ISchema> task)
         {
