@@ -1,8 +1,11 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Integration.HelloWorldSchemaFirst
 {
@@ -11,57 +14,50 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         [Fact]
         public async Task SimpleHelloWorldWithoutTypeBinding()
         {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                    type Query {
-                        hello: String
-                    }
-                ",
-                c =>
-                {
-                    c.BindResolver(() => "world")
-                        .To("Query", "hello");
-                });
-
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync("{ hello }");
-
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ hello }",
+                configure: c => c
+                    .AddDocumentFromString(
+                        @"
+                        type Query {
+                            hello: String
+                        }")
+                    .AddResolver("Query", "hello", () => "world"))
+                .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task SimpleHelloWorldWithArgumentWithoutTypeBinding()
         {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                    type Query {
-                        hello(a: String!): String
-                    }
-                ",
-                c =>
-                {
-                    c.BindResolver(ctx => ctx.Argument<string>("a"))
-                        .To("Query", "hello");
-                });
-
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ hello(a: \"foo\") }");
-
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ hello }",
+                configure: c => c
+                    .AddDocumentFromString(
+                        @"
+                        type Query {
+                            hello(a: String!): String
+                        }")
+                    .AddResolver("Query", "hello", ctx => ctx.ArgumentValue<string>("a")))
+                .MatchSnapshotAsync();
         }
 
         [Fact]
         public async Task SimpleHelloWorldWithResolverType()
         {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ hello }",
+                configure: c => c
+                    .AddDocumentFromString(
+                        @"
+                        type Query {
+                            hello(a: String!): String
+                        }")
+                    .AddResolver("Query", "hello", ctx => ctx.ArgumentValue<string>("a")))
+                .MatchSnapshotAsync();
+
             // arrange
             var schema = Schema.Create(
                 @"

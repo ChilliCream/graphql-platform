@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using Moq;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
-using HotChocolate.Tests;
 
 namespace HotChocolate.Integration.HelloWorldCodeFirst
 {
