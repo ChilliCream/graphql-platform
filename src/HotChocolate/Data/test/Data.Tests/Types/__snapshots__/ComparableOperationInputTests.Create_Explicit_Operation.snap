@@ -1,0 +1,34 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterTypeInput): String
+}
+
+input ComparableOperationInputOfInt32Input {
+  eq: Int!
+  gt: Int!
+  gte: Int!
+  in: Int!
+  lt: Int!
+  lte: Int!
+  neq: Int!
+  ngt: Int!
+  ngte: Int!
+  nin: Int!
+  nlt: Int!
+  nlte: Int!
+}
+
+input FooFilterTypeInput {
+  and: [FooFilterTypeInput!]
+  comparable: ComparableOperationInputOfInt32Input
+  or: [FooFilterTypeInput!]
+}
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
