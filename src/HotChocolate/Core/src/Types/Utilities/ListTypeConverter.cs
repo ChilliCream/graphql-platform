@@ -45,13 +45,24 @@ namespace HotChocolate.Utilities
                     return true;
                 }
 
-                if (target.IsGenericType && typeof(IList).IsAssignableFrom(target))
+                if (target.IsGenericType
+                    && target.IsInterface)
                 {
-                    Type listType = target.IsInterface
-                        ? typeof(List<>).MakeGenericType(targetElement)
-                        : target;
+                    Type listType = typeof(List<>).MakeGenericType(targetElement);
+                    if (target.IsAssignableFrom(listType))
+                    {
+                        converter = source => GenericListConverter(
+                            (ICollection?)source, listType, elementConverter);
+                        return true;
+                    }
+                }
+
+                if (target.IsGenericType
+                    && target.IsClass
+                    && typeof(ICollection).IsAssignableFrom(target))
+                {
                     converter = source => GenericListConverter(
-                        (ICollection?)source, listType, elementConverter);
+                        (ICollection?)source, target, elementConverter);
                     return true;
                 }
             }

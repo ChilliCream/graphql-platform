@@ -31,7 +31,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ hello }",
+                "{ hello(a: \"foo\") }",
                 configure: c => c
                     .AddDocumentFromString(
                         @"

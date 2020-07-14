@@ -87,7 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection TryAddNoOpDiagnostics(
+        internal static IServiceCollection TryAddDiagnosticEvents(
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDiagnosticEvents>(sp =>

@@ -30,7 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
             // core services
             services.TryAddTimespanProvider();
             services.TryAddTypeConverter();
-            services.TryAddNoOpDiagnostics();
+            services.TryAddDiagnosticEvents();
             services.TryAddDefaultCaches();
             services.TryAddDefaultDocumentHashProvider();
             services.TryAddDefaultBatchDispatcher();

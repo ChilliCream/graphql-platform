@@ -5,7 +5,7 @@ using Xunit;
 
 namespace HotChocolate.Utilities
 {
-    public class TypeconverterTests
+    public class TypeConverterTests
     {
         [InlineData((ushort)1, (short)1, typeof(ushort), typeof(short))]
         [InlineData((ushort)1, (int)1, typeof(ushort), typeof(int))]
@@ -85,7 +85,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 from, to, input, out object output);
 
             // assert
@@ -98,10 +98,10 @@ namespace HotChocolate.Utilities
         public void Convert_Int_NullableLong()
         {
             // arrange
-            int source = 55;
+            var source = 55;
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(int), typeof(long?),
                 source, out object output);
 
@@ -118,7 +118,7 @@ namespace HotChocolate.Utilities
             int? source = 55;
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(int?), typeof(long?),
                 source, out object output);
 
@@ -133,7 +133,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string), typeof(long?),
                 null, out object output);
 
@@ -150,7 +150,7 @@ namespace HotChocolate.Utilities
             long? source = 55;
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(long?), typeof(int),
                 source, out object output);
 
@@ -169,7 +169,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string), typeof(Guid),
                 input, out object output);
 
@@ -187,7 +187,7 @@ namespace HotChocolate.Utilities
             var input = Guid.Parse(expectedOutput);
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(Guid), typeof(string),
                 input, out object output);
 
@@ -204,7 +204,7 @@ namespace HotChocolate.Utilities
             const string expectedOutput = "http://foo/";
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string), typeof(Uri),
                 expectedOutput, out object output);
 
@@ -222,7 +222,7 @@ namespace HotChocolate.Utilities
             var input = new Uri(expectedOutput);
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(Uri), typeof(string),
                 input, out object output);
 
@@ -239,7 +239,7 @@ namespace HotChocolate.Utilities
             const string expectedOutput = "2d84dcd634394ebe8427f4b1e1730c47";
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string), typeof(string),
                 expectedOutput, out object output);
 
@@ -258,7 +258,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(object), typeof(string),
                 input, out object output);
 
@@ -271,10 +271,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_ListOfString()
         {
             // arrange
-            var list = new[] { "a", "b", "c" };
+            string[] list = { "a", "b", "c" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(List<string>),
                 list, out object output);
 
@@ -291,10 +291,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_ListOfInt()
         {
             // arrange
-            var list = new[] { "1", "2", "3" };
+            string[] list = { "1", "2", "3" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(List<int>),
                 list, out object output);
 
@@ -311,10 +311,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_ArrayOfInt()
         {
             // arrange
-            var list = new[] { "1", "2", "3" };
+            string[] list = { "1", "2", "3" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(int[]),
                 list, out object output);
 
@@ -331,10 +331,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_IListOfInt()
         {
             // arrange
-            var list = new[] { "1", "2", "3" };
+            string[] list = { "1", "2", "3" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(IList<int>),
                 list, out object output);
 
@@ -351,10 +351,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_ICollectionOfInt()
         {
             // arrange
-            var list = new[] { "1", "2", "3" };
+            string[] list = { "1", "2", "3" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(ICollection<int>),
                 list, out object output);
 
@@ -371,10 +371,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_String()
         {
             // arrange
-            var list = new[] { "1", "2", "3" };
+            string[] list = new[] { "1", "2", "3" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(string),
                 list, out object output);
 
@@ -388,10 +388,10 @@ namespace HotChocolate.Utilities
         public void Convert_ArrayOfString_NullableListOfFooOrBar()
         {
             // arrange
-            var list = new[] { "Foo", "Bar" };
+            string[] list = new[] { "Foo", "Bar" };
 
             // act
-            bool success = DefaultTypeConverter.Default.TryConvert(
+            var success = DefaultTypeConverter.Default.TryConvert(
                 typeof(string[]), typeof(List<FooOrBar?>),
                 list, out object output);
 
@@ -407,10 +407,10 @@ namespace HotChocolate.Utilities
         public void GenericTryConvert_ArrayOfString_NullableListOfFooOrBar()
         {
             // arrange
-            var list = new[] { "Foo", "Bar" };
+            string[] list = new[] { "Foo", "Bar" };
 
             // act
-            bool success =
+            var success =
                 TypeConverterExtensions.TryConvert<string[], List<FooOrBar?>>(
                     DefaultTypeConverter.Default,
                     list, out var output);
@@ -427,7 +427,7 @@ namespace HotChocolate.Utilities
         public void GenericTryConvert_TypeconverterIsNull_ArgumentNullExc()
         {
             // arrange
-            var list = new[] { "Foo", "Bar" };
+            string[] list = new[] { "Foo", "Bar" };
 
             // act
             Action action = () =>
@@ -443,7 +443,7 @@ namespace HotChocolate.Utilities
         public void GenericConvert_TypeconverterIsNull_ArgumentNullExc()
         {
             // arrange
-            var list = new[] { "Foo", "Bar" };
+            string[] list = new[] { "Foo", "Bar" };
 
             // act
             Action action = () =>
@@ -467,7 +467,7 @@ namespace HotChocolate.Utilities
             // act
             ITypeConverter converter =
                 serviceProvider.GetService<ITypeConverter>();
-            string converted = converter.Convert<bool, string>(true);
+            var converted = converter.Convert<bool, string>(true);
 
             // assert
             Assert.Equal("Bar", converted);
