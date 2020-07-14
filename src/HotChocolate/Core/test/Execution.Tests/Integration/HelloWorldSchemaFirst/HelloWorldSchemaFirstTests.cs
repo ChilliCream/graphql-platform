@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
@@ -48,67 +47,36 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
         {
             Snapshot.FullName();
             await ExpectValid(
-                "{ hello }",
+                "{ hello world }",
+                configure: c => c
+                    .AddDocumentFromString(
+                        @"
+                        type Query {
+                            hello: String
+                            world: String
+                        }")
+                    .BindResolver<QueryA>(c => c.To("Query").Resolve("hello").With(t => t.Hello))
+                    .BindResolver<QueryB>(c => c.To("Query").Resolve("world").With(t => t.World)))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task SimpleHelloWorldWithResolverTypeAndArgument()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ hello(a: \"foo_\") }",
                 configure: c => c
                     .AddDocumentFromString(
                         @"
                         type Query {
                             hello(a: String!): String
                         }")
-                    .AddResolver("Query", "hello", ctx => ctx.ArgumentValue<string>("a")))
-                .MatchSnapshotAsync();
-
-            // arrange
-            var schema = Schema.Create(
-                @"
-                    type Query {
-                        hello: String
-                        world: String
-                    }
-                ",
-                c =>
-                {
-                    c.BindResolver<QueryA>().To("Query")
-                        .Resolve("hello").With(t => t.Hello);
-                    c.BindResolver<QueryB>().To("Query")
-                        .Resolve("world").With(t => t.World);
-                });
-
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ hello world }");
-
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SimpleHelloWorldWithResolverTypeAndArgument()
-        {
-            // arrange
-            var schema = Schema.Create(
-                @"
-                    type Query {
-                        hello(a: String!): String
-                    }
-                ",
-                c =>
-                {
-                    c.BindResolver<QueryA>().To("Query")
+                    .BindResolver<QueryA>(c => c
+                        .To("Query")
                         .Resolve("hello")
-                        .With(t => t.GetHello(default, default));
-                });
-
-            // act
-            IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    "{ hello(a: \"foo_\") }");
-
-            // assert
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
+                        .With(t => t.GetHello(default, default))))
+                .MatchSnapshotAsync();
         }
 
         public class QueryA
@@ -117,7 +85,7 @@ namespace HotChocolate.Integration.HelloWorldSchemaFirst
 
             public string GetHello(string a, IResolverContext context)
             {
-                return a + context.Argument<string>("a");
+                return a + context.ArgumentValue<string>("a");
             }
         }
 
