@@ -1,0 +1,22 @@
+﻿{
+  "errors": [
+    {
+      "message": "The specified argument value does not match the argument type.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 22
+        }
+      ],
+      "path": [
+        "nameToString"
+      ],
+      "extensions": {
+        "argument": "name",
+        "argumentValue": "\u0022  \u0022",
+        "locationType": "Name",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+      }
+    }
+  ]
+}

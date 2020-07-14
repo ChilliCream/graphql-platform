@@ -1,17 +1,19 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
 {
     internal static class QueryableExtensions
     {
         internal static Expression CompileInitialSortOperation(
-           this Expression source,
-           SortOperationInvocation operation)
+            this Expression source,
+            SortOperationInvocation operation,
+            ParameterExpression parameter)
         {
             Expression lambda
-                = operation.CreateProperty();
+                = HandleProperty(operation, parameter);
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
@@ -19,30 +21,32 @@ namespace HotChocolate.Types.Sorting
             {
                 type = typeof(Queryable);
             }
+
             if (operation.Kind == SortOperationKind.Desc)
             {
                 return Expression.Call(
                     type,
-                    nameof(Queryable.OrderByDescending),
-                    new[] { operation.Parameter.Type, operation.ReturnType },
+                    "OrderByDescending",
+                    new[] { parameter.Type, operation.Property.PropertyType },
                     source,
                     lambda);
             }
 
             return Expression.Call(
                 type,
-                nameof(Queryable.OrderBy),
-                new[] { operation.Parameter.Type, operation.ReturnType },
+                "OrderBy",
+                new[] { parameter.Type, operation.Property.PropertyType },
                 source,
                 lambda);
         }
 
         internal static Expression CompileSortOperation(
             this Expression source,
-            SortOperationInvocation operation)
+            SortOperationInvocation operation,
+            ParameterExpression parameter)
         {
             Expression lambda
-                = operation.CreateProperty();
+                = HandleProperty(operation, parameter);
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
@@ -54,27 +58,37 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    nameof(Queryable.ThenByDescending),
-                    new[] { operation.Parameter.Type, operation.ReturnType },
+                    "ThenByDescending",
+                    new[] { parameter.Type, operation.Property.PropertyType },
                     source,
                     lambda);
             }
 
             return Expression.Call(
                 type,
-                nameof(Queryable.ThenBy),
-                new[] { operation.Parameter.Type, operation.ReturnType },
+                "ThenBy",
+                new[] { parameter.Type, operation.Property.PropertyType },
                 source,
                 lambda);
         }
 
-        internal static Expression CreateProperty(
-             this SortOperationInvocation operation)
+        internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
+            SortOperationInvocation operation, ParameterExpression parameter)
         {
-            return Expression.Lambda(
-                operation.ExpressionBody,
-                operation.Parameter
-           );
+            PropertyInfo propertyInfo = operation.Property;
+
+            MemberExpression property = Expression.Property(parameter, propertyInfo);
+            UnaryExpression propAsObject = Expression.Convert(property, typeof(object));
+            return Expression.Lambda<Func<TSource, object>>(propAsObject, parameter);
+        }
+
+        internal static Expression HandleProperty(
+            SortOperationInvocation operation, ParameterExpression parameter)
+        {
+            PropertyInfo propertyInfo = operation.Property;
+
+            MemberExpression property = Expression.Property(parameter, propertyInfo);
+            return Expression.Lambda(property, parameter);
         }
     }
 }

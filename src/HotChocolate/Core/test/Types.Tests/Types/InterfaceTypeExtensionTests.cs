@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -83,7 +83,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -110,7 +110,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -133,7 +133,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -181,7 +181,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()

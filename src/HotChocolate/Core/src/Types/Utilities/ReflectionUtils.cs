@@ -181,7 +181,7 @@ namespace HotChocolate.Utilities
 
             if (type != null)
             {
-                return new ClrTypeReference(type, context);
+                return TypeReference.Create(type, context);
             }
 
             return null;

@@ -11,9 +11,9 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         where T : IResolverContext
     {
         private static readonly MethodInfo _resolveContextData =
-            typeof(ExpressionHelper).GetMethod("ResolveContextData");
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveContextData));
         private static readonly MethodInfo _resolveScopedContextData =
-            typeof(ExpressionHelper).GetMethod("ResolveScopedContextData");
+            typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.ResolveScopedContextData));
 
         public override bool CanHandle(
             ParameterInfo parameter,

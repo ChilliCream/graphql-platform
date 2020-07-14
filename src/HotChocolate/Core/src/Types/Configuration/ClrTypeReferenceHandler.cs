@@ -16,9 +16,8 @@ namespace HotChocolate.Configuration
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
-
         {
-            foreach (IClrTypeReference typeReference in typeReferences.OfType<IClrTypeReference>())
+            foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
             {
                 if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                     && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
@@ -27,14 +26,13 @@ namespace HotChocolate.Configuration
 
                     if (IsTypeSystemObject(type))
                     {
-                        var namedTypeReference = new ClrTypeReference(
-                            type,
-                            SchemaTypeReference.InferTypeContext(type));
+                        ClrTypeReference namedTypeReference = typeReference.With(type);
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
                             typeRegistrar.Register(
                                 typeRegistrar.CreateInstance(type),
+                                typeReference.Scope,
                                 BaseTypes.IsGenericBaseType(type));
                         }
                     }
@@ -43,7 +41,8 @@ namespace HotChocolate.Configuration
                         TryMapToExistingRegistration(
                             typeRegistrar,
                             typeInfo,
-                            typeReference.Context);
+                            typeReference.Context,
+                            typeReference.Scope);
                     }
                 }
             }
@@ -52,16 +51,18 @@ namespace HotChocolate.Configuration
         private void TryMapToExistingRegistration(
             ITypeRegistrar typeRegistrar,
             TypeInfo typeInfo,
-            TypeContext context)
+            TypeContext context,
+            string? scope)
         {
             ClrTypeReference? normalizedTypeRef = null;
             bool resolved = false;
 
             for (int i = 0; i < typeInfo.Components.Count; i++)
             {
-                normalizedTypeRef = new ClrTypeReference(
+                normalizedTypeRef = TypeReference.Create(
                     typeInfo.Components[i],
-                    context);
+                    context,
+                    scope: scope);
 
                 if (typeRegistrar.IsResolved(normalizedTypeRef))
                 {

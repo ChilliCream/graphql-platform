@@ -32,7 +32,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
@@ -62,7 +62,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
@@ -92,7 +92,7 @@ namespace HotChocolate.Utilities
 
             // act
             var converter = new InputObjectToDictionaryConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert

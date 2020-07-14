@@ -13,7 +13,7 @@ namespace HotChocolate.Types
     internal static class CompleteInterfacesHelper
     {
         public static void Complete(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IComplexOutputTypeDefinition definition,
             Type clrType,
             ICollection<InterfaceType> interfaces,
@@ -56,14 +56,14 @@ namespace HotChocolate.Types
         }
 
         private static void TryInferInterfaceUsageFromClrType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             Type clrType,
             ICollection<InterfaceType> interfaces)
         {
             foreach (Type interfaceType in clrType.GetInterfaces())
             {
                 if (context.TryGetType(
-                    new ClrTypeReference(interfaceType, TypeContext.Output),
+                    TypeReference.Create(interfaceType, TypeContext.Output),
                     out InterfaceType type) &&
                     !interfaces.Contains(type))
                 {

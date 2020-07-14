@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public ReadOnlySpan<byte> ToSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             using (var stream = new MemoryStream())
             {

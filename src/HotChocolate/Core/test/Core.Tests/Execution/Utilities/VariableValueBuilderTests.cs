@@ -624,7 +624,7 @@ namespace HotChocolate.Execution
                     {
                         context.Result = context.Argument<DateTimeOffset>("a")
                             .ToUniversalTime();
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     });
                 }).MakeExecutable();
 
@@ -708,7 +708,7 @@ namespace HotChocolate.Execution
                 "type Foo { a: String b(a: BarInput): String } ",
                 c =>
                 {
-                    c.Use(next => context => Task.CompletedTask);
+                    c.Use(next => context => default(ValueTask));
                     c.RegisterType<IntType>();
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();

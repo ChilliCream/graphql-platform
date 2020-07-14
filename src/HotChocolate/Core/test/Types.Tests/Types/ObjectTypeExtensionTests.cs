@@ -69,7 +69,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType<FooType>()
                 .AddType<GenericFooTypeExtension>()
                 .Create()
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
 
             // assert
             IExecutionResult result = await executor.ExecuteAsync("{ test }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -141,12 +141,12 @@ namespace HotChocolate.Types
                     .Use(next => context =>
                     {
                         context.Result = "BAR";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })))
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             executor.Execute("{ description }").MatchSnapshot();
         }
 
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -179,7 +179,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -203,7 +203,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -247,7 +247,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -270,7 +270,7 @@ namespace HotChocolate.Types
         {
             // arrange
             FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
+                ctx => new ValueTask<object>(null);
 
             // act
             ISchema schema = SchemaBuilder.New()

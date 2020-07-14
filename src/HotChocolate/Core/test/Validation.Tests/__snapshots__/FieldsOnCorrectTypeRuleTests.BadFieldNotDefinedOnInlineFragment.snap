@@ -2,21 +2,23 @@
   {
     "Message": "The field `meowVolume` does not exist on the type `Dog`.",
     "Code": null,
-    "Path": [
-      "pet"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "pet"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Dog",
       "field": "meowVolume",
       "responseName": "meowVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<SchemaTypeDefinition>
         , ISchemaTypeDescriptor
     {
-        public SchemaTypeDescriptor(IDescriptorContext context, Type type)
+        protected internal SchemaTypeDescriptor(IDescriptorContext context, Type type)
             : base(context)
         {
             if (type == null)
@@ -18,7 +18,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetTypeName(type);
         }
 
-        internal protected override SchemaTypeDefinition Definition { get; } =
+        protected internal SchemaTypeDescriptor(
+            IDescriptorContext context, 
+            SchemaTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition;
+        }
+
+        internal protected override SchemaTypeDefinition Definition { get; protected set; } =
             new SchemaTypeDefinition();
 
         public ISchemaTypeDescriptor Name(NameString value)
@@ -59,5 +67,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             Type type) =>
             new SchemaTypeDescriptor(context, type);
+
+        public static SchemaTypeDescriptor From(
+            IDescriptorContext context,
+            SchemaTypeDefinition definition) =>
+            new SchemaTypeDescriptor(context, definition);
     }
 }

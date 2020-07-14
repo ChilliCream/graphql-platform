@@ -1,5 +1,8 @@
 namespace HotChocolate.Types.Descriptors.Definitions
 {
+    /// <summary>
+    /// Defines when the type dependency has to be fulfilled.
+    /// </summary>
     public enum TypeDependencyKind
     {
         /// <summary>

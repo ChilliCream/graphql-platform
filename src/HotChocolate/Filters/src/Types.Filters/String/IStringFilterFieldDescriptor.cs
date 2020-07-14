@@ -1,18 +1,10 @@
+using HotChocolate.Types.Descriptors.Definitions;
+
 namespace HotChocolate.Types.Filters
 {
     public interface IStringFilterFieldDescriptor
         : IFluent
     {
-        /// <summary>
-        /// Defines the name of the field to filter.
-        /// </summary>
-        /// <param name="value">The name of the field.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IStringFilterFieldDescriptor Name(NameString value);
-
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -96,7 +88,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
-        IStringFilterFieldDescriptor Ignore(bool ignore = true);
+        /// <param name="property">The property that shall be ignored.</param>
+        IStringFilterFieldDescriptor Ignore();
     }
 }

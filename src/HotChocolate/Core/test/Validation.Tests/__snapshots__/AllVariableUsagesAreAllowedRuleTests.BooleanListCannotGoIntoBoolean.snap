@@ -2,22 +2,27 @@
   {
     "Message": "The variable `booleanListArg` is not compatible with the type of the current location.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "booleanArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "booleanArgField"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 53
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "booleanListArg",
       "variableType": "[Boolean]",
       "locationType": "Boolean",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -94,4 +94,14 @@ namespace HotChocolate.DataLoader
         bool TryGet<T>(string key, out T dataLoader)
             where T : IDataLoader;
     }
+
+    /*
+        ctx.BatchDataloader(
+            "foo",
+            keys => repository.Get)
+
+        ctx.DataLoader<Foo>()
+
+        
+    */
 }

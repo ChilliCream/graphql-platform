@@ -1,0 +1,11 @@
+﻿schema {
+  query: QueryWithDateTime
+}
+
+type QueryWithDateTime {
+  dateTime(time: DateTime!): DateTime!
+  dateTimeOffset(time: DateTime!): DateTime!
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime

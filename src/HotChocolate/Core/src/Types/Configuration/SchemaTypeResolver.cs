@@ -10,44 +10,38 @@ namespace HotChocolate.Configuration
         private static readonly Type _keyValuePair = typeof(KeyValuePair<,>);
 
         public static bool TryInferSchemaType(
-            IClrTypeReference unresolvedType,
-            out IClrTypeReference schemaType)
+            ClrTypeReference unresolvedType,
+            out ClrTypeReference schemaType)
         {
             if (IsObjectTypeExtension(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(ObjectTypeExtension<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsUnionType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(UnionType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(UnionType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsInterfaceType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InterfaceType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(ObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                schemaType = unresolvedType.With(
+                    type: typeof(ObjectType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsInputObjectType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(InputObjectType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Input);
+                schemaType = unresolvedType.With(
+                    type: typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type));
             }
             else if (IsEnumType(unresolvedType))
             {
-                schemaType = new ClrTypeReference(typeof(EnumType<>)
-                    .MakeGenericType(unresolvedType.Type),
-                    unresolvedType.Context);
+                schemaType = unresolvedType.With(
+                    type: typeof(EnumType<>).MakeGenericType(unresolvedType.Type));
             }
             else
             {
@@ -57,7 +51,7 @@ namespace HotChocolate.Configuration
             return schemaType != null;
         }
 
-        private static bool IsObjectType(IClrTypeReference unresolvedType)
+        private static bool IsObjectType(ClrTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
                 || unresolvedType.Type.IsDefined(typeof(ObjectTypeAttribute), true))
@@ -65,17 +59,17 @@ namespace HotChocolate.Configuration
                     || unresolvedType.Context == TypeContext.None);
         }
 
-        private static bool IsObjectTypeExtension(IClrTypeReference unresolvedType) =>
+        private static bool IsObjectTypeExtension(ClrTypeReference unresolvedType) =>
             unresolvedType.Type.IsDefined(typeof(ExtendObjectTypeAttribute), true);
 
-        private static bool IsUnionType(IClrTypeReference unresolvedType)
+        private static bool IsUnionType(ClrTypeReference unresolvedType)
         {
             return unresolvedType.Type.IsDefined(typeof(UnionTypeAttribute), true)
                 && (unresolvedType.Context == TypeContext.Output
                     || unresolvedType.Context == TypeContext.None);
         }
 
-        private static bool IsInterfaceType(IClrTypeReference unresolvedType)
+        private static bool IsInterfaceType(ClrTypeReference unresolvedType)
         {
             return (unresolvedType.Type.IsInterface
                 || unresolvedType.Type.IsDefined(typeof(InterfaceTypeAttribute), true))
@@ -83,7 +77,7 @@ namespace HotChocolate.Configuration
                     || unresolvedType.Context == TypeContext.None);
         }
 
-        private static bool IsInputObjectType(IClrTypeReference unresolvedType)
+        private static bool IsInputObjectType(ClrTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)
                 || unresolvedType.Type.IsDefined(typeof(InputObjectTypeAttribute), true))
@@ -91,14 +85,14 @@ namespace HotChocolate.Configuration
                 && unresolvedType.Context == TypeContext.Input;
         }
 
-        private static bool IsEnumType(IClrTypeReference unresolvedType)
+        private static bool IsEnumType(ClrTypeReference unresolvedType)
         {
             return (unresolvedType.Type.IsEnum
                 || unresolvedType.Type.IsDefined(typeof(EnumTypeAttribute), true))
                 && IsPublic(unresolvedType);
         }
 
-        private static bool IsComplexType(IClrTypeReference unresolvedType)
+        private static bool IsComplexType(ClrTypeReference unresolvedType)
         {
             bool isComplexType =
                 unresolvedType.Type.IsClass
@@ -114,7 +108,7 @@ namespace HotChocolate.Configuration
             return isComplexType;
         }
 
-        private static bool IsPublic(IClrTypeReference unresolvedType)
+        private static bool IsPublic(ClrTypeReference unresolvedType)
         {
             return unresolvedType.Type.IsPublic
                 || unresolvedType.Type.IsNestedPublic;

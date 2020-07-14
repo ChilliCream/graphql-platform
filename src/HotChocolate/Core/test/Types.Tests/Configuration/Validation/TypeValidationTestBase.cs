@@ -13,7 +13,7 @@ namespace HotChocolate.Configuration.Validation
         {
             SchemaBuilder.New()
                 .AddDocumentFromString(schema)
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
         }
 
@@ -23,7 +23,7 @@ namespace HotChocolate.Configuration.Validation
             {
                 SchemaBuilder.New()
                     .AddDocumentFromString(schema)
-                    .Use(next => context => Task.CompletedTask)
+                    .Use(next => context => default(ValueTask))
                     .Create();
                 Assert.False(true, "Expected error!");
             }

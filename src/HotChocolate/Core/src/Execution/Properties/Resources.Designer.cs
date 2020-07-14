@@ -59,5 +59,41 @@ namespace HotChocolate.Execution.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Buffer is full..
+        /// </summary>
+        internal static string ObjectBuffer_IsEmpty {
+            get {
+                return ResourceManager.GetString("ObjectBuffer_IsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Buffer is used up..
+        /// </summary>
+        internal static string ObjectBuffer_IsUsedUp {
+            get {
+                return ResourceManager.GetString("ObjectBuffer_IsUsedUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field `{0}` does not exist on type `{1}`..
+        /// </summary>
+        internal static string ThrowHelper_FieldDoesNotExistOnType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_FieldDoesNotExistOnType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0}-directive is missing the if-argument..
+        /// </summary>
+        internal static string ThrowHelper_MissingDirectiveIfArgument {
+            get {
+                return ResourceManager.GetString("ThrowHelper_MissingDirectiveIfArgument", resourceCulture);
+            }
+        }
     }
 }

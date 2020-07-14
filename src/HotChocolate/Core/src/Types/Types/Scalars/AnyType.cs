@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter =
             new ObjectValueToDictionaryConverter();
         private ObjectToDictionaryConverter _objectToDictConverter;
-        private ITypeConversion _converter;
+        private ITypeConverter _converter;
 
         public AnyType()
             : base(ScalarNames.Any, BindingBehavior.Explicit)
@@ -32,13 +32,13 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        public override Type ClrType => typeof(object);
+        public override Type RuntimeType => typeof(object);
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IDictionary<string, object> contextData)
         {
-            _converter = context.Services.GetTypeConversion();
+            _converter = context.Services.GetTypeConverter();
             _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
             base.OnCompleteType(context, contextData);
         }

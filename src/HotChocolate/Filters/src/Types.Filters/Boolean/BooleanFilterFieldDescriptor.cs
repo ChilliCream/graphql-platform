@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
-using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -12,18 +10,17 @@ namespace HotChocolate.Types.Filters
     {
         public BooleanFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property,
-            IFilterConvention filterConventions)
-            : base(FilterKind.Boolean, context, property, filterConventions)
+            PropertyInfo property)
+            : base(context, property)
         {
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Equals,
+                FilterOperationKind.NotEquals,
+            };
         }
 
-        /// <inheritdoc/>
-        public new IBooleanFilterFieldDescriptor Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IBooleanFilterFieldDescriptor BindFilters(
@@ -45,7 +42,7 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterOperationDescriptor AllowEquals()
         {
             BooleanFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.Equals);
+                CreateOperation(FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
@@ -54,15 +51,15 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterOperationDescriptor AllowNotEquals()
         {
             BooleanFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.NotEquals);
+                CreateOperation(FilterOperationKind.NotEquals);
             Filters.Add(field);
             return field;
         }
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor Ignore(bool ignore = true)
+        public IBooleanFilterFieldDescriptor Ignore()
         {
-            Definition.Ignore = ignore;
+            Definition.Ignore = true;
             return this;
         }
 
@@ -70,19 +67,11 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
-        private BooleanFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
-        {
-            return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
-        }
-
         private BooleanFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
                 typeof(bool),
-                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -91,8 +80,7 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation,
-                FilterConvention);
+                operation);
         }
     }
 }
