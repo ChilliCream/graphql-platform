@@ -19,6 +19,7 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(Operations.NotLowerThan).Type(typeof(T));
             descriptor.Operation(Operations.LowerThanOrEquals).Type(typeof(T));
             descriptor.Operation(Operations.NotLowerThanOrEquals).Type(typeof(T));
+            descriptor.UseAnd(false).UseOr(false);
         }
     }
 }

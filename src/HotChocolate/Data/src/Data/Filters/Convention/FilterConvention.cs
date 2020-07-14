@@ -66,7 +66,7 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryGetType(member, out Type? reflectedType))
+            if (TryGetTypeOfMember(member, out Type? reflectedType))
             {
                 return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
             }
@@ -111,51 +111,65 @@ namespace HotChocolate.Data.Filters
         public NameString GetTypeName(IDescriptorContext context, Type entityType)
             => context.Naming.GetTypeName(entityType, TypeKind.InputObject);
 
-        private bool TryGetType(
+        private bool TryGetTypeOfMember(
             MemberInfo member,
             [NotNullWhen(true)] out Type? type)
         {
-            if (member is PropertyInfo p)
+            if (member is PropertyInfo p &&
+                TryGetTypeOfRuntimeType(p.PropertyType, out type))
             {
-                Type reflectedType = p.PropertyType;
-
-                if (reflectedType.IsGenericType
-                    && System.Nullable.GetUnderlyingType(reflectedType) is { } nullableType)
-                {
-                    reflectedType = nullableType;
-                }
-
-                if (Bindings.TryGetValue(reflectedType, out type))
-                {
-                    return true;
-                }
-
-                if (DotNetTypeInfoFactory.IsListType(reflectedType))
-                {
-                    if (!TypeInspector.Default.TryCreate(reflectedType, out Utilities.TypeInfo typeInfo))
-                    {
-                        throw new ArgumentException(
-                            string.Format(
-                                "The type {0} of the property {1} of the declaring type {2} is unknown",
-                                p.PropertyType?.Name,
-                                p.Name,
-                                p.DeclaringType?.Name),
-                            nameof(member));
-                    }
-                    type = typeInfo.ClrType;
-                    return true;
-                }
-
-                if (reflectedType.IsClass)
-                {
-                    type = typeof(FilterInputType<>).MakeGenericType(reflectedType);
-                    return true;
-                }
+                return true;
             }
             type = null;
             return false;
         }
 
+        private bool TryGetTypeOfRuntimeType(
+            Type runtimeType,
+            [NotNullWhen(true)] out Type? type)
+        {
+            if (runtimeType.IsGenericType
+                && System.Nullable.GetUnderlyingType(runtimeType) is { } nullableType)
+            {
+                runtimeType = nullableType;
+            }
+
+            if (Bindings.TryGetValue(runtimeType, out type))
+            {
+                return true;
+            }
+
+            if (DotNetTypeInfoFactory.IsListType(runtimeType))
+            {
+                if (!TypeInspector.Default.TryCreate(runtimeType, out Utilities.TypeInfo typeInfo))
+                {
+                    throw new ArgumentException(
+                        string.Format("The type {0} is unknown", runtimeType.Name),
+                        nameof(runtimeType));
+                }
+
+                if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
+                {
+                    type = typeof(ListFilterInput<>).MakeGenericType(clrType);
+                    return true;
+                }
+            }
+
+            if (runtimeType.IsEnum)
+            {
+                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
+                return true;
+            }
+
+            if (runtimeType.IsClass)
+            {
+                type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
+                return true;
+            }
+
+            type = null;
+            return false;
+        }
         internal static readonly IFilterConvention Default = TemporaryInitializer();
 
         //TODO: Replace with named conventions!

@@ -1,7 +1,3 @@
-using System;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-
 namespace HotChocolate.Data.Filters
 {
     public static class Operations
@@ -21,6 +17,9 @@ namespace HotChocolate.Data.Filters
         public const int EndsWith = 8;
         public const int NotEndsWith = 9;
 
+        public const int And = 10;
+        public const int Or = 11;
+
         public const int GreaterThan = 16;
         public const int NotGreaterThan = 17;
 
@@ -32,5 +31,10 @@ namespace HotChocolate.Data.Filters
 
         public const int LowerThanOrEquals = 22;
         public const int NotLowerThanOrEquals = 23;
+
+        public const int Some = 24;
+        public const int All = 25;
+        public const int None = 26;
+        public const int Any = 27;
     }
 }

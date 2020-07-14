@@ -5,8 +5,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public interface IFilterInputTypeDescriptor<T>
-        : IFilterInputTypeDescriptor
+    public interface IFilterInputTypeDescriptor
+        : IDescriptor<FilterInputTypeDefinition>
+        , IFluent
+        , IHasRuntimeType
     {
         /// <summary>
         /// Defines the name of the <see cref="FilterInputType{T}"/>.
@@ -15,8 +17,8 @@ namespace HotChocolate.Data.Filters
         /// <exception cref="ArgumentNullException">
         /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
-        /// xception>
-        new IFilterInputTypeDescriptor<T> Name(NameString value);
+        /// </exception>
+        IFilterInputTypeDescriptor Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
@@ -24,7 +26,7 @@ namespace HotChocolate.Data.Filters
         /// </summary>
         /// <param name="value">The filter type description.</param>
         ///
-        new IFilterInputTypeDescriptor<T> Description(string value);
+        IFilterInputTypeDescriptor Description(string value);
 
         /// <summary>
         /// <para>Defines the filter binding behavior.</para>
@@ -43,20 +45,21 @@ namespace HotChocolate.Data.Filters
         /// Explicit:
         /// All filters have to be specified explicitly via one of the `Filter`
         /// methods.
-        /// aram>
-        new IFilterInputTypeDescriptor<T> BindFields(
+        /// </param>
+        IFilterInputTypeDescriptor BindFields(
             BindingBehavior bindingBehavior);
 
         /// <summary>
         /// Defines that all filters have to be specified explicitly.
-        /// ummary>
-        new IFilterInputTypeDescriptor<T> BindFieldsExplicitly();
+        /// </summary>
+        IFilterInputTypeDescriptor BindFieldsExplicitly();
 
         /// <summary>
         /// The filter type will will add
         /// filters for all compatible fields.
-        /// ummary>
-        new IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
+        /// </summary>
+        IFilterInputTypeDescriptor BindFieldsImplicitly();
+
 
         /// <summary>
         /// Defines a <see cref="FilterOperationField"> field.
@@ -64,7 +67,7 @@ namespace HotChocolate.Data.Filters
         /// <param name="operation">
         /// The operation identifier for the operation
         /// </param>
-        new IFilterOperationFieldDescriptor Operation(int operation);
+        IFilterOperationFieldDescriptor Operation(int operation);
 
         /// <summary>
         /// Defines a <see cref="FilterField"> for the given property.
@@ -72,47 +75,32 @@ namespace HotChocolate.Data.Filters
         /// <param name="property">
         /// The property for which a field should be created
         /// </param>
-        IFilterFieldDescriptor Operation<TField>(
-            Expression<Func<T, TField>> method);
-
-        /// <summary>
-        /// Defines a <see cref="FilterField"> for the given property.
-        /// </summary>
-        /// <param name="property">
-        /// The property for which a field should be created
-        /// </param>
-        IFilterFieldDescriptor Field<TField>(
-            Expression<Func<T, TField>> property);
+        IFilterFieldDescriptor Field(NameString name);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// ram name="property">The property that hall be ignored.</param>
-        IFilterInputTypeDescriptor<T> Ignore(
-            Expression<Func<T, object>> property);
+        IFilterInputTypeDescriptor Ignore(NameString name);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// ram name="property">The property that hall be ignored.</param>
-        new IFilterInputTypeDescriptor<T> Ignore(NameString name);
+        IFilterInputTypeDescriptor Ignore(int operation);
 
-        /// <summary>
-        /// Ignore the specified property.
-        /// </summary>
-        /// ram name="property">The property that hall be ignored.</param>
-        new IFilterInputTypeDescriptor<T> Ignore(int operation);
+        IFilterInputTypeDescriptor UseOr(bool isUsed = true);
 
-        new IFilterInputTypeDescriptor<T> UseOr(bool isUsed = true);
+        IFilterInputTypeDescriptor UseAnd(bool isUsed = true);
 
-        new IFilterInputTypeDescriptor<T> UseAnd(bool isUsed = true);
-
-        new IFilterInputTypeDescriptor<T> Directive<TDirective>(
+        IFilterInputTypeDescriptor Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
-        new IFilterInputTypeDescriptor<T> Directive<TDirective>()
+
+        IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new();
-        new IFilterInputTypeDescriptor<T> Directive(
+
+        IFilterInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }

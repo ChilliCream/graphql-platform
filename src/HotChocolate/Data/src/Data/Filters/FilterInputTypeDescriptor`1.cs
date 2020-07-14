@@ -186,5 +186,17 @@ namespace HotChocolate.Data.Filters
             string? scope,
             Type entityType)
             => new FilterInputTypeDescriptor<T>(context, scope, entityType);
+
+        public new IFilterInputTypeDescriptor<T> UseOr(bool isUsed = true)
+        {
+            base.UseOr(isUsed);
+            return this;
+        }
+
+        public new IFilterInputTypeDescriptor<T> UseAnd(bool isUsed = true)
+        {
+            base.UseAnd(isUsed);
+            return this;
+        }
     }
 }

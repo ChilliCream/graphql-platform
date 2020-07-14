@@ -7,10 +7,8 @@ type Query {
 }
 
 input BooleanOperationInput {
-  AND: [BooleanOperationInput!]
   eq: Boolean
   neq: Boolean
-  OR: [BooleanOperationInput!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

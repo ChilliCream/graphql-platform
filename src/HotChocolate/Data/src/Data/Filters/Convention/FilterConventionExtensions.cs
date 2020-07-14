@@ -29,6 +29,12 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(Operations.NotStartsWith).Name("nstartsWith");
             descriptor.Operation(Operations.EndsWith).Name("endsWith");
             descriptor.Operation(Operations.NotEndsWith).Name("nendsWith");
+            descriptor.Operation(Operations.All).Name("all");
+            descriptor.Operation(Operations.None).Name("none");
+            descriptor.Operation(Operations.Some).Name("some");
+            descriptor.Operation(Operations.Any).Name("any");
+            descriptor.Operation(Operations.And).Name("and");
+            descriptor.Operation(Operations.Or).Name("or");
             return descriptor;
         }
 

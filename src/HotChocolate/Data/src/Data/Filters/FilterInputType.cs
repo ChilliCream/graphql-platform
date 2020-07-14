@@ -44,8 +44,14 @@ namespace HotChocolate.Data.Filters
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {
-            fields.Add(new AndField(context.DescriptorContext, this));
-            fields.Add(new OrField(context.DescriptorContext, this));
+            if (definition is FilterInputTypeDefinition { UseAnd: true } def)
+            {
+                fields.Add(new AndField(context.DescriptorContext, def.Scope, this));
+            }
+            if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
+            {
+                fields.Add(new OrField(context.DescriptorContext, defOr.Scope, this));
+            }
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {

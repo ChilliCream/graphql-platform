@@ -195,6 +195,18 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        public IFilterInputTypeDescriptor UseOr(bool isUsed = true)
+        {
+            Definition.UseOr = isUsed;
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor UseAnd(bool isUsed = true)
+        {
+            Definition.UseAnd = isUsed;
+            return this;
+        }
+
         public static FilterInputTypeDescriptor New(
             IDescriptorContext context,
             string? scope,

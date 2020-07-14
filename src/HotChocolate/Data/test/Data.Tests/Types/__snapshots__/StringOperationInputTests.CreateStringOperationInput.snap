@@ -7,7 +7,7 @@ type Query {
 }
 
 input StringOperationInput {
-  AND: [StringOperationInput!]
+  and: [StringOperationInput!]
   contains: String
   endsWith: String
   eq: String
@@ -25,7 +25,7 @@ input StringOperationInput {
   nlt: String
   nlte: String
   nstartsWith: String
-  OR: [StringOperationInput!]
+  or: [StringOperationInput!]
   startsWith: String
 }
 

@@ -1,0 +1,145 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooInput): String
+}
+
+input ComparableOperationInputOfDecimalInput {
+  eq: Decimal!
+  gt: Decimal!
+  gte: Decimal!
+  in: Decimal!
+  lt: Decimal!
+  lte: Decimal!
+  neq: Decimal!
+  ngt: Decimal!
+  ngte: Decimal!
+  nin: Decimal!
+  nlt: Decimal!
+  nlte: Decimal!
+}
+
+input ComparableOperationInputOfDoubleInput {
+  eq: Float!
+  gt: Float!
+  gte: Float!
+  in: Float!
+  lt: Float!
+  lte: Float!
+  neq: Float!
+  ngt: Float!
+  ngte: Float!
+  nin: Float!
+  nlt: Float!
+  nlte: Float!
+}
+
+input ComparableOperationInputOfInt16Input {
+  eq: Short!
+  gt: Short!
+  gte: Short!
+  in: Short!
+  lt: Short!
+  lte: Short!
+  neq: Short!
+  ngt: Short!
+  ngte: Short!
+  nin: Short!
+  nlt: Short!
+  nlte: Short!
+}
+
+input ComparableOperationInputOfInt32Input {
+  eq: Int!
+  gt: Int!
+  gte: Int!
+  in: Int!
+  lt: Int!
+  lte: Int!
+  neq: Int!
+  ngt: Int!
+  ngte: Int!
+  nin: Int!
+  nlt: Int!
+  nlte: Int!
+}
+
+input ComparableOperationInputOfInt64Input {
+  eq: Long!
+  gt: Long!
+  gte: Long!
+  in: Long!
+  lt: Long!
+  lte: Long!
+  neq: Long!
+  ngt: Long!
+  ngte: Long!
+  nin: Long!
+  nlt: Long!
+  nlte: Long!
+}
+
+input ComparableOperationInputOfSingleInput {
+  eq: Float!
+  gt: Float!
+  gte: Float!
+  in: Float!
+  lt: Float!
+  lte: Float!
+  neq: Float!
+  ngt: Float!
+  ngte: Float!
+  nin: Float!
+  nlt: Float!
+  nlte: Float!
+}
+
+input EnumOperationInputOfFooBarInput {
+  eq: FooBar!
+  in: FooBar!
+  neq: FooBar!
+  nin: FooBar!
+}
+
+input FooInput {
+  and: [FooInput!]
+  barDecimal: ComparableOperationInputOfDecimalInput
+  barDecimalNullable: ComparableOperationInputOfDecimalInput
+  barDouble: ComparableOperationInputOfDoubleInput
+  barDoubleNullable: ComparableOperationInputOfDoubleInput
+  barFloat: ComparableOperationInputOfSingleInput
+  barFloatNullable: ComparableOperationInputOfSingleInput
+  barInt: ComparableOperationInputOfInt32Input
+  barIntNullable: ComparableOperationInputOfInt32Input
+  barLong: ComparableOperationInputOfInt64Input
+  barLongNullable: ComparableOperationInputOfInt64Input
+  barShort: ComparableOperationInputOfInt16Input
+  barShortNullable: ComparableOperationInputOfInt16Input
+  fooBar: EnumOperationInputOfFooBarInput
+  or: [FooInput!]
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
