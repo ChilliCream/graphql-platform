@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -73,10 +74,10 @@ namespace HotChocolate.Types
                     return svn.Value;
 
                 case IntValueNode ivn:
-                    return long.Parse(ivn.Value);
+                    return long.Parse(ivn.Value, CultureInfo.InvariantCulture);
 
                 case FloatValueNode fvn:
-                    return decimal.Parse(fvn.Value);
+                    return decimal.Parse(fvn.Value, CultureInfo.InvariantCulture);
 
                 case BooleanValueNode bvn:
                     return bvn.Value;
