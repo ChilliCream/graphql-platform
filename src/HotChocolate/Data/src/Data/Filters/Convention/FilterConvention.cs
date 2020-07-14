@@ -71,14 +71,7 @@ namespace HotChocolate.Data.Filters
                 return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
             }
 
-            throw new SchemaException(
-                SchemaErrorBuilder
-                    .New()
-                    .SetMessage(
-                        "The type of the member {0} of the declaring type {1} is unknown",
-                        member.Name,
-                        member.DeclaringType.Name)
-                    .Build());
+            throw ThrowHelper.FilterConvention_TypeOfMemberIsUnknown(member);
         }
 
         public NameString GetOperationDescription(IDescriptorContext context, int operation)
