@@ -50,15 +50,24 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddTransient<OperationContext>();
             services.TryAddSingleton<ObjectPool<OperationContext>>(
-                sp => new OperationContextPool(() => sp.GetRequiredService<OperationContext>(),
+                sp => new OperationContextPool(
+                    () => sp.GetRequiredService<OperationContext>(),
                 maximumRetained));
             return services;
         }
 
-        internal static IServiceCollection TryAddTypeConversion(
+        internal static IServiceCollection TryAddTypeConverter(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<ITypeConversion, TypeConversion>();
+            services.TryAddSingleton<ITypeConverter>(
+                sp => new DefaultTypeConverter(sp.GetServices<IChangeTypeProvider>()));
+            return services;
+        }
+
+        internal static IServiceCollection TryAddTimespanProvider(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<ITimestampProvider, DefaultTimestampProvider>();
             return services;
         }
 
@@ -78,7 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection TryAddNoOpDiagnostics(
+        internal static IServiceCollection TryAddDiagnosticEvents(
             this IServiceCollection services)
         {
             services.TryAddSingleton<IDiagnosticEvents>(sp =>

@@ -6,7 +6,10 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+#if NETCOREAPP2_1
 using Snapshooter;
+#endif
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -498,15 +501,11 @@ namespace HotChocolate.Types
         public void Convert_Parts_Of_The_Input_Graph()
         {
             // arrange
-            var typeConversion = new TypeConversion();
-            typeConversion.Register<Baz, Bar>(from =>
-                new Bar { Text = from.Text });
-            typeConversion.Register<Bar, Baz>(from =>
-                new Baz { Text = from.Text });
-
-            var services = new DictionaryServiceProvider(
-                typeof(ITypeConversion),
-                typeConversion);
+            var services = new ServiceCollection()
+                .AddSingleton<ITypeConverter, DefaultTypeConverter>()
+                .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
+                .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
+                .BuildServiceProvider();
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryType>()

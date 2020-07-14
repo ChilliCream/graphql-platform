@@ -16,17 +16,42 @@ namespace HotChocolate.Execution.Instrumentation
         {
             // arrange
             var listener = new TestListener();
-            IRequestExecutor executor =  await CreateExecutorAsync(c => c
-                .AddDiagnosticEventListener(sp => listener)
-                .AddStarWarsTypes()
-                .Services
-                .AddStarWarsRepositories());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+               .AddDiagnosticEventListener(sp => listener)
+               .AddStarWarsTypes()
+               .Services
+               .AddStarWarsRepositories());
 
             // act
             await executor.ExecuteAsync("{ hero { name } }");
 
             // assert
             Assert.Collection(listener.Results,
+                r => Assert.IsType<Droid>(r),
+                r => Assert.IsType<string>(r));
+        }
+
+        [Fact]
+        public async Task Intercept_Resolver_Result_With_Multiple_Listener()
+        {
+            // arrange
+            var listener_a = new TestListener();
+            var listener_b = new TestListener();
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+               .AddDiagnosticEventListener(sp => listener_a)
+               .AddDiagnosticEventListener(sp => listener_b)
+               .AddStarWarsTypes()
+               .Services
+               .AddStarWarsRepositories());
+
+            // act
+            await executor.ExecuteAsync("{ hero { name } }");
+
+            // assert
+            Assert.Collection(listener_a.Results,
+                r => Assert.IsType<Droid>(r),
+                r => Assert.IsType<string>(r));
+            Assert.Collection(listener_b.Results,
                 r => Assert.IsType<Droid>(r),
                 r => Assert.IsType<string>(r));
         }

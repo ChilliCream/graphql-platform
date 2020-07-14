@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Batching
             private readonly IEnumerable<IReadOnlyQueryRequest> _requestBatch;
             private readonly IRequestExecutor _requestExecutor;
             private readonly IErrorHandler _errorHandler;
-            private readonly ITypeConversion _typeConversion;
+            private readonly ITypeConverter _typeConverter;
             private readonly ConcurrentBag<ExportedVariable> _exportedVariables =
                 new ConcurrentBag<ExportedVariable>();
             private readonly CollectVariablesVisitor _visitor;
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Batching
                 IEnumerable<IReadOnlyQueryRequest> requestBatch,
                 IRequestExecutor requestExecutor,
                 IErrorHandler errorHandler,
-                ITypeConversion typeConversion)
+                ITypeConverter typeConverter)
             {
                 _requestBatch = requestBatch ?? 
                     throw new ArgumentNullException(nameof(requestBatch));
@@ -41,8 +41,8 @@ namespace HotChocolate.Execution.Batching
                     throw new ArgumentNullException(nameof(requestExecutor));
                 _errorHandler = errorHandler ?? 
                     throw new ArgumentNullException(nameof(errorHandler));
-                _typeConversion = typeConversion ?? 
-                    throw new ArgumentNullException(nameof(typeConversion));
+                _typeConverter = typeConverter ?? 
+                    throw new ArgumentNullException(nameof(typeConverter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
             }
 
@@ -213,7 +213,7 @@ namespace HotChocolate.Execution.Batching
                 if (_requestExecutor.Schema.TryGetType(
                     type.NamedType().Name.Value,
                     out INamedInputType inputType)
-                    && _typeConversion.TryConvert(
+                    && _typeConverter.TryConvert(
                         typeof(object),
                         inputType.RuntimeType,
                         exported.Value,
@@ -252,7 +252,7 @@ namespace HotChocolate.Execution.Batching
                 {
                     foreach (var o in l)
                     {
-                        if (_typeConversion.TryConvert(
+                        if (_typeConverter.TryConvert(
                             typeof(object),
                             inputType.RuntimeType,
                             o,
@@ -268,7 +268,7 @@ namespace HotChocolate.Execution.Batching
                 }
                 else
                 {
-                    if (_typeConversion.TryConvert(
+                    if (_typeConverter.TryConvert(
                         typeof(object),
                         inputType.RuntimeType,
                         exported.Value,

@@ -29,9 +29,9 @@ namespace HotChocolate.Execution
         IErrorHandler ErrorHandler { get; }
 
         /// <summary>
-        /// Gets the type conversion service.
+        /// Gets the type converter service.
         /// </summary>
-        ITypeConversion Converter { get; }
+        ITypeConverter Converter { get; }
 
         /// <summary>
         /// Gets the activator helper class.

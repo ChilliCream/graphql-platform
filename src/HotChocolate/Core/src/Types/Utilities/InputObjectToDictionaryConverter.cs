@@ -7,9 +7,9 @@ namespace HotChocolate.Utilities
 {
     internal class InputObjectToDictionaryConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public InputObjectToDictionaryConverter(ITypeConversion converter)
+        public InputObjectToDictionaryConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));

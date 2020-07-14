@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
 
         public IErrorHandler ErrorHandler => _requestContext.ErrorHandler;
 
-        public ITypeConversion Converter => _requestContext.Converter;
+        public ITypeConverter Converter => _requestContext.Converter;
 
         public IActivator Activator => _requestContext.Activator;
 

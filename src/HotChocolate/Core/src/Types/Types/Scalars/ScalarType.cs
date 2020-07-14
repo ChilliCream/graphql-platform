@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         , ILeafType
         , IHasDirectives
     {
-        private readonly ITypeConversion _converter = TypeConversion.Default;
+        private readonly ITypeConverter _converter = DefaultTypeConverter.Default;
         private readonly ExtensionData _contextData = new ExtensionData();
 
         /// <summary>
