@@ -21,7 +21,6 @@ namespace HotChocolate.Data.Filters
             Definition.Operation = operation;
             Definition.Name = convention.GetOperationName(context, operation);
             Definition.Description = convention.GetOperationDescription(context, operation);
-            Definition.Type = convention.GetOperationType(context, operation);
             Definition.Scope = scope;
         }
 
@@ -135,7 +134,7 @@ namespace HotChocolate.Data.Filters
         public static FilterOperationFieldDescriptor New(
             IDescriptorContext context,
             string? scope,
-            int operation)
-            => new FilterOperationFieldDescriptor(context, scope, operation);
+            int operation) =>
+            new FilterOperationFieldDescriptor(context, scope, operation);
     }
 }
