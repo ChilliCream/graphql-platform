@@ -4,22 +4,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore.Utilities
 {
-    public interface IHttpResultSerializer
-    {
-        string GetContentType(
-            IExecutionResult result);
-
-        int GetStatusCode(
-            IExecutionResult result);
-
-        ValueTask SerializeAsync(
-            IExecutionResult result,
-            Stream stream,
-            CancellationToken cancellationToken);
-    }
-
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
         private readonly JsonQueryResultSerializer _queryResultSerializer = 

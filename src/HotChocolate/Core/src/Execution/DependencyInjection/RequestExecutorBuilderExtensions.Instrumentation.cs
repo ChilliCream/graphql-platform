@@ -12,28 +12,34 @@ namespace Microsoft.Extensions.DependencyInjection
             TracingPreference tracingPreference = TracingPreference.OnDemand,
             ITimestampProvider? timestampProvider = null)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             if (tracingPreference == TracingPreference.Never)
             {
                 return builder;
             }
 
-            return AddDiagnosticEventListener(
-                builder, 
-                sp => new ApolloTracingDiagnosticEventListener(
-                    tracingPreference,
-                    timestampProvider ?? sp.GetService<ITimestampProvider>()));
+            return builder.ConfigureSchemaServices(
+                s => s.AddSingleton<IDiagnosticEventListener>(
+                    sp => new ApolloTracingDiagnosticEventListener(
+                        tracingPreference,
+                        timestampProvider ?? sp.GetService<ITimestampProvider>())));
         }
 
         public static IRequestExecutorBuilder AddDiagnosticEventListener<T>(
             this IRequestExecutorBuilder builder)
             where T : class, IDiagnosticEventListener
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.Services.AddSingleton<IDiagnosticEventListener, T>();
+            builder.ConfigureSchemaServices(
+                s => s.AddSingleton<IDiagnosticEventListener, T>());
             return builder;
         }
 
@@ -42,19 +48,20 @@ namespace Microsoft.Extensions.DependencyInjection
             Func<IServiceProvider, T> diagnosticEventListener)
             where T : IDiagnosticEventListener
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (diagnosticEventListener == null)
+            if (diagnosticEventListener is null)
             {
                 throw new ArgumentNullException(nameof(diagnosticEventListener));
             }
 
-            builder.Services.AddSingleton<IDiagnosticEventListener>(
-                sp => diagnosticEventListener(sp));
-            return builder;
+            return builder.ConfigureSchemaServices(
+                s => s.AddSingleton<IDiagnosticEventListener>(
+                    sp => diagnosticEventListener(
+                        sp.GetRequiredService<IApplicationServiceProvider>())));
         }
     }
 }

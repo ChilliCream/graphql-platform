@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(schema));
             _services = applicationServices ??
                 throw new ArgumentNullException(nameof(applicationServices));
-            SchemaServices = schemaServices ?? 
+            Services = schemaServices ?? 
                 throw new ArgumentNullException(nameof(schemaServices));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
 
         public ISchema Schema { get; }
 
-        public IServiceProvider SchemaServices { get; }
+        public IServiceProvider Services { get; }
 
         public async Task<IExecutionResult> ExecuteAsync(
             IReadOnlyQueryRequest request,

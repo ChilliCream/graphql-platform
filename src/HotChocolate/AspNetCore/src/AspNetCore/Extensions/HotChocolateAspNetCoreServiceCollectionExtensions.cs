@@ -21,8 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddGraphQLCore();
             services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
-            services.TryAddSingleton<RequestHelper>(
-                sp => new RequestHelper(
+            services.TryAddSingleton<IRequestParser>(
+                sp => new DefaultRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,

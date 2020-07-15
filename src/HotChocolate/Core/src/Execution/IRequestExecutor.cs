@@ -17,9 +17,9 @@ namespace HotChocolate.Execution
         ISchema Schema { get; }
 
         /// <summary>
-        /// Gets the services that are bound to this specific schema.
+        /// Gets the services that are bound to this executor.
         /// </summary>
-        IServiceProvider SchemaServices { get; }
+        IServiceProvider Services { get; }
 
         /// <summary>
         /// Executes the given GraphQL <paramref name="request" />.

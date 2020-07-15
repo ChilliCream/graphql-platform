@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution.Utilities
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
         private static readonly Type _activator = typeof(IActivator);
         private static readonly Type _errorHandler = typeof(IErrorHandler);
-
+        private static readonly Type _diagnosticEvents = typeof(IDiagnosticEvents);
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
                 .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaName))!;
@@ -64,10 +65,6 @@ namespace HotChocolate.Execution.Utilities
             Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
             Expression schemaServices = Expression.Property(context, _schemaServices);
-            Expression activator = Expression.Convert(Expression.Call(
-                schemaServices, _getService, Expression.Constant(_activator)), _activator);
-            Expression errorHandler = Expression.Convert(Expression.Call(
-                schemaServices, _getService, Expression.Constant(_errorHandler)), _errorHandler);
             Expression validatorFactory = Expression.Convert(Expression.Call(
                 services, _getService, Expression.Constant(_validatorFactory)), _validatorFactory);
             Expression getValidator = Expression.Call(
@@ -75,12 +72,25 @@ namespace HotChocolate.Execution.Utilities
 
             var list = new List<IParameterHandler>();
             list.Add(new TypeParameterHandler(typeof(IDocumentValidator), getValidator));
-            list.Add(new TypeParameterHandler(typeof(IActivator), activator));
-            list.Add(new TypeParameterHandler(typeof(IErrorHandler), errorHandler));
+            AddService<IActivator>(list, schemaServices);
+            AddService<IErrorHandler>(list, schemaServices);
+            AddService<IDiagnosticEvents>(list, schemaServices);
+            AddService<QueryExecutor>(list, schemaServices);
+            AddService<MutationExecutor>(list, schemaServices);
+            AddService<SubscriptionExecutor>(list, schemaServices);
             AddOptions(list, options);
             list.Add(new SchemaNameParameterHandler(schemaName));
             list.Add(new ServiceParameterHandler(services));
             return list;
+        }
+
+        private static void AddService<T>(
+            ICollection<IParameterHandler> parameterHandlers,
+            Expression service)
+        {
+            Expression expression = Expression.Convert(Expression.Call(
+                service, _getService, Expression.Constant(typeof(T))), typeof(T));
+            parameterHandlers.Add(new TypeParameterHandler(typeof(T), expression));
         }
 
         private static List<IParameterHandler> CreateDelegateParameterHandlers(

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -22,7 +23,7 @@ namespace HotChocolate.AspNetCore
         private readonly HttpRequestDelegate _next;
         private readonly IRequestExecutorResolver _executorResolver;
         private readonly IHttpResultSerializer _resultSerializer;
-        private readonly RequestHelper _requestHelper;
+        private readonly IRequestParser _requestParser;
         private readonly NameString _schemaName;
         private IRequestExecutor? _executor;
         private bool _disposed;
@@ -31,13 +32,13 @@ namespace HotChocolate.AspNetCore
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            RequestHelper requestHelper,
+            IRequestParser requestParser,
             NameString schemaName)
         {
             _next = next;
             _executorResolver = executorResolver;
             _resultSerializer = resultSerializer;
-            _requestHelper = requestHelper;
+            _requestParser = requestParser;
             _schemaName = schemaName;
             executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
         }
@@ -66,13 +67,14 @@ namespace HotChocolate.AspNetCore
             // first we need to gather an executor to start execution the request.
             IRequestExecutor executor = await GetExecutorAsync(context.RequestAborted)
                 .ConfigureAwait(false);
+            IErrorHandler errorHandler = executor.Services.GetRequiredService<IErrorHandler>();
 
-            int statusCode = 200;
-            IExecutionResult? result;
+            IExecutionResult? result = null;
+            int? statusCode = null;
 
             try
             {
-                IReadOnlyList<GraphQLRequest> requests = await ReadRequestAsync(
+                IReadOnlyList<GraphQLRequest>? requests = await ReadRequestAsync(
                     contentType, context.Request.Body, context.RequestAborted)
                     .ConfigureAwait(false);
 
@@ -87,7 +89,7 @@ namespace HotChocolate.AspNetCore
 
                     if (operations is null)
                     {
-                        await ExecuteQueryAsync(context, executor, requests[0])
+                        result = await ExecuteQueryAsync(context, executor, requests[0])
                             .ConfigureAwait(false);
                     }
                     else if (TryParseOperations(operations, out IReadOnlyList<string>? operationNames))
@@ -111,23 +113,23 @@ namespace HotChocolate.AspNetCore
             catch (GraphQLRequestException ex)
             {
                 statusCode = 400;
-                result = QueryResultBuilder.CreateError(ex.Errors);
-            }
-            catch (GraphQLException ex)
-            {
-                statusCode = 500;
-                result = QueryResultBuilder.CreateError(ex.Errors);
+                IEnumerable<IError> errors = errorHandler.Handle(ex.Errors);
+                result = QueryResultBuilder.CreateError(errors);
             }
             catch (Exception ex)
             {
                 statusCode = 500;
-                // TODO : handle exception
+                IError error = errorHandler.CreateUnexpectedError(ex).Build();
+                result = QueryResultBuilder.CreateError(error);
             }
 
-            // TODO : serialize result.
+            Debug.Assert(result is { });
+
+            await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted)
+                .ConfigureAwait(false);
         }
 
-        private async Task ExecuteQueryAsync(
+        private Task<IExecutionResult> ExecuteQueryAsync(
             HttpContext context,
             IRequestExecutor executor,
             GraphQLRequest request)
@@ -137,20 +139,22 @@ namespace HotChocolate.AspNetCore
 
             AddContextData(builder, context);
 
-            IExecutionResult result = await executor.ExecuteAsync(
-                builder.Create(),
-                context.RequestAborted)
-                .ConfigureAwait(false);
+            return executor.ExecuteAsync(builder.Create(), context.RequestAborted);
+        }
 
-            Debug.Assert(result is IQueryResult);
+        private async ValueTask WriteResultAsync(
+            HttpResponse response,
+            IExecutionResult result,
+            int? statusCode,
+            CancellationToken cancellationToken)
+        {
+            response.ContentType = _resultSerializer.GetContentType(result);
+            response.StatusCode = statusCode ?? _resultSerializer.GetStatusCode(result);
 
-            context.Response.ContentType = _resultSerializer.GetContentType(result);
-            context.Response.StatusCode = _resultSerializer.GetStatusCode(result);
-            
             await _resultSerializer.SerializeAsync(
                 result,
-                context.Response.Body,
-                context.RequestAborted)
+                response.Body,
+                cancellationToken)
                 .ConfigureAwait(false);
         }
 
@@ -212,7 +216,7 @@ namespace HotChocolate.AspNetCore
             switch (contentType)
             {
                 case AllowedContentType.Json:
-                    batch = await _requestHelper.ReadJsonRequestAsync(body, cancellationToken)
+                    batch = await _requestParser.ReadJsonRequestAsync(body, cancellationToken)
                         .ConfigureAwait(false);
                     break;
 
@@ -292,7 +296,11 @@ namespace HotChocolate.AspNetCore
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (!_disposed)
+            {
+                _semaphore.Dispose();
+                _disposed = true;
+            }
         }
     }
 }

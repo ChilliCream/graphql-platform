@@ -1,10 +1,14 @@
 using System;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore.Utilities
 {
     public static class ContentType
     {
-        private static readonly char[] _jsonChars = new char[]
+        public const string GraphQL = "application/graphql";
+
+        public const string Json = "application/json";
+
+        public static ReadOnlySpan<char> JsonSpan() => new char[]
         {
             'a',
             'p',
@@ -23,11 +27,5 @@ namespace HotChocolate.AspNetCore
             'o',
             'n'
         };
-
-        public const string GraphQL = "application/graphql";
-
-        public const string Json = "application/json";
-
-        public static ReadOnlySpan<char> JsonSpan() => _jsonChars;
     }
 }

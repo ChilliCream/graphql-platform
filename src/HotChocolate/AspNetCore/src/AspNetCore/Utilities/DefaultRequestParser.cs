@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    public class RequestHelper
+    internal class DefaultRequestParser : IRequestParser
     {
         private const int _minRequestSize = 256;
         private readonly IDocumentCache _documentCache;
@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore.Utilities
         private readonly ParserOptions _parserOptions;
         private readonly int _maxRequestSize;
 
-        public RequestHelper(
+        public DefaultRequestParser(
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider,
             int maxRequestSize,
@@ -33,17 +33,17 @@ namespace HotChocolate.AspNetCore.Utilities
                 ?? throw new ArgumentNullException(nameof(parserOptions));
         }
 
-        public Task<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
+        public ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
             Stream stream,
             CancellationToken cancellationToken) =>
             ReadAsync(stream, false, cancellationToken);
 
-        public Task<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
+        public ValueTask<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
             Stream stream,
             CancellationToken cancellationToken) =>
             ReadAsync(stream, true, cancellationToken);
 
-        private async Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
+        private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
             bool isGraphQLQuery,
             CancellationToken cancellationToken)

@@ -17,14 +17,14 @@ namespace StarWars
         {
             services
                 .AddGraphQLServer()
-                .AddStarWarsTypes()
-                .AddStarWarsRepositories()
+                    .AddStarWarsTypes()
+                    .AddStarWarsRepositories()
                 .AddGraphQLServer("hello")
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("hello")
-                    .Resolver("world"))
-                .AddApolloTracing();
+                    .AddQueryType(d => d
+                        .Name("Query")
+                        .Field("hello")
+                        .Resolver("world"))
+                    .AddApolloTracing();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
