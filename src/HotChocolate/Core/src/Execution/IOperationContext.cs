@@ -63,10 +63,10 @@ namespace HotChocolate.Execution
         IActivator Activator { get; }
 
         /// <summary>
-        /// Gets the type conversion service.
+        /// Gets the type converter service.
         /// </summary>
         /// <value></value>
-        ITypeConversion Converter { get; }
+        ITypeConverter Converter { get; }
 
         IResultHelper Result { get; }
 

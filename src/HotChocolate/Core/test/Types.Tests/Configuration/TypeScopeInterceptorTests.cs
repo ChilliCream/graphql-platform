@@ -15,12 +15,20 @@ namespace HotChocolate.Configuration
         [Fact]
         public void BranchTypesWithScope()
         {
+            var types = new List<ITypeSystemMember>();
+
             SchemaBuilder.New()
                 .AddQueryType<Foo>()
-                .AddTypeInterceptor(new TypeScopeInterceptor())
+                .AddTypeInterceptor(new TypeScopeInterceptor(types))
                 .Create()
                 .Print()
                 .MatchSnapshot();
+
+            Assert.Collection(
+                types.OfType<INamedType>().Select(t => t.Name).OrderBy(t => t),
+                name => Assert.Equal("A_Bar", name),
+                name => Assert.Equal("B_Bar", name),
+                name => Assert.Equal("C_Baz", name));
         }
 
         public class Foo
@@ -65,6 +73,15 @@ namespace HotChocolate.Configuration
             : TypeInterceptor
             , ITypeScopeInterceptor
         {
+            private readonly ICollection<ITypeSystemMember> _types;
+
+            public TypeScopeInterceptor(ICollection<ITypeSystemMember> types)
+            {
+                _types = types;
+            }
+
+            public override bool TriggerAggregations => true;
+
             public override bool CanHandle(
                 ITypeSystemObjectContext context) =>
                 context is { Scope: { } };
@@ -97,7 +114,10 @@ namespace HotChocolate.Configuration
             public override void OnTypesInitialized(
                 IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
             {
-
+                foreach (ITypeDiscoveryContext context in discoveryContexts)
+                {
+                    _types.Add(context.Type);
+                }
             }
 
             public bool TryCreateScope(

@@ -24,18 +24,18 @@ namespace HotChocolate.Execution.Utilities
 
         private async ValueTask TryExecuteAndCompleteAsync()
         {
-            using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
+            try
             {
-                try
+                using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
                 {
                     bool success = await TryExecuteAsync().ConfigureAwait(false);
                     CompleteValue(success);
                 }
-                finally
-                {
-                    _operationContext.Execution.TaskStats.TaskCompleted();
-                    _operationContext.Execution.TaskPool.Return(this);
-                }
+            }
+            finally
+            {
+                _operationContext.Execution.TaskStats.TaskCompleted();
+                _operationContext.Execution.TaskPool.Return(this);
             }
         }
 

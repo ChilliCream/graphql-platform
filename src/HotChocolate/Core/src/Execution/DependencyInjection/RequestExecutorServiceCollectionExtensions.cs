@@ -28,8 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions();
 
             // core services
-            services.TryAddTypeConversion();
-            services.TryAddNoOpDiagnostics();
+            services.TryAddTypeConverter();
             services.TryAddDefaultCaches();
             services.TryAddDefaultDocumentHashProvider();
             services.TryAddDefaultBatchDispatcher();
@@ -39,10 +38,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddResolverTaskPool();
             services.TryAddOperationContextPool();
 
-            // executor services
+            // global executor services
             services.TryAddVariableCoercion();
-            services.TryAddOperationExecutors();
             services.TryAddRequestExecutorResolver();
+
+            // parser
+            services.TryAddSingleton<ParserOptions>(ParserOptions.Default);
 
             return services;
         }
@@ -76,6 +77,35 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddValidation(schemaName);
 
             return new DefaultRequestExecutorBuilder(services, schemaName);
+        }
+
+        /// <summary>
+        /// Adds the <see cref="IRequestExecutorResolver"/> and related services to the
+        /// <see cref="IServiceCollection"/> and configures a named <see cref="IRequestExecutor"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="name">
+        /// The logical name of the <see cref="IRequestExecutor"/> to configure.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
+        /// </returns>
+        public static IRequestExecutorBuilder AddGraphQL(
+            this IRequestExecutorBuilder builder,
+            NameString schemaName = default)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            builder.Services.AddValidation(schemaName);
+
+            return new DefaultRequestExecutorBuilder(builder.Services, schemaName);
         }
 
         public static IServiceCollection AddDocumentCache(

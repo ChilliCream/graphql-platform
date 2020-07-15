@@ -29,9 +29,9 @@ namespace HotChocolate.Types.Relay
                 return await ResolveAsync(context, c).ConfigureAwait(false);
             }
 
-            ITypeConversion typeConversion =
-                context.Service<IServiceProvider>().GetTypeConversion();
-            c = typeConversion.Convert<object, TId>(id);
+            ITypeConverter typeConverter =
+                context.Service<IServiceProvider>().GetTypeConverter();
+            c = typeConverter.Convert<object, TId>(id);
             return await ResolveAsync(context, c).ConfigureAwait(false);
         }
     }
