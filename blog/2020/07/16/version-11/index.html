@@ -1210,7 +1210,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>With version 10 this setup looked often like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7268236821593966000"
+              data-toaster-id="74714619233321940000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1220,7 +1220,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     services.AddGraphQL(sp =>
         SchemaBuilder.New()
             .AddQueryType<Query>());
-}`, `7268236821593966000`)"
+}`, `74714619233321940000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1240,7 +1240,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Meet the new configuration API:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37415820359152670000"
+              data-toaster-id="39244843177567560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1250,7 +1250,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     services
         .AddGraphQLServer()
             .AddQueryType<Query>();
-}`, `37415820359152670000`)"
+}`, `39244843177567560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1269,7 +1269,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>First, when in a server context like ASP.NET Core or Azure Functions we now have this new <code class="language-text">AddGraphQLServer()</code> method which sets up a new schema and executor with additional services that the server needs. This API also does not allow just one schema but multiple.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95584568096445090000"
+              data-toaster-id="71696274575113450000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1282,7 +1282,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
         .AddGraphQLServer(&quot;internal&quot;)
             .AddQueryType<Query>()
             .AddTypeExtension<InternalQueryExtension>();
-}`, `95584568096445090000`)"
+}`, `71696274575113450000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1304,7 +1304,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>I can put each of these schemas on a different route and for that we also now support Microsoft`s new routing API.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95203224977500670000"
+              data-toaster-id="34719116013128827000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1317,7 +1317,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     {
         endpoints.MapGraphQL();
         endpoints.MapGraphQL(&quot;/internal&quot;, schemaName: &quot;internal&quot;);
-    });`, `95203224977500670000`)"
+    });`, `34719116013128827000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1340,7 +1340,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Another, part that I mentioned is now that we can more seamlessly configure a schema. If we wanted for instance to add apollo tracing support to one schema but not the other we can do that with one line of code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26883509934177830000"
+              data-toaster-id="19028852873739633000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1354,7 +1354,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
             .AddQueryType<Query>()
             .AddTypeExtension<InternalQueryExtension>()
             .AddApolloTracing();
-}`, `26883509934177830000`)"
+}`, `19028852873739633000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1378,7 +1378,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Another area that is now super simple to setup are subscriptions. In order to use in-memory subscriptions we configure our schema like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7541389956175837000"
+              data-toaster-id="98413629254961890000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1391,7 +1391,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
             .AddSubscriptionType<Mutation>()
             .AddSubscriptionType<Subscription>()
             .AddInMemorySubscriptions();
-}`, `7541389956175837000`)"
+}`, `98413629254961890000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1413,7 +1413,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Next we need to define our <code class="language-text">Mutation</code> type in order to trigger subscriptions whenever something happens on our server.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83736544929261200000"
+              data-toaster-id="43617327741148620000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1428,7 +1428,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
         eventSender.SendAsync(userId, message);
         return message;
     }
-}`, `83736544929261200000`)"
+}`, `43617327741148620000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1452,7 +1452,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>In our subscription type we do not need to handle the receive process or anything. We just specify what the topic is and what the message is and everything will be automatically injected.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94260289723348900000"
+              data-toaster-id="62691798254069070000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1464,7 +1464,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
         [Topic] string userId,
         [EventMessage] string message) =>
         message;
-}`, `94260289723348900000`)"
+}`, `62691798254069070000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1484,14 +1484,14 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>The userId in this instance is an argument that is provided from the outside, whereas the message is a parameter where the subscription bus injects the sent message into our resolver.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="56958517002158040000"
+              data-toaster-id="85395360984043680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`subscription onMessage {
   onMessage(userId: &quot;123&quot;);
-}`, `56958517002158040000`)"
+}`, `85395360984043680000`)"
             >
               <div
                 class="gatsby-code-button"
