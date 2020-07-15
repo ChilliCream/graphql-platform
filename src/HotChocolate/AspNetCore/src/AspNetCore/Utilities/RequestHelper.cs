@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    internal class RequestHelper
+    public class RequestHelper
     {
         private const int _minRequestSize = 256;
         private readonly IDocumentCache _documentCache;

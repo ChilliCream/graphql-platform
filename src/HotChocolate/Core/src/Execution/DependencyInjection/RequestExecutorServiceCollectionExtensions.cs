@@ -45,6 +45,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddOperationExecutors();
             services.TryAddRequestExecutorResolver();
 
+            // parser
+            services.TryAddSingleton<ParserOptions>(ParserOptions.Default);
+
             return services;
         }
 
