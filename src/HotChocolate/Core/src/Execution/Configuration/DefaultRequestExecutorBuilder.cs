@@ -4,10 +4,12 @@ namespace HotChocolate.Execution.Configuration
 {
     internal class DefaultRequestExecutorBuilder : IRequestExecutorBuilder
     {
-        public DefaultRequestExecutorBuilder(IServiceCollection services, NameString name)
+        public DefaultRequestExecutorBuilder(
+            IServiceCollection services,
+            NameString name)
         {
             Services = services;
-            Name = name; 
+            Name = name;
         }
 
         public NameString Name { get; }

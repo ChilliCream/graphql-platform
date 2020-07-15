@@ -28,9 +28,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions();
 
             // core services
-            services.TryAddTimespanProvider();
             services.TryAddTypeConverter();
-            services.TryAddDiagnosticEvents();
             services.TryAddDefaultCaches();
             services.TryAddDefaultDocumentHashProvider();
             services.TryAddDefaultBatchDispatcher();
@@ -40,10 +38,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddResolverTaskPool();
             services.TryAddOperationContextPool();
 
-            // executor services
+            // global executor services
             services.TryAddVariableCoercion();
-            services.TryAddOperationExecutors();
             services.TryAddRequestExecutorResolver();
+
+            // parser
+            services.TryAddSingleton<ParserOptions>(ParserOptions.Default);
 
             return services;
         }

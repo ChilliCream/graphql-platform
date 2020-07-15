@@ -64,43 +64,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static IServiceCollection TryAddTimespanProvider(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<ITimestampProvider, DefaultTimestampProvider>();
-            return services;
-        }
-
         internal static IServiceCollection TryAddRequestExecutorResolver(
             this IServiceCollection services)
         {
             services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
-            return services;
-        }
-
-        internal static IServiceCollection TryAddOperationExecutors(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<QueryExecutor>();
-            services.TryAddSingleton<MutationExecutor>();
-            services.TryAddSingleton<SubscriptionExecutor>();
-            return services;
-        }
-
-        internal static IServiceCollection TryAddDiagnosticEvents(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<IDiagnosticEvents>(sp =>
-            {
-                IDiagnosticEventListener[] listeners =
-                    sp.GetServices<IDiagnosticEventListener>().ToArray();
-                return listeners.Length switch
-                {
-                    0 => new NoopDiagnosticEvents(),
-                    1 => listeners[0],
-                    _ => new AggregateDiagnosticEvents(listeners)
-                };
-            });
             return services;
         }
 

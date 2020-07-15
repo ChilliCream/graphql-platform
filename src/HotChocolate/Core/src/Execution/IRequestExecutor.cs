@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,11 @@ namespace HotChocolate.Execution
         /// Gets the schema to which this executor is bound to.
         /// </summary>
         ISchema Schema { get; }
+
+        /// <summary>
+        /// Gets the services that are bound to this executor.
+        /// </summary>
+        IServiceProvider Services { get; }
 
         /// <summary>
         /// Executes the given GraphQL <paramref name="request" />.
