@@ -11,6 +11,8 @@ namespace HotChocolate.Execution.Utilities
     internal static class RequestClassMiddlewareFactory
     {
         private static readonly Type _validatorFactory = typeof(IDocumentValidatorFactory);
+        private static readonly Type _activator = typeof(IActivator);
+        private static readonly Type _errorHandler = typeof(IErrorHandler);
 
         private static readonly PropertyInfo _getSchemaName =
             typeof(IRequestCoreMiddlewareContext)
@@ -24,13 +26,9 @@ namespace HotChocolate.Execution.Utilities
             typeof(IRequestCoreMiddlewareContext)
                 .GetProperty(nameof(IRequestCoreMiddlewareContext.Services))!;
 
-        private static readonly PropertyInfo _activator =
+        private static readonly PropertyInfo _schemaServices =
             typeof(IRequestCoreMiddlewareContext)
-                .GetProperty(nameof(IRequestCoreMiddlewareContext.Activator))!;
-
-        private static readonly PropertyInfo _errorHandler =
-            typeof(IRequestCoreMiddlewareContext)
-                .GetProperty(nameof(IRequestCoreMiddlewareContext.ErrorHandler))!;
+                .GetProperty(nameof(IRequestCoreMiddlewareContext.SchemaServices))!;
 
         private static readonly MethodInfo _getService =
             typeof(IServiceProvider)
@@ -65,8 +63,11 @@ namespace HotChocolate.Execution.Utilities
         {
             Expression schemaName = Expression.Property(context, _getSchemaName);
             Expression services = Expression.Property(context, _appServices);
-            Expression activator = Expression.Property(context, _activator);
-            Expression errorHandler = Expression.Property(context, _errorHandler);
+            Expression schemaServices = Expression.Property(context, _schemaServices);
+            Expression activator = Expression.Convert(Expression.Call(
+                schemaServices, _getService, Expression.Constant(_activator)), _activator);
+            Expression errorHandler = Expression.Convert(Expression.Call(
+                schemaServices, _getService, Expression.Constant(_errorHandler)), _errorHandler);
             Expression validatorFactory = Expression.Convert(Expression.Call(
                 services, _getService, Expression.Constant(_validatorFactory)), _validatorFactory);
             Expression getValidator = Expression.Call(

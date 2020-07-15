@@ -21,7 +21,8 @@ namespace HotChocolate.Execution
 
         public RequestExecutor(
             ISchema schema,
-            IServiceProvider services,
+            IServiceProvider applicationServices,
+            IServiceProvider schemaServices,
             IErrorHandler errorHandler,
             ITypeConverter converter,
             IActivator activator,
@@ -30,8 +31,10 @@ namespace HotChocolate.Execution
         {
             Schema = schema ??
                 throw new ArgumentNullException(nameof(schema));
-            _services = services ??
-                throw new ArgumentNullException(nameof(services));
+            _services = applicationServices ??
+                throw new ArgumentNullException(nameof(applicationServices));
+            SchemaServices = schemaServices ?? 
+                throw new ArgumentNullException(nameof(schemaServices));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
             _converter = converter ??
@@ -46,6 +49,8 @@ namespace HotChocolate.Execution
         }
 
         public ISchema Schema { get; }
+
+        public IServiceProvider SchemaServices { get; }
 
         public async Task<IExecutionResult> ExecuteAsync(
             IReadOnlyQueryRequest request,

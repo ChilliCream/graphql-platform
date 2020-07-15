@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Configuration
@@ -20,7 +22,7 @@ namespace HotChocolate.Execution.Configuration
         public IList<RequestCoreMiddleware> Pipeline { get; } =
             new List<RequestCoreMiddleware>();
 
-        public IList<CreateErrorFilter> ErrorFilters { get; } =
-            new List<CreateErrorFilter>();
+        public IList<Action<IServiceCollection>> SchemaServices { get; } =
+            new List<Action<IServiceCollection>>();
     }
 }
