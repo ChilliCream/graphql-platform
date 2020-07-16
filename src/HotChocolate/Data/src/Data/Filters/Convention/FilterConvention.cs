@@ -9,8 +9,8 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConvention :
-        ConventionBase<FilterConventionDefinition>
+    public class FilterConvention
+        : ConventionBase<FilterConventionDefinition>
         , IFilterConvention
     {
         private readonly Action<IFilterConventionDescriptor> _configure;
@@ -27,8 +27,13 @@ namespace HotChocolate.Data.Filters
         }
 
         public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
+            = null!;
 
-        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
+        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; } = null!;
+
+        public
+            IReadOnlyDictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>> Extensions
+        { get; private set; } = null!;
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -51,6 +56,7 @@ namespace HotChocolate.Data.Filters
                 .Operations
                 .ToDictionary(x => x.Operation, x => new OperationConvention(x));
             Bindings = definition.Bindings;
+            Extensions = definition.Extensions;
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>

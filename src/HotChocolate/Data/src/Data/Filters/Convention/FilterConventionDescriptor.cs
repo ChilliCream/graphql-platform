@@ -1,32 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConventionDescriptor : IFilterConventionDescriptor
+    public class FilterConventionDescriptor
+        : IFilterConventionDescriptor
     {
         protected ICollection<FilterOperationConventionDescriptor> Operations { get; } =
             new List<FilterOperationConventionDescriptor>();
 
         protected FilterConventionDescriptor(IConventionContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             Definition.Scope = context.Scope;
         }
 
-        protected FilterConventionDefinition Definition { get; set; }
-            = new FilterConventionDefinition();
+        protected FilterConventionDefinition Definition { get; set; } =
+            new FilterConventionDefinition();
 
         public IFilterOperationConventionDescriptor Operation(int operation)
         {
-            FilterOperationConventionDescriptor? descriptor = Operations.FirstOrDefault(
-                x => x.Definition.Operation == operation);
+            FilterOperationConventionDescriptor? descriptor =
+                Operations.FirstOrDefault(x => x.Definition.Operation == operation);
 
             if (descriptor is null)
             {
                 descriptor = new FilterOperationConventionDescriptor(operation);
                 Operations.Add(descriptor);
             }
+
             return descriptor;
         }
 
@@ -44,5 +53,73 @@ namespace HotChocolate.Data.Filters
 
         public static FilterConventionDescriptor New(IConventionContext context) =>
             new FilterConventionDescriptor(context);
+
+        public IFilterConventionDescriptor Extension(
+            NameString typeName,
+            Action<IFilterInputTypeDescriptor> extension)
+        {
+            TypeReference? typeReference =
+                TypeReference.Create(
+                    typeName,
+                    TypeContext.Input,
+                    Definition.Scope);
+
+            if (!Definition.Extensions.TryGetValue(
+                    typeReference,
+                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+            {
+                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
+            }
+
+            descriptorList.Add(extension);
+            return this;
+        }
+
+        public IFilterConventionDescriptor Extension<TFilterType>(
+                Action<IFilterInputTypeDescriptor> extension)
+            where TFilterType : FilterInputType
+        {
+            TypeReference? typeReference =
+                TypeReference.Create<TFilterType>(
+                    TypeContext.Input,
+                    Definition.Scope);
+
+            if (!Definition.Extensions.TryGetValue(
+                    typeReference,
+                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+            {
+                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
+            }
+
+            descriptorList.Add(extension);
+            return this;
+        }
+
+        public IFilterConventionDescriptor Extension<TFilterType, TType>(
+                Action<IFilterInputTypeDescriptor<TType>> extension)
+            where TFilterType : FilterInputType<TType>
+        {
+            TypeReference? typeReference =
+                TypeReference.Create<TFilterType>(
+                    TypeContext.Input,
+                    Definition.Scope);
+
+            if (!Definition.Extensions.TryGetValue(
+                    typeReference,
+                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+            {
+                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
+            }
+
+            descriptorList.Add(descriptor =>
+            {
+                if (descriptor is IFilterInputTypeDescriptor<TType> descriptorOfT)
+                {
+                    extension.Invoke(descriptorOfT);
+                }
+            });
+
+            return this;
+        }
     }
 }
