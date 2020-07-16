@@ -23,8 +23,18 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected FilterInputTypeDescriptor(IDescriptorContext context, string? scope)
+        protected FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            string? scope)
             : base(context, scope)
+        {
+        }
+
+        protected internal FilterInputTypeDescriptor(
+            IDescriptorContext context,
+            FilterInputTypeDefinition definition,
+            string? scope)
+            : base(context, definition, scope)
         {
         }
 

@@ -176,7 +176,7 @@ namespace HotChocolate.Data.Filters
         }
 
         public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
-            TypeReference reference)
+            ITypeReference reference)
         {
             if (!Extensions.TryGetValue(
                 reference,

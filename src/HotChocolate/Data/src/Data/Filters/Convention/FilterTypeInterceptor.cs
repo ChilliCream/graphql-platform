@@ -33,6 +33,10 @@ namespace HotChocolate.Data.Filters
                     discoveryContext.DescriptorContext,
                     def.Scope);
 
+                var descriptor = FilterInputTypeDescriptor.From(
+                    discoveryContext.DescriptorContext,
+                    def,
+                    def.Scope);
 
                 foreach (InputFieldDefinition field in def.Fields)
                 {
@@ -49,7 +53,7 @@ namespace HotChocolate.Data.Filters
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            definition.Name = completionContext.Scope +
+            definition.Name = completionContext?.Scope +
                 "_" +
                 definition.Name;
         }
