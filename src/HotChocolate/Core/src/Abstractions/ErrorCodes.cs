@@ -13,6 +13,9 @@ namespace HotChocolate
         public static class Execution
         {
             public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
+            public const string CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE";
+            public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
+            public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";

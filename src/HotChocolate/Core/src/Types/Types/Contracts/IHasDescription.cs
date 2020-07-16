@@ -6,4 +6,9 @@ namespace HotChocolate.Types
     {
         string? Description { get; }
     }
+
+    public interface IHasScope
+    {
+        string? Scope { get; }
+    }
 }

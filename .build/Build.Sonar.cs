@@ -1,5 +1,6 @@
 using System.IO;
 using Nuke.Common;
+using Nuke.Common.CI;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.SonarScanner;
@@ -15,6 +16,7 @@ partial class Build : NukeBuild
 
      Target SonarPr => _ => _
         .DependsOn(Cover)
+        .Consumes(Cover)
         .Requires(() => GitHubRepository != null)
         .Requires(() => GitHubHeadRef != null)
         .Requires(() => GitHubBaseRef != null)
@@ -39,6 +41,7 @@ partial class Build : NukeBuild
 
     Target Sonar => _ => _
         .DependsOn(Cover)
+        .Consumes(Cover)
         .Executes(() =>
         {
             if (!InvokedTargets.Contains(Cover))

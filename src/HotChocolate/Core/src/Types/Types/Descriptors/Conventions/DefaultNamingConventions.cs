@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -127,9 +126,14 @@ namespace HotChocolate.Types.Descriptors
 
         public virtual NameString GetTypeName(Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type == typeof(Schema))
+            {
+                return Schema.DefaultName;
             }
 
             return type.GetGraphQLName();
@@ -137,7 +141,7 @@ namespace HotChocolate.Types.Descriptors
 
         public virtual NameString GetTypeName(Type type, TypeKind kind)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -155,7 +159,7 @@ namespace HotChocolate.Types.Descriptors
 
         public virtual string GetTypeDescription(Type type, TypeKind kind)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

@@ -27,6 +27,23 @@ namespace HotChocolate.StarWars
         }
 
         /// <summary>
+        /// Retrieve a heros by a particular Star Wars episodes.
+        /// </summary>
+        /// <param name="episode">The episode to look up by.</param>
+        /// <returns>The character.</returns>
+        public IReadOnlyList< ICharacter> GetHeroes(IReadOnlyList<Episode> episodes)
+        {
+            var list = new List<ICharacter>();
+
+            foreach (Episode episode in episodes)
+            {
+                list.Add(_repository.GetHero(episode));
+            }
+
+            return list;
+        }
+
+        /// <summary>
         /// Gets a human by Id.
         /// </summary>
         /// <param name="id">The Id of the human to retrieve.</param>

@@ -9,6 +9,9 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Relay;
 using Moq;
+#if NETCOREAPP2_1
+using Snapshooter;
+#endif
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -109,7 +112,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IntArgumentIsinferredAsNonNullType()
+        public void IntArgumentIsInferredAsNonNullType()
         {
             // arrange
             // act
@@ -486,7 +489,7 @@ namespace HotChocolate.Types
 
             // act
             var schema = Schema.Create(source,
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             Assert.Equal("A", schema.QueryType.Name.Value);
             Assert.Equal("B", schema.MutationType.Name.Value);
@@ -507,7 +510,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source,
                 c =>
                 {
-                    c.Use(next => context => Task.CompletedTask);
+                    c.Use(next => context => default(ValueTask));
                     c.Options.QueryTypeName = "A";
                     c.Options.MutationTypeName = "B";
                     c.Options.SubscriptionTypeName = "C";
@@ -528,7 +531,7 @@ namespace HotChocolate.Types
 
             // act
             Action action = () => Schema.Create(source,
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             Assert.Throws<SchemaException>(action).Errors.MatchSnapshot();
         }
@@ -735,14 +738,14 @@ namespace HotChocolate.Types
                 .Resolver("World"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -756,14 +759,14 @@ namespace HotChocolate.Types
                 .Resolver(() => "fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -776,14 +779,14 @@ namespace HotChocolate.Types
                 .Resolver(() => "fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -797,14 +800,14 @@ namespace HotChocolate.Types
                 .Resolver("fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -817,14 +820,14 @@ namespace HotChocolate.Types
                 .Resolver("fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -838,14 +841,14 @@ namespace HotChocolate.Types
                 .Resolver(ctx => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -858,14 +861,14 @@ namespace HotChocolate.Types
                 .Resolver(ctx => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -879,14 +882,14 @@ namespace HotChocolate.Types
                 .Resolver((ctx, ct) => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -899,14 +902,14 @@ namespace HotChocolate.Types
                 .Resolver((ctx, ct) => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -920,14 +923,14 @@ namespace HotChocolate.Types
                 .Resolver(() => (object)"fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -941,14 +944,14 @@ namespace HotChocolate.Types
                 .Resolver((object)"fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -962,14 +965,14 @@ namespace HotChocolate.Types
                 .Resolver(ctx => (object)ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -983,14 +986,14 @@ namespace HotChocolate.Types
                 .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ _123 }").MatchSnapshot();
+            executor.Execute("{ _123 }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1003,14 +1006,14 @@ namespace HotChocolate.Types
                 .Resolver(() => "fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1023,14 +1026,14 @@ namespace HotChocolate.Types
                 .Resolver("fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1043,14 +1046,14 @@ namespace HotChocolate.Types
                 .Resolver(ctx => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1063,14 +1066,14 @@ namespace HotChocolate.Types
                 .Resolver((ctx, ct) => ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1083,14 +1086,14 @@ namespace HotChocolate.Types
                 .Resolver(() => (object)"fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1103,14 +1106,14 @@ namespace HotChocolate.Types
                 .Resolver((object)"fooBar"));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1123,14 +1126,14 @@ namespace HotChocolate.Types
                 .Resolver(ctx => (object)ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1143,14 +1146,14 @@ namespace HotChocolate.Types
                 .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
 
             // act
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 SchemaBuilder.New()
                     .AddQueryType(objectType)
                     .Create()
                     .MakeExecutable();
 
             // assert
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1164,7 +1167,7 @@ namespace HotChocolate.Types
 
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -1174,7 +1177,7 @@ namespace HotChocolate.Types
                     .Create());
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1444,7 +1447,7 @@ namespace HotChocolate.Types
         public async Task Execute_With_Query_As_Struct()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddQueryType(new ObjectType<FooStruct>())
                 .Create()
                 .MakeExecutable();
@@ -1460,7 +1463,7 @@ namespace HotChocolate.Types
                     })
                     .Create());
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1473,7 +1476,11 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+#if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
             schema.ToString().MatchSnapshot();
+#endif
         }
 
         [Fact]
@@ -1486,7 +1493,41 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+#if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
             schema.ToString().MatchSnapshot();
+#endif
+        }
+
+        [Fact]
+        public void NonNull_Attribute_With_Explicit_Nullability_Definition()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<AnnotatedNestedList>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Infer_Non_Null_Filed()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .Create();
+
+            // assert
+#if NETCOREAPP2_1
+            schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
+            schema.ToString().MatchSnapshot();
+#endif
         }
 
         [Fact]
@@ -1512,7 +1553,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(string)))
                 .Create();
 
@@ -1530,7 +1571,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(NativeType<List<int>>)))
                 .Create();
 
@@ -1548,7 +1589,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1567,7 +1608,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
 
@@ -1586,7 +1627,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         typeof(int)))
                 .Create();
 
@@ -1605,7 +1646,7 @@ namespace HotChocolate.Types
                     .Field("test")
                     .Type<StringType>()
                     .Resolver(
-                        ctx => Task.FromResult<object>("abc"),
+                        ctx => new ValueTask<object>("abc"),
                         null))
                 .Create();
 
@@ -1632,7 +1673,7 @@ namespace HotChocolate.Types
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
                 .AddType<SomeTypeExtensionWithInterface>()
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1645,7 +1686,7 @@ namespace HotChocolate.Types
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: Some } type Some { foo: String }")
                 .AddDocumentFromString("extend type Some implements Node { id: ID! }")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .EnableRelaySupport()
                 .Create()
                 .ToString()
@@ -1657,7 +1698,7 @@ namespace HotChocolate.Types
         {
             SchemaBuilder.New()
                 .AddDocumentFromString("type Query { some: [[Some]] } type Some { foo: String }")
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create()
                 .ToString()
                 .MatchSnapshot();
@@ -1730,11 +1771,13 @@ namespace HotChocolate.Types
             public string GetBar(int foo) => "hello foo";
         }
 
+#nullable enable
         public class Bar
         {
             [GraphQLNonNullType]
             public string Baz { get; set; }
         }
+#nullable disable
 
         public class Baz
         {
@@ -1893,6 +1936,12 @@ namespace HotChocolate.Types
                 descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
                 descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
             }
+        }
+
+        public class AnnotatedNestedList
+        {
+            [GraphQLNonNullType(true, false, false)]
+            public List<List<string>> NestedList { get; set; }
         }
     }
 }

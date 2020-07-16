@@ -10,8 +10,6 @@ input FooFilter {
   AND: [FooFilter!]
   "custom_equals_description"
   bar: Boolean
-  barNullable: Boolean
-  barNullable_not: Boolean
   OR: [FooFilter!]
 }
 

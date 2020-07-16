@@ -15,7 +15,7 @@ namespace HotChocolate.Types
     public class InputField
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
-        , IHasClrType
+        , IHasRuntimeType
     {
         public InputField(InputFieldDefinition definition)
             : base(definition)
@@ -45,12 +45,12 @@ namespace HotChocolate.Types
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;
 
-        public override Type ClrType
+        public override Type RuntimeType
         {
             get
             {
                 return Property == null
-                    ? base.ClrType
+                    ? base.RuntimeType
                     : Property.PropertyType;
             }
         }
@@ -154,7 +154,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);

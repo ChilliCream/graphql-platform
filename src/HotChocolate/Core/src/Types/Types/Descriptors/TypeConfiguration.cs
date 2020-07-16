@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ApplyConfigurationOn On { get; set; }
 
-        public Action<ICompletionContext, T> Configure { get; set; }
+        public Action<ITypeCompletionContext, T> Configure { get; set; }
 
         public T Definition { get; set; }
 
@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
         IReadOnlyList<TypeDependency> ILazyTypeConfiguration.Dependencies =>
             _dependencies;
 
-        void ILazyTypeConfiguration.Configure(ICompletionContext context)
+        void ILazyTypeConfiguration.Configure(ITypeCompletionContext context)
         {
             if (context == null)
             {

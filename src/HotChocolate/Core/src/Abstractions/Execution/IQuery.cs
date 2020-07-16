@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Returns the binary query representation.
         /// </summary>
-        ReadOnlySpan<byte> ToSpan();
+        ReadOnlySpan<byte> AsSpan();
 
         /// <summary>
         /// Returns the query string representation.

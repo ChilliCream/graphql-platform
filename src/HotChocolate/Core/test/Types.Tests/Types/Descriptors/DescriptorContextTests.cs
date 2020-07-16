@@ -16,7 +16,8 @@ namespace HotChocolate.Types.Descriptors
             var conventions = new Dictionary<Type, IConvention>();
 
             // act
-            Action action = () => DescriptorContext.Create(options, null, conventions);
+            Action action = () => DescriptorContext.Create(
+                options, null, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -30,7 +31,8 @@ namespace HotChocolate.Types.Descriptors
             var conventions = new Dictionary<Type, IConvention>();
 
             // act
-            Action action = () => DescriptorContext.Create(null, service, conventions);
+            Action action = () => DescriptorContext.Create(
+                null, service, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -44,7 +46,8 @@ namespace HotChocolate.Types.Descriptors
             var options = new SchemaOptions();
 
             // act
-            Action action = () => DescriptorContext.Create(options, service, null);
+            Action action = () => DescriptorContext.Create(
+                options, service, null, new Dictionary<string, object>());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -63,7 +66,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services, conventions);
+                DescriptorContext.Create(
+                    options, services, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -84,7 +88,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services, conventions);
+                DescriptorContext.Create(
+                    options, services, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -105,7 +110,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services, conventions);
+                DescriptorContext.Create(
+                    options, services, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(inspector, context.Inspector);

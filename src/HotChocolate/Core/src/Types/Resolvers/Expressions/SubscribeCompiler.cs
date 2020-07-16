@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 
 #nullable enable
 
@@ -13,6 +14,12 @@ namespace HotChocolate.Resolvers.Expressions
     internal sealed class SubscribeCompiler
         : ResolverCompiler
     {
+        private static readonly MethodInfo _awaitTaskSourceStreamGeneric =
+            typeof(SubscribeExpressionHelper)
+                .GetMethod(nameof(SubscribeExpressionHelper.AwaitTaskSourceStreamGeneric))!;
+        private static readonly MethodInfo _awaitTaskSourceStream =
+            typeof(SubscribeExpressionHelper)
+                .GetMethod(nameof(SubscribeExpressionHelper.AwaitTaskSourceStream))!;
         private static readonly MethodInfo _awaitTaskAsyncEnumerable =
             typeof(SubscribeExpressionHelper)
                 .GetMethod(nameof(SubscribeExpressionHelper.AwaitTaskAsyncEnumerable))!;
@@ -25,6 +32,9 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _awaitTaskObservable =
             typeof(SubscribeExpressionHelper)
                 .GetMethod(nameof(SubscribeExpressionHelper.AwaitTaskObservable))!;
+        private static readonly MethodInfo _awaitValueTaskSourceStreamGeneric =
+            typeof(SubscribeExpressionHelper)
+                .GetMethod(nameof(SubscribeExpressionHelper.AwaitValueTaskSourceStreamGeneric))!;
         private static readonly MethodInfo _awaitValueTaskAsyncEnumerable =
             typeof(SubscribeExpressionHelper)
                 .GetMethod(nameof(SubscribeExpressionHelper.AwaitValueTaskAsyncEnumerable))!;
@@ -37,6 +47,12 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _awaitValueTaskObservable =
             typeof(SubscribeExpressionHelper)
                 .GetMethod(nameof(SubscribeExpressionHelper.AwaitValueTaskObservable))!;
+        private static readonly MethodInfo _wrapSourceStreamGeneric =
+            typeof(SubscribeExpressionHelper)
+                .GetMethod(nameof(SubscribeExpressionHelper.WrapSourceStreamGeneric))!;
+        private static readonly MethodInfo _wrapSourceStream =
+            typeof(SubscribeExpressionHelper)
+                .GetMethod(nameof(SubscribeExpressionHelper.WrapSourceStream))!;
         private static readonly MethodInfo _wrapAsyncEnumerable =
             typeof(SubscribeExpressionHelper)
                 .GetMethod(nameof(SubscribeExpressionHelper.WrapAsyncEnumerable))!;
@@ -52,7 +68,7 @@ namespace HotChocolate.Resolvers.Expressions
 
         public SubscribeResolverDelegate Compile(
             Type sourceType,
-            Type resolverType,
+            Type? resolverType,
             MemberInfo member)
         {
             MethodInfo resolverMethod = resolverType is null
@@ -95,7 +111,7 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverExpression,
             Type resultType)
         {
-            if (resultType == typeof(ValueTask<IAsyncEnumerable<object>>))
+            if (resultType == typeof(ValueTask<ISourceStream>))
             {
                 return resolverExpression;
             }
@@ -105,10 +121,20 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 Type subscriptionType = resultType.GetGenericArguments().First();
 
-                if (subscriptionType.IsGenericType)
+                if (subscriptionType == typeof(ISourceStream))
+                {
+                    return AwaitTaskSourceStream(resolverExpression);
+                }
+                else if (subscriptionType.IsGenericType)
                 {
                     Type typeDefinition = subscriptionType.GetGenericTypeDefinition();
-                    if (typeDefinition == typeof(IAsyncEnumerable<>))
+                    if (typeDefinition == typeof(ISourceStream<>))
+                    {
+                        return AwaitTaskSourceStreamGeneric(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                    else if (typeDefinition == typeof(IAsyncEnumerable<>))
                     {
                         return AwaitTaskAsyncEnumerable(
                             resolverExpression,
@@ -136,14 +162,20 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             if (resultType.IsGenericType
-                && resultType.GetGenericTypeDefinition() ==  typeof(ValueTask<>))
+                && resultType.GetGenericTypeDefinition() == typeof(ValueTask<>))
             {
                 Type subscriptionType = resultType.GetGenericArguments().First();
 
                 if (subscriptionType.IsGenericType)
                 {
                     Type typeDefinition = subscriptionType.GetGenericTypeDefinition();
-                    if (typeDefinition == typeof(IAsyncEnumerable<>))
+                    if (typeDefinition == typeof(ISourceStream<>))
+                    {
+                        return AwaitValueTaskSourceStreamGeneric(
+                            resolverExpression,
+                            subscriptionType.GetGenericArguments().Single());
+                    }
+                    else if (typeDefinition == typeof(IAsyncEnumerable<>))
                     {
                         return AwaitValueTaskAsyncEnumerable(
                             resolverExpression,
@@ -170,11 +202,21 @@ namespace HotChocolate.Resolvers.Expressions
                 }
             }
 
+            if (resultType == typeof(ISourceStream))
+            {
+                return WrapSourceStream(resolverExpression);
+            }
+
             if (resultType.IsGenericType)
             {
                 Type typeDefinition = resultType.GetGenericTypeDefinition();
-
-                if (typeDefinition == typeof(IAsyncEnumerable<>))
+                if (typeDefinition == typeof(ISourceStream<>))
+                {
+                    return WrapSourceStreamGeneric(
+                        resolverExpression,
+                        resultType.GetGenericArguments().Single());
+                }
+                else if (typeDefinition == typeof(IAsyncEnumerable<>))
                 {
                     return WrapAsyncEnumerable(
                         resolverExpression,
@@ -205,6 +247,19 @@ namespace HotChocolate.Resolvers.Expressions
                 $"subscribe method `{resultType.FullName}`.");
         }
 
+        private static MethodCallExpression AwaitTaskSourceStream(
+            Expression taskExpression)
+        {
+            return Expression.Call(_awaitTaskSourceStream, taskExpression);
+        }
+
+        private static MethodCallExpression AwaitTaskSourceStreamGeneric(
+            Expression taskExpression, Type valueType)
+        {
+            MethodInfo awaitHelper = _awaitTaskSourceStreamGeneric.MakeGenericMethod(valueType);
+            return Expression.Call(awaitHelper, taskExpression);
+        }
+
         private static MethodCallExpression AwaitTaskAsyncEnumerable(
             Expression taskExpression, Type valueType)
         {
@@ -230,6 +285,13 @@ namespace HotChocolate.Resolvers.Expressions
             Expression taskExpression, Type valueType)
         {
             MethodInfo awaitHelper = _awaitTaskObservable.MakeGenericMethod(valueType);
+            return Expression.Call(awaitHelper, taskExpression);
+        }
+
+        private static MethodCallExpression AwaitValueTaskSourceStreamGeneric(
+            Expression taskExpression, Type valueType)
+        {
+            MethodInfo awaitHelper = _awaitValueTaskSourceStreamGeneric.MakeGenericMethod(valueType);
             return Expression.Call(awaitHelper, taskExpression);
         }
 
@@ -259,6 +321,18 @@ namespace HotChocolate.Resolvers.Expressions
         {
             MethodInfo awaitHelper = _awaitValueTaskObservable.MakeGenericMethod(valueType);
             return Expression.Call(awaitHelper, taskExpression);
+        }
+
+        private static MethodCallExpression WrapSourceStream(Expression taskExpression)
+        {
+            return Expression.Call(_wrapSourceStream, taskExpression);
+        }
+
+        private static MethodCallExpression WrapSourceStreamGeneric(
+            Expression taskExpression, Type valueType)
+        {
+            MethodInfo wrapResultHelper = _wrapSourceStreamGeneric.MakeGenericMethod(valueType);
+            return Expression.Call(wrapResultHelper, taskExpression);
         }
 
         private static MethodCallExpression WrapAsyncEnumerable(

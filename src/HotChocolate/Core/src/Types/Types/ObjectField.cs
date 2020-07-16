@@ -51,7 +51,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+        public IReadOnlyList<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
         /// Gets the associated .net type member of this field.
@@ -63,7 +63,7 @@ namespace HotChocolate.Types
         public MemberInfo? ClrMember => Member;
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteExecutableDirectives(
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
             var processed = new HashSet<string>();
 
@@ -101,7 +101,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolver(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
             bool isIntrospectionField = IsIntrospectionField
@@ -131,16 +131,11 @@ namespace HotChocolate.Types
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver == null)
+            if (Resolver == null && Middleware == null)
             {
-                if (Middleware is { })
+                if (_executableDirectives.Count > 0)
                 {
-                    Resolver = ctx => Task.FromResult<object?>(null);
-                }
-                else if (_executableDirectives.Any())
-                {
-                    Middleware = ctx => Task.CompletedTask;
-                    Resolver = ctx => Task.FromResult<object?>(null);
+                    Middleware = ctx => default(ValueTask);
                 }
                 else
                 {

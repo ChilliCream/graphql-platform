@@ -202,8 +202,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         internal static bool IsEventMessage(ParameterInfo parameter) =>
-            typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType)
-            || parameter.IsDefined(typeof(EventMessageAttribute));
+            parameter.IsDefined(typeof(EventMessageAttribute));
 
         internal static bool IsOutputField(ParameterInfo parameter) =>
             typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);

@@ -11,15 +11,6 @@ namespace HotChocolate.Utilities
     public class DotNetTypeInfoFactoryTests
     {
         [InlineData(typeof(string), "String")]
-        [InlineData(typeof(IResolverResult<string>), "String")]
-        [InlineData(typeof(IResolverResult<string[]>), "[String]")]
-        [InlineData(typeof(IResolverResult<List<string>>), "[String]")]
-        [InlineData(typeof(Task<IResolverResult<string>>), "String")]
-        [InlineData(typeof(Task<IResolverResult<string[]>>), "[String]")]
-        [InlineData(typeof(Task<IResolverResult<List<string>>>), "[String]")]
-        [InlineData(typeof(ResolverResult<string>), "String")]
-        [InlineData(typeof(ResolverResult<string[]>), "[String]")]
-        [InlineData(typeof(ResolverResult<List<string>>), "[String]")]
         [InlineData(typeof(Task<string>), "String")]
         [InlineData(typeof(List<string>), "[String]")]
         [InlineData(typeof(Task<List<string>>), "[String]")]
@@ -161,14 +152,8 @@ namespace HotChocolate.Utilities
         }
 
         [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
-        [InlineData(typeof(NativeType<Task<ResolverResult<string>>>), typeof(string))]
-        [InlineData(typeof(NativeType<Task<IResolverResult<string>>>), typeof(string))]
         [InlineData(typeof(NativeType<string>), typeof(string))]
         [InlineData(typeof(Task<string>), typeof(string))]
-        [InlineData(typeof(Task<ResolverResult<string>>), typeof(string))]
-        [InlineData(typeof(Task<IResolverResult<string>>), typeof(string))]
-        [InlineData(typeof(NativeType<ResolverResult<string>>), typeof(string))]
-        [InlineData(typeof(NativeType<IResolverResult<string>>), typeof(string))]
         [Theory]
         public void Unwrap(Type type, Type expectedReducedType)
         {

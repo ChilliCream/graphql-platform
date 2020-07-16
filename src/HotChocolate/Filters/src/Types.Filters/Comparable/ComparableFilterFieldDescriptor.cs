@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
-using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -14,18 +11,32 @@ namespace HotChocolate.Types.Filters
     {
         public ComparableFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property,
-            IFilterConvention filterConventions)
-            : base(FilterKind.Comparable, context, property, filterConventions)
+            PropertyInfo property)
+            : base(context, property)
         {
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Equals,
+                FilterOperationKind.NotEquals,
+
+                FilterOperationKind.In,
+                FilterOperationKind.NotIn,
+
+                FilterOperationKind.GreaterThan,
+                FilterOperationKind.NotGreaterThan,
+
+                FilterOperationKind.GreaterThanOrEquals,
+                FilterOperationKind.NotGreaterThanOrEquals,
+
+                FilterOperationKind.LowerThan,
+                FilterOperationKind.NotLowerThan,
+
+                FilterOperationKind.LowerThanOrEquals,
+                FilterOperationKind.NotLowerThanOrEquals
+            };
         }
 
-        /// <inheritdoc/>
-        public new IComparableFilterFieldDescriptor Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IComparableFilterFieldDescriptor BindFilters(
@@ -44,50 +55,10 @@ namespace HotChocolate.Types.Filters
             BindFilters(BindingBehavior.Implicit);
 
         /// <inheritdoc/>
-        public new IComparableFilterFieldDescriptor Type<TLeafType>()
-            where TLeafType : class, ILeafType
-        {
-            base.Type<TLeafType>();
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public new IComparableFilterFieldDescriptor Type<TLeafType>(TLeafType leafType)
-            where TLeafType : class, ILeafType
-        {
-            base.Type<TLeafType>(leafType);
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public IComparableFilterFieldDescriptor Type(NamedTypeNode typeNode)
-        {
-            base.Type(typeNode);
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public new IComparableFilterFieldDescriptor Type(Type type)
-        {
-            Type extractedType = Context.Inspector.ExtractType(type);
-
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(ILeafType).IsAssignableFrom(extractedType))
-            {
-                // TODO : resource
-                throw new ArgumentException(
-                    "TypeResources.ObjectFieldDescriptorBase_FieldType");
-            }
-
-            base.Type(type);
-            return this;
-        }
-
-        /// <inheritdoc/>
         public IComparableFilterOperationDescriptor AllowEquals()
         {
             ComparableFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.Equals);
+                CreateOperation(FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
@@ -96,7 +67,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotEquals()
         {
             ComparableFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.NotEquals);
+                CreateOperation(FilterOperationKind.NotEquals);
             Filters.Add(field);
             return field;
         }
@@ -105,7 +76,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowIn()
         {
             ComparableFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.In);
+                CreateOperation(FilterOperationKind.In);
             Filters.Add(field);
             return field;
         }
@@ -114,7 +85,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotIn()
         {
             ComparableFilterOperationDescriptor field =
-                GetOrCreateOperation(FilterOperationKind.NotIn);
+                CreateOperation(FilterOperationKind.NotIn);
             Filters.Add(field);
             return field;
         }
@@ -123,7 +94,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowGreaterThan()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.GreaterThan);
+                 CreateOperation(FilterOperationKind.GreaterThan);
             Filters.Add(field);
             return field;
         }
@@ -132,7 +103,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotGreaterThan()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.NotGreaterThan);
+                 CreateOperation(FilterOperationKind.NotGreaterThan);
             Filters.Add(field);
             return field;
         }
@@ -141,7 +112,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowGreaterThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.GreaterThanOrEquals);
+                 CreateOperation(FilterOperationKind.GreaterThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -150,7 +121,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotGreaterThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.NotGreaterThanOrEquals);
+                 CreateOperation(FilterOperationKind.NotGreaterThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -159,7 +130,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowLowerThan()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.LowerThan);
+                 CreateOperation(FilterOperationKind.LowerThan);
             Filters.Add(field);
             return field;
         }
@@ -168,7 +139,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotLowerThan()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.NotLowerThan);
+                 CreateOperation(FilterOperationKind.NotLowerThan);
             Filters.Add(field);
             return field;
         }
@@ -177,7 +148,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowLowerThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.LowerThanOrEquals);
+                 CreateOperation(FilterOperationKind.LowerThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -186,15 +157,15 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotLowerThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 GetOrCreateOperation(FilterOperationKind.NotLowerThanOrEquals);
+                 CreateOperation(FilterOperationKind.NotLowerThanOrEquals);
             Filters.Add(field);
             return field;
         }
 
         /// <inheritdoc/>
-        public IComparableFilterFieldDescriptor Ignore(bool ignore = true)
+        public IComparableFilterFieldDescriptor Ignore()
         {
-            Definition.Ignore = ignore;
+            Definition.Ignore = true;
             return this;
         }
 
@@ -202,20 +173,11 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
 
-
-        private ComparableFilterOperationDescriptor GetOrCreateOperation(
-            FilterOperationKind operationKind)
-        {
-            return Filters.GetOrAddOperation(operationKind,
-                () => CreateOperation(operationKind));
-        }
-
         private ComparableFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
                 typeof(IComparable),
-                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -224,8 +186,7 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation,
-                FilterConvention);
+                operation);
         }
     }
 }

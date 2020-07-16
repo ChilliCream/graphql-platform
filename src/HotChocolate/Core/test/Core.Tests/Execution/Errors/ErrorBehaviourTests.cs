@@ -253,7 +253,7 @@ namespace HotChocolate.Execution
 
             var schema = Schema.Create(
                 "type Query { foo: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
@@ -272,7 +272,7 @@ namespace HotChocolate.Execution
 
             var schema = Schema.Create(
                 "type Query { a: String } type Mutation { bar: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act

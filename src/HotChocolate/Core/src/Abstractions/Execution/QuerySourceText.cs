@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
             await writer.FlushAsync().ConfigureAwait(false);
         }
 
-        public ReadOnlySpan<byte> ToSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_source == null)
             {

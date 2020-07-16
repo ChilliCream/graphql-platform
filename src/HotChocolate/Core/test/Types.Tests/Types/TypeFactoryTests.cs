@@ -44,7 +44,7 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(source, c =>
             {
-                c.Use(next => context => Task.CompletedTask);
+                c.Use(next => context => default(ValueTask));
                 c.Options.QueryTypeName = "Simple";
             });
 

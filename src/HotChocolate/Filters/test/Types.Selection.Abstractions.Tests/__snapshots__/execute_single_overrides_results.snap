@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "foos": {
+      "fakeBar": "aa"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

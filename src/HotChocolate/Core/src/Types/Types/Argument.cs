@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         public IValueNode? DefaultValue { get; private set; }
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ArgumentDefinition definition)
         {
             if (definition.Type == null)

@@ -1,6 +1,4 @@
-using System;
 using HotChocolate.Validation.Options;
-using HotChocolate.Validation.Properties;
 
 namespace HotChocolate.Validation
 {
@@ -18,16 +16,13 @@ namespace HotChocolate.Validation
             _configuration = configuration;
         }
 
-        public IDocumentValidator CreateValidator(string schemaName)
+        public IDocumentValidator CreateValidator(NameString schemaName = default)
         {
-            if (string.IsNullOrEmpty(schemaName))
-            {
-                throw new ArgumentException(
-                    Resources.DefaultDocumentValidatorFactory_Schema_Name_Is_Mandatory,
-                    nameof(schemaName));
-            }
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-            return new DocumentValidator(_contextPool, _configuration.GetRules(schemaName));
+            return new DocumentValidator(
+                _contextPool, 
+                _configuration.GetRules(schemaName));
         }
     }
 }

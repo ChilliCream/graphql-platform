@@ -17,11 +17,6 @@ namespace HotChocolate.Configuration.Bindings
 
         public IComplexTypeFieldBindingBuilder SetMember(MemberInfo member)
         {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
             _bindingInfo.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
             return this;

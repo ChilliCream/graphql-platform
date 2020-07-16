@@ -12,9 +12,9 @@ namespace HotChocolate.Types
         void OnBeforeCreate(Action<T> configure);
 
         INamedDependencyDescriptor OnBeforeNaming(
-            Action<ICompletionContext, T> configure);
+            Action<ITypeCompletionContext, T> configure);
 
         ICompletedDependencyDescriptor OnBeforeCompletion(
-            Action<ICompletionContext, T> configure);
+            Action<ITypeCompletionContext, T> configure);
     }
 }
