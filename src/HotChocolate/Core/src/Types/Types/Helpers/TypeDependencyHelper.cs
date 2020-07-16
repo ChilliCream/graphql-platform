@@ -35,11 +35,22 @@ namespace HotChocolate.Types
             {
                 if (field.Resolver is null)
                 {
-                    context.RegisterResolver(
-                        field.Name,
-                        field.Member,
-                        definition.RuntimeType,
-                        field.ResolverType);
+                    if (field.ResolverMember is { })
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.ResolverMember,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
+                    else if (field.Member is { })
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Member,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
                 }
             }
         }

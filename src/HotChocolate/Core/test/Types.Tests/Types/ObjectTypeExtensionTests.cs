@@ -1,14 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
-using Xunit;
-using Snapshooter.Xunit;
-using System;
 using HotChocolate.Language;
-using System.Linq;
+using HotChocolate.Resolvers;
 using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.Types
 {
@@ -94,7 +94,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Field("description")
                     .Type<StringType>()
-                    .Resolver(resolver)))
+                    .Resolve(resolver)))
                 .Create();
 
             // assert

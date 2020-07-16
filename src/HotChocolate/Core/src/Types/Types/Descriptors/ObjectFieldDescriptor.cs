@@ -42,8 +42,8 @@ namespace HotChocolate.Types.Descriptors
             Type? resolverType)
             : base(context)
         {
-            Definition.Member = member
-                ?? throw new ArgumentNullException(nameof(member));
+            Definition.Member = member ?? 
+                throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
@@ -69,7 +69,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected internal ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             ObjectFieldDefinition definition)
             : base(context)
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        internal protected override ObjectFieldDefinition Definition { get; protected set; } =
+        protected internal override ObjectFieldDefinition Definition { get; protected set; } =
             new ObjectFieldDefinition();
 
         protected override void OnCreateDefinition(
@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType) =>
-            Resolve(fieldResolver,resultType);
+            Resolve(fieldResolver, resultType);
 
         public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver)
@@ -208,7 +208,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor Resolve(
-            FieldResolverDelegate fieldResolver, 
+            FieldResolverDelegate fieldResolver,
             Type resultType)
         {
             if (fieldResolver == null)
