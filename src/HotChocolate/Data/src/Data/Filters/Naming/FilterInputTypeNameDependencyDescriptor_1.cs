@@ -14,10 +14,10 @@ namespace HotChocolate.Data.Filters
             IFilterInputTypeDescriptor<T> descriptor,
             Func<INamedType, NameString> createName)
         {
-            _descriptor = descriptor
-                ?? throw new ArgumentNullException(nameof(descriptor));
-            _createName = createName
-                ?? throw new ArgumentNullException(nameof(createName));
+            _descriptor = descriptor ??
+                throw new ArgumentNullException(nameof(descriptor));
+            _createName = createName ??
+                throw new ArgumentNullException(nameof(createName));
         }
 
         public IFilterInputTypeDescriptor<T> DependsOn<TDependency>()

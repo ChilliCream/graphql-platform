@@ -29,8 +29,8 @@ namespace HotChocolate.Data.Filters
         {
             IFilterConvention? convention = context.GetFilterConvention(scope);
 
-            Definition.Member = member
-                ?? throw new ArgumentNullException(nameof(member));
+            Definition.Member = member ??
+                throw new ArgumentNullException(nameof(member));
 
             Definition.Name = convention.GetFieldName(context, member);
             Definition.Description = convention.GetFieldDescription(context, member);
