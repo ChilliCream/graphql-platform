@@ -157,6 +157,7 @@ namespace HotChocolate.Data.Filters
             type = null;
             return false;
         }
+
         internal static readonly IFilterConvention Default = TemporaryInitializer();
 
         //TODO: Replace with named conventions!

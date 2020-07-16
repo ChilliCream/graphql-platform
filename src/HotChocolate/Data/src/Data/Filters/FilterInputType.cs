@@ -18,8 +18,8 @@ namespace HotChocolate.Data.Filters
 
         public FilterInputType(Action<IFilterInputTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ??
+                throw new ArgumentNullException(nameof(configure));
         }
 
         protected override InputObjectTypeDefinition CreateDefinition(
