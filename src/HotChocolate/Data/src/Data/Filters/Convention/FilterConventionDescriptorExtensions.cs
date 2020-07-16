@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
-    public static class FilterConventionExtensions
+    public static class FilterConventionDescriptorExtensions
     {
         public static IFilterConventionDescriptor UseDefault(
             this IFilterConventionDescriptor descriptor) =>

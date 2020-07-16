@@ -31,8 +31,7 @@ namespace HotChocolate.Data.Filters
 
         public IReadOnlyDictionary<Type, Type> Bindings { get; private set; } = null!;
 
-        public
-            IReadOnlyDictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>> Extensions
+        public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
         { get; private set; } = null!;
 
         protected override FilterConventionDefinition CreateDefinition(
@@ -52,11 +51,14 @@ namespace HotChocolate.Data.Filters
             IConventionContext context,
             FilterConventionDefinition? definition)
         {
-            Operations = definition
-                .Operations
-                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-            Bindings = definition.Bindings;
-            Extensions = definition.Extensions;
+            if (definition is { })
+            {
+                Operations = definition
+                    .Operations
+                    .ToDictionary(x => x.Operation, x => new OperationConvention(x));
+                Bindings = definition.Bindings;
+                Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+            }
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
@@ -171,6 +173,19 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(x => x.UseDefault());
             convention.Initialize(new ConventionContext(null, null));
             return convention;
+        }
+
+        public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
+            TypeReference reference)
+        {
+            if (!Extensions.TryGetValue(
+                reference,
+                out Action<IFilterInputTypeDescriptor>[]? extensions))
+            {
+                extensions = Array.Empty<Action<IFilterInputTypeDescriptor>>();
+            }
+
+            return extensions;
         }
     }
 }
