@@ -82,6 +82,21 @@ namespace HotChocolate.Types.Descriptors
 
         public abstract bool Equals(ITypeReference? other);
 
+        public override bool Equals(object? obj)
+        {
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(obj, this))
+            {
+                return true;
+            }
+
+            return Equals(obj as ITypeReference);
+        }
+
         public override int GetHashCode()
         {
             unchecked
