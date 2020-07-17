@@ -109,6 +109,7 @@ namespace HotChocolate.Data.Filters
                     out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
             {
                 descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
+                Definition.Extensions[typeReference] = descriptorList;
             }
 
             descriptorList.Add(descriptor =>

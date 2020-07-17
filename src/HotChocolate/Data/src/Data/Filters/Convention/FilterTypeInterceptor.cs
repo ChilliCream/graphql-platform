@@ -1,11 +1,6 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using System.Linq;
 using System.Collections.Generic;
-using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -13,7 +8,6 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterTypeInterceptor
         : TypeInterceptor
-        , ITypeScopeInterceptor
     {
         private readonly Dictionary<string, IFilterConvention> _conventions
             = new Dictionary<string, IFilterConvention>();
@@ -38,6 +32,14 @@ namespace HotChocolate.Data.Filters
                     def,
                     def.Scope);
 
+                SchemaTypeReference? typeReference = TypeReference.Create(discoveryContext.Type);
+
+                foreach (Action<IFilterInputTypeDescriptor>? extension in
+                    convention.GetExtensions(typeReference))
+                {
+                    extension.Invoke(descriptor);
+                }
+
                 foreach (InputFieldDefinition field in def.Fields)
                 {
                     if (field.Type.Scope is null)
@@ -58,11 +60,6 @@ namespace HotChocolate.Data.Filters
                 definition.Name;
         }
 
-        public bool TryCreateScope(ITypeDiscoveryContext discoveryContext, [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
-        {
-            throw new NotImplementedException();
-        }
-
         private IFilterConvention GetConvention(
             IDescriptorContext context,
             string? scope)
@@ -77,3 +74,4 @@ namespace HotChocolate.Data.Filters
             return convention;
         }
     }
+}
