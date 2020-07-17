@@ -20,6 +20,10 @@ namespace HotChocolate
         private SchemaTypes _types;
         private Dictionary<NameString, DirectiveType> _directiveTypes;
 
+        /// <summary>
+        /// Gets the schema directives.
+        /// </summary>
+        /// <value></value>
         public IDirectiveCollection Directives { get; private set; }
 
         /// <summary>
