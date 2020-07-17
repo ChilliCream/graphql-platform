@@ -101,7 +101,7 @@ namespace HotChocolate
         /// <c>true</c>, if a .net type was found that was bound
         /// the the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        public bool TryGetClrType(NameString typeName, [NotNullWhen(true)] out Type? clrType) =>
+        public bool TryGetRuntimeType(NameString typeName, [NotNullWhen(true)] out Type? clrType) =>
             _types.TryGetClrType(typeName.EnsureNotEmpty(nameof(typeName)), out clrType);
 
         /// <summary>
