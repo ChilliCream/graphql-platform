@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Introspection
                 .Type<__Type>()
                 .Resolver(ctx =>
                 {
-                    string name = ctx.Argument<string>("name");
+                    string name = ctx.ArgumentValue<string>("name");
                     if (ctx.Schema.TryGetType(name, out INamedType type))
                     {
                         return type;

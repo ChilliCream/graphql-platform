@@ -1141,7 +1141,7 @@ namespace HotChocolate.Types
                 descriptor.Field("foo")
                     .Argument("a", a => a.Type<FooInputType>())
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.Argument<Foo>("a").Bar.Text);
+                    .Resolver(ctx => ctx.ArgumentValue<Foo>("a").Bar.Text);
             }
         }
 

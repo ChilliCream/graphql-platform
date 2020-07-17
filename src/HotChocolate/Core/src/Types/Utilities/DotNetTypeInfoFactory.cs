@@ -185,14 +185,6 @@ namespace HotChocolate.Utilities
                         return true;
                     }
                 }
-                else if (IsNullableType(component))
-                {
-                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
-                    {
-                        bluePrint = innerType;
-                        return true;
-                    }
-                }
                 else if (IsListType(component))
                 {
                     if (TryCreateBluePrint(components, index + 1, out IType innerType))

@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         internal ObjectField(ObjectFieldDefinition definition)
             : base(definition)
         {
-            Member = definition.Member;
+            Member = definition.Member ?? definition.ResolverMember;
             Middleware = _empty;
             Resolver = definition.Resolver!;
             SubscribeResolver = definition.SubscribeResolver;
@@ -133,7 +133,7 @@ namespace HotChocolate.Types
 
             if (Resolver == null && Middleware == null)
             {
-                if (_executableDirectives.Any())
+                if (_executableDirectives.Count > 0)
                 {
                     Middleware = ctx => default(ValueTask);
                 }
