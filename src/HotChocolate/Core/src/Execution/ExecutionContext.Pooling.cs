@@ -41,7 +41,10 @@ namespace HotChocolate.Execution
                         _completed.Cancel();
                     }
                 }
-                catch { }
+                catch
+                {
+                    // ignore if we could not cancel the completed task source.
+                }
             }
         }
 
