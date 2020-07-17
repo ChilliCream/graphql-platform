@@ -3,7 +3,7 @@ module.exports = {
     title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
-    siteUrl: `https://chillicream.com`,
+    siteUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -33,7 +33,7 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
+  pathPrefix: `/hotchocolate`, // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
@@ -158,5 +158,66 @@ module.exports = {
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,
+    {
+      resolve: `gatsby-plugin-feed`,
+      options: {
+        query: `
+          {
+            site {
+              siteMetadata {
+                title
+                description
+                siteUrl
+                site_url: siteUrl
+              }
+              pathPrefix
+            }
+          }
+        `,
+        feeds: [
+          {
+            serialize: ({ query: { site, allMarkdownRemark } }) => {
+              return allMarkdownRemark.edges.map((edge) => {
+                const url =
+                  site.siteMetadata.siteUrl +
+                  site.pathPrefix +
+                  edge.node.frontmatter.path;
+                return Object.assign({}, edge.node.frontmatter, {
+                  description: edge.node.excerpt,
+                  date: edge.node.frontmatter.date,
+                  url,
+                  guid: url,
+                  custom_elements: [{ "content:encoded": edge.node.html }],
+                });
+              });
+            },
+            query: `
+              {
+                allMarkdownRemark(
+                  limit: 10
+                  filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
+                  sort: { order: DESC, fields: [frontmatter___date] },
+                ) {
+                  edges {
+                    node {
+                      excerpt
+                      html
+                      fields { slug }
+                      frontmatter {
+                        title
+                        date
+                        path
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+            output: `/rss.xml`,
+            title: `ChilliCream Blog`,
+          },
+        ],
+      },
+    },
   ],
 };
