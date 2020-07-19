@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Data.Filters;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -15,23 +12,33 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             // act
+            var convention = new FilterConvention(
+                x => x.UseDefault()
+                    .Extension<StringOperationInput>(
+                        y => y.Operation(Operations.Like))
+                    .Operation(Operations.Like).Name("like"));
+
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<IFilterConvention>(
-                    new FilterConvention(
-                        x => x.UseDefault()
-                            .Extension<StringOperationInput>(
-                                y => y.Operation(Operations.Like))
-                            .Operation(Operations.Like).Name("like")))
+                .AddConvention<IFilterConvention>(convention)
                 .AddQueryType(c =>
                     c.Name("Query")
                         .Field("foo")
                         .Type<StringType>()
-                        .Resolver("bar"));
+                        .Resolver("bar")
+                        .Argument("test", x => x.Type<TestFilter>()));
 
             ISchema? schema = builder.Create();
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        public class TestFilter : FilterInputType
+        {
+            protected override void Configure(IFilterInputTypeDescriptor descriptor)
+            {
+                descriptor.Field("test").Type<StringOperationInput>();
+            }
         }
     }
 }

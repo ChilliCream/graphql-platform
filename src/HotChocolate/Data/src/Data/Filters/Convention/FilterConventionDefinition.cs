@@ -13,7 +13,8 @@ namespace HotChocolate.Data.Filters
         public Dictionary<Type, Type> Bindings { get; set; } = new Dictionary<Type, Type>();
 
         public Dictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>> Extensions
-        { get; private set; } = null!;
+        { get; private set; } =
+        new Dictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>>();
 
         public string? Scope { get; set; }
     }
