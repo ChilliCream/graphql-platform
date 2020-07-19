@@ -9,6 +9,25 @@ namespace HotChocolate
         public static ISchemaBuilder AddConvention(
             this ISchemaBuilder builder,
             Type convention,
+            CreateConvention conventionFactory)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            return builder.AddConvention(
+                ConventionBase.DefaultScope, convention, conventionFactory);
+        }
+
+        public static ISchemaBuilder AddConvention(
+            this ISchemaBuilder builder,
+            Type convention,
             IConvention concreteConvention)
         {
             if (builder is null)
@@ -50,7 +69,7 @@ namespace HotChocolate
             {
                 throw new ArgumentNullException(nameof(convention));
             }
-            
+
             if (concreteConvention is null)
             {
                 throw new ArgumentNullException(nameof(concreteConvention));
@@ -71,7 +90,7 @@ namespace HotChocolate
             }
 
             return builder.AddConvention(
-                convention, 
+                convention,
                 s => (IConvention)s.GetService(concreteConvention));
         }
 

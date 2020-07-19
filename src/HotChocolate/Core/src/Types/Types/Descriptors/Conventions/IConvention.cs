@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace HotChocolate.Types.Descriptors
 {
     /// <summary>
@@ -10,5 +6,6 @@ namespace HotChocolate.Types.Descriptors
     /// </summary>
     public interface IConvention
     {
+        void Initialize(IConventionContext context);
     }
 }

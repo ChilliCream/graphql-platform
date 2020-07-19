@@ -19,7 +19,7 @@ namespace HotChocolate
         {
             IServiceProvider services = _services ?? new EmptyServiceProvider();
 
-            var descriptorContext = DescriptorContext.Create(
+            DescriptorContext descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
                 CreateConventions(services),
@@ -364,17 +364,24 @@ namespace HotChocolate
             return list;
         }
 
-        private IReadOnlyDictionary<Type, IConvention> CreateConventions(
-            IServiceProvider services)
+        private Dictionary<string, IReadOnlyDictionary<Type, IConvention>>
+            CreateConventions(IServiceProvider services)
         {
             var serviceFactory = new ServiceFactory { Services = services };
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
 
-            foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
+            foreach (KeyValuePair<string, Dictionary<Type, CreateConvention>> scope in _conventions)
             {
-                conventions.Add(item.Key, item.Value(serviceFactory));
-            }
+                var conventionScope = new Dictionary<Type, IConvention>();
+                var conventionContext = new ConventionContext(scope.Key, services);
 
+                foreach (KeyValuePair<Type, CreateConvention> conventionConfig in scope.Value)
+                {
+                    IConvention convention = conventionConfig.Value(serviceFactory);
+                    convention.Initialize(conventionContext);
+                    conventionScope.Add(conventionConfig.Key, convention);
+                }
+            }
             return conventions;
         }
     }

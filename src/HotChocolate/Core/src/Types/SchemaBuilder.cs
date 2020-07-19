@@ -28,12 +28,12 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<Type, CreateConvention> _conventions =
-            new Dictionary<Type, CreateConvention>();
+        private readonly Dictionary<string, Dictionary<Type, CreateConvention>> _conventions =
+            new Dictionary<string, Dictionary<Type, CreateConvention>>();
         private readonly Dictionary<ClrTypeReference, ITypeReference> _clrTypes =
             new Dictionary<ClrTypeReference, ITypeReference>();
         private readonly List<object> _interceptors = new List<object>();
-        private readonly List<Action<IDescriptorContext>> _onBeforeCreate = 
+        private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
             new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
@@ -156,8 +156,10 @@ namespace HotChocolate
             return this;
         }
 
-
-        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
+        public ISchemaBuilder AddConvention(
+            string scope,
+            Type convention,
+            CreateConvention factory)
         {
             if (convention is null)
             {
@@ -169,7 +171,15 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            _conventions[convention] = factory;
+            if (!_conventions.TryGetValue(
+                scope,
+                out Dictionary<Type, CreateConvention> conventionScopes))
+            {
+                conventionScopes = new Dictionary<Type, CreateConvention>();
+                _conventions[scope] = conventionScopes;
+            }
+
+            conventionScopes[convention] = factory;
             return this;
         }
 

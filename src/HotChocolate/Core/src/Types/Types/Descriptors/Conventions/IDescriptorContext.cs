@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 
@@ -41,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns the convention.
         /// </returns>
-        T GetConventionOrDefault<T>(T defaultConvention)
+        T GetConventionOrDefault<T>(string? scope, Func<T> defaultConvention)
             where T : class, IConvention;
     }
 }
