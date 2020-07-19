@@ -99,8 +99,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Tests.Do
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types.Tests", "Core\test\Types.Tests\HotChocolate.Types.Tests.csproj", "{F64F24D9-9B7F-4C3E-835C-C1A70F2EACEA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.Tests", "Core\test\Subscriptions.Tests\HotChocolate.Subscriptions.Tests.csproj", "{5DD7168D-3416-4029-9A8C-A38F18C28328}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.Redis.Tests", "Core\test\Subscriptions.Redis.Tests\HotChocolate.Subscriptions.Redis.Tests.csproj", "{15422F4D-9BC9-48B4-8CB4-FABD57F677E9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.StarWars", "Core\test\StarWars\HotChocolate.StarWars.csproj", "{A04FF129-3EC3-4312-8065-B59E102D110E}"
@@ -159,14 +157,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{0210F800-6
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{60917FE2-8D1D-449D-A871-51A1946618C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data", "Data\src\Data\HotChocolate.Data.csproj", "{CFCB9610-226D-4B8C-B023-6D7F9D7FCDCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data", "Data\src\Data\HotChocolate.Data.csproj", "{CFCB9610-226D-4B8C-B023-6D7F9D7FCDCB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{AFD4BDC3-9546-4F74-98E9-0F5EB3A0AADE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Tests", "Data\test\Data.Tests\HotChocolate.Data.Tests.csproj", "{82EB23DB-3A99-4815-8C43-3C69FB89B215}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Tests", "Data\test\Data.Tests\HotChocolate.Data.Tests.csproj", "{82EB23DB-3A99-4815-8C43-3C69FB89B215}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Fetching", "Core\src\Fetching\HotChocolate.Fetching.csproj", "{FD0A9F75-75F8-42E9-99CC-2025017B74B6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fetching.Tests", "Core\test\Fetching.Tests\HotChocolate.Fetching.Tests.csproj", "{8F8FA5FD-E507-4CBC-A5AE-B3E7546F56E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Fetching.Tests", "Core\test\Fetching.Tests\HotChocolate.Fetching.Tests.csproj", "{8F8FA5FD-E507-4CBC-A5AE-B3E7546F56E1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution.Tests", "Core\test\Execution.Tests\HotChocolate.Execution.Tests.csproj", "{6BDC3857-07FD-436F-926E-B778CCFB7743}"
 EndProject
@@ -468,18 +467,6 @@ Global
 		{F64F24D9-9B7F-4C3E-835C-C1A70F2EACEA}.Release|x64.Build.0 = Release|Any CPU
 		{F64F24D9-9B7F-4C3E-835C-C1A70F2EACEA}.Release|x86.ActiveCfg = Release|Any CPU
 		{F64F24D9-9B7F-4C3E-835C-C1A70F2EACEA}.Release|x86.Build.0 = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|x64.Build.0 = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Debug|x86.Build.0 = Debug|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|x64.ActiveCfg = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|x64.Build.0 = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|x86.ActiveCfg = Release|Any CPU
-		{5DD7168D-3416-4029-9A8C-A38F18C28328}.Release|x86.Build.0 = Release|Any CPU
 		{15422F4D-9BC9-48B4-8CB4-FABD57F677E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{15422F4D-9BC9-48B4-8CB4-FABD57F677E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15422F4D-9BC9-48B4-8CB4-FABD57F677E9}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -909,7 +896,6 @@ Global
 		{3EF99FC1-9AB9-49F4-884D-E6887FD4B8D1} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
 		{2C770855-BD94-41FC-9C91-2D74BA5C94EB} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
 		{F64F24D9-9B7F-4C3E-835C-C1A70F2EACEA} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
-		{5DD7168D-3416-4029-9A8C-A38F18C28328} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
 		{15422F4D-9BC9-48B4-8CB4-FABD57F677E9} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
 		{A04FF129-3EC3-4312-8065-B59E102D110E} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
 		{99BD3A51-0C14-483F-AE76-99D65FD17687} = {D01D9A55-C249-4246-880F-6FF45E8EF979}
