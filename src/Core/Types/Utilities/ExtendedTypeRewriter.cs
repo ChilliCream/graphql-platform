@@ -22,7 +22,7 @@ namespace HotChocolate.Utilities
                 {
                     bool makeNullable = current.IsNullable;
 
-                    if (nullable.Length < i)
+                    if (nullable.Length > i)
                     {
                         Nullable value = nullable[i++];
                         if (value != Nullable.Undefined)
@@ -98,7 +98,6 @@ namespace HotChocolate.Utilities
         {
             return typeof(List<>).MakeGenericType(elementType);
         }
-
 
         private static Type MakeNonNullType(Type nullableType)
         {

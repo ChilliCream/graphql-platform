@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ClrTypeReference(
             Type type, TypeContext context,
-            bool? isTypeNullable, bool? isElementTypeNullable)
+            bool? isTypeNullable = null, bool? isElementTypeNullable = null)
             : base(context, isTypeNullable, isElementTypeNullable)
         {
             if (type == null)
@@ -35,11 +35,22 @@ namespace HotChocolate.Types.Descriptors
         {
             if (IsTypeNullable.HasValue || IsElementTypeNullable.HasValue)
             {
-                Type rewritten = DotNetTypeInfoFactory.Rewrite(
-                    Type,
-                    !(IsTypeNullable ?? false),
-                    !(IsElementTypeNullable ?? false));
-                return new ClrTypeReference(rewritten, Context);
+                var nullable = new Utilities.Nullable[2];
+
+
+                nullable[0] = IsTypeNullable.HasValue
+                    ? (IsTypeNullable.Value ? Utilities.Nullable.Yes : Utilities.Nullable.No)
+                    : Utilities.Nullable.Undefined;
+
+                nullable[1] = IsElementTypeNullable.HasValue 
+                    ? (IsElementTypeNullable.Value ? Utilities.Nullable.Yes : Utilities.Nullable.No)
+                    : Utilities.Nullable.Undefined;
+
+
+                ExtendedType extendedType = ExtendedType.FromType(Type);
+                return new ClrTypeReference(
+                    ExtendedTypeRewriter.Rewrite(extendedType, nullable),
+                    Context);
             }
             return this;
         }

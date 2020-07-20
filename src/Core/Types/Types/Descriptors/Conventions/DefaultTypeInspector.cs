@@ -1,11 +1,12 @@
-using System.Reflection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.Utilities;
-using HotChocolate.Properties;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -94,6 +95,14 @@ namespace HotChocolate.Types.Descriptors
                     context,
                     attribute.IsNullable,
                     attribute.IsElementNullable)
+                    .Compile();
+            }
+            else if (member.IsDefined(typeof(RequiredAttribute)))
+            {
+                return new ClrTypeReference(
+                    returnType,
+                    context,
+                    true)
                     .Compile();
             }
 
