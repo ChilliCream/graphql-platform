@@ -119,6 +119,7 @@ namespace HotChocolate.Utilities
                 || TryCreateConverterFromFactory(from, to, out converter)
                 || TryCreateListTypeConverter(from, to, out converter)
                 || TryCreateNullableConverter(from, to, out converter)
+                || TryCreateOptionalConverter(from, to, out converter)
                 || TryCreateEnumConverter(from, to, out converter))
             {
                 return true;
