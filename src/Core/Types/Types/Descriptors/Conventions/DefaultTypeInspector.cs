@@ -85,8 +85,7 @@ namespace HotChocolate.Types.Descriptors
                 var attribute = member.GetCustomAttribute<GraphQLTypeAttribute>();
                 returnType = attribute.Type;
             }
-
-            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            else if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
                 var attribute = member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
@@ -144,8 +143,7 @@ namespace HotChocolate.Types.Descriptors
                     parameter.GetCustomAttribute<GraphQLTypeAttribute>();
                 argumentType = attribute.Type;
             }
-
-            if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            else if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
                 GraphQLNonNullTypeAttribute attribute =
                     parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
@@ -155,6 +153,14 @@ namespace HotChocolate.Types.Descriptors
                     TypeContext.Input,
                     attribute.IsNullable,
                     attribute.IsElementNullable)
+                    .Compile();
+            }
+            else if (parameter.IsDefined(typeof(RequiredAttribute)))
+            {
+                return new ClrTypeReference(
+                    argumentType,
+                    TypeContext.Input,
+                    true)
                     .Compile();
             }
 
