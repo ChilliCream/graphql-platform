@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace HotChocolate.Types.Descriptors
@@ -38,21 +37,14 @@ namespace HotChocolate.Types.Descriptors
                 typeReference.IsElementTypeNullable);
         }
 
-        [InlineData(typeof(int?[]), false, true,
-            typeof(NonNullType<NativeType<List<int?>>>))]
-        [InlineData(typeof(int?[]), true, null,
-            typeof(List<NonNullType<NativeType<int>>>))]
-        [InlineData(typeof(int?[]), false, false,
-            typeof(NonNullType<NativeType<List<NonNullType<NativeType<int>>>>>)
-            )]
-        [InlineData(typeof(int), false, true,
-            typeof(NonNullType<NativeType<int>>))]
-        [InlineData(typeof(int), false, false,
-            typeof(NonNullType<NativeType<int>>))]
-        [InlineData(typeof(int[]), false, true,
-            typeof(NonNullType<NativeType<List<int?>>>))]
-        [InlineData(typeof(int[]), true, false,
-            typeof(List<NonNullType<NativeType<int>>>))]
+        [InlineData(typeof(int?[]), false, true, typeof(NonNullType<NativeType<int?[]>>))]
+        [InlineData(typeof(int?[]), true, null, typeof(int?[]))]
+        [InlineData(typeof(int?[]), false, false, typeof(NonNullType<NativeType<int[]>>))]
+        [InlineData(typeof(int), false, true, typeof(int))]
+        [InlineData(typeof(int), true, true, typeof(int?))]
+        [InlineData(typeof(int), false, false, typeof(int))]
+        [InlineData(typeof(int[]), false, true, typeof(NonNullType<NativeType<int?[]>>))]
+        [InlineData(typeof(int[]), true, false, typeof(int[]))]
         [Theory]
         public void ClrTypeReference_RewriteType(
             Type clrType,
