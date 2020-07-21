@@ -9,9 +9,9 @@ namespace HotChocolate.Utilities
     public sealed class DictionaryToObjectConverter
         : DictionaryVisitor<ConverterContext>
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public DictionaryToObjectConverter(ITypeConversion converter)
+        public DictionaryToObjectConverter(ITypeConverter converter)
         {
             _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }

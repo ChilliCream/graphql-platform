@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
-using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.CodeGeneration

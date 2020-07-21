@@ -21,14 +21,9 @@ namespace HotChocolate.Execution
         IServiceProvider Services { get; }
 
         /// <summary>
-        /// Gets the internal activator that is used to create instances of objects.
+        /// Gets the schema level service provider.
         /// </summary>
-        IActivator Activator { get; }
-
-        /// <summary>
-        /// Gets the error handler.
-        /// </summary>
-        IErrorHandler ErrorHandler { get; }
+        IServiceProvider SchemaServices { get; }
 
         /// <summary>
         /// Gets the executor options.

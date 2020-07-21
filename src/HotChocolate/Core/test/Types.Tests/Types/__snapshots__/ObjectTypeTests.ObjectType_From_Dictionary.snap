@@ -3,7 +3,7 @@
 }
 
 type Bar {
-  baz: [String]!
+  baz: String!
 }
 
 type FooWithDict {

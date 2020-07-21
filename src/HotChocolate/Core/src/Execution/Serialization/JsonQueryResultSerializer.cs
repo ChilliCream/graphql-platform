@@ -128,7 +128,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location> locations)
+        private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
         {
             if (locations is { } && locations.Count > 0)
             {
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object> path)
+        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object>? path)
         {
             if (path is { } && path.Count > 0)
             {

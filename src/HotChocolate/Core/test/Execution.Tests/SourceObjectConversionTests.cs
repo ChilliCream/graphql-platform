@@ -15,17 +15,15 @@ namespace HotChocolate.Execution
         {
             // arrange
             bool conversionTriggered = false;
-            var conversion = new TypeConversion();
-            conversion.Register<Foo, Baz>(source =>
-            {
-                conversionTriggered = true;
-                return new Baz { Qux = source.Bar };
-            });
 
             var executor = new ServiceCollection()
-                .AddSingleton<ITypeConversion>(conversion)
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
+                .AddTypeConverter<Foo, Baz>(input => 
+                {
+                    conversionTriggered = true;
+                    return new Baz { Qux = input.Bar };
+                })
                 .Services
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()

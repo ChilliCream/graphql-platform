@@ -11,7 +11,7 @@ namespace HotChocolate.Utilities.Serialization
 {
     internal delegate object InputObjectFactory(
         IReadOnlyDictionary<string, object> fields,
-        ITypeConversion converter);
+        ITypeConverter converter);
 
     internal static class InputObjectFactoryCompiler
     {
@@ -32,7 +32,7 @@ namespace HotChocolate.Utilities.Serialization
             ParameterExpression data =
                 Expression.Parameter(typeof(IReadOnlyDictionary<string, object>));
             ParameterExpression converter =
-                Expression.Parameter(typeof(ITypeConversion));
+                Expression.Parameter(typeof(ITypeConverter));
 
             ParameterExpression variable = Expression.Variable(inputType.RuntimeType, "obj");
 
@@ -157,7 +157,7 @@ namespace HotChocolate.Utilities.Serialization
         private static Optional<T> CreateOptionalValue<T>(
             IReadOnlyDictionary<string, object> values,
             string fieldName,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             if (values.TryGetValue(fieldName, out object? o))
             {
@@ -169,7 +169,7 @@ namespace HotChocolate.Utilities.Serialization
         private static T CreateValue<T>(
             IReadOnlyDictionary<string, object> values,
             string fieldName,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             if (values.TryGetValue(fieldName, out object? o))
             {

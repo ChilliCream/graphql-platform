@@ -60,7 +60,7 @@ namespace HotChocolate.Resolvers
                     .Type<StringType>()
                     .Resolver(ctx =>
                     {
-                        string name = ctx.Argument<string>("name");
+                        string name = ctx.ArgumentValue<string>("name");
                         if (name == null)
                         {
                             return null;

@@ -200,7 +200,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            ITypeConversion converter = context.Services.GetTypeConversion();
+            ITypeConverter converter = context.Services.GetTypeConverter();
 
             _objectToValueConverter =
                 new InputObjectToObjectValueConverter(converter);

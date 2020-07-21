@@ -71,7 +71,7 @@ namespace HotChocolate.Execution.Utilities
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new ObjectFieldNode[node.Fields.Count];
-                        for (int j = 0; j < i; i++)
+                        for (int j = 0; j < i; j++)
                         {
                             rewrittenItems[j] = node.Fields[j];
                         }
@@ -131,7 +131,7 @@ namespace HotChocolate.Execution.Utilities
                     if (rewrittenItems is null)
                     {
                         rewrittenItems = new IValueNode[node.Items.Count];
-                        for (int j = 0; j < i; i++)
+                        for (int j = 0; j < i; j++)
                         {
                             rewrittenItems[j] = node.Items[j];
                         }

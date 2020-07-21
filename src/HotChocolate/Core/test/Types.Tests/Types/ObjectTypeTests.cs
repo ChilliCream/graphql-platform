@@ -1523,11 +1523,11 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            #if NETCOREAPP2_1
+#if NETCOREAPP2_1
             schema.ToString().MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-            #else
+#else
             schema.ToString().MatchSnapshot();
-            #endif
+#endif
         }
 
         [Fact]
@@ -1725,6 +1725,17 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void ResolveWith()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<ResolveWithQueryType>()
+                .Create()
+                .MakeExecutable()
+                .Execute("{ foo baz }")
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1906,6 +1917,25 @@ namespace HotChocolate.Types
                         new FooIgnore()
                     }
                 };
+        }
+
+        public class ResolveWithQuery
+        {
+            public int Foo { get; set; } = 123;
+        }
+
+        public class ResolveWithQueryResolver
+        {
+            public string Bar { get; set; } = "Bar";
+        }
+
+        public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
+        {
+            protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
+            {
+                descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
+                descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
+            }
         }
 
         public class AnnotatedNestedList

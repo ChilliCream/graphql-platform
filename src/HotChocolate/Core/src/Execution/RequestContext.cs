@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
             ISchema schema,
             IServiceProvider services,
             IErrorHandler errorHandler,
-            ITypeConversion converter,
+            ITypeConverter converter,
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
             IReadOnlyQueryRequest request)
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
 
         public IErrorHandler ErrorHandler { get; }
 
-        public ITypeConversion Converter { get; }
+        public ITypeConverter Converter { get; }
 
         public IActivator Activator { get; }
 

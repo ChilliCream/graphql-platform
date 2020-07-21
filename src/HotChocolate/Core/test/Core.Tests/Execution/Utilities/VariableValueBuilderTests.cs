@@ -668,7 +668,7 @@ namespace HotChocolate.Execution
                 builder => builder.AddQueryType(d => d
                     .Field("foo")
                     .Argument("bar", a => a.Type<SomeInputType>())
-                    .Resolver(ctx => ctx.Argument<SomeInput>("bar").Property)
+                    .Resolver(ctx => ctx.ArgumentValue<SomeInput>("bar").Property)
                     .Type<StringType>()),
                 @"
                     query($bar: SomeInput!) {
@@ -688,7 +688,7 @@ namespace HotChocolate.Execution
                 builder => builder.AddQueryType(d => d
                     .Field("foo")
                     .Argument("bar", a => a.Type<SomeInputType>())
-                    .Resolver(ctx => ctx.Argument<ISomeInput>("bar").Property)
+                    .Resolver(ctx => ctx.ArgumentValue<ISomeInput>("bar").Property)
                     .Type<StringType>()),
                 @"
                     query($bar: SomeInput!) {

@@ -12,6 +12,11 @@ namespace HotChocolate.Utilities
 
         public object? CreateInstance(Type type)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             try
             {
                 return ActivatorHelper.CompileFactory(type).Invoke(Services ?? _empty);
