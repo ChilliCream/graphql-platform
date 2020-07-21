@@ -41,9 +41,9 @@ namespace HotChocolate.Data.Filters
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
-            if (Definition.Property is { })
+            if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+                Context.Inspector.ApplyAttributes(Context, this, Definition.Member);
             }
 
             base.OnCreateDefinition(definition);
