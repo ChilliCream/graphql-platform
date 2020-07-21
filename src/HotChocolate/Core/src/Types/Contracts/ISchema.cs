@@ -78,15 +78,15 @@ namespace HotChocolate
             where T : INamedType;
 
         /// <summary>
-        /// Tries to get the .net type representation of a schema.
+        /// Tries to get the .net type representation of a schema type.
         /// </summary>
         /// <param name="typeName">The name of the type.</param>
-        /// <param name="clrType">The resolved .net type.</param>
+        /// <param name="runtimeType">The resolved .net type.</param>
         /// <returns>
         /// <c>true</c>, if a .net type was found that was bound
         /// the specified schema type, <c>false</c> otherwise.
         /// </returns>
-        bool TryGetClrType(NameString typeName, [NotNullWhen(true)]out Type? clrType);
+        bool TryGetRuntimeType(NameString typeName, [NotNullWhen(true)]out Type? runtimeType);
 
         /// <summary>
         /// Gets the possible object types to

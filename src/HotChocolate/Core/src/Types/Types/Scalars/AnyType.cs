@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -13,7 +14,7 @@ namespace HotChocolate.Types
         private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter =
             new ObjectValueToDictionaryConverter();
         private ObjectToDictionaryConverter _objectToDictConverter;
-        private ITypeConversion _converter;
+        private ITypeConverter _converter;
 
         public AnyType()
             : base(ScalarNames.Any, BindingBehavior.Explicit)
@@ -37,7 +38,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             IDictionary<string, object> contextData)
         {
-            _converter = context.Services.GetTypeConversion();
+            _converter = context.Services.GetTypeConverter();
             _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
             base.OnCompleteType(context, contextData);
         }
@@ -73,10 +74,10 @@ namespace HotChocolate.Types
                     return svn.Value;
 
                 case IntValueNode ivn:
-                    return long.Parse(ivn.Value);
+                    return long.Parse(ivn.Value, CultureInfo.InvariantCulture);
 
                 case FloatValueNode fvn:
-                    return decimal.Parse(fvn.Value);
+                    return decimal.Parse(fvn.Value, CultureInfo.InvariantCulture);
 
                 case BooleanValueNode bvn:
                     return bvn.Value;

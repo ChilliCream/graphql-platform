@@ -25,27 +25,19 @@ namespace HotChocolate.Execution
         private readonly ConcurrentDictionary<string, IRequestExecutor> _executors =
             new ConcurrentDictionary<string, IRequestExecutor>();
         private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
-        private readonly IServiceProvider _serviceProvider;
-        private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly ITypeConversion _typeConversion;
+        private readonly IServiceProvider _applicationServices;
         private bool _disposed;
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
         public RequestExecutorResolver(
             IOptionsMonitor<RequestExecutorFactoryOptions> optionsMonitor,
-            IServiceProvider serviceProvider,
-            IDiagnosticEvents diagnosticEvents,
-            ITypeConversion typeConversion)
+            IServiceProvider serviceProvider)
         {
             _optionsMonitor = optionsMonitor ??
                 throw new ArgumentNullException(nameof(optionsMonitor));
-            _serviceProvider = serviceProvider ??
+            _applicationServices = serviceProvider ??
                 throw new ArgumentNullException(nameof(serviceProvider));
-            _diagnosticEvents = diagnosticEvents ??
-                throw new ArgumentNullException(nameof(diagnosticEvents));
-            _typeConversion = typeConversion ??
-                throw new ArgumentNullException(nameof(typeConversion));
             _optionsMonitor.OnChange((options, name) => EvictRequestExecutor(name));
         }
 
@@ -63,9 +55,16 @@ namespace HotChocolate.Execution
                 {
                     if (!_executors.TryGetValue(schemaName, out executor))
                     {
-                        executor = await CreateRequestExecutorAsync(schemaName, cancellationToken)
-                            .ConfigureAwait(false);
-                        _diagnosticEvents.ExecutorCreated(schemaName, executor);
+                        IServiceProvider schemaServices =
+                            await CreateSchemaServicesAsync(schemaName, cancellationToken)
+                                .ConfigureAwait(false);
+
+                        executor = schemaServices
+                            .GetRequiredService<RequestExecutor>();
+
+                        schemaServices
+                            .GetRequiredService<IDiagnosticEvents>()
+                            .ExecutorCreated(schemaName, executor);
                     }
                 }
                 finally
@@ -83,37 +82,96 @@ namespace HotChocolate.Execution
 
             if (_executors.TryRemove(schemaName, out IRequestExecutor? executor))
             {
-                _diagnosticEvents.ExecutorEvicted(schemaName, executor);
+                executor.Services
+                    .GetRequiredService<IDiagnosticEvents>()
+                    .ExecutorEvicted(schemaName, executor);
+
                 RequestExecutorEvicted?.Invoke(
                     this,
                     new RequestExecutorEvictedEventArgs(schemaName, executor));
             }
         }
 
-        private async Task<IRequestExecutor> CreateRequestExecutorAsync(
+        private async Task<IServiceProvider> CreateSchemaServicesAsync(
             NameString schemaName,
             CancellationToken cancellationToken = default)
         {
             RequestExecutorFactoryOptions options = _optionsMonitor.Get(schemaName);
 
-            ISchema schema = await CreateSchemaAsync(schemaName, options, cancellationToken);
+            ISchema schema =
+                await CreateSchemaAsync(schemaName, options, cancellationToken)
+                    .ConfigureAwait(false);
 
             RequestExecutorOptions executorOptions =
-                await CreateExecutorOptionsAsync(options, cancellationToken);
-            IEnumerable<IErrorFilter> errorFilters = CreateErrorFilters(options, executorOptions);
-            IErrorHandler errorHandler = new DefaultErrorHandler(errorFilters, executorOptions);
-            IActivator activator = new DefaultActivator(_serviceProvider);
-            RequestDelegate pipeline =
-                CreatePipeline(schemaName, options.Pipeline, activator, errorHandler, executorOptions);
+                await CreateExecutorOptionsAsync(options, cancellationToken)
+                    .ConfigureAwait(false);
 
-            return new RequestExecutor(
-                schema,
-                _serviceProvider,
-                errorHandler,
-                _typeConversion,
-                activator,
-                _diagnosticEvents,
-                pipeline);
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddSingleton<IApplicationServiceProvider>(
+                s => new DefaultApplicationServiceProvider(_applicationServices));
+
+            serviceCollection.AddSingleton<ISchema>(schema);
+
+            serviceCollection.AddSingleton<RequestExecutorOptions>(executorOptions);
+            serviceCollection.AddSingleton<IRequestExecutorOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorOptions>());
+            serviceCollection.AddSingleton<IInstrumentationOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorOptions>());
+            serviceCollection.AddSingleton<IErrorHandlerOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorOptions>());
+            serviceCollection.AddSingleton<IDocumentCacheSizeOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorOptions>());
+            serviceCollection.AddSingleton<IRequestTimeoutOptionsAccessor>(
+                s => s.GetRequiredService<RequestExecutorOptions>());
+
+            serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
+
+            serviceCollection.TryAddDiagnosticEvents();
+            serviceCollection.TryAddOperationExecutors();
+            serviceCollection.TryAddTimespanProvider();
+
+            // register global error filters
+            foreach (IErrorFilter errorFilter in _applicationServices.GetServices<IErrorFilter>())
+            {
+                serviceCollection.AddSingleton<IErrorFilter>(errorFilter);
+            }
+
+            // register global diagnostic listener
+            foreach (IDiagnosticEventListener diagnosticEventListener in
+                _applicationServices.GetServices<IDiagnosticEventListener>())
+            {
+                serviceCollection.AddSingleton<IDiagnosticEventListener>(diagnosticEventListener);
+            }
+
+            serviceCollection.AddSingleton<IActivator>(
+                sp => new DefaultActivator(_applicationServices));
+
+            serviceCollection.AddSingleton<RequestDelegate>(
+                sp => CreatePipeline(
+                    schemaName,
+                    options.Pipeline,
+                    sp,
+                    sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
+
+            serviceCollection.AddSingleton<RequestExecutor>(
+                sp => new RequestExecutor(
+                    sp.GetRequiredService<ISchema>(),
+                    _applicationServices,
+                    sp,
+                    sp.GetRequiredService<IErrorHandler>(),
+                    _applicationServices.GetRequiredService<ITypeConverter>(),
+                    sp.GetRequiredService<IActivator>(),
+                    sp.GetRequiredService<IDiagnosticEvents>(),
+                    sp.GetRequiredService<RequestDelegate>())
+            );
+
+            foreach (Action<IServiceCollection> configureServices in options.SchemaServices)
+            {
+                configureServices(serviceCollection);
+            }
+
+            return serviceCollection.BuildServiceProvider();
         }
 
         private async ValueTask<ISchema> CreateSchemaAsync(
@@ -142,7 +200,9 @@ namespace HotChocolate.Execution
                 }
             }
 
-            schemaBuilder.AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
+            schemaBuilder
+                .AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
+                .AddServices(_applicationServices);
 
             ISchema schema = schemaBuilder.Create();
             AssertSchemaNameValid(schema, schemaName);
@@ -184,9 +244,8 @@ namespace HotChocolate.Execution
         private RequestDelegate CreatePipeline(
             NameString schemaName,
             IList<RequestCoreMiddleware> pipeline,
-            IActivator activator,
-            IErrorHandler errorHandler,
-            RequestExecutorOptions executorOptions)
+            IServiceProvider schemaServices,
+            IRequestExecutorOptionsAccessor options)
         {
             if (pipeline.Count == 0)
             {
@@ -194,7 +253,7 @@ namespace HotChocolate.Execution
             }
 
             var factoryContext = new RequestCoreMiddlewareContext(
-                schemaName, _serviceProvider, activator, errorHandler, executorOptions);
+                schemaName, _applicationServices, schemaServices, options);
 
             RequestDelegate next = context =>
             {
@@ -207,21 +266,6 @@ namespace HotChocolate.Execution
             }
 
             return next;
-        }
-
-        private IEnumerable<IErrorFilter> CreateErrorFilters(
-            RequestExecutorFactoryOptions options,
-            RequestExecutorOptions executorOptions)
-        {
-            foreach (CreateErrorFilter factory in options.ErrorFilters)
-            {
-                yield return factory(_serviceProvider, executorOptions);
-            }
-
-            foreach (IErrorFilter errorFilter in _serviceProvider.GetServices<IErrorFilter>())
-            {
-                yield return errorFilter;
-            }
         }
 
         public void Dispose()

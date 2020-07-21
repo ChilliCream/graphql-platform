@@ -464,7 +464,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 DirectiveNode directive = selection.Directives[i];
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
-                    out DirectiveType directiveType)
+                    out DirectiveType? directiveType)
                     && directiveType.IsExecutable)
                 {
                     yield return Directive.FromDescription(

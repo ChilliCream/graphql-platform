@@ -64,7 +64,7 @@ namespace HotChocolate.Execution
                 return new SubscriptionResult(
                     subscription.ExecuteAsync,
                     null,
-                    subscription: subscription);
+                    session: subscription);
             }
             catch (GraphQLException ex)
             {

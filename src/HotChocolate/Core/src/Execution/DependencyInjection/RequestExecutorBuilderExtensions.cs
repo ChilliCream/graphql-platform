@@ -281,6 +281,25 @@ namespace Microsoft.Extensions.DependencyInjection
                 (services, options) => options.RequestExecutorOptions = factory(services));
         }
 
+        public static IRequestExecutorBuilder ConfigureSchemaServices(
+            this IRequestExecutorBuilder builder,
+            Action<IServiceCollection> configureServices)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configureServices == null)
+            {
+                throw new ArgumentNullException(nameof(configureServices));
+            }
+
+            return Configure(
+                builder,
+                options => options.SchemaServices.Add(configureServices));
+        }
+
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorFactoryOptions> configure)

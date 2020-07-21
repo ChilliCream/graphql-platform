@@ -17,10 +17,6 @@ namespace HotChocolate.Resolvers.Expressions
 
         public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task)
         {
-            if (task == null)
-            {
-                return null;
-            }
             return await task.ConfigureAwait(false);
         }
 

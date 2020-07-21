@@ -65,27 +65,17 @@ partial class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
-
-            // Package the strawberry shake tooling package
+                
+            /*
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)
-                .SetTargetPath(StrawberryShakeNuSpec)
                 .SetOutputDirectory(PackageDirectory)
-                .SetConfiguration(Configuration));
-
-            // package the StarWars template
-            NuGetPack(c => c
-                .SetVersion(GitVersion.SemVer)
-                .SetTargetPath(StarWarsTemplateNuSpec)
-                .SetOutputDirectory(PackageDirectory)
-                .SetConfiguration(Configuration));
-
-            // package the Hot Chocolate empty server template
-            NuGetPack(c => c
-                .SetVersion(GitVersion.SemVer)
-                .SetTargetPath(EmptyServerTemplateNuSpec)
-                .SetOutputDirectory(PackageDirectory)
-                .SetConfiguration(Configuration));
+                .SetConfiguration(Configuration)
+                .CombineWith(
+                    t => t.SetTargetPath(StrawberryShakeNuSpec),
+                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
+                    t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
+                    */
 
             //.SetPackageReleaseNotes(GetNuGetReleaseNotes(ChangelogFile, GitRepository)));
         });

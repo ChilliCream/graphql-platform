@@ -184,7 +184,7 @@ namespace HotChocolate.Types
             descriptor
                 .Type<__Type>()
                 .Resolver(ctx => ctx.Schema
-                    .GetType<INamedType>(ctx.Argument<string>("type")));
+                    .GetType<INamedType>(ctx.ArgumentValue<string>("type")));
 
             // assert
             ObjectFieldDefinition description = descriptor.CreateDefinition();

@@ -4,6 +4,7 @@ using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Execution.Batching;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -44,7 +45,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.AddRootType(rootType, operation));
         }
-        
+
         public static IRequestExecutorBuilder AddQueryType(
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
@@ -777,5 +778,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.ConfigureSchema(b => b.BindClrType(runtimeType, schemaType));
         }
+
+        public static IRequestExecutorBuilder AddExportDirectiveType(
+            this IRequestExecutorBuilder builder) => 
+            builder.AddDirectiveType<ExportDirectiveType>();
     }
 }

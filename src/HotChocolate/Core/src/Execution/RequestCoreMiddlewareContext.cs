@@ -1,7 +1,6 @@
 
 using System;
 using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -11,14 +10,12 @@ namespace HotChocolate.Execution
         public RequestCoreMiddlewareContext(
             NameString schemaName,
             IServiceProvider services,
-            IActivator activator,
-            IErrorHandler errorHandler,
+            IServiceProvider schemaServices,
             IRequestExecutorOptionsAccessor options)
         {
             SchemaName = schemaName;
             Services = services;
-            Activator = activator;
-            ErrorHandler = errorHandler;
+            SchemaServices = schemaServices;
             Options = options;
         }
 
@@ -26,9 +23,7 @@ namespace HotChocolate.Execution
 
         public IServiceProvider Services { get; }
 
-        public IActivator Activator { get; }
-
-        public IErrorHandler ErrorHandler { get; }
+        public IServiceProvider SchemaServices { get; }
 
         public IRequestExecutorOptionsAccessor Options { get; }
     }

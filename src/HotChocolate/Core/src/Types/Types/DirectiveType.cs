@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         , IHasRuntimeType
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
-        private ITypeConversion _converter;
+        private ITypeConverter _converter;
 
         protected DirectiveType()
         {
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            _converter = context.Services.GetTypeConversion();
+            _converter = context.Services.GetTypeConverter();
             MiddlewareComponents = definition.MiddlewareComponents.ToList().AsReadOnly();
 
             SyntaxNode = definition.SyntaxNode;

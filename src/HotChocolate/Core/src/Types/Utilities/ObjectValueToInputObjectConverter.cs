@@ -9,9 +9,9 @@ namespace HotChocolate.Utilities
     internal class ObjectValueToInputObjectConverter
         : SyntaxWalkerBase<IValueNode, ConverterContext>
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public ObjectValueToInputObjectConverter(ITypeConversion converter)
+        public ObjectValueToInputObjectConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));

@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         private readonly IReadOnlyList<IError>? _errors;
         private readonly IReadOnlyDictionary<string, object?>? _extensions;
         private readonly IReadOnlyDictionary<string, object?>? _contextData;
-        private readonly IAsyncDisposable? _subscription;
+        private readonly IAsyncDisposable? _session;
         private bool _isRead = false;
         private bool _disposed = false;
 
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             IReadOnlyList<IError>? errors,
             IReadOnlyDictionary<string, object?>? extensions = null,
             IReadOnlyDictionary<string, object?>? contextData = null,
-            IAsyncDisposable? subscription = null)
+            IAsyncDisposable? session = null)
         {
             if (resultStreamFactory is null && errors is null)
             {
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
             _errors = errors;
             _extensions = extensions;
             _contextData = contextData;
-            _subscription = subscription;
+            _session = session;
         }
 
         public IReadOnlyList<IError>? Errors => _errors;
@@ -71,9 +71,9 @@ namespace HotChocolate.Execution
         {
             if (!_disposed)
             {
-                if (_subscription is { })
+                if (_session is { })
                 {
-                    await _subscription.DisposeAsync().ConfigureAwait(false);
+                    await _session.DisposeAsync().ConfigureAwait(false);
                 }
                 _disposed = true;
             }

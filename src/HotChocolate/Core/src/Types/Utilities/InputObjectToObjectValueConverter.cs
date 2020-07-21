@@ -8,9 +8,9 @@ namespace HotChocolate.Utilities
 {
     internal class InputObjectToObjectValueConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public InputObjectToObjectValueConverter(ITypeConversion converter)
+        public InputObjectToObjectValueConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));

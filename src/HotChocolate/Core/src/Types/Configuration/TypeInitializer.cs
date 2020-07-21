@@ -8,6 +8,7 @@ using HotChocolate.Configuration.Validation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -348,7 +349,29 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private void CompileResolvers() => ResolverCompiler.Compile(_resolvers);
+        private void CompileResolvers()
+        {
+            foreach (var item in _resolvers.ToArray())
+            {
+                RegisteredResolver registered = item.Value;
+                if (registered.Field is FieldMember member)
+                {
+                    ResolverDescriptor descriptor =
+                        registered.IsSourceResolver
+                            ? new ResolverDescriptor(
+                                registered.SourceType,
+                                member)
+                            : new ResolverDescriptor(
+                                registered.ResolverType,
+                                registered.SourceType,
+                                member);
+                    _resolvers[item.Key] = registered.WithField(
+                        ResolverCompiler.Resolve.Compile(descriptor));
+                }
+            }
+        }
+
+
 
         private void RegisterImplicitInterfaceDependencies(DiscoveredTypes discoveredTypes)
         {

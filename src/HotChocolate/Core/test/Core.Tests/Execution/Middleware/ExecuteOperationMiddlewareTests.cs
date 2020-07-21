@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
                     cnf.BindResolver(() => state)
                         .To("CurrentState", "theNumber");
                     cnf.BindResolver(
-                        ctx => state = ctx.Argument<int>("newNumber"))
+                        ctx => state = ctx.ArgumentValue<int>("newNumber"))
                         .To("Mutation", "changeTheNumber");
                 });
 

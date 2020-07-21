@@ -8,6 +8,7 @@ using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using System.Linq;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -49,15 +50,17 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddTransient<OperationContext>();
             services.TryAddSingleton<ObjectPool<OperationContext>>(
-                sp => new OperationContextPool(() => sp.GetRequiredService<OperationContext>(),
+                sp => new OperationContextPool(
+                    () => sp.GetRequiredService<OperationContext>(),
                 maximumRetained));
             return services;
         }
 
-        internal static IServiceCollection TryAddTypeConversion(
+        internal static IServiceCollection TryAddTypeConverter(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<ITypeConversion, TypeConversion>();
+            services.TryAddSingleton<ITypeConverter>(
+                sp => new DefaultTypeConverter(sp.GetServices<IChangeTypeProvider>()));
             return services;
         }
 
@@ -65,22 +68,6 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
-            return services;
-        }
-
-        internal static IServiceCollection TryAddOperationExecutors(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<QueryExecutor>();
-            services.TryAddSingleton<MutationExecutor>();
-            services.TryAddSingleton<SubscriptionExecutor>();
-            return services;
-        }
-
-        internal static IServiceCollection TryAddNoOpDiagnostics(
-            this IServiceCollection services)
-        {
-            services.TryAddSingleton<IDiagnosticEvents, NoopDiagnosticEvents>();
             return services;
         }
 
