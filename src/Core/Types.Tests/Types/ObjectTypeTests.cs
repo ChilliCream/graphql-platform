@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -1536,6 +1537,16 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Required_Attribute_Is_Recognized()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithRequired>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1721,6 +1732,14 @@ namespace HotChocolate.Types
                 descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
                 descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
             }
+        }
+
+        public class QueryWithRequired
+        {
+            [Required]
+            public string RequiredField { get; } = "foo";
+
+            public string Field { get; } = "foo";
         }
     }
 }

@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Descriptors
                 return new ClrTypeReference(
                     returnType,
                     context,
-                    true)
+                    false)
                     .Compile();
             }
 
