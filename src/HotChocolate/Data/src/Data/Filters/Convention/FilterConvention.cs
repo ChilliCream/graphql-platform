@@ -6,6 +6,7 @@ using HotChocolate.Types.Descriptors;
 using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Utilities;
+using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters
 {
@@ -177,13 +178,20 @@ namespace HotChocolate.Data.Filters
         }
 
         public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
-            ITypeReference reference)
+            ITypeReference reference,
+            NameString temporaryName)
         {
             // TODO: if this it gonna be the final version we can drop the dicitionaries completely
             foreach (KeyValuePair<ITypeReference, Action<IFilterInputTypeDescriptor>[]> element in
                 Extensions)
             {
                 if (element.Key.Equals(reference))
+                {
+                    return element.Value;
+                }
+                else if (element.Key is SyntaxTypeReference key &&
+                  key.Type is NamedTypeNode namedKey &&
+                  temporaryName.Value == namedKey.Name.Value)
                 {
                     return element.Value;
                 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
@@ -31,12 +32,12 @@ namespace HotChocolate.Data.Filters
                     def,
                     def.Scope);
 
-                SchemaTypeReference? typeReference = TypeReference.Create(
+                SchemaTypeReference? schemaTypeReference = TypeReference.Create(
                     discoveryContext.Type,
                     def.Scope);
 
                 IEnumerable<Action<IFilterInputTypeDescriptor>> extensions =
-                    convention.GetExtensions(typeReference);
+                    convention.GetExtensions(schemaTypeReference, def.Name);
 
                 if (extensions.Any())
                 {

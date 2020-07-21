@@ -37,6 +37,7 @@ namespace HotChocolate.Data.Filters
             Type entityType);
 
         IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
-            ITypeReference reference);
+            ITypeReference reference,
+            NameString temporaryName);
     }
 }
