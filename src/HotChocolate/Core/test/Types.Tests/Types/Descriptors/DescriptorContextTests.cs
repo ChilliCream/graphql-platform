@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
 
             // act
             Action action = () => DescriptorContext.Create(
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var service = new EmptyServiceProvider();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
 
             // act
             Action action = () => DescriptorContext.Create(
@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
                 naming);
@@ -82,8 +82,10 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
-            conventions.Add(typeof(INamingConventions), naming);
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
+            conventions.Add(
+                ConventionBase.DefaultScope,
+                new Dictionary<Type, IConvention>() { { typeof(INamingConventions), naming } });
             var services = new DictionaryServiceProvider();
 
             // act
@@ -103,7 +105,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
             var services = new DictionaryServiceProvider(
                 typeof(ITypeInspector),
                 inspector);
@@ -132,7 +134,7 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.Inspector);
         }
 
-        private class Convention : IConvention
+        private class Convention : ConventionBase, IConvention
         {
             public static Convention Default { get; } = new Convention();
         }

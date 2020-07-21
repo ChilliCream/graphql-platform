@@ -15,11 +15,12 @@ namespace HotChocolate.Data.Tests
             var convention = new FilterConvention(
                 x => x.UseDefault()
                     .Extension<StringOperationInput>(
-                        y => y.Operation(Operations.Like))
+                        y => y.Operation(Operations.Like).Type<StringType>())
                     .Operation(Operations.Like).Name("like"));
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
+                .AddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(c =>
                     c.Name("Query")
                         .Field("foo")

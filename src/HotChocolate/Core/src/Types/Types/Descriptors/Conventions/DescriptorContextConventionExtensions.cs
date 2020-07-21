@@ -17,5 +17,11 @@ namespace HotChocolate.Types.Descriptors
             where T : class, IConvention =>
             context.GetConventionOrDefault(ConventionBase.DefaultScope, defaultConvention);
 
+        public static T GetConventionOrDefault<T>(
+            this IDescriptorContext context,
+            string? scope,
+            T defaultConvention)
+            where T : class, IConvention =>
+            context.GetConventionOrDefault<T>(scope, () => defaultConvention);
     }
 }

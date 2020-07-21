@@ -3,6 +3,7 @@ using HotChocolate.Types.Descriptors;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Linq;
 
 namespace HotChocolate.Data.Filters
 {
@@ -12,9 +13,7 @@ namespace HotChocolate.Data.Filters
         private readonly Dictionary<string, IFilterConvention> _conventions
             = new Dictionary<string, IFilterConvention>();
 
-        public override bool CanHandle(
-            ITypeSystemObjectContext context) =>
-            context is { Scope: { } };
+        public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
@@ -32,12 +31,21 @@ namespace HotChocolate.Data.Filters
                     def,
                     def.Scope);
 
-                SchemaTypeReference? typeReference = TypeReference.Create(discoveryContext.Type);
+                SchemaTypeReference? typeReference = TypeReference.Create(
+                    discoveryContext.Type,
+                    def.Scope);
 
-                foreach (Action<IFilterInputTypeDescriptor>? extension in
-                    convention.GetExtensions(typeReference))
+                IEnumerable<Action<IFilterInputTypeDescriptor>> extensions =
+                    convention.GetExtensions(typeReference);
+
+                if (extensions.Any())
                 {
-                    extension.Invoke(descriptor);
+                    foreach (Action<IFilterInputTypeDescriptor>? extension in extensions)
+                    {
+                        extension.Invoke(descriptor);
+                    }
+
+                    descriptor.CreateDefinition();
                 }
 
                 foreach (InputFieldDefinition field in def.Fields)
@@ -55,9 +63,13 @@ namespace HotChocolate.Data.Filters
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            definition.Name = completionContext?.Scope +
-                "_" +
-                definition.Name;
+            if (definition is FilterInputTypeDefinition def &&
+                def.Scope != ConventionBase.DefaultScope)
+            {
+                definition.Name = completionContext?.Scope +
+                    "_" +
+                    definition.Name;
+            }
         }
 
         private IFilterConvention GetConvention(

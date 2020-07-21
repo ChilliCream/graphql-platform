@@ -381,6 +381,7 @@ namespace HotChocolate
                     convention.Initialize(conventionContext);
                     conventionScope.Add(conventionConfig.Key, convention);
                 }
+                conventions.Add(scope.Key, conventionScope);
             }
             return conventions;
         }

@@ -179,14 +179,16 @@ namespace HotChocolate.Data.Filters
         public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
             ITypeReference reference)
         {
-            if (!Extensions.TryGetValue(
-                reference,
-                out Action<IFilterInputTypeDescriptor>[]? extensions))
+            // TODO: if this it gonna be the final version we can drop the dicitionaries completely
+            foreach (KeyValuePair<ITypeReference, Action<IFilterInputTypeDescriptor>[]> element in
+                Extensions)
             {
-                extensions = Array.Empty<Action<IFilterInputTypeDescriptor>>();
+                if (element.Key.Equals(reference))
+                {
+                    return element.Value;
+                }
             }
-
-            return extensions;
+            return Array.Empty<Action<IFilterInputTypeDescriptor>>();
         }
     }
 }

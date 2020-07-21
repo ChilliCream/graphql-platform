@@ -61,6 +61,26 @@ namespace HotChocolate.Types.Descriptors
             return Type == other.Type;
         }
 
+        public bool Equals(SchemaTypeReference? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (!IsEqual(other))
+            {
+                return false;
+            }
+
+            return Type == other.Type.GetType();
+        }
+
         public override bool Equals(ITypeReference? other)
         {
             if (other is null)
@@ -71,6 +91,11 @@ namespace HotChocolate.Types.Descriptors
             if (ReferenceEquals(this, other))
             {
                 return true;
+            }
+
+            if (other is SchemaTypeReference s)
+            {
+                return Equals(s);
             }
 
             if (other is ClrTypeReference c)

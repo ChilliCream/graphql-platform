@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (_naming is null)
                 {
-                    _naming = GetConventionOrDefault<INamingConventions>(
+                    _naming = this.GetConventionOrDefault<INamingConventions>(
                         () => new DefaultNamingConventions(Options.UseXmlDocumentation));
                 }
                 return _naming;
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (_inspector is null)
                 {
-                    _inspector = GetConventionOrDefault<ITypeInspector>(
+                    _inspector = this.GetConventionOrDefault<ITypeInspector>(
                         DefaultTypeInspector.Default);
                 }
                 return _inspector;
@@ -59,10 +59,6 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IDictionary<string, object?> ContextData { get; }
-
-        public T GetConventionOrDefault<T>(string? scope, T defaultConvention)
-            where T : class, IConvention =>
-            GetConventionOrDefault<T>(scope, () => defaultConvention);
 
         public T GetConventionOrDefault<T>(
             string? scope,

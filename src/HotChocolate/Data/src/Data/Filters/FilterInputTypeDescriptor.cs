@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Filters
             Definition.Name = Convention.GetTypeName(context, entityType);
             Definition.Description = Convention.GetTypeDescription(context, entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-            Definition.Scope = scope;
+            Definition.Scope = scope ?? ConventionBase.DefaultScope;
         }
 
         protected FilterInputTypeDescriptor(
@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.RuntimeType = typeof(object);
             Definition.EntityType = typeof(object);
-            Definition.Scope = scope;
+            Definition.Scope = scope ?? ConventionBase.DefaultScope;
         }
 
         protected internal FilterInputTypeDescriptor(
