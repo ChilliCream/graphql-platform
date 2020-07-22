@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Server.Template
@@ -18,17 +19,17 @@ namespace HotChocolate.Server.Template
             // services.AddSingleton<Query>();
 
             // enable InMemory messaging services for subscription support.
-            // services.AddInMemorySubscriptionProvider();
+            // services.AddInMemorySubscriptions();
 
             // this enables you to use DataLoader in your resolvers.
             services.AddDataLoaderRegistry();
 
             // Add GraphQL Services
-            services.AddGraphQL(SchemaBuilder.New()
-                // enable for authorization support
-                // .AddAuthorizeDirectiveType()
-                .AddQueryType<Query>()
-                .ModifyOptions(o => o.RemoveUnreachableTypes = true));
+            services.AddGraphQL(
+                SchemaBuilder.New()
+                    // enable for authorization support
+                    // .AddAuthorizeDirectiveType()
+                    .AddQueryType<Query>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
