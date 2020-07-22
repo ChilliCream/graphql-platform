@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Linq.Expressions;
 
 namespace HotChocolate.Configuration
 {
@@ -156,6 +157,31 @@ namespace HotChocolate.Configuration
             fieldName.EnsureNotEmpty(nameof(fieldName));
 
             var fieldMember = new FieldMember(InternalName, fieldName, member);
+
+            Resolvers[fieldMember.ToFieldReference()] = resolverType == null
+                ? new RegisteredResolver(sourceType, fieldMember)
+                : new RegisteredResolver(resolverType, sourceType, fieldMember);
+        }
+
+        public void RegisterResolver(
+            NameString fieldName,
+            Expression expression,
+            Type sourceType,
+            Type resolverType)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            fieldName.EnsureNotEmpty(nameof(fieldName));
+
+            var fieldMember = new FieldMember(InternalName, fieldName, expression);
 
             Resolvers[fieldMember.ToFieldReference()] = resolverType == null
                 ? new RegisteredResolver(sourceType, fieldMember)
