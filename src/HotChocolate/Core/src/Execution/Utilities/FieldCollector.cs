@@ -159,15 +159,12 @@ namespace HotChocolate.Execution.Utilities
             {
                 if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
                 {
-                    preparedSelection.AddSelection(selection);
-
-                    if (visibility is { })
-                    {
-                        preparedSelection.TryAddVariableVisibility(visibility);
-                    }
+                    preparedSelection.AddSelection(selection, visibility);
                 }
                 else
                 {
+                    // if this is the first time we find a selection to this field we have to
+                    // create a new prepared selection.
                     preparedSelection = new PreparedSelection(
                         type,
                         field,
@@ -175,12 +172,8 @@ namespace HotChocolate.Execution.Utilities
                         fields.Count,
                         responseName,
                         CreateFieldMiddleware(field, selection),
-                        CoerceArgumentValues(field, selection, responseName));
-
-                    if (visibility is { })
-                    {
-                        preparedSelection.TryAddVariableVisibility(visibility);
-                    }
+                        CoerceArgumentValues(field, selection, responseName),
+                        visibility);
 
                     fields.Add(responseName, preparedSelection);
                 }

@@ -21,7 +21,8 @@ namespace HotChocolate.Execution.Utilities
             int responseIndex,
             string responseName,
             FieldDelegate resolverPipeline,
-            IReadOnlyDictionary<NameString, PreparedArgument> arguments)
+            IReadOnlyDictionary<NameString, PreparedArgument> arguments,
+            FieldVisibility? visibility)
         {
             DeclaringType = declaringType;
             Field = field;
@@ -31,6 +32,11 @@ namespace HotChocolate.Execution.Utilities
             ResolverPipeline = resolverPipeline;
             Arguments = new PreparedArgumentMap(arguments);
             Selections = _emptySelections;
+
+            if (visibility is { })
+            {
+                TryAddVariableVisibility(visibility);
+            }
         }
 
         /// <inheritdoc />
@@ -79,16 +85,16 @@ namespace HotChocolate.Execution.Utilities
 
             for (var i = 0; i < _visibilities.Count; i++)
             {
-                if (!_visibilities[i].IsVisible(variables))
+                if (_visibilities[i].IsVisible(variables))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
-        public void TryAddVariableVisibility(FieldVisibility visibility)
+        private void TryAddVariableVisibility(FieldVisibility visibility)
         {
             if (_isReadOnly)
             {
@@ -114,7 +120,7 @@ namespace HotChocolate.Execution.Utilities
             _visibilities.Add(visibility);
         }
 
-        public void AddSelection(FieldNode field)
+        public void AddSelection(FieldNode field, FieldVisibility? visibility)
         {
             if (_isReadOnly)
             {
@@ -126,7 +132,21 @@ namespace HotChocolate.Execution.Utilities
                 _selections = new List<FieldNode>();
                 _selections.Add(Selection);
             }
+
             _selections.Add(field);
+
+            if (_visibilities is { } && _visibilities.Count > 0)
+            {
+                if (visibility is null)
+                {
+                    _visibilities = null;
+                    IsFinal = true;
+                }
+                else
+                {
+                    TryAddVariableVisibility(visibility);
+                }
+            }
         }
 
         public void MakeReadOnly()
