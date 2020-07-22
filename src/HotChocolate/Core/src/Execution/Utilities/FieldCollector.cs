@@ -38,7 +38,12 @@ namespace HotChocolate.Execution.Utilities
             Register(root);
 
             var collector = new FieldCollector(schema, fragments);
-            collector.Visit(selectionSet, typeContext, root, Register);
+            collector.Visit(
+                selectionSet,
+                typeContext,
+                root,
+                Register,
+                new Dictionary<ISelectionNode, FieldVisibility>());
             return selectionSets;
         }
 
@@ -46,10 +51,11 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             ObjectType typeContext,
             PSS current,
-            Action<PSS> register)
+            Action<PSS> register,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup)
         {
             var fields = new OrderedDictionary<string, PreparedSelection>();
-            CollectFields(typeContext, selectionSet, null, fields);
+            CollectFields(typeContext, selectionSet, null, visibilityLookup, fields);
             var selections = new List<PreparedSelection>();
             bool isFinal = true;
 
@@ -84,7 +90,12 @@ namespace HotChocolate.Execution.Utilities
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
                     for (var i = 0; i < possibleTypes.Count; i++)
                     {
-                        Visit(selection.SelectionSet, possibleTypes[i], next, register);
+                        Visit(
+                            selection.SelectionSet,
+                            possibleTypes[i],
+                            next,
+                            register,
+                            visibilityLookup);
                     }
                 }
             }
@@ -95,17 +106,25 @@ namespace HotChocolate.Execution.Utilities
         private void CollectFields(
             ObjectType type,
             SelectionSetNode selectionSet,
-            FieldVisibility? fieldVisibility,
+            FieldVisibility? visibility,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             for (var i = 0; i < selectionSet.Selections.Count; i++)
             {
                 ISelectionNode selection = selectionSet.Selections[i];
+                FieldVisibility? selectionVisibility = visibility;
+
+                if (selectionVisibility is null)
+                {
+                    visibilityLookup.TryGetValue(selection, out selectionVisibility);
+                }
 
                 ResolveFields(
                     type,
                     selection,
-                    ExtractVisibility(selection, fieldVisibility),
+                    ExtractVisibility(selection, selectionVisibility),
+                    visibilityLookup,
                     fields);
             }
         }
@@ -113,7 +132,8 @@ namespace HotChocolate.Execution.Utilities
         private void ResolveFields(
             ObjectType type,
             ISelectionNode selection,
-            FieldVisibility? fieldVisibility,
+            FieldVisibility? visibility,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             switch (selection.Kind)
@@ -122,7 +142,8 @@ namespace HotChocolate.Execution.Utilities
                     ResolveFieldSelection(
                         type,
                         (FieldNode)selection,
-                        fieldVisibility,
+                        visibility,
+                        visibilityLookup,
                         fields);
                     break;
 
@@ -130,7 +151,8 @@ namespace HotChocolate.Execution.Utilities
                     ResolveInlineFragment(
                         type,
                         (InlineFragmentNode)selection,
-                        fieldVisibility,
+                        visibility,
+                        visibilityLookup,
                         fields);
                     break;
 
@@ -138,7 +160,8 @@ namespace HotChocolate.Execution.Utilities
                     ResolveFragmentSpread(
                         type,
                         (FragmentSpreadNode)selection,
-                        fieldVisibility,
+                        visibility,
+                        visibilityLookup,
                         fields);
                     break;
             }
@@ -148,6 +171,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             FieldNode selection,
             FieldVisibility? visibility,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             NameString fieldName = selection.Name.Value;
@@ -177,6 +201,18 @@ namespace HotChocolate.Execution.Utilities
 
                     fields.Add(responseName, preparedSelection);
                 }
+
+                if (visibility is { } && selection.SelectionSet is { })
+                {
+                    for (int i = 0; i < selection.SelectionSet.Selections.Count; i++)
+                    {
+                        ISelectionNode child = selection.SelectionSet.Selections[i];
+                        if (!visibilityLookup.ContainsKey(child))
+                        {
+                            visibilityLookup.Add(child, visibility);
+                        }
+                    }
+                }
             }
             else
             {
@@ -188,6 +224,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             FragmentSpreadNode fragmentSpread,
             FieldVisibility? fieldVisibility,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragment &&
@@ -197,6 +234,7 @@ namespace HotChocolate.Execution.Utilities
                     type,
                     fragment.SelectionSet,
                     fieldVisibility,
+                    visibilityLookup,
                     fields);
             }
         }
@@ -205,6 +243,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             InlineFragmentNode inlineFragment,
             FieldVisibility? fieldVisibility,
+            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             if (_fragments.GetFragment(type, inlineFragment) is { } fragment &&
@@ -214,6 +253,7 @@ namespace HotChocolate.Execution.Utilities
                     type,
                     fragment.SelectionSet,
                     fieldVisibility,
+                    visibilityLookup,
                     fields);
             }
         }

@@ -35,7 +35,8 @@ namespace HotChocolate.Execution.Utilities
 
             if (visibility is { })
             {
-                TryAddVariableVisibility(visibility);
+                _visibilities = new List<FieldVisibility> { visibility };
+                IsFinal = false;
             }
         }
 
@@ -78,12 +79,7 @@ namespace HotChocolate.Execution.Utilities
                 return true;
             }
 
-            if (_visibilities.Count == 1)
-            {
-                return _visibilities[0].IsVisible(variables);
-            }
-
-            for (var i = 0; i < _visibilities.Count; i++)
+            for (int i = 0; i < _visibilities.Count; i++)
             {
                 if (_visibilities[i].IsVisible(variables))
                 {
@@ -92,32 +88,6 @@ namespace HotChocolate.Execution.Utilities
             }
 
             return false;
-        }
-
-        private void TryAddVariableVisibility(FieldVisibility visibility)
-        {
-            if (_isReadOnly)
-            {
-                throw new NotSupportedException();
-            }
-
-            _visibilities ??= new List<FieldVisibility>();
-            IsFinal = false;
-
-            if (_visibilities.Count == 0)
-            {
-                _visibilities.Add(visibility);
-            }
-
-            for (var i = 0; i < _visibilities.Count; i++)
-            {
-                if (_visibilities[i].Equals(visibility))
-                {
-                    return;
-                }
-            }
-
-            _visibilities.Add(visibility);
         }
 
         public void AddSelection(FieldNode field, FieldVisibility? visibility)
@@ -135,18 +105,37 @@ namespace HotChocolate.Execution.Utilities
 
             _selections.Add(field);
 
-            if (_visibilities is { } && _visibilities.Count > 0)
+            AddVariableVisibility(visibility);
+        }
+
+        private void AddVariableVisibility(FieldVisibility? visibility)
+        {
+            if (_isReadOnly)
             {
-                if (visibility is null)
+                throw new NotSupportedException();
+            }
+
+            if (_visibilities is null)
+            {
+                return;
+            }
+
+            if (visibility is null)
+            {
+                _visibilities = null;
+                IsFinal = true;
+                return;
+            }
+
+            for (var i = 0; i < _visibilities.Count; i++)
+            {
+                if (_visibilities[i].Equals(visibility))
                 {
-                    _visibilities = null;
-                    IsFinal = true;
-                }
-                else
-                {
-                    TryAddVariableVisibility(visibility);
+                    return;
                 }
             }
+
+            _visibilities.Add(visibility);
         }
 
         public void MakeReadOnly()

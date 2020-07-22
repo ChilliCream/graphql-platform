@@ -460,11 +460,14 @@ namespace HotChocolate.Execution.Utilities
         }
 
         [Fact]
-        public void Field_Object_Visibility_1()
+        public void Object_Field_Visibility_Is_Correctly_Inherited()
         {
             // arrange
-            var variables = new Mock<IVariableValueCollection>();
-            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+            var vFalse = new Mock<IVariableValueCollection>();
+            vFalse.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+
+            var vTrue = new Mock<IVariableValueCollection>();
+            vTrue.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(true);
 
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
@@ -473,7 +476,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType droid = schema.GetType<ObjectType>("Droid");
 
             DocumentNode document = Utf8GraphQLParser.Parse(
-                @"query foo($v: Boolean){
+                @"query foo($v: Boolean) {
                     hero(episode: EMPIRE) @include(if: $v) {
                         name
                     }
@@ -510,7 +513,15 @@ namespace HotChocolate.Execution.Utilities
             IPreparedSelectionList droidSelections =
                 op.GetSelections(rootSelections[0].SelectionSet, droid);
 
-            
+            Assert.Collection(
+                droidSelections.Where(t => t.IsVisible(vFalse.Object)),
+                t => Assert.Equal("id", t.ResponseName));
+
+            Assert.Collection(
+                droidSelections.Where(t => t.IsVisible(vTrue.Object)),
+                t => Assert.Equal("name", t.ResponseName),
+                t => Assert.Equal("id", t.ResponseName),
+                t => Assert.Equal("height", t.ResponseName));
         }
     }
 }
