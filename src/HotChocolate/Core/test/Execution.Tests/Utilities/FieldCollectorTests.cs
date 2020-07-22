@@ -354,7 +354,7 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variables = new Mock<IVariableValueCollection>();
             variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-                .Returns((NameString name) => 
+                .Returns((NameString name) =>
                 {
                     return name.Equals("q");
                 });
@@ -532,7 +532,7 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variables = new Mock<IVariableValueCollection>();
             variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-                .Returns((NameString name) => 
+                .Returns((NameString name) =>
                 {
                     return name.Equals("v");
                 });
@@ -595,7 +595,7 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variables = new Mock<IVariableValueCollection>();
             variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-                .Returns((NameString name) => 
+                .Returns((NameString name) =>
                 {
                     return name.Equals("v");
                 });
@@ -633,7 +633,7 @@ namespace HotChocolate.Execution.Utilities
                 op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
             IPreparedSelectionList droidSelections =
                 op.GetSelections(rootSelections[0].SelectionSet, droid);
-                
+
             Assert.Empty(droidSelections.Where(t => t.IsVisible(variables.Object)));
 
             op.Print().MatchSnapshot();

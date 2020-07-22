@@ -6,7 +6,10 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class FieldVisibility
     {
-        public FieldVisibility(IValueNode? skip, IValueNode? include, FieldVisibility? parent)
+        internal FieldVisibility(
+            IValueNode? skip = null, 
+            IValueNode? include = null, 
+            FieldVisibility? parent = null)
         {
             Debug.Assert(
                 skip != null || include != null,
