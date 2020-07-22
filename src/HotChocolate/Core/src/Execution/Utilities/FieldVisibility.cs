@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 using HotChocolate.Language;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
     internal sealed class FieldVisibility
     {
         internal FieldVisibility(
-            IValueNode? skip = null, 
-            IValueNode? include = null, 
+            IValueNode? skip = null,
+            IValueNode? include = null,
             FieldVisibility? parent = null)
         {
             Debug.Assert(
@@ -55,7 +56,7 @@ namespace HotChocolate.Execution.Utilities
                 return variables.GetVariable<bool>(v.Name.Value);
             }
 
-            throw ThrowHelper.FieldVisibility_ValueNotSupported(value);
+            throw FieldVisibility_ValueNotSupported(value);
         }
 
         public bool Equals(IValueNode? skip, IValueNode? include)
@@ -81,12 +82,20 @@ namespace HotChocolate.Execution.Utilities
 
         private static bool EqualsInternal(IValueNode? a, IValueNode? b)
         {
-            if (a is BooleanValueNode ab && b is BooleanValueNode bb && ab.Value == bb.Value)
+            if (ReferenceEquals(a, b))
             {
                 return true;
             }
 
-            if (a is VariableNode av && b is VariableNode bv &&
+            if (a is BooleanValueNode ab &&
+                b is BooleanValueNode bb &&
+                ab.Value == bb.Value)
+            {
+                return true;
+            }
+
+            if (a is VariableNode av &&
+                b is VariableNode bv &&
                 string.Equals(av.Value, bv.Value, StringComparison.Ordinal))
             {
                 return true;
