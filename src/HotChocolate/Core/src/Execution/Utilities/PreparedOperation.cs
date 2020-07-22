@@ -77,20 +77,39 @@ namespace HotChocolate.Execution.Utilities
             {
                 var selections = new List<ISelectionNode>();
 
-                foreach (IPreparedSelection selection in selectionSet.GetSelections(typeContext))
+                foreach (PreparedSelection selection in selectionSet.GetSelections(typeContext))
                 {
-                    var directives = 
+                    var directives = new List<DirectiveNode>();
 
+                    if (selection.Visibilities is { })
+                    {
+                        foreach (FieldVisibility visibility in selection.Visibilities)
+                        {
+                            if (visibility.Skip is { })
+                            {
+                                directives.Add(
+                                    new DirectiveNode(
+                                        "skip",
+                                        new ArgumentNode("if", visibility.Skip)));
+                            }
+
+                            if (visibility.Include is { })
+                            {
+                                directives.Add(
+                                    new DirectiveNode(
+                                        "include",
+                                        new ArgumentNode("if", visibility.Include)));
+                            }
+                        }
+                    }
 
                     if (selection.SelectionSet is null)
                     {
-                        
-
                         selections.Add(new FieldNode(
                             null,
                             selection.Selection.Name,
                             selection.Selection.Alias,
-                            Array.Empty<DirectiveNode>(),
+                            directives,
                             selection.Selection.Arguments,
                             null));
                     }
@@ -100,7 +119,7 @@ namespace HotChocolate.Execution.Utilities
                             null,
                             selection.Selection.Name,
                             selection.Selection.Alias,
-                            Array.Empty<DirectiveNode>(),
+                            directives,
                             selection.Selection.Arguments,
                             Visit(_selectionSets[selection.SelectionSet])));
                     }

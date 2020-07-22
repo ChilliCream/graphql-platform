@@ -71,6 +71,8 @@ namespace HotChocolate.Execution.Utilities
         /// <inheritdoc />
         public bool IsFinal { get; private set; } = true;
 
+        internal IReadOnlyList<FieldVisibility>? Visibilities => _visibilities;
+
         /// <inheritdoc />
         public bool IsVisible(IVariableValueCollection variables)
         {

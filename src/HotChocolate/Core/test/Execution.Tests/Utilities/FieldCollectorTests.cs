@@ -522,6 +522,121 @@ namespace HotChocolate.Execution.Utilities
                 t => Assert.Equal("name", t.ResponseName),
                 t => Assert.Equal("id", t.ResponseName),
                 t => Assert.Equal("height", t.ResponseName));
+
+            op.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Object_Field_Visibility_Is_Correctly_Inherited_2()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
+                .Returns((NameString name) => 
+                {
+                    return name.Equals("v");
+                });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            ObjectType droid = schema.GetType<ObjectType>("Droid");
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query foo($v: Boolean, $q: Boolean) {
+                    hero(episode: EMPIRE) @include(if: $v) {
+                        name @include(if: $q)
+                    }
+                    ... on Query {
+                        hero(episode: EMPIRE) {
+                            id
+                        }
+                    }
+                    ... @include(if: $v) {
+                        hero(episode: EMPIRE) {
+                            height
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            var op = new PreparedOperation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+            IPreparedSelectionList rootSelections =
+                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
+            IPreparedSelectionList droidSelections =
+                op.GetSelections(rootSelections[0].SelectionSet, droid);
+
+            Assert.Collection(
+                droidSelections.Where(t => t.IsVisible(variables.Object)),
+                t => Assert.Equal("id", t.ResponseName),
+                t => Assert.Equal("height", t.ResponseName));
+
+            op.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Object_Field_Visibility_Is_Correctly_Inherited_3()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
+                .Returns((NameString name) => 
+                {
+                    return name.Equals("v");
+                });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            ObjectType droid = schema.GetType<ObjectType>("Droid");
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query foo($v: Boolean, $q: Boolean) {
+                    hero(episode: EMPIRE) @include(if: $v) {
+                        name @include(if: $q)
+                    }
+                }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            // assert
+            var op = new PreparedOperation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+            IPreparedSelectionList rootSelections =
+                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
+            IPreparedSelectionList droidSelections =
+                op.GetSelections(rootSelections[0].SelectionSet, droid);
+                
+            Assert.Empty(droidSelections.Where(t => t.IsVisible(variables.Object)));
+
+            op.Print().MatchSnapshot();
         }
     }
 }
