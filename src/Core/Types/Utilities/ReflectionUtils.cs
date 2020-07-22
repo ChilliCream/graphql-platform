@@ -24,6 +24,36 @@ namespace HotChocolate.Utilities
             return ExtractMemberInternal<T>(UnwrapFunc(memberExpression));
         }
 
+        public static MemberInfo TryExtractMember<T, TPropertyType>(
+            this Expression<Func<T, TPropertyType>> memberExpression)
+        {
+            if (memberExpression == null)
+            {
+                throw new ArgumentNullException(nameof(memberExpression));
+            }
+
+            return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression));
+        }
+
+        internal static MemberInfo TryExtractCallMember(
+            this Expression expression)
+        {
+            if (expression is LambdaExpression lambda)
+            {
+                if (lambda.Body is MethodCallExpression m)
+                {
+                    return m.Method;
+                }
+
+                if (lambda.Body is MemberExpression p)
+                {
+                    return p.Member;
+                }
+            }
+
+            return null;
+        }
+
         private static MemberInfo ExtractMemberInternal<T>(
             Expression expression)
         {
@@ -40,6 +70,12 @@ namespace HotChocolate.Utilities
             }
 
             return member;
+        }
+
+        private static MemberInfo TryExtractMemberInternal<T>(
+            Expression expression)
+        {
+            return ExtractMember(typeof(T), expression);
         }
 
         private static bool TryExtractMemberFromMemberExpression(

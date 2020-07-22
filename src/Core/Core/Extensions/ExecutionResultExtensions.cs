@@ -28,9 +28,9 @@ namespace HotChocolate
             {
                 if (withIndentations)
                 {
-                    return _serializer.Serialize(queryResult);
+                    return _serializerWithIndent.Serialize(queryResult);
                 }
-                return _serializerWithIndent.Serialize(queryResult);
+                return _serializer.Serialize(queryResult);
             }
 
             throw new NotSupportedException(

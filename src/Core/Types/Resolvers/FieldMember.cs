@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers
@@ -18,14 +19,18 @@ namespace HotChocolate.Resolvers
             Member = member ?? throw new ArgumentNullException(nameof(member));
         }
 
-        public FieldMember(FieldReference fieldReference, MemberInfo member)
-            : base(fieldReference)
+        public FieldMember(
+            NameString typeName,
+            NameString fieldName,
+            Expression expression)
+            : base(typeName, fieldName)
         {
-            _fieldReference = fieldReference;
-            Member = member ?? throw new ArgumentNullException(nameof(member));
+            Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         }
 
         public MemberInfo Member { get; }
+
+        public Expression Expression { get; }
 
         public FieldMember WithTypeName(NameString typeName)
         {

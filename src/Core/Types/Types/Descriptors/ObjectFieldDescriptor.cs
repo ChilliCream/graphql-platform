@@ -70,6 +70,49 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type? resolverType)
+            : base(context)
+        {
+            Definition.Expression = expression
+                ?? throw new ArgumentNullException(nameof(expression));
+            Definition.SourceType = sourceType;
+            Definition.ResolverType = resolverType;
+
+            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+
+            if (member is { })
+            {
+                Definition.Name = context.Naming.GetMemberName(
+                    member, MemberKind.ObjectField);
+                Definition.Description = context.Naming.GetMemberDescription(
+                    member, MemberKind.ObjectField);
+                Definition.Type = context.Inspector.GetOutputReturnType(member);
+
+                if (context.Naming.IsDeprecated(member, out string reason))
+                {
+                    Deprecated(reason);
+                }
+
+                if (member is MethodInfo m)
+                {
+                    Definition.ResultType = m.ReturnType;
+                }
+                else if (member is PropertyInfo p)
+                {
+                    Definition.ResultType = p.PropertyType;
+                }
+            }
+            else
+            {
+                Definition.Type = new ClrTypeReference(expression.ReturnType, TypeContext.Output);
+                Definition.ResultType = expression.ReturnType;
+            }
+        }
+
         internal protected override ObjectFieldDefinition Definition { get; } =
             new ObjectFieldDefinition();
 
@@ -328,5 +371,12 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type resolverType) =>
+            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
     }
 }

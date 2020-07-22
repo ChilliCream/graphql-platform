@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -25,6 +26,7 @@ namespace HotChocolate.Types
             : base(definition)
         {
             Member = definition.Member;
+            Expression = definition.Expression;
             Middleware = _empty;
             Resolver = definition.Resolver;
             SubscribeResolver = definition.SubscribeResolver;
@@ -57,10 +59,12 @@ namespace HotChocolate.Types
         /// Gets the associated .net type member of this field.
         /// This member can be <c>null</c>.
         /// </summary>
-        public MemberInfo Member { get; }
+        public MemberInfo? Member { get; }
 
         [Obsolete("Use Member.")]
-        public MemberInfo ClrMember => Member;
+        public MemberInfo? ClrMember => Member;
+
+        public Expression? Expression { get; }
 
         protected override void OnCompleteField(
             ICompletionContext context,

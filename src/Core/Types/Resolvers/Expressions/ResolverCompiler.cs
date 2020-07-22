@@ -30,7 +30,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             _compilers = compilers?.ToArray() ??
                 throw new ArgumentNullException(nameof(compilers));
-            _context = Expression.Parameter(typeof(IResolverContext));
+            _context = Expression.Parameter(typeof(IResolverContext), "context");
         }
 
         protected ParameterExpression Context => _context;

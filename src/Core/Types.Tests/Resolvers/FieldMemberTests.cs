@@ -60,7 +60,7 @@ namespace HotChocolate.Resolvers
             var fieldName = TestUtils.CreateFieldName();
 
             // act
-            Action action = () => new FieldMember(typeName, fieldName, null);
+            Action action = () => new FieldMember(typeName, fieldName, default(MemberInfo));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
