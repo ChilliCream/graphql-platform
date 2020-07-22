@@ -120,6 +120,11 @@ namespace HotChocolate.Utilities
         {
             if (type is IHasClrType hasClrType)
             {
+                if (obj is IOptional optional && !optional.HasValue)
+                {
+                    return;
+                }
+
                 Type currentType = obj.GetType();
                 object normalized = currentType == hasClrType.ClrType
                     ? obj
