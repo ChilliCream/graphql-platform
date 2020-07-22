@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Utilities
@@ -7,6 +8,10 @@ namespace HotChocolate.Execution.Utilities
     {
         public FieldVisibility(IValueNode? skip, IValueNode? include, FieldVisibility? parent)
         {
+            Debug.Assert(
+                skip != null || include != null,
+                "Either skip or include should be set, otherwise the instance would be wasted.");
+
             Skip = skip;
             Include = include;
             Parent = parent;
@@ -30,7 +35,7 @@ namespace HotChocolate.Execution.Utilities
                 return false;
             }
 
-            return Include == null || IsTrue(variables, Include);
+            return Include is null || IsTrue(variables, Include);
         }
 
         private static bool IsTrue(
@@ -47,12 +52,7 @@ namespace HotChocolate.Execution.Utilities
                 return variables.GetVariable<bool>(v.Name.Value);
             }
 
-            // TODO: Resources
-            throw new GraphQLException(
-                ErrorBuilder.New()
-                    .SetMessage("The skip/include if-argument value has to be a 'Boolean'.")
-                    .AddLocation(value)
-                    .Build());
+            throw ThrowHelper.FieldVisibility_ValueNotSupported(value);
         }
 
         public bool Equals(IValueNode? skip, IValueNode? include)

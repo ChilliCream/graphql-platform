@@ -52,7 +52,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType typeContext,
             PSS current,
             Action<PSS> register,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup)
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup)
         {
             var fields = new OrderedDictionary<string, PreparedSelection>();
             CollectFields(typeContext, selectionSet, null, visibilityLookup, fields);
@@ -107,7 +107,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             SelectionSetNode selectionSet,
             FieldVisibility? visibility,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             for (var i = 0; i < selectionSet.Selections.Count; i++)
@@ -133,7 +133,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             ISelectionNode selection,
             FieldVisibility? visibility,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             switch (selection.Kind)
@@ -171,7 +171,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             FieldNode selection,
             FieldVisibility? visibility,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             NameString fieldName = selection.Name.Value;
@@ -224,7 +224,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             FragmentSpreadNode fragmentSpread,
             FieldVisibility? fieldVisibility,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragment &&
@@ -243,7 +243,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectType type,
             InlineFragmentNode inlineFragment,
             FieldVisibility? fieldVisibility,
-            Dictionary<ISelectionNode, FieldVisibility> visibilityLookup,
+            IDictionary<ISelectionNode, FieldVisibility> visibilityLookup,
             IDictionary<string, PreparedSelection> fields)
         {
             if (_fragments.GetFragment(type, inlineFragment) is { } fragment &&

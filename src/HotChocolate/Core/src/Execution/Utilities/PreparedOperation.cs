@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
@@ -77,7 +78,8 @@ namespace HotChocolate.Execution.Utilities
             {
                 var selections = new List<ISelectionNode>();
 
-                foreach (PreparedSelection selection in selectionSet.GetSelections(typeContext))
+                foreach (PreparedSelection selection in selectionSet.GetSelections(typeContext)
+                    .OfType<PreparedSelection>())
                 {
                     var directives = new List<DirectiveNode>();
 
