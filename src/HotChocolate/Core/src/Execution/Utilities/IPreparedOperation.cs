@@ -16,6 +16,7 @@ namespace HotChocolate.Execution.Utilities
         /// </summary>
         string Id { get; }
 
+        // TODO : we might want to move this into the execution plan.
         int ProposedTaskCount { get; }
 
         /// <summary>

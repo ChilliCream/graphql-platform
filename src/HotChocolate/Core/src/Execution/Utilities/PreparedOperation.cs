@@ -79,8 +79,13 @@ namespace HotChocolate.Execution.Utilities
 
                 foreach (IPreparedSelection selection in selectionSet.GetSelections(typeContext))
                 {
+                    var directives = 
+
+
                     if (selection.SelectionSet is null)
                     {
+                        
+
                         selections.Add(new FieldNode(
                             null,
                             selection.Selection.Name,
