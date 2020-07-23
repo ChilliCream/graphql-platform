@@ -114,6 +114,11 @@ namespace HotChocolate.Utilities
             Action<IValueNode> setValue,
             ISet<object> processed)
         {
+            if (obj is IOptional optional && optional.HasValue)
+            {
+                obj = optional.Value;
+            }
+
             if (obj is IEnumerable sourceList)
             {
                 var list = new List<IValueNode>();

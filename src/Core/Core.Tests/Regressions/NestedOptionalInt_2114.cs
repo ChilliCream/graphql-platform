@@ -19,10 +19,13 @@ namespace HotChocolate.Regressions
         {
             // arrange
             var onEatMock = new Mock<Func<ToppingInput, bool>>();
+            ToppingInput? input = null;
+            onEatMock.Setup(x => x.Invoke(It.IsAny<ToppingInput>())).Callback<ToppingInput>(x => input = x);
+
             IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
             const string Query = @"
                 mutation {
-                  eat(topping: { pickles: [{ butterPickle: { size: 5, complexAssigned: { value: 3 }, complexAssignedNull: null } }] })
+                  eat(topping: { pickles: [{ butterPickle: { size: 5, complexAssigned: { value: 3 }, complexAssignedNull: null, complexList: [{ value: 2 }] } }] })
                 }";
 
             // act
@@ -30,7 +33,7 @@ namespace HotChocolate.Regressions
 
             // assert
             Assert.Empty(result.Errors);
-            Verify(onEatMock);
+            Verify(input);
         }
 
         [Fact]
@@ -38,6 +41,9 @@ namespace HotChocolate.Regressions
         {
             // arrange
             var onEatMock = new Mock<Func<ToppingInput, bool>>();
+            ToppingInput? input = null;
+            onEatMock.Setup(x => x.Invoke(It.IsAny<ToppingInput>())).Callback<ToppingInput>(x => input = x);
+
             IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
             const string Query = @"
                 mutation a($input: ButterPickleInput!)
@@ -55,25 +61,40 @@ namespace HotChocolate.Regressions
                         {
                             {"size", 5},
                             {"complexAssigned", new Dictionary<string, object> {{"value", 3}}},
-                            {"complexAssignedNull", null}
+                            {"complexAssignedNull", null},
+                            {
+                                "complexList",
+                                new List<Dictionary<string, object>> {new Dictionary<string, object> {{"value", 2}}}
+                            }
                         }
                     }
                 });
 
             // assert
             Assert.Empty(result.Errors);
-            Verify(onEatMock);
+            Verify(input);
         }
 
-        private static void Verify(Mock<Func<ToppingInput, bool>> mock)
+        private static void Verify(ToppingInput? input)
         {
-            mock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
-                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue &&
-                !t.Pickles.First().ButterPickle!.ComplexUnassigned.HasValue &&
-                t.Pickles.First().ButterPickle!.ComplexAssigned.HasValue &&
-                t.Pickles.First().ButterPickle!.ComplexAssigned.Value!.Value == 3 &&
-                t.Pickles.First().ButterPickle!.ComplexAssignedNull.HasValue &&
-                t.Pickles.First().ButterPickle!.ComplexAssignedNull.Value == null)));
+            Assert.NotNull(input);
+
+            ButterPickleInput? pickle = input?.Pickles.First()?.ButterPickle;
+            Assert.NotNull(pickle);
+
+            Assert.Equal(5, pickle?.Size);
+            Assert.False(pickle?.Width.HasValue);
+
+            Assert.False(pickle?.ComplexUnassigned.HasValue);
+
+            Assert.True(pickle?.ComplexAssigned.HasValue);
+            Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
+
+            Assert.True(pickle?.ComplexAssignedNull.HasValue);
+            Assert.Null(pickle?.ComplexAssignedNull.Value);
+
+            Assert.True(pickle?.ComplexList.HasValue);
+            Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
         }
 
         private static Schema CreateSchema(Func<ToppingInput, bool>? onEat = null)
@@ -127,6 +148,8 @@ namespace HotChocolate.Regressions
             public Optional<SomeComplexInput?> ComplexAssigned { get; set; }
 
             public Optional<SomeComplexInput?> ComplexAssignedNull { get; set; }
+
+            public Optional<List<SomeComplexInput>?> ComplexList { get; set; }
         }
 
         public class SomeComplexInput
