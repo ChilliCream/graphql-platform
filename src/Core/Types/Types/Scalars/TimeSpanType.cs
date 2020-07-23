@@ -1,6 +1,7 @@
 using System;
 using System.Xml;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -11,7 +12,7 @@ namespace HotChocolate.Types
         private readonly TimeSpanFormat _format;
 
         public TimeSpanType()
-            : base("TimeSpan")
+            : this("TimeSpan")
         {
         }
 
@@ -51,9 +52,9 @@ namespace HotChocolate.Types
                 return value.Value;
             }
 
-            throw new ScalarSerializationException("RESOURCES");
-            // TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-            //    Name, literal.GetType()));
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
+                    Name, literal.GetType()));
         }
 
         public override IValueNode ParseValue(object? value)
@@ -73,9 +74,9 @@ namespace HotChocolate.Types
                 return new StringValueNode(timeSpan.ToString("c"));
             }
 
-            throw new ScalarSerializationException("RESOURCES");
-            // TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-            //    Name, literal.GetType()));
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
+                    Name, value.GetType()));
         }
 
         public override object? Serialize(object? value)
@@ -85,9 +86,8 @@ namespace HotChocolate.Types
                 return serialized;
             }
 
-            throw new ScalarSerializationException("RESOURCES");
-            // TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-            //    Name, literal.GetType()));
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public bool TrySerialize(object? value, out object? serialized)

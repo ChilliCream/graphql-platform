@@ -43,6 +43,8 @@ namespace HotChocolate.Types
                     typeof(MultiplierPathType), TypeContext.None) },
                 { typeof(NameString), new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
+                { typeof(TimeSpan), new ClrTypeReference(
+                    typeof(TimeSpanType), TypeContext.None) },
             };
 
         private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
@@ -82,6 +84,8 @@ namespace HotChocolate.Types
                     typeof(NameType), TypeContext.None) },
                 { "PaginationAmount", new ClrTypeReference(
                     typeof(PaginationAmountType), TypeContext.None) },
+                { "TimeSpan", new ClrTypeReference(
+                    typeof(TimeSpanType), TypeContext.None) },
            };
 
         private static readonly Dictionary<Type, ValueKind> _scalarKinds =
