@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\Types.Tests.Documentation\Types.Tests.Documentation.csproj" />
   </ItemGroup>
 

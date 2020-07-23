@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Subscriptions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -356,29 +359,262 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public async Task SubscribeAttribute()
+        public async Task Subscribe_Attribute_With_Argument_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onMessage(userId: \"abc\") }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
+                cts.Token);
+            Assert.Empty(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult queryResult in
+                stream.WithCancellation(cts.Token))
+            {
+                results.AppendLine(queryResult.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic_Defined_On_Attribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFixedMessage }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeFixedMessage(message: \"def\") }",
+                cts.Token);
+            Assert.Empty(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult queryResult in
+                stream.WithCancellation(cts.Token))
+            {
+                results.AppendLine(queryResult.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSysMessage }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeSysMessage(message: \"def\") }",
+                cts.Token);
+            Assert.Empty(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult queryResult in
+                stream.WithCancellation(cts.Token))
+            {
+                results.AppendLine(queryResult.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic_Infer_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onInferTopic }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeOnInferTopic(message: \"def\") }",
+                cts.Token);
+            Assert.Empty(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult queryResult in
+                stream.WithCancellation(cts.Token))
+            {
+                results.AppendLine(queryResult.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Explicitly_Defined_Subscribe()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onExplicit }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeOnExplicit(message: \"def\") }",
+                cts.Token);
+            Assert.Empty(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IReadOnlyQueryResult queryResult in
+                stream.WithCancellation(cts.Token))
+            {
+                results.AppendLine(queryResult.ToJson());
+                break;
+            }
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Subscribe_Attribute_Schema_Is_Generated_Correctly()
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
 
             // act
-            ISchema schema = SchemaBuilder.New()
-                .AddSubscriptionType<WithSubscribe>()
-                .ModifyOptions(t => t.StrictValidation = false)
-                .Create();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddMutationType<MyMutation>()
+                        .AddSubscriptionType<MySubscription>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
-            var stream = (IResponseStream)await executor.ExecuteAsync(
-                "subscription { onFoo }", cts.Token);
+            executor.Schema.ToString().MatchSnapshot();
+        }
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
-            {
-                results.Add(result);
-            }
+        [Fact]
+        public void Subscribe_Attribute_With_Two_Topic_Attributes_Error()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
 
-            results.MatchSnapshot();
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddSubscriptionType<InvalidSubscription_TwoTopicAttributes>())
+                .AddQueryExecutor();
+
+            // act
+            Action error = () => serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // assert
+            Assert.Throws<SchemaException>(error).Message.MatchSnapshot();
         }
 
         public class WithSubscribeAndResolve
@@ -389,22 +625,6 @@ namespace HotChocolate.Types
                 yield return "a";
                 yield return "b";
                 yield return "c";
-            }
-        }
-
-        public class WithSubscribe
-        {
-            [Subscribe(nameof(OnFoo))]
-            public IEnumerable<string> SubscribeOnFoo()
-            {
-                yield return "a";
-                yield return "b";
-                yield return "c";
-            }
-
-            public string OnFoo([EventMessage]string s)
-            {
-                return s;
             }
         }
 
@@ -667,6 +887,104 @@ namespace HotChocolate.Types
                     }
                 }
             }
+        }
+
+        public class MyMutation
+        {
+            public string WriteMessage(
+                string userId,
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync(userId, message);
+                return message;
+            }
+
+            public string WriteSysMessage(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("OnSysMessage", message);
+                return message;
+            }
+
+            public string WriteFixedMessage(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("Fixed", message);
+                return message;
+            }
+
+            public string WriteOnInferTopic(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("OnInferTopic", message);
+                return message;
+            }
+
+            public string WriteOnExplicit(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("explicit", message);
+                return message;
+            }
+        }
+
+        public class MySubscription
+        {
+            [Subscribe]
+            public string OnMessage(
+                [Topic] string userId,
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            [Topic]
+            public string OnSysMessage(
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            [Topic("Fixed")]
+            public string OnFixedMessage(
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            public string OnInferTopic(
+                [EventMessage] string message) =>
+                message;
+
+            public async ValueTask<IAsyncEnumerable<string>> SubscribeToOnExplicit(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                await eventReceiver.SubscribeAsync<string, string>("explicit");
+
+            [Subscribe(With = nameof(SubscribeToOnExplicit))]
+            public string OnExplicit(
+                [EventMessage] string message) =>
+                message;
+
+            public IAsyncEnumerable<string> SubscribeToOnExplicitSync(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                default!;
+
+            [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
+            public string OnExplicitSync(
+                [EventMessage] string message) =>
+                message;
+        }
+
+        public class InvalidSubscription_TwoTopicAttributes
+        {
+            [Subscribe]
+            [Topic]
+            public string OnMessage(
+                [Topic] string userId,
+                [EventMessage] string message) =>
+                message;
         }
     }
 }
