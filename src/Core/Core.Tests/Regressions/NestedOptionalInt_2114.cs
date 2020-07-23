@@ -22,7 +22,7 @@ namespace HotChocolate.Regressions
             IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
             const string Query = @"
                 mutation {
-                  eat(topping: { pickles: [{ butterPickle: { size: 5 } }] })
+                  eat(topping: { pickles: [{ butterPickle: { size: 5, complexAssigned: { value: 3 }, complexAssignedNull: null } }] })
                 }";
 
             // act
@@ -30,8 +30,7 @@ namespace HotChocolate.Regressions
 
             // assert
             Assert.Empty(result.Errors);
-            onEatMock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
-                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue)));
+            Verify(onEatMock);
         }
 
         [Fact]
@@ -50,13 +49,31 @@ namespace HotChocolate.Regressions
             IExecutionResult result = await executor.ExecuteAsync(Query,
                 new Dictionary<string, object>
                 {
-                    {"input", new Dictionary<string, object> { {"size", 5} } }
+                    {
+                        "input",
+                        new Dictionary<string, object>
+                        {
+                            {"size", 5},
+                            {"complexAssigned", new Dictionary<string, object> {{"value", 3}}},
+                            {"complexAssignedNull", null}
+                        }
+                    }
                 });
 
             // assert
             Assert.Empty(result.Errors);
-            onEatMock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
-                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue)));
+            Verify(onEatMock);
+        }
+
+        private static void Verify(Mock<Func<ToppingInput, bool>> mock)
+        {
+            mock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
+                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue &&
+                !t.Pickles.First().ButterPickle!.ComplexUnassigned.HasValue &&
+                t.Pickles.First().ButterPickle!.ComplexAssigned.HasValue &&
+                t.Pickles.First().ButterPickle!.ComplexAssigned.Value!.Value == 3 &&
+                t.Pickles.First().ButterPickle!.ComplexAssignedNull.HasValue &&
+                t.Pickles.First().ButterPickle!.ComplexAssignedNull.Value == null)));
         }
 
         private static Schema CreateSchema(Func<ToppingInput, bool>? onEat = null)
@@ -104,6 +121,17 @@ namespace HotChocolate.Regressions
             public Optional<int> Size { get; set; }
 
             public Optional<int?> Width { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexUnassigned { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexAssigned { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexAssignedNull { get; set; }
+        }
+
+        public class SomeComplexInput
+        {
+            public int Value { get; set; }
         }
     }
 }
