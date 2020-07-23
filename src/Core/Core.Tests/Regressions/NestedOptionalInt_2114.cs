@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Moq;
 using Xunit;
 
 #nullable enable
@@ -18,11 +17,13 @@ namespace HotChocolate.Regressions
         public async Task ShouldNotFailWithExplicitValues()
         {
             // arrange
-            var onEatMock = new Mock<Func<ToppingInput, bool>>();
             ToppingInput? input = null;
-            onEatMock.Setup(x => x.Invoke(It.IsAny<ToppingInput>())).Callback<ToppingInput>(x => input = x);
 
-            IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
+            IQueryExecutor executor = CreateSchema(value =>
+            {
+                input = value;
+                return true;
+            }).MakeExecutable();
             const string Query = @"
                 mutation {
                   eat(topping: { pickles: [{ butterPickle: { size: 5, complexAssigned: { value: 3 }, complexAssignedNull: null, complexList: [{ value: 2 }] } }] })
@@ -40,11 +41,13 @@ namespace HotChocolate.Regressions
         public async Task ShouldNotFailWithVariables()
         {
             // arrange
-            var onEatMock = new Mock<Func<ToppingInput, bool>>();
             ToppingInput? input = null;
-            onEatMock.Setup(x => x.Invoke(It.IsAny<ToppingInput>())).Callback<ToppingInput>(x => input = x);
+            IQueryExecutor executor = CreateSchema(value =>
+            {
+                input = value;
+                return true;
+            }).MakeExecutable();
 
-            IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
             const string Query = @"
                 mutation a($input: ButterPickleInput!)
                 {
