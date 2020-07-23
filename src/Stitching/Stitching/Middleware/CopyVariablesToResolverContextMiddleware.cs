@@ -18,7 +18,7 @@ namespace HotChocolate.Stitching
 
         public Task InvokeAsync(IQueryContext context)
         {
-            IVariableValueCollection variables = context.Operation.Variables;
+            IVariableValueCollection variables = context.Variables;
             var dict = new Dictionary<string, IValueNode>();
 
             foreach (string key in context.Request.VariableValues.Keys)
