@@ -75,6 +75,17 @@ namespace HotChocolate.Utilities
             Action<IValueNode> setValue,
             ISet<object> processed)
         {
+            if (obj is IOptional outerOptional)
+            {
+                if (outerOptional.HasValue && outerOptional.Value is null)
+                {
+                    setValue(NullValueNode.Default);
+                    return;
+                }
+
+                obj = outerOptional.Value;
+            }
+
             if (processed.Add(obj))
             {
                 var fields = new List<ObjectFieldNode>();
@@ -83,6 +94,11 @@ namespace HotChocolate.Utilities
                 {
                     if(field.TryGetValue(obj, out object fieldValue))
                     {
+                        if (fieldValue is IOptional optional && !optional.HasValue)
+                        {
+                            continue;
+                        }
+
                         Action<IValueNode> setField = value =>
                             fields.Add(new ObjectFieldNode(field.Name, value));
                         VisitValue(field.Type, fieldValue, setField, processed);
@@ -98,6 +114,11 @@ namespace HotChocolate.Utilities
             Action<IValueNode> setValue,
             ISet<object> processed)
         {
+            if (obj is IOptional optional && optional.HasValue)
+            {
+                obj = optional.Value;
+            }
+
             if (obj is IEnumerable sourceList)
             {
                 var list = new List<IValueNode>();
