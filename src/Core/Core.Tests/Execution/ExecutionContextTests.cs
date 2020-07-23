@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -34,9 +35,8 @@ namespace HotChocolate.Execution
 
             var variables = new Mock<IVariableValueCollection>();
 
-            var operation = new Mock<IOperation>();
+            var operation = new Mock<IPreparedOperation>();
             operation.Setup(t => t.Document).Returns(query);
-            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
@@ -51,6 +51,8 @@ namespace HotChocolate.Execution
             var executionContext = new ExecutionContext(
                 schema,
                 operation.Object,
+                variables.Object,
+                null,
                 requestContext.Object,
                 CancellationToken.None);
 
@@ -79,9 +81,8 @@ namespace HotChocolate.Execution
 
             var variables = new Mock<IVariableValueCollection>();
 
-            var operation = new Mock<IOperation>();
+            var operation = new Mock<IPreparedOperation>();
             operation.Setup(t => t.Document).Returns(query);
-            operation.Setup(t => t.Variables).Returns(variables.Object);
 
             var contextData = new Dictionary<string, object>
             {
@@ -101,7 +102,11 @@ namespace HotChocolate.Execution
 
             // act
             var executionContext = new ExecutionContext(
-                schema, operation.Object, requestContext,
+                schema,
+                operation.Object,
+                variables.Object,
+                null,
+                requestContext,
                 CancellationToken.None);
 
             IExecutionContext cloned = executionContext.Clone();

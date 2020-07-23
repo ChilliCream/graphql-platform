@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Utilities
             var fields = new OrderedDictionary<string, PreparedSelection>();
             CollectFields(typeContext, selectionSet, null, visibilityLookup, fields);
             var selections = new List<PreparedSelection>();
-            bool isFinal = true;
+            var isFinal = true;
 
             foreach (PreparedSelection selection in fields.Values)
             {
@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Utilities
                     var next = new PSS(selection.SelectionSet);
                     register(next);
 
-                    IReadOnlyCollection<ObjectType> possibleTypes = 
+                    IReadOnlyCollection<ObjectType> possibleTypes =
                         _schema.GetPossibleTypes(fieldType);
                     foreach (ObjectType possibleType in possibleTypes)
                     {
@@ -206,7 +206,7 @@ namespace HotChocolate.Execution.Utilities
 
                 if (visibility is { } && selection.SelectionSet is { })
                 {
-                    for (int i = 0; i < selection.SelectionSet.Selections.Count; i++)
+                    for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
                         ISelectionNode child = selection.SelectionSet.Selections[i];
                         if (!visibilityLookup.ContainsKey(child))
@@ -330,7 +330,7 @@ namespace HotChocolate.Execution.Utilities
                 }
             }
 
-            for (int i = 0; i < field.Arguments.Count; i++)
+            for (var i = 0; i < field.Arguments.Count; i++)
             {
                 Argument argument = field.Arguments[i];
                 if (!arguments.ContainsKey(argument.Name))
@@ -495,7 +495,7 @@ namespace HotChocolate.Execution.Utilities
             ObjectField field,
             FieldNode selection)
         {
-            for (int i = 0; i < selection.Directives.Count; i++)
+            for (var i = 0; i < selection.Directives.Count; i++)
             {
                 DirectiveNode directive = selection.Directives[i];
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
@@ -515,7 +515,7 @@ namespace HotChocolate.Execution.Utilities
             List<IDirective> directives,
             ObjectField field)
         {
-            for (int i = 0; i < field.ExecutableDirectives.Count; i++)
+            for (var i = 0; i < field.ExecutableDirectives.Count; i++)
             {
                 IDirective directive = field.ExecutableDirectives[i];
                 if (!directive.Type.IsRepeatable && !processed.Add(directive.Name))
@@ -532,7 +532,7 @@ namespace HotChocolate.Execution.Utilities
         {
             FieldDelegate next = fieldPipeline;
 
-            for (int i = directives.Count - 1; i >= 0; i--)
+            for (var i = directives.Count - 1; i >= 0; i--)
             {
                 if (directives[i] is { IsExecutable: true } directive)
                 {
@@ -548,7 +548,7 @@ namespace HotChocolate.Execution.Utilities
             FieldDelegate next = first;
             IReadOnlyList<DirectiveMiddleware> components = directive.MiddlewareComponents;
 
-            for (int i = components.Count - 1; i >= 0; i--)
+            for (var i = components.Count - 1; i >= 0; i--)
             {
                 DirectiveDelegate component = components[i].Invoke(next);
 

@@ -10,7 +10,9 @@ namespace HotChocolate.Execution.Utilities
         {
             return new QueryException(ErrorBuilder.New()
                 .SetMessage(
-                    CoreResources.FieldCollector_FieldNotFound)
+                    "Field `{0}` does not exist on type `{1}`.",
+                    selection.Name.Value,
+                    typeName)
                 .AddLocation(selection)
                 .SetExtension("fieldName", selection.Name.Value)
                 .SetExtension("typeName", typeName)

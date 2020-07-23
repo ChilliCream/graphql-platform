@@ -108,7 +108,7 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ObjectFieldDefinition definition)
         {
-            bool isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
+            var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver;
 
@@ -123,10 +123,9 @@ namespace HotChocolate.Types
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
 
-            bool skipMiddleware =
-                options.FieldMiddleware == FieldMiddlewareApplication.AllFields
-                    ? false
-                    : isIntrospectionField;
+            var skipMiddleware =
+                options.FieldMiddleware != FieldMiddlewareApplication.AllFields
+                    && isIntrospectionField;
 
             var middlewareComponents = definition.MiddlewareComponents.Count == 0
                 ? Array.Empty<FieldMiddleware>()
