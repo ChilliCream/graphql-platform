@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal partial class ResolverContext
     {
         public ResolverContext Branch(
-            FieldSelection fieldSelection,
+            IPreparedSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
             IDictionary<string, object> serializedResult,

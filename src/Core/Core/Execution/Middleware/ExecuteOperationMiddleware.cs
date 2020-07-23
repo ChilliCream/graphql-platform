@@ -87,6 +87,8 @@ namespace HotChocolate.Execution
             (
                 context.Schema,
                 context.Operation,
+                context.Variables,
+                context.RootValue,
                 requestContext,
                 context.RequestAborted
             );

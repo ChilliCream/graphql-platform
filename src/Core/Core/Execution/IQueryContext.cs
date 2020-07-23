@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -49,7 +50,17 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the operation that shall be executed.
         /// </summary>
-        IOperation Operation { get; set; }
+        IPreparedOperation Operation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the coerced variable values.
+        /// </summary>
+        IVariableValueCollection Variables { get; set; }
+
+        /// <summary>
+        /// Gets or sets root value.
+        /// </summary>
+        object RootValue { get; set; }
 
         /// <summary>
         /// Gets or sets the query validation results.
@@ -76,7 +87,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the execution bound field middleware resolver.
         /// </summary>
-        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver
-        { get; set; }
+        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver { get; set; }
     }
 }

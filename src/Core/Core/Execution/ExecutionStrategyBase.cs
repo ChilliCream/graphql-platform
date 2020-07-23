@@ -11,6 +11,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using System.Runtime.CompilerServices;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -195,20 +196,19 @@ namespace HotChocolate.Execution
             IDictionary<string, object> result)
         {
             ImmutableStack<object> source = ImmutableStack<object>.Empty
-                .Push(executionContext.Operation.RootValue);
+                .Push(executionContext.RootValue);
 
-            IReadOnlyCollection<FieldSelection> fieldSelections =
+            IReadOnlyCollection<IPreparedSelection> fieldSelections =
                 executionContext.CollectFields(
                     executionContext.Operation.RootType,
-                    executionContext.Operation.Definition.SelectionSet,
-                    null);
+                    executionContext.Operation.Definition.SelectionSet);
 
             int i = 0;
             ResolverContext[] batch =
                 ArrayPool<ResolverContext>.Shared.Rent(
                     fieldSelections.Count);
 
-            foreach (FieldSelection fieldSelection in fieldSelections)
+            foreach (IPreparedSelection fieldSelection in fieldSelections)
             {
                 batch[i++] = ResolverContext.Rent(
                     executionContext,

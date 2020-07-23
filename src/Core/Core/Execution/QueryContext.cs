@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -89,7 +90,11 @@ namespace HotChocolate.Execution
 
         public ICachedQuery CachedQuery { get; set; }
 
-        public IOperation Operation { get; set; }
+        public IPreparedOperation Operation { get; set; }
+
+        public IVariableValueCollection Variables { get; set; }
+
+        public object RootValue { get; set; }
 
         public QueryValidationResult ValidationResult { get; set; }
 

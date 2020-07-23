@@ -10,6 +10,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -40,12 +41,11 @@ namespace HotChocolate.Execution
         private async Task<IExecutionResult> ExecuteInternalAsync(
             IExecutionContext executionContext)
         {
-            object rootValue = executionContext.Operation.RootValue;
+            object rootValue = executionContext.RootValue;
 
-            FieldSelection fieldSelection = executionContext.CollectFields(
+            IPreparedSelection fieldSelection = executionContext.CollectFields(
                 executionContext.Schema.SubscriptionType,
-                executionContext.Operation.Definition.SelectionSet,
-                null)
+                executionContext.Operation.Definition.SelectionSet)
                 .Single();
 
             ImmutableStack<object> source = ImmutableStack.Create(rootValue);

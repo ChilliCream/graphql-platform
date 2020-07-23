@@ -5,6 +5,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Execution.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -15,41 +16,30 @@ namespace HotChocolate.Execution
         private readonly object _syncRoot = new object();
         private readonly IRequestContext _requestContext;
         private readonly FieldCollector _fieldCollector;
-        private readonly ICachedQuery _cachedQuery;
 
         public ExecutionContext(
             ISchema schema,
-            IOperation operation,
+            IPreparedOperation operation,
+            IVariableValueCollection variableValues,
+            object rootValue,
             IRequestContext requestContext,
             CancellationToken requestAborted)
         {
-            Schema = schema ??
-                throw new ArgumentNullException(nameof(schema));
-            Operation = operation ??
-                throw new ArgumentNullException(nameof(operation));
+            Schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
+            Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            Variables = variableValues
+                ?? throw new ArgumentNullException(nameof(variableValues));
+            RootValue = rootValue;
             _requestContext = requestContext
                 ?? throw new ArgumentNullException(nameof(requestContext));
-
             RequestAborted = requestAborted;
 
-            _cachedQuery = _requestContext.CachedQuery;
-
-            ErrorHandler = requestContext.ServiceScope.ServiceProvider
-                .GetRequiredService<IErrorHandler>();
-
             Result = new QueryResult();
-
-            var fragments = new FragmentCollection(
-                schema, operation.Document);
-
-            Converter = _requestContext.ServiceScope
-                .ServiceProvider.GetTypeConversion();
-
-            _fieldCollector = new FieldCollector(
-                fragments, requestContext.ResolveMiddleware, Converter);
-
-            Activator = new Activator(
-                requestContext.ServiceScope.ServiceProvider);
+            Converter = Services.GetTypeConversion();
+            ErrorHandler = Services.GetRequiredService<IErrorHandler>();
+            Activator = new Activator(Services);
         }
 
 
@@ -63,9 +53,9 @@ namespace HotChocolate.Execution
 
         public IErrorHandler ErrorHandler { get; }
 
-        public IOperation Operation { get; }
+        public IPreparedOperation Operation { get; }
 
-        public IVariableValueCollection Variables => Operation.Variables;
+        public IVariableValueCollection Variables { get; }
 
         public IQueryResult Result { get; private set; }
 
@@ -81,6 +71,8 @@ namespace HotChocolate.Execution
 
         public ITypeConversion Converter { get; }
 
+        public object RootValue { get; }
+
         public void AddError(IError error)
         {
             if (error == null)
@@ -94,7 +86,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public IReadOnlyList<FieldSelection> CollectFields(
+        public IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType objectType,
             SelectionSetNode selectionSet,
             Path path)
@@ -109,24 +101,25 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(selectionSet));
             }
 
-            IReadOnlyList<FieldSelection> fields =
-                _cachedQuery.GetOrCollectFields(
-                    objectType,
-                    selectionSet,
-                    () => _fieldCollector.CollectFields(
-                        objectType, selectionSet, path));
+            IPreparedSelectionList selections = Operation.GetSelections(selectionSet, objectType);
 
-            var visibleFields = new List<FieldSelection>();
-
-            for (int i = 0; i < fields.Count; i++)
+            if (selections.IsFinal)
             {
-                if (fields[i].IsVisible(Variables))
+                return selections;
+            }
+
+            var visibleFields = new List<IPreparedSelection>();
+
+            for (int i = 0; i < selections.Count; i++)
+            {
+                IPreparedSelection selection = selections[i];
+                if (selection.IsFinal || selection.IsVisible(Variables))
                 {
-                    visibleFields.Add(fields[i]);
+                    visibleFields.Add(selection);
                 }
             }
-            return visibleFields;
 
+            return visibleFields;
         }
 
         public IExecutionContext Clone()
@@ -135,9 +128,16 @@ namespace HotChocolate.Execution
             (
                 Schema,
                 Operation,
+                Variables,
+                RootValue,
                 _requestContext.Clone(),
                 RequestAborted
             );
+        }
+
+        public IReadOnlyList<IPreparedSelection> CollectFields(ObjectType objectType, SelectionSetNode selectionSet)
+        {
+            throw new NotImplementedException();
         }
     }
 }

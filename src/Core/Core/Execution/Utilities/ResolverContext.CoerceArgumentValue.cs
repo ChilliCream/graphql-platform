@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -16,9 +17,10 @@ namespace HotChocolate.Execution
         {
             name.EnsureNotEmpty(nameof(name));
 
-            if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
+            PreCoerceArguments();
+
+            if (_arguments.TryGetValue(name, out PreparedArgument argumentValue))
             {
-                EnsureNoError(argumentValue);
                 return CoerceArgumentValue<T>(name, argumentValue);
             }
 
@@ -29,35 +31,27 @@ namespace HotChocolate.Execution
         {
             name.EnsureNotEmpty(nameof(name));
 
-            if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
+            PreCoerceArguments();
+
+            if (_arguments.TryGetValue(name, out PreparedArgument argumentValue))
             {
-                EnsureNoError(argumentValue);
                 return argumentValue.Kind ?? ValueKind.Unknown;
             }
 
             return ValueKind.Null;
         }
 
-        private void EnsureNoError(ArgumentValue argumentValue)
-        {
-            if (argumentValue.Error != null)
-            {
-                throw new QueryException(argumentValue.Error);
-            }
-        }
-
-        // TODO : simplify
         private T CoerceArgumentValue<T>(
             string name,
-            ArgumentValue argumentValue)
+            PreparedArgument argumentValue)
         {
             object value = argumentValue.Value;
 
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
-                IValueNode literal = (argumentValue.Literal == null)
+                IValueNode literal = (argumentValue.ValueLiteral == null)
                     ? argumentValue.Type.ParseValue(value)
-                    : argumentValue.Literal;
+                    : argumentValue.ValueLiteral;
 
                 return (T)VariableToValueRewriter.Rewrite(
                     literal,
@@ -66,10 +60,10 @@ namespace HotChocolate.Execution
                     _executionContext.Converter);
             }
 
-            if (argumentValue.Literal != null)
+            if (argumentValue.ValueLiteral != null)
             {
                 IValueNode literal = VariableToValueRewriter.Rewrite(
-                    argumentValue.Literal,
+                    argumentValue.ValueLiteral,
                     argumentValue.Type,
                     _executionContext.Variables,
                     _executionContext.Converter);
@@ -132,6 +126,29 @@ namespace HotChocolate.Execution
 
             converted = default;
             return false;
+        }
+
+        private void PreCoerceArguments()
+        {
+            if (_arguments is null)
+            {
+                List<IError> errors = null;
+
+                if (!_fieldSelection.Arguments.TryCoerceArguments(
+                    _executionContext.Variables,
+                    error =>
+                    {
+                        if (errors is null)
+                        {
+                            errors = new List<IError>();
+                        }
+                        errors.Add(error.WithPath(Path));
+                    },
+                    out _arguments))
+                {
+                    throw new QueryException(errors);
+                }
+            }
         }
     }
 }

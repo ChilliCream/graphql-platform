@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -9,9 +8,6 @@ namespace HotChocolate.Execution
     {
         DocumentNode Document { get; }
 
-        IReadOnlyList<FieldSelection> GetOrCollectFields(
-            ObjectType type,
-            SelectionSetNode selectionSet,
-            Func<IReadOnlyList<FieldSelection>> collectFields);
+        IPreparedOperation GetOrCreate(string operationId, Func<IPreparedOperation> create);
     }
 }

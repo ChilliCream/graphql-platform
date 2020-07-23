@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
                 {
                     var visitorContext = MaxComplexityVisitorContext.New(
                         context.Schema,
-                        context.Operation.Variables,
+                        context.Variables,
                         _calculation);
 
                     int complexity = _visitor.Visit(

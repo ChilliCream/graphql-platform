@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -13,50 +15,59 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly Cache<OperationDefinitionNode> _queryCache;
 
-        public ResolveOperationMiddleware(
-            QueryDelegate next,
-            Cache<OperationDefinitionNode> queryCache)
+        public ResolveOperationMiddleware(QueryDelegate next)
         {
-            _next = next
-                ?? throw new ArgumentNullException(nameof(next));
-            _queryCache = queryCache
-                ?? new Cache<OperationDefinitionNode>(Defaults.CacheSize);
+            _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
         public Task InvokeAsync(IQueryContext context)
         {
             string operationName = context.Request.OperationName;
-            string cacheKey = CreateKey(operationName, context.QueryKey);
+            string operationId = CreateKey(operationName, context.QueryKey);
 
-            OperationDefinitionNode node = _queryCache.GetOrCreate(cacheKey,
-                () => QueryDocumentHelper.GetOperation(
-                    context.Document, operationName));
+            IPreparedOperation operation = context.CachedQuery.GetOrCreate(
+                operationId,
+                () =>
+                {
+                    OperationDefinitionNode operationNode =
+                        QueryDocumentHelper.GetOperation(context.Document, operationName);
 
-            ObjectType rootType = ResolveRootType(context, node.Operation);
-            object rootValue = ResolveRootValue(context, rootType);
+                    ObjectType rootType = ResolveRootType(context, operationNode.Operation);
+
+                    IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                        FieldCollector.PrepareSelectionSets(
+                            context.Schema,
+                            new FragmentCollection(context.Schema, context.Document),
+                            operationNode);
+
+                    return new PreparedOperation(
+                        operationId,
+                        context.Document,
+                        operationNode,
+                        rootType,
+                        selectionSets);
+                });
+
+            context.Operation = operation;
+            context.Variables = new VariableValueBuilder(context.Schema, operation.Definition)
+                .CreateValues(context.Request.VariableValues);
+
             var disposeRootValue = false;
+            context.RootValue = ResolveRootValue(context, operation.RootType);
 
-            if (rootValue == null)
+            if (context.RootValue == null)
             {
-                rootValue = CreateRootValue(context, rootType);
+                context.RootValue = CreateRootValue(context, operation.RootType);
                 disposeRootValue = true;
             }
-
-            var variableBuilder = new VariableValueBuilder(
-                context.Schema, node);
-
-            context.Operation = new Operation(
-                context.Document, node,
-                variableBuilder.CreateValues(context.Request.VariableValues),
-                rootType, rootValue);
-
+            
             try
             {
                 return _next(context);
             }
             finally
             {
-                if (disposeRootValue && rootValue is IDisposable d)
+                if (disposeRootValue && context.RootValue is IDisposable d)
                 {
                     d.Dispose();
                 }

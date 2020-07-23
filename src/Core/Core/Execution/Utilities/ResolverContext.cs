@@ -10,6 +10,7 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -21,8 +22,8 @@ namespace HotChocolate.Execution
         private object _cachedResolverResult;
         private bool _hasCachedResolverResult;
         private IDictionary<string, object> _serializedResult;
-        private FieldSelection _fieldSelection;
-        private IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
+        private IPreparedSelection _fieldSelection;
+        private IReadOnlyDictionary<NameString, PreparedArgument> _arguments;
 
         public ITypeConversion Converter =>
             _executionContext.Converter;
@@ -65,7 +66,7 @@ namespace HotChocolate.Execution
             set;
         }
 
-        public FieldDelegate Middleware => _fieldSelection.Middleware;
+        public FieldDelegate Middleware => _fieldSelection.ResolverPipeline;
 
         public Task Task { get; set; }
 
@@ -228,17 +229,19 @@ namespace HotChocolate.Execution
             return (T)_cachedResolverResult;
         }
 
-        public IReadOnlyList<FieldSelection> CollectFields(
+        public IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType typeContext) =>
             CollectFields(typeContext, FieldSelection.SelectionSet);
 
-        public IReadOnlyList<FieldSelection> CollectFields(
+        public IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            CollectFields(typeContext, selectionSet, Path);
+            _executionContext.CollectFields(typeContext, selectionSet);
 
-        public IReadOnlyList<FieldSelection> CollectFields(
+        [Obsolete]
+        public IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
-            _executionContext.CollectFields(typeContext, selectionSet, path);
+            CollectFields(typeContext, selectionSet);
+            
 
         IReadOnlyList<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext) => CollectFields(typeContext);
@@ -247,6 +250,7 @@ namespace HotChocolate.Execution
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             CollectFields(typeContext, selectionSet);
 
+        [Obsolete]
         IReadOnlyList<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
             CollectFields(typeContext, selectionSet, path);

@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -11,8 +10,8 @@ namespace HotChocolate.Execution
     internal sealed partial class CachedQuery
         : ICachedQuery
     {
-        private ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>> _flds =
-            new ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>>();
+        private ConcurrentDictionary<string, IPreparedOperation> _operations =
+            new ConcurrentDictionary<string, IPreparedOperation>();
 
         public CachedQuery(string queryKey, DocumentNode document)
         {
@@ -36,18 +35,9 @@ namespace HotChocolate.Execution
 
         public DocumentNode Document { get; }
 
-        public IReadOnlyList<FieldSelection> GetOrCollectFields(
-            ObjectType type,
-            SelectionSetNode selectionSet,
-            Func<IReadOnlyList<FieldSelection>> collectFields)
-        {
-            var key = new Key(selectionSet, type);
-            if (!_flds.TryGetValue(key, out IReadOnlyList<FieldSelection> flds))
-            {
-                flds = collectFields();
-                _flds.TryAdd(key, flds);
-            }
-            return flds;
-        }
+        public IPreparedOperation GetOrCreate(
+            string operationId, 
+            Func<IPreparedOperation> create) =>
+            _operations.GetOrAdd(operationId, s => create());
     }
 }

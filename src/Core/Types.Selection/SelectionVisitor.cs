@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Introspection;
@@ -106,7 +107,7 @@ namespace HotChocolate.Types.Selections
                     Expression.Property(
                         Closures.Peek().Instance.Peek(), propertyInfo);
 
-                if (selection is FieldSelection fieldSelection)
+                if (selection is IPreparedSelection fieldSelection)
                 {
                     var context = new SelectionVisitorContext(Context, _converter, fieldSelection);
 

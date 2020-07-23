@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -103,7 +104,7 @@ namespace HotChocolate.Execution
             OrderedDictionary serializedResult,
             object resolverResult)
         {
-            IReadOnlyCollection<FieldSelection> fields =
+            IReadOnlyCollection<IPreparedSelection> fields =
                 ResolverContext.CollectFields(
                     objectType, _selectionSet);
 
@@ -114,7 +115,7 @@ namespace HotChocolate.Execution
                 CreateListNonNullViolationPropagation(
                         ResolverContext, SetElementNull);
 
-            foreach (FieldSelection field in fields)
+            foreach (IPreparedSelection field in fields)
             {
                 EnqueueNext(_resolverContext.Branch(
                     field,

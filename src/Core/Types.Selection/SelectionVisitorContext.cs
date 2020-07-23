@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -8,33 +9,33 @@ namespace HotChocolate.Types.Selections
 {
     public class SelectionVisitorContext
     {
-        private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
         private readonly IResolverContext _context;
+        private IReadOnlyDictionary<NameString, PreparedArgument> _arguments;
 
         public SelectionVisitorContext(
             IResolverContext context,
             ITypeConversion conversion,
-            FieldSelection fieldSelection)
+            IPreparedSelection fieldSelection)
         {
             Conversion = conversion;
             FieldSelection = fieldSelection;
             _context = context;
-            _arguments = fieldSelection.CoerceArguments(context.Variables, conversion);
+            
         }
 
         public ITypeConversion Conversion { get; }
 
-        public FieldSelection FieldSelection { get; }
+        public IPreparedSelection FieldSelection { get; }
 
         public bool TryGetValueNode(string key, out IValueNode arg)
         {
-            if (_arguments.TryGetValue(key, out ArgumentValue argumentValue) &&
-                argumentValue.Literal != null &&
-                !(argumentValue.Literal is NullValueNode))
-            {
-                EnsureNoError(argumentValue);
+            PreCoerceArguments();
 
-                IValueNode literal = argumentValue.Literal;
+            if (_arguments.TryGetValue(key, out PreparedArgument argumentValue) &&
+                argumentValue.ValueLiteral != null &&
+                !(argumentValue.ValueLiteral is NullValueNode))
+            {
+                IValueNode literal = argumentValue.ValueLiteral;
 
                 arg = VariableToValueRewriter.Rewrite(
                     literal,
@@ -47,11 +48,26 @@ namespace HotChocolate.Types.Selections
             return false;
         }
 
-        protected void EnsureNoError(ArgumentValue argumentValue)
+        private void PreCoerceArguments()
         {
-            if (argumentValue.Error != null)
+            if (_arguments is null)
             {
-                throw new QueryException(argumentValue.Error);
+                List<IError> errors = null;
+
+                if (!FieldSelection.Arguments.TryCoerceArguments(
+                    _context.Variables,
+                    error =>
+                    {
+                        if (errors is null)
+                        {
+                            errors = new List<IError>();
+                        }
+                        errors.Add(error.WithPath(_context.Path));
+                    },
+                    out _arguments))
+                {
+                    throw new QueryException(errors);
+                }
             }
         }
     }

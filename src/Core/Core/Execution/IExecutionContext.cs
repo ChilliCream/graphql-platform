@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -35,7 +36,9 @@ namespace HotChocolate.Execution
         /// Gets the operation that is being executed.
         /// </summary>
         /// <value></value>
-        IOperation Operation { get; }
+        IPreparedOperation Operation { get; }
+
+        object RootValue { get; }
 
         /// <summary>
         /// Gets the coerced variables.
@@ -61,10 +64,9 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        IReadOnlyList<FieldSelection> CollectFields(
+        IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType objectType,
-            SelectionSetNode selectionSet,
-            Path path);
+            SelectionSetNode selectionSet);
 
         /// <summary>
         /// Gets the activator helper class.

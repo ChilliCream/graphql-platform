@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    // TODO : FIX the object
     internal partial class ResolverContext
         : IShared
     {
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
 
         private void Initialize(
             IExecutionContext executionContext,
-            FieldSelection fieldSelection,
+            IPreparedSelection fieldSelection,
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
@@ -44,12 +44,8 @@ namespace HotChocolate.Execution
             IsRoot = true;
             Path = Path.New(fieldSelection.ResponseName);
             Source = source;
-            SourceObject = executionContext.Operation.RootValue;
+            SourceObject = executionContext.RootValue;
             ScopedContextData = ImmutableDictionary<string, object>.Empty;
-
-            _arguments = fieldSelection.CoerceArguments(
-                executionContext.Variables,
-                executionContext.Converter);
 
             string responseName = fieldSelection.ResponseName;
             PropagateNonNullViolation = () =>
@@ -59,7 +55,7 @@ namespace HotChocolate.Execution
         }
 
         private void Initialize(
-            FieldSelection fieldSelection,
+            IPreparedSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
             ResolverContext sourceContext,
@@ -70,10 +66,6 @@ namespace HotChocolate.Execution
             _executionContext = sourceContext._executionContext;
             _serializedResult = serializedResult;
             _fieldSelection = fieldSelection;
-
-            _arguments = fieldSelection.CoerceArguments(
-                sourceContext._executionContext.Variables,
-                sourceContext._executionContext.Converter);
 
             Path = path;
             Source = source;
@@ -104,7 +96,7 @@ namespace HotChocolate.Execution
 
         public static ResolverContext Rent(
             IExecutionContext executionContext,
-            FieldSelection fieldSelection,
+            IPreparedSelection fieldSelection,
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
@@ -118,7 +110,7 @@ namespace HotChocolate.Execution
         }
 
         private static ResolverContext Rent(
-            FieldSelection fieldSelection,
+            IPreparedSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
             ResolverContext sourceContext,

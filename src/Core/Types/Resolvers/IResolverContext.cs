@@ -232,6 +232,7 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
+        [Obsolete]
         IReadOnlyList<IFieldSelection> CollectFields(
             ObjectType typeContext,
             SelectionSetNode selectionSet,
