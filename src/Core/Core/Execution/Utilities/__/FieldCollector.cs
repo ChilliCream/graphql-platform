@@ -88,7 +88,7 @@ namespace HotChocolate.Execution.Utilities
                     var next = new PSS(selection.SelectionSet);
                     register(next);
 
-                    IReadOnlyCollection<ObjectType> possibleTypes =
+                    IReadOnlyCollection<ObjectType> possibleTypes = 
                         _schema.GetPossibleTypes(fieldType);
                     foreach (ObjectType possibleType in possibleTypes)
                     {

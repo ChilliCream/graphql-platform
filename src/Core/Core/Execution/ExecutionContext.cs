@@ -88,8 +88,7 @@ namespace HotChocolate.Execution
 
         public IReadOnlyList<IPreparedSelection> CollectFields(
             ObjectType objectType,
-            SelectionSetNode selectionSet,
-            Path path)
+            SelectionSetNode selectionSet)
         {
             if (objectType == null)
             {
@@ -133,11 +132,6 @@ namespace HotChocolate.Execution
                 _requestContext.Clone(),
                 RequestAborted
             );
-        }
-
-        public IReadOnlyList<IPreparedSelection> CollectFields(ObjectType objectType, SelectionSetNode selectionSet)
-        {
-            throw new NotImplementedException();
         }
     }
 }
