@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
-using Moq;
 using Xunit;
 
 #nullable enable
@@ -18,11 +17,16 @@ namespace HotChocolate.Regressions
         public async Task ShouldNotFailWithExplicitValues()
         {
             // arrange
-            var onEatMock = new Mock<Func<ToppingInput, bool>>();
-            IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
+            ToppingInput? input = null;
+
+            IQueryExecutor executor = CreateSchema(value =>
+            {
+                input = value;
+                return true;
+            }).MakeExecutable();
             const string Query = @"
                 mutation {
-                  eat(topping: { pickles: [{ butterPickle: { size: 5 } }] })
+                  eat(topping: { pickles: [{ butterPickle: { size: 5, complexAssigned: { value: 3 }, complexAssignedNull: null, complexList: [{ value: 2 }] } }] })
                 }";
 
             // act
@@ -30,16 +34,20 @@ namespace HotChocolate.Regressions
 
             // assert
             Assert.Empty(result.Errors);
-            onEatMock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
-                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue)));
+            Verify(input);
         }
 
         [Fact]
         public async Task ShouldNotFailWithVariables()
         {
             // arrange
-            var onEatMock = new Mock<Func<ToppingInput, bool>>();
-            IQueryExecutor executor = CreateSchema(onEatMock.Object).MakeExecutable();
+            ToppingInput? input = null;
+            IQueryExecutor executor = CreateSchema(value =>
+            {
+                input = value;
+                return true;
+            }).MakeExecutable();
+
             const string Query = @"
                 mutation a($input: ButterPickleInput!)
                 {
@@ -50,13 +58,46 @@ namespace HotChocolate.Regressions
             IExecutionResult result = await executor.ExecuteAsync(Query,
                 new Dictionary<string, object>
                 {
-                    {"input", new Dictionary<string, object> { {"size", 5} } }
+                    {
+                        "input",
+                        new Dictionary<string, object>
+                        {
+                            {"size", 5},
+                            {"complexAssigned", new Dictionary<string, object> {{"value", 3}}},
+                            {"complexAssignedNull", null},
+                            {
+                                "complexList",
+                                new List<Dictionary<string, object>> {new Dictionary<string, object> {{"value", 2}}}
+                            }
+                        }
+                    }
                 });
 
             // assert
             Assert.Empty(result.Errors);
-            onEatMock.Verify(x => x.Invoke(It.Is<ToppingInput>(t =>
-                t.Pickles.First().ButterPickle!.Size == 5 && !t.Pickles.First().ButterPickle!.Width.HasValue)));
+            Verify(input);
+        }
+
+        private static void Verify(ToppingInput? input)
+        {
+            Assert.NotNull(input);
+
+            ButterPickleInput? pickle = input?.Pickles.First()?.ButterPickle;
+            Assert.NotNull(pickle);
+
+            Assert.Equal(5, pickle?.Size);
+            Assert.False(pickle?.Width.HasValue);
+
+            Assert.False(pickle?.ComplexUnassigned.HasValue);
+
+            Assert.True(pickle?.ComplexAssigned.HasValue);
+            Assert.Equal(3, pickle?.ComplexAssigned.Value?.Value);
+
+            Assert.True(pickle?.ComplexAssignedNull.HasValue);
+            Assert.Null(pickle?.ComplexAssignedNull.Value);
+
+            Assert.True(pickle?.ComplexList.HasValue);
+            Assert.Equal(2, pickle?.ComplexList.Value?.First().Value);
         }
 
         private static Schema CreateSchema(Func<ToppingInput, bool>? onEat = null)
@@ -104,6 +145,19 @@ namespace HotChocolate.Regressions
             public Optional<int> Size { get; set; }
 
             public Optional<int?> Width { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexUnassigned { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexAssigned { get; set; }
+
+            public Optional<SomeComplexInput?> ComplexAssignedNull { get; set; }
+
+            public Optional<List<SomeComplexInput>?> ComplexList { get; set; }
+        }
+
+        public class SomeComplexInput
+        {
+            public int Value { get; set; }
         }
     }
 }
