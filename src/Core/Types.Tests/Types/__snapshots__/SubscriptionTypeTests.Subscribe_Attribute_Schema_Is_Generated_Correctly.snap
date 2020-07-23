@@ -19,8 +19,6 @@ type MySubscription {
   onInferTopic: String!
   onMessage(userId: String!): String!
   onSysMessage: String!
-  subscribeToOnExplicit: [String!]!
-  subscribeToOnExplicitSync: [String!]!
 }
 
 type Query {
