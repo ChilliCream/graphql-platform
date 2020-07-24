@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
                 {
                     if (context.Field.Type.NamedType() is ObjectType type)
                     {
-                        foreach (IFieldSelection selection in context.CollectFields(type))
+                        foreach (IFieldSelection selection in context.GetSelections(type))
                         {
                             CollectSelections(context, selection, list);
                         }
@@ -118,7 +118,7 @@ namespace HotChocolate.Execution
 
             if (selection.Field.Type.NamedType() is ObjectType objectType)
             {
-                foreach (IFieldSelection child in context.CollectFields(
+                foreach (IFieldSelection child in context.GetSelections(
                     objectType, selection.Selection.SelectionSet))
                 {
                     CollectSelections(context, child, collected);

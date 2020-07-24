@@ -10,6 +10,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
             DataStore = dataStore;
         }
 
+
         public DataStoreHelloWorld DataStore { get; }
 
         protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -18,7 +19,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             descriptor.Field("newState")
                 .Argument("state", a => a.Type<StringType>())
-                .Resolver(c => DataStore.State = c.Argument<string>("state"));
+                .Resolver(c => DataStore.State = c.ArgumentValue<string>("state"));
         }
     }
 }

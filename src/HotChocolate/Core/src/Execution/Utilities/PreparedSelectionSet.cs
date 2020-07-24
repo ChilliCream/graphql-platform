@@ -6,8 +6,6 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class PreparedSelectionSet : IPreparedSelectionSet
     {
-        private static IPreparedSelectionList _empty = 
-            new PreparedSelectionList(new IPreparedSelection[0], true);
         private ObjectType? _firstType;
         private IPreparedSelectionList? _firstSelections;
         private ObjectType? _secondType;
@@ -45,11 +43,9 @@ namespace HotChocolate.Execution.Utilities
         {
             if (_map is { })
             {
-                if (_map.TryGetValue(typeContext, out IPreparedSelectionList? selections))
-                {
-                    return selections;
-                }
-                return _empty;
+                return _map.TryGetValue(typeContext, out IPreparedSelectionList? selections)
+                    ? selections
+                    : PreparedSelectionList.Empty;
             }
 
             if (ReferenceEquals(_firstType, typeContext))
@@ -62,7 +58,7 @@ namespace HotChocolate.Execution.Utilities
                 return _secondSelections!;
             }
 
-            return _empty;
+            return PreparedSelectionList.Empty;
         }
 
         public void AddSelections(ObjectType typeContext, IPreparedSelectionList selections)

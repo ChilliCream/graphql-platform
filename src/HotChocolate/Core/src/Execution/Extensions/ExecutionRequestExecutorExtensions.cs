@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
-    public static class RequestExecutorExtensions
+    public static class ExecutionRequestExecutorExtensions
     {
         public static Task<IExecutionResult> ExecuteAsync(
             this IRequestExecutor executor,

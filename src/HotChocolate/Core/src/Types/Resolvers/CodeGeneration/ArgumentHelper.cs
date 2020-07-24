@@ -75,7 +75,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (parameter.ParameterType == typeof(ObjectType))
+            if (parameter.ParameterType == typeof(ObjectType) ||
+                parameter.ParameterType == typeof(IObjectType))
             {
                 argumentKind = ArgumentKind.ObjectType;
                 return true;

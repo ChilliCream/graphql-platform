@@ -20,14 +20,19 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            typeof(ObjectType) == parameter.ParameterType;
+            typeof(ObjectType) == parameter.ParameterType ||
+            typeof(IObjectType) == parameter.ParameterType;
 
         public override Expression Compile(
             Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            return Expression.Property(context, _objectType);
+            return typeof(ObjectType) == parameter.ParameterType
+                ? (Expression)Expression.Convert(
+                    Expression.Property(context, _objectType),
+                    typeof(ObjectType))
+                : Expression.Property(context, _objectType);
         }
     }
 }
