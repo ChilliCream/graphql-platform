@@ -21,7 +21,8 @@ namespace HotChocolate.Execution.Utilities
             int responseIndex,
             string responseName,
             FieldDelegate resolverPipeline,
-            IReadOnlyDictionary<NameString, PreparedArgument> arguments)
+            IReadOnlyDictionary<NameString, PreparedArgument> arguments,
+            FieldVisibility? visibility)
         {
             DeclaringType = declaringType;
             Field = field;
@@ -31,6 +32,12 @@ namespace HotChocolate.Execution.Utilities
             ResolverPipeline = resolverPipeline;
             Arguments = new PreparedArgumentMap(arguments);
             Selections = _emptySelections;
+
+            if (visibility is { })
+            {
+                _visibilities = new List<FieldVisibility> { visibility };
+                IsFinal = false;
+            }
         }
 
         /// <inheritdoc />
@@ -64,6 +71,8 @@ namespace HotChocolate.Execution.Utilities
         /// <inheritdoc />
         public bool IsFinal { get; private set; } = true;
 
+        internal IReadOnlyList<FieldVisibility>? Visibilities => _visibilities;
+
         /// <inheritdoc />
         public bool IsVisible(IVariableValueCollection variables)
         {
@@ -72,49 +81,18 @@ namespace HotChocolate.Execution.Utilities
                 return true;
             }
 
-            if (_visibilities.Count == 1)
+            for (int i = 0; i < _visibilities.Count; i++)
             {
-                return _visibilities[0].IsVisible(variables);
-            }
-
-            for (var i = 0; i < _visibilities.Count; i++)
-            {
-                if (!_visibilities[i].IsVisible(variables))
+                if (_visibilities[i].IsVisible(variables))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
-        public void TryAddVariableVisibility(FieldVisibility visibility)
-        {
-            if (_isReadOnly)
-            {
-                throw new NotSupportedException();
-            }
-
-            _visibilities ??= new List<FieldVisibility>();
-            IsFinal = false;
-
-            if (_visibilities.Count == 0)
-            {
-                _visibilities.Add(visibility);
-            }
-
-            for (var i = 0; i < _visibilities.Count; i++)
-            {
-                if (_visibilities[i].Equals(visibility))
-                {
-                    return;
-                }
-            }
-
-            _visibilities.Add(visibility);
-        }
-
-        public void AddSelection(FieldNode field)
+        public void AddSelection(FieldNode field, FieldVisibility? visibility)
         {
             if (_isReadOnly)
             {
@@ -126,7 +104,40 @@ namespace HotChocolate.Execution.Utilities
                 _selections = new List<FieldNode>();
                 _selections.Add(Selection);
             }
+
             _selections.Add(field);
+
+            AddVariableVisibility(visibility);
+        }
+
+        private void AddVariableVisibility(FieldVisibility? visibility)
+        {
+            if (_isReadOnly)
+            {
+                throw new NotSupportedException();
+            }
+
+            if (_visibilities is null)
+            {
+                return;
+            }
+
+            if (visibility is null)
+            {
+                _visibilities = null;
+                IsFinal = true;
+                return;
+            }
+
+            for (var i = 0; i < _visibilities.Count; i++)
+            {
+                if (_visibilities[i].Equals(visibility))
+                {
+                    return;
+                }
+            }
+
+            _visibilities.Add(visibility);
         }
 
         public void MakeReadOnly()

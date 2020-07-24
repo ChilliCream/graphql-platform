@@ -1,0 +1,12 @@
+﻿query foo($v: Boolean, $q: Boolean) {
+  ... on Query {
+    hero(episode: EMPIRE) @include(if: $v) {
+      ... on Human {
+        name @include(if: $q)
+      }
+      ... on Droid {
+        name @include(if: $q)
+      }
+    }
+  }
+}
