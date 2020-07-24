@@ -9,5 +9,9 @@ namespace HotChocolate.Data.Filters
         public Type? EntityType { get; set; }
 
         public string? Scope { get; set; }
+
+        public bool UseOr { get; set; } = true;
+
+        public bool UseAnd { get; set; } = true;
     }
 }

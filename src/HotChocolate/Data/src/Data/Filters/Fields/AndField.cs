@@ -10,16 +10,19 @@ namespace HotChocolate.Data.Filters
     {
         internal AndField(
             IDescriptorContext context,
+            string? scope,
             InputObjectType filterType)
-            : base(CreateDefinition(context, filterType))
+            : base(CreateDefinition(context, scope, filterType))
         {
         }
 
         private static InputFieldDefinition CreateDefinition(
-            IDescriptorContext context, InputObjectType filterType)
+            IDescriptorContext context,
+            string? scope,
+            InputObjectType filterType)
         {
-            InputFieldDefinition? definition = InputFieldDescriptor
-                .New(context, "AND")
+            FilterOperationFieldDefinition? definition = FilterOperationFieldDescriptor
+                .New(context, scope, Operations.And)
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(

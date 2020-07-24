@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ComparableOperationInputTests
+    public class ListFilterInputTests
     {
         [Fact]
         public void Create_OperationType()
@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<ComparableOperationInput<int>>()))
+                        .Argument("test", a => a.Type<ListFilterInput<StringOperationInput>>()))
                 .Create();
 
             // assert
@@ -67,25 +67,45 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("comparable").Type<ComparableOperationInput<int>>();
+                descriptor.Field("string").Type<ListFilterInput<StringOperationInput>>();
             }
         }
 
         public class Foo
         {
-            public short BarShort { get; set; }
-            public int BarInt { get; set; }
-            public long BarLong { get; set; }
-            public float BarFloat { get; set; }
-            public double BarDouble { get; set; }
-            public decimal BarDecimal { get; set; }
-            public short? BarShortNullable { get; set; }
-            public int? BarIntNullable { get; set; }
-            public long? BarLongNullable { get; set; }
-            public float? BarFloatNullable { get; set; }
-            public double? BarDoubleNullable { get; set; }
-            public decimal? BarDecimalNullable { get; set; }
-            public FooBar FooBar { get; set; }
+            public string[] StringArray { get; set; } = new string[0];
+
+            public string?[] StringNullableArray { get; set; } = new string?[0];
+
+            public bool[] BooleanArray { get; set; } = new bool[0];
+
+            public bool?[] BooleanNullableArray { get; set; } = new bool?[0];
+
+            public short[] BarShortArray { get; set; } = new short[0];
+
+            public int[] BarIntArray { get; set; } = new int[0];
+
+            public long[] BarLongArray { get; set; } = new long[0];
+
+            public float[] BarFloatArray { get; set; } = new float[0];
+
+            public double[] BarDoubleArray { get; set; } = new double[0];
+
+            public decimal[] BarDecimalArray { get; set; } = new decimal[0];
+
+            public short?[] BarShortNullableArray { get; set; } = new short?[0];
+
+            public int?[] BarIntNullableArray { get; set; } = new int?[0];
+
+            public long?[] BarLongNullableArray { get; set; } = new long?[0];
+
+            public float?[] BarFloatNullableArray { get; set; } = new float?[0];
+
+            public double?[] BarDoubleNullableArray { get; set; } = new double?[0];
+
+            public decimal?[] BarDecimalNullableArray { get; set; } = new decimal?[0];
+
+            public FooBar[] FooBarArray { get; set; } = new FooBar[0];
         }
 
         public enum FooBar
