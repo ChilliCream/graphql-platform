@@ -235,7 +235,7 @@ namespace HotChocolate.Types.Selections
 
         private static bool HasNonProjectableField(IReadOnlyList<IFieldSelection> selections)
         {
-            for (int i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
                 if (!(selections[i].Field.Member is PropertyInfo) &&
                     !IntrospectionFields.TypeName.Equals(selections[i].Field.Name))
