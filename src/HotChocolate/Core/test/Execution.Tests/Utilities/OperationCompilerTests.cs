@@ -634,7 +634,6 @@ namespace HotChocolate.Execution.Utilities
             op.Print().MatchSnapshot();
         }
 
-
         [Fact]
         public void Field_Based_Optimizers()
         {
