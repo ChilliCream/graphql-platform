@@ -13,7 +13,8 @@ namespace HotChocolate.Types.OffsetPaging
         
         public IReadOnlyCollection<TClrType> Nodes { get; }
         
-        IReadOnlyCollection<object> ICollectionSlice.Nodes => (IReadOnlyCollection<object>)Nodes;
+        IReadOnlyCollection<object> ICollectionSlice.Nodes => 
+            (IReadOnlyCollection<object>)Nodes;
 
         public int TotalCount { get; }
     }
