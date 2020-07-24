@@ -8,15 +8,15 @@ namespace HotChocolate.Execution
 {
     public class BatchQueryResult : IBatchQueryResult
     {
-        private Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
+        private readonly Func<IAsyncEnumerable<IQueryResult>>? _resultStreamFactory;
         private readonly IAsyncDisposable? _session;
-         private bool _isRead = false;
-        private bool _disposed = false;
+        private bool _isRead;
+        private bool _disposed;
 
         public BatchQueryResult(
             Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
-            IReadOnlyList<IError>? errors, 
-            IReadOnlyDictionary<string, object?>? extensions = null, 
+            IReadOnlyList<IError>? errors,
+            IReadOnlyDictionary<string, object?>? extensions = null,
             IReadOnlyDictionary<string, object?>? contextData = null,
             IAsyncDisposable? session = null)
         {
@@ -25,17 +25,18 @@ namespace HotChocolate.Execution
                 throw new ArgumentException("Either provide a result stream factory or errors.");
             }
 
-            _resultStreamFactory= resultStreamFactory;
+            _resultStreamFactory = resultStreamFactory;
             Errors = errors;
             Extensions = extensions;
             ContextData = contextData;
+            _session = session;
         }
 
-        public IReadOnlyList<IError>? Errors {get;}
+        public IReadOnlyList<IError>? Errors { get; }
 
-        public IReadOnlyDictionary<string, object?>? Extensions {get;}
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        public IReadOnlyDictionary<string, object?>? ContextData {get;}
+        public IReadOnlyDictionary<string, object?>? ContextData { get; }
 
         public IAsyncEnumerable<IQueryResult> ReadResultsAsync()
         {
