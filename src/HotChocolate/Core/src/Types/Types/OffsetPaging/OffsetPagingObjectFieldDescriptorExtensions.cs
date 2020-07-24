@@ -7,7 +7,9 @@ namespace HotChocolate.Types.OffsetPaging
 {
     public static class OffsetPagingObjectFieldDescriptorExtensions
     {
-        internal static IObjectFieldDescriptor UseObjectFieldOffsetPaging(this IObjectFieldDescriptor descriptor, Type schemaType)
+        internal static IObjectFieldDescriptor UseObjectFieldOffsetPaging(
+            this IObjectFieldDescriptor descriptor, 
+            Type schemaType)
         {
             FieldMiddleware placeholder = next => _ => Task.CompletedTask;
             Type middlewareDefinition = typeof(PagingCollectionMiddleware<>);
