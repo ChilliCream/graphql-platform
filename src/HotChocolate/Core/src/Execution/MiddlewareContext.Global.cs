@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution.Properties;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -12,7 +12,7 @@ using HotChocolate.Execution.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class MiddlewareContext : IMiddlewareContext
+    internal partial class MiddlewareContext
     {
         private IOperationContext _operationContext = default!;
         private object? _resolverResult;
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
 
         public ISchema Schema => _operationContext.Schema;
 
-        public ObjectType RootType => _operationContext.Operation.RootType;
+        public IObjectType RootType => _operationContext.Operation.RootType;
 
         public DocumentNode Document => _operationContext.Operation.Document;
 
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
                 IPreparedSelectionList fields = _operationContext.CollectFields(
                     selectionSet, typeContext);
 
-                if (fields.IsFinal)
+                if (fields.IsConditional)
                 {
                     return fields;
                 }
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
                 for (var i = 0; i < fields.Count; i++)
                 {
                     IPreparedSelection selection = fields[i];
-                    if (selection.IsFinal || selection.IsVisible(_operationContext.Variables))
+                    if (selection.IsIncluded(_operationContext.Variables))
                     {
                         finalFields.Add(selection);
                     }
@@ -103,7 +103,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(errorMessage))
             {
                 throw new ArgumentException(
-                    "errorMessage mustn't be null or empty.",
+                    Resources.MiddlewareContext_ReportErrorCannotBeNull,
                     nameof(errorMessage));
             }
 

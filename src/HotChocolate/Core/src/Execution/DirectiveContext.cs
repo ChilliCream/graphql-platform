@@ -36,13 +36,13 @@ namespace HotChocolate.Execution
         public ISchema Schema =>
             _middlewareContext.Schema;
 
-        public ObjectType RootType =>
-        _middlewareContext.RootType;
+        public IObjectType RootType =>
+            _middlewareContext.RootType;
 
-        public ObjectType ObjectType =>
+        public IObjectType ObjectType =>
             _middlewareContext.ObjectType;
 
-        public ObjectField Field =>
+        public IObjectField Field =>
             _middlewareContext.Field;
 
         public DocumentNode Document => _middlewareContext.Document;

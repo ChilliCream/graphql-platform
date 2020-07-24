@@ -9,8 +9,6 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class PreparedOperation : IPreparedOperation
     {
-        private static IPreparedSelectionList _empty =
-            new PreparedSelectionList(new IPreparedSelection[0], true);
         private readonly IReadOnlyDictionary<SelectionSetNode, PSS> _selectionSets;
 
         public PreparedOperation(
@@ -54,11 +52,9 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             ObjectType typeContext)
         {
-            if (_selectionSets.TryGetValue(selectionSet, out PSS? preparedSelectionSet))
-            {
-                return preparedSelectionSet.GetSelections(typeContext);
-            }
-            return _empty;
+            return _selectionSets.TryGetValue(selectionSet, out PSS? preparedSelectionSet)
+                ? preparedSelectionSet.GetSelections(typeContext)
+                : PreparedSelectionList.Empty;
         }
 
         public string Print()
@@ -83,9 +79,9 @@ namespace HotChocolate.Execution.Utilities
                 {
                     var directives = new List<DirectiveNode>();
 
-                    if (selection.Visibilities is { })
+                    if (selection.IncludeConditions is { })
                     {
-                        foreach (FieldVisibility visibility in selection.Visibilities)
+                        foreach (SelectionIncludeCondition visibility in selection.IncludeConditions)
                         {
                             if (visibility.Skip is { })
                             {

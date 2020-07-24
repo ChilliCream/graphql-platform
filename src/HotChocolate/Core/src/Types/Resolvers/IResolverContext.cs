@@ -30,17 +30,17 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the root object type of the currently execution operation.
         /// </summary>
-        ObjectType RootType { get; }
+        IObjectType RootType { get; }
 
         /// <summary>
         /// Gets the object type on which the field resolver is being executed.
         /// </summary>
-        ObjectType ObjectType { get; }
+        IObjectType ObjectType { get; }
 
         /// <summary>
         /// Gets the field on which the field resolver is being executed.
         /// </summary>
-        ObjectField Field { get; }
+        IObjectField Field { get; }
 
         /// <summary>
         /// Gets the parsed query document that is being executed.

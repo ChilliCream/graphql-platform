@@ -17,8 +17,6 @@ namespace HotChocolate.Types
     public class ObjectType
         : NamedTypeBase<ObjectTypeDefinition>
         , IObjectType
-        , IHasRuntimeType
-        , IHasSyntaxNode
     {
         private readonly List<InterfaceType> _interfaces = new List<InterfaceType>();
         private Action<IObjectTypeDescriptor>? _configure;
@@ -47,6 +45,8 @@ namespace HotChocolate.Types
         IReadOnlyList<IInterfaceType> IComplexOutputType.Interfaces => Interfaces;
 
         public FieldCollection<ObjectField> Fields { get; private set; }
+
+        IFieldCollection<IObjectField> IObjectType.Fields => Fields;
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
 

@@ -5,7 +5,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Utilities.FieldCollector;
+using static HotChocolate.Execution.Utilities.QueryCompiler;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -46,7 +46,7 @@ namespace HotChocolate.Execution.Pipeline
                 var fragments = new FragmentCollection(context.Schema, context.Document);
 
                 IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                    PrepareSelectionSets(context.Schema, fragments, operation);
+                    Compile(context.Schema, fragments, operation);
 
                 context.Operation = new PreparedOperation(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),

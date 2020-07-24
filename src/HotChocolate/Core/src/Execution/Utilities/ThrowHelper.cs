@@ -256,5 +256,13 @@ namespace HotChocolate.Execution.Utilities
                     .SetMessage("The skip/include if-argument value has to be a 'Boolean'.")
                     .AddLocation(value)
                     .Build());
+
+        public static GraphQLException QueryCompiler_CompositeTypeSelectionSet(
+            FieldNode selection) =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("A composite type always needs to specify a selection set.")
+                    .AddLocation(selection)
+                    .Build());
     }
 }

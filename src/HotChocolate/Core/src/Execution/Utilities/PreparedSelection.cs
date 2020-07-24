@@ -1,50 +1,66 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedSelection : IPreparedSelection
+    public sealed class PreparedSelection : IPreparedSelection
     {
+        private static readonly PreparedArgumentMap _emptyArguments =
+            new PreparedArgumentMap(new Dictionary<NameString, PreparedArgument>());
+
         private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
-        private List<FieldVisibility>? _visibilities;
+        private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
-        private bool _isReadOnly = false;
+        private bool _isReadOnly;
 
         public PreparedSelection(
-            ObjectType declaringType,
-            ObjectField field,
+            IObjectType declaringType,
+            IObjectField field,
             FieldNode selection,
-            int responseIndex,
-            string responseName,
             FieldDelegate resolverPipeline,
-            IReadOnlyDictionary<NameString, PreparedArgument> arguments,
-            FieldVisibility? visibility)
+            NameString? responseName = null,
+            IReadOnlyDictionary<NameString, PreparedArgument>? arguments = null,
+            SelectionIncludeCondition? includeCondition = null,
+            bool internalSelection = false)
         {
-            DeclaringType = declaringType;
-            Field = field;
-            Selection = selection;
-            ResponseIndex = responseIndex;
-            ResponseName = responseName;
-            ResolverPipeline = resolverPipeline;
-            Arguments = new PreparedArgumentMap(arguments);
+            DeclaringType = declaringType
+                ?? throw new ArgumentNullException(nameof(declaringType));
+            Field = field
+                ?? throw new ArgumentNullException(nameof(field));
+            Selection = selection
+                ?? throw new ArgumentNullException(nameof(selection));
+            ResponseName = responseName ??
+                (selection.Alias is null
+                    ? selection.Name.Value
+                    : selection.Alias.Value);
+            ResolverPipeline = resolverPipeline ??
+                throw new ArgumentNullException(nameof(resolverPipeline));
+            Arguments = arguments is null
+                ? _emptyArguments
+                : new PreparedArgumentMap(arguments);
             Selections = _emptySelections;
+            InclusionKind = internalSelection
+                ? SelectionInclusionKind.Internal
+                : SelectionInclusionKind.Always;
 
-            if (visibility is { })
+            if (includeCondition is { })
             {
-                _visibilities = new List<FieldVisibility> { visibility };
-                IsFinal = false;
+                _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
+                ModifyCondition(true);
             }
         }
 
         /// <inheritdoc />
-        public ObjectType DeclaringType { get; }
+        public IObjectType DeclaringType { get; }
 
         /// <inheritdoc />
-        public ObjectField Field { get; }
+        public IObjectField Field { get; }
 
         /// <inheritdoc />
         public FieldNode Selection { get; private set; }
@@ -57,9 +73,6 @@ namespace HotChocolate.Execution.Utilities
         IReadOnlyList<FieldNode> IFieldSelection.Nodes => Selections;
 
         /// <inheritdoc />
-        public int ResponseIndex { get; }
-
-        /// <inheritdoc />
         public NameString ResponseName { get; }
 
         /// <inheritdoc />
@@ -69,21 +82,41 @@ namespace HotChocolate.Execution.Utilities
         public IPreparedArgumentMap Arguments { get; }
 
         /// <inheritdoc />
-        public bool IsFinal { get; private set; } = true;
+        public SelectionInclusionKind InclusionKind { get; private set; }
 
-        internal IReadOnlyList<FieldVisibility>? Visibilities => _visibilities;
+        public bool IsInternal =>
+            InclusionKind == SelectionInclusionKind.Internal ||
+            InclusionKind == SelectionInclusionKind.InternalConditional;
+
+        public bool IsConditional =>
+            InclusionKind == SelectionInclusionKind.Conditional ||
+            InclusionKind == SelectionInclusionKind.InternalConditional;
+
+        internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
 
         /// <inheritdoc />
-        public bool IsVisible(IVariableValueCollection variables)
+        public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
         {
-            if (_visibilities is null)
+            return InclusionKind switch
             {
-                return true;
-            }
+                SelectionInclusionKind.Always => true,
+                SelectionInclusionKind.Conditional => EvaluateConditions(variableValues),
+                SelectionInclusionKind.Internal => allowInternals,
+                SelectionInclusionKind.InternalConditional =>
+                    allowInternals && EvaluateConditions(variableValues),
+                _ => throw new NotSupportedException()
+            };
+        }
 
-            for (int i = 0; i < _visibilities.Count; i++)
+        private bool EvaluateConditions(IVariableValueCollection variableValues)
+        {
+            Debug.Assert(
+                _includeConditions != null,
+                "If a selection is conditional it must have visibility conditions.");
+
+            for (var i = 0; i < _includeConditions!.Count; i++)
             {
-                if (_visibilities[i].IsVisible(variables))
+                if (_includeConditions[i].IsTrue(variableValues))
                 {
                     return true;
                 }
@@ -92,63 +125,59 @@ namespace HotChocolate.Execution.Utilities
             return false;
         }
 
-        public void AddSelection(FieldNode field, FieldVisibility? visibility)
+        public void AddSelection(FieldNode field, SelectionIncludeCondition? includeCondition)
         {
             if (_isReadOnly)
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
             }
 
-            if (_selections is null)
-            {
-                _selections = new List<FieldNode>();
-                _selections.Add(Selection);
-            }
-
+            _selections ??= new List<FieldNode> { Selection };
             _selections.Add(field);
 
-            AddVariableVisibility(visibility);
+            AddVariableVisibility(includeCondition);
         }
 
-        private void AddVariableVisibility(FieldVisibility? visibility)
+        private void AddVariableVisibility(SelectionIncludeCondition? includeCondition)
         {
             if (_isReadOnly)
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
             }
 
-            if (_visibilities is null)
+            if (_includeConditions is null)
             {
                 return;
             }
 
-            if (visibility is null)
+            if (includeCondition is null)
             {
-                _visibilities = null;
-                IsFinal = true;
+                _includeConditions = null;
+                ModifyCondition(false);
                 return;
             }
 
-            for (var i = 0; i < _visibilities.Count; i++)
+            for (var i = 0; i < _includeConditions.Count; i++)
             {
-                if (_visibilities[i].Equals(visibility))
+                if (_includeConditions[i].Equals(includeCondition))
                 {
                     return;
                 }
             }
 
-            _visibilities.Add(visibility);
+            _includeConditions.Add(includeCondition);
         }
 
-        public void MakeReadOnly()
+        internal void MakeReadOnly()
         {
+            if (_isReadOnly)
+            {
+                return;
+            }
+
             _isReadOnly = true;
             Selection = MergeField(Selection, _selections);
-
-            if (_selections is { })
-            {
-                Selections = _selections;
-            }
+            Selections = _selections ?? _emptySelections;
         }
 
         private static FieldNode MergeField(
@@ -182,7 +211,7 @@ namespace HotChocolate.Execution.Utilities
 
             var children = new List<ISelectionNode>();
 
-            for (int i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
                 if (selections[i].SelectionSet is { } selectionSet)
                 {
@@ -200,10 +229,10 @@ namespace HotChocolate.Execution.Utilities
         private static IReadOnlyList<DirectiveNode> MergeDirectives(
             IReadOnlyList<FieldNode> selections)
         {
-            int firstWithDirectives = -1;
+            var firstWithDirectives = -1;
             List<DirectiveNode>? merged = null;
 
-            for (int i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
                 FieldNode selection = selections[i];
                 if (selection.Directives.Count > 0)
@@ -236,5 +265,16 @@ namespace HotChocolate.Execution.Utilities
 
             return selections[0].Directives;
         }
+
+        private void ModifyCondition(bool hasConditions) =>
+            InclusionKind =
+                (InclusionKind == SelectionInclusionKind.Internal
+                || InclusionKind == SelectionInclusionKind.InternalConditional)
+                    ? (hasConditions
+                        ? SelectionInclusionKind.InternalConditional
+                        : SelectionInclusionKind.Internal)
+                    : (hasConditions
+                        ? SelectionInclusionKind.Conditional
+                        : SelectionInclusionKind.Always);
     }
 }
