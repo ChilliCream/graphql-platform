@@ -101,6 +101,11 @@ namespace HotChocolate.Execution.Utilities
                         }
                     }
 
+                    if (selection.IsInternal)
+                    {
+                        directives.Add(new DirectiveNode("_internal"));
+                    }
+
                     if (selection.SelectionSet is null)
                     {
                         selections.Add(new FieldNode(
