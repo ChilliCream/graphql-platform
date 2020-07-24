@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             IPreparedSelection hero = selectionSets[operation.SelectionSet].GetSelections(schema.QueryType).Single();
@@ -168,7 +168,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -201,7 +201,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
@@ -236,7 +236,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             Action action = () =>
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Equal(
@@ -276,7 +276,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -328,7 +328,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -384,7 +384,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -439,7 +439,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -499,7 +499,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -564,7 +564,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(
@@ -614,7 +614,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                QueryCompiler.Compile(schema, fragments, operation);
+                OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             var op = new PreparedOperation(

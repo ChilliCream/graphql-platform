@@ -230,51 +230,26 @@ namespace HotChocolate.Resolvers
         void ReportError(IError error);
 
         /// <summary>
-        /// Collects the fields of the next level with the specified
+        /// Gets the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// with the specified <paramref name="typeContext" />.
         /// type context.
         /// </summary>
-        /// <param name="typeContext">The object type context.</param>
-        /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
-        /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext);
-
-        /// <summary>
-        /// Collects the fields of a selection set with the specified
-        /// type context.
-        /// </summary>
-        /// <param name="typeContext">The object type context.</param>
+        /// <param name="typeContext">
+        /// The object type context.
+        /// </param>
         /// <param name="selectionSet">
-        /// The selection set that shall be analyzed.
+        /// The selection-set for which the pre-compiled selections shall be returned.
+        /// </param>
+        /// <param name="allowInternals">
+        /// Include also internal selections that shall not be included into the result set.
         /// </param>
         /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
+        /// Returns the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// with the specified <paramref name="typeContext" />.
         /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
+        IReadOnlyList<IFieldSelection> GetSelections(
             ObjectType typeContext,
-            SelectionSetNode selectionSet);
-
-        /// <summary>
-        /// Collects the fields of a selection set with the specified
-        /// type context.
-        /// </summary>
-        /// <param name="typeContext">The object type context.</param>
-        /// <param name="selectionSet">
-        /// The selection set that shall be analyzed.
-        /// </param>
-        /// <param name="path">
-        /// The field path.
-        /// </param>
-        /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
-        /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext,
-            SelectionSetNode selectionSet,
-            Path path);
+            SelectionSetNode? selectionSet = null,
+            bool allowInternals = false);
     }
 }

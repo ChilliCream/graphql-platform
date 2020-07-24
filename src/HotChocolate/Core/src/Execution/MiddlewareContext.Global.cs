@@ -34,57 +34,34 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted => _operationContext.RequestAborted;
 
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext)
-        {
-            if (FieldSelection.SelectionSet is null)
-            {
-                return Array.Empty<IFieldSelection>();
-            }
-
-            return CollectFields(typeContext, FieldSelection.SelectionSet, Path);
-        }
-
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext, SelectionSetNode selectionSet)
-        {
-            return CollectFields(typeContext, selectionSet, Path);
-        }
-
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext, SelectionSetNode selectionSet, Path path)
+        public IReadOnlyList<IFieldSelection> GetSelections(
+            ObjectType typeContext,
+            SelectionSetNode? selectionSet = null,
+            bool allowInternals = false)
         {
             if (typeContext is null)
             {
                 throw new ArgumentNullException(nameof(typeContext));
             }
 
+            selectionSet ??= _selection.SelectionSet;
+
             if (selectionSet is null)
             {
-                throw new ArgumentNullException(nameof(selectionSet));
+                return Array.Empty<IFieldSelection>();
             }
 
-            if (path is null)
+            IPreparedSelectionList fields =
+                _operationContext.CollectFields(selectionSet, typeContext);
+
+            if (fields.IsConditional)
             {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            try
-            {
-                IPreparedSelectionList fields = _operationContext.CollectFields(
-                    selectionSet, typeContext);
-
-                if (fields.IsConditional)
-                {
-                    return fields;
-                }
-
                 var finalFields = new List<IFieldSelection>();
 
                 for (var i = 0; i < fields.Count; i++)
                 {
                     IPreparedSelection selection = fields[i];
-                    if (selection.IsIncluded(_operationContext.Variables))
+                    if (selection.IsIncluded(_operationContext.Variables, allowInternals))
                     {
                         finalFields.Add(selection);
                     }
@@ -92,10 +69,8 @@ namespace HotChocolate.Execution
 
                 return finalFields;
             }
-            catch (GraphQLException ex)
-            {
-                throw new GraphQLException(ex.Errors.Select(error => error.WithPath(path)));
-            }
+
+            return fields;
         }
 
         public void ReportError(string errorMessage)

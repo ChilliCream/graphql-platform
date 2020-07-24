@@ -10,27 +10,24 @@ using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class QueryCompiler
+    internal sealed class OperationCompiler
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
-        private readonly IReadOnlyList<ISelectionSetOptimizer> _optimizers;
 
-        private QueryCompiler(
+        private OperationCompiler(
             ISchema schema,
-            FragmentCollection fragments,
-            IReadOnlyList<ISelectionSetOptimizer>? optimizers)
+            FragmentCollection fragments)
         {
             _schema = schema;
             _fragments = fragments;
-            _optimizers = optimizers ?? Array.Empty<ISelectionSetOptimizer>();
         }
 
         public static IReadOnlyDictionary<SelectionSetNode, PSS> Compile(
             ISchema schema,
             FragmentCollection fragments,
             OperationDefinitionNode operation,
-            IReadOnlyList<ISelectionSetOptimizer>? optimizers = null)
+            IEnumerable<ISelectionSetOptimizer>? optimizers = null)
         {
             var selectionSets = new Dictionary<SelectionSetNode, PSS>();
             void Register(PreparedSelectionSet s) => selectionSets[s.SelectionSet] = s;
@@ -40,14 +37,17 @@ namespace HotChocolate.Execution.Utilities
             var root = new PSS(operation.SelectionSet);
             Register(root);
 
-            var collector = new QueryCompiler(schema, fragments, optimizers);
+            var collector = new OperationCompiler(schema, fragments);
+
             collector.Visit(
                 selectionSet,
                 typeContext,
                 new Stack<IObjectField>(),
                 root,
                 Register,
-                new Dictionary<ISelectionNode, SelectionIncludeCondition>());
+                new Dictionary<ISelectionNode, SelectionIncludeCondition>(),
+                optimizers?.ToList() ?? new List<ISelectionSetOptimizer>());
+
             return selectionSets;
         }
 
@@ -58,6 +58,7 @@ namespace HotChocolate.Execution.Utilities
             PSS current,
             Action<PSS> register,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
+            List<ISelectionSetOptimizer> optimizers,
             bool internalSelection = false)
         {
             // we first collect the fields that we find in the selection set ...
@@ -66,7 +67,7 @@ namespace HotChocolate.Execution.Utilities
 
             // ... after that is done we will check if there are query optimizer that want
             // to provide additional fields.
-            OptimizeSelectionSet(fieldContext, typeContext, selectionSet, fields);
+            OptimizeSelectionSet(fieldContext, typeContext, selectionSet, fields, optimizers);
 
             var selections = new List<PreparedSelection>();
             var isConditional = false;
@@ -79,7 +80,7 @@ namespace HotChocolate.Execution.Utilities
 
                 // if one selection of a selection-set is conditional,
                 // then the whole set is conditional.
-                if (!isConditional && selection.IsConditional)
+                if (!isConditional && (selection.IsConditional || selection.IsInternal))
                 {
                     isConditional = true;
                 }
@@ -91,7 +92,7 @@ namespace HotChocolate.Execution.Utilities
                 {
                     if (selection.SelectionSet is null)
                     {
-                        // composite fields always have to have a selection-set 
+                        // composite fields always have to have a selection-set
                         // otherwithe we need to throw.
                         throw QueryCompiler_CompositeTypeSelectionSet(selection.Selection);
                     }
@@ -102,7 +103,12 @@ namespace HotChocolate.Execution.Utilities
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
                     for (var i = 0; i < possibleTypes.Count; i++)
                     {
+                        // we prepare the field context and check if there are field specific
+                        // optimizers that we might want to include.
                         fieldContext.Push(selection.Field);
+                        int initialCount = optimizers.Count;
+                        int registered = RegisterOptimizers(optimizers, selection.Field);
+
                         Visit(
                             selection.SelectionSet,
                             possibleTypes[i],
@@ -110,7 +116,11 @@ namespace HotChocolate.Execution.Utilities
                             next,
                             register,
                             includeConditionLookup,
+                            optimizers,
                             selection.IsInternal);
+
+                        // lets clean up the context again and move on to the next.
+                        UnregisterOptimizers(optimizers, initialCount, registered);
                         fieldContext.Pop();
                     }
                 }
@@ -571,13 +581,50 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
+        private static int RegisterOptimizers(
+            IList<ISelectionSetOptimizer> optimizers,
+            IObjectField field)
+        {
+            int count = 0;
+
+            if (SelectionSetOptimizerHelper.TryGetOptimizers(
+                field.ContextData,
+                out IReadOnlyList<ISelectionSetOptimizer>? fieldOptimizers))
+            {
+                foreach (ISelectionSetOptimizer optimizer in fieldOptimizers)
+                {
+                    if (!optimizers.Contains(optimizer))
+                    {
+                        optimizers.Add(optimizer);
+                        count++;
+                    }
+                }
+            }
+
+            return count;
+        }
+
+        private static void UnregisterOptimizers(
+            IList<ISelectionSetOptimizer> optimizers,
+            int initialCount,
+            int registeredOptimizers)
+        {
+            int last = initialCount - 1;
+
+            for (int i = last + registeredOptimizers; i > last; i--)
+            {
+                optimizers.RemoveAt(i);
+            }
+        }
+
         private void OptimizeSelectionSet(
             Stack<IObjectField> fieldContext,
             IObjectType typeContext,
             SelectionSetNode selectionSet,
-            IDictionary<string, PreparedSelection> fields)
+            IDictionary<string, PreparedSelection> fields,
+            IReadOnlyList<ISelectionSetOptimizer> optimizers)
         {
-            if (_optimizers.Count > 0)
+            if (optimizers.Count > 0)
             {
                 var context = new SelectionSetOptimizerContext(
                     _schema,
@@ -587,9 +634,9 @@ namespace HotChocolate.Execution.Utilities
                     fields,
                     CreateFieldMiddleware);
 
-                for (var i = 0; i < _optimizers.Count; i++)
+                for (var i = 0; i < optimizers.Count; i++)
                 {
-                    _optimizers[i].Optimize(context);
+                    optimizers[i].Optimize(context);
                 }
             }
         }

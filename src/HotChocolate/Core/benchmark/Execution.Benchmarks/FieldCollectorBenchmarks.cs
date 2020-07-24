@@ -36,7 +36,7 @@ namespace HotChocolate.Execution.Benchmarks
         [Benchmark]
         public object PrepareSelectionSets_Introspection()
         {
-            return QueryCompiler.Compile(
+            return OperationCompiler.Compile(
                 _schema,
                 _introspectionFragments,
                 _introspectionOperation);
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Benchmarks
         [Benchmark]
         public object PrepareSelectionSets_StarWars()
         {
-            return QueryCompiler.Compile(
+            return OperationCompiler.Compile(
                 _schema,
                 _starWarsFragments,
                 _starWarsOperation);
