@@ -95,7 +95,7 @@ namespace HotChocolate.Types
             var type = new ListType(innerType);
 
             // act
-            Type clrType = type.ClrType;
+            Type clrType = type.RuntimeType;
 
             // assert
             Assert.Equal(typeof(List<string>), clrType);

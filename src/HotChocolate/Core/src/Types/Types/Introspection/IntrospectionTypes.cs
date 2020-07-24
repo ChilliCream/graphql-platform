@@ -21,28 +21,28 @@ namespace HotChocolate.Types.Introspection
         internal static IReadOnlyList<ITypeReference> All { get; } =
             new List<ITypeReference>
             {
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__Directive),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__DirectiveLocation),
                     TypeContext.None),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__EnumValue),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__Field),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__InputValue),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__Schema),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__Type),
                     TypeContext.Output),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(__TypeKind),
                     TypeContext.None),
             };

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars.Data;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.StarWars
 {
@@ -11,6 +12,14 @@ namespace HotChocolate.StarWars
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<ReviewRepository>();
             return services;
+        }
+
+        public static IRequestExecutorBuilder AddStarWarsRepositories(
+            this IRequestExecutorBuilder builder)
+        {
+            builder.Services.AddSingleton<CharacterRepository>();
+            builder.Services.AddSingleton<ReviewRepository>();
+            return builder;
         }
     }
 }

@@ -35,13 +35,13 @@ namespace HotChocolate.Types.Relay
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
 
             EntityType = context.GetType<IOutputType>(
-                ClrTypeReference.FromSchemaType<T>());
+                TypeReference.Create<T>());
         }
     }
 }

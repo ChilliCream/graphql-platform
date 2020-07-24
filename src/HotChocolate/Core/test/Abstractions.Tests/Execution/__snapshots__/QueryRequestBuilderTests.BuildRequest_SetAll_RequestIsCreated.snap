@@ -2,7 +2,7 @@
   "Query": {
     "Text": "{ foo }"
   },
-  "QueryName": null,
+  "QueryId": null,
   "QueryHash": null,
   "OperationName": "bar",
   "VariableValues": {
@@ -11,7 +11,7 @@
   "InitialValue": {
     "a": "456"
   },
-  "Properties": {
+  "ContextData": {
     "one": "foo"
   },
   "Services": {},

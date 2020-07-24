@@ -3,15 +3,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
+    [Obsolete("Use Resolve(...)")]
     public static partial class ResolverObjectFieldDescriptorExtensions
     {
         // Resolver(IResolverContext)
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, object> resolver)
+            Func<IResolverContext, object?> resolver)
         {
             if (descriptor == null)
             {
@@ -23,13 +26,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx =>
-                Task.FromResult(resolver(ctx)));
+            return descriptor.Resolver(ctx => new ValueTask<object?>(resolver(ctx)));
         }
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, Task<object>> resolver)
+            Func<IResolverContext, Task<object?>> resolver)
         {
             if (descriptor == null)
             {
@@ -41,8 +43,15 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx =>
-                resolver(ctx));
+            return descriptor.Resolver(async ctx =>
+            {
+                Task<object?> resolverTask = resolver(ctx);
+                if (resolverTask == null)
+                {
+                    return default;
+                }
+                return await resolverTask.ConfigureAwait(false);
+            });
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
@@ -61,7 +70,8 @@ namespace HotChocolate.Types
 
             return descriptor
                 .Type<NativeType<TResult>>()
-                .Resolver(ctx => Task.FromResult<object>(resolver(ctx)),
+                .Resolver(
+                    ctx => new ValueTask<object?>(resolver(ctx)),
                     typeof(NativeType<TResult>));
         }
 
@@ -96,7 +106,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            Func<object> resolver)
+            Func<object?> resolver)
         {
             if (descriptor == null)
             {
@@ -108,13 +118,12 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx =>
-                Task.FromResult(resolver()));
+            return descriptor.Resolver(ctx => new ValueTask<object?>(resolver()));
         }
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            Func<Task<object>> resolver)
+            Func<Task<object?>> resolver)
         {
             if (descriptor == null)
             {
@@ -126,7 +135,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return descriptor.Resolver(ctx => resolver());
+            return descriptor.Resolver(async ctx => await resolver().ConfigureAwait(false));
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
@@ -144,7 +153,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(resolver()),
+                new ValueTask<object?>(resolver()),
                 typeof(NativeType<TResult>));
         }
 
@@ -179,7 +188,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor Resolver(
             this IObjectFieldDescriptor descriptor,
-            Func<IResolverContext, CancellationToken, object> resolver)
+            Func<IResolverContext, CancellationToken, object?> resolver)
         {
             if (descriptor == null)
             {
@@ -192,7 +201,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                ctx => resolver(ctx, ctx.RequestAborted));
+                ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)));
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
@@ -210,8 +219,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                ctx => Task.FromResult<object>(
-                    resolver(ctx, ctx.RequestAborted)),
+                ctx => new ValueTask<object?>(resolver(ctx, ctx.RequestAborted)),
                 typeof(NativeType<TResult>));
         }
 
@@ -232,8 +240,7 @@ namespace HotChocolate.Types
             return descriptor.Resolver(
                  async ctx =>
                 {
-                    Task<TResult> resolverTask = resolver(
-                        ctx, ctx.RequestAborted);
+                    Task<TResult> resolverTask = resolver(ctx, ctx.RequestAborted);
                     if (resolverTask == null)
                     {
                         return default;
@@ -255,7 +262,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                ctx => Task.FromResult(constantResult));
+                ctx => new ValueTask<object?>(constantResult));
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(
@@ -268,7 +275,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                ctx => Task.FromResult<object>(constantResult),
+                ctx => new ValueTask<object?>(constantResult),
                 typeof(NativeType<TResult>));
         }
     }

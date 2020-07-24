@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data</PackageId>
+    <AssemblyName>HotChocolate.Data</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj" />
+  </ItemGroup>
+
+</Project>

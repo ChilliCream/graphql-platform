@@ -106,15 +106,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only type system objects are allowed..
-        /// </summary>
-        internal static string ClrTypeReference_OnlyTsosAreAllowed {
-            get {
-                return ResourceManager.GetString("ClrTypeReference_OnlyTsosAreAllowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The specified IComplexTypeFieldBindingBuilder-implementation is not supported..
         /// </summary>
         internal static string ComplexTypeBindingBuilder_FieldBuilderNotSupported {

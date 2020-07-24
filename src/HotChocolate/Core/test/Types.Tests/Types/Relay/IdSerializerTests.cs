@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Relay
             // arrange
             NameString schema = "Bar";
             NameString typeName = "Foo";
-            var serializer = new IdSerializer();
+            var serializer = new IdSerializer(includeSchemaName: true);
 
             // act
             string serializedId = serializer.Serialize(schema, typeName, id);

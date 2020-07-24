@@ -2,22 +2,27 @@
   {
     "Message": "The variable `intArg` is not compatible with the type of the current location.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "nonNullIntArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "nonNullIntArgField"
+    },
     "Locations": [
       {
         "Line": 7,
         "Column": 48
       }
     ],
-    "Exception": null,
     "Extensions": {
       "variable": "intArg",
       "variableType": "Int",
       "locationType": "Int!",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Usages-are-Allowed"
-    }
+    },
+    "Exception": null
   }
 ]

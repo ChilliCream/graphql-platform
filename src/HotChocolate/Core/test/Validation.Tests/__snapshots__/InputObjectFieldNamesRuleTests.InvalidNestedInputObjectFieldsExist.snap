@@ -2,19 +2,21 @@
   {
     "Message": "The specified input object field `favoriteCookieFlavor` does not exist.",
     "Code": null,
-    "Path": [
-      "findDog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "findDog"
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 49
       }
     ],
-    "Exception": null,
     "Extensions": {
       "field": "favoriteCookieFlavor",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Names"
-    }
+    },
+    "Exception": null
   }
 ]

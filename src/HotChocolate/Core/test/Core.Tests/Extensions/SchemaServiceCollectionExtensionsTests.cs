@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Errors;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

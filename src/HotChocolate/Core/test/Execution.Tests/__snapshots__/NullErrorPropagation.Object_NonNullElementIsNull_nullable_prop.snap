@@ -1,0 +1,26 @@
+﻿{
+  "errors": [
+    {
+      "message": "Cannot return null for non-nullable field.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 25
+        }
+      ],
+      "path": [
+        "foo",
+        "nullable_prop",
+        "b"
+      ],
+      "extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
+    }
+  ],
+  "data": {
+    "foo": {
+      "nullable_prop": null
+    }
+  }
+}

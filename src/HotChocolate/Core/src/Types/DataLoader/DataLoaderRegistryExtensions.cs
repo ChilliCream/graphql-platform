@@ -24,9 +24,13 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchBatchDataLoader<TKey, TValue>(
                     factory(services)));
+                    */
         }
 
         public static bool Register<TKey, TValue>(
@@ -46,8 +50,11 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return registry.Register(key, services =>
-                new FetchBatchDataLoader<TKey, TValue>(fetch));
+            throw new NotImplementedException();
+
+            /*
+        return registry.Register(key, services =>
+            new FetchBatchDataLoader<TKey, TValue>(fetch));*/
         }
 
         public static bool Register<TKey, TValue>(
@@ -67,9 +74,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchGroupedDataLoader<TKey, TValue>(
-                    factory(services)));
+                    factory(services)));*/
         }
 
         public static bool Register<TKey, TValue>(
@@ -89,8 +99,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchGroupedDataLoader<TKey, TValue>(fetch));
+                */
         }
 
         public static bool Register<TKey, TValue>(
@@ -110,9 +124,13 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
                 new FetchSingleDataLoader<TKey, TValue>(
                     factory(services)));
+                    */
         }
 
         public static bool Register<TKey, TValue>(
@@ -132,8 +150,12 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return registry.Register(key, services =>
-                new FetchSingleDataLoader<TKey, TValue>(fetch));
+            throw new NotImplementedException();
+
+            /*
+        return registry.Register(key, services =>
+            new FetchSingleDataLoader<TKey, TValue>(fetch));
+            */
         }
 
         public static bool Register<TValue>(
@@ -153,12 +175,15 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            throw new NotImplementedException();
+
+/*
             return registry.Register(key, services =>
             {
                 FetchOnce<TValue> fetch = factory(services);
                 return new FetchSingleDataLoader<string, TValue>(
                     k => fetch(), DataLoaderDefaults.MinCacheSize);
-            });
+            });*/
         }
 
         public static bool Register<TValue>(
@@ -178,11 +203,15 @@ namespace HotChocolate.DataLoader
                 throw new ArgumentNullException(nameof(fetch));
             }
 
+            throw new NotImplementedException();
+
+            /*
             return registry.Register(key, services =>
             {
                 return new FetchSingleDataLoader<string, TValue>(
                     k => fetch(), DataLoaderDefaults.MinCacheSize);
             });
+            */
         }
 
         public static bool Register<T>(
@@ -190,18 +219,16 @@ namespace HotChocolate.DataLoader
             string key)
             where T : class, IDataLoader
         {
-            Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CompileFactory<T>();
-            return registry.Register(key, createInstance);
+            CreateServiceDelegate<T> createInstance = ActivatorHelper.CompileFactory<T>();
+            return registry.Register(key, s => createInstance(s));
         }
 
         public static bool Register<T>(
             this IDataLoaderRegistry registry)
             where T : class, IDataLoader
         {
-            Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CompileFactory<T>();
-            return registry.Register(typeof(T).FullName, createInstance);
+            CreateServiceDelegate<T> createInstance = ActivatorHelper.CompileFactory<T>();
+            return registry.Register(typeof(T).FullName, s => createInstance(s));
         }
     }
 }

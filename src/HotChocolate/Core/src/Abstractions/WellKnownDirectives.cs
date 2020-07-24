@@ -1,6 +1,6 @@
 namespace HotChocolate
 {
-    internal static class WellKnownDirectives
+    public static class WellKnownDirectives
     {
         public const string Skip = "skip";
         public const string Include = "include";

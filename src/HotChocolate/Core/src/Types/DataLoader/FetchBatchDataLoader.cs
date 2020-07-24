@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 
 namespace HotChocolate.DataLoader
 {
@@ -10,7 +11,8 @@ namespace HotChocolate.DataLoader
     {
         private readonly FetchBatch<TKey, TValue> _fetch;
 
-        public FetchBatchDataLoader(FetchBatch<TKey, TValue> fetch)
+        public FetchBatchDataLoader(IBatchScheduler batchScheduler, FetchBatch<TKey, TValue> fetch) 
+            : base(batchScheduler)
         {
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }

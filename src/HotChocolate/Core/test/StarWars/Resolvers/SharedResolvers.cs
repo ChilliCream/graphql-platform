@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using HotChocolate;
+using System.Linq;
 using HotChocolate.StarWars.Data;
 using HotChocolate.StarWars.Models;
 
@@ -8,8 +8,8 @@ namespace HotChocolate.StarWars.Resolvers
     public class SharedResolvers
     {
         public IEnumerable<ICharacter> GetCharacter(
-            [Parent]ICharacter character,
-            [Service]CharacterRepository repository)
+            [Parent] ICharacter character,
+            [Service] CharacterRepository repository)
         {
             foreach (string friendId in character.Friends)
             {
@@ -21,10 +21,24 @@ namespace HotChocolate.StarWars.Resolvers
             }
         }
 
-        public double GetHeight(Unit? unit, [Parent]ICharacter character)
+        public Human GetOtherHuman(
+            [Parent] ICharacter character,
+            [Service] CharacterRepository repository)
+        {
+            if (character.Friends.Count == 0)
+            {
+                return null;
+            }
+            return character.Friends
+                .Select(t => repository.GetCharacter(t))
+                .OfType<Human>()
+                .FirstOrDefault();
+        }
+
+        public double GetHeight(Unit? unit, [Parent] ICharacter character)
             => ConvertToUnit(character.Height, unit);
 
-        public double GetLength(Unit? unit, [Parent]Starship starship)
+        public double GetLength(Unit? unit, [Parent] Starship starship)
             => ConvertToUnit(starship.Length, unit);
 
         private double ConvertToUnit(double length, Unit? unit)

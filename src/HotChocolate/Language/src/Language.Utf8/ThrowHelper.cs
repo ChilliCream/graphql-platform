@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace HotChocolate.Language
 {
-    public static class ThrowHelper
+    internal static class ThrowHelper
     {
         // TODO : resources
         public static void InvalidRequestStructure(Utf8GraphQLReader reader) =>

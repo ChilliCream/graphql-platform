@@ -6,8 +6,6 @@ namespace GreenDonut
 {
     public class CancellationTokenSourceExtensionsTests
     {
-        #region CreateLinkedCancellationToken
-
         [Fact(DisplayName = "CreateLinkedCancellationToken: Should throw an argument null token if source is null")]
         public void CreateLinkedCancellationTokenSourceNull()
         {
@@ -52,7 +50,5 @@ namespace GreenDonut
             Assert.NotEqual(source.Token, combinedToken);
             Assert.NotEqual(token, combinedToken);
         }
-
-        #endregion
     }
 }

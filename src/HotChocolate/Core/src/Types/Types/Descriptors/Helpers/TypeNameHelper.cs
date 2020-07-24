@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
                 .OnBeforeNaming((ctx, definition) =>
                 {
                     INamedType type = ctx.GetType<INamedType>(
-                        ClrTypeReference.FromSchemaType(typeInfo.ClrType));
+                        TypeReference.Create(typeInfo.ClrType));
                     definition.Name = createName(type);
                 })
                 .DependsOn(dependency, true);

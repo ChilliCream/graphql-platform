@@ -8,9 +8,9 @@ namespace HotChocolate.Utilities
 {
     internal class InputObjectToObjectValueConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public InputObjectToObjectValueConverter(ITypeConversion converter)
+        public InputObjectToObjectValueConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -118,12 +118,12 @@ namespace HotChocolate.Utilities
             Action<IValueNode> setValue,
             ISet<object> processed)
         {
-            if (type is IHasClrType hasClrType)
+            if (type is IHasRuntimeType hasClrType)
             {
                 Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.ClrType
+                object normalized = currentType == hasClrType.RuntimeType
                     ? obj
-                    : _converter.Convert(currentType, hasClrType.ClrType, obj);
+                    : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
 
                 setValue(type.ParseValue(normalized));
             }

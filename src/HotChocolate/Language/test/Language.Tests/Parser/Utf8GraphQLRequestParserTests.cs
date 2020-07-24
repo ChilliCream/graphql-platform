@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Language
 {
@@ -133,7 +134,7 @@ namespace HotChocolate.Language
 
             IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
 
-            cache.Add(first[0].QueryName, first[0].Query);
+            cache.TryAddDocument(first[0].QueryName, first[0].Query);
 
             // act
             requestParser = new Utf8GraphQLRequestParser(
@@ -669,15 +670,18 @@ namespace HotChocolate.Language
             private readonly Dictionary<string, DocumentNode> _cache =
                 new Dictionary<string, DocumentNode>();
 
-            public void Add(string key, DocumentNode document)
+            public void TryAddDocument(string documentId, DocumentNode document)
             {
-                _cache.Add(key, document);
+                if (!_cache.ContainsKey(documentId))
+                {
+                    _cache.Add(documentId, document);
+                }
             }
 
-            public bool TryGetDocument(string key, out DocumentNode document)
-            {
-                return _cache.TryGetValue(key, out document);
-            }
+            public bool TryGetDocument(
+                string documentId, 
+                [NotNullWhen(true)] out DocumentNode document) =>
+                _cache.TryGetValue(documentId, out document);
         }
     }
 }

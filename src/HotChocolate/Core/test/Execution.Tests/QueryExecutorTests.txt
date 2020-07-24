@@ -1,0 +1,115 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using ChilliCream.Testing;
+using HotChocolate.Execution.Utilities;
+using HotChocolate.Fetching;
+using HotChocolate.Language;
+using HotChocolate.StarWars;
+using HotChocolate.StarWars.Data;
+using Moq;
+using Snapshooter.Xunit;
+using Xunit;
+
+namespace HotChocolate.Execution
+{
+    public class QueryExecutorTests
+    {
+        [Fact]
+        public async Task Execute_SimpleIntrospectionQuery_SnapshotShouldMatch()
+        {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext("{ __typename }");
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_ThreeLevelIntrospectionQuery_SnapshotShouldMatch()
+        {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext(
+                "{ __schema { queryType { name } } }");
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_FullIntrospectionQuery_SnapshotShouldMatch()
+        {
+            // arrange
+            IOperationContext operationContext = CreateOperationContext(
+                FileResource.Open("IntrospectionQuery.graphql"));
+
+            // act
+            var executor = new QueryExecutor();
+            IExecutionResult result = await executor.ExecuteAsync(
+                operationContext,
+                CancellationToken.None);
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        private static IOperationContext CreateOperationContext(string query)
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(query);
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                FieldCollector.PrepareSelectionSets(schema, fragments, operation);
+
+            var preparedOperation = new PreparedOperation(
+                "abc", document, operation, schema.QueryType, selectionSets);
+
+            var variables = new Mock<IVariableValueCollection>();
+
+            var requestContext = new Mock<IRequestContext>();
+            requestContext.SetupGet(t => t.Schema).Returns(schema);
+
+            var batchDispatcher = new Mock<IBatchDispatcher>();
+            batchDispatcher.SetupGet(t => t.HasTasks).Returns(false); ;
+
+            IServiceProvider service = new ServiceCollection()
+                .TryAddOperationContextPool()
+                .TryAddResolverTaskPool()
+                .TryAddResultPool()
+                .BuildServiceProvider();
+
+            var operationContext = service.GetRequiredService<OperationContext>();
+            operationContext.Initialize(
+                requestContext.Object,
+                batchDispatcher.Object,
+                preparedOperation,
+                new Query(new CharacterRepository()),
+                variables.Object);
+
+            return operationContext;
+        }
+    }
+}

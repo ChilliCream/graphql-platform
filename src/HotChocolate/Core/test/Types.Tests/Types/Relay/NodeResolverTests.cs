@@ -18,7 +18,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -53,7 +53,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -72,7 +72,7 @@ namespace HotChocolate.Types
                 .AddQueryType<Query>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -94,10 +94,7 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver<string>((ctx, id) =>
-                        {
-                            return Task.FromResult<object>(
-                                new Entity { Name = id });
-                        })
+                            Task.FromResult<object>(new Entity { Name = id }))
                         .Resolver(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -112,7 +109,7 @@ namespace HotChocolate.Types
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -120,7 +117,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -134,10 +131,7 @@ namespace HotChocolate.Types
                     d.Name("Entity");
                     d.AsNode()
                         .NodeResolver((ctx, id) =>
-                        {
-                            return Task.FromResult<object>(
-                                new Entity { Name = (string)id });
-                        })
+                            Task.FromResult<object>(new Entity { Name = (string)id }))
                         .Resolver(ctx => ctx.Parent<Entity>().Id);
                     d.Field("name")
                         .Type<StringType>()
@@ -152,7 +146,7 @@ namespace HotChocolate.Types
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -160,7 +154,7 @@ namespace HotChocolate.Types
                 "{ ... on Entity { id name } } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class Query

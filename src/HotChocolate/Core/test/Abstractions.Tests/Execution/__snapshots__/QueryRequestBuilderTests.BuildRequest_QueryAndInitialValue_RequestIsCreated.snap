@@ -2,14 +2,14 @@
   "Query": {
     "Text": "{ foo }"
   },
-  "QueryName": null,
+  "QueryId": null,
   "QueryHash": null,
   "OperationName": null,
   "VariableValues": {},
   "InitialValue": {
     "a": "123"
   },
-  "Properties": {},
+  "ContextData": {},
   "Services": null,
   "Extensions": {}
 }

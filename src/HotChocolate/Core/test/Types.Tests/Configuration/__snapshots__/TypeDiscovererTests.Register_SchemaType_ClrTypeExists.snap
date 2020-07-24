@@ -1,0 +1,33 @@
+﻿{
+  "registered": {
+    "HotChocolate.Types.Introspection.__Directive": "System.Object",
+    "HotChocolate.Types.Introspection.__DirectiveLocation": "HotChocolate.Types.DirectiveLocation",
+    "HotChocolate.Types.Introspection.__EnumValue": "HotChocolate.Types.EnumValue",
+    "HotChocolate.Types.Introspection.__Field": "HotChocolate.Types.IOutputField",
+    "HotChocolate.Types.Introspection.__InputValue": "HotChocolate.Types.IInputField",
+    "HotChocolate.Types.Introspection.__Schema": "HotChocolate.ISchema",
+    "HotChocolate.Types.Introspection.__Type": "HotChocolate.Types.IType",
+    "HotChocolate.Types.Introspection.__TypeKind": "HotChocolate.Types.TypeKind",
+    "HotChocolate.Types.SkipDirectiveType": "System.Object",
+    "HotChocolate.Types.IncludeDirectiveType": "System.Object",
+    "HotChocolate.Configuration.TypeDiscovererTests.FooType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
+    "HotChocolate.Types.StringType": "System.String",
+    "HotChocolate.Types.BooleanType": "System.Boolean",
+    "HotChocolate.Types.DeprecatedDirectiveType": "HotChocolate.Types.DeprecatedDirective",
+    "HotChocolate.Configuration.TypeDiscovererTests.BarType": "HotChocolate.Configuration.TypeDiscovererTests.Bar"
+  },
+  "clr": {
+    "None: HotChocolate.Types.DirectiveLocation": "None: HotChocolate.Types.Introspection.__DirectiveLocation",
+    "Output: HotChocolate.Types.EnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
+    "Output: HotChocolate.Types.IOutputField": "Output: HotChocolate.Types.Introspection.__Field",
+    "Output: HotChocolate.Types.IInputField": "Output: HotChocolate.Types.Introspection.__InputValue",
+    "Output: HotChocolate.ISchema": "Output: HotChocolate.Types.Introspection.__Schema",
+    "Output: HotChocolate.Types.IType": "Output: HotChocolate.Types.Introspection.__Type",
+    "None: HotChocolate.Types.TypeKind": "None: HotChocolate.Types.Introspection.__TypeKind",
+    "Output: HotChocolate.Configuration.TypeDiscovererTests.Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
+    "None: System.String": "None: HotChocolate.Types.StringType",
+    "None: System.Boolean": "None: HotChocolate.Types.BooleanType",
+    "None: HotChocolate.Types.DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
+    "Output: HotChocolate.Configuration.TypeDiscovererTests.Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
+  }
+}

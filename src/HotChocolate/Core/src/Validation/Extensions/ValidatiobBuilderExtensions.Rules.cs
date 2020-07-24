@@ -1,3 +1,4 @@
+using System.Linq;
 using HotChocolate.Validation.Options;
 using HotChocolate.Validation.Rules;
 
@@ -35,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddArgumentRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<ArgumentVisitor>();
+            return builder.TryAddValidationRule<ArgumentVisitor>();
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddDirectiveRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<DirectiveVisitor>();
+            return builder.TryAddValidationRule<DirectiveVisitor>();
         }
 
         /// <summary>
@@ -91,7 +92,13 @@ namespace Microsoft.Extensions.DependencyInjection
             this IValidationBuilder builder)
         {
             return builder.ConfigureValidation(
-                m => m.Modifiers.Add(o => o.Rules.Add(new DocumentRule())));
+                m => m.Modifiers.Add(o =>
+                {
+                    if (o.Rules.All(t => t.GetType() != typeof(DocumentRule)))
+                    {
+                        o.Rules.Add(new DocumentRule());
+                    }
+                }));
         }
 
         /// <summary>
@@ -114,7 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddFieldRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<FieldVisitor>();
+            return builder.TryAddValidationRule<FieldVisitor>();
         }
 
         /// <summary>
@@ -179,7 +186,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddFragmentRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<FragmentVisitor>();
+            return builder.TryAddValidationRule<FragmentVisitor>();
         }
 
         /// <summary>
@@ -217,7 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddValueRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<ValueVisitor>();
+            return builder.TryAddValidationRule<ValueVisitor>();
         }
 
         /// <summary>
@@ -265,7 +272,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddVariableRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<VariableVisitor>();
+            return builder.TryAddValidationRule<VariableVisitor>();
         }
 
         /// <summary>
@@ -290,7 +297,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IValidationBuilder AddOperationRules(
             this IValidationBuilder builder)
         {
-            return builder.AddValidationRule<OperationVisitor>();
+            return builder.TryAddValidationRule<OperationVisitor>();
         }
 
         public static IValidationBuilder AddMaxComplexityRule(
@@ -298,7 +305,7 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedComplexity)
         {
             return builder
-                .AddValidationRule((s, o) => new MaxComplexityVisitor(o))
+                .TryAddValidationRule((s, o) => new MaxComplexityVisitor(o))
                 .SetAllowedComplexity(maxAllowedComplexity);
         }
 
@@ -307,7 +314,7 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedExecutionDepth)
         {
             return builder
-                .AddValidationRule((s, o) => new MaxExecutionDepthVisitor(o))
+                .TryAddValidationRule((s, o) => new MaxExecutionDepthVisitor(o))
                 .SetAllowedExecutionDepth(maxAllowedExecutionDepth);
         }
     }

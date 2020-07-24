@@ -12,8 +12,7 @@ namespace HotChocolate.Types.Relay
 
         public IdMiddleware(FieldDelegate next, IIdSerializer serializer)
         {
-            _next = next
-                ?? throw new ArgumentNullException(nameof(next));
+            _next = next ?? throw new ArgumentNullException(nameof(next));
             _serializer = serializer ?? new IdSerializer();
         }
 
@@ -26,6 +25,7 @@ namespace HotChocolate.Types.Relay
                 && context.Field.Name.Equals(_idFieldName))
             {
                 context.Result = _serializer.Serialize(
+                    context.Schema.Name,
                     context.ObjectType.Name,
                     context.Result);
             }

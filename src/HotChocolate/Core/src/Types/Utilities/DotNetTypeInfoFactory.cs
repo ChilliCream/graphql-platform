@@ -185,14 +185,6 @@ namespace HotChocolate.Utilities
                         return true;
                     }
                 }
-                else if (IsNullableType(component))
-                {
-                    if (TryCreateBluePrint(components, index + 1, out IType innerType))
-                    {
-                        bluePrint = innerType;
-                        return true;
-                    }
-                }
                 else if (IsListType(component))
                 {
                     if (TryCreateBluePrint(components, index + 1, out IType innerType))
@@ -245,11 +237,6 @@ namespace HotChocolate.Utilities
                 current = GetInnerType(current);
             }
 
-            if (IsResolverResultType(current))
-            {
-                current = GetInnerType(current);
-            }
-
             if (IsOptional(type))
             {
                 current = GetInnerType(current);
@@ -292,7 +279,6 @@ namespace HotChocolate.Utilities
                 || IsNonNullType(type)
                 || IsNullableType(type)
                 || IsWrapperType(type)
-                || IsResolverResultType(type)
                 || IsOptional(type))
             {
                 return type.GetGenericArguments().First();
@@ -376,13 +362,6 @@ namespace HotChocolate.Utilities
         {
             return type.IsGenericType
                 && typeof(Optional<>) == type.GetGenericTypeDefinition();
-        }
-
-        private static bool IsResolverResultType(Type type)
-        {
-            return type.IsGenericType
-                && (typeof(IResolverResult<>) == type.GetGenericTypeDefinition()
-                || typeof(ResolverResult<>) == type.GetGenericTypeDefinition());
         }
 
         private static bool IsNullableType(Type type)

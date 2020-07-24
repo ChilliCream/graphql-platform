@@ -5,15 +5,13 @@ namespace HotChocolate.Types
 {
     [Serializable]
     public class ScalarSerializationException
-        : Exception
+        : GraphQLException
     {
-        public ScalarSerializationException(
-            string message)
+        public ScalarSerializationException(string message)
             : base(message) { }
 
-        public ScalarSerializationException(
-            string message, Exception innerException)
-            : base(message, innerException) { }
+        public ScalarSerializationException(IError error)
+            : base(error) { }
 
         protected ScalarSerializationException(
             SerializationInfo info,

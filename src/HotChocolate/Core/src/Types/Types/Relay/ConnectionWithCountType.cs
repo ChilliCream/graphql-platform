@@ -30,16 +30,16 @@ namespace HotChocolate.Types.Relay
                 .Resolver(ctx => GetTotalCount(ctx));
         }
 
-        private static IResolverResult<long> GetTotalCount(
+        private static long GetTotalCount(
             IResolverContext context)
         {
             IConnection connection = context.Parent<IConnection>();
             if (connection.PageInfo.TotalCount.HasValue)
             {
-                return ResolverResult.CreateValue(
-                    connection.PageInfo.TotalCount.Value);
+                return connection.PageInfo.TotalCount.Value;
             }
-            return ResolverResult.CreateError<long>(
+            
+            throw new GraphQLException(
                 "The total count was not provided by the connection.");
         }
     }

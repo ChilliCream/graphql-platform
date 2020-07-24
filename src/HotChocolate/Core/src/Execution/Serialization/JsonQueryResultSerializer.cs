@@ -122,13 +122,13 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteString(_message, error.Message);
 
             WriteLocations(writer, error.Locations);
-            WritePath(writer, error.Path);
+            WritePath(writer, error.Path?.ToList());
             WriteExtensions(writer, error.Extensions);
 
             writer.WriteEndObject();
         }
 
-        private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location> locations)
+        private static void WriteLocations(Utf8JsonWriter writer, IReadOnlyList<Location>? locations)
         {
             if (locations is { } && locations.Count > 0)
             {
@@ -153,7 +153,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object> path)
+        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object>? path)
         {
             if (path is { } && path.Count > 0)
             {
@@ -180,7 +180,7 @@ namespace HotChocolate.Execution.Serialization
                         case short n:
                             writer.WriteNumberValue(n);
                             break;
-                        
+
                         case long n:
                             writer.WriteNumberValue(n);
                             break;
@@ -227,11 +227,14 @@ namespace HotChocolate.Execution.Serialization
         {
             writer.WriteStartObject();
 
-            for(int i = 0; i < resultMap.Count; i++)
+            for (int i = 0; i < resultMap.Count; i++)
             {
                 ResultValue value = resultMap[i];
-                writer.WritePropertyName(value.Name);
-                WriteFieldValue(writer, value.Value);
+                if (value.HasValue)
+                {
+                    writer.WritePropertyName(value.Name);
+                    WriteFieldValue(writer, value.Value);
+                }
             }
 
             writer.WriteEndObject();
@@ -259,7 +262,14 @@ namespace HotChocolate.Execution.Serialization
 
             for (int i = 0; i < list.Count; i++)
             {
-                WriteResultMap(writer, list[i]);
+                if (list[i] is { } m)
+                {
+                    WriteResultMap(writer, m);
+                }
+                else
+                {
+                    WriteFieldValue(writer, null);
+                }
             }
 
             writer.WriteEndArray();

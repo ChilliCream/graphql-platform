@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -362,7 +363,12 @@ namespace HotChocolate.Types
             Action action = () => new UuidType(format: 'z');
 
             // assert
+            #if NETCOREAPP2_1
+            Assert.Throws<ArgumentException>(action).Message
+                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             Assert.Throws<ArgumentException>(action).Message.MatchSnapshot();
+            #endif
         }
     }
 }
