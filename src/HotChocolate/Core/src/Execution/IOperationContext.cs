@@ -54,9 +54,6 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        // TODO : documentation -> remember this are the raw collected fields without visibility
-        IPreparedSelectionList CollectFields(SelectionSetNode selectionSet, ObjectType objectType);
-
         /// <summary>
         /// Gets the activator helper class.
         /// </summary>
@@ -71,5 +68,10 @@ namespace HotChocolate.Execution
         IResultHelper Result { get; }
 
         IExecutionContext Execution { get; }
+
+        // TODO : documentation -> remember this are the raw collected fields without visibility
+        IPreparedSelectionList CollectFields(
+            SelectionSetNode selectionSet, 
+            ObjectType typeContext);
     }
 }

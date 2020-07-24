@@ -1,22 +1,21 @@
 using System;
 using HotChocolate.Language;
 using Moq;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public class FieldVisibilityTests
+    public class SelectionIncludeConditionTests
     {
         [Fact]
         public void Skip_True_Is_Visible_False()
         {
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(skip: new BooleanValueNode(true));
+            var visibility = new SelectionIncludeCondition(skip: new BooleanValueNode(true));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.False(visible);
@@ -28,10 +27,10 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
             variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
-            var visibility = new FieldVisibility(skip: new VariableNode("b"));
+            var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.False(visible);
@@ -42,10 +41,10 @@ namespace HotChocolate.Execution.Utilities
         {
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(skip: new BooleanValueNode(false));
+            var visibility = new SelectionIncludeCondition(skip: new BooleanValueNode(false));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.True(visible);
@@ -57,39 +56,39 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
             variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
-            var visibility = new FieldVisibility(skip: new VariableNode("b"));
+            var visibility = new SelectionIncludeCondition(skip: new VariableNode("b"));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.True(visible);
         }
 
         [Fact]
-        public void Inclide_True_Is_Visible_True()
+        public void Include_True_Is_Visible_True()
         {
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(include: new BooleanValueNode(true));
+            var visibility = new SelectionIncludeCondition(include: new BooleanValueNode(true));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.True(visible);
         }
 
         [Fact]
-        public void Inclide_Var_True_Is_Visible_True()
+        public void Include_Var_True_Is_Visible_True()
         {
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
             variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(true);
-            var visibility = new FieldVisibility(include: new VariableNode("b"));
+            var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.True(visible);
@@ -100,10 +99,10 @@ namespace HotChocolate.Execution.Utilities
         {
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(include: new BooleanValueNode(false));
+            var visibility = new SelectionIncludeCondition(include: new BooleanValueNode(false));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.False(visible);
@@ -115,10 +114,10 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
             variableValues.Setup(t => t.GetVariable<bool>("b")).Returns(false);
-            var visibility = new FieldVisibility(include: new VariableNode("b"));
+            var visibility = new SelectionIncludeCondition(include: new VariableNode("b"));
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.False(visible);
@@ -130,15 +129,15 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
 
-            var parent = new FieldVisibility(
+            var parent = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true));
 
-            var visibility = new FieldVisibility(
+            var visibility = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true),
                 parent: parent);
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.True(visible);
@@ -150,15 +149,15 @@ namespace HotChocolate.Execution.Utilities
             // arrange
             var variableValues = new Mock<IVariableValueCollection>();
 
-            var parent = new FieldVisibility(
+            var parent = new SelectionIncludeCondition(
                 include: new BooleanValueNode(false));
 
-            var visibility = new FieldVisibility(
+            var visibility = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true),
                 parent: parent);
 
             // act
-            bool visible = visibility.IsVisible(variableValues.Object);
+            var visible = visibility.IsTrue(variableValues.Object);
 
             // assert
             Assert.False(visible);
@@ -168,44 +167,38 @@ namespace HotChocolate.Execution.Utilities
         public void Include_Is_String_GraphQLException()
         {
             // arrange
-            var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(
+            // act
+            Action action = () => new SelectionIncludeCondition(
                 include: new StringValueNode("abc"));
 
-            // act
-            Action action = () => visibility.IsVisible(variableValues.Object);
-
             // assert
-            Assert.Throws<GraphQLException>(action).Errors.MatchSnapshot(); ;
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void Skip_Is_String_GraphQLException()
         {
             // arrange
-            var variableValues = new Mock<IVariableValueCollection>();
-            var visibility = new FieldVisibility(
+            // act
+            Action action = () => new SelectionIncludeCondition(
                 skip: new StringValueNode("abc"));
 
-            // act
-            Action action = () => visibility.IsVisible(variableValues.Object);
-
             // assert
-            Assert.Throws<GraphQLException>(action).Errors.MatchSnapshot(); ;
+            Assert.Throws<ArgumentException>(action);
         }
 
         [Fact]
         public void Equals_Include_True_vs_True()
         {
             // arrange
-            var a = new FieldVisibility(
+            var a = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true));
 
-            var b = new FieldVisibility(
+            var b = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true));
 
             // act
-            bool equals = a.Equals(b);
+            var equals = a.Equals(b);
 
             // assert
             Assert.True(equals);
@@ -215,14 +208,14 @@ namespace HotChocolate.Execution.Utilities
         public void Equals_Include_True_vs_False()
         {
             // arrange
-            var a = new FieldVisibility(
+            var a = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true));
 
-            var b = new FieldVisibility(
+            var b = new SelectionIncludeCondition(
                 include: new BooleanValueNode(false));
 
             // act
-            bool equals = a.Equals(b);
+            var equals = a.Equals(b);
 
             // assert
             Assert.False(equals);
@@ -232,14 +225,14 @@ namespace HotChocolate.Execution.Utilities
         public void Equals_Include_True_vs_Variable()
         {
             // arrange
-            var a = new FieldVisibility(
+            var a = new SelectionIncludeCondition(
                 include: new BooleanValueNode(true));
 
-            var b = new FieldVisibility(
+            var b = new SelectionIncludeCondition(
                 include: new VariableNode("b"));
 
             // act
-            bool equals = a.Equals(b);
+            var equals = a.Equals(b);
 
             // assert
             Assert.False(equals);
@@ -249,14 +242,14 @@ namespace HotChocolate.Execution.Utilities
         public void Equals_Include_Variable_A_vs_Variable_B()
         {
             // arrange
-            var a = new FieldVisibility(
+            var a = new SelectionIncludeCondition(
                 include: new VariableNode("a"));
 
-            var b = new FieldVisibility(
+            var b = new SelectionIncludeCondition(
                 include: new VariableNode("b"));
 
             // act
-            bool equals = a.Equals(b);
+            var equals = a.Equals(b);
 
             // assert
             Assert.False(equals);
@@ -266,14 +259,14 @@ namespace HotChocolate.Execution.Utilities
         public void Equals_Include_Variable_A_vs_Variable_A()
         {
             // arrange
-            var a = new FieldVisibility(
+            var a = new SelectionIncludeCondition(
                 include: new VariableNode("a"));
 
-            var b = new FieldVisibility(
+            var b = new SelectionIncludeCondition(
                 include: new VariableNode("a"));
 
             // act
-            bool equals = a.Equals(b);
+            var equals = a.Equals(b);
 
             // assert
             Assert.True(equals);

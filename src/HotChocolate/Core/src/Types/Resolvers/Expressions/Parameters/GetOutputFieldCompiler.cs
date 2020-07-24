@@ -30,11 +30,12 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         {
             if (typeof(ObjectField) == parameter.ParameterType)
             {
-                return Expression.Property(context, _outputField);
+                return Expression.Convert(
+                    Expression.Property(context, _outputField),
+                    parameter.ParameterType);
             }
-            return Expression.Convert(
-                Expression.Property(context, _outputField),
-                parameter.ParameterType);
+
+            return Expression.Property(context, _outputField);
         }
     }
 }

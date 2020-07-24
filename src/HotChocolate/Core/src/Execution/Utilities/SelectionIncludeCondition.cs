@@ -5,16 +5,31 @@ using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class FieldVisibility
+    public sealed class SelectionIncludeCondition
     {
-        internal FieldVisibility(
+        public SelectionIncludeCondition(
             IValueNode? skip = null,
             IValueNode? include = null,
-            FieldVisibility? parent = null)
+            SelectionIncludeCondition? parent = null)
         {
-            Debug.Assert(
-                skip != null || include != null,
-                "Either skip or include should be set, otherwise the instance would be wasted.");
+            if (skip is null && include is null)
+            {
+                throw new ArgumentException("Either skip or include have to be set.");
+            }
+
+            if (skip != null &&
+                skip.Kind != NodeKind.Variable &&
+                skip.Kind != NodeKind.BooleanValue)
+            {
+                throw new ArgumentException("skip must be a variable or a boolean value");
+            }
+
+            if (include != null &&
+                include.Kind != NodeKind.Variable &&
+                include.Kind != NodeKind.BooleanValue)
+            {
+                throw new ArgumentException("skip must be a variable or a boolean value");
+            }
 
             Skip = skip;
             Include = include;
@@ -25,11 +40,11 @@ namespace HotChocolate.Execution.Utilities
 
         public IValueNode? Include { get; }
 
-        public FieldVisibility? Parent { get; }
+        public SelectionIncludeCondition? Parent { get; }
 
-        public bool IsVisible(IVariableValueCollection variables)
+        public bool IsTrue(IVariableValueCollection variables)
         {
-            if (Parent != null && !Parent.IsVisible(variables))
+            if (Parent != null && !Parent.IsTrue(variables))
             {
                 return false;
             }
@@ -64,7 +79,7 @@ namespace HotChocolate.Execution.Utilities
             return EqualsInternal(skip, Skip) && EqualsInternal(include, Include);
         }
 
-        public bool Equals(FieldVisibility visibility)
+        public bool Equals(SelectionIncludeCondition visibility)
         {
             if (Equals(visibility.Skip, visibility.Include))
             {
@@ -74,7 +89,7 @@ namespace HotChocolate.Execution.Utilities
                 }
                 else
                 {
-                    return visibility.Parent is { } ? Parent.Equals(visibility.Parent) : false;
+                    return visibility.Parent is { } && Parent.Equals(visibility.Parent);
                 }
             }
             return false;
