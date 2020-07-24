@@ -18,7 +18,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
             descriptor.Field("hello")
                 .Argument("to", a => a.Type<StringType>())
-                .Resolver(c => c.Argument<string>("to") ?? "world");
+                .Resolver(c => c.ArgumentValue<string>("to") ?? "world");
 
             descriptor.Field("state").Resolver(() => DataStore.State);
         }

@@ -5,5 +5,9 @@ namespace HotChocolate.Types
     /// </summary>
     public interface IObjectType : IComplexOutputType
     {
+        /// <summary>
+        /// Gets the field that the type exposes.
+        /// </summary>
+        new IFieldCollection<IObjectField> Fields { get; }
     }
 }

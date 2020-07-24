@@ -10,16 +10,19 @@ namespace HotChocolate.Data.Filters
     {
         internal OrField(
             IDescriptorContext context,
+            string? scope,
             InputObjectType filterType)
-            : base(CreateDefinition(context, filterType))
+            : base(CreateDefinition(context, scope, filterType))
         {
         }
 
         private static InputFieldDefinition CreateDefinition(
-            IDescriptorContext context, InputObjectType filterType)
+            IDescriptorContext context,
+            string? scope,
+            InputObjectType filterType)
         {
-            InputFieldDefinition? definition = InputFieldDescriptor
-                .New(context, "OR")
+            FilterOperationFieldDefinition? definition = FilterOperationFieldDescriptor
+                .New(context, scope, Operations.Or)
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(

@@ -11,15 +11,15 @@ namespace HotChocolate.Data.Filters
     {
         private readonly Action<IFilterInputTypeDescriptor> _configure;
 
-        protected FilterInputType()
+        public FilterInputType()
         {
             _configure = Configure;
         }
 
         public FilterInputType(Action<IFilterInputTypeDescriptor> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ??
+                throw new ArgumentNullException(nameof(configure));
         }
 
         protected override InputObjectTypeDefinition CreateDefinition(
@@ -44,8 +44,14 @@ namespace HotChocolate.Data.Filters
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {
-            fields.Add(new AndField(context.DescriptorContext, this));
-            fields.Add(new OrField(context.DescriptorContext, this));
+            if (definition is FilterInputTypeDefinition { UseAnd: true } def)
+            {
+                fields.Add(new AndField(context.DescriptorContext, def.Scope, this));
+            }
+            if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
+            {
+                fields.Add(new OrField(context.DescriptorContext, defOr.Scope, this));
+            }
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)
             {
@@ -58,6 +64,14 @@ namespace HotChocolate.Data.Filters
                     fields.Add(new FilterField(field));
                 }
             }
+        }
+
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            SetTypeIdentity(typeof(FilterInputType<>));
         }
 
         // we are disabling the default configure method so

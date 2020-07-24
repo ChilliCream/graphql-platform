@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
@@ -24,6 +26,24 @@ namespace HotChocolate.Data.Filters
         protected FilterInputTypeDescriptor(IDescriptorContext context, string? scope)
             : base(context, scope)
         {
+        }
+
+        protected override void OnCompleteFields(
+            IDictionary<NameString, InputFieldDefinition> fields,
+            ISet<PropertyInfo> handledProperties)
+        {
+            if (Definition.Fields.IsImplicitBinding())
+            {
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => FilterFieldDescriptor
+                        .New(Context, Definition.Scope, p)
+                        .CreateDefinition(),
+                    fields,
+                    handledProperties);
+            }
+
+            base.OnCompleteFields(fields, handledProperties);
         }
 
         public new IFilterInputTypeDescriptor<T> Name(NameString value)
@@ -158,6 +178,18 @@ namespace HotChocolate.Data.Filters
         public new IFilterInputTypeDescriptor<T> Ignore(int operation)
         {
             base.Ignore(operation);
+            return this;
+        }
+
+        public new IFilterInputTypeDescriptor<T> UseOr(bool isUsed = true)
+        {
+            base.UseOr(isUsed);
+            return this;
+        }
+
+        public new IFilterInputTypeDescriptor<T> UseAnd(bool isUsed = true)
+        {
+            base.UseAnd(isUsed);
             return this;
         }
 

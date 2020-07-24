@@ -11,12 +11,6 @@ namespace HotChocolate.Resolvers
     public interface IFieldSelection
     {
         /// <summary>
-        /// Gets an index representing the position that field
-        /// will have in the ordered response map.
-        /// </summary>
-        int ResponseIndex { get; }
-
-        /// <summary>
         /// Gets the name this field will have in the response map.
         /// </summary>
         NameString ResponseName { get; }
@@ -24,7 +18,7 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the field that was selected.
         /// </summary>
-        ObjectField Field { get; }
+        IObjectField Field { get; }
 
         /// <summary>
         /// Gets the field selection.

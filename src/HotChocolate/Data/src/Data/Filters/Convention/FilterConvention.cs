@@ -3,8 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using System.Collections.Immutable;
+using System.Linq;
+using System.Collections.Generic;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
@@ -12,8 +13,6 @@ namespace HotChocolate.Data.Filters
         ConventionBase<FilterConventionDefinition>
         , IFilterConvention
     {
-        public IImmutableDictionary<int, OperationConvention> Operations { get; private set; }
-
         private readonly Action<IFilterConventionDescriptor> _configure;
 
         protected FilterConvention()
@@ -26,6 +25,10 @@ namespace HotChocolate.Data.Filters
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
+
+        public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
+
+        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -46,7 +49,8 @@ namespace HotChocolate.Data.Filters
         {
             Operations = definition
                 .Operations
-                .ToImmutableDictionary(x => x.Operation, x => new OperationConvention(x));
+                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
+            Bindings = definition.Bindings;
         }
 
         public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
@@ -55,8 +59,20 @@ namespace HotChocolate.Data.Filters
         public NameString GetFieldName(IDescriptorContext context, MemberInfo member) =>
             context.Naming.GetMemberName(member, MemberKind.InputObjectField);
 
-        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member) =>
-            context.Inspector.GetInputReturnType(member);
+        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            if (TryGetTypeOfMember(member, out Type? reflectedType))
+            {
+                return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
+            }
+
+            throw ThrowHelper.FilterConvention_TypeOfMemberIsUnknown(member);
+        }
 
         public NameString GetOperationDescription(IDescriptorContext context, int operation)
         {
@@ -80,13 +96,66 @@ namespace HotChocolate.Data.Filters
             context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
 
         public NameString GetTypeName(IDescriptorContext context, Type entityType) =>
-            context.Naming.GetTypeName(entityType, TypeKind.InputObject);
+            context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
 
-        public bool TryCreateImplicitFilter(
-            PropertyInfo property,
-            [NotNullWhen(true)] out InputFieldDefinition? definition)
+        private bool TryGetTypeOfMember(
+            MemberInfo member,
+            [NotNullWhen(true)] out Type? type)
         {
-            throw new NotImplementedException();
+            if (member is PropertyInfo p &&
+                TryGetTypeOfRuntimeType(p.PropertyType, out type))
+            {
+                return true;
+            }
+            type = null;
+            return false;
+        }
+
+        private bool TryGetTypeOfRuntimeType(
+            Type runtimeType,
+            [NotNullWhen(true)] out Type? type)
+        {
+            if (runtimeType.IsGenericType
+                && System.Nullable.GetUnderlyingType(runtimeType) is { } nullableType)
+            {
+                runtimeType = nullableType;
+            }
+
+            if (Bindings.TryGetValue(runtimeType, out type))
+            {
+                return true;
+            }
+
+            if (DotNetTypeInfoFactory.IsListType(runtimeType))
+            {
+                if (!TypeInspector.Default.TryCreate(runtimeType, out Utilities.TypeInfo typeInfo))
+                {
+                    throw new ArgumentException(
+                        string.Format("The type {0} is unknown", runtimeType.Name),
+                        nameof(runtimeType));
+                }
+
+                if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
+                {
+                    type = typeof(ListFilterInput<>).MakeGenericType(clrType);
+                    return true;
+                }
+            }
+
+            if (runtimeType.IsEnum)
+            {
+                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
+                return true;
+            }
+
+            if (runtimeType.IsClass)
+            {
+                type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
+                return true;
+            }
+
+            type = null;
+            return false;
         }
 
         internal static readonly IFilterConvention Default = TemporaryInitializer();

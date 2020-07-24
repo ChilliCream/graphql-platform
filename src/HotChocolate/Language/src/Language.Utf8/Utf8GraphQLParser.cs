@@ -83,7 +83,7 @@ namespace HotChocolate.Language
             return new DocumentNode(location, definitions);
         }
 
-        internal IReadOnlyList<ArgumentNode> ParseArguments()
+        private IReadOnlyList<ArgumentNode> ParseArguments()
         {
             MoveNext();
             return ParseArguments(false);

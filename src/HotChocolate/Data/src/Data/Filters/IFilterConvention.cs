@@ -1,8 +1,6 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {
@@ -21,9 +19,5 @@ namespace HotChocolate.Data.Filters
         NameString GetTypeName(IDescriptorContext context, Type entityType);
 
         NameString GetTypeDescription(IDescriptorContext context, Type entityType);
-
-        bool TryCreateImplicitFilter(
-            PropertyInfo property,
-            [NotNullWhen(true)] out InputFieldDefinition? definition);
     }
 }
