@@ -50,13 +50,18 @@ namespace HotChocolate
         public IReadOnlyCollection<INamedType> Types => _types.GetTypes();
 
         /// <summary>
-        /// Gets all the direcives that are supported by this schema.
+        /// Gets all the directives that are supported by this schema.
         /// </summary>
         public IReadOnlyCollection<DirectiveType> DirectiveTypes
         {
             get;
             private set;
         }
+
+        /// <summary>
+        /// Gets the default schema name.
+        /// </summary>
+        public static NameString DefaultName { get; } = "_Default";
 
         /// <summary>
         /// Gets a type by its name and kind.

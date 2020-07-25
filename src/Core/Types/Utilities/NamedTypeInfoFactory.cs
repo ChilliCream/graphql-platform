@@ -237,8 +237,8 @@ namespace HotChocolate.Utilities
                 || typeof(UnionType).IsAssignableFrom(type)
                 || typeof(InputObjectType).IsAssignableFrom(type)
                 || type.IsGenericType
-                && (typeof(ListType<>) == type.GetGenericTypeDefinition()
-                || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
+                    && (typeof(ListType<>) == type.GetGenericTypeDefinition()
+                        || typeof(NonNullType<>) == type.GetGenericTypeDefinition());
         }
 
         public static NamedTypeInfoFactory Default { get; } =

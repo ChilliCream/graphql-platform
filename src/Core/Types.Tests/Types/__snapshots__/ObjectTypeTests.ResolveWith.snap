@@ -1,7 +1,8 @@
 ﻿{
   "Data": {
     "foo": "Bar",
-    "baz": "Bar"
+    "bar": "Bar",
+    "baz": 1
   },
   "Extensions": {},
   "Errors": [],

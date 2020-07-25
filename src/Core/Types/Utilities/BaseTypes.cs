@@ -42,9 +42,7 @@ namespace HotChocolate.Utilities
 
             if (type.IsGenericType)
             {
-                Type typeDefinition = type.GetGenericTypeDefinition();
-                return typeDefinition == typeof(ListType<>)
-                    || typeDefinition == typeof(NonNullType<>);
+                return NamedTypeInfoFactory.Default.TryCreate(type, out _);
             }
 
             return false;

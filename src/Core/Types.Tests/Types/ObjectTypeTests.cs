@@ -1521,7 +1521,7 @@ namespace HotChocolate.Types
                 .AddQueryType<ResolveWithQueryType>()
                 .Create()
                 .MakeExecutable()
-                .Execute("{ foo baz }")
+                .Execute("{ foo bar baz }")
                 .MatchSnapshot();
         }
 
@@ -1692,11 +1692,16 @@ namespace HotChocolate.Types
         public class ResolveWithQuery
         {
             public int Foo { get; set; } = 123;
+
+#nullable enable
+            public string Baz { get; set; } = "Hello";
+#nullable disable
         }
 
         public class ResolveWithQueryResolver
         {
             public string Bar { get; set; } = "Bar";
+            public int Baz => 1;
         }
 
         public class ResolveWithQueryType : ObjectType<ResolveWithQuery>
@@ -1704,7 +1709,8 @@ namespace HotChocolate.Types
             protected override void Configure(IObjectTypeDescriptor<ResolveWithQuery> descriptor)
             {
                 descriptor.Field(t => t.Foo).ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
-                descriptor.Field("baz").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
+                descriptor.Field("bar").ResolveWith<ResolveWithQueryResolver>(t => t.Bar);
+                descriptor.Field(t => t.Baz).ResolveWith<ResolveWithQueryResolver>(t => t.Baz);
             }
         }
 

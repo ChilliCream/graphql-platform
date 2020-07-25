@@ -225,7 +225,7 @@ namespace HotChocolate.Utilities
 
         public static Type GetReturnType(this MemberInfo member, bool ignoreAttributes = false)
         {
-            if (member.IsDefined(typeof(GraphQLTypeAttribute)))
+            if (!ignoreAttributes && member.IsDefined(typeof(GraphQLTypeAttribute)))
             {
                 return member.GetCustomAttribute<GraphQLTypeAttribute>().Type;
             }
