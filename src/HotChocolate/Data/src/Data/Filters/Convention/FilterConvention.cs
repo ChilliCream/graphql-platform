@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Data.Filters
 {
@@ -35,6 +36,8 @@ namespace HotChocolate.Data.Filters
         public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
         { get; private set; } = null!;
 
+        public IFilterProvider Provider { get; private set; }
+
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
         {
@@ -59,6 +62,8 @@ namespace HotChocolate.Data.Filters
                     .ToDictionary(x => x.Operation, x => new OperationConvention(x));
                 Bindings = definition.Bindings;
                 Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+                Provider = definition.Provider ??
+                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
             }
         }
 
@@ -198,5 +203,12 @@ namespace HotChocolate.Data.Filters
             }
             return Array.Empty<Action<IFilterInputTypeDescriptor>>();
         }
+
+        public bool TryGetHandler(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition,
+            [NotNullWhen(true)] out FilterFieldHandler? handler) =>
+            Provider.TryGetHandler(context, typeDefinition, fieldDefinition, out handler);
     }
 }

@@ -8,5 +8,7 @@ namespace HotChocolate.Data.Filters
         , IHasRuntimeType
     {
         MemberInfo? Member { get; set; }
+
+        FilterFieldHandler? Handler { get; set; }
     }
 }

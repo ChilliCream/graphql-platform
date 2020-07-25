@@ -11,8 +11,11 @@ namespace HotChocolate.Data.Filters
             : base(definition)
         {
             Member = definition.Member;
+            Handler = definition.Handler;
         }
 
         public MemberInfo? Member { get; set; }
+
+        public FilterFieldHandler? Handler { get; set; }
     }
 }

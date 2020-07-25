@@ -8,5 +8,7 @@ namespace HotChocolate.Data.Filters
         public MemberInfo? Member { get; set; }
 
         public string? Scope { get; set; }
+
+        public FilterFieldHandler? Handler { get; set; }
     }
 }

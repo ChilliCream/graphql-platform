@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
@@ -54,6 +53,15 @@ namespace HotChocolate.Data.Filters
                     if (field.Type.Scope is null)
                     {
                         field.Type = field.Type.With(scope: discoveryContext.Scope);
+                    }
+                    if (field is FilterFieldDefinition filterFieldDefinition &&
+                        convention.TryGetHandler(
+                            discoveryContext,
+                            def,
+                            filterFieldDefinition,
+                            out FilterFieldHandler? handler))
+                    {
+                        filterFieldDefinition.Handler = handler;
                     }
                 }
             }

@@ -17,5 +17,7 @@ namespace HotChocolate.Data.Filters
         new Dictionary<ITypeReference, List<Action<IFilterInputTypeDescriptor>>>();
 
         public string? Scope { get; set; }
+
+        public IFilterProvider? Provider { get; set; }
     }
 }

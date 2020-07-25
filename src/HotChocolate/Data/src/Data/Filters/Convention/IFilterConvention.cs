@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
@@ -39,5 +41,11 @@ namespace HotChocolate.Data.Filters
         IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
             ITypeReference reference,
             NameString temporaryName);
+
+        bool TryGetHandler(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition,
+            [NotNullWhen(true)] out FilterFieldHandler? handler);
     }
 }

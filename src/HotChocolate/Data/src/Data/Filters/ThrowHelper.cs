@@ -21,5 +21,29 @@ namespace HotChocolate.Data.Filters
                         "filter convention",
                         operation)
                     .Build());
+
+        public static SchemaException FilterConvention_NoProviderFound(string scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "For the convention of scope {0} is no provider defined",
+                        scope)
+                    .Build());
+
+        public static SchemaException FilterConvention_NoVisitor(string scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "For the provider of scope {0} is no visitor defined",
+                        scope)
+                    .Build());
+
+        public static SchemaException FilterConvention_NoCombinatorFound(string scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "For the provider of scope {0} is no combinator defined",
+                        scope)
+                    .Build());
     }
 }

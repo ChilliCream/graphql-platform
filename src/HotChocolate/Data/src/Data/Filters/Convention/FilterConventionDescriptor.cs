@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters
 {
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
+        private readonly IServiceProvider _services;
+
         protected ICollection<FilterOperationConventionDescriptor> Operations { get; } =
             new List<FilterOperationConventionDescriptor>();
 
@@ -20,6 +23,7 @@ namespace HotChocolate.Data.Filters
             }
 
             Definition.Scope = context.Scope;
+            _services = context.Services;
         }
 
         protected FilterConventionDefinition Definition { get; set; } =
@@ -122,6 +126,13 @@ namespace HotChocolate.Data.Filters
                 }
             });
 
+            return this;
+        }
+
+        public IFilterConventionDescriptor Provider<TProvider>()
+            where TProvider : IFilterProvider
+        {
+            Definition.Provider = _services.GetService<TProvider>();
             return this;
         }
     }

@@ -19,5 +19,8 @@ namespace HotChocolate.Data.Filters
         IFilterConventionDescriptor Extension<TFilterType, TType>(
             Action<IFilterInputTypeDescriptor<TType>> extension)
             where TFilterType : FilterInputType<TType>;
+
+        IFilterConventionDescriptor Provider<TProvider>()
+            where TProvider : IFilterProvider;
     }
 }
