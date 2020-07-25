@@ -278,9 +278,8 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                Type resultType = member.GetReturnType();
-
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                var typeReference = (ClrTypeReference)Context.Inspector.GetOutputReturnType(member);
+                Definition.SetMoreSpecificType(typeReference.Type, typeReference.Context);
 
                 Definition.ResolverType = typeof(TResolver);
                 Definition.ResolverMember = member;
@@ -304,6 +303,10 @@ namespace HotChocolate.Types.Descriptors
 
             if (propertyOrMethod is PropertyInfo p || propertyOrMethod is MethodInfo m)
             {
+                var typeReference = 
+                    (ClrTypeReference)Context.Inspector.GetOutputReturnType(propertyOrMethod);
+                Definition.SetMoreSpecificType(typeReference.Type, typeReference.Context);
+
                 Definition.ResolverType = propertyOrMethod.DeclaringType;
                 Definition.ResolverMember = propertyOrMethod;
                 Definition.Resolver = null;
