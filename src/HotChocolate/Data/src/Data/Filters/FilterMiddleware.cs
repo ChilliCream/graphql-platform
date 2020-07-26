@@ -1,59 +1,23 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterMiddleware
+    public class FilterMiddleware<TEntityType>
     {
         private readonly FieldDelegate _next;
-        private readonly ITypeConversion _converter;
+        private readonly FilterMiddlewareContext _contextData;
 
         public FilterMiddleware(
             FieldDelegate next,
-            ITypeConversion converter)
+            FilterMiddlewareContext contextData)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _converter = converter ?? TypeConversion.Default;
+            _contextData = contextData ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public async Task InvokeAsync(IMiddlewareContext context)
-        {
-            await _next(context).ConfigureAwait(false);
-
-            IValueNode filter = context.ArgumentLiteral<IValueNode>("where");
-
-            if (filter is null || filter is NullValueNode)
-            {
-                return;
-            }
-
-            // IQueryable<T> source = null;
-
-            // if (context.Result is IQueryable<T> q)
-            // {
-            //     source = q;
-            // }
-            // else if (context.Result is IEnumerable<T> e)
-            // {
-            //     source = e.AsQueryable();
-            // }
-
-            // if (source != null
-            //     && context.Field.Arguments["where"].Type is InputObjectType iot
-            //     && iot is IFilterInputType fit)
-            // {
-            //     var visitor = new QueryableFilterVisitor(
-            //         iot,
-            //         fit.EntityType,
-            //         _converter);
-            //     filter.Accept(visitor);
-
-            //     source = source.Where(visitor.CreateFilter<T>());
-            //     context.Result = source;
-            // }
-        }
+        public Task InvokeAsync(IMiddlewareContext context) =>
+            _contextData.Convention.ExecuteAsync<TEntityType>(_next, context);
     }
 }

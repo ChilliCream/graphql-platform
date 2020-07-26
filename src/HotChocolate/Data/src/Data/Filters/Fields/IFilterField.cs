@@ -7,8 +7,10 @@ namespace HotChocolate.Data.Filters
         : IInputField
         , IHasRuntimeType
     {
-        MemberInfo? Member { get; set; }
+        MemberInfo? Member { get; }
 
-        FilterFieldHandler? Handler { get; set; }
+        FilterFieldHandler? Handler { get; }
+
+        bool IsNullable { get; }
     }
 }

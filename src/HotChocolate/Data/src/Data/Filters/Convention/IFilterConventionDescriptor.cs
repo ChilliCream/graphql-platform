@@ -21,6 +21,17 @@ namespace HotChocolate.Data.Filters
             where TFilterType : FilterInputType<TType>;
 
         IFilterConventionDescriptor Provider<TProvider>()
-            where TProvider : IFilterProvider;
+            where TProvider : FilterProviderBase;
+
+        /// <summary>
+        /// Defines the argument name of the filter used by
+        /// <see cref="FilterObjectFieldDescriptorExtensions.UseFiltering"/>
+        /// </summary> 
+        /// <param name="argumentName">The argument name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="argumentName"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        IFilterConventionDescriptor ArgumentName(NameString argumentName);
     }
 }

@@ -10,6 +10,8 @@ namespace HotChocolate.Data.Filters
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
+        private const string DefaultArgumentName = "where";
+
         private readonly IServiceProvider _services;
 
         protected ICollection<FilterOperationConventionDescriptor> Operations { get; } =
@@ -23,6 +25,7 @@ namespace HotChocolate.Data.Filters
             }
 
             Definition.Scope = context.Scope;
+            Definition.ArgumentName = DefaultArgumentName;
             _services = context.Services;
         }
 
@@ -130,9 +133,15 @@ namespace HotChocolate.Data.Filters
         }
 
         public IFilterConventionDescriptor Provider<TProvider>()
-            where TProvider : IFilterProvider
+            where TProvider : FilterProviderBase
         {
             Definition.Provider = _services.GetService<TProvider>();
+            return this;
+        }
+
+        public IFilterConventionDescriptor ArgumentName(NameString argumentName)
+        {
+            Definition.ArgumentName = argumentName;
             return this;
         }
     }

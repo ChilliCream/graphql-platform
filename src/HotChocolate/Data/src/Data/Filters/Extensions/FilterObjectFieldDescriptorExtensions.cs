@@ -13,7 +13,7 @@ namespace HotChocolate.Data
     {
         private const string _whereArgumentName = "where";
         private static readonly Type _middlewareDefinition =
-            typeof(FilterMiddleware);
+            typeof(FilterMiddleware<>);
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor,
@@ -126,7 +126,8 @@ namespace HotChocolate.Data
                                     context,
                                     definition,
                                     argumentTypeReference,
-                                    placeholder))
+                                    placeholder,
+                                    scope))
                             .On(ApplyConfigurationOn.Completion)
                             .DependsOn(argumentTypeReference, true)
                             .Build();
@@ -140,12 +141,16 @@ namespace HotChocolate.Data
             ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
-            FieldMiddleware placeholder)
+            FieldMiddleware placeholder,
+            string scope)
         {
-            IFilterInputType type =
-                context.GetType<IFilterInputType>(argumentTypeReference);
+            IFilterConvention convention =
+                context.DescriptorContext.GetFilterConvention(scope);
+            IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(_middlewareDefinition);
+                FieldClassMiddlewareFactory.Create(middlewareType,
+                    FilterMiddlewareContext.Create(convention));
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

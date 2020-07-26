@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
@@ -38,6 +41,8 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             Type entityType);
 
+        NameString GetArgumentName();
+
         IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
             ITypeReference reference,
             NameString temporaryName);
@@ -47,5 +52,9 @@ namespace HotChocolate.Data.Filters
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out FilterFieldHandler? handler);
+
+        Task ExecuteAsync<TEntityType>(
+            FieldDelegate next,
+            IMiddlewareContext context);
     }
 }

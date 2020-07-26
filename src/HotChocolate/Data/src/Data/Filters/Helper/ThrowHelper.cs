@@ -30,6 +30,14 @@ namespace HotChocolate.Data.Filters
                         scope)
                     .Build());
 
+        public static SchemaException FilterConvention_NoArgumentNameDefined(string scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "For the convention of scope {0} is no argument name defined",
+                        scope)
+                    .Build());
+
         public static SchemaException FilterConvention_NoVisitor(string scope) =>
             new SchemaException(
                 SchemaErrorBuilder.New()

@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Tests
             // arrange
             // act
             var convention = new FilterConvention(
-                x => x.UseDefault()
+            x => x.UseDefault()
                     .Extension<StringOperationInput>(
                         y => y.Operation(Operations.Like).Type<StringType>())
                     .Operation(Operations.Like).Name("like"));

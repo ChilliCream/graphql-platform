@@ -18,6 +18,8 @@ namespace HotChocolate.Data.Filters
 
         public string? Scope { get; set; }
 
-        public IFilterProvider? Provider { get; set; }
+        public string? ArgumentName { get; set; }
+
+        public FilterProviderBase? Provider { get; set; }
     }
 }

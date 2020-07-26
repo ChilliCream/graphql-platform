@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Configuration;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters
 {
@@ -36,7 +38,9 @@ namespace HotChocolate.Data.Filters
         public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
         { get; private set; } = null!;
 
-        public IFilterProvider Provider { get; private set; }
+        public string ArgumentName { get; private set; } = null!;
+
+        public FilterProviderBase Provider { get; private set; }
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -62,8 +66,17 @@ namespace HotChocolate.Data.Filters
                     .ToDictionary(x => x.Operation, x => new OperationConvention(x));
                 Bindings = definition.Bindings;
                 Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+
+                ArgumentName = definition.ArgumentName ??
+                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
+
                 Provider = definition.Provider ??
                     throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
+
+                IFilterProviderInitializationContext? providerContext =
+                    FilterProviderInitializationContext.From(context, this);
+
+                Provider.Initialize(providerContext);
             }
         }
 
@@ -210,5 +223,10 @@ namespace HotChocolate.Data.Filters
             FilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out FilterFieldHandler? handler) =>
             Provider.TryGetHandler(context, typeDefinition, fieldDefinition, out handler);
+
+        public Task ExecuteAsync<TEntityType>(FieldDelegate next, IMiddlewareContext context) =>
+            Provider.ExecuteAsync<TEntityType>(next, context);
+
+        public NameString GetArgumentName() => ArgumentName;
     }
 }

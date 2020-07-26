@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterProvider<T, TContext>
-        : ConventionBase<FilterProviderDefiniton<T, TContext>>
-        , IFilterProvider
+    public abstract class FilterProvider<T, TContext>
+        : FilterProviderBase<FilterProviderDefiniton<T, TContext>>
         where TContext : FilterVisitorContext<T>
     {
         private readonly Action<IFilterProviderDescriptor<T, TContext>> _configure;
@@ -30,7 +28,7 @@ namespace HotChocolate.Data.Filters
         }
 
         protected override FilterProviderDefiniton<T, TContext>? CreateDefinition(
-            IConventionContext context)
+            IFilterProviderInitializationContext context)
         {
             var descriptor = FilterProviderDescriptor<T, TContext>.New(context);
             _configure(descriptor);
@@ -38,7 +36,7 @@ namespace HotChocolate.Data.Filters
         }
 
         protected override void OnComplete(
-            IConventionContext context,
+            IFilterProviderInitializationContext context,
             FilterProviderDefiniton<T, TContext>? definition)
         {
             if (definition is { } def)
@@ -48,12 +46,20 @@ namespace HotChocolate.Data.Filters
                     throw ThrowHelper.FilterConvention_NoVisitor(def.Scope);
                 Visitor.Combinator = def.Combinator ??
                     throw ThrowHelper.FilterConvention_NoCombinatorFound(def.Scope);
+
+                IFilterFieldHandlerInitializationContext? handlerContext =
+                    FilterFieldHandlerInitializationContext.From(context, this);
+
+                foreach (FilterFieldHandler<T, TContext>? handler in Handlers)
+                {
+                    handler.Initialize(handlerContext);
+                }
             }
         }
 
         protected virtual void Configure(IFilterProviderDescriptor<T, TContext> descriptor) { }
 
-        public bool TryGetHandler(
+        public override bool TryGetHandler(
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition,
@@ -72,4 +78,3 @@ namespace HotChocolate.Data.Filters
         }
     }
 }
-

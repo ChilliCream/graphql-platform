@@ -5,7 +5,7 @@ using HotChocolate.Language.Visitors;
 namespace HotChocolate.Data.Filters
 {
     public class FilterFieldHandler<T, TContext>
-        : FilterFieldHandlerBase
+        : FilterFieldHandler
         where TContext : FilterVisitorContext<T>
     {
         public virtual bool TryHandleEnter(

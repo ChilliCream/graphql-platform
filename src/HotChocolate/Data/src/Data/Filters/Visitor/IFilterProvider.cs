@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters
 {
@@ -10,6 +12,10 @@ namespace HotChocolate.Data.Filters
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out FilterFieldHandler? handler);
+
+        Task ExecuteAsync<TEntityType>(
+            FieldDelegate next,
+            IMiddlewareContext context);
     }
 }
 

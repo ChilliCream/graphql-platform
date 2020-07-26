@@ -10,22 +10,17 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterVisitorContext(
             IFilterInputType initialType,
-            ITypeConverter typeConverter,
             FilterScope<T>? filterScope = null)
         {
             if (initialType is null)
             {
                 throw new ArgumentNullException(nameof(initialType));
             }
-            TypeConverter = typeConverter ??
-                throw new ArgumentNullException(nameof(typeConverter));
 
             Types.Push(initialType);
             Scopes = new Stack<FilterScope<T>>();
             Scopes.Push(filterScope ?? CreateScope());
         }
-
-        public ITypeConverter TypeConverter { get; }
 
         public Stack<FilterScope<T>> Scopes { get; }
 

@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Data.Filters;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
-using System;
 
 namespace HotChocolate.Data.Filters
 {
-
     public abstract class FilterVisitor<T, TContext>
         : FilterVisitorBase<T, TContext>
         where TContext : FilterVisitorContext<T>

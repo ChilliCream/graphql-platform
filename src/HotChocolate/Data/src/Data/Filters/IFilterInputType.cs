@@ -9,5 +9,6 @@ namespace HotChocolate.Data.Filters
     public interface IFilterInputType
         : INamedInputType
     {
+        Type EntityType { get; }
     }
 }
