@@ -34,6 +34,8 @@ namespace HotChocolate.Types
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
+        public IFieldValueSerializer Serializer { get; private set; }
+
         public IValueNode DefaultValue { get; private set; }
 
         internal protected PropertyInfo Property { get; }
@@ -156,8 +158,8 @@ namespace HotChocolate.Types
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type);
+            Serializer = definition.Serializer;
+            DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
         }
     }
 }

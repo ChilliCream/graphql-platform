@@ -14,7 +14,11 @@ namespace HotChocolate.Types.Descriptors
             var options = new SchemaOptions();
 
             // act
-            Action action = () => DescriptorContext.Create(options, null);
+            Action action = () => 
+                DescriptorContext.Create(
+                    options, 
+                    null, 
+                    () => throw new NotSupportedException());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -24,10 +28,14 @@ namespace HotChocolate.Types.Descriptors
         public void Create_OptionsNull_ArgumentException()
         {
             // arrange
-            var service = new EmptyServiceProvider();
+            var services = new EmptyServiceProvider();
 
             // act
-            Action action = () => DescriptorContext.Create(null, service);
+            Action action = () => 
+                DescriptorContext.Create(
+                    null,
+                    services,
+                    () => throw new NotSupportedException());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -45,7 +53,10 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(
+                    options, 
+                    services, 
+                    () => throw new NotSupportedException());
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -65,7 +76,10 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(
+                    options, 
+                    services, 
+                    () => throw new NotSupportedException());
 
             // assert
             Assert.Equal(inspector, context.Inspector);

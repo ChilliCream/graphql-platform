@@ -1,0 +1,10 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  array: [Byte!]!
+}
+
+"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+scalar Byte

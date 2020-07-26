@@ -3,7 +3,6 @@ using System.Text;
 using System.Buffers;
 using System.Buffers.Text;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {

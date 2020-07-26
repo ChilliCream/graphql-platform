@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 #nullable enable

@@ -80,7 +80,12 @@ namespace HotChocolate.Utilities
                 foreach (InputField field in type.Fields)
                 {
                     object fieldValue = field.GetValue(obj);
-                    Action<object> setField = value => dict[field.Name] = value;
+                    Action<object> setField = value =>
+                    {
+                        value = field.Serializer is null 
+                            ? value : field.Serializer.Serialize(value);
+                        dict[field.Name] = value;
+                    };
                     VisitValue(field.Type, fieldValue, setField, processed);
                 }
             }

@@ -200,6 +200,17 @@ namespace HotChocolate.Utilities
                     return true;
                 }
 
+                 if (IsNonNullType(components[0])
+                    && IsListType(components[1])
+                    && components[2].IsValueType)
+                {
+                    typeInfo = new TypeInfo(
+                        components[2],
+                        components,
+                        t => new NonNullType(new ListType(new NonNullType(t))));
+                    return true;
+                }
+
                 if (IsListType(components[0])
                     && IsNonNullType(components[1])
                     && IsPossibleNamedType(components[2]))

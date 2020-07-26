@@ -1,5 +1,7 @@
 ﻿using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -15,8 +17,22 @@ namespace HotChocolate.Types
         IInputType Type { get; }
 
         /// <summary>
+        /// Gets the field serializer.
+        /// </summary>
+        IFieldValueSerializer? Serializer { get; }
+
+        /// <summary>
         /// Gets the default value literal of this field.
         /// </summary>
         IValueNode DefaultValue { get; }
+    }
+
+    public interface IFieldValueSerializer
+    {
+        object? Serialize(object? value);
+
+        object? Deserialize(object? value);
+
+        IValueNode Rewrite(IValueNode value);
     }
 }

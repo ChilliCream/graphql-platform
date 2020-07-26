@@ -1535,6 +1535,26 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_NonNull_Int_Array_Correctly()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+#nullable enable
+        public class Query
+        {
+            public byte[] Array()
+            {
+                throw new NotImplementedException();
+            }
+        }
+#nullable disable
+
         public class GenericFoo<T>
         {
             public T Value { get; }

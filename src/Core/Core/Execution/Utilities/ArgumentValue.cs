@@ -6,11 +6,16 @@ namespace HotChocolate.Execution
 {
     public readonly struct ArgumentValue
     {
-        public ArgumentValue(IInputType type, ValueKind kind, object value)
+        public ArgumentValue(
+            IInputType type,
+            ValueKind kind,
+            object value,
+            IFieldValueSerializer serializer)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
-            Value = value;
             Kind = kind;
+            Value = value;
+            Serializer = serializer;
             Error = null;
             Literal = null;
         }
@@ -22,14 +27,19 @@ namespace HotChocolate.Execution
             Kind = null;
             Value = null;
             Literal = null;
+            Serializer = null;
         }
 
-        public ArgumentValue(IInputType type, ValueKind kind, IValueNode literal)
+        public ArgumentValue(
+            IInputType type,
+            ValueKind kind,
+            IValueNode literal,
+            IFieldValueSerializer serializer)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
-            Literal = literal
-                ?? throw new ArgumentNullException(nameof(literal));
+            Literal = literal ?? throw new ArgumentNullException(nameof(literal));
             Kind = kind;
+            Serializer = serializer;
             Value = null;
             Error = null;
         }
@@ -43,5 +53,7 @@ namespace HotChocolate.Execution
         public IValueNode Literal { get; }
 
         public IError Error { get; }
+
+        public IFieldValueSerializer Serializer { get; }
     }
 }

@@ -31,8 +31,7 @@ namespace HotChocolate.Utilities
             }
 
             ObjectValueNode objectValueNode = null;
-            Action<IValueNode> setValue =
-                value => objectValueNode = (ObjectValueNode)value;
+            Action<IValueNode> setValue = value => objectValueNode = (ObjectValueNode)value;
             VisitInputObject(type, obj, setValue, new HashSet<object>());
             return objectValueNode;
         }
@@ -92,7 +91,7 @@ namespace HotChocolate.Utilities
 
                 foreach (InputField field in type.Fields)
                 {
-                    if(field.TryGetValue(obj, out object fieldValue))
+                    if (field.TryGetValue(obj, out object fieldValue))
                     {
                         if (fieldValue is IOptional optional && !optional.HasValue)
                         {
@@ -100,7 +99,12 @@ namespace HotChocolate.Utilities
                         }
 
                         Action<IValueNode> setField = value =>
+                        {
+                            value = field.Serializer is null 
+                                ? value 
+                                : field.Serializer.Rewrite(value);
                             fields.Add(new ObjectFieldNode(field.Name, value));
+                        };
                         VisitValue(field.Type, fieldValue, setField, processed);
                     }
                 }

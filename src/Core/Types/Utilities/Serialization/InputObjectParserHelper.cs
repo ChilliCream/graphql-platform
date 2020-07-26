@@ -58,6 +58,7 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
                     object value = field.Type.ParseLiteral(fieldValue.Value);
+                    value = field.Serializer is null ? value : field.Serializer.Deserialize(value);
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
@@ -113,6 +114,7 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
                     object value = field.Type.Deserialize(fieldValue.Value);
+                    value = field.Serializer is null ? value : field.Serializer.Deserialize(value);
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else

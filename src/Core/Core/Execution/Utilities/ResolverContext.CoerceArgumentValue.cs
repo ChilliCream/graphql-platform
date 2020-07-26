@@ -82,6 +82,10 @@ namespace HotChocolate.Execution
                 return default;
             }
 
+            value = argumentValue.Serializer is null
+                ? value
+                : argumentValue.Serializer.Deserialize(value);
+
             if (value is T resolved)
             {
                 return resolved;
