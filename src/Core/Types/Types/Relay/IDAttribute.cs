@@ -136,7 +136,7 @@ namespace HotChocolate.Types.Relay
                 typeName);
 
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
-            definition.MiddlewareComponents[index] = next => async context => 
+            definition.MiddlewareComponents[index] = next => async context =>
             {
                 await next(context).ConfigureAwait(false);
                 context.Result = serializer.Serialize(context.Result);
@@ -165,7 +165,7 @@ namespace HotChocolate.Types.Relay
                 new IdSerializer();
 
             return new FieldValueSerializer(
-                typeName is null ? typeName : completionContext.Type.Name.Value,
+                typeName is { } ? typeName : completionContext.Type.Name.Value,
                 innerSerializer,
                 typeName is { },
                 DotNetTypeInfoFactory.IsListType(type));
