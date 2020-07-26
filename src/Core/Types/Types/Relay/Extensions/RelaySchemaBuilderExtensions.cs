@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate
