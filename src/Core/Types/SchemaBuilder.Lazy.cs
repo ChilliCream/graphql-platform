@@ -15,7 +15,8 @@ namespace HotChocolate
                 {
                     if (!_isSet)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(
+                            "Schema is not ready yet.");
                     }
 
                     return _schema;

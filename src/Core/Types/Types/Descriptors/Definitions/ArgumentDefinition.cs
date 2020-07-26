@@ -13,5 +13,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public object? NativeDefaultValue { get; set; }
 
         public ParameterInfo? Parameter { get; set; }
+
+        public IFieldValueSerializer? Serializer { get; set; }
+
     }
 }

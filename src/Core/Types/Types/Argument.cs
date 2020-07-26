@@ -1,4 +1,3 @@
-using System;
 using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -16,10 +15,13 @@ namespace HotChocolate.Types
             : base(definition)
         {
             SyntaxNode = definition.SyntaxNode;
+            Serializer = definition.Serializer;
             DefaultValue = definition.DefaultValue;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
+
+        public IFieldValueSerializer Serializer { get; private set; }
 
         public IValueNode DefaultValue { get; private set; }
 
@@ -40,8 +42,8 @@ namespace HotChocolate.Types
             else
             {
                 base.OnCompleteField(context, definition);
-                DefaultValue = FieldInitHelper.CreateDefaultValue(
-                    context, definition, Type);
+                Serializer = definition.Serializer;
+                DefaultValue = FieldInitHelper.CreateDefaultValue(context, definition, Type);
             }
         }
     }

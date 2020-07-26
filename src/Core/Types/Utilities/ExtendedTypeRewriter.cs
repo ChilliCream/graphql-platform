@@ -68,6 +68,54 @@ namespace HotChocolate.Utilities
             return rewritten!;
         }
 
+        public static Type RewriteToSchemaType(IExtendedType type, Type namedType)
+        {
+            var components = new Stack<IExtendedType>();
+            IExtendedType? current = type;
+
+            do
+            {
+                if (!IsNonEssentialComponent(current))
+                {
+                    bool makeNullable = current.IsNullable;
+
+                    if (current.IsNullable == makeNullable)
+                    {
+                        components.Push(current);
+                    }
+                    else
+                    {
+                        components.Push(new ExtendedType(
+                            current.Type, makeNullable,
+                            current.Kind, current.TypeArguments));
+                    }
+                }
+                current = GetInnerType(current);
+            } while (current != null && components.Count < 7);
+
+            current = null;
+            Type? rewritten = null;
+
+            while (components.Count > 0)
+            {
+                if (rewritten is null)
+                {
+                    current = components.Pop();
+                    rewritten = RewriteSchemaType(namedType, current.IsNullable);
+                }
+                else
+                {
+                    current = components.Pop();
+                    rewritten = current.IsArray && !typeof(IType).IsAssignableFrom(rewritten)
+                        ? rewritten.MakeArrayType()
+                        : MakeListSchemaType(rewritten);
+                    rewritten = RewriteSchemaType(rewritten, current.IsNullable);
+                }
+            }
+
+            return rewritten!;
+        }
+
         private static Type Rewrite(Type type, bool isNullable)
         {
             if (type.IsValueType)
@@ -94,15 +142,37 @@ namespace HotChocolate.Utilities
             }
         }
 
+        private static Type RewriteSchemaType(Type type, bool isNullable)
+        {
+            if (isNullable)
+            {
+                return type;
+            }
+            else
+            {
+                return MakeNonNullSchemaType(type);
+            }
+        }
+
         private static Type MakeListType(Type elementType)
         {
             return typeof(List<>).MakeGenericType(elementType);
+        }
+
+        private static Type MakeListSchemaType(Type elementType)
+        {
+            return typeof(ListType<>).MakeGenericType(elementType);
         }
 
         private static Type MakeNonNullType(Type nullableType)
         {
             Type wrapper = typeof(NativeType<>).MakeGenericType(nullableType);
             return typeof(NonNullType<>).MakeGenericType(wrapper);
+        }
+
+        private static Type MakeNonNullSchemaType(Type nullableType)
+        {
+            return typeof(NonNullType<>).MakeGenericType(nullableType);
         }
 
 

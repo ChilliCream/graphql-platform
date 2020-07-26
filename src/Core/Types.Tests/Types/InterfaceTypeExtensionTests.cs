@@ -29,7 +29,7 @@ namespace HotChocolate.Types
 
         [Obsolete]
         [Fact]
-        public void InterfaceTypeExtension_DepricateField()
+        public void InterfaceTypeExtension_DeprecateField()
         {
             // arrange
             FieldResolverDelegate resolver =

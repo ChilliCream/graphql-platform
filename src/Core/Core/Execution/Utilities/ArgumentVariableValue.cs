@@ -7,11 +7,13 @@ namespace HotChocolate.Execution
         public ArgumentVariableValue(
             IInputType type,
             NameString variableName,
-            object defaultValue)
+            object defaultValue,
+            IFieldValueSerializer serializer)
         {
             Type = type;
             VariableName = variableName;
             DefaultValue = defaultValue;
+            Serializer = serializer;
         }
 
         public IInputType Type { get; }
@@ -19,5 +21,7 @@ namespace HotChocolate.Execution
         public NameString VariableName { get; }
 
         public object DefaultValue { get; }
+
+        public IFieldValueSerializer Serializer { get; }
     }
 }

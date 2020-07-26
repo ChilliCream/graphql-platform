@@ -40,8 +40,6 @@ namespace HotChocolate.Types
 
         public FieldCollection<InputField> Fields { get; private set; }
 
-        #region IInputType
-
         public bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)
@@ -185,10 +183,6 @@ namespace HotChocolate.Types
             }
         }
 
-        #endregion
-
-        #region Initialization
-
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
@@ -263,7 +257,5 @@ namespace HotChocolate.Types
                 fields.Add(new InputField(fieldDefinition));
             }
         }
-
-        #endregion
     }
 }

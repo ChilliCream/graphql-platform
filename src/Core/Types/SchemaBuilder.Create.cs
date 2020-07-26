@@ -16,19 +16,19 @@ namespace HotChocolate
     {
         public Schema Create()
         {
+            var lazy = new LazySchema();
+
             IServiceProvider services = _services
                 ?? new EmptyServiceProvider();
 
             DescriptorContext descriptorContext =
-                DescriptorContext.Create(_options, services);
+                DescriptorContext.Create(_options, services, () => lazy.Schema);
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
 
             IReadOnlyCollection<ITypeReference> types =
                 GetTypeReferences(services, bindingLookup);
-
-            var lazy = new LazySchema();
 
             TypeInitializer initializer =
                 CreateTypeInitializer(
@@ -54,6 +54,7 @@ namespace HotChocolate
 
             schema.CompleteSchema(definition);
             lazy.Schema = schema;
+            descriptorContext.TriggerSchemaResolved();
             return schema;
         }
 

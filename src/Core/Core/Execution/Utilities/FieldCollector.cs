@@ -288,7 +288,8 @@ namespace HotChocolate.Execution
                         new ArgumentVariableValue(
                             argument.Type,
                             variable.Name.Value,
-                            defaultValue);
+                            defaultValue,
+                            argument.Serializer);
                 }
                 else
                 {
@@ -340,7 +341,8 @@ namespace HotChocolate.Execution
                     new ArgumentValue(
                         argument.Type,
                         literal.GetValueKind(),
-                        ParseLiteral(argument.Type, literal));
+                        ParseLiteral(argument.Type, literal),
+                        argument.Serializer);
             }
             else
             {
@@ -348,7 +350,8 @@ namespace HotChocolate.Execution
                     new ArgumentValue(
                         argument.Type,
                         literal.GetValueKind(),
-                        literal);
+                        literal,
+                        argument.Serializer);
             }
         }
 

@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Relay
                 .Type<ConnectionWithCountType<TSchemaType>>()
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCompletion((context, defintion) =>
+                .OnBeforeCompletion((context, definition) =>
                 {
                     if (entityType is null)
                     {
@@ -44,15 +44,15 @@ namespace HotChocolate.Types.Relay
                         entityType = ((IHasClrType)type.NamedType()).ClrType;
                     }
 
-                    MemberInfo member = defintion.ResolverMember ?? defintion.Member;
-                    Type resultType = defintion.Resolver is { } && defintion.ResultType is { }
-                        ? defintion.ResultType
+                    MemberInfo member = definition.ResolverMember ?? definition.Member;
+                    Type resultType = definition.Resolver is { } && definition.ResultType is { }
+                        ? definition.ResultType
                         : member.GetReturnType(true) ?? typeof(object);
                     resultType = UnwrapType(resultType);
 
                     FieldMiddleware middleware = CreateMiddleware(resultType, entityType);
-                    int index = defintion.MiddlewareComponents.IndexOf(placeholder);
-                    defintion.MiddlewareComponents[index] = middleware;
+                    int index = definition.MiddlewareComponents.IndexOf(placeholder);
+                    definition.MiddlewareComponents[index] = middleware;
                 })
                 .DependsOn<TSchemaType>();
 

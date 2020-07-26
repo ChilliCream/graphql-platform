@@ -87,7 +87,7 @@ namespace HotChocolate.Types
                 {
                     MethodInfo? subscribeResolver = member.DeclaringType?.GetMethod(
                         With, BindingFlags.Public | BindingFlags.Instance);
-                    
+
                     if (subscribeResolver is null)
                     {
                         throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
