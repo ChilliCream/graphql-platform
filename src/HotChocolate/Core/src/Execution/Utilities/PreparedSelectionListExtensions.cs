@@ -12,13 +12,13 @@ namespace HotChocolate.Execution.Utilities
             IImmutableDictionary<string, object?> scopedContext,
             object? parent)
         {
-            int responseIndex = 0;
+            var responseIndex = 0;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
-            for (int i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
                 IPreparedSelection selection = selections[i];
-                if (selection.IsVisible(operationContext.Variables))
+                if (selection.IsIncluded(operationContext.Variables))
                 {
                     operationContext.Execution.TaskBacklog.Register(
                         new ResolverTaskDefinition(

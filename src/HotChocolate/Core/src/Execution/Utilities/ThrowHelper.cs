@@ -250,5 +250,19 @@ namespace HotChocolate.Execution.Utilities
                 .AddLocation(node)
                 .Build());
 
+        public static GraphQLException FieldVisibility_ValueNotSupported(IValueNode value) =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("The skip/include if-argument value has to be a 'Boolean'.")
+                    .AddLocation(value)
+                    .Build());
+
+        public static GraphQLException QueryCompiler_CompositeTypeSelectionSet(
+            FieldNode selection) =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("A composite type always needs to specify a selection set.")
+                    .AddLocation(selection)
+                    .Build());
     }
 }

@@ -14,7 +14,9 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public override void Initialize(IConventionContext context)
+        public string? Scope { get; set; }
+
+        internal void Initialize(IConventionContext context)
         {
             Scope = context.Scope;
             _definition = CreateDefinition(context);

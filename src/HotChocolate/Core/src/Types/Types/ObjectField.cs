@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,11 +10,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a field of an <see cref="ObjectType"/>.
+    /// </summary>
     public class ObjectField
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private readonly static FieldDelegate _empty = c =>
+        private static readonly FieldDelegate _empty = c =>
             throw new InvalidOperationException();
 
         private readonly List<IDirective> _executableDirectives =
@@ -31,7 +33,12 @@ namespace HotChocolate.Types
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
+        /// <summary>
+        /// Gets the type that declares this field.
+        /// </summary>
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
+
+        IObjectType IObjectField.DeclaringType => DeclaringType;
 
         /// <summary>
         /// Gets the field resolver middleware.
@@ -59,9 +66,6 @@ namespace HotChocolate.Types
         /// </summary>
         public MemberInfo? Member { get; }
 
-        [Obsolete("Use Member.")]
-        public MemberInfo? ClrMember => Member;
-
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             ObjectFieldDefinition definition)
@@ -79,12 +83,12 @@ namespace HotChocolate.Types
 
             if (context.Type is ObjectType ot)
             {
-                AddExectableDirectives(processed, ot.Directives);
-                AddExectableDirectives(processed, Directives);
+                AddExecutableDirectives(processed, ot.Directives);
+                AddExecutableDirectives(processed, Directives);
             }
         }
 
-        private void AddExectableDirectives(
+        private void AddExecutableDirectives(
             ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
@@ -104,8 +108,8 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
-            bool isIntrospectionField = IsIntrospectionField
-                || DeclaringType.IsIntrospectionType();
+            var isIntrospectionField = IsIntrospectionField
+                                       || DeclaringType.IsIntrospectionType();
 
             Resolver = definition.Resolver!;
 
@@ -120,10 +124,9 @@ namespace HotChocolate.Types
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
 
-            bool skipMiddleware =
-                options.FieldMiddleware == FieldMiddlewareApplication.AllFields
-                    ? false
-                    : isIntrospectionField;
+            var skipMiddleware =
+                options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
+                isIntrospectionField;
 
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
@@ -135,7 +138,7 @@ namespace HotChocolate.Types
             {
                 if (_executableDirectives.Count > 0)
                 {
-                    Middleware = ctx => default(ValueTask);
+                    Middleware = ctx => default;
                 }
                 else
                 {

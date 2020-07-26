@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Utilities.FieldCollector;
+using static HotChocolate.Execution.Utilities.OperationCompiler;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -13,15 +14,23 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
+        private readonly IReadOnlyList<ISelectionSetOptimizer>? _optimizers;
 
         public OperationResolverMiddleware(
             RequestDelegate next,
-            IDiagnosticEvents diagnosticEvents)
+            IDiagnosticEvents diagnosticEvents,
+            IEnumerable<ISelectionSetOptimizer> optimizers)
         {
+            if (optimizers is null)
+            {
+                throw new ArgumentNullException(nameof(optimizers));
+            }
+
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
+            _optimizers = optimizers.ToArray();
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)
@@ -46,7 +55,7 @@ namespace HotChocolate.Execution.Pipeline
                 var fragments = new FragmentCollection(context.Schema, context.Document);
 
                 IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
-                    PrepareSelectionSets(context.Schema, fragments, operation);
+                    Compile(context.Schema, fragments, operation, _optimizers);
 
                 context.Operation = new PreparedOperation(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),

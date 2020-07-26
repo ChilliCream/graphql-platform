@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
             for (var i = 0; i < rootSelections.Count; i++)
             {
                 IPreparedSelection selection = rootSelections[i];
-                if (selection.IsVisible(operationContext.Variables))
+                if (selection.IsIncluded(operationContext.Variables))
                 {
                     operationContext.Execution.TaskBacklog.Register(
                         new ResolverTaskDefinition(

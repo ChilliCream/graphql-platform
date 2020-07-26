@@ -9,9 +9,9 @@ namespace HotChocolate.Execution
     {
         private IPreparedSelection _selection = default!;
 
-        public ObjectType ObjectType => _selection.DeclaringType;
+        public IObjectType ObjectType => _selection.DeclaringType;
 
-        public ObjectField Field => _selection.Field;
+        public IObjectField Field => _selection.Field;
 
         public FieldNode FieldSelection => _selection.Selection;
 

@@ -36,13 +36,13 @@ namespace HotChocolate.Execution
         public ISchema Schema =>
             _middlewareContext.Schema;
 
-        public ObjectType RootType =>
-        _middlewareContext.RootType;
+        public IObjectType RootType =>
+            _middlewareContext.RootType;
 
-        public ObjectType ObjectType =>
+        public IObjectType ObjectType =>
             _middlewareContext.ObjectType;
 
-        public ObjectField Field =>
+        public IObjectField Field =>
             _middlewareContext.Field;
 
         public DocumentNode Document => _middlewareContext.Document;
@@ -112,18 +112,6 @@ namespace HotChocolate.Execution
         public ValueTask<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext) =>
-            _middlewareContext.CollectFields(typeContext);
-
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _middlewareContext.CollectFields(typeContext, selectionSet);
-
-        public IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext, SelectionSetNode selectionSet, Path path) =>
-            _middlewareContext.CollectFields(typeContext, selectionSet, path);
-
         public ValueKind ArgumentKind(NameString name) =>
             _middlewareContext.ArgumentKind(name);
 
@@ -135,5 +123,11 @@ namespace HotChocolate.Execution
 
         public Optional<T> ArgumentOptional<T>(NameString name) =>
             _middlewareContext.ArgumentOptional<T>(name);
+
+        public IReadOnlyList<IFieldSelection> GetSelections(
+            ObjectType typeContext, 
+            SelectionSetNode? selectionSet = null, 
+            bool allowInternals = false) =>
+            _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
     }
 }

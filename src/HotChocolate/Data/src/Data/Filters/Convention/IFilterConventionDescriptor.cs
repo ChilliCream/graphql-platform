@@ -33,5 +33,6 @@ namespace HotChocolate.Data.Filters
         /// <see cref="string.Empty"/>.
         /// </exception>
         IFilterConventionDescriptor ArgumentName(NameString argumentName);
+
     }
 }
