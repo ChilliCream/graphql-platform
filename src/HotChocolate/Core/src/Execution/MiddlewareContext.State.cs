@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class MiddlewareContext : IMiddlewareContext
+    internal partial class MiddlewareContext
     {
         private object? _result;
         private object? _parent;

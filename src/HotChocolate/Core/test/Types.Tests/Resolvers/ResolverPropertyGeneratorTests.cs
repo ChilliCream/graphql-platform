@@ -595,7 +595,7 @@ namespace HotChocolate.Resolvers.Expressions
                 .Returns(new Resolvers());
             context.SetupGet(t => t.Field)
                 .Returns(queryType.Fields.First());
-            bool result = (bool)await resolver.Resolver(context.Object);
+            var result = (bool)(await resolver.Resolver(context.Object))!;
             Assert.True(result);
         }
 

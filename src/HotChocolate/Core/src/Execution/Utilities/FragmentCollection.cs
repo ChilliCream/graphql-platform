@@ -14,18 +14,8 @@ namespace HotChocolate.Execution.Utilities
 
         public FragmentCollection(ISchema schema, DocumentNode document)
         {
-            if (schema == null)
-            {
-                throw new ArgumentNullException(nameof(schema));
-            }
-
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            _schema = schema;
-            _document = document;
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _document = document ?? throw new ArgumentNullException(nameof(document));
         }
 
         public Fragment? GetFragment(string fragmentName)
@@ -46,7 +36,7 @@ namespace HotChocolate.Execution.Utilities
 
         private Fragment? CreateFragment(string fragmentName)
         {
-            for (int i = 0; i < _document.Definitions.Count; i++)
+            for (var i = 0; i < _document.Definitions.Count; i++)
             {
                 if (_document.Definitions[i] is FragmentDefinitionNode fragment &&
                     string.Equals(fragment.Name.Value, fragmentName, StringComparison.Ordinal))

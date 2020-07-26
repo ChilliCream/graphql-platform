@@ -129,4 +129,10 @@
   <data name="ObjectBuffer_IsUsedUp" xml:space="preserve">
     <value>Buffer is used up.</value>
   </data>
+  <data name="PreparedSelection_ReadOnly" xml:space="preserve">
+    <value>The selection is read-only.</value>
+  </data>
+  <data name="MiddlewareContext_ReportErrorCannotBeNull" xml:space="preserve">
+    <value>errorMessage mustn't be null or empty.</value>
+  </data>
 </root>

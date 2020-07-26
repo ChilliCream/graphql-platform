@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Filters
         IFilterOperationConventionDescriptor Operation(int operation);
 
         IFilterConventionDescriptor Binding<TRuntime, TInput>();
+<<<<<<< HEAD
 
         IFilterConventionDescriptor Extension<TFilterType>(
             Action<IFilterInputTypeDescriptor> extension)
@@ -19,5 +20,7 @@ namespace HotChocolate.Data.Filters
         IFilterConventionDescriptor Extension<TFilterType, TType>(
             Action<IFilterInputTypeDescriptor<TType>> extension)
             where TFilterType : FilterInputType<TType>;
+=======
+>>>>>>> develop
     }
 }
