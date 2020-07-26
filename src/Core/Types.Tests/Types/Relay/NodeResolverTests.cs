@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
 using Xunit;
 
