@@ -34,8 +34,7 @@ namespace HotChocolate.Types.Relay
             if (descriptor is IArgumentDescriptor ad
                 && element is ParameterInfo)
             {
-                var internalContext = (DescriptorContext)context;
-                
+                ad.ID(TypeName);
             }
 
             if (descriptor is IObjectFieldDescriptor ofd

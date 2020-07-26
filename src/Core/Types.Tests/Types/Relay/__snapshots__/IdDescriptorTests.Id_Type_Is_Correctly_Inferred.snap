@@ -12,7 +12,7 @@ type FooPayload implements IFooPayload {
 
 type Query {
   foo(input: FooInput): IFooPayload
-  guidId(id: ID! input: FooInput): IFooPayload
+  guidId(id: ID!): String
   intId(id: ID!): String
   stringId(id: ID): String
 }
