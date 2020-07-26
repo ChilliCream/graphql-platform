@@ -21,6 +21,7 @@ namespace HotChocolate.Types.Relay
             IExecutionResult result =
                 await SchemaBuilder.New()
                     .AddQueryType<Query>()
+                    .AddType<FooPayload>()
                     .Create()
                     .MakeExecutable()
                     .ExecuteAsync(
@@ -88,7 +89,6 @@ namespace HotChocolate.Types.Relay
             public string IntId([ID] int id) => id.ToString();
             public string StringId([ID] string id) => id.ToString();
             public string GuidId([ID] Guid id) => id.ToString();
-
             public IFooPayload Foo(FooInput input) => new FooPayload { SomeId = input.SomeId };
         }
 

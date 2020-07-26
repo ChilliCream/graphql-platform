@@ -222,6 +222,26 @@ namespace HotChocolate.Utilities
                     Assert.IsType<ListType>(schemaType).ElementType).Type);
         }
 
+        [Fact]
+        public void Infer_Nullability_From_Wrapped_ValueTypes()
+        {
+            // arrange
+            Type type = typeof(NonNullType<NativeType<List<NativeType<int>>>>);
+            var factory = new DotNetTypeInfoFactory();
+
+            // act
+            bool success = factory.TryCreate(type, out TypeInfo typeInfo);
+
+            // assert
+            Assert.True(success);
+            IType schemaType = typeInfo.TypeFactory.Invoke(new IntType());
+            Assert.IsType<IntType>(
+                Assert.IsType<NonNullType>(
+                    Assert.IsType<ListType>(
+                        Assert.IsType<NonNullType>(schemaType)
+                            .InnerType()).InnerType()).InnerType());
+        }
+
         private class CustomStringList
             : CustomStringListBase
         {
