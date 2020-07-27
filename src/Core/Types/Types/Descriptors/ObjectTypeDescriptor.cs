@@ -45,12 +45,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.FieldBindingType is { })
             {
                 Context.Inspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.FieldBindingType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();

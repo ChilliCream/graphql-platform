@@ -594,6 +594,31 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Subscribe_Attribute_Schema_Is_Generated_Correctly_2()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            // act
+            var serviceCollection = new ServiceCollection();
+            serviceCollection
+                .AddInMemorySubscriptions()
+                .AddGraphQLSchema(
+                    SchemaBuilder.New()
+                        .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                        .AddSubscriptionType(d => d.Name("Subscription"))
+                        .AddType<MySubscriptionExtension>())
+                .AddQueryExecutor();
+
+            IQueryExecutor executor = serviceCollection
+                .BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Subscribe_Attribute_With_Two_Topic_Attributes_Error()
         {
             // arrange
@@ -973,6 +998,19 @@ namespace HotChocolate.Types
 
             [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
             public string OnExplicitSync(
+                [EventMessage] string message) =>
+                message;
+        }
+
+        [ExtendObjectType(Name = "Subscription")]
+        public class MySubscriptionExtension
+        {
+            public async ValueTask<IAsyncEnumerable<string>> SubscribeToOnExplicit(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                await eventReceiver.SubscribeAsync<string, string>("explicit");
+
+            [Subscribe(With = nameof(SubscribeToOnExplicit))]
+            public string OnExplicit(
                 [EventMessage] string message) =>
                 message;
         }

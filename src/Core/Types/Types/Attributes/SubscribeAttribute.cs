@@ -90,7 +90,7 @@ namespace HotChocolate.Types
 
                     if (subscribeResolver is null)
                     {
-                        throw SubscribeAttribute_SubscribeResolverNotFound(member, With);
+                        throw SubscribeAttribute_SubscribeResolverNotFound(member, With!);
                     }
 
                     d.SubscribeResolver = ResolverCompiler.Subscribe.Compile(

@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Descriptors
                     p =>
                     {
                         ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
-                            Context, p, Definition.FieldBindingType);
+                            Context, p, Definition.ClrType, Definition.FieldBindingType);
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },
@@ -55,13 +55,13 @@ namespace HotChocolate.Types.Descriptors
                 {
                     subscribeResolver = new HashSet<string>();
 
-                    foreach(MemberInfo member in all) 
+                    foreach (MemberInfo member in all)
                     {
-                        if(member.IsDefined(typeof(SubscribeAttribute)))
+                        if (member.IsDefined(typeof(SubscribeAttribute)))
                         {
-                            SubscribeAttribute attribute = 
+                            SubscribeAttribute attribute =
                                 member.GetCustomAttribute<SubscribeAttribute>();
-                            if(attribute.With is { }) 
+                            if (attribute.With is { })
                             {
                                 subscribeResolver.Add(attribute.With);
                             }
