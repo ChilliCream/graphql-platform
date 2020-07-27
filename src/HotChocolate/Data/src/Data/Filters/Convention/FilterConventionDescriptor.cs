@@ -139,6 +139,13 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        public IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
+            where TProvider : FilterProviderBase
+        {
+            Definition.Provider = provider;
+            return this;
+        }
+
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
             Definition.ArgumentName = argumentName;

@@ -50,18 +50,18 @@ namespace HotChocolate.Data.Filters
 
                 foreach (InputFieldDefinition field in def.Fields)
                 {
-                    if (field.Type.Scope is null)
+                    if (field is FilterFieldDefinition filterFieldDefinition)
                     {
                         field.Type = field.Type.With(scope: discoveryContext.Scope);
-                    }
-                    if (field is FilterFieldDefinition filterFieldDefinition &&
-                        convention.TryGetHandler(
-                            discoveryContext,
-                            def,
-                            filterFieldDefinition,
-                            out FilterFieldHandler? handler))
-                    {
-                        filterFieldDefinition.Handler = handler;
+
+                        if (convention.TryGetHandler(
+                                discoveryContext,
+                                def,
+                                filterFieldDefinition,
+                                out FilterFieldHandler? handler))
+                        {
+                            filterFieldDefinition.Handler = handler;
+                        }
                     }
                 }
             }

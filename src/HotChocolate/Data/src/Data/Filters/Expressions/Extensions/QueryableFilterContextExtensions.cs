@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -33,5 +35,19 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context,
             [NotNullWhen(true)] out LambdaExpression? expression) =>
                 context.GetClosure().TryCreateLambda(out expression);
+
+        public static bool TryGetParentField(
+           this QueryableFilterContext context,
+           [NotNullWhen(true)] out IFilterField? field)
+        {
+            if (context.Operations.TryPeekAt(1, out IInputField? parentField) &&
+                parentField is IFilterField parentFilterField)
+            {
+                field = parentFilterField;
+                return true;
+            }
+            field = default;
+            return false;
+        }
     }
 }

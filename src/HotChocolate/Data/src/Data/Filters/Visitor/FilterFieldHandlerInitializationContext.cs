@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
 
         public IFilterProvider Provider { get; }
 
-        public new static IFilterFieldHandlerInitializationContext From(
+        public static IFilterFieldHandlerInitializationContext From(
             IFilterProviderInitializationContext context,
             IFilterProvider provider) =>
             new FilterFieldHandlerInitializationContext(

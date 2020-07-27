@@ -55,10 +55,10 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>(TVisitor handler)
+        public IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>(TVisitor visitor)
             where TVisitor : FilterVisitor<T, TContext>
         {
-            Definition.Visitor = handler;
+            Definition.Visitor = visitor;
             return this;
         }
 

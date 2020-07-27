@@ -8,6 +8,7 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterInputType
         : InputObjectType
+        , IFilterInputType
     {
         private readonly Action<IFilterInputTypeDescriptor> _configure;
 

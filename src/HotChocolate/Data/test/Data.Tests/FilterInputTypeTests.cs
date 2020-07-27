@@ -9,7 +9,7 @@ using Xunit;
 namespace HotChocolate.Data.Tests
 {
     public class FilterInputTypeTest
-        : TypeTestBase
+            : FilterTestBase
     {
         [Fact]
         public void FilterInputType_DynamicName()

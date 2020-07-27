@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -9,8 +10,9 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType type,
+            IFilterInputType declaringType,
             IFilterOperationField field,
+            IType fieldType,
             IValueNode value,
             object parsedValue)
         {

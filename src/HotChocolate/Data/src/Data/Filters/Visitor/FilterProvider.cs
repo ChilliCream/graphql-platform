@@ -44,8 +44,19 @@ namespace HotChocolate.Data.Filters
                 Handlers = def.Handlers.ToArray();
                 Visitor = def.Visitor ??
                     throw ThrowHelper.FilterConvention_NoVisitor(def.Scope);
-                Visitor.Combinator = def.Combinator ??
+
+                if (def.Combinator is null)
+                {
                     throw ThrowHelper.FilterConvention_NoCombinatorFound(def.Scope);
+                }
+                else if (def.Combinator is FilterOperationCombinator<T, TContext> combiantorOfT)
+                {
+                    Visitor.Combinator = combiantorOfT;
+                }
+                else
+                {
+                    throw ThrowHelper.FilterConvention_NoCombinatorFound(def.Scope);
+                }
 
                 IFilterFieldHandlerInitializationContext? handlerContext =
                     FilterFieldHandlerInitializationContext.From(context, this);

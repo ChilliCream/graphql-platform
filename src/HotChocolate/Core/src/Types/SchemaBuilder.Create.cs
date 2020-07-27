@@ -373,7 +373,7 @@ namespace HotChocolate
             foreach (KeyValuePair<string, Dictionary<Type, CreateConvention>> scope in _conventions)
             {
                 var conventionScope = new Dictionary<Type, IConvention>();
-                var conventionContext = new ConventionContext(scope.Key, services);
+                var conventionContext = new ConventionContext(scope.Key, serviceFactory);
 
                 foreach (KeyValuePair<Type, CreateConvention> conventionConfig in scope.Value)
                 {

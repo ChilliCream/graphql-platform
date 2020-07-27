@@ -53,5 +53,17 @@ namespace HotChocolate.Data.Filters
                         "For the provider of scope {0} is no combinator defined",
                         scope)
                     .Build());
+
+        public static SchemaException FilterConvention_CombinatorOfWrongType<T, TContext>(
+            string scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "The combinator for the filter provider of scope {0} has the wrong type. " +
+                        "The ooperation should be of type {1} and the context of type {2}",
+                        scope,
+                        typeof(T).Name,
+                        typeof(TContext).Name)
+                    .Build());
     }
 }

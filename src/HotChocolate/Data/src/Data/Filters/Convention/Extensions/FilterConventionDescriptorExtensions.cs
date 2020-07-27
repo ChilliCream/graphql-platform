@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters
     {
         public static IFilterConventionDescriptor UseDefault(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.UseDefaultOperations().UseDefaultFields();
+            descriptor.UseDefaultOperations().UseDefaultFields().UseQueryableProvider();
 
         public static IFilterConventionDescriptor UseDefaultOperations(
             this IFilterConventionDescriptor descriptor)

@@ -185,15 +185,7 @@ namespace HotChocolate.Data.Filters
             return false;
         }
 
-        internal static readonly IFilterConvention Default = TemporaryInitializer();
-
-        //TODO: Replace with named conventions!
-        internal static IFilterConvention TemporaryInitializer()
-        {
-            var convention = new FilterConvention(x => x.UseDefault());
-            convention.Initialize(new ConventionContext(null, null));
-            return convention;
-        }
+        internal static readonly IFilterConvention Default = null!;
 
         public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
             ITypeReference reference,

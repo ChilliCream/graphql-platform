@@ -218,8 +218,8 @@ namespace HotChocolate.Validation.Rules
                         FieldInfo fieldB = fields[j];
                         if (!object.ReferenceEquals(fieldA.Field, fieldB.Field) &&
                             string.Equals(
-                                fieldA.ResponseName, 
-                                fieldB.ResponseName, 
+                                fieldA.ResponseName,
+                                fieldB.ResponseName,
                                 StringComparison.Ordinal))
                         {
                             if (SameResponseShape(fieldA.Type, fieldB.Type))

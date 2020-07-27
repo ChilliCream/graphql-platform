@@ -19,6 +19,7 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<ComparableOperationInput<int>>()))
+                .UseFiltering()
                 .Create();
 
             // assert
@@ -38,6 +39,7 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<FilterInputType<Foo>>()))
+                .UseFiltering()
                 .Create();
 
             // assert
@@ -57,6 +59,7 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<FooFilterType>()))
+                .UseFiltering()
                 .Create();
 
             // assert

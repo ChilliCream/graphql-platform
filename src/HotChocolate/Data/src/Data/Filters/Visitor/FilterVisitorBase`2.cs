@@ -15,26 +15,23 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected abstract ISyntaxVisitorAction OnAfterFieldEnter(
-            IFilterInputType type,
+        protected abstract ISyntaxVisitorAction OnFieldEnter(
+            TContext context,
+            IFilterInputType declaringType,
             IFilterField field,
-            ObjectValueNode node,
-            TContext context);
+            IType fieldType,
+            ObjectFieldNode node);
 
-        protected abstract ISyntaxVisitorAction OnBeforeFieldLeave(
-            IFilterInputType type,
+        protected abstract ISyntaxVisitorAction OnFieldLeave(
+            TContext context,
+            IFilterInputType declaringType,
             IFilterField field,
-            ObjectValueNode node,
-            TContext context);
-
-        protected abstract ISyntaxVisitorAction OnOperationEnter(
-            IFilterInputType type,
-            IFilterOperationField field,
-            ObjectFieldNode node,
-            TContext context);
+            IType fieldType,
+            ObjectFieldNode node);
 
         protected abstract bool TryCombineOperations(
-            IEnumerable<T> operations,
+            TContext context,
+            Queue<T> operations,
             FilterCombinator combinator,
             [NotNullWhen(true)] out T combined);
 
@@ -42,20 +39,12 @@ namespace HotChocolate.Data.Filters
             ObjectValueNode node,
             TContext context)
         {
-            IInputField? currentOperation = context.Operations.Peek();
-            IType? currentType = context.Types.Peek();
-            if (currentOperation is FilterField field &&
-                currentType is IFilterInputType type)
-            {
-                return OnAfterFieldEnter(type, field, node, context);
-            }
-
             Queue<T> operations = context.PopLevel();
 
-            if (TryCombineOperations(
-                operations,
-                FilterCombinator.AND,
-                out T combined))
+            if (TryCombineOperations(context,
+                    operations,
+                    FilterCombinator.AND,
+                    out T combined))
             {
                 context.GetLevel().Enqueue(combined);
             }
@@ -68,14 +57,6 @@ namespace HotChocolate.Data.Filters
         {
             context.PushLevel(new Queue<T>());
 
-            IInputField? currentOperation = context.Operations.Peek();
-            IType? currentType = context.Types.Peek();
-            if (currentOperation is FilterField field &&
-                currentType is IFilterInputType type)
-            {
-                return OnAfterFieldEnter(type, field, node, context);
-            }
-
             return Continue;
         }
 
@@ -83,14 +64,17 @@ namespace HotChocolate.Data.Filters
             ObjectFieldNode node,
             TContext context)
         {
+
             base.Enter(node, context);
 
+            context.Types.TryPeekAt(1, out IType? delaringType);
             IInputField? currentOperation = context.Operations.Peek();
-            IType? currentType = context.Types.Peek();
-            if (currentOperation is FilterOperationField field &&
-                currentType is IFilterInputType type)
+            IType? fieldType = context.Types.Peek();
+            if (currentOperation is FilterField field &&
+                delaringType is IFilterInputType declaringFilterType &&
+                fieldType is { })
             {
-                return OnOperationEnter(type, field, node, context);
+                return OnFieldEnter(context, declaringFilterType, field, fieldType, node);
             }
 
             return Continue;
@@ -100,7 +84,21 @@ namespace HotChocolate.Data.Filters
             ObjectFieldNode node,
             TContext context)
         {
-            return base.Leave(node, context);
+            ISyntaxVisitorAction? result = Continue;
+
+            context.Types.TryPeekAt(1, out IType? delaringType);
+            IInputField? currentOperation = context.Operations.Peek();
+            IType? fieldType = context.Types.Peek();
+            if (currentOperation is FilterField field &&
+                delaringType is IFilterInputType declaringFilterType &&
+                fieldType is { })
+            {
+                result = OnFieldLeave(context, declaringFilterType, field, fieldType, node);
+            }
+
+            base.Leave(node, context);
+
+            return result;
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -123,7 +121,8 @@ namespace HotChocolate.Data.Filters
             Queue<T> operations = context.PopLevel();
 
             if (TryCombineOperations(
-                operations,
+                    context,
+                    operations,
                 combinator,
                 out T combined))
             {

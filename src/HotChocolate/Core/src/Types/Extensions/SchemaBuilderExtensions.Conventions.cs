@@ -104,5 +104,109 @@ namespace HotChocolate
             where TConvetion : IConvention
             where TConcreteConvention : IConvention =>
             builder.AddConvention(typeof(TConvetion), typeof(TConcreteConvention));
+
+        public static ISchemaBuilder TryAddConvention(
+            this ISchemaBuilder builder,
+            Type convention,
+            CreateConvention conventionFactory)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            return builder.TryAddConvention(
+                ConventionBase.DefaultScope, convention, conventionFactory);
+        }
+
+        public static ISchemaBuilder TryAddConvention(
+            this ISchemaBuilder builder,
+            Type convention,
+            IConvention concreteConvention)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (concreteConvention is null)
+            {
+                throw new ArgumentNullException(nameof(concreteConvention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(convention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            return builder.TryAddConvention(convention, (s) => concreteConvention);
+        }
+
+        public static ISchemaBuilder TryAddConvention(
+            this ISchemaBuilder builder,
+            Type convention,
+            Type concreteConvention)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (concreteConvention is null)
+            {
+                throw new ArgumentNullException(nameof(concreteConvention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(convention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            return builder.TryAddConvention(
+                convention,
+                s => (IConvention)s.GetService(concreteConvention));
+        }
+
+        public static ISchemaBuilder TryAddConvention<T>(
+            this ISchemaBuilder builder, CreateConvention conventionFactory)
+            where T : IConvention =>
+            builder.TryAddConvention(typeof(T), conventionFactory);
+
+        public static ISchemaBuilder TryAddConvention<T>(
+            this ISchemaBuilder builder, IConvention convention)
+            where T : IConvention =>
+            builder.TryAddConvention(typeof(T), convention);
+
+        public static ISchemaBuilder TryAddConvention<TConvetion, TConcreteConvention>(
+            this ISchemaBuilder builder)
+            where TConvetion : IConvention
+            where TConcreteConvention : IConvention =>
+            builder.TryAddConvention(typeof(TConvetion), typeof(TConcreteConvention));
     }
 }

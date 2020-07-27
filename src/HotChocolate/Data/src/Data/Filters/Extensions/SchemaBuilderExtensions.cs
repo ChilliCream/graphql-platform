@@ -4,6 +4,8 @@ namespace HotChocolate.Data.Filters
     {
         public static ISchemaBuilder UseFiltering(
             this ISchemaBuilder builder) =>
-            builder.AddTypeInterceptor<FilterTypeInterceptor>();
+            builder.TryAddConvention<IFilterConvention>(
+                    (sp) => new FilterConvention(x => x.UseDefault()))
+                .AddTypeInterceptor<FilterTypeInterceptor>();
     }
 }

@@ -23,6 +23,9 @@ namespace HotChocolate.Data.Filters
         IFilterConventionDescriptor Provider<TProvider>()
             where TProvider : FilterProviderBase;
 
+        IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
+            where TProvider : FilterProviderBase;
+
         /// <summary>
         /// Defines the argument name of the filter used by
         /// <see cref="FilterObjectFieldDescriptorExtensions.UseFiltering"/>

@@ -11,20 +11,12 @@ input StringOperationInputFilter {
   contains: String
   endsWith: String
   eq: String
-  gt: String
-  gte: String
-  in: String
+  in: [String]
   like: String
-  lt: String
-  lte: String
   ncontains: String
   nendsWith: String
   neq: String
-  ngt: String
-  ngte: String
-  nin: String
-  nlt: String
-  nlte: String
+  nin: [String]
   nstartsWith: String
   or: [StringOperationInputFilter!]
   startsWith: String

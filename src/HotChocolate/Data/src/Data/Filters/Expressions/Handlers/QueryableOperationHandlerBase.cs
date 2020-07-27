@@ -2,20 +2,23 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public abstract class QueryableOperationHandlerBase
-        : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterOperationHandler<Expression, QueryableFilterContext>
     {
         public override bool TryHandleOperation(
             QueryableFilterContext context,
-            IFilterInputType type,
+            IFilterInputType declaringType,
             IFilterOperationField field,
-            IValueNode value,
+            IType fieldType,
+            ObjectFieldNode node,
             [NotNullWhen(true)] out Expression result)
         {
-            object parsedValue = field.Type.ParseLiteral(value);
+            IValueNode? value = node.Value;
+            var parsedValue = field.Type.ParseLiteral(value);
 
             if (!field.IsNullable && parsedValue == null)
             {
@@ -28,8 +31,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (field.Type.IsInstanceOfType(value))
             {
-                Expression property = context.GetInstance();
-                result = FilterExpressionBuilder.Equals(property, parsedValue);
+                result = HandleOperation(
+                    context, declaringType, field, fieldType, value, parsedValue);
                 return true;
             }
             else
@@ -41,8 +44,9 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public abstract Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType type,
+            IFilterInputType declaringType,
             IFilterOperationField field,
+            IType fieldType,
             IValueNode value,
             object parsedValue);
     }

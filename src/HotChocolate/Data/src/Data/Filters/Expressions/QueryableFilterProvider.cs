@@ -10,30 +10,19 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    public class QueryableFilterContext : FilterVisitorContext<Expression>
-    {
-        public QueryableFilterContext(
-            IFilterInputType initialType,
-            bool inMemory)
-            : base(initialType,
-                  new QueryableScope(initialType.EntityType, "_s0", inMemory))
-        {
-            InMemory = inMemory;
-            ClrTypes = new Stack<Type>();
-            ClrTypes.Push(initialType.EntityType);
-        }
-
-        public bool InMemory { get; }
-
-        public Stack<Type> ClrTypes { get; }
-
-        public override FilterScope<Expression> CreateScope() =>
-             new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);
-    }
-
     public class QueryableFilterProvider
         : FilterProvider<Expression, QueryableFilterContext>
     {
+        public QueryableFilterProvider()
+        {
+        }
+
+        public QueryableFilterProvider(
+            Action<IFilterProviderDescriptor<Expression, QueryableFilterContext>> configure)
+            : base(configure)
+        {
+        }
+
         public override async Task ExecuteAsync<TEntityType>(
             FieldDelegate next,
             IMiddlewareContext context)
@@ -96,24 +85,5 @@ namespace HotChocolate.Data.Filters.Expressions
                 }
             }
         }
-    }
-
-    public class QueryableScope
-        : FilterScope<Expression>
-    {
-        public QueryableScope(
-            Type type,
-            string parameterName,
-            bool inMemory)
-        {
-            Parameter = Expression.Parameter(type, parameterName);
-            InMemory = inMemory;
-            Instance.Push(Parameter);
-        }
-
-        public ParameterExpression Parameter { get; }
-
-        public bool InMemory { get; }
-
     }
 }

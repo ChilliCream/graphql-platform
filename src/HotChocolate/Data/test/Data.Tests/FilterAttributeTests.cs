@@ -15,6 +15,7 @@ namespace HotChocolate.Data.Filters
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query1>()
+                .UseFiltering()
                 .Create();
 
             // assert
@@ -28,6 +29,7 @@ namespace HotChocolate.Data.Filters
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query2>()
+                .UseFiltering()
                 .Create();
 
             // assert

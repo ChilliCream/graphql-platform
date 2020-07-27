@@ -156,6 +156,30 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaBuilder TryAddConvention(
+            string scope,
+            Type convention,
+            CreateConvention factory)
+        {
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            string conventionScope = scope ?? ConventionBase.DefaultScope;
+            if (!_conventions.ContainsKey(conventionScope) ||
+                !_conventions[conventionScope].ContainsKey(convention))
+            {
+                AddConvention(scope, convention, factory);
+            }
+            return this;
+        }
+
         public ISchemaBuilder AddConvention(
             string scope,
             Type convention,
@@ -172,7 +196,7 @@ namespace HotChocolate
             }
 
             if (!_conventions.TryGetValue(
-                scope,
+                scope ?? ConventionBase.DefaultScope,
                 out Dictionary<Type, CreateConvention> conventionScopes))
             {
                 conventionScopes = new Dictionary<Type, CreateConvention>();

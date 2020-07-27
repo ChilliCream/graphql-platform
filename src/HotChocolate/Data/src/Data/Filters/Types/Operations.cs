@@ -2,7 +2,7 @@ namespace HotChocolate.Data.Filters
 {
     public static class Operations
     {
-        public const int Equals = 0;
+        public new const int Equals = 0;
         public const int NotEquals = 1;
 
         public const int Contains = 2;

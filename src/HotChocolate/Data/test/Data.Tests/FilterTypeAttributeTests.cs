@@ -13,6 +13,7 @@ namespace HotChocolate.Data.Filters
         {
             // act
             ISchema schema = SchemaBuilder.New()
+                .UseFiltering()
                 .AddType<FilterInputType<FooGeneric>>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
@@ -29,6 +30,7 @@ namespace HotChocolate.Data.Filters
         {
             // act
             ISchema schema = SchemaBuilder.New()
+                .UseFiltering()
                 .AddType<FilterInputType<FooFields>>()
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
