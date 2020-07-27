@@ -13,32 +13,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added new `ResolveWith` descriptor method. #1892
+- Added new `ResolveWith` descriptor method. [#1892](https://github.com/ChilliCream/hotchocolate/pull/1892)
 - Added support for local schema authentication and multi delegation.
 - Added nullable detection with Required attribute.
-- Added support for expression syntax on field selectors `descriptor.Field(t => t.Foo.Bar)`. #2157
+- Added support for expression syntax on field selectors `descriptor.Field(t => t.Foo.Bar)`. [#2157](https://github.com/ChilliCream/hotchocolate/pull/2157)
 - Added TimeSpan scalar.
 - Added support for field-scoped services (services that only live for the duration of the field execution).
-- Added new `ID` attribute to streamline global object identifiers. #2165
-- Added bew `ID` descriptor to streamline global object identifiers. #2166
+- Added new `ID` attribute to streamline global object identifiers. [#2165](https://github.com/ChilliCream/hotchocolate/pull/2165)
+- Added bew `ID` descriptor to streamline global object identifiers. [#2166](https://github.com/ChilliCream/hotchocolate/pull/2166)
 
 ### Changed
 
-- Impoved the connection API for easier integration. #1887
-- Unsealed AuthorizeAttribute. #1993
+- Impoved the connection API for easier integration. [#1887](https://github.com/ChilliCream/hotchocolate/pull/1887)
+- Unsealed AuthorizeAttribute. [#1993](https://github.com/ChilliCream/hotchocolate/pull/1993)
 - Expose character-set in content-type.
-- Use invariant culture when parsing numbers in AnyType #2134
+- Use invariant culture when parsing numbers in AnyType [#2134](https://github.com/ChilliCream/hotchocolate/pull/2134)
 - Changed behavior of `SubscribeAttribute` to align better with the behaviour of version 11.
 - Changed ID serializer to align better with the behaviour of version 11.
 
 ### Fixed
 
-- Fixed ambiguous Nullable Attribute. #1982
-- Fixed projection of __typename. #2009
-- Fix stitching serialization invalid json. #2024 #1972 #2091
-- Fixed the serialization formatter for decimals. #1940
+- Fixed ambiguous Nullable Attribute. [#1982](https://github.com/ChilliCream/hotchocolate/pull/1982)
+- Fixed projection of __typename. [#2009](https://github.com/ChilliCream/hotchocolate/pull/2009)
+- Fix stitching serialization invalid json. [#2024](https://github.com/ChilliCream/hotchocolate/pull/2024) [#1972](https://github.com/ChilliCream/hotchocolate/pull/1972) [#2091](https://github.com/ChilliCream/hotchocolate/pull/2091)
+- Fixed the serialization formatter for decimals. [#1940](https://github.com/ChilliCream/hotchocolate/pull/1940)
 - Fixed deprecation delegation for schema stitching.
-- Fixed optional handling when deserializing input values. #2133 #2153 #2158
+- Fixed optional handling when deserializing input values. [#2133](https://github.com/ChilliCream/hotchocolate/pull/2133) [#2153](https://github.com/ChilliCream/hotchocolate/pull/2153) [#2158](https://github.com/ChilliCream/hotchocolate/pull/2158)
 - Fixed compile error in templates.
 - Fixed schema type discovery issues.
 - Fixed field discovery for object type extensions.
