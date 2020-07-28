@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
             }
 
             if (TryConvertValue(
-                argumentValue.Type.ClrType,
+                value.GetType(),
                 value, out resolved))
             {
                 return resolved;

@@ -6,6 +6,8 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     public static class RelayIdFieldExtensions
@@ -94,7 +96,7 @@ namespace HotChocolate.Types.Relay
 
             FieldValueSerializer serializer = CreateSerializer(
                 completionContext,
-                ((ClrTypeReference)definition.Type).Type,
+                definition.Parameter?.ParameterType ?? ((ClrTypeReference)definition.Type).Type,
                 typeName);
 
             definition.Serializer = serializer;
@@ -141,7 +143,7 @@ namespace HotChocolate.Types.Relay
         {
             FieldValueSerializer serializer = CreateSerializer(
                 completionContext,
-                ((ClrTypeReference)definition.Type).Type,
+                definition.ResultType,
                 typeName);
 
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
@@ -178,7 +180,8 @@ namespace HotChocolate.Types.Relay
                 typeName is { } ? typeName : completionContext.Type.Name.Value,
                 innerSerializer,
                 typeName is { },
-                DotNetTypeInfoFactory.IsListType(type));
+                DotNetTypeInfoFactory.IsListType(type),
+                DotNetTypeInfoFactory.GetInnerListType(type));
         }
     }
 }

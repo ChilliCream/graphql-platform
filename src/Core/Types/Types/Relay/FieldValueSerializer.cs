@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Execution;
@@ -14,18 +15,21 @@ namespace HotChocolate.Types.Relay
         private readonly IIdSerializer _innerSerializer;
         private readonly bool _validate;
         private readonly bool _list;
+        private readonly Type _listType;
         private NameString _schemaName;
 
         public FieldValueSerializer(
             NameString typeName,
             IIdSerializer innerSerializer,
             bool validateType,
-            bool isListType)
+            bool isListType,
+            Type valueType)
         {
             _typeName = typeName;
             _innerSerializer = innerSerializer;
             _validate = validateType;
             _list = isListType;
+            _listType = CreateListType(valueType);
         }
 
         public void Initialize(NameString schemaName)
@@ -41,11 +45,21 @@ namespace HotChocolate.Types.Relay
             }
             else if (value is string s)
             {
-                IdValue id = _innerSerializer.Deserialize(s);
-
-                if (!_validate || _typeName.Equals(id.TypeName))
+                try
                 {
-                    return id.Value;
+                    IdValue id = _innerSerializer.Deserialize(s);
+
+                    if (!_validate || _typeName.Equals(id.TypeName))
+                    {
+                        return id.Value;
+                    }
+                }
+                catch
+                {
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage("The ID `{0}` has an invalid format.", s)
+                            .Build());
                 }
 
                 throw new QueryException(
@@ -55,25 +69,64 @@ namespace HotChocolate.Types.Relay
             }
             else if (value is IEnumerable<string> stringEnumerable)
             {
-                var list = new List<object>();
-
-                foreach (string sv in stringEnumerable)
+                try
                 {
-                    IdValue id = _innerSerializer.Deserialize(sv);
+                    var list = (IList)Activator.CreateInstance(_listType);
 
-                    if (!_validate || _typeName.Equals(id.TypeName))
+                    foreach (string sv in stringEnumerable)
                     {
-                        list.Add(id.Value);
-                    }
-                }
+                        IdValue id = _innerSerializer.Deserialize(sv);
 
-                return list;
+                        if (!_validate || _typeName.Equals(id.TypeName))
+                        {
+                            list.Add(id.Value);
+                        }
+                    }
+
+                    return list;
+                }
+                catch
+                {
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The IDs `{0}` have an invalid format.", 
+                                string.Join(", ", stringEnumerable))
+                            .Build());
+                }
             }
 
             throw new QueryException(
                 ErrorBuilder.New()
                     .SetMessage("The specified value is not a valid ID value.")
                     .Build());
+        }
+
+        private static Type CreateListType(Type elementType)
+        {
+            Type listDefinition = typeof(List<>);
+
+            if (elementType == typeof(Guid))
+            {
+                return listDefinition.MakeGenericType(typeof(Guid));
+            }
+
+            if (elementType == typeof(short))
+            {
+                return listDefinition.MakeGenericType(typeof(short));
+            }
+
+            if (elementType == typeof(int))
+            {
+                return listDefinition.MakeGenericType(typeof(int));
+            }
+
+            if (elementType == typeof(long))
+            {
+                return listDefinition.MakeGenericType(typeof(long));
+            }
+
+            return listDefinition.MakeGenericType(typeof(string));
         }
 
         public object? Serialize(object? value)
