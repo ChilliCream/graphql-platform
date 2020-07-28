@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             Expression property = context.GetInstance();
 
-            if (context.TryGetParentField(out IFilterField? parentField))
+            if (context.TryGetDeclaringField(out IFilterField? parentField))
             {
                 return FilterExpressionBuilder.Not(
                     FilterExpressionBuilder.In(

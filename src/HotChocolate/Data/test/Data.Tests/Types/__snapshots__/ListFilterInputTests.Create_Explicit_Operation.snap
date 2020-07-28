@@ -6,11 +6,6 @@ type Query {
   foo(test: FooFilterTypeFilter): String
 }
 
-input BooleanOperationInputFilter {
-  eq: Boolean
-  neq: Boolean
-}
-
 input FooFilterTypeFilter {
   and: [FooFilterTypeFilter!]
   or: [FooFilterTypeFilter!]
@@ -19,7 +14,7 @@ input FooFilterTypeFilter {
 
 input ListFilterInputOfStringOperationInputFilter {
   all: StringOperationInputFilter
-  any: BooleanOperationInputFilter
+  any: Boolean
   none: StringOperationInputFilter
   some: StringOperationInputFilter
 }

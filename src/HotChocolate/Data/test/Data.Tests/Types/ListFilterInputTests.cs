@@ -76,6 +76,8 @@ namespace HotChocolate.Data.Filters
 
         public class Foo
         {
+            public Baz[] Baz { get; set; } = new Baz[0];
+
             public string[] StringArray { get; set; } = new string[0];
 
             public string?[] StringNullableArray { get; set; } = new string?[0];
@@ -109,6 +111,11 @@ namespace HotChocolate.Data.Filters
             public decimal?[] BarDecimalNullableArray { get; set; } = new decimal?[0];
 
             public FooBar[] FooBarArray { get; set; } = new FooBar[0];
+        }
+
+        public class Baz
+        {
+            public string StringProp { get; set; }
         }
 
         public enum FooBar

@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -36,12 +37,21 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (field is { } &&
-                field.Member is PropertyInfo propertyInfo)
+            if (field is { })
             {
-                MemberExpression nestedProperty = Expression.Property(
-                    context.GetInstance(),
-                    propertyInfo);
+                Expression nestedProperty;
+                if (field.Member is PropertyInfo propertyInfo)
+                {
+                    nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
+                }
+                else if (field.Member is MethodInfo methodInfo)
+                {
+                    nestedProperty = Expression.Property(context.GetInstance(), methodInfo);
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
 
                 context.PushInstance(nestedProperty);
                 action = SyntaxVisitor.Continue;
@@ -60,10 +70,9 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            if (field is { } &&
-                field.Member is PropertyInfo)
+            if (field is { })
             {
-                // Deque last expression to prefix with nullcheck
+                // Deque last
                 Expression condition = context.GetLevel().Dequeue();
 
                 context.GetLevel().Enqueue(condition);

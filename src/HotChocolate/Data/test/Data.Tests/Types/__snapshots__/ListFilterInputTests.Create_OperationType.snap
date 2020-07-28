@@ -6,14 +6,9 @@ type Query {
   foo(test: ListFilterInputOfStringOperationInputFilter): String
 }
 
-input BooleanOperationInputFilter {
-  eq: Boolean
-  neq: Boolean
-}
-
 input ListFilterInputOfStringOperationInputFilter {
   all: StringOperationInputFilter
-  any: BooleanOperationInputFilter
+  any: Boolean
   none: StringOperationInputFilter
   some: StringOperationInputFilter
 }

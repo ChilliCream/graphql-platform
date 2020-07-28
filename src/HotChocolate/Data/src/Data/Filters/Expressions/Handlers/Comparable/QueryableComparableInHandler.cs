@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             Expression property = context.GetInstance();
             parsedValue = ParseValue(value, parsedValue, fieldType, context);
-            if (context.TryGetParentField(out IFilterField? parentField))
+            if (context.TryGetDeclaringField(out IFilterField? parentField))
             {
                 return FilterExpressionBuilder.In(
                         property,

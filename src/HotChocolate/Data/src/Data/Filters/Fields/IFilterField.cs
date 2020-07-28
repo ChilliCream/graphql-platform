@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Types;
 
@@ -12,5 +13,7 @@ namespace HotChocolate.Data.Filters
         FilterFieldHandler? Handler { get; }
 
         bool IsNullable { get; }
+
+        Type? ElementType { get; }
     }
 }

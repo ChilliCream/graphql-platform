@@ -20,26 +20,26 @@ namespace HotChocolate.Data.Filters.Expressions
             IValueNode? value = node.Value;
             var parsedValue = field.Type.ParseLiteral(value);
 
-            if (!field.IsNullable && parsedValue == null)
+            if (context.TryGetDeclaringField(out IFilterField? parentField))
             {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, value, context));
+                if (!parentField.IsNullable && parsedValue == null)
+                {
+                    context.ReportError(
+                        ErrorHelper.CreateNonNullError(field, value, context));
 
-                result = null!;
-                return false;
-            }
+                    result = null!;
+                    return false;
+                }
 
-            if (field.Type.IsInstanceOfType(value))
-            {
-                result = HandleOperation(
-                    context, declaringType, field, fieldType, value, parsedValue);
-                return true;
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+                if (field.Type.IsInstanceOfType(value))
+                {
+                    result = HandleOperation(
+                        context, declaringType, field, fieldType, value, parsedValue);
 
+                    return true;
+                }
+            }
+            throw new InvalidOperationException();
         }
 
         public abstract Expression HandleOperation(

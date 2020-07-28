@@ -36,15 +36,20 @@ namespace HotChocolate.Data.Filters.Expressions
             [NotNullWhen(true)] out LambdaExpression? expression) =>
                 context.GetClosure().TryCreateLambda(out expression);
 
-        public static bool TryGetParentField(
+        public static bool TryGetDeclaringField(
            this QueryableFilterContext context,
            [NotNullWhen(true)] out IFilterField? field)
         {
-            if (context.Operations.TryPeekAt(1, out IInputField? parentField) &&
-                parentField is IFilterField parentFilterField)
+            var index = 1;
+            while (context.Operations.TryPeekAt(index, out IInputField? parentField))
             {
-                field = parentFilterField;
-                return true;
+                if (parentField is IFilterField parentFilterField &&
+                    !(parentField is IFilterOperationField))
+                {
+                    field = parentFilterField;
+                    return true;
+                }
+                index++;
             }
             field = default;
             return false;

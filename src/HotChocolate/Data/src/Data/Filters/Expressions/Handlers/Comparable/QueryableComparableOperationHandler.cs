@@ -36,7 +36,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IType type,
             QueryableFilterContext context)
         {
-            if (context.TryGetParentField(out IFilterField? parentField))
+            if (context.TryGetDeclaringField(out IFilterField? parentField))
             {
                 Type? returnType = parentField.GetReturnType();
 
