@@ -27,6 +27,7 @@ namespace HotChocolate.Subscriptions
         ValueTask<ISourceStream<TMessage>> SubscribeAsync<TTopic, TMessage>(
             TTopic topic,
             CancellationToken cancellationToken = default)
-            where TTopic : notnull;
+            where TTopic : notnull
+            where TMessage: class;
     }
 }
