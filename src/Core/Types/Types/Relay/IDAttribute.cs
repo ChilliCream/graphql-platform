@@ -1,11 +1,5 @@
-using System;
 using System.Reflection;
-using System.Threading.Tasks;
-using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 #nullable enable
 

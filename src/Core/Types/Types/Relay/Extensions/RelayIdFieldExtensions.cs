@@ -94,9 +94,18 @@ namespace HotChocolate.Types.Relay
                 (IIdSerializer)completionContext.Services.GetService(typeof(IIdSerializer)) ??
                 new IdSerializer();
 
+            Type resultType = definition.Parameter?.ParameterType ??
+                ((ClrTypeReference)definition.Type).Type;
+
+            if (definition is InputFieldDefinition inputFieldDefinition &&
+                inputFieldDefinition.Property is { })
+            {
+                resultType = inputFieldDefinition.Property.PropertyType;
+            }
+
             FieldValueSerializer serializer = CreateSerializer(
                 completionContext,
-                definition.Parameter?.ParameterType ?? ((ClrTypeReference)definition.Type).Type,
+                resultType,
                 typeName);
 
             definition.Serializer = serializer;

@@ -52,6 +52,44 @@ namespace HotChocolate.Types.Relay
             // arrange
             var idSerializer = new IdSerializer();
             string someId = idSerializer.Serialize("Some", "1");
+            string someIntId = idSerializer.Serialize("Some", 1);
+
+            // act
+            IExecutionResult result =
+                await SchemaBuilder.New()
+                    .AddQueryType<Query>()
+                    .AddType<FooPayload>()
+                    .Create()
+                    .MakeExecutable()
+                    .ExecuteAsync(
+                        QueryRequestBuilder.New()
+                            .SetQuery(
+                                @"query foo ($someId: ID! $someIntId: ID!) {
+                                    foo(input: { someId: $someId someIds: [$someIntId] }) {
+                                        someId
+                                        ... on FooPayload {
+                                            someIds
+                                        }
+                                    }
+                                }")
+                            .SetVariableValue("someId", someId)
+                            .SetVariableValue("someIntId", someIntId)
+                            .Create());
+
+            // assert
+            new
+            {
+                result = result.ToJson(),
+                someId
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Id_On_Objects_InvalidType()
+        {
+            // arrange
+            var idSerializer = new IdSerializer();
+            string someId = idSerializer.Serialize("Some", Guid.Empty);
 
             // act
             IExecutionResult result =
@@ -83,42 +121,6 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
-        public async Task Id_On_Objects_InvalidType()
-        {
-            // arrange
-            var idSerializer = new IdSerializer();
-            string someId = idSerializer.Serialize("Some", 1);
-
-            // act
-            IExecutionResult result =
-                await SchemaBuilder.New()
-                    .AddQueryType<Query>()
-                    .AddType<FooPayload>()
-                    .Create()
-                    .MakeExecutable()
-                    .ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"query foo ($someId: ID!) {
-                                    foo(input: { someId: $someId someIds: [$someId] }) {
-                                        someId
-                                        ... on FooPayload {
-                                            someIds
-                                        }
-                                    }
-                                }")
-                            .SetVariableValue("someId", someId)
-                            .Create());
-
-            // assert
-            new
-            {
-                result = result.ToJson(),
-                someId
-            }.MatchSnapshot();
-        }
-
-         [Fact]
         public async Task Id_On_Objects_InvalidId()
         {
             // arrange
@@ -167,10 +169,10 @@ namespace HotChocolate.Types.Relay
         public class Query
         {
             public string IntId([ID] int id) => id.ToString();
-            public string IntIdList([ID] int[] id) => 
+            public string IntIdList([ID] int[] id) =>
                 string.Join("-", id.Select(t => t.ToString()));
             public string StringId([ID] string id) => id.ToString();
-            public string StringIdList([ID] string[] id) => 
+            public string StringIdList([ID] string[] id) =>
                 string.Join("-", id.Select(t => t.ToString()));
             public string GuidId([ID] Guid id) => id.ToString();
             public string GuidIdList([ID] IReadOnlyList<Guid> id) =>
@@ -180,16 +182,22 @@ namespace HotChocolate.Types.Relay
 
         public class FooInput
         {
+            public FooInput(string someId, IReadOnlyList<int> someIds)
+            {
+                SomeId = someId;
+                SomeIds = someIds;
+            }
+
             [ID("Some")] public string SomeId { get; set; }
 
-            [ID("Some")] public string[] SomeIds { get; set; }
+            [ID("Some")] public IReadOnlyList<int> SomeIds { get; }
         }
 
         public class FooPayload : IFooPayload
         {
             [ID("Bar")] public string SomeId { get; set; }
 
-            [ID("Bar")] public string[] SomeIds { get; set; }
+            [ID("Bar")] public IReadOnlyList<int> SomeIds { get; set; }
         }
 
         public interface IFooPayload
