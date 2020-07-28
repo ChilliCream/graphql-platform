@@ -1,4 +1,4 @@
 ﻿{
-  "result": "{\"data\":{\"foo\":{\"someId\":\"QmFyCmQx\"}}}",
-  "someId": "U29tZQppMQ=="
+  "result": "{\"data\":{\"foo\":{\"someId\":\"QmFyCmQx\",\"someIds\":null}}}",
+  "someId": "U29tZQpkMQ=="
 }

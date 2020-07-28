@@ -6,11 +6,10 @@
         protected override void Configure(
             IInterfaceTypeDescriptor<INode> descriptor)
         {
-            // TODO : resources
             descriptor.Name("Node");
             descriptor.Description(
                 "The node interface is implemented by entities that have " +
-                "a gloabl unique identifier.");
+                "a global unique identifier.");
             descriptor.Field("id").Type<NonNullType<IdType>>();
         }
     }

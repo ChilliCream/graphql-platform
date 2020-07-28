@@ -1,0 +1,4 @@
+﻿{
+  "result": "{\"errors\":[{\"message\":\"The IDs \\u0060U29tZQppMQ==\\u0060 have an invalid format.\"}],\"data\":{\"foo\":null}}",
+  "someId": "U29tZQppMQ=="
+}
