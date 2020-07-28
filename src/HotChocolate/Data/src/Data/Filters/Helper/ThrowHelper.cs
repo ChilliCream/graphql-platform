@@ -1,4 +1,6 @@
+using System;
 using System.Reflection;
+using HotChocolate.Language;
 
 namespace HotChocolate.Data.Filters
 {
@@ -64,6 +66,14 @@ namespace HotChocolate.Data.Filters
                         scope,
                         typeof(T).Name,
                         typeof(TContext).Name)
+                    .Build());
+
+        public static GraphQLException FilterConvention_CouldNotConvertValue(
+            IValueNode node) =>
+            new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("Filtering could not convert value into desired format")
+                    .AddLocation(node)
                     .Build());
     }
 }

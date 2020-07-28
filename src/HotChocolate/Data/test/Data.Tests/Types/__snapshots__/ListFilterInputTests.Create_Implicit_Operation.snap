@@ -15,13 +15,13 @@ input ComparableOperationInputOfDecimalFilter {
   eq: Decimal!
   gt: Decimal!
   gte: Decimal!
-  in: Decimal!
+  in: [Decimal!]
   lt: Decimal!
   lte: Decimal!
   neq: Decimal!
   ngt: Decimal!
   ngte: Decimal!
-  nin: Decimal!
+  nin: [Decimal!]
   nlt: Decimal!
   nlte: Decimal!
 }
@@ -30,13 +30,13 @@ input ComparableOperationInputOfDoubleFilter {
   eq: Float!
   gt: Float!
   gte: Float!
-  in: Float!
+  in: [Float!]
   lt: Float!
   lte: Float!
   neq: Float!
   ngt: Float!
   ngte: Float!
-  nin: Float!
+  nin: [Float!]
   nlt: Float!
   nlte: Float!
 }
@@ -45,13 +45,13 @@ input ComparableOperationInputOfInt16Filter {
   eq: Short!
   gt: Short!
   gte: Short!
-  in: Short!
+  in: [Short!]
   lt: Short!
   lte: Short!
   neq: Short!
   ngt: Short!
   ngte: Short!
-  nin: Short!
+  nin: [Short!]
   nlt: Short!
   nlte: Short!
 }
@@ -60,13 +60,13 @@ input ComparableOperationInputOfInt32Filter {
   eq: Int!
   gt: Int!
   gte: Int!
-  in: Int!
+  in: [Int!]
   lt: Int!
   lte: Int!
   neq: Int!
   ngt: Int!
   ngte: Int!
-  nin: Int!
+  nin: [Int!]
   nlt: Int!
   nlte: Int!
 }
@@ -75,13 +75,13 @@ input ComparableOperationInputOfInt64Filter {
   eq: Long!
   gt: Long!
   gte: Long!
-  in: Long!
+  in: [Long!]
   lt: Long!
   lte: Long!
   neq: Long!
   ngt: Long!
   ngte: Long!
-  nin: Long!
+  nin: [Long!]
   nlt: Long!
   nlte: Long!
 }
@@ -90,13 +90,13 @@ input ComparableOperationInputOfSingleFilter {
   eq: Float!
   gt: Float!
   gte: Float!
-  in: Float!
+  in: [Float!]
   lt: Float!
   lte: Float!
   neq: Float!
   ngt: Float!
   ngte: Float!
-  nin: Float!
+  nin: [Float!]
   nlt: Float!
   nlte: Float!
 }

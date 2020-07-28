@@ -65,14 +65,6 @@ namespace HotChocolate.Data.Filters.Expressions
             {
                 // Deque last expression to prefix with nullcheck
                 Expression condition = context.GetLevel().Dequeue();
-                Expression property = context.GetInstance();
-
-                // wrap last expression only if  in memory
-                if (context.InMemory)
-                {
-                    condition = FilterExpressionBuilder.NotNullAndAlso(
-                        property, condition);
-                }
 
                 context.GetLevel().Enqueue(condition);
                 context.PopInstance();

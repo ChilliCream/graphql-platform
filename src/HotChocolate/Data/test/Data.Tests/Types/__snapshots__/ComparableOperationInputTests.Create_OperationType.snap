@@ -10,13 +10,13 @@ input ComparableOperationInputOfInt32Filter {
   eq: Int!
   gt: Int!
   gte: Int!
-  in: Int!
+  in: [Int!]
   lt: Int!
   lte: Int!
   neq: Int!
   ngt: Int!
   ngte: Int!
-  nin: Int!
+  nin: [Int!]
   nlt: Int!
   nlte: Int!
 }

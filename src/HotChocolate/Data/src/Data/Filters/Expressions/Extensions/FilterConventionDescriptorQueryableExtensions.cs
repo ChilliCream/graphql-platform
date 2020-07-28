@@ -12,6 +12,19 @@ namespace HotChocolate.Data.Filters
         public static IFilterProviderDescriptor<Expression, QueryableFilterContext> UseDefaults(
             this IFilterProviderDescriptor<Expression, QueryableFilterContext> descriptor)
         {
+            descriptor.AddFieldHandler<QueryableComparableEqualsHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotEqualsHandler>();
+            descriptor.AddFieldHandler<QueryableComparableInHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotInHandler>();
+            descriptor.AddFieldHandler<QueryableComparableGreaterThanHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotGreaterThanHandler>();
+            descriptor.AddFieldHandler<QueryableComparableGreaterThanOrEqualsHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotGreaterThanOrEqualsHandler>();
+            descriptor.AddFieldHandler<QueryableComparableLowerThanHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotLowerThanHandler>();
+            descriptor.AddFieldHandler<QueryableComparableLowerThanOrEqualsHandler>();
+            descriptor.AddFieldHandler<QueryableComparableNotLowerThanOrEqualsHandler>();
+
             descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
             descriptor.AddFieldHandler<QueryableStringNotEqualsHandler>();
             descriptor.AddFieldHandler<QueryableStringStartsWithHandler>();

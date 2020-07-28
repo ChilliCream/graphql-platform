@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterCombinator combinator,
             [NotNullWhen(true)] out Expression combined)
         {
-            if (operations.Count < 0)
+            if (operations.Count < 1)
             {
                 throw new InvalidOperationException();
             }
