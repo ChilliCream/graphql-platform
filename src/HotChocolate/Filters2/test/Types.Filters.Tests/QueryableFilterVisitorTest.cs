@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 null,
                 ExpressionFieldHandlers.All,
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             };
 
@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Filters
                 typeof(Foo),
                 ExpressionOperationHandlers.All,
                 null,
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             };
 
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType, null, TypeConversion.Default, true);
+                fooType, null, DefaultTypeConverter.Default, true);
             };
 
             // act
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                null, typeof(Foo), TypeConversion.Default, true);
+                null, typeof(Foo), DefaultTypeConverter.Default, true);
             };
 
             // act

@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
@@ -135,7 +135,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Recursive),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Recursive, bool> func = filterContext.CreateFilter<Recursive>().Compile();
@@ -174,7 +174,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
@@ -227,7 +227,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();

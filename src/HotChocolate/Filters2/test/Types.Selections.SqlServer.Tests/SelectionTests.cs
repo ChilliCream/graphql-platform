@@ -46,7 +46,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -178,7 +178,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
@@ -227,7 +227,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
@@ -279,7 +279,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute(
@@ -328,7 +328,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -376,7 +376,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -426,7 +426,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -476,7 +476,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -527,7 +527,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -578,7 +578,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -629,7 +629,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -683,7 +683,7 @@ namespace HotChocolate.Types.Selections
                         })
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(
@@ -730,7 +730,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -778,7 +778,7 @@ namespace HotChocolate.Types.Selections
                         .UseFiltering()
                         .UseSorting())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -820,7 +820,7 @@ namespace HotChocolate.Types.Selections
                         .UseFiltering()
                         .UseSorting())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -868,7 +868,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -916,7 +916,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             var result = executor.Execute("{ foos { totalCount pageInfo {startCursor}}}")
@@ -975,7 +975,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1026,7 +1026,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1073,7 +1073,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1123,7 +1123,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1175,7 +1175,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1216,7 +1216,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -1268,7 +1268,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

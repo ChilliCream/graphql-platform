@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Selections
                             resultCtx = ctx.Result as IQueryable<Foo>;
                         }))
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute(

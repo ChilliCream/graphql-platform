@@ -45,7 +45,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { foo } }")
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { foo: \"abc\" }) { foo } }")
@@ -143,7 +143,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -181,7 +181,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { foo: \"abc\" }) { nodes { foo } } }")
@@ -217,7 +217,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { baz: true }) { nodes { foo } } }")
@@ -253,7 +253,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { baz_not: false }) { nodes { foo } } }")
@@ -289,7 +289,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { time_gt: \"2001-01-01\" }) { time } }")
@@ -325,7 +325,7 @@ namespace HotChocolate.Types.Filters
                 .AddServices(serviceCollection.BuildServiceProvider())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { date_gt: \"2001-01-01\" }) { date } }")
