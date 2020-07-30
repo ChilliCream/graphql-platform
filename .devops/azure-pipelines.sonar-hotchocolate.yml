@@ -57,6 +57,11 @@ stages:
         displayName: 'Sonar'
         dependsOn: [ Cover ]
         steps:
+          - task: JavaToolInstaller@0
+            inputs:
+              versionSpec: '11'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'test-results'
