@@ -13,14 +13,14 @@ namespace HotChocolate.Types.Sorting
             descriptor.Value(SortOperationKind.Desc);
         }
 
-        protected override EnumTypeDefinition CreateDefinition(IInitializationContext context)
+        protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {
             EnumTypeDefinition definition = base.CreateDefinition(context);
             ISortingNamingConvention convention =
                 context.DescriptorContext.GetSortingNamingConvention();
 
             definition.Name = convention.GetSortingOperationKindTypeName(
-                context.DescriptorContext, definition.ClrType);
+                context.DescriptorContext, definition.RuntimeType);
 
             foreach (EnumValueDefinition value in definition.Values)
             {

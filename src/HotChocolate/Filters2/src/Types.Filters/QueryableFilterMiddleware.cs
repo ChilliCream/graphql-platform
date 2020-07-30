@@ -12,16 +12,17 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly FilterMiddlewareContext _contextData;
 
         public QueryableFilterMiddleware(
             FieldDelegate next,
             FilterMiddlewareContext contextData,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _converter = converter ?? TypeConversion.Default;
+            _next = next 
+                ?? throw new ArgumentNullException(nameof(next));
+            _converter = converter;
             _contextData = contextData
                  ?? throw new ArgumentNullException(nameof(contextData));
         }
@@ -30,7 +31,7 @@ namespace HotChocolate.Types.Filters
         {
             await _next(context).ConfigureAwait(false);
 
-            IValueNode filter = context.Argument<IValueNode>(_contextData.ArgumentName);
+            IValueNode filter = context.ArgumentLiteral<IValueNode>(_contextData.ArgumentName);
 
             if (filter is null || filter is NullValueNode)
             {

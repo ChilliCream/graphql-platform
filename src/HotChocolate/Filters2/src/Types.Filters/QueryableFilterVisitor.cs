@@ -12,7 +12,6 @@ namespace HotChocolate.Types.Filters
     {
         protected QueryableFilterVisitor()
         {
-
         }
 
         #region Object Value

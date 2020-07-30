@@ -11,6 +11,7 @@ namespace HotChocolate.Types
     /// </summary>
     public interface IObjectField
         : IOutputField
+        , IHasRuntimeType
     {
         /// <summary>
         /// Gets the type that declares this field.

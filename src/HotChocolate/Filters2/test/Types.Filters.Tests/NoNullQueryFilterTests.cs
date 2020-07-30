@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

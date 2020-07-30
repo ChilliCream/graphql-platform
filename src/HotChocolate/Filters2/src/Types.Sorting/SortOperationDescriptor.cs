@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Sorting
         {
         }
 
-        internal protected sealed override SortOperationDefintion Definition { get; } =
+        internal protected sealed override SortOperationDefintion Definition { get; protected set; } =
             new SortOperationDefintion();
 
         protected override void OnCreateDefinition(
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context)
         {
             var operation = new SortOperation(property);
-            var typeReference = new ClrTypeReference(
+            var typeReference = TypeReference.Create(
                 typeof(SortOperationKindType),
                 TypeContext.Input);
             NameString name = context.Naming.GetMemberName(

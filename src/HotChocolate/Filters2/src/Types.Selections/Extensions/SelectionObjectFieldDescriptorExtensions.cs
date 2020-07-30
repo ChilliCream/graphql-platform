@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -40,8 +39,7 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             Type? objectType)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -86,7 +84,7 @@ namespace HotChocolate.Types
             Type type,
             ObjectFieldDefinition definition,
             FieldMiddleware placeholder,
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
             string filterConventionArgumentName =
                 context.DescriptorContext.GetFilterNamingConvention().ArgumentName;

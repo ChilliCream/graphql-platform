@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters
 
         IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
 
-        ITypeConversion TypeConverter { get; }
+        ITypeConverter TypeConverter { get; }
 
         bool InMemory { get; }
 

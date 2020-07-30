@@ -64,8 +64,7 @@ namespace HotChocolate.Types
             Type? sortType,
             ITypeSystemMember? sortTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -76,13 +75,13 @@ namespace HotChocolate.Types
 
                     ITypeReference argumentTypeReference =
                         sortTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(
+                            ? (ITypeReference)TypeReference.Create(
                                 argumentType, TypeContext.Input)
                             : new SchemaTypeReference(sortTypeInstance);
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(
+                        Type = TypeReference.Create(
                             argumentType, TypeContext.Input)
                     };
 
@@ -159,7 +158,7 @@ namespace HotChocolate.Types
         }
 
         private static void CompileMiddleware(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)

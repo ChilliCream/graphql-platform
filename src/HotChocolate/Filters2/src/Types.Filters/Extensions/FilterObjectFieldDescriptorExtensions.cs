@@ -66,8 +66,7 @@ namespace HotChocolate.Types
             Type? filterType,
             ITypeSystemMember? filterTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -92,7 +91,7 @@ namespace HotChocolate.Types
 
                     ITypeReference argumentTypeReference =
                         filterTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(argumentType, TypeContext.Input)
+                            ? (ITypeReference)TypeReference.Create(argumentType, TypeContext.Input)
                             : new SchemaTypeReference(filterTypeInstance);
 
                     if (argumentType == typeof(object))
@@ -107,7 +106,7 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(argumentType, TypeContext.Input)
+                        Type = TypeReference.Create(argumentType, TypeContext.Input)
                     };
 
                     argumentDefinition.ConfigureArgumentName();
@@ -133,7 +132,7 @@ namespace HotChocolate.Types
         }
 
         private static void CompileMiddleware(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
@@ -155,7 +154,7 @@ namespace HotChocolate.Types
         {
             return descriptor.Argument(_whereArgumentNamePlaceholder, a =>
                 a.Extend().OnBeforeCreate(d =>
-                    d.ConfigureArgumentName().Type = new ClrTypeReference(
+                    d.ConfigureArgumentName().Type = TypeReference.Create(
                         filterType, TypeContext.Input)));
         }
 

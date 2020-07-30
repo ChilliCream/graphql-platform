@@ -17,7 +17,6 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
@@ -26,7 +25,7 @@ namespace HotChocolate.Types.Filters
             IFilterNamingConvention convention = context.GetFilterNamingConvention();
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
             Definition.Name = convention.GetFilterTypeName(context, entityType);
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
@@ -35,7 +34,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected internal sealed override FilterInputTypeDefinition Definition { get; } =
+        internal protected sealed override FilterInputTypeDefinition Definition { get; protected set; } =
             new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =

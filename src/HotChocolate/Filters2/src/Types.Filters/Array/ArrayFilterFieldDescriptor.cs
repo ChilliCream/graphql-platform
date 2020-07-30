@@ -97,11 +97,10 @@ namespace HotChocolate.Types.Filters
 
         protected ClrTypeReference GetTypeReference()
         {
-            return new ClrTypeReference(
+            return TypeReference.Create(
                 typeof(FilterInputType<>).MakeGenericType(_type),
                     Definition.Type.Context,
-                    true,
-                    true);
+                    nullable: new [] { true, true });
         }
 
         private ArrayFilterOperationDescriptor GetOrCreateOperation(
@@ -137,10 +136,9 @@ namespace HotChocolate.Types.Filters
             var operation = GetFilterOperation(operationKind);
 
             var typeReference = RewriteTypeToNullableType(
-                new ClrTypeReference(typeof(bool),
+                TypeReference.Create(typeof(bool),
                     Definition.Type.Context,
-                    true,
-                    true));
+                    nullable: new [] { true, true }));
 
             return ArrayBooleanFilterOperationDescriptor.New(
                 Context,

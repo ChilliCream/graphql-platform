@@ -6,13 +6,14 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContext
-        : FilterVisitorContextBase, IQueryableFilterVisitorContext
+        : FilterVisitorContextBase
+        , IQueryableFilterVisitorContext
     {
 
         public QueryableFilterVisitorContext(
             InputObjectType initialType,
             Type source,
-            ITypeConversion converter,
+            ITypeConverter converter,
             bool inMemory)
             : this(
                 initialType,
@@ -29,7 +30,7 @@ namespace HotChocolate.Types.Filters
             Type source,
             IReadOnlyList<IExpressionOperationHandler> operationHandlers,
             IReadOnlyList<IExpressionFieldHandler> fieldHandlers,
-            ITypeConversion typeConverter,
+            ITypeConverter typeConverter,
             bool inMemory)
             : base(initialType)
         {
@@ -52,7 +53,7 @@ namespace HotChocolate.Types.Filters
 
         public IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
 
-        public ITypeConversion TypeConverter { get; }
+        public ITypeConverter TypeConverter { get; }
 
         public bool InMemory { get; }
 

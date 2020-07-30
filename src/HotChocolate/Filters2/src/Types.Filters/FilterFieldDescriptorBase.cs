@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Filters
             _namingConvention = context.GetFilterNamingConvention();
         }
 
-        internal protected sealed override FilterFieldDefintion Definition { get; } =
+        internal protected sealed override FilterFieldDefintion Definition { get; protected set; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Filters
         {
             ITypeReference reference = Definition.Type;
 
-            if (reference is IClrTypeReference clrRef)
+            if (reference is ClrTypeReference clrRef)
             {
                 if (BaseTypes.IsSchemaType(clrRef.Type))
                 {
@@ -189,12 +189,12 @@ namespace HotChocolate.Types.Filters
                 }
             }
 
-            if (reference is ISchemaTypeReference schemaRef)
+            if (reference is SchemaTypeReference schemaRef)
             {
                 return schemaRef.WithType(new ListType((IType)schemaRef.Type));
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef)
+            if (reference is SyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.WithType(new ListTypeNode(syntaxRef.Type));
             }
@@ -211,7 +211,7 @@ namespace HotChocolate.Types.Filters
         protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
         {
 
-            if (reference is IClrTypeReference clrRef
+            if (reference is ClrTypeReference clrRef
                 && TypeInspector.Default.TryCreate(
                     clrRef.Type,
                     out Utilities.TypeInfo typeInfo))
@@ -249,14 +249,14 @@ namespace HotChocolate.Types.Filters
                 }
             }
 
-            if (reference is ISchemaTypeReference schemaRef)
+            if (reference is SchemaTypeReference schemaRef)
             {
                 return schemaRef.Type is NonNullType nnt
                     ? schemaRef.WithType(nnt)
                     : schemaRef;
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef)
+            if (reference is SyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.Type is NonNullTypeNode nnt
                     ? syntaxRef.WithType(nnt)

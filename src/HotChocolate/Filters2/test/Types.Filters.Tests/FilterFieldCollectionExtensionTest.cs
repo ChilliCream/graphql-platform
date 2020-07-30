@@ -245,7 +245,7 @@ namespace HotChocolate.Types.Filters
         {
             var descirptor = new BooleanFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo);
-            var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
+            var typeReference = TypeReference.Create(typeof(Foo), TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",
@@ -273,7 +273,7 @@ namespace HotChocolate.Types.Filters
         {
             var descirptor = new ComparableFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo);
-            var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
+            var typeReference = TypeReference.Create(typeof(Foo), TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",

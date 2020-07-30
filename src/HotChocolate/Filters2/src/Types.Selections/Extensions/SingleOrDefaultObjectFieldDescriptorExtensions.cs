@@ -108,7 +108,7 @@ namespace HotChocolate.Types
                             .Build());
                 }
 
-                return new ClrTypeReference(rewritten, TypeContext.Output);
+                return TypeReference.Create(rewritten, TypeContext.Output);
             }
 
             throw new NotSupportedException();

@@ -60,11 +60,10 @@ namespace HotChocolate.Types.Filters
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(
+                TypeReference.Create(
                     typeof(FilterInputType<>).MakeGenericType(_type),
                     Definition.Type.Context,
-                    true,
-                    true),
+                    nullable: new[] { true, true }),
                 operation);
         }
 

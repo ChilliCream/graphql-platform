@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters
         #region Configuration
 
         protected override InputObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -66,7 +66,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override void OnCompleteFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {

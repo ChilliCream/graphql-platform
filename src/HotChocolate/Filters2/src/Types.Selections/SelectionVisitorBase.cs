@@ -19,8 +19,8 @@ namespace HotChocolate.Types.Selections
                 ?? throw new ArgumentNullException(nameof(context));
         }
 
-        protected Stack<ObjectField> Fields { get; } =
-            new Stack<ObjectField>();
+        protected Stack<IObjectField> Fields { get; } =
+            new Stack<IObjectField>();
 
         protected readonly IResolverContext Context;
 
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Selections
             if (outputType.ToClrType() == typeof(IConnection) &&
                outputType.NamedType() is ObjectType type)
             {
-                foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
+                foreach (IFieldSelection selection in Context.GetSelections(type, selectionSet))
                 {
                     IFieldSelection? currentSelection = GetPagingFieldOrDefault(selection);
 
@@ -208,7 +208,7 @@ namespace HotChocolate.Types.Selections
                 selection.Field.Type.NamedType() is ObjectType edgeType)
             {
                 return Context
-                    .CollectFields(edgeType, selection.Selection.SelectionSet)
+                    .GetSelections(edgeType, selection.Selection.SelectionSet)
                     .FirstOrDefault(x => x.Field.Name == "node");
             }
             return default;
@@ -236,7 +236,7 @@ namespace HotChocolate.Types.Selections
             ObjectType type,
             SelectionSetNode selectionSet)
         {
-            IReadOnlyList<IFieldSelection> selections = Context.CollectFields(type, selectionSet);
+            IReadOnlyList<IFieldSelection> selections = Context.GetSelections(type, selectionSet);
             if (HasNonProjectableField(selections))
             {
                 var fieldSelections = new List<ISelectionNode>();
@@ -248,7 +248,7 @@ namespace HotChocolate.Types.Selections
                     }
                 }
                 selectionSet = selectionSet.AddSelections(fieldSelections.ToArray());
-                selections = Context.CollectFields(type, selectionSet);
+                selections = Context.GetSelections(type, selectionSet);
             }
             return selections;
         }
