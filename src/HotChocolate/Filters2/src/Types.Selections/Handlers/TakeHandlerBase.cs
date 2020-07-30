@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Selections.Handlers
             IFieldSelection selection,
             Expression expression)
         {
-            ObjectField field = context.FieldSelection.Field;
+            IObjectField field = context.FieldSelection.Field;
             if (field.ContextData.ContainsKey(_contextDataKey) &&
                 field.Member is PropertyInfo propertyInfo)
             {

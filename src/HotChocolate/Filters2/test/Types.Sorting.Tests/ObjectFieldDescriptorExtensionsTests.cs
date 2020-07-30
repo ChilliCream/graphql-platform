@@ -16,8 +16,7 @@ namespace HotChocolate.Types.Sorting
             // arrange
             ObjectFieldDescriptor descriptor =
                 ObjectFieldDescriptor.New(Context, "field");
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             // act
             descriptor.UseSorting();
@@ -33,7 +32,7 @@ namespace HotChocolate.Types.Sorting
             ObjectFieldDescriptor descriptor =
                 ObjectFieldDescriptor.New(Context, "field");
             FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+                next => context => default;
 
             // act
             descriptor.UseSorting<object>();

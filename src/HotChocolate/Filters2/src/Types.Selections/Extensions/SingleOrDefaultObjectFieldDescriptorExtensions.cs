@@ -32,7 +32,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
@@ -90,7 +90,7 @@ namespace HotChocolate.Types
 
         private static ITypeReference RewriteToNonNullableType(ITypeReference type)
         {
-            if (type is IClrTypeReference clrTypeRef)
+            if (type is ClrTypeReference clrTypeRef)
             {
                 Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));
 
