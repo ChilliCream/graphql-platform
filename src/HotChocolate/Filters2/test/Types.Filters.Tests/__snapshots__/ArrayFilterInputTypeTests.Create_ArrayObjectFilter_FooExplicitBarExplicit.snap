@@ -1,0 +1,28 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input BarFilter {
+  AND: [BarFilter!]
+  baz_contains: String
+  OR: [BarFilter!]
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  barNested_all: BarFilter
+  barNested_any: Boolean
+  barNested_none: BarFilter
+  barNested_some: BarFilter
+  OR: [FooFilter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
