@@ -99,8 +99,7 @@ namespace HotChocolate.Types.Filters
         {
             return TypeReference.Create(
                 typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    nullable: new [] { true, true });
+                Definition.Type.Context);
         }
 
         private ArrayFilterOperationDescriptor GetOrCreateOperation(
@@ -137,8 +136,7 @@ namespace HotChocolate.Types.Filters
 
             var typeReference = RewriteTypeToNullableType(
                 TypeReference.Create(typeof(bool),
-                    Definition.Type.Context,
-                    nullable: new [] { true, true }));
+                    Definition.Type.Context));
 
             return ArrayBooleanFilterOperationDescriptor.New(
                 Context,

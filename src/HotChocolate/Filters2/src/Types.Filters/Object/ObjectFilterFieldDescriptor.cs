@@ -62,8 +62,7 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 TypeReference.Create(
                     typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    nullable: new[] { true, true }),
+                    Definition.Type.Context),
                 operation);
         }
 

@@ -1,7 +1,5 @@
-using System.Linq;
-using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -11,45 +9,37 @@ namespace HotChocolate.Types.Filters
     public class FilterInputTypeTest
         : TypeTestBase
     {
-
         [Fact]
         public void FilterInputType_DynamicName()
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
-                 d => d
-                     .Name(dep => dep.Name + "Foo")
-                     .DependsOn<StringType>()
-                     .Filter(x => x.Bar)
-                     .BindFiltersExplicitly()
-                     .AllowEquals()
-                     )
-                 )
-             );
-
+            ISchema schema = CreateSchema(
+                s => s.AddType(
+                    new FilterInputType<Foo>(d => d
+                        .Name(dep => dep.Name + "Foo")
+                        .DependsOn<StringType>()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
         [Fact]
         public void FilterInputType_DynamicName_NonGeneric()
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
-                 d => d
-                     .Name(dep => dep.Name + "Foo")
-                     .DependsOn(typeof(StringType))
-                     .Filter(x => x.Bar)
-                     .BindFiltersExplicitly()
-                     .AllowEquals()
-                     )
-                 )
-             );
-
+            ISchema schema = CreateSchema(
+                s => s.AddType(
+                    new FilterInputType<Foo>(d => d
+                        .Name(dep => dep.Name + "Foo")
+                        .DependsOn(typeof(StringType))
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -60,15 +50,15 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new FilterInputType<Foo>(
-                 d => d.Directive("foo")
-                     .Filter(x => x.Bar)
-                     .BindFiltersExplicitly()
-                     .AllowEquals()
-                     )
-                )
-            );
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(new FilterInputType<Foo>(
+                        d => d
+                            .Directive("foo")
+                            .Filter(x => x.Bar)
+                            .BindFiltersExplicitly()
+                            .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -218,17 +208,21 @@ namespace HotChocolate.Types.Filters
 
         public class Query
         {
-            [GraphQLNonNullType]
+            [GraphQLNonNullType(false, false)]
             public IQueryable<Book> Books() => new List<Book>().AsQueryable();
         }
 
         public class Book
         {
             public int Id { get; set; }
+
             [GraphQLNonNullType]
             public string Title { get; set; }
+
             public int Pages { get; set; }
+
             public int Chapters { get; set; }
+
             [GraphQLNonNullType]
             public Author Author { get; set; }
         }
