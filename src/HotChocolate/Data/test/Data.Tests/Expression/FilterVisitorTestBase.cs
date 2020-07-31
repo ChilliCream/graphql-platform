@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 _provider.Visitor.Visit(filter, visitorContext);
 
-                if (visitorContext.TryCreateLambda<T>(
+                if (visitorContext.TryCreateLambda(
                         out Expression<Func<T, bool>>? where))
                 {
                     return where.Compile();

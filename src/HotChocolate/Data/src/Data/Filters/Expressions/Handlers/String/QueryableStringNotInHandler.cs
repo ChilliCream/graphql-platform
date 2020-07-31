@@ -20,16 +20,11 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             Expression property = context.GetInstance();
 
-            if (context.TryGetDeclaringField(out IFilterField? parentField))
-            {
-                return FilterExpressionBuilder.Not(
-                    FilterExpressionBuilder.In(
-                            property,
-                            parentField.GetReturnType(),
-                            parsedValue));
-            }
-
-            throw new InvalidOperationException();
+            return FilterExpressionBuilder.Not(
+                FilterExpressionBuilder.In(
+                        property,
+                        context.ClrTypes.Peek(),
+                        parsedValue));
         }
     }
 }

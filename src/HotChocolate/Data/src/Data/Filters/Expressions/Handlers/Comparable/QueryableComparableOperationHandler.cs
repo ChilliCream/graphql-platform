@@ -36,43 +36,39 @@ namespace HotChocolate.Data.Filters.Expressions
             IType type,
             QueryableFilterContext context)
         {
-            if (context.TryGetDeclaringField(out IFilterField? parentField))
+            Type? returnType = context.ClrTypes.Peek();
+
+            if (type.IsListType())
             {
-                Type? returnType = parentField.GetReturnType();
+                Type elementType = type.ElementType().ToClrType();
 
-                if (type.IsListType())
+                if (returnType != elementType)
                 {
-                    Type elementType = type.ElementType().ToClrType();
+                    Type listType = typeof(List<>).MakeGenericType(
+                        returnType);
 
-                    if (returnType != elementType)
-                    {
-                        Type listType = typeof(List<>).MakeGenericType(
-                            returnType);
-
-                        parsedValue = TypeConverter.Convert(
-                            typeof(object),
-                            listType,
-                            parsedValue) ??
-                            throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
-                    }
-
-                    return parsedValue;
+                    parsedValue = TypeConverter.Convert(
+                        typeof(object),
+                        listType,
+                        parsedValue) ??
+                        throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
                 }
-                else
-                {
-                    if (!returnType.IsInstanceOfType(parsedValue))
-                    {
-                        parsedValue = TypeConverter.Convert(
-                            typeof(object),
-                            returnType,
-                            parsedValue) ??
-                            throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
-                    }
 
-                    return parsedValue;
-                }
+                return parsedValue;
             }
-            throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
+            else
+            {
+                if (!returnType.IsInstanceOfType(parsedValue))
+                {
+                    parsedValue = TypeConverter.Convert(
+                        typeof(object),
+                        returnType,
+                        parsedValue) ??
+                        throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
+                }
+
+                return parsedValue;
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -20,20 +22,28 @@ namespace HotChocolate.Data.Filters
             if (Member is { } &&
                 Member.DeclaringType != null)
             {
+                IExtendedType extendedTypeInfo;
                 if (Member is PropertyInfo propertyInfo)
                 {
-                    IsNullable = new NullableHelper(
-                        Member.DeclaringType).GetPropertyInfo(propertyInfo).IsNullable;
-
+                    extendedTypeInfo = new NullableHelper(Member.DeclaringType)
+                        .GetPropertyInfo(propertyInfo);
                     runtimeType = propertyInfo.PropertyType;
                 }
                 else if (Member is MethodInfo methodInfo)
                 {
-                    IsNullable = new NullableHelper(
-                        Member.DeclaringType).GetMethodInfo(methodInfo).ReturnType.IsNullable;
-
+                    extendedTypeInfo = new NullableHelper(Member.DeclaringType)
+                        .GetMethodInfo(methodInfo).ReturnType;
                     runtimeType = methodInfo.ReturnType;
                 }
+                else
+                {
+                    throw new ArgumentException(
+                        string.Format("The type {0} is unknown", runtimeType.Name),
+                        nameof(runtimeType));
+                }
+
+                TypeInfo = FilterTypeInfo.From(extendedTypeInfo);
+
                 if (DotNetTypeInfoFactory.IsListType(runtimeType))
                 {
                     if (!TypeInspector.Default.TryCreate(
@@ -57,6 +67,8 @@ namespace HotChocolate.Data.Filters
 
         public FilterFieldHandler? Handler { get; }
 
-        public bool IsNullable { get; }
+        public bool? IsNullable => TypeInfo?.IsNullable;
+
+        public FilterTypeInfo? TypeInfo { get; }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -31,7 +32,6 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-
             if (node.Value.IsNull())
             {
                 context.ReportError(
@@ -41,12 +41,15 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (context.TryGetDeclaringField(out IFilterField? parentField))
+            if (context.TypeInfos.TryPeek(out FilterTypeInfo? filterTypeInfo) &&
+                filterTypeInfo.TypeArguments.FirstOrDefault() is FilterTypeInfo element)
             {
+
                 Expression nestedProperty = context.GetInstance();
                 context.PushInstance(nestedProperty);
 
-                Type closureType = GetTypeFor(parentField);
+                Type closureType = element.Type;
+                context.TypeInfos.Push(element);
                 context.ClrTypes.Push(closureType);
                 context.AddScope();
 
@@ -66,20 +69,19 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            FilterScope<Expression> nestedScope = context.PopScope();
+            context.ClrTypes.Pop();
+            FilterTypeInfo typeInfo = context.TypeInfos.Pop();
 
-            Type closureType = context.ClrTypes.Pop();
-
-            if (nestedScope is QueryableScope nestedClosure &&
-                nestedClosure.TryCreateLambda(out LambdaExpression? lambda))
+            if (context.TryCreateLambda(out LambdaExpression? lambda))
             {
+                context.Scopes.Pop();
                 Expression expression = HandleListOperation(
                     context,
                     declaringType,
                     field,
                     fieldType,
                     node,
-                    closureType,
+                    typeInfo.Type,
                     lambda);
 
                 if (context.InMemory)
@@ -89,7 +91,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 }
                 context.GetLevel().Enqueue(expression);
             }
-            context.PopInstance();
+
 
             action = SyntaxVisitor.Continue;
             return true;
@@ -103,14 +105,5 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             Type closureType,
             LambdaExpression lambda);
-
-        private static Type GetTypeFor(IFilterField field)
-        {
-            if (field.ElementType is Type baseType)
-            {
-                return baseType;
-            }
-            return field.RuntimeType;
-        }
     }
 }

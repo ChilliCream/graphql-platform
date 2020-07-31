@@ -63,7 +63,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     fit, source is EnumerableQuery);
                 Visitor.Visit(filter, visitorContext);
 
-                if (visitorContext.TryCreateLambda<TEntityType>(
+                if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                 {
                     source = source.Where(where);

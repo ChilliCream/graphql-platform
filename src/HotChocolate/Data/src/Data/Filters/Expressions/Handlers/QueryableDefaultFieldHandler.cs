@@ -54,6 +54,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 }
 
                 context.PushInstance(nestedProperty);
+                context.ClrTypes.Push(nestedProperty.Type);
+                context.TypeInfos.Push(field.TypeInfo);
                 action = SyntaxVisitor.Continue;
                 return true;
             }
@@ -75,8 +77,17 @@ namespace HotChocolate.Data.Filters.Expressions
                 // Deque last
                 Expression condition = context.GetLevel().Dequeue();
 
-                context.GetLevel().Enqueue(condition);
                 context.PopInstance();
+                context.ClrTypes.Pop();
+                context.TypeInfos.Pop();
+
+                if (context.InMemory)
+                {
+                    condition = FilterExpressionBuilder.NotNullAndAlso(
+                        context.GetInstance(), condition);
+                }
+
+                context.GetLevel().Enqueue(condition);
                 action = SyntaxVisitor.Continue;
                 return true;
             }

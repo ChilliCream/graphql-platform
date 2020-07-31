@@ -20,9 +20,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IValueNode? value = node.Value;
             var parsedValue = field.Type.ParseLiteral(value);
 
-            if (context.TryGetDeclaringField(out IFilterField? parentField))
-            {
-                if (!parentField.IsNullable && parsedValue == null)
+                if (!context.TypeInfos.Peek().IsNullable && parsedValue == null)
                 {
                     context.ReportError(
                         ErrorHelper.CreateNonNullError(field, value, context));
@@ -38,7 +36,6 @@ namespace HotChocolate.Data.Filters.Expressions
 
                     return true;
                 }
-            }
             throw new InvalidOperationException();
         }
 

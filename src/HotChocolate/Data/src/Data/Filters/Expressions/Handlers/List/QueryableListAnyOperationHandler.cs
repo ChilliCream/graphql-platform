@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -37,8 +38,8 @@ namespace HotChocolate.Data.Filters.Expressions
             IValueNode value,
             object parsedValue)
         {
-            if (context.TryGetDeclaringField(out IFilterField? parentField) &&
-                parentField.ElementType is { } &&
+            if (context.TypeInfos.TryPeek(out FilterTypeInfo? filterTypeInfo) &&
+                filterTypeInfo.TypeArguments.FirstOrDefault() is FilterTypeInfo element &&
                 parsedValue is bool parsedBool)
             {
                 Expression? property = context.GetInstance();
@@ -47,14 +48,14 @@ namespace HotChocolate.Data.Filters.Expressions
                 if (parsedBool)
                 {
                     expression = FilterExpressionBuilder.Any(
-                        parentField.ElementType,
+                        element.Type,
                         property);
                 }
                 else
                 {
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.Any(
-                            parentField.ElementType,
+                            element.Type,
                             property));
                 }
 

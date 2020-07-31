@@ -15,11 +15,18 @@ namespace HotChocolate.Data.Filters.Expressions
             InMemory = inMemory;
             ClrTypes = new Stack<Type>();
             ClrTypes.Push(initialType.EntityType);
+            TypeInfos = new Stack<FilterTypeInfo>();
+            TypeInfos.Push(new FilterTypeInfo(
+                !inMemory,
+                initialType.EntityType,
+                Array.Empty<FilterTypeInfo>()));
         }
 
         public bool InMemory { get; }
 
         public Stack<Type> ClrTypes { get; }
+
+        public Stack<FilterTypeInfo> TypeInfos { get; }
 
         public override FilterScope<Expression> CreateScope() =>
              new QueryableScope(ClrTypes.Peek(), "_s" + Scopes.Count, InMemory);

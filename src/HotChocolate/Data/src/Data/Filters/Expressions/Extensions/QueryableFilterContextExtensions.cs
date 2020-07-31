@@ -26,32 +26,48 @@ namespace HotChocolate.Data.Filters.Expressions
                 this QueryableFilterContext context) =>
                     (QueryableScope)context.GetScope();
 
-        public static bool TryCreateLambda<TSource>(
-           this QueryableFilterContext context,
-           [NotNullWhen(true)] out Expression<Func<TSource, bool>>? expression) =>
-                context.GetClosure().TryCreateLambda(out expression);
-
         public static bool TryCreateLambda(
             this QueryableFilterContext context,
-            [NotNullWhen(true)] out LambdaExpression? expression) =>
-                context.GetClosure().TryCreateLambda(out expression);
-
-        public static bool TryGetDeclaringField(
-           this QueryableFilterContext context,
-           [NotNullWhen(true)] out IFilterField? field)
+            [NotNullWhen(true)] out LambdaExpression? expression)
         {
-            var index = 1;
-            while (context.Operations.TryPeekAt(index, out IInputField? parentField))
+            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
+                scope is QueryableScope closure)
             {
-                if (parentField is IFilterField parentFilterField &&
-                    !(parentField is IFilterOperationField))
+                expression = null;
+
+                if (closure.Level.Peek().Count == 0)
                 {
-                    field = parentFilterField;
-                    return true;
+                    return false;
                 }
-                index++;
+
+                expression = Expression.Lambda(closure.Level.Peek().Peek(), closure.Parameter);
+                return true;
             }
-            field = default;
+
+            expression = null;
+            return false;
+        }
+
+        public static bool TryCreateLambda<T>(
+            this QueryableFilterContext context,
+            [NotNullWhen(true)] out Expression<T>? expression)
+        {
+            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
+                scope is QueryableScope closure)
+            {
+                expression = null;
+
+                if (closure.Level.Peek().Count == 0)
+                {
+                    return false;
+                }
+
+                expression = Expression.Lambda<T>(closure.Level.Peek().Peek(), closure.Parameter);
+
+                return true;
+            }
+
+            expression = null;
             return false;
         }
     }
