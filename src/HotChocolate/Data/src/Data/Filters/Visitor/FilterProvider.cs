@@ -55,7 +55,8 @@ namespace HotChocolate.Data.Filters
                 }
                 else
                 {
-                    throw ThrowHelper.FilterConvention_NoCombinatorFound(def.Scope);
+                    throw ThrowHelper.FilterConvention_CombinatorOfWrongType<T, TContext>(
+                        def.Scope, def.Combinator);
                 }
 
                 IFilterFieldHandlerInitializationContext? handlerContext =

@@ -57,16 +57,31 @@ namespace HotChocolate.Data.Filters
                     .Build());
 
         public static SchemaException FilterConvention_CombinatorOfWrongType<T, TContext>(
-            string scope) =>
-            new SchemaException(
+            string scope,
+            FilterOperationCombinator combinator)
+        {
+            Type type = combinator.GetType() ??
+                throw new ArgumentException("Type of combinator is invalid");
+
+            while (type.BaseType != typeof(FilterOperationCombinator))
+            {
+                type = type.BaseType ??
+                    throw new ArgumentException("Type of combinator is invalid");
+            }
+
+            return new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "The combinator for the filter provider of scope {0} has the wrong type. " +
-                        "The ooperation should be of type {1} and the context of type {2}",
+                        "The operation should be of type {1} and the context of type {2}" +
+                        " but was of type {3} and the context of type {4} instead",
                         scope,
                         typeof(T).Name,
-                        typeof(TContext).Name)
-                    .Build());
+                        typeof(TContext).Name,
+                        type.GenericTypeArguments[0].Name,
+                        type.GenericTypeArguments[1].Name)
+                .Build());
+        }
 
         public static SchemaException FilterInterceptor_NoHandlerFoundForField(
             FilterInputTypeDefinition type,

@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Text.Json;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
@@ -10,7 +14,7 @@ namespace HotChocolate.Data.Filters
     public class FilterConventionTests
     {
         [Fact]
-        public void FilterConvention_Should_WorkIfConfigurationIsComplete()
+        public void FilterConvention_Should_Work_When_ConfigurationIsComplete()
         {
             // arrange
             var provider = new QueryableFilterProvider(
@@ -47,6 +51,277 @@ namespace HotChocolate.Data.Filters
             Assert.False(func(b));
         }
 
+        [Fact]
+        public void FilterConvention_Should_Fail_When_OperationHandlerIsNotRegistered()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_FieldHandlerIsNotRegistered()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_VisitorIsNotRegistered()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_CombinatorIsNotRegistered()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_OperationsInUknown()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_OperationsIsNotNamed()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Description("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            ArgumentException? error =
+                Assert.Throws<ArgumentException>(() => CreateSchemaWith(type, convention));
+
+            error.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_NoProviderWasRegistered()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_CombinatorDoesNotMatchProvider()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<FailingCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Fail_When_NoMatchingBindingWasFound()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
+                    descriptor.Combinator<QueryableCombinator>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Provider(provider);
+                });
+
+            var type = new FooFilterType();
+
+            //act
+            SchemaException? error =
+                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
+
+            Assert.Single(error.Errors);
+            error.Errors[0].Message.MatchSnapshot();
+        }
+
         protected ISchema CreateSchemaWith(IFilterInputType type, FilterConvention convention)
         {
             ISchemaBuilder builder = SchemaBuilder.New()
@@ -68,6 +343,20 @@ namespace HotChocolate.Data.Filters
             {
                 descriptor.Operation(Operations.Equals).Type<StringType>();
                 descriptor.UseAnd(false).UseOr(false);
+            }
+        }
+
+        public class FailingCombinator
+            : FilterOperationCombinator<string
+            , FilterVisitorContext<string>>
+        {
+            public override bool TryCombineOperations(
+                FilterVisitorContext<string> context,
+                Queue<string> operations,
+                FilterCombinator combinator,
+                [NotNullWhen(true)] out string combined)
+            {
+                throw new NotImplementedException();
             }
         }
 
