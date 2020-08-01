@@ -62,6 +62,12 @@ namespace HotChocolate.Data.Filters
                         {
                             filterFieldDefinition.Handler = handler;
                         }
+                        else
+                        {
+                            throw ThrowHelper.FilterInterceptor_NoHandlerFoundForField(
+                                def,
+                                filterFieldDefinition);
+                        }
                     }
                 }
             }

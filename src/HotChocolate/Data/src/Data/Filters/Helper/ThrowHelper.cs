@@ -68,6 +68,17 @@ namespace HotChocolate.Data.Filters
                         typeof(TContext).Name)
                     .Build());
 
+        public static SchemaException FilterInterceptor_NoHandlerFoundForField(
+            FilterInputTypeDefinition type,
+            FilterFieldDefinition field) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "For the field {0} of type {1} was no handler found.",
+                        field.Name,
+                        type.Name)
+                    .Build());
+
         public static GraphQLException FilterConvention_CouldNotConvertValue(
             IValueNode node) =>
             new GraphQLException(
