@@ -1,10 +1,15 @@
+using HotChocolate.Data.Filters.Expressions;
+
 namespace HotChocolate.Data.Filters
 {
-    public class MockConventionExtensions
+    public static class MockConventionExtensions
     {
         public static IFilterConventionDescriptor UseMock(
             this IFilterConventionDescriptor descriptor)
         {
+            return descriptor.UseDefault().Provider(
+                 new QueryableFilterProvider(
+                     x => x.UseDefaults().AddFieldHandler<MatchAnyQueryableFieldHandler>()));
         }
     }
 }

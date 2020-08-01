@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    public class StringOperationInputTests
+    public class EnumOperationInputTests
     {
         [Fact]
         public void Create_OperationType()
@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<StringOperationInput>()))
+                        .Argument("test", a => a.Type<EnumOperationInput<FooBar>>()))
                 .UseFiltering()
                 .Create();
 
@@ -72,15 +72,19 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("string").Type<StringOperationInput>();
+                descriptor.Field("comparable").Type<EnumOperationInput<FooBar>>();
             }
         }
 
         public class Foo
         {
-            public string String { get; set; } = "";
+            public FooBar FooBar { get; set; }
+        }
 
-            public string? StringNullable { get; set; }
+        public enum FooBar
+        {
+            Foo,
+            Bar
         }
     }
 }

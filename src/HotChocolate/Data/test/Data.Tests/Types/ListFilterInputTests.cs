@@ -59,6 +59,8 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<FooFilterType>()))
+                .TryAddConvention<IFilterConvention>(
+                    (sp) => new FilterConvention(x => x.UseMock()))
                 .UseFiltering()
                 .Create();
 

@@ -109,9 +109,9 @@ input ComparableOperationInputOfSingleFilter {
 
 input EnumOperationInputOfFooBarFilter {
   eq: FooBar!
-  in: FooBar!
+  in: [FooBar!]
   neq: FooBar!
-  nin: FooBar!
+  nin: [FooBar!]
 }
 
 input FooFilter {
