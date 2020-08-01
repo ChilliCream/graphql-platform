@@ -31,6 +31,53 @@ namespace HotChocolate.Configuration
                 name => Assert.Equal("C_Baz", name));
         }
 
+        [Fact]
+        public void Scalars_Should_BeEqual_WhenDifferentScope()
+        {
+            var types = new List<ITypeSystemMember>();
+
+            SchemaBuilder.New()
+                .AddQueryType<FooScalarType>()
+                .AddTypeInterceptor(new TypeScopeInterceptor(types))
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
+        public class FooScalarType : ObjectType<FooScalar>
+        {
+            protected override void Configure(IObjectTypeDescriptor<FooScalar> descriptor)
+            {
+                descriptor.Field("Bar3").Resolver("").Type(new StringType())
+                    .Extend()
+                    .OnBeforeCreate(d =>
+                    {
+                        d.Type = ((SchemaTypeReference)d.Type).WithScope("Bar3");
+                    });
+
+                descriptor.Field(x => x.Bar1)
+                    .Extend()
+                    .OnBeforeCreate(d =>
+                    {
+                        d.Type = ((ClrTypeReference)d.Type).WithScope("Bar1");
+                    });
+
+                descriptor.Field(x => x.Bar1)
+                    .Extend()
+                    .OnBeforeCreate(d =>
+                    {
+                        d.Type = ((ClrTypeReference)d.Type).WithScope("Bar2");
+                    });
+            }
+        }
+
+        public class FooScalar
+        {
+            public string Bar1 => "";
+
+            public string Bar2 => "";
+        }
+
         public class Foo
         {
             [Scope(Scope = "A")]

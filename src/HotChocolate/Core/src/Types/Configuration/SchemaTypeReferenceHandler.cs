@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using System;
 
 #nullable enable
 
@@ -17,13 +18,21 @@ namespace HotChocolate.Configuration
             foreach (SchemaTypeReference typeReference in
                 typeReferences.OfType<SchemaTypeReference>())
             {
-                if (!typeRegistrar.IsResolved(typeReference))
+                SchemaTypeReference scopedReference = typeReference;
+                if (typeReference.Scope is { } && IsScalar(typeReference.Type.GetType()))
+                {
+                    scopedReference = scopedReference.WithScope(null);
+                }
+                if (!typeRegistrar.IsResolved(scopedReference))
                 {
                     typeRegistrar.Register(
-                        (TypeSystemObjectBase)typeReference.Type,
-                        typeReference.Scope);
+                        (TypeSystemObjectBase)scopedReference.Type,
+                        scopedReference.Scope);
                 }
             }
         }
+
+        private static bool IsScalar(Type type) =>
+            typeof(ScalarType).IsAssignableFrom(type);
     }
 }

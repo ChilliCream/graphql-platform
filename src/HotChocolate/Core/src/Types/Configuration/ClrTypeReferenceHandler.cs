@@ -28,6 +28,11 @@ namespace HotChocolate.Configuration
                     {
                         ClrTypeReference namedTypeReference = typeReference.With(type);
 
+                        if (typeReference.Scope is { } && IsScalar(typeInfo.ClrType))
+                        {
+                            namedTypeReference = namedTypeReference.WithScope(null);
+                        }
+
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
                             typeRegistrar.Register(
@@ -79,5 +84,8 @@ namespace HotChocolate.Configuration
 
         private static bool IsTypeSystemObject(Type type) =>
             typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+
+        private static bool IsScalar(Type type) =>
+            typeof(ScalarType).IsAssignableFrom(type);
     }
 }

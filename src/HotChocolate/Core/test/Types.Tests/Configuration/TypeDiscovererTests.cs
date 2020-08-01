@@ -133,6 +133,54 @@ namespace HotChocolate.Configuration
             }.MatchSnapshot();
         }
 
+        [Fact]
+        public void Scalars_Should_BeEqual_When_DifferentScope()
+        {
+            // arrange
+            var initialTypes = new HashSet<ITypeReference>();
+            initialTypes.Add(TypeReference.Create(
+                typeof(StringType),
+                TypeContext.Output,
+                "Foo"));
+            initialTypes.Add(TypeReference.Create(
+                typeof(StringType),
+                TypeContext.Output,
+                "Bar"));
+            initialTypes.Add(TypeReference.Create(
+                new StringType(),
+                "Bar"));
+
+            var serviceProvider = new EmptyServiceProvider();
+
+            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
+
+            var typeDiscoverer = new TypeDiscoverer(
+                initialTypes,
+                clrTypeReferences,
+                DescriptorContext.Create(),
+                new AggregateTypeInitializationInterceptor(),
+                serviceProvider);
+
+            // act
+            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Empty(result.Errors);
+
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
+        }
+
         public class FooType
             : ObjectType<Foo>
         {

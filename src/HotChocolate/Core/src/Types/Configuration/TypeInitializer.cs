@@ -650,8 +650,13 @@ namespace HotChocolate.Configuration
                     break;
 
                 case SchemaTypeReference r:
-                    var internalReference = TypeReference.Create(
-                        r.Type.GetType(), r.Context, scope: typeReference.Scope);
+                    Type type = r.Type.GetType();
+                    var scope = IsScalar(type)
+                        ? null
+                        : typeReference.Scope;
+
+                    ClrTypeReference? internalReference =
+                        TypeReference.Create(type, r.Context, scope: scope);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
@@ -677,7 +682,12 @@ namespace HotChocolate.Configuration
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                 && _typeInspector.TryCreate(typeReference.Type, out Utilities.TypeInfo? typeInfo))
             {
-                if (IsTypeSystemObject(typeInfo.ClrType))
+                if (typeReference.Scope is { } && IsScalar(typeInfo.ClrType))
+                {
+                    normalized = typeReference.With(typeInfo.ClrType).WithScope(null);
+                    return true;
+                }
+                else if (IsTypeSystemObject(typeInfo.ClrType))
                 {
                     normalized = typeReference.With(typeInfo.ClrType);
                     return true;
@@ -719,5 +729,8 @@ namespace HotChocolate.Configuration
 
         private static bool IsTypeSystemObject(Type type) =>
             typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+
+        private static bool IsScalar(Type type) =>
+            typeof(ScalarType).IsAssignableFrom(type);
     }
 }
