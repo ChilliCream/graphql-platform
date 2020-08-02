@@ -16,13 +16,13 @@ input ComparableOperationInputOfInt32Filter {
   eq: Int!
   gt: Int!
   gte: Int!
-  in: Int!
+  in: [Int!]
   lt: Int!
   lte: Int!
   neq: Int!
   ngt: Int!
   ngte: Int!
-  nin: Int!
+  nin: [Int!]
   nlt: Int!
   nlte: Int!
 }
@@ -31,13 +31,13 @@ input ComparableOperationInputOfInt64Filter {
   eq: Long!
   gt: Long!
   gte: Long!
-  in: Long!
+  in: [Long!]
   lt: Long!
   lte: Long!
   neq: Long!
   ngt: Long!
   ngte: Long!
-  nin: Long!
+  nin: [Long!]
   nlt: Long!
   nlte: Long!
 }
@@ -55,19 +55,11 @@ input StringOperationInputFilter {
   contains: String
   endsWith: String
   eq: String
-  gt: String
-  gte: String
-  in: String
-  lt: String
-  lte: String
+  in: [String]
   ncontains: String
   nendsWith: String
   neq: String
-  ngt: String
-  ngte: String
-  nin: String
-  nlt: String
-  nlte: String
+  nin: [String]
   nstartsWith: String
   or: [StringOperationInputFilter!]
   startsWith: String
