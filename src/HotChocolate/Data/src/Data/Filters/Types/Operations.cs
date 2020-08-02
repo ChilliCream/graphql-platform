@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Filters
 {
-    public static class Operations
+    public static class DefaultOperations
     {
         public new const int Equals = 0;
         public const int NotEquals = 1;

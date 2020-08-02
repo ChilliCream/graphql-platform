@@ -6,16 +6,16 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(Operations.Equals).Type<StringType>();
-            descriptor.Operation(Operations.NotEquals).Type<StringType>();
-            descriptor.Operation(Operations.Contains).Type<StringType>();
-            descriptor.Operation(Operations.NotContains).Type<StringType>();
-            descriptor.Operation(Operations.In).Type<ListType<StringType>>();
-            descriptor.Operation(Operations.NotIn).Type<ListType<StringType>>();
-            descriptor.Operation(Operations.StartsWith).Type<StringType>();
-            descriptor.Operation(Operations.NotStartsWith).Type<StringType>();
-            descriptor.Operation(Operations.EndsWith).Type<StringType>();
-            descriptor.Operation(Operations.NotEndsWith).Type<StringType>();
+            descriptor.Operation(DefaultOperations.Equals).Type<StringType>();
+            descriptor.Operation(DefaultOperations.NotEquals).Type<StringType>();
+            descriptor.Operation(DefaultOperations.Contains).Type<StringType>();
+            descriptor.Operation(DefaultOperations.NotContains).Type<StringType>();
+            descriptor.Operation(DefaultOperations.In).Type<ListType<StringType>>();
+            descriptor.Operation(DefaultOperations.NotIn).Type<ListType<StringType>>();
+            descriptor.Operation(DefaultOperations.StartsWith).Type<StringType>();
+            descriptor.Operation(DefaultOperations.NotStartsWith).Type<StringType>();
+            descriptor.Operation(DefaultOperations.EndsWith).Type<StringType>();
+            descriptor.Operation(DefaultOperations.NotEndsWith).Type<StringType>();
         }
     }
 }

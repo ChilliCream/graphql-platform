@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringContainsHandler : QueryableStringOperationHandler
     {
-        protected override int Operation => Operations.Contains;
+        protected override int Operation => DefaultOperations.Contains;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

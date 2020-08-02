@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
         }
 
-        protected override int Operation => Operations.LowerThan;
+        protected override int Operation => DefaultOperations.LowerThan;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

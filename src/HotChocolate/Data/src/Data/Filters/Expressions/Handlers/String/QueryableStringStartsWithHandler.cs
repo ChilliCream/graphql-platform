@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringStartsWithHandler : QueryableStringOperationHandler
     {
-        protected override int Operation => Operations.StartsWith;
+        protected override int Operation => DefaultOperations.StartsWith;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

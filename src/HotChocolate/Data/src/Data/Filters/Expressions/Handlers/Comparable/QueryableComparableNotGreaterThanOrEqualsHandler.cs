@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
         }
 
-        protected override int Operation => Operations.NotGreaterThanOrEquals;
+        protected override int Operation => DefaultOperations.NotGreaterThanOrEquals;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

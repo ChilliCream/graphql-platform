@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -66,7 +66,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -96,7 +96,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -126,7 +126,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -156,7 +156,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -217,7 +217,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Description("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Description("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -247,7 +247,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                 });
 
@@ -277,7 +277,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Binding<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
@@ -308,7 +308,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Operation(Operations.Equals).Name("eq");
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
                     descriptor.Provider(provider);
                 });
 
@@ -341,7 +341,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Operation(Operations.Equals).Type<StringType>();
+                descriptor.Operation(DefaultOperations.Equals).Type<StringType>();
                 descriptor.UseAnd(false).UseOr(false);
             }
         }

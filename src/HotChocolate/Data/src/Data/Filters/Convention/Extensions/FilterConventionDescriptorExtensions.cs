@@ -12,30 +12,30 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor UseDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
-            descriptor.Operation(Operations.Equals).Name("eq");
-            descriptor.Operation(Operations.NotEquals).Name("neq");
-            descriptor.Operation(Operations.GreaterThan).Name("gt");
-            descriptor.Operation(Operations.NotGreaterThan).Name("ngt");
-            descriptor.Operation(Operations.GreaterThanOrEquals).Name("gte");
-            descriptor.Operation(Operations.NotGreaterThanOrEquals).Name("ngte");
-            descriptor.Operation(Operations.LowerThan).Name("lt");
-            descriptor.Operation(Operations.NotLowerThan).Name("nlt");
-            descriptor.Operation(Operations.LowerThanOrEquals).Name("lte");
-            descriptor.Operation(Operations.NotLowerThanOrEquals).Name("nlte");
-            descriptor.Operation(Operations.Contains).Name("contains");
-            descriptor.Operation(Operations.NotContains).Name("ncontains");
-            descriptor.Operation(Operations.In).Name("in");
-            descriptor.Operation(Operations.NotIn).Name("nin");
-            descriptor.Operation(Operations.StartsWith).Name("startsWith");
-            descriptor.Operation(Operations.NotStartsWith).Name("nstartsWith");
-            descriptor.Operation(Operations.EndsWith).Name("endsWith");
-            descriptor.Operation(Operations.NotEndsWith).Name("nendsWith");
-            descriptor.Operation(Operations.All).Name("all");
-            descriptor.Operation(Operations.None).Name("none");
-            descriptor.Operation(Operations.Some).Name("some");
-            descriptor.Operation(Operations.Any).Name("any");
-            descriptor.Operation(Operations.And).Name("and");
-            descriptor.Operation(Operations.Or).Name("or");
+            descriptor.Operation(DefaultOperations.Equals).Name("eq");
+            descriptor.Operation(DefaultOperations.NotEquals).Name("neq");
+            descriptor.Operation(DefaultOperations.GreaterThan).Name("gt");
+            descriptor.Operation(DefaultOperations.NotGreaterThan).Name("ngt");
+            descriptor.Operation(DefaultOperations.GreaterThanOrEquals).Name("gte");
+            descriptor.Operation(DefaultOperations.NotGreaterThanOrEquals).Name("ngte");
+            descriptor.Operation(DefaultOperations.LowerThan).Name("lt");
+            descriptor.Operation(DefaultOperations.NotLowerThan).Name("nlt");
+            descriptor.Operation(DefaultOperations.LowerThanOrEquals).Name("lte");
+            descriptor.Operation(DefaultOperations.NotLowerThanOrEquals).Name("nlte");
+            descriptor.Operation(DefaultOperations.Contains).Name("contains");
+            descriptor.Operation(DefaultOperations.NotContains).Name("ncontains");
+            descriptor.Operation(DefaultOperations.In).Name("in");
+            descriptor.Operation(DefaultOperations.NotIn).Name("nin");
+            descriptor.Operation(DefaultOperations.StartsWith).Name("startsWith");
+            descriptor.Operation(DefaultOperations.NotStartsWith).Name("nstartsWith");
+            descriptor.Operation(DefaultOperations.EndsWith).Name("endsWith");
+            descriptor.Operation(DefaultOperations.NotEndsWith).Name("nendsWith");
+            descriptor.Operation(DefaultOperations.All).Name("all");
+            descriptor.Operation(DefaultOperations.None).Name("none");
+            descriptor.Operation(DefaultOperations.Some).Name("some");
+            descriptor.Operation(DefaultOperations.Any).Name("any");
+            descriptor.Operation(DefaultOperations.And).Name("and");
+            descriptor.Operation(DefaultOperations.Or).Name("or");
             return descriptor;
         }
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableListNoneOperationHandler : QueryableListOperationHandlerBase
     {
-        protected override int Operation => Operations.None;
+        protected override int Operation => DefaultOperations.None;
 
         protected override Expression HandleListOperation(
             QueryableFilterContext context,

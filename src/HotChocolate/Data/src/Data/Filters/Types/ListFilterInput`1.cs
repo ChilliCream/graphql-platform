@@ -7,10 +7,10 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(Operations.All).Type(typeof(T));
-            descriptor.Operation(Operations.None).Type(typeof(T));
-            descriptor.Operation(Operations.Some).Type(typeof(T));
-            descriptor.Operation(Operations.Any).Type<BooleanType>();
+            descriptor.Operation(DefaultOperations.All).Type(typeof(T));
+            descriptor.Operation(DefaultOperations.None).Type(typeof(T));
+            descriptor.Operation(DefaultOperations.Some).Type(typeof(T));
+            descriptor.Operation(DefaultOperations.Any).Type<BooleanType>();
             descriptor.UseAnd(false).UseOr(false);
         }
     }

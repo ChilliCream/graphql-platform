@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
         }
 
-        protected override int Operation => Operations.In;
+        protected override int Operation => DefaultOperations.In;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,

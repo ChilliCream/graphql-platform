@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringNotContainsHandler : QueryableStringOperationHandler
     {
-        protected override int Operation => Operations.NotContains;
+        protected override int Operation => DefaultOperations.NotContains;
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
