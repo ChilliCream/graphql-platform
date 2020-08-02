@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
@@ -52,7 +54,10 @@ namespace HotChocolate.Data.Filters
                 {
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
-                        field.Type = field.Type.With(scope: discoveryContext.Scope);
+                        if (ShouldScopeTypeOfField(filterFieldDefinition))
+                        {
+                            field.Type = field.Type.With(scope: discoveryContext.Scope);
+                        }
 
                         if (convention.TryGetHandler(
                                 discoveryContext,
@@ -71,6 +76,25 @@ namespace HotChocolate.Data.Filters
                     }
                 }
             }
+        }
+
+        // TODO: This is just a temporary workaraound to avoid scopeing scalars
+        public bool ShouldScopeTypeOfField(FilterFieldDefinition definition)
+        {
+            switch (definition.Type)
+            {
+                case ClrTypeReference clrRef:
+                    if (!BaseTypes.IsNonGenericBaseType(clrRef.Type)
+                        && TypeInspector.Default.TryCreate(clrRef.Type, out TypeInfo typeInfo))
+                    {
+                        return !typeof(ScalarType).IsAssignableFrom(typeInfo.ClrType);
+                    }
+                    return true;
+                case SchemaTypeReference schemaRef:
+                    return !typeof(ScalarType).IsAssignableFrom(schemaRef.Type.GetType());
+                default:
+                    return true;
+            };
         }
 
         public override void OnBeforeCompleteName(
