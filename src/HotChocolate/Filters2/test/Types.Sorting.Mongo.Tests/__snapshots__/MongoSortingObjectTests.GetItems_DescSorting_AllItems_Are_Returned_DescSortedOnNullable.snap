@@ -1,0 +1,24 @@
+﻿{
+  "Data": {
+    "items": [
+      {
+        "model": {
+          "bazNullable": 2
+        }
+      },
+      {
+        "model": {
+          "bazNullable": 1
+        }
+      },
+      {
+        "model": {
+          "bazNullable": null
+        }
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}

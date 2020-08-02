@@ -1,0 +1,72 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooBarFilter {
+  AND: [FooBarFilter!]
+  Nested: String
+  Nested_Contains: String
+  Nested_EndsWith: String
+  Nested_In: [String]
+  Nested_Not: String
+  Nested_Not_Contains: String
+  Nested_Not_EndsWith: String
+  Nested_Not_In: [String]
+  Nested_Not_StartsWith: String
+  Nested_StartsWith: String
+  OR: [FooBarFilter!]
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  Bool: Boolean
+  Bool_Not: Boolean
+  Comparable: Short
+  comparableEnumerable_All: ISingleFilterOfInt16Filter
+  comparableEnumerable_Any: Boolean
+  comparableEnumerable_None: ISingleFilterOfInt16Filter
+  comparableEnumerable_Some: ISingleFilterOfInt16Filter
+  Comparable_Gt: Short
+  Comparable_Gte: Short
+  Comparable_In: [Short!]
+  Comparable_Lt: Short
+  Comparable_Lte: Short
+  Comparable_Not: Short
+  Comparable_Not_Gt: Short
+  Comparable_Not_Gte: Short
+  Comparable_Not_In: [Short!]
+  Comparable_Not_Lt: Short
+  Comparable_Not_Lte: Short
+  Object: FooBarFilter
+  OR: [FooFilter!]
+}
+
+input ISingleFilterOfInt16Filter {
+  AND: [ISingleFilterOfInt16Filter!]
+  Element: Short
+  Element_Gt: Short
+  Element_Gte: Short
+  Element_In: [Short!]
+  Element_Lt: Short
+  Element_Lte: Short
+  Element_Not: Short
+  Element_Not_Gt: Short
+  Element_Not_Gte: Short
+  Element_Not_In: [Short!]
+  Element_Not_Lt: Short
+  Element_Not_Lte: Short
+  OR: [ISingleFilterOfInt16Filter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
