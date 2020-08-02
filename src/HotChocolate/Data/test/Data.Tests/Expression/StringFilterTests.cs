@@ -1,11 +1,9 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-
     public class QueryableFilterVisitorStringTests
         : FilterVisitorTestBase
     {

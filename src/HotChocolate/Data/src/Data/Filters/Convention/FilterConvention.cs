@@ -134,6 +134,11 @@ namespace HotChocolate.Data.Filters
             {
                 return true;
             }
+            if (member is MethodInfo m &&
+                TryGetTypeOfRuntimeType(m.ReturnType, out type))
+            {
+                return true;
+            }
             type = null;
             return false;
         }

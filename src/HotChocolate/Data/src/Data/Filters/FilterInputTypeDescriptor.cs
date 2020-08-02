@@ -71,13 +71,13 @@ namespace HotChocolate.Data.Filters
                 Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
-            var fields = new Dictionary<NameString, InputFieldDefinition>();
-            var handledProperties = new HashSet<PropertyInfo>();
+            var fields = new Dictionary<NameString, FilterFieldDefinition>();
+            var handledProperties = new HashSet<MemberInfo>();
 
             FieldDescriptorUtilities.AddExplicitFields(
                 Fields.Select(t => t.CreateDefinition())
                     .Concat(Operations.Select(t => t.CreateDefinition())),
-                f => f.Property,
+                f => f.Member,
                 fields,
                 handledProperties);
 
@@ -87,8 +87,8 @@ namespace HotChocolate.Data.Filters
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<NameString, InputFieldDefinition> fields,
-            ISet<PropertyInfo> handledProperties)
+            IDictionary<NameString, FilterFieldDefinition> fields,
+            ISet<MemberInfo> handledProperties)
         {
         }
 

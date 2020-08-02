@@ -50,6 +50,7 @@ namespace HotChocolate.Data.Filters
             descriptor.AddFieldHandler<QueryableListNoneOperationHandler>();
             descriptor.AddFieldHandler<QueryableListSomeOperationHandler>();
 
+            descriptor.AddFieldHandler<QueryableDataOperationHandler>();
             descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
 
             descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();

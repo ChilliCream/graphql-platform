@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition) =>
             !(fieldDefinition is FilterOperationFieldDefinition) &&
-                fieldDefinition.Member is PropertyInfo;
+                fieldDefinition.Member is { };
 
         public override bool TryHandleEnter(
             QueryableFilterContext context,
@@ -27,7 +27,6 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-
             if (node.Value.IsNull())
             {
                 context.ReportError(
@@ -46,7 +45,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 }
                 else if (field.Member is MethodInfo methodInfo)
                 {
-                    nestedProperty = Expression.Property(context.GetInstance(), methodInfo);
+                    nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
                 }
                 else
                 {

@@ -36,6 +36,7 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(DefaultOperations.Any).Name("any");
             descriptor.Operation(DefaultOperations.And).Name("and");
             descriptor.Operation(DefaultOperations.Or).Name("or");
+            descriptor.Operation(DefaultOperations.Data).Name("data");
             return descriptor;
         }
 

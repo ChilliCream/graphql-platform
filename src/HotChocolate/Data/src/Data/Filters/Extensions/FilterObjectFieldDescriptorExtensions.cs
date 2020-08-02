@@ -66,8 +66,8 @@ namespace HotChocolate.Data
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
             Type filterType,
-            ITypeSystemMember filterTypeInstance = null,
-            string? scope = ConventionBase.DefaultScope)
+            ITypeSystemMember? filterTypeInstance = null,
+            string scope = ConventionBase.DefaultScope)
         {
             FieldMiddleware placeholder = next => context => default;
 

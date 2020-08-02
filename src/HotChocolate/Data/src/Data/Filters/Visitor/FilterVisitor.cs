@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Filters
             {
                 return action;
             }
-            return SyntaxVisitor.Skip;
+            return SyntaxVisitor.SkipAndLeave;
         }
 
         protected override ISyntaxVisitorAction OnFieldLeave(

@@ -1,16 +1,16 @@
-using System;
-using System.Linq.Expressions;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class FilterVisitorTestBase
     {
-        protected ExecutorBuilder CreateProviderTester<T>(T type)
+        protected ExecutorBuilder CreateProviderTester<T>(
+            T type,
+            FilterConvention? convention = null)
             where T : IFilterInputType
         {
-            var convention = new FilterConvention(x => x.UseDefault());
+            convention ??= new FilterConvention(x => x.UseDefault());
+
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .AddTypeInterceptor<FilterTypeInterceptor>()

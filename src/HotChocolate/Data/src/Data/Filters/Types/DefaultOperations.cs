@@ -38,5 +38,7 @@ namespace HotChocolate.Data.Filters
         public const int Any = 27;
 
         public const int Like = 28;
+
+        public const int Data = 29;
     }
 }

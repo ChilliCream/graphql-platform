@@ -26,7 +26,8 @@ namespace HotChocolate.Data.Filters
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(
-                new ListType(new NonNullType(filterType)));
+                new ListType(new NonNullType(filterType)),
+                scope: scope);
 
             return definition;
         }
