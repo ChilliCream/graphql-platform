@@ -53,7 +53,7 @@ namespace HotChocolate.Data.Filters
 
         public class Query2
         {
-            [UseFiltering(FilterType = typeof(FooFilterType))]
+            [UseFiltering(Type = typeof(FooFilterType))]
             public IEnumerable<Foo> Foos { get; } = new[]
             {
                 new Foo { Bar = "aa", Baz = 1, Qux = 1 },

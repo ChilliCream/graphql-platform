@@ -21,7 +21,7 @@ namespace HotChocolate.Data
         /// Gets or sets the filter type which specifies the filter object structure.
         /// </summary>
         /// <value>The filter type</value>
-        public Type FilterType { get; set; }
+        public Type Type { get; set; }
 
         /// <summary>
         /// Sets the scope for the convention
@@ -34,13 +34,13 @@ namespace HotChocolate.Data
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            if (FilterType is null)
+            if (Type is null)
             {
                 descriptor.UseFiltering(Scope);
             }
             else
             {
-                _generic.MakeGenericMethod(FilterType).Invoke(
+                _generic.MakeGenericMethod(Type).Invoke(
                     null,
                     new object[] { descriptor, Scope });
             }
