@@ -36,7 +36,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 "{ bar: { eq: false }}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterType());
 
-                // act
+            // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
 
             // assert
