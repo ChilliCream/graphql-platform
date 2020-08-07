@@ -1,0 +1,15 @@
+﻿{
+  "Data": {
+    "root": [
+      {
+        "bar": true
+      },
+      {
+        "bar": null
+      }
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}
