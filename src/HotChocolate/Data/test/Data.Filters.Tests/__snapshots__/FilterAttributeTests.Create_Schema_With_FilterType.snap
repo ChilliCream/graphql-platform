@@ -13,33 +13,33 @@ type Query1 {
 }
 
 input ComparableOperationInputOfInt32Filter {
-  eq: Int!
-  gt: Int!
-  gte: Int!
+  eq: Int
+  gt: Int
+  gte: Int
   in: [Int!]
-  lt: Int!
-  lte: Int!
-  neq: Int!
-  ngt: Int!
-  ngte: Int!
+  lt: Int
+  lte: Int
+  neq: Int
+  ngt: Int
+  ngte: Int
   nin: [Int!]
-  nlt: Int!
-  nlte: Int!
+  nlt: Int
+  nlte: Int
 }
 
 input ComparableOperationInputOfInt64Filter {
-  eq: Long!
-  gt: Long!
-  gte: Long!
+  eq: Long
+  gt: Long
+  gte: Long
   in: [Long!]
-  lt: Long!
-  lte: Long!
-  neq: Long!
-  ngt: Long!
-  ngte: Long!
+  lt: Long
+  lte: Long
+  neq: Long
+  ngt: Long
+  ngte: Long
   nin: [Long!]
-  nlt: Long!
-  nlte: Long!
+  nlt: Long
+  nlte: Long
 }
 
 input FooFilter {

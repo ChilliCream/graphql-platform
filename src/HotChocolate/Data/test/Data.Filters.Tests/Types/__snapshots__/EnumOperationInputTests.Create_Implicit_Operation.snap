@@ -7,9 +7,9 @@ type Query {
 }
 
 input EnumOperationInputOfFooBarFilter {
-  eq: FooBar!
+  eq: FooBar
   in: [FooBar!]
-  neq: FooBar!
+  neq: FooBar
   nin: [FooBar!]
 }
 
