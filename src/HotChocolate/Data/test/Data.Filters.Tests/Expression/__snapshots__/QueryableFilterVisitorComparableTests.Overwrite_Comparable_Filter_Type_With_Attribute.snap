@@ -7,18 +7,18 @@ type Query {
 }
 
 input ComparableOperationInputOfInt16Filter {
-  eq: Short!
-  gt: Short!
-  gte: Short!
+  eq: Short
+  gt: Short
+  gte: Short
   in: [Short!]
-  lt: Short!
-  lte: Short!
-  neq: Short!
-  ngt: Short!
-  ngte: Short!
+  lt: Short
+  lte: Short
+  neq: Short
+  ngt: Short
+  ngte: Short
   nin: [Short!]
-  nlt: Short!
-  nlte: Short!
+  nlt: Short
+  nlte: Short
 }
 
 input EntityWithTypeAttributeFilter {
