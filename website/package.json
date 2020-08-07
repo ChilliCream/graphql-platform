@@ -47,7 +47,7 @@
     "gatsby-transformer-json": "^2.4.5",
     "gatsby-transformer-remark": "^2.8.15",
     "gatsby-transformer-sharp": "^2.5.2",
-    "prismjs": "^1.19.0",
+    "prismjs": "^1.21.0",
     "puppeteer": "^4.0.1",
     "react": "^16.13.0",
     "react-cookie": "^4.0.3",
