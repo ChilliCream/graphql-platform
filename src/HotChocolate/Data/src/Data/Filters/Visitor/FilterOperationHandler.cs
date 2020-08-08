@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Filters
             }
             else
             {
-                action = SyntaxVisitor.Skip;
+                action = SyntaxVisitor.Break;
             }
             return true;
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -12,6 +13,7 @@ namespace HotChocolate.Data.Filters.Expressions
             ITypeConverter typeConverter)
             : base(typeConverter)
         {
+            CanBeNull = false;
         }
 
         protected override int Operation => DefaultOperations.NotGreaterThanOrEquals;
@@ -22,12 +24,17 @@ namespace HotChocolate.Data.Filters.Expressions
             IFilterOperationField field,
             IType fieldType,
             IValueNode value,
-            object parsedValue)
+            object? parsedValue)
         {
             Expression property = context.GetInstance();
             parsedValue = ParseValue(value, parsedValue, fieldType, context);
-            return FilterExpressionBuilder.Not(
-                FilterExpressionBuilder.GreaterThanOrEqual(property, parsedValue));
+
+            if (parsedValue == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return FilterExpressionBuilder.LowerThan(property, parsedValue);
         }
     }
 }

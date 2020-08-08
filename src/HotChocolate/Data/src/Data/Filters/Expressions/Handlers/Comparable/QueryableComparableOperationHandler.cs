@@ -30,12 +30,17 @@ namespace HotChocolate.Data.Filters.Expressions
                 operationField.Operation == Operation;
         }
 
-        protected object ParseValue(
+        protected object? ParseValue(
             IValueNode node,
-            object parsedValue,
+            object? parsedValue,
             IType type,
             QueryableFilterContext context)
         {
+            if (parsedValue == null)
+            {
+                return parsedValue;
+            }
+
             Type? returnType = context.ClrTypes.Peek();
 
             if (type.IsListType())

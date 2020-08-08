@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public static Expression NotEquals(
             Expression property,
-            object value)
+            object? value)
         {
             return Expression.NotEqual(
                 property,
