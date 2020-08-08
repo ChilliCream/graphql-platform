@@ -1,0 +1,29 @@
+﻿{
+  "Data": {
+    "root": []
+  },
+  "Errors": [
+    {
+      "Message": "The provided value for filter `lt` of type FooFilter is invalid. Null values are not supported.",
+      "Code": null,
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "root"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 33
+        }
+      ],
+      "Extensions": {
+        "expectedType": "Short!",
+        "filterType": "FooFilter"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}
