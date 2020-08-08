@@ -1,39 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using Castle.Core.Logging;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Squadron;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters
 {
-    public class DatabaseContext<T> : DbContext
-        where T : class
-    {
-        private static int _dbCounter = 0;
-
-        private readonly SqlServerResource _resource;
-
-        public DatabaseContext(SqlServerResource resource)
-        {
-            _resource = resource;
-        }
-
-        public DbSet<T> Data { get; set; }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            var id = Interlocked.Increment(ref _dbCounter);
-            var connectionString = _resource.CreateConnectionString("database_" + id);
-            optionsBuilder.UseSqlServer(connectionString);
-        }
-    }
-
     public class FilterVisitorTestBase
     {
         private readonly object _lock = new object();

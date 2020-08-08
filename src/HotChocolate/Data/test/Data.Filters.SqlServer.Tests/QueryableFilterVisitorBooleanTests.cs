@@ -1,14 +1,11 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters
 {
 
     public class QueryableFilterVisitorBooleanTests

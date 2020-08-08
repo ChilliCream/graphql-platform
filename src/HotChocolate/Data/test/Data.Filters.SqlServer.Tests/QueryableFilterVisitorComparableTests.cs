@@ -1,41 +1,12 @@
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data.Filters
 {
-    public class SchemaCache : FilterVisitorTestBase, IDisposable
-    {
-        private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
-            new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
-
-        public SchemaCache()
-            : base()
-        {
-
-        }
-
-        public IRequestExecutor CreateSchema<T, TType>(T[] entites)
-            where T : class
-            where TType : IFilterInputType
-        {
-            (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entites);
-            return _cache.GetOrAdd(key, (k) => base.CreateSchema<T, TType>(entites));
-        }
-
-        public void Dispose()
-        {
-        }
-    }
-
     public class QueryableFilterVisitorComparableTests
         : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
 
@@ -82,6 +53,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13"));
+
+            IExecutionResult? res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
+                .Create());
+
+            res3.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -104,8 +82,14 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13"));
-        }
 
+            IExecutionResult? res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
+                .Create());
+
+            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+        }
 
         [Fact]
         public async Task Create_ShortGreaterThan_Expression()
@@ -134,6 +118,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -163,6 +154,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
 
@@ -193,6 +191,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -222,6 +227,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -251,6 +263,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -280,6 +299,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
 
@@ -310,6 +336,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -321,24 +354,31 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Create());
 
             res1.MatchSnapshot(new SnapshotNameExtension("12"));
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13"));
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
+
+            IExecutionResult? res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
+                .Create());
+
+            res4.MatchSnapshot(new SnapshotNameExtension("null"));
         }
 
         [Fact]
@@ -355,10 +395,17 @@ namespace HotChocolate.Data.Filters.Expressions
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+
+            IExecutionResult? res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
+                .Create());
+
+            res3.MatchSnapshot(new SnapshotNameExtension("nullAnd14"));
         }
 
         [Fact]
@@ -375,10 +422,17 @@ namespace HotChocolate.Data.Filters.Expressions
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+
+            IExecutionResult? res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
+                .Create());
+
+            res3.MatchSnapshot(new SnapshotNameExtension("nullAnd14"));
         }
 
         [Fact]
@@ -714,28 +768,28 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Create());
 
             res1.MatchSnapshot(new SnapshotNameExtension("12"));
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Create());
 
             res2.MatchSnapshot(new SnapshotNameExtension("13"));
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Create());
 
             res3.MatchSnapshot(new SnapshotNameExtension("14"));
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
+                .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
                 .Create());
 
             res4.MatchSnapshot(new SnapshotNameExtension("null"));
@@ -800,11 +854,17 @@ namespace HotChocolate.Data.Filters.Expressions
         public class Foo
         {
             public int Id { get; set; }
+
             public short BarShort { get; set; }
+
             public int BarInt { get; set; }
+
             public long BarLong { get; set; }
+
             public float BarFloat { get; set; }
+
             public double BarDouble { get; set; }
+
             public decimal BarDecimal { get; set; }
         }
 
@@ -823,17 +883,5 @@ namespace HotChocolate.Data.Filters.Expressions
             : FilterInputType<FooNullable>
         {
         }
-
-        public class EntityWithTypeAttribute
-        {
-            [GraphQLType(typeof(IntType))]
-            public short? BarShort { get; set; }
-        }
-
-        public class Entity
-        {
-            public short? BarShort { get; set; }
-        }
-
     }
 }

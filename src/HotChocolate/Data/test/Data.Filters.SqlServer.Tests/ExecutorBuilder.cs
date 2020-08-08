@@ -1,14 +1,12 @@
 using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class ExecutorBuilder
     {
         private readonly IFilterInputType _inputType;
-        private readonly FilterConvention _filterConvention;
         private readonly QueryableFilterProvider _provider;
 
         public ExecutorBuilder(
@@ -16,8 +14,8 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterConvention filterConvention)
         {
             _inputType = inputType;
-            _filterConvention = filterConvention;
-            _provider = filterConvention.Provider as QueryableFilterProvider;
+            _provider = filterConvention.Provider as QueryableFilterProvider ??
+                throw new InvalidOperationException("Provider was null");
         }
 
         public Func<T, bool> Build<T>(IValueNode filter)
@@ -34,6 +32,5 @@ namespace HotChocolate.Data.Filters.Expressions
             }
             throw new InvalidOperationException();
         }
-
     }
 }
