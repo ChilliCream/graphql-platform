@@ -6,24 +6,24 @@ type Query {
   foo: String
 }
 
-input ComparableOperationInputOfInt16Filter {
+input ComparableOperationInputOfNullableOfInt16Filter {
   eq: Short
   gt: Short
   gte: Short
-  in: [Short!]
+  in: [Short]
   lt: Short
   lte: Short
   neq: Short
   ngt: Short
   ngte: Short
-  nin: [Short!]
+  nin: [Short]
   nlt: Short
   nlte: Short
 }
 
 input EntityWithTypeAttributeFilter {
   and: [EntityWithTypeAttributeFilter!]
-  barShort: ComparableOperationInputOfInt16Filter
+  barShort: ComparableOperationInputOfNullableOfInt16Filter
   or: [EntityWithTypeAttributeFilter!]
 }
 

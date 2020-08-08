@@ -52,6 +52,14 @@ namespace HotChocolate.Data.Filters
             descriptor.Binding<float, ComparableOperationInput<float>>();
             descriptor.Binding<double, ComparableOperationInput<double>>();
             descriptor.Binding<decimal, ComparableOperationInput<decimal>>();
+            descriptor.Binding<bool?, BooleanOperationInput>();
+            descriptor.Binding<byte?, ComparableOperationInput<byte?>>();
+            descriptor.Binding<short?, ComparableOperationInput<short?>>();
+            descriptor.Binding<int?, ComparableOperationInput<int?>>();
+            descriptor.Binding<long?, ComparableOperationInput<long?>>();
+            descriptor.Binding<float?, ComparableOperationInput<float?>>();
+            descriptor.Binding<double?, ComparableOperationInput<double?>>();
+            descriptor.Binding<decimal?, ComparableOperationInput<decimal?>>();
             descriptor.Binding<Guid, ComparableOperationInput<Guid>>();
             descriptor.Binding<DateTime, ComparableOperationInput<DateTime>>();
             descriptor.Binding<DateTimeOffset, ComparableOperationInput<DateTimeOffset>>();

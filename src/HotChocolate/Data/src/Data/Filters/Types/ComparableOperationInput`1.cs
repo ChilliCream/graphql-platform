@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
     public class ComparableOperationInput<T> : FilterInputType, IComparableOperationInput
-        where T : IComparable
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

@@ -147,10 +147,11 @@ namespace HotChocolate.Data.Filters
             Type runtimeType,
             [NotNullWhen(true)] out Type? type)
         {
+            Type underlyingType = runtimeType;
             if (runtimeType.IsGenericType
-                && System.Nullable.GetUnderlyingType(runtimeType) is { } nullableType)
+                && System.Nullable.GetUnderlyingType(runtimeType) is { } innerNullableType)
             {
-                runtimeType = nullableType;
+                underlyingType = innerNullableType;
             }
 
             if (Bindings.TryGetValue(runtimeType, out type))
@@ -158,13 +159,14 @@ namespace HotChocolate.Data.Filters
                 return true;
             }
 
-            if (DotNetTypeInfoFactory.IsListType(runtimeType))
+            if (DotNetTypeInfoFactory.IsListType(underlyingType))
             {
-                if (!TypeInspector.Default.TryCreate(runtimeType, out Utilities.TypeInfo typeInfo))
+                if (!TypeInspector.Default.TryCreate(underlyingType,
+                                                     out Utilities.TypeInfo typeInfo))
                 {
                     throw new ArgumentException(
-                        string.Format("The type {0} is unknown", runtimeType.Name),
-                        nameof(runtimeType));
+                        string.Format("The type {0} is unknown", underlyingType.Name),
+                        nameof(underlyingType));
                 }
 
                 if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
@@ -174,13 +176,13 @@ namespace HotChocolate.Data.Filters
                 }
             }
 
-            if (runtimeType.IsEnum)
+            if (underlyingType.IsEnum)
             {
                 type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
                 return true;
             }
 
-            if (runtimeType.IsClass)
+            if (underlyingType.IsClass)
             {
                 type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
                 return true;
