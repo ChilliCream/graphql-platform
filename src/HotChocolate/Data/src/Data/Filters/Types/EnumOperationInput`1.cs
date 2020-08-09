@@ -3,7 +3,6 @@ using System.Collections.Generic;
 namespace HotChocolate.Data.Filters
 {
     public class EnumOperationInput<T> : FilterInputType, IEnumOperationInput
-        where T : struct
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
