@@ -6,6 +6,12 @@ namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableStringNotEndsWithHandler : QueryableStringOperationHandler
     {
+
+        public QueryableStringNotEndsWithHandler()
+        {
+            CanBeNull = false;
+        }
+
         protected override int Operation => DefaultOperations.NotEndsWith;
 
         public override Expression HandleOperation(
