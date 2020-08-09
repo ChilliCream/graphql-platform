@@ -34,7 +34,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 throw new InvalidOperationException();
             }
 
-            return FilterExpressionBuilder.LowerThanOrEqual(property, parsedValue);
+            return FilterExpressionBuilder.Not(
+                FilterExpressionBuilder.GreaterThan(property, parsedValue));
         }
     }
 }
