@@ -79,6 +79,8 @@ namespace HotChocolate.Data.Filters
         public class Foo
         {
             public FooBar FooBar { get; set; }
+
+            public FooBar? FooBarNullable { get; set; }
         }
 
         public enum FooBar

@@ -13,9 +13,17 @@ input EnumOperationInputOfFooBarFilter {
   nin: [FooBar!]
 }
 
+input EnumOperationInputOfNullableOfFooBarFilter {
+  eq: FooBar
+  in: [FooBar]
+  neq: FooBar
+  nin: [FooBar]
+}
+
 input FooFilter {
   and: [FooFilter!]
   fooBar: EnumOperationInputOfFooBarFilter
+  fooBarNullable: EnumOperationInputOfNullableOfFooBarFilter
   or: [FooFilter!]
 }
 
