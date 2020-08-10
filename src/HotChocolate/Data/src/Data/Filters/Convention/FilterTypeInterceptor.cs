@@ -87,11 +87,16 @@ namespace HotChocolate.Data.Filters
                     if (!BaseTypes.IsNonGenericBaseType(clrRef.Type)
                         && TypeInspector.Default.TryCreate(clrRef.Type, out TypeInfo typeInfo))
                     {
-                        return !typeof(ScalarType).IsAssignableFrom(typeInfo.ClrType);
+                        return !typeof(ScalarType).IsAssignableFrom(typeInfo.ClrType) &&
+                            !typeInfo.ClrType.IsEnum &&
+                            !typeof(EnumType).IsAssignableFrom(typeInfo.ClrType);
                     }
                     return true;
                 case SchemaTypeReference schemaRef:
-                    return !typeof(ScalarType).IsAssignableFrom(schemaRef.Type.GetType());
+                    Type? type = schemaRef.Type.GetType();
+                    return !typeof(ScalarType).IsAssignableFrom(type) &&
+                            !type.IsEnum &&
+                            !typeof(EnumType).IsAssignableFrom(type);
                 default:
                     return true;
             };
