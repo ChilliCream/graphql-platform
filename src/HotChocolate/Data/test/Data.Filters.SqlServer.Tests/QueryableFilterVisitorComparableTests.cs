@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using Snapshooter;
-using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
@@ -9,7 +9,6 @@ namespace HotChocolate.Data.Filters
 {
     public class QueryableFilterVisitorComparableTests
         : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
-
     {
         private static readonly Foo[] _fooEntities = new[]{
             new Foo { BarShort = 12 },
@@ -45,21 +44,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
         [Fact]
@@ -74,21 +73,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
         [Fact]
@@ -103,28 +102,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -139,28 +138,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
 
@@ -176,28 +175,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { gte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -212,28 +211,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -248,28 +247,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { lt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -284,28 +283,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
 
@@ -321,28 +320,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -357,28 +356,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -391,21 +390,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12and13"));
+            res1.MatchSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+            res2.MatchSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { in: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("nullAnd14"));
+            res3.MatchSnapshot("nullAnd14");
         }
 
         [Fact]
@@ -418,21 +417,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12and13"));
+            res1.MatchSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+            res2.MatchSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("nullAnd14"));
+            res3.MatchSnapshot("nullAnd14");
         }
 
         [Fact]
@@ -449,21 +448,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
         [Fact]
@@ -479,21 +478,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
 
@@ -510,28 +509,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -547,28 +546,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
 
@@ -585,28 +584,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { gte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { gte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -622,28 +621,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { ngte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { ngte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -659,28 +658,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { lt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -696,28 +695,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nlt: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlt: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
 
@@ -734,28 +733,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { lte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { lte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -771,28 +770,28 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12"));
+            res1.MatchSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13"));
+            res2.MatchSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: 14}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("14"));
+            res3.MatchSnapshot("14");
 
             IExecutionResult? res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nlte: null}}){ barShort}}")
                 .Create());
 
-            res4.MatchSnapshot(new SnapshotNameExtension("null"));
+            res4.MatchSnapshot("null");
         }
 
         [Fact]
@@ -806,21 +805,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { in: [ 12, 13 ]}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12and13"));
+            res1.MatchSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { in: [ 13, 14 ]}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+            res2.MatchSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { in: [ 13, null ]}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("13andNull"));
+            res3.MatchSnapshot("13andNull");
         }
 
         [Fact]
@@ -834,21 +833,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("12and13"));
+            res1.MatchSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nin: [ 13, 14 ]}}){ barShort}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("13and14"));
+            res2.MatchSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { barShort: { nin: [ 13, null ]}}){ barShort}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("13andNull"));
+            res3.MatchSnapshot("13andNull");
         }
 
         public class Foo

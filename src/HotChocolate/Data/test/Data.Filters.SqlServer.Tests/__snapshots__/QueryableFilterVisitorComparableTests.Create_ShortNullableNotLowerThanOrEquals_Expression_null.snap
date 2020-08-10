@@ -1,29 +1,23 @@
 ﻿{
-  "Data": {
-    "root": []
-  },
-  "Errors": [
+  "errors": [
     {
-      "Message": "The provided value for filter `nlte` of type FooNullableFilter is invalid. Null values are not supported.",
-      "Code": null,
-      "Path": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "root"
-      },
-      "Locations": [
+      "message": "The provided value for filter \u0060nlte\u0060 of type FooNullableFilter is invalid. Null values are not supported.",
+      "locations": [
         {
-          "Line": 1,
-          "Column": 35
+          "line": 1,
+          "column": 35
         }
       ],
-      "Extensions": {
+      "path": [
+        "root"
+      ],
+      "extensions": {
         "expectedType": "Short!",
         "filterType": "FooNullableFilter"
-      },
-      "Exception": null
+      }
     }
   ],
-  "Extensions": null,
-  "ContextData": null
+  "data": {
+    "root": []
+  }
 }

@@ -1,5 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "root": [
       {
         "barShort": 14
@@ -8,8 +8,5 @@
         "barShort": 13
       }
     ]
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Tests;
 using Snapshooter;
-using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
 
@@ -9,21 +9,32 @@ namespace HotChocolate.Data.Filters
 {
 
     public class QueryableFilterVisitorBooleanTests
-        : FilterVisitorTestBase, IClassFixture<SqlServerResource>
+        : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
     {
-        public QueryableFilterVisitorBooleanTests(SqlServerResource resource) : base(resource)
+        private static readonly Foo[] _fooEntities = new[]{
+            new Foo { Bar = true },
+            new Foo { Bar = false }};
+
+        private static readonly FooNullable[] _fooNullableEntities = new[]{
+            new FooNullable { Bar = true },
+            new FooNullable { Bar = null },
+            new FooNullable { Bar = false }};
+
+        private readonly SchemaCache _cache;
+
+        public QueryableFilterVisitorBooleanTests(
+            SqlServerResource sqlServer,
+            SchemaCache cache)
         {
+            _cache = cache;
+            _cache.Init(sqlServer);
         }
 
         [Fact]
         public async Task Create_BooleanEqual_Expression()
         {
             // arrange
-            Foo[]? entities = CreateEntity(
-                new Foo { Bar = true },
-                new Foo { Bar = false });
-
-            IRequestExecutor? tester = CreateSchema<Foo, FooFilterType>(entities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
@@ -32,25 +43,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("true"));
+            res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("false"));
+            res2.MatchSnapshot("false");
         }
 
         [Fact]
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
-            Foo[]? entities = CreateEntity(
-                new Foo { Bar = true },
-                new Foo { Bar = false });
-
-            IRequestExecutor? tester = CreateSchema<Foo, FooFilterType>(entities);
+            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
@@ -59,26 +66,22 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("true"));
+            res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("false"));
+            res2.MatchSnapshot("false");
         }
 
         [Fact]
         public async Task Create_NullableBooleanEqual_Expression()
         {
             // arrange
-            FooNullable[]? entities = CreateEntity(
-                new FooNullable { Bar = true },
-                new FooNullable { Bar = null },
-                new FooNullable { Bar = false });
-
-            IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(entities);
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+                _fooNullableEntities);
 
             // act
             // assert
@@ -87,33 +90,29 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("true"));
+            res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("false"));
+            res2.MatchSnapshot("false");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
         [Fact]
         public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
-            FooNullable[]? entities = CreateEntity(
-                new FooNullable { Bar = true },
-                new FooNullable { Bar = null },
-                new FooNullable { Bar = false });
-
-            IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(entities);
+            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+                _fooNullableEntities);
 
             // act
             // assert
@@ -122,21 +121,21 @@ namespace HotChocolate.Data.Filters
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
-            res1.MatchSnapshot(new SnapshotNameExtension("true"));
+            res1.MatchSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
-            res2.MatchSnapshot(new SnapshotNameExtension("false"));
+            res2.MatchSnapshot("false");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
 
-            res3.MatchSnapshot(new SnapshotNameExtension("null"));
+            res3.MatchSnapshot("null");
         }
 
         public class Foo
