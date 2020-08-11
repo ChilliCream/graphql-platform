@@ -1,8 +1,6 @@
-﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Tests;
 using Squadron;
 using Xunit;
