@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -16,6 +15,7 @@ namespace HotChocolate.Data.Filters.Expressions
             ITypeConverter typeConverter)
         {
             TypeConverter = typeConverter ?? DefaultTypeConverter.Default;
+            CanBeNull = false;
         }
 
         protected ITypeConverter TypeConverter { get; }
