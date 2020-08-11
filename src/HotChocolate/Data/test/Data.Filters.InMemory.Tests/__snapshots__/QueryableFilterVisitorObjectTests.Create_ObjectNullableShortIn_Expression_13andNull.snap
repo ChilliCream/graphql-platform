@@ -8,11 +8,6 @@
       },
       {
         "foo": {
-          "barShort": null
-        }
-      },
-      {
-        "foo": {
           "barShort": 13
         }
       }

@@ -10,11 +10,6 @@
         "foo": {
           "barBool": false
         }
-      },
-      {
-        "foo": {
-          "barBool": false
-        }
       }
     ]
   }

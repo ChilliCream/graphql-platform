@@ -6,12 +6,7 @@
           "objectArray": [
             {
               "foo": {
-                "barString": "testatest"
-              }
-            },
-            {
-              "foo": {
-                "barString": "testatest"
+                "barString": "a"
               }
             }
           ]
@@ -22,55 +17,7 @@
           "objectArray": [
             {
               "foo": {
-                "barString": "testatest"
-              }
-            },
-            {
-              "foo": {
-                "barString": "testatest"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "foo": {
-          "objectArray": [
-            {
-              "foo": {
-                "barString": "testbtest"
-              }
-            },
-            {
-              "foo": {
-                "barString": "testbtest"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "foo": {
-          "objectArray": [
-            {
-              "foo": {
-                "barString": "testbtest"
-              }
-            },
-            {
-              "foo": {
-                "barString": "testbtest"
-              }
-            }
-          ]
-        }
-      },
-      {
-        "foo": {
-          "objectArray": [
-            {
-              "foo": {
-                "barString": "testctest"
+                "barString": "d"
               }
             }
           ]

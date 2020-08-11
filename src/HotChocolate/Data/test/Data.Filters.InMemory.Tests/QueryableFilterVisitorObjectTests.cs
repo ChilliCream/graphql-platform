@@ -625,7 +625,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             public short BarShort { get; set; }
 
-            public string BarString { get; set; }
+            public string BarString { get; set; } = "";
 
             public BarEnum BarEnum { get; set; }
 
@@ -634,7 +634,7 @@ namespace HotChocolate.Data.Filters.Expressions
             //Not supported in SQL
             //public string[] ScalarArray { get; set; }
 
-            public List<Bar> ObjectArray { get; set; }
+            public List<Bar> ObjectArray { get; set; } = new List<Bar>();
         }
 
         public class FooNullable
@@ -659,7 +659,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             public int Id { get; set; }
 
-            public Foo Foo { get; set; }
+            public Foo Foo { get; set; } = null!;
 
         }
 

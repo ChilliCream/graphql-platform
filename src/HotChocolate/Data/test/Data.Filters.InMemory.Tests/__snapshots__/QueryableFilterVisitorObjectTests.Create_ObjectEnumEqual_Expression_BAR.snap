@@ -5,11 +5,6 @@
         "foo": {
           "barEnum": "BAR"
         }
-      },
-      {
-        "foo": {
-          "barEnum": "BAR"
-        }
       }
     ]
   }

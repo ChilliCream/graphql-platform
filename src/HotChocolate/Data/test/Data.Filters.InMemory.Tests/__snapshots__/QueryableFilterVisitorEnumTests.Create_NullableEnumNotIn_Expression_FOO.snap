@@ -8,6 +8,9 @@
         "barEnum": "BAZ"
       },
       {
+        "barEnum": null
+      },
+      {
         "barEnum": "QUX"
       }
     ]

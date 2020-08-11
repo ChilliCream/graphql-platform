@@ -8,11 +8,6 @@
       },
       {
         "foo": {
-          "barEnum": "BAR"
-        }
-      },
-      {
-        "foo": {
           "barEnum": "FOO"
         }
       }

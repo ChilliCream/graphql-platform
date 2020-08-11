@@ -628,7 +628,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             public short BarShort { get; set; }
 
-            public string BarString { get; set; }
+            public string BarString { get; set; } = string.Empty;
 
             public BarEnum BarEnum { get; set; }
 

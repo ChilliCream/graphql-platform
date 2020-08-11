@@ -5,6 +5,9 @@
         "barShort": 12
       },
       {
+        "barShort": null
+      },
+      {
         "barShort": 13
       }
     ]

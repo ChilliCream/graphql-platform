@@ -1,5 +1,9 @@
 ﻿{
   "data": {
-    "root": []
+    "root": [
+      {
+        "barShort": null
+      }
+    ]
   }
 }

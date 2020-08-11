@@ -3,6 +3,9 @@
     "root": [
       {
         "barShort": 12
+      },
+      {
+        "barShort": null
       }
     ]
   }

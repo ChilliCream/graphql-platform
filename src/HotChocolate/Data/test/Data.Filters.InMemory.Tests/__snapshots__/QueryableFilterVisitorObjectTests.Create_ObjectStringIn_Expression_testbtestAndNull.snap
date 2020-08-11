@@ -5,11 +5,6 @@
         "foo": {
           "barString": "testbtest"
         }
-      },
-      {
-        "foo": {
-          "barString": "testbtest"
-        }
       }
     ]
   }

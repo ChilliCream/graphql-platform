@@ -1,5 +1,17 @@
 ﻿{
   "data": {
-    "root": []
+    "root": [
+      {
+        "foo": {
+          "objectArray": [
+            {
+              "foo": {
+                "barString": "a"
+              }
+            }
+          ]
+        }
+      }
+    ]
   }
 }
