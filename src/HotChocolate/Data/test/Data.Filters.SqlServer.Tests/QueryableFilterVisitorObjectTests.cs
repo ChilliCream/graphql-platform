@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Squadron;
 using Xunit;
 
@@ -17,11 +16,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
                     ObjectArray = new List<Bar> {
                         new Bar {
                             Foo = new Foo {
-                                // ScalarArray = new[] { "c", "d", "a" }
                                 BarShort = 12,
                                 BarString = "a"
                             }
@@ -35,11 +32,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
                     ObjectArray = new List<Bar> {
                         new Bar {
                             Foo = new Foo {
-                                //ScalarArray = new[] { "c", "d", "b" }
                                 BarShort = 14,
                                 BarString = "d"
                             }
@@ -64,11 +59,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    //ScalarArray = new[] { "c", "d", "a" },
                     ObjectArray = new List<BarNullable> {
                         new BarNullable {
                             Foo = new FooNullable{
-                                //ScalarArray = new[] { "c", "d", "a" }
                                 BarShort = 12,
                             }
                         }
@@ -81,11 +74,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = null,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    //ScalarArray = new[] { "c", "d", "b" },
                     ObjectArray = new List<BarNullable> {
                         new BarNullable {
                             Foo = new FooNullable{
-                                //ScalarArray = new[] { "c", "d", "b" }
                                 BarShort = null,
                             }
                         }
@@ -98,11 +89,9 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.QUX,
                     BarString = "testctest",
-                    //ScalarArray = null,
                     ObjectArray = new List<BarNullable> {
                         new BarNullable {
                             Foo = new FooNullable{
-                                //ScalarArray = new[] { "c", "d", "b" }
                                 BarShort = 14,
                             }
                         }
@@ -115,7 +104,6 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.FOO,
                     BarString = "testdtest",
-                    //ScalarArray = null,
                     ObjectArray = null
                 }
             }};
@@ -145,7 +133,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res1.MatchSnapshot("12");
+            res1.MatchSqlSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -154,7 +142,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -163,7 +151,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -178,7 +166,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res1.MatchSnapshot("12and13");
+            res1.MatchSqlSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -187,7 +175,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res2.MatchSnapshot("13and14");
+            res2.MatchSqlSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -196,7 +184,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res3.MatchSnapshot("nullAnd14");
+            res3.MatchSqlSnapshot("nullAnd14");
         }
 
         [Fact]
@@ -215,7 +203,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res1.MatchSnapshot("12");
+            res1.MatchSqlSnapshot("12");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -224,7 +212,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -233,7 +221,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -249,7 +237,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res1.MatchSnapshot("12and13");
+            res1.MatchSqlSnapshot("12and13");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -258,7 +246,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res2.MatchSnapshot("13and14");
+            res2.MatchSqlSnapshot("13and14");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -267,7 +255,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barShort}}}")
                 .Create());
 
-            res3.MatchSnapshot("13andNull");
+            res3.MatchSqlSnapshot("13andNull");
         }
 
         [Fact]
@@ -285,7 +273,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barBool}}}")
                 .Create());
 
-            res1.MatchSnapshot("true");
+            res1.MatchSqlSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -294,7 +282,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barBool}}}")
                 .Create());
 
-            res2.MatchSnapshot("false");
+            res2.MatchSqlSnapshot("false");
         }
 
         [Fact]
@@ -313,7 +301,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barBool}}}")
                 .Create());
 
-            res1.MatchSnapshot("true");
+            res1.MatchSqlSnapshot("true");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -322,7 +310,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barBool}}}")
                 .Create());
 
-            res2.MatchSnapshot("false");
+            res2.MatchSqlSnapshot("false");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -331,7 +319,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barBool}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -348,7 +336,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res1.MatchSnapshot("BAR");
+            res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -357,7 +345,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res2.MatchSnapshot("FOO");
+            res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -366,7 +354,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -383,7 +371,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res1.MatchSnapshot("BarAndFoo");
+            res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -392,7 +380,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res2.MatchSnapshot("FOO");
+            res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -401,7 +389,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res3.MatchSnapshot("nullAndFoo");
+            res3.MatchSqlSnapshot("nullAndFoo");
         }
 
         [Fact]
@@ -419,7 +407,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res1.MatchSnapshot("BAR");
+            res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -428,7 +416,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res2.MatchSnapshot("FOO");
+            res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -437,7 +425,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -455,7 +443,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res1.MatchSnapshot("BarAndFoo");
+            res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -464,7 +452,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res2.MatchSnapshot("FOO");
+            res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -473,7 +461,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barEnum}}}")
                 .Create());
 
-            res3.MatchSnapshot("nullAndFoo");
+            res3.MatchSqlSnapshot("nullAndFoo");
         }
 
         [Fact]
@@ -491,7 +479,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barString}}}")
                 .Create());
 
-            res1.MatchSnapshot("testatest");
+            res1.MatchSqlSnapshot("testatest");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -500,7 +488,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barString}}}")
                 .Create());
 
-            res2.MatchSnapshot("testbtest");
+            res2.MatchSqlSnapshot("testbtest");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -508,7 +496,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -526,7 +514,7 @@ namespace HotChocolate.Data.Filters.Expressions
                    "{ foo{ barString}}}")
                 .Create());
 
-            res1.MatchSnapshot("testatestAndtestb");
+            res1.MatchSqlSnapshot("testatestAndtestb");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -535,7 +523,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barString}}}")
                 .Create());
 
-            res2.MatchSnapshot("testbtestAndNull");
+            res2.MatchSqlSnapshot("testbtestAndNull");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -544,7 +532,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo{ barString}}}")
                 .Create());
 
-            res3.MatchSnapshot("testatest");
+            res3.MatchSqlSnapshot("testatest");
         }
 
         [Fact]
@@ -563,7 +551,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray { foo { barString}}}}}")
                 .Create());
 
-            res1.MatchSnapshot("a");
+            res1.MatchSqlSnapshot("a");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -573,7 +561,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray { foo { barString}}}}}")
                 .Create());
 
-            res2.MatchSnapshot("d");
+            res2.MatchSqlSnapshot("d");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -583,7 +571,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray { foo {barString}}}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -601,7 +589,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
 
-            res1.MatchSnapshot("false");
+            res1.MatchSqlSnapshot("false");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -610,7 +598,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
 
-            res2.MatchSnapshot("true");
+            res2.MatchSqlSnapshot("true");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -619,7 +607,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     "{ foo { objectArray  { foo { barString }}}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         public class Foo
@@ -633,9 +621,6 @@ namespace HotChocolate.Data.Filters.Expressions
             public BarEnum BarEnum { get; set; }
 
             public bool BarBool { get; set; }
-
-            //Not supported in SQL
-            //public string[] ScalarArray { get; set; }
 
             public List<Bar> ObjectArray { get; set; }
         }
@@ -651,9 +636,6 @@ namespace HotChocolate.Data.Filters.Expressions
             public BarEnum? BarEnum { get; set; }
 
             public bool? BarBool { get; set; }
-
-            //Not supported in SQL
-            //public string?[] ScalarArray { get; set; }
 
             public List<BarNullable>? ObjectArray { get; set; }
         }

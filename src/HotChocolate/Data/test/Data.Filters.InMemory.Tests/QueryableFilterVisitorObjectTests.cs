@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters.Expressions
     public class QueryableFilterVisitorObjectTests
         : IClassFixture<SchemaCache>
     {
-        private static readonly Bar[] _barEntities = new[]{
+       private static readonly Bar[] _barEntities = new[]{
             new Bar {
                 Foo = new Foo {
                     BarShort = 12,

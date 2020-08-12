@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Squadron;
 using Xunit;
 
@@ -81,7 +80,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { some: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res1.MatchSnapshot("a");
+            res1.MatchSqlSnapshot("a");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -89,7 +88,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res2.MatchSnapshot("d");
+            res2.MatchSqlSnapshot("d");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -97,7 +96,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -114,7 +113,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res1.MatchSnapshot("a");
+            res1.MatchSqlSnapshot("a");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -122,7 +121,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res2.MatchSnapshot("d");
+            res2.MatchSqlSnapshot("d");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -130,7 +129,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -147,7 +146,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res1.MatchSnapshot("a");
+            res1.MatchSqlSnapshot("a");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -155,7 +154,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res2.MatchSnapshot("d");
+            res2.MatchSqlSnapshot("d");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -163,7 +162,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
@@ -180,7 +179,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
                 .Create());
 
-            res1.MatchSnapshot("false");
+            res1.MatchSqlSnapshot("false");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -188,7 +187,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
                 .Create());
 
-            res2.MatchSnapshot("true");
+            res2.MatchSqlSnapshot("true");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -196,7 +195,7 @@ namespace HotChocolate.Data.Filters
                     "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
                 .Create());
 
-            res3.MatchSnapshot("null");
+            res3.MatchSqlSnapshot("null");
         }
 
         public class Foo

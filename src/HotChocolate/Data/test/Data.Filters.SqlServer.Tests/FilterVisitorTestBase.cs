@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
 namespace HotChocolate.Data.Filters
@@ -74,13 +77,44 @@ namespace HotChocolate.Data.Filters
                     c.Name("Query")
                         .Field("root")
                         .Resolver(resolver)
+                        .Use(next => async context =>
+                            {
+                                await next(context);
+
+                                if (context.Result is IQueryable<TEntity> queryable)
+                                {
+                                    context.ContextData["sql"] = queryable.ToQueryString();
+                                }
+                            })
                         .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
 
-            return schema.MakeExecutable();
+            return new ServiceCollection()
+                .Configure<RequestExecutorFactoryOptions>(Schema.DefaultName, o => o.Schema = schema)
+                .AddGraphQL()
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
+                        if (context.Result is IReadOnlyQueryResult result &&
+                            context.ContextData.TryGetValue("sql", out var queryString))
+                        {
+                            context.Result =
+                                QueryResultBuilder
+                                    .FromResult(result)
+                                    .SetContextData("sql", queryString)
+                                    .Create();
+                        }
+                    }
+                )
+                .UseDefaultPipeline()
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync()
+                .Result;
         }
-
     }
 }
 
