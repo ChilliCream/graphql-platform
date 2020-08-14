@@ -104,10 +104,7 @@ namespace HotChocolate.Stitching
                 context.Schema,
                 context.Service<IEnumerable<IQueryDelegationRewriter>>());
 
-            OperationType operationType =
-                context.Schema.IsRootType(context.ObjectType)
-                    ? context.Operation.Operation
-                    : OperationType.Query;
+            OperationType operationType = context.Operation.Operation;
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
                 schemaName, context.Document, context.Operation,
