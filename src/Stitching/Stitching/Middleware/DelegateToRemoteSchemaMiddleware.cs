@@ -33,6 +33,7 @@ namespace HotChocolate.Stitching
             if (context.Field.Directives.Contains(DirectiveNames.Delegate))
             {
                 NameString schemaName = default;
+                OperationType operationType = OperationType.Query;
                 IReadOnlyCollection<IError>? errors = null;
 
                 foreach (DelegateDirective delegateDirective in context.Field
@@ -40,13 +41,14 @@ namespace HotChocolate.Stitching
                     .Select(t => t.ToObject<DelegateDirective>()))
                 {
                     schemaName = delegateDirective.Schema;
+                    operationType = delegateDirective.Operation;
 
                     IImmutableStack<SelectionPathComponent> path =
                         delegateDirective.Path is null
                         ? ImmutableStack<SelectionPathComponent>.Empty
                         : SelectionPathParser.Parse(delegateDirective.Path);
 
-                    IReadOnlyQueryRequest request = CreateQuery(context, schemaName, path);
+                    IReadOnlyQueryRequest request = CreateQuery(context, schemaName, path, operationType);
 
                     IReadOnlyQueryResult result = await ExecuteQueryAsync(
                         context, request, schemaName)
@@ -98,13 +100,12 @@ namespace HotChocolate.Stitching
         private static IReadOnlyQueryRequest CreateQuery(
             IMiddlewareContext context,
             NameString schemaName,
-            IImmutableStack<SelectionPathComponent> path)
+            IImmutableStack<SelectionPathComponent> path,
+            OperationType operationType)
         {
             var fieldRewriter = new ExtractFieldQuerySyntaxRewriter(
                 context.Schema,
                 context.Service<IEnumerable<IQueryDelegationRewriter>>());
-
-            OperationType operationType = context.Operation.Operation;
 
             ExtractedField extractedField = fieldRewriter.ExtractField(
                 schemaName, context.Document, context.Operation,
@@ -282,7 +283,12 @@ namespace HotChocolate.Stitching
 
             IStitchingContext stitchingContext = context.Service<IStitchingContext>();
             ISchema remoteSchema = stitchingContext.GetRemoteSchema(schemaName);
-            IComplexOutputType type = remoteSchema.GetOperationType(operationType);
+            IComplexOutputType type = remoteSchema.GetOperationType(OperationType.Mutation);
+            if(type is null)
+            {
+                type = remoteSchema.GetOperationType(OperationType.Query);
+            }
+            
             SelectionPathComponent[] comps = components.Reverse().ToArray();
 
             for (int i = 0; i < comps.Length; i++)

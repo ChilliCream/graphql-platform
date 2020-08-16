@@ -7,5 +7,7 @@ namespace HotChocolate.Stitching
         public string Path { get; set; }
 
         public NameString Schema { get; set; }
+
+        public OperationType Operation { get; set; } = OperationType.Mutation;
     }
 }

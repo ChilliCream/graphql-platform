@@ -1,13 +1,13 @@
 extend type Customer {
   contracts: [Contract!]
-    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)", operation: QUERY)
   contractIds: [ID!]
-    @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id", operation: QUERY)
   int: Int! @delegate(schema: "contract", path: "int(i:$fields:someInt)")
-  guid: Uuid! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)")
+  guid: Uuid! @delegate(schema: "contract", path: "guid(guid:$fields:someGuid)", operation: QUERY)
 }
 
 extend type Query {
   customer2(customerId: ID!): Customer
-    @delegate(schema: "customer", path: "customer(id:$arguments:customerId)")
+    @delegate(schema: "customer", path: "customer(id:$arguments:customerId)", operation: QUERY)
 }

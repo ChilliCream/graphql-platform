@@ -10,6 +10,8 @@ namespace HotChocolate.Stitching
 
         public static NameString Delegate_Path { get; } = "path";
 
+        public static NameString Delegate_Operation { get; } = "operation";
+
         public static NameString Computed_DependantOn { get; } = "dependantOn";
     }
 }

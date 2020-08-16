@@ -20,4 +20,8 @@
     <ProjectReference Include="..\..\Server\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Middleware\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

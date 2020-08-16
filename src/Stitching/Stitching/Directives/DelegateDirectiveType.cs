@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 
@@ -23,6 +24,10 @@ namespace HotChocolate.Stitching
                 .Type<NonNullType<NameType>>()
                 .Description(StitchingResources
                     .DelegateDirectiveType_Description);
+
+            descriptor.Argument(t => t.Operation)
+                .Name(DirectiveFieldNames.Delegate_Operation)
+                .Type<EnumType<OperationType>>();
         }
     }
 }
