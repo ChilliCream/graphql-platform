@@ -83,7 +83,15 @@ namespace HotChocolate.Data.Filters
 
                                 if (context.Result is IQueryable<TEntity> queryable)
                                 {
-                                    context.ContextData["sql"] = queryable.ToQueryString();
+                                    try
+                                    {
+                                        context.ContextData["sql"] = queryable.ToQueryString();
+                                    }
+                                    catch (Exception)
+                                    {
+                                        context.ContextData["sql"] =
+                                            "EF Core 3.1 does not support ToQuerString offically";
+                                    }
                                 }
                             })
                         .UseFiltering<T>());
