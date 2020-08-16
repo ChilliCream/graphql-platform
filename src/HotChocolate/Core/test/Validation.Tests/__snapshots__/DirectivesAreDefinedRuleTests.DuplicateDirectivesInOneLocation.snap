@@ -2,16 +2,16 @@
   {
     "Message": "Only one of each directive is allowed per location.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 6,
         "Column": 21
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-Unique-Per-Location"
-    }
+    },
+    "Exception": null
   }
 ]

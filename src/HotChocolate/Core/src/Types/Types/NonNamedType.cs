@@ -44,7 +44,7 @@ namespace HotChocolate.Types
                 return _innerClrType;
             }
         }
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {

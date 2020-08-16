@@ -24,13 +24,13 @@ namespace HotChocolate.Types.Relay
                         Task.FromResult(new Bar { Id = id })))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ bar { id } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Relay
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ node(id: \"QmFyCmQxMjM=\") { id } }");

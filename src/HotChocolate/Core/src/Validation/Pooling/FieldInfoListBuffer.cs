@@ -28,7 +28,6 @@ namespace HotChocolate.Validation
         private readonly int _max = 16;
         private int _index = 0;
 
-
         public IList<FieldInfo> Pop()
         {
             if (TryPop(out IList<FieldInfo>? list))

@@ -24,7 +24,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new DictionaryToObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(foo, typeof(Foo));
 
             // assert
@@ -46,7 +46,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new DictionaryToObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(bar, typeof(Bar));
 
             // assert
@@ -70,7 +70,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new DictionaryToObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(
                 list, typeof(ICollection<Bar>));
 
@@ -86,7 +86,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new DictionaryToObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(
                 input, typeof(int));
 

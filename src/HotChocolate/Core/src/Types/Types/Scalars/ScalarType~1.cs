@@ -17,7 +17,7 @@ namespace HotChocolate.Types
         {
         }
 
-        public sealed override Type ClrType => typeof(TClrType);
+        public sealed override Type RuntimeType => typeof(TClrType);
 
         public override bool TrySerialize(object? value, out object? serialized)
         {

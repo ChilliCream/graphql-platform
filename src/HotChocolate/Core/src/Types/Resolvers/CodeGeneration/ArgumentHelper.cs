@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
-using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -76,7 +75,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (parameter.ParameterType == typeof(ObjectType))
+            if (parameter.ParameterType == typeof(ObjectType) ||
+                parameter.ParameterType == typeof(IObjectType))
             {
                 argumentKind = ArgumentKind.ObjectType;
                 return true;
@@ -202,8 +202,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         internal static bool IsEventMessage(ParameterInfo parameter) =>
-            typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType)
-            || parameter.IsDefined(typeof(EventMessageAttribute));
+            parameter.IsDefined(typeof(EventMessageAttribute));
 
         internal static bool IsOutputField(ParameterInfo parameter) =>
             typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);

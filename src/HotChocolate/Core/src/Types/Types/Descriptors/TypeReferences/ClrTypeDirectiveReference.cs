@@ -7,8 +7,8 @@ namespace HotChocolate.Types.Descriptors
     {
         public ClrTypeDirectiveReference(Type clrType)
         {
-            ClrType = clrType
-                ?? throw new ArgumentNullException(nameof(clrType));
+            ClrType = clrType ?? 
+                throw new ArgumentNullException(nameof(clrType));
         }
 
         public Type ClrType { get; }

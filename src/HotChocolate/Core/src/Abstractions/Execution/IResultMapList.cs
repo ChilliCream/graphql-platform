@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Execution
 {
     public interface IResultMapList
-        : IReadOnlyList<IResultMap>
+        : IReadOnlyList<IResultMap?>
         , IResultData
     {
     }

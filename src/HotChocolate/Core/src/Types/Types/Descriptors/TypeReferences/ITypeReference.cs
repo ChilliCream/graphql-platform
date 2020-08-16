@@ -1,10 +1,15 @@
+#nullable enable
+
+using System;
+
 namespace HotChocolate.Types.Descriptors
 {
     public interface ITypeReference
+        : IEquatable<ITypeReference>
     {
-        bool? IsTypeNullable { get; }
+        string? Scope { get; }
 
-        bool? IsElementTypeNullable { get; }
+        bool[]? Nullable { get; }
 
         TypeContext Context { get; }
     }

@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Relay
                 member, TypeContext.Output);
 
             if (type is null
-                && returnType is IClrTypeReference clr
+                && returnType is ClrTypeReference clr
                 && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
             {
                 if (BaseTypes.IsSchemaType(typeInfo.ClrType))
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Relay
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
                     clr.WithType(typeInfo.ClrType),
-                    out IClrTypeReference schemaType))
+                    out ClrTypeReference schemaType))
                 {
                     type = schemaType.Type;
                 }

@@ -17,7 +17,7 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             ObjectValueNode value,
             InputObjectFactory factory,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             Dictionary<string, object> dict = _dictionaryPool.Get();
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Utilities.Serialization
         public static object Parse(
             InputObjectType type,
             ObjectValueNode value,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             var dict = new Dictionary<string, object>();
 
@@ -50,7 +50,7 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             ObjectValueNode source,
             IDictionary<string, object> target,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             for (int i = 0; i < source.Fields.Count; i++)
             {
@@ -73,7 +73,7 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
             InputObjectFactory factory,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             Dictionary<string, object> dict = _dictionaryPool.Get();
 
@@ -92,7 +92,7 @@ namespace HotChocolate.Utilities.Serialization
         public static Dictionary<string, object> Deserialize(
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             var dict = new Dictionary<string, object>();
 
@@ -106,7 +106,7 @@ namespace HotChocolate.Utilities.Serialization
             InputObjectType type,
             IReadOnlyDictionary<string, object> source,
             IDictionary<string, object> target,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             foreach (KeyValuePair<string, object> fieldValue in source)
             {
@@ -127,7 +127,7 @@ namespace HotChocolate.Utilities.Serialization
         private static void SetDefaultValues(
             InputObjectType type,
             IDictionary<string, object> dict,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             foreach (InputField field in type.Fields)
             {
@@ -142,13 +142,13 @@ namespace HotChocolate.Utilities.Serialization
 
         private static object ConvertValue(
             InputField field,
-            ITypeConversion converter,
+            ITypeConverter converter,
             object value)
         {
             if (value is { }
-                && field.ClrType != typeof(object))
+                && field.RuntimeType != typeof(object))
             {
-                Type type = field.ClrType;
+                Type type = field.RuntimeType;
 
                 if (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Optional<>))

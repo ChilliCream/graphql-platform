@@ -117,7 +117,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (ClrType.IsInstanceOfType(value))
+            if (RuntimeType.IsInstanceOfType(value))
             {
                 return true;
             }
@@ -202,7 +202,7 @@ namespace HotChocolate.Types
 
             if (serialized is IList l)
             {
-                var list = (IList)Activator.CreateInstance(ClrType);
+                var list = (IList)Activator.CreateInstance(RuntimeType);
 
                 for (int i = 0; i < l.Count; i++)
                 {
@@ -227,7 +227,7 @@ namespace HotChocolate.Types
 
         private object CreateList(ListValueNode listLiteral)
         {
-            var list = (IList)Activator.CreateInstance(ClrType);
+            var list = (IList)Activator.CreateInstance(RuntimeType);
 
             for (var i = 0; i < listLiteral.Items.Count; i++)
             {

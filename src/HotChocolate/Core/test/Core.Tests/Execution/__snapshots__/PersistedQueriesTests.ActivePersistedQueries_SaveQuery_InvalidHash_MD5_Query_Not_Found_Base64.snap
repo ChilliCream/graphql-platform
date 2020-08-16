@@ -5,11 +5,11 @@
       "Message": "PersistedQueryNotFound",
       "Code": "PERSISTED_QUERY_NOT_FOUND",
       "Path": null,
-      "Locations": [],
-      "Exception": null,
+      "Locations": null,
       "Extensions": {
         "code": "PERSISTED_QUERY_NOT_FOUND"
-      }
+      },
+      "Exception": null
     }
   ],
   "Extensions": null,

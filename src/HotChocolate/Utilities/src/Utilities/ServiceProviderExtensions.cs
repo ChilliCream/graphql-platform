@@ -6,9 +6,7 @@ namespace HotChocolate.Utilities
     {
         public static IServiceProvider Include(
             this IServiceProvider first,
-            IServiceProvider second)
-        {
-            return new CombinedServiceProvider(first, second);
-        }
+            IServiceProvider second) =>
+            new CombinedServiceProvider(first, second);
     }
 }

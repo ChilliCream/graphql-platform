@@ -11,7 +11,7 @@ namespace HotChocolate.Integration.DataLoader
         , ITestDataLoader
     {
         public TestDataLoader()
-            : base(new DataLoaderOptions<string>())
+            : base(null)
         {
         }
 

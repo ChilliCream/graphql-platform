@@ -7,9 +7,33 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    public static IEnumerable<string> GetAllProjects(string sourceDirectory) =>
-        Directory.EnumerateFiles(sourceDirectory, "*.csproj", SearchOption.AllDirectories)
-            .Where(s => !s.Contains("VisualStudio"));
+    private static string[] _directories = new string[]
+    {
+        "GreenDonut",
+        Path.Combine("HotChocolate", "AspNetCore"),
+        Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "Language"),
+        Path.Combine("HotChocolate", "PersistedQueries"),
+        Path.Combine("HotChocolate", "Utilities")
+    };
+
+    public static IEnumerable<string> GetAllProjects(string sourceDirectory)
+    {
+        foreach (string directory in _directories)
+        {
+            string fullDirectory = Path.Combine(sourceDirectory, directory);
+            foreach (string file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
+            {
+                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase) 
+                    || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                yield return file;
+            }
+        }
+    }
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
         string solutionFile)
@@ -27,7 +51,7 @@ class Helpers
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
-        list.AddRange(DotNetTasks.DotNet($"sln add {projectsArg}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
     }

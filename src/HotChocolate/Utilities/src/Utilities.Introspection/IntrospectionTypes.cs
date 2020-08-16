@@ -35,6 +35,11 @@ namespace HotChocolate.Utilities.Introspection
 
         public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)
         {
+            if (schema is null)
+            {
+                throw new System.ArgumentNullException(nameof(schema));
+            }
+
             var definitions = new List<IDefinitionNode>();
 
             foreach (IDefinitionNode definition in schema.Definitions)

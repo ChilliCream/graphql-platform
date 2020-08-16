@@ -9,10 +9,10 @@
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "operations": 2,
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Lone-Anonymous-Operation"
-    }
+    },
+    "Exception": null
   }
 ]

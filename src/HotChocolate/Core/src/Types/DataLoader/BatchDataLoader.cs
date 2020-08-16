@@ -9,19 +9,9 @@ namespace HotChocolate.DataLoader
     public abstract class BatchDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
     {
-        private static DataLoaderOptions<TKey> _options = new DataLoaderOptions<TKey>
-        {
-            AutoDispatching = false,
-            Batching = true,
-            CacheSize = DataLoaderDefaults.CacheSize,
-            MaxBatchSize = DataLoaderDefaults.MaxBatchSize,
-            SlidingExpiration = TimeSpan.Zero
-        };
-
-        protected BatchDataLoader()
-            : base(_options)
-        {
-        }
+        protected BatchDataLoader(IBatchScheduler batchScheduler)
+            : base(batchScheduler)
+        { }
 
         protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,

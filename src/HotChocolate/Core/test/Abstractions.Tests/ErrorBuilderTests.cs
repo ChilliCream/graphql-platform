@@ -13,11 +13,10 @@ namespace HotChocolate
         public void FromError()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error ("123");
 
             // act
-            var builder = ErrorBuilder.FromError(error);
-            error = builder.Build();
+            error = ErrorBuilder.FromError(error).Build();
 
             // assert
             Assert.Equal("123", error.Message);
@@ -27,14 +26,12 @@ namespace HotChocolate
         public void FromError_WithExtensions()
         {
             // arrange
-            IError error = new Error
-            {
-                Message = "123",
-                Extensions = new OrderedDictionary<string, object>
+            IError error = new Error (
+                "123",
+                extensions: new OrderedDictionary<string, object>
                 {
                     {"foo", "bar"}
-                }
-            };
+                });
 
             // act
             var builder = ErrorBuilder.FromError(error);
@@ -42,7 +39,7 @@ namespace HotChocolate
 
             // assert
             Assert.Equal("123", error.Message);
-            Assert.Collection(error.Extensions,
+            Assert.Collection(error.Extensions!,
                 t => Assert.Equal("bar", t.Value));
         }
 
@@ -51,13 +48,13 @@ namespace HotChocolate
         {
             // arrange
             IError error = new Error
-            {
-                Message = "123",
-                Extensions = new OrderedDictionary<string, object>
+            (
+                "123",
+                extensions: new OrderedDictionary<string, object>
                 {
                     {"foo", "bar"}
                 }
-            };
+            );
 
             // act
             error = ErrorBuilder.FromError(error).ClearExtensions().Build();
@@ -72,14 +69,14 @@ namespace HotChocolate
         {
             // arrange
             IError error = new Error
-            {
-                Message = "123",
-                Extensions = new OrderedDictionary<string, object>
+            (
+                "123",
+                extensions: new OrderedDictionary<string, object>
                 {
                     {"foo", "bar"},
                     {"bar", "foo"}
                 }
-            };
+            );
 
             // act
             error = ErrorBuilder.FromError(error)
@@ -88,7 +85,7 @@ namespace HotChocolate
 
             // assert
             Assert.Equal("123", error.Message);
-            Assert.Collection(error.Extensions,
+            Assert.Collection(error.Extensions!,
                 t => Assert.Equal("bar", t.Value));
         }
 
@@ -97,12 +94,12 @@ namespace HotChocolate
         {
             // arrange
             IError error = new Error
-            {
-                Message = "123",
-                Locations = ImmutableList<Location>
+            (
+                "123",
+                locations: ImmutableList<Location>
                     .Empty
                     .Add(new Location(1, 2))
-            };
+            );
 
             // act
             var builder = ErrorBuilder.FromError(error);
@@ -119,12 +116,12 @@ namespace HotChocolate
         {
             // arrange
             IError error = new Error
-            {
-                Message = "123",
-                Locations = ImmutableList<Location>
+            (
+                "123",
+                locations: ImmutableList<Location>
                     .Empty
                     .Add(new Location(1, 2))
-            };
+            );
 
             // act
             error = ErrorBuilder.FromError(error).ClearLocations().Build();
@@ -181,7 +178,7 @@ namespace HotChocolate
 
             // assert
             Assert.Equal("foo", error.Code);
-            Assert.Collection(error.Extensions,
+            Assert.Collection(error.Extensions!,
                 t => Assert.Equal("foo", t.Value));
         }
 
@@ -196,8 +193,7 @@ namespace HotChocolate
                 .Build();
 
             // assert
-            Assert.Collection(error.Path,
-                t => Assert.Equal("foo", t.ToString()));
+            Assert.Equal("/foo", error.Path.Print());
         }
 
         [Fact]
@@ -211,8 +207,7 @@ namespace HotChocolate
                 .Build();
 
             // assert
-            Assert.Collection(error.Path,
-                t => Assert.Equal("foo", t.ToString()));
+            Assert.Equal("/foo", error.Path.Print());
         }
 
         [Fact]

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
@@ -7,7 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
-{
+{   
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
 
     public delegate IConvention CreateConvention(IServiceProvider services);
@@ -26,7 +27,7 @@ namespace HotChocolate
 
         ISchemaBuilder Use(FieldMiddleware middleware);
 
-        ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument);
+        ISchemaBuilder AddDocument(LoadSchemaDocument loadDocument);
 
         ISchemaBuilder AddType(Type type);
 
@@ -50,17 +51,17 @@ namespace HotChocolate
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
-        ISchemaBuilder AddContextData(string key, object value);
-
         ISchemaBuilder SetContextData(string key, object value);
 
-        ISchemaBuilder RemoveContextData(string key);
-
-        ISchemaBuilder ClearContextData();
+        ISchemaBuilder SetContextData(string key, Func<object, object> update);
 
         ISchemaBuilder AddTypeInterceptor(Type interceptor);
 
+        ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor);
+
         ISchemaBuilder AddConvention(Type convention, CreateConvention factory);
+
+        ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action);
 
         ISchema Create();
     }

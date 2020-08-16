@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "test": "Test123"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

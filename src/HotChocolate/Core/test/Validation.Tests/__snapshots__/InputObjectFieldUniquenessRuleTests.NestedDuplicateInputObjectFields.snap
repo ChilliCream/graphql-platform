@@ -2,20 +2,25 @@
   {
     "Message": "There can be only one input field named `f2`.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "complexArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "complexArgField"
+    },
     "Locations": [
       {
         "Line": 9,
         "Column": 33
       }
     ],
-    "Exception": null,
     "Extensions": {
       "field": "f2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
-    }
+    },
+    "Exception": null
   }
 ]

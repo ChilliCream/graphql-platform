@@ -15,16 +15,18 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ISyntaxTypeReference typeReference in
-                typeReferences.OfType<ISyntaxTypeReference>())
+            foreach (SyntaxTypeReference typeReference in
+                typeReferences.OfType<SyntaxTypeReference>())
             {
                 if (Scalars.TryGetScalar(
                     typeReference.Type.NamedType().Name.Value,
-                    out IClrTypeReference namedTypeReference))
+                    out ClrTypeReference namedTypeReference))
                 {
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {
-                        typeRegistrar.Register(typeRegistrar.CreateInstance(namedTypeReference.Type));
+                        typeRegistrar.Register(
+                            typeRegistrar.CreateInstance(namedTypeReference.Type),
+                            typeReference.Scope);
                     }
                 }
             }

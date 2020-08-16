@@ -10,28 +10,6 @@ namespace GreenDonut
     /// </summary>
     public static class DataLoaderExtensions
     {
-        #region IDataLoader
-
-        /// <summary>
-        /// Dispatches one or more batch requests. In case of auto dispatching
-        /// we just trigger an implicit dispatch which could mean to interrupt
-        /// a wait delay. Whereas in a manual dispatch scenario it could mean
-        /// to dispatch explicitly.
-        /// </summary>
-        /// <param name="dataLoader">A data loader instance.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-        /// </exception>
-        public static Task DispatchAsync(this IDataLoader dataLoader)
-        {
-            if (dataLoader == null)
-            {
-                throw new ArgumentNullException(nameof(dataLoader));
-            }
-
-            return dataLoader.DispatchAsync(CancellationToken.None);
-        }
-
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
         /// or enqueues this single request for bacthing if enabled.
@@ -142,10 +120,6 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
-
-        #region IDataLoader<TKey, TValue>
 
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
@@ -269,7 +243,5 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -11,11 +10,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a field of an <see cref="ObjectType"/>.
+    /// </summary>
     public class ObjectField
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private readonly static FieldDelegate _empty = c =>
+        private static readonly FieldDelegate _empty = c =>
             throw new InvalidOperationException();
 
         private readonly List<IDirective> _executableDirectives =
@@ -24,14 +26,19 @@ namespace HotChocolate.Types
         internal ObjectField(ObjectFieldDefinition definition)
             : base(definition)
         {
-            Member = definition.Member;
+            Member = definition.Member ?? definition.ResolverMember;
             Middleware = _empty;
-            Resolver = definition.Resolver;
+            Resolver = definition.Resolver!;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
+        /// <summary>
+        /// Gets the type that declares this field.
+        /// </summary>
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
+
+        IObjectType IObjectField.DeclaringType => DeclaringType;
 
         /// <summary>
         /// Gets the field resolver middleware.
@@ -51,7 +58,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
-        public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
+        public IReadOnlyList<IDirective> ExecutableDirectives { get; }
 
         /// <summary>
         /// Gets the associated .net type member of this field.
@@ -59,11 +66,8 @@ namespace HotChocolate.Types
         /// </summary>
         public MemberInfo? Member { get; }
 
-        [Obsolete("Use Member.")]
-        public MemberInfo? ClrMember => Member;
-
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
@@ -73,18 +77,18 @@ namespace HotChocolate.Types
         }
 
         private void CompleteExecutableDirectives(
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
             var processed = new HashSet<string>();
 
             if (context.Type is ObjectType ot)
             {
-                AddExectableDirectives(processed, ot.Directives);
-                AddExectableDirectives(processed, Directives);
+                AddExecutableDirectives(processed, ot.Directives);
+                AddExecutableDirectives(processed, Directives);
             }
         }
 
-        private void AddExectableDirectives(
+        private void AddExecutableDirectives(
             ISet<string> processed,
             IEnumerable<IDirective> directives)
         {
@@ -101,13 +105,13 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolver(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition)
         {
-            bool isIntrospectionField = IsIntrospectionField
-                || DeclaringType.IsIntrospectionType();
+            var isIntrospectionField = IsIntrospectionField
+                                       || DeclaringType.IsIntrospectionType();
 
-            Resolver = definition.Resolver;
+            Resolver = definition.Resolver!;
 
             if (!isIntrospectionField || Resolver == null)
             {
@@ -115,15 +119,14 @@ namespace HotChocolate.Types
                 // explicit resolver results or are provided through the
                 // resolver compiler.
                 FieldResolver resolver = context.GetResolver(definition.Name);
-                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver);
+                Resolver = GetMostSpecificResolver(context.Type.Name, Resolver, resolver)!;
             }
 
             IReadOnlySchemaOptions options = context.DescriptorContext.Options;
 
-            bool skipMiddleware =
-                options.FieldMiddleware == FieldMiddlewareApplication.AllFields
-                    ? false
-                    : isIntrospectionField;
+            var skipMiddleware =
+                options.FieldMiddleware != FieldMiddlewareApplication.AllFields &&
+                isIntrospectionField;
 
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
@@ -133,9 +136,9 @@ namespace HotChocolate.Types
 
             if (Resolver == null && Middleware == null)
             {
-                if (_executableDirectives.Any())
+                if (_executableDirectives.Count > 0)
                 {
-                    Middleware = ctx => Task.CompletedTask;
+                    Middleware = ctx => default;
                 }
                 else
                 {
@@ -157,7 +160,7 @@ namespace HotChocolate.Types
         private static FieldResolverDelegate? GetMostSpecificResolver(
             NameString typeName,
             FieldResolverDelegate? currentResolver,
-            FieldResolver externalCompiledResolver)
+            FieldResolver? externalCompiledResolver)
         {
             // if there is no external compiled resolver then we will pick
             // the internal resolver delegate.

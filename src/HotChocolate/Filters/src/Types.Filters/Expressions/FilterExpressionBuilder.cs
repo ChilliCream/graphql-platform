@@ -9,56 +9,38 @@ namespace HotChocolate.Types.Filters.Expressions
     {
         private static readonly MethodInfo _startsWith =
             typeof(string).GetMethods().Single(m =>
-                m.Name.Equals(nameof(string.StartsWith))
+                m.Name.Equals("StartsWith")
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
         private static readonly MethodInfo _endsWith =
             typeof(string).GetMethods().Single(m =>
-                m.Name.Equals(nameof(string.EndsWith))
+                m.Name.Equals("EndsWith")
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
+
 
         private static readonly MethodInfo _contains =
             typeof(string).GetMethods().Single(m =>
-                m.Name.Equals(nameof(string.Contains))
+                m.Name.Equals("Contains")
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
-        private static Expression NullableSafeConstantExpression(
-            object? value, Type type)
+        private static Expression NullableSafeConstantExpression(object value, Type type)
         {
             return Nullable.GetUnderlyingType(type) == null
                 ? (Expression)Expression.Constant(value)
                 : Expression.Convert(Expression.Constant(value), type);
         }
 
-        private static readonly MethodInfo _anyMethod =
-            typeof(Enumerable)
-                .GetMethods()
-                .Single(x => x.Name == nameof(Enumerable.Any) && x.GetParameters().Length == 1);
-
-        private static readonly MethodInfo _anyWithParameter =
-            typeof(Enumerable)
-                .GetMethods()
-                .Single(x => x.Name == nameof(Enumerable.Any) && x.GetParameters().Length == 2);
-
-        private static readonly MethodInfo _allMethod =
-            typeof(Enumerable)
-                .GetMethods()
-                .Single(x => x.Name == nameof(Enumerable.All) && x.GetParameters().Length == 2);
-
-        private static readonly ConstantExpression _null =
-            Expression.Constant(null, typeof(object));
-
         public static Expression Not(Expression expression)
         {
-            return Expression.Not(expression);
+            return Expression.Equal(expression, Expression.Constant(false));
         }
 
         public static Expression Equals(
-            Expression property,
-            object? value)
+            MemberExpression property,
+            object value)
         {
             return Expression.Equal(
                 property,
@@ -66,7 +48,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression NotEquals(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.NotEqual(
@@ -75,20 +57,21 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression In(
-            Expression property,
+            MemberExpression property,
             Type genericType,
             object parsedValue)
         {
             return Expression.Call(
-                typeof(Enumerable),
-                nameof(Enumerable.Contains),
-                new Type[] { genericType },
-                Expression.Constant(parsedValue),
-                property);
+                    typeof(Enumerable),
+                    "Contains",
+                    new Type[] { genericType },
+                    Expression.Constant(parsedValue),
+                    property
+                );
         }
 
         public static Expression GreaterThan(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.GreaterThan(
@@ -97,7 +80,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression GreaterThanOrEqual(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.GreaterThanOrEqual(
@@ -106,7 +89,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression LowerThan(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.LessThan(
@@ -115,7 +98,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression LowerThanOrEqual(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.LessThanOrEqual(
@@ -124,7 +107,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression StartsWith(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.AndAlso(
@@ -133,16 +116,15 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression EndsWith(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.AndAlso(
                 Expression.NotEqual(property, Expression.Constant(null)),
                 Expression.Call(property, _endsWith, Expression.Constant(value)));
         }
-
         public static Expression Contains(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.AndAlso(
@@ -150,67 +132,14 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.Call(property, _contains, Expression.Constant(value)));
         }
 
-        public static Expression NotNull(Expression expression)
-        {
-            return Expression.NotEqual(expression, _null);
-        }
-
-        public static Expression NotNullAndAlso(Expression property, Expression condition)
-        {
-            return Expression.AndAlso(NotNull(property), condition);
-        }
-
-        public static Expression Any(
-            Type type,
-            Expression property,
-            Expression body,
-            params ParameterExpression[] parameterExpression)
-        {
-            LambdaExpression lambda = Expression.Lambda(body, parameterExpression);
-            return Any(type, property, lambda);
-        }
-
-        public static Expression Any(
-            Type type,
-            Expression property,
-            LambdaExpression lambda)
-        {
-            return Expression.Call(
-                _anyWithParameter.MakeGenericMethod(type),
-                new Expression[] { property, lambda });
-        }
-
-        public static Expression Any(
-            Type type,
-            Expression property)
-        {
-            return Expression.Call(
-                _anyMethod.MakeGenericMethod(type),
-                new Expression[] { property });
-        }
-
-        public static Expression All(
-            Type type,
-            Expression property,
-            LambdaExpression lambda)
-        {
-            return Expression.Call(
-                _allMethod.MakeGenericMethod(type),
-                new Expression[] { property, lambda });
-        }
-
         public static Expression NotContains(
-            Expression property,
+            MemberExpression property,
             object value)
         {
             return Expression.OrElse(
-                Expression.Equal(
-                    property,
-                    Expression.Constant(null)),
+                Expression.Equal(property, Expression.Constant(null)),
                 Expression.Not(Expression.Call(
-                    property,
-                    _contains,
-                    Expression.Constant(value))));
+                    property, _contains, Expression.Constant(value))));
         }
     }
 }

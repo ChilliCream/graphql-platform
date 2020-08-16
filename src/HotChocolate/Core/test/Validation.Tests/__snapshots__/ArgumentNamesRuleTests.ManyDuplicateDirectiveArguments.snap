@@ -2,39 +2,43 @@
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
-    "Path": [
-      "fieldWithArg"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "fieldWithArg"
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 60
       }
     ],
-    "Exception": null,
     "Extensions": {
       "directive": "directive",
       "argument": "arg1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "More than one argument with the same name in an argument set is ambiguous and invalid.",
     "Code": null,
-    "Path": [
-      "fieldWithArg"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "fieldWithArg"
+    },
     "Locations": [
       {
         "Line": 3,
         "Column": 75
       }
     ],
-    "Exception": null,
     "Extensions": {
       "directive": "directive",
       "argument": "arg1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Argument-Uniqueness"
-    }
+    },
+    "Exception": null
   }
 ]

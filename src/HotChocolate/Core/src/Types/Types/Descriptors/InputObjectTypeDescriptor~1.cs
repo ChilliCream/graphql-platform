@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     public class InputObjectTypeDescriptor<T>
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         protected internal InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -21,7 +21,14 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        protected internal InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, InputFieldDefinition> fields,

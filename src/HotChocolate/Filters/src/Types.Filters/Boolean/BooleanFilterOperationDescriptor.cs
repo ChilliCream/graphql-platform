@@ -1,12 +1,11 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
     public class BooleanFilterOperationDescriptor
-        : BooleanFilterOperationDescriptorBase
+        : FilterOperationDescriptorBase
         , IBooleanFilterOperationDescriptor
     {
         private readonly BooleanFilterFieldDescriptor _descriptor;
@@ -16,10 +15,14 @@ namespace HotChocolate.Types.Filters
             BooleanFilterFieldDescriptor descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation,
-            IFilterConvention filterConventions)
-           : base(context, name, type, operation, filterConventions)
+            FilterOperation operation)
+            : base(context)
         {
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            Definition.Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
@@ -53,7 +56,7 @@ namespace HotChocolate.Types.Filters
 
         /// <inheritdoc/>
         public new IBooleanFilterOperationDescriptor Directive<T>()
-           where T : class, new()
+            where T : class, new()
         {
             base.Directive<T>();
             return this;
@@ -87,17 +90,13 @@ namespace HotChocolate.Types.Filters
         /// <param name="operation">
         /// The filter operation info.
         /// </param>
-        /// <param name="filterConventions">
-        /// The filter conventions
-        /// </param>
         public static BooleanFilterOperationDescriptor New(
             IDescriptorContext context,
             BooleanFilterFieldDescriptor descriptor,
             NameString name,
             ITypeReference type,
-            FilterOperation operation,
-            IFilterConvention filterConventions) =>
+            FilterOperation operation) =>
             new BooleanFilterOperationDescriptor(
-                context, descriptor, name, type, operation, filterConventions);
+                context, descriptor, name, type, operation);
     }
 }

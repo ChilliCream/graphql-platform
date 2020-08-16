@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Relay
                                 : new IdSerializer();
                     }
 
-                    var id = ctx.Argument<string>(_id);
+                    var id = ctx.ArgumentValue<string>(_id);
                     IdValue deserializedId = _serializer.Deserialize(id);
 
                     ctx.LocalContextData = ctx.LocalContextData
