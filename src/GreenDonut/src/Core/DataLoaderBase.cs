@@ -312,24 +312,31 @@ namespace GreenDonut
             }
         }
 
-        private Task DispatchBatchAsync(
+        private async ValueTask DispatchBatchAsync(
             Batch<TKey, TValue> batch,
             CancellationToken cancellationToken)
         {
             if (!batch.HasDispatched)
             {
+                bool dispatch = false;
+
                 lock (_sync)
                 {
                     if (!batch.HasDispatched)
                     {
                         batch.StartDispatching();
 
-                        return DispatchBatchInternalAsync(batch, batch.Keys, cancellationToken);
+                        dispatch = true;
                     }
                 }
-            }
 
-            return Task.CompletedTask;
+                if (dispatch)
+                {
+                    await DispatchBatchInternalAsync(
+                        batch, batch.Keys, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
         }
 
         private async Task DispatchBatchInternalAsync(
