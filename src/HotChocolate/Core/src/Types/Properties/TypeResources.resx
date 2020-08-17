@@ -596,4 +596,7 @@ Type: `{0}`</value>
   <data name="TimeSpanType_Description" xml:space="preserve">
     <value>The `TimeSpan` scalar represents an ISO-8601 compliant duration type.</value>
   </data>
+  <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
+    <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
+  </data>
 </root>

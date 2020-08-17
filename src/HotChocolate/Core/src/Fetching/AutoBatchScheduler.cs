@@ -8,5 +8,7 @@ namespace HotChocolate.Fetching
         , IAutoBatchDispatcher
     {
         public void Schedule(Action dispatch) => dispatch();
+
+        public static AutoBatchScheduler Default { get; } = new AutoBatchScheduler();
     }
 }

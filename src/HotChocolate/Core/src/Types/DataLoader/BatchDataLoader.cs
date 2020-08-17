@@ -1,16 +1,20 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
+#nullable enable
+
 namespace HotChocolate.DataLoader
 {
     public abstract class BatchDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
+        where TKey : notnull
     {
-        protected BatchDataLoader(IBatchScheduler batchScheduler)
-            : base(batchScheduler)
+        protected BatchDataLoader(
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions<TKey>? options = null)
+            : base(batchScheduler, options)
         { }
 
         protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
