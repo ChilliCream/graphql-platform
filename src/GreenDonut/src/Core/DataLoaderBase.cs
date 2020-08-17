@@ -174,7 +174,7 @@ namespace GreenDonut
         /// A list of results which are in the exact same order as the provided
         /// keys.
         /// </returns>
-        protected abstract Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected abstract ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken);
 
@@ -312,7 +312,7 @@ namespace GreenDonut
             }
         }
 
-        private Task DispatchBatchAsync(
+        private ValueTask DispatchBatchAsync(
             Batch<TKey, TValue> batch,
             CancellationToken cancellationToken)
         {
@@ -329,10 +329,10 @@ namespace GreenDonut
                 }
             }
 
-            return Task.CompletedTask;
+            return default;
         }
 
-        private async Task DispatchBatchInternalAsync(
+        private async ValueTask DispatchBatchInternalAsync(
             Batch<TKey, TValue> batch,
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
