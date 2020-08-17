@@ -67,6 +67,7 @@ namespace HotChocolate.Configuration
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
         public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
+        
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {
