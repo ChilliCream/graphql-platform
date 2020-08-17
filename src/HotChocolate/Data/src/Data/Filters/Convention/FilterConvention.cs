@@ -148,8 +148,8 @@ namespace HotChocolate.Data.Filters
             [NotNullWhen(true)] out Type? type)
         {
             Type underlyingType = runtimeType;
-            if (runtimeType.IsGenericType
-                && System.Nullable.GetUnderlyingType(runtimeType) is { } innerNullableType)
+            if (runtimeType.IsGenericType &&
+                System.Nullable.GetUnderlyingType(runtimeType) is { } innerNullableType)
             {
                 underlyingType = innerNullableType;
             }
@@ -161,8 +161,9 @@ namespace HotChocolate.Data.Filters
 
             if (DotNetTypeInfoFactory.IsListType(underlyingType))
             {
-                if (!TypeInspector.Default.TryCreate(underlyingType,
-                                                     out Utilities.TypeInfo typeInfo))
+                if (!TypeInspector.Default.TryCreate(
+                    underlyingType,
+                    out Utilities.TypeInfo typeInfo))
                 {
                     throw new ArgumentException(
                         string.Format("The type {0} is unknown", underlyingType.Name),

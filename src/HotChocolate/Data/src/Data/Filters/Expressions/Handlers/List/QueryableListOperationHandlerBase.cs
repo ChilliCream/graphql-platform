@@ -10,7 +10,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public abstract class QueryableListOperationHandlerBase
-            : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterFieldHandler<Expression, QueryableFilterContext>
     {
         protected abstract int Operation { get; }
 

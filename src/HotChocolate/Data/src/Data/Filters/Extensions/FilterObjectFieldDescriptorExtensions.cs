@@ -149,7 +149,8 @@ namespace HotChocolate.Data
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType,
+                FieldClassMiddlewareFactory.Create(
+                    middlewareType,
                     FilterMiddlewareContext.Create(convention));
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;

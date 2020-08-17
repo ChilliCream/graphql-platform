@@ -5,7 +5,6 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-
     public class FilterFieldHandler<T, TContext>
         : FilterFieldHandler
         where TContext : FilterVisitorContext<T>

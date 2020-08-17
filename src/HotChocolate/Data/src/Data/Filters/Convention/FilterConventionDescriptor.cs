@@ -72,8 +72,8 @@ namespace HotChocolate.Data.Filters
                     Definition.Scope);
 
             if (!Definition.Extensions.TryGetValue(
-                    typeReference,
-                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+                typeReference,
+                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
             {
                 descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
                 Definition.Extensions[typeReference] = descriptorList;
@@ -84,7 +84,7 @@ namespace HotChocolate.Data.Filters
         }
 
         public IFilterConventionDescriptor Extension<TFilterType>(
-                Action<IFilterInputTypeDescriptor> extension)
+            Action<IFilterInputTypeDescriptor> extension)
             where TFilterType : FilterInputType
         {
             TypeReference? typeReference =
@@ -93,8 +93,8 @@ namespace HotChocolate.Data.Filters
                     Definition.Scope);
 
             if (!Definition.Extensions.TryGetValue(
-                    typeReference,
-                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+                typeReference,
+                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
             {
                 descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
                 Definition.Extensions[typeReference] = descriptorList;
@@ -105,7 +105,7 @@ namespace HotChocolate.Data.Filters
         }
 
         public IFilterConventionDescriptor Extension<TFilterType, TType>(
-                Action<IFilterInputTypeDescriptor<TType>> extension)
+            Action<IFilterInputTypeDescriptor<TType>> extension)
             where TFilterType : FilterInputType<TType>
         {
             TypeReference? typeReference =
@@ -114,8 +114,8 @@ namespace HotChocolate.Data.Filters
                     Definition.Scope);
 
             if (!Definition.Extensions.TryGetValue(
-                    typeReference,
-                    out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
+                typeReference,
+                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
             {
                 descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
                 Definition.Extensions[typeReference] = descriptorList;

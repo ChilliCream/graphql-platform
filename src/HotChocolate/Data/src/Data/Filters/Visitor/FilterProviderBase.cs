@@ -16,7 +16,9 @@ namespace HotChocolate.Data.Filters
 
         public IFilterConvention Convention { get; set; } = null!;
 
-        public abstract Task ExecuteAsync<TEntityType>(FieldDelegate next, IMiddlewareContext context);
+        public abstract Task ExecuteAsync<TEntityType>(
+            FieldDelegate next,
+            IMiddlewareContext context);
 
         public virtual void Initialize(IFilterProviderInitializationContext context)
         {

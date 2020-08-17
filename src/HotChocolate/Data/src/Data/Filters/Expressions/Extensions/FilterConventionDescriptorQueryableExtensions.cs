@@ -39,7 +39,6 @@ namespace HotChocolate.Data.Filters
             descriptor.AddFieldHandler<QueryableStringContainsHandler>();
             descriptor.AddFieldHandler<QueryableStringNotContainsHandler>();
 
-
             descriptor.AddFieldHandler<QueryableEnumEqualsHandler>();
             descriptor.AddFieldHandler<QueryableEnumNotEqualsHandler>();
             descriptor.AddFieldHandler<QueryableEnumInHandler>();

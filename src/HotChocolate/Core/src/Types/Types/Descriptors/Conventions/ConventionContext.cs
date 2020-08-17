@@ -1,5 +1,6 @@
 using System;
 
+#nullable enable
 namespace HotChocolate.Types.Descriptors
 {
     public class ConventionContext : IConventionContext

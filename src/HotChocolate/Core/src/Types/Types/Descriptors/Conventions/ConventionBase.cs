@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+#nullable enable
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class ConventionBase : IConvention
