@@ -158,14 +158,7 @@ namespace HotChocolate.Resolvers
             {
                 throw new ArgumentNullException(nameof(context));
             }
-
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
-            }
-
+            
             if (fetch is null)
             {
                 throw new ArgumentNullException(nameof(fetch));
