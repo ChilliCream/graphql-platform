@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
 using HotChocolate.DataLoader;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -36,8 +38,8 @@ namespace HotChocolate.Resolvers
                     fetch);
 
             return key is null
-                ? reg.GetOrRegister<FetchBatchDataLoader<TKey, TValue>>(createDataLoader)
-                : reg.GetOrRegister<FetchBatchDataLoader<TKey, TValue>>(key, createDataLoader);
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
         [Obsolete]
@@ -81,8 +83,8 @@ namespace HotChocolate.Resolvers
                     fetch);
 
             return key is null
-                ? reg.GetOrRegister<FetchGroupedDataLoader<TKey, TValue>>(createDataLoader)
-                : reg.GetOrRegister<FetchGroupedDataLoader<TKey, TValue>>(key, createDataLoader);
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
         [Obsolete]
@@ -127,8 +129,8 @@ namespace HotChocolate.Resolvers
                     cacheSize);
 
             return key is null
-                ? reg.GetOrRegister<FetchCacheDataLoader<TKey, TValue>>(createDataLoader)
-                : reg.GetOrRegister<FetchCacheDataLoader<TKey, TValue>>(key, createDataLoader);
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
         [Obsolete]
@@ -146,7 +148,7 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            return CacheDataLoader<TKey, TValue>(context, fetch, key, cacheSize);
+            return CacheDataLoader(context, fetch, key, cacheSize);
         }
 
         public static Task<TValue> FetchOnceAsync<TValue>(
@@ -158,7 +160,7 @@ namespace HotChocolate.Resolvers
             {
                 throw new ArgumentNullException(nameof(context));
             }
-            
+
             if (fetch is null)
             {
                 throw new ArgumentNullException(nameof(fetch));
@@ -166,7 +168,7 @@ namespace HotChocolate.Resolvers
 
             return CacheDataLoader<string, TValue>(
                 context,
-                (key, ct) => fetch(ct),
+                (k, ct) => fetch(ct),
                 key,
                 cacheSize: 1)
                 .LoadAsync("default", context.RequestAborted);
@@ -203,7 +205,7 @@ namespace HotChocolate.Resolvers
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            return reg.GetOrRegister<T>(key, () => services.GetRequiredService<T>());
+            return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
         }
 
         public static T DataLoader<T>(this IResolverContext context)
@@ -216,7 +218,37 @@ namespace HotChocolate.Resolvers
 
             IServiceProvider services = context.Services;
             IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
-            return reg.GetOrRegister<T>(() => services.GetRequiredService<T>());
+            return reg.GetOrRegister(() => CreateDataLoader<T>(services));
+        }
+
+        private static T CreateDataLoader<T>(IServiceProvider services)
+            where T : IDataLoader
+        {
+            T registeredDataLoader = services.GetService<T>();
+
+            if (registeredDataLoader is null)
+            {
+                if (typeof(T).IsInterface || typeof(T).IsAbstract)
+                {
+                    throw new RegisterDataLoaderException(
+                        string.Format(
+                            DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType,
+                            typeof(T).FullName ?? typeof(T).Name));
+                }
+
+                var factory = new ServiceFactory { Services = services };
+                if (factory.CreateInstance(typeof(T)) is T dataLoader)
+                {
+                    return dataLoader;
+                }
+
+                throw new RegisterDataLoaderException(
+                    string.Format(
+                        DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate,
+                        typeof(T).FullName ?? typeof(T).Name));
+            }
+
+            return registeredDataLoader;
         }
     }
 }

@@ -10,8 +10,8 @@ namespace HotChocolate.Integration.DataLoader
         : DataLoaderBase<string, string>
         , ITestDataLoader
     {
-        public TestDataLoader()
-            : base(null)
+        public TestDataLoader(IBatchScheduler batchScheduler)
+            : base(batchScheduler)
         {
         }
 

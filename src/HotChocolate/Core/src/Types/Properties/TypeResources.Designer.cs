@@ -998,5 +998,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DefaultDataLoaderRegistry_GetOrRegister", resourceCulture);
             }
         }
+        
+        internal static string DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType {
+            get {
+                return ResourceManager.GetString("DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType", resourceCulture);
+            }
+        }
+        
+        internal static string DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate {
+            get {
+                return ResourceManager.GetString("DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate", resourceCulture);
+            }
+        }
     }
 }

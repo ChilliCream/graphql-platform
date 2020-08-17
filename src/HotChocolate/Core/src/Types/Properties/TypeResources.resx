@@ -599,4 +599,10 @@ Type: `{0}`</value>
   <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
     <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
   </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType" xml:space="preserve">
+    <value>The DataLoader `{0}` needs to be register with the dependency injection provider.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
+    <value>Unable to create DataLoader `{0}`.</value>
+  </data>
 </root>
