@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +6,6 @@ using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
@@ -132,176 +130,142 @@ namespace HotChocolate.Integration.DataLoader
             results.MatchSnapshot();
         }
 
-        /*
-                [Fact]
-                public async Task ClassDataLoaderWithKey()
-                {
-                    // arrange
-                    IServiceProvider serviceProvider = new ServiceCollection()
-                        .AddDataLoaderRegistry()
-                        .BuildServiceProvider();
+        [Fact]
+        public async Task ClassDataLoaderWithKey()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
 
-                    var schema = Schema.Create(c => c.RegisterQueryType<Query>());
+            // act
+            var results = new List<IExecutionResult>();
 
-                    IQueryExecutor executor = schema.MakeExecutable();
-                    IServiceScope scope = serviceProvider.CreateScope();
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader2(key: ""a"")
+                            b: withDataLoader2(key: ""b"")
+                        }")
+                    .Create()));
 
-                    // act
-                    var results = new List<IExecutionResult>();
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader2(key: ""a"")
+                        }")
+                    .Create()));
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: withDataLoader2(key: ""a"")
-                                    b: withDataLoader2(key: ""b"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: withDataLoader2(key: ""c"")
+                        }")
+                    .Create()));
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: withDataLoader2(key: ""a"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ loads loads2 }")
+                    .Create()));
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    c: withDataLoader2(key: ""c"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+            // assert
+            Assert.Collection(results,
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
+            results.MatchSnapshot();
+        }
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery("{ loads loads2 }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+        [Fact]
+        public async Task StackedDataLoader()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
 
-                    // assert
-                    Assert.Collection(results,
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors));
-                    results.MatchSnapshot();
-                }
+            // act
+            var results = new List<IExecutionResult>();
 
-                [Fact]
-                public async Task StackedDataLoader()
-                {
-                    // arrange
-                    IServiceProvider serviceProvider = new ServiceCollection()
-                        .AddDataLoaderRegistry()
-                        .BuildServiceProvider();
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withStackedDataLoader(key: ""a"")
+                            b: withStackedDataLoader(key: ""b"")
+                        }")
+                    .Create()));
 
-                    var schema = Schema.Create(c => c.RegisterQueryType<Query>());
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withStackedDataLoader(key: ""a"")
+                        }")
+                    .Create()));
 
-                    IQueryExecutor executor = schema.MakeExecutable();
-                    IServiceScope scope = serviceProvider.CreateScope();
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: withStackedDataLoader(key: ""c"")
+                        }")
+                    .Create()));
 
-                    // act
-                    var results = new List<IExecutionResult>();
+            // assert
+            Assert.Collection(results,
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
+            results.MatchSnapshot();
+        }
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: withStackedDataLoader(key: ""a"")
-                                    b: withStackedDataLoader(key: ""b"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+        [Fact]
+        public async Task ClassDataLoader_Resolve_From_DependencyInjection()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: withStackedDataLoader(key: ""a"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+            // act
+            var results = new List<IExecutionResult>();
 
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    c: withStackedDataLoader(key: ""c"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                            b: dataLoaderWithInterface(key: ""b"")
+                        }")
+                    .Create()));
 
-                    // assert
-                    Assert.Collection(results,
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors));
-                    results.MatchSnapshot();
-                }
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                        }")
+                    .Create()));
 
-                [Fact]
-                public async Task ClassDataLoader_Resolve_From_DependencyInjection()
-                {
-                    // arrange
-                    IServiceProvider serviceProvider = new ServiceCollection()
-                        .AddDataLoader<ITestDataLoader, TestDataLoader>()
-                        .BuildServiceProvider();
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: dataLoaderWithInterface(key: ""c"")
+                        }")
+                    .Create()));
 
-                    var schema = Schema.Create(c => c.RegisterQueryType<Query>());
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ loads loads2 loads3 }")
+                    .Create()));
 
-                    IQueryExecutor executor = schema.MakeExecutable();
-                    IServiceScope scope = serviceProvider.CreateScope();
-
-                    // act
-                    var results = new List<IExecutionResult>();
-
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: dataLoaderWithInterface(key: ""a"")
-                                    b: dataLoaderWithInterface(key: ""b"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
-
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    a: dataLoaderWithInterface(key: ""a"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
-
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery(
-                                @"{
-                                    c: dataLoaderWithInterface(key: ""c"")
-                                }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
-
-                    results.Add(await executor.ExecuteAsync(
-                        QueryRequestBuilder.New()
-                            .SetQuery("{ loads loads2 loads3 }")
-                            .SetServices(scope.ServiceProvider)
-                            .Create()));
-
-                    // assert
-                    Assert.Collection(results,
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors),
-                        t => Assert.Null(t.Errors));
-                    results.MatchSnapshot();
-                }
-                */
+            // assert
+            Assert.Collection(results,
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors),
+                t => Assert.Null(t.Errors));
+            results.MatchSnapshot();
+        }
     }
 }
