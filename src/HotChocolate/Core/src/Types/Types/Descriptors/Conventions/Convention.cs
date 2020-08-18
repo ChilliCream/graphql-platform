@@ -2,12 +2,11 @@ using System;
 using System.Diagnostics;
 
 #nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
-    public abstract class ConventionBase : IConvention
+    public abstract class Convention : IConvention
     {
-        public const string DefaultScope = "Default";
-
         private ConventionStatus _status = ConventionStatus.Uninitialized;
 
         public string? Scope { get; set; }

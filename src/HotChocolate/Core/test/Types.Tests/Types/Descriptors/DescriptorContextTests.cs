@@ -84,7 +84,7 @@ namespace HotChocolate.Types.Descriptors
             var naming = new DefaultNamingConventions();
             var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
             conventions.Add(
-                ConventionBase.DefaultScope,
+                Descriptors.Convention.DefaultScope,
                 new Dictionary<Type, IConvention>() { { typeof(INamingConventions), naming } });
             var services = new DictionaryServiceProvider();
 
@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.Inspector);
         }
 
-        private class Convention : ConventionBase, IConvention
+        private class Convention : Descriptors.Convention, IConvention
         {
             public static Convention Default { get; } = new Convention();
         }

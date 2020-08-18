@@ -1,8 +1,10 @@
 using System;
 using System.Reflection;
+using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data
 {
     internal static class ThrowHelper
     {
@@ -98,7 +100,7 @@ namespace HotChocolate.Data.Filters
             IValueNode node) =>
             new GraphQLException(
                 ErrorBuilder.New()
-                    .SetMessage("Filtering could not convert value into desired format")
+                    .SetMessage("Filtering could not convert value into desired format.")
                     .AddLocation(node)
                     .Build());
     }

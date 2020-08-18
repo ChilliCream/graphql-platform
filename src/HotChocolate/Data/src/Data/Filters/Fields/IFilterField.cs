@@ -8,6 +8,8 @@ namespace HotChocolate.Data.Filters
         : IInputField
         , IHasRuntimeType
     {
+        new IFilterInputType DeclaringType { get; }
+
         MemberInfo? Member { get; }
 
         FilterFieldHandler? Handler { get; }

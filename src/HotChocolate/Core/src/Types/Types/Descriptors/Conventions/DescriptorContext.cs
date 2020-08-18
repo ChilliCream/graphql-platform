@@ -13,14 +13,13 @@ namespace HotChocolate.Types.Descriptors
         : IDescriptorContext
     {
         private readonly IServiceProvider _services;
-        private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<Type, IConvention>>
-            _conventions;
+        private readonly IReadOnlyDictionary<(Type, string), IConvention> _conventions;
         private INamingConventions? _naming;
         private ITypeInspector? _inspector;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            Dictionary<string, IReadOnlyDictionary<Type, IConvention>> conventions,
+            IReadOnlyDictionary<(Type, string), IConvention> conventions,
             IServiceProvider services,
             IDictionary<string, object?> contextData)
         {
@@ -70,7 +69,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(scope ?? ConventionBase.DefaultScope, out T? convention))
+            if (!TryGetConvention<T>(scope ?? Convention.DefaultScope, out T? convention))
             {
                 convention = _services.GetService(typeof(T)) as T;
             }
@@ -100,10 +99,10 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        public static DescriptorContext Create(
+        internal static DescriptorContext Create(
             IReadOnlySchemaOptions options,
             IServiceProvider services,
-            Dictionary<string, IReadOnlyDictionary<Type, IConvention>> conventions,
+            Dictionary<(Type, string), IConvention> conventions,
             IDictionary<string, object?> contextData)
         {
             if (options == null)
@@ -128,11 +127,11 @@ namespace HotChocolate.Types.Descriptors
                 contextData);
         }
 
-        public static DescriptorContext Create()
+        internal static DescriptorContext Create()
         {
             return new DescriptorContext(
                 new SchemaOptions(),
-                new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>(),
+                new Dictionary<(Type, string), IConvention>(),
                 new EmptyServiceProvider(),
                 new Dictionary<string, object?>());
         }

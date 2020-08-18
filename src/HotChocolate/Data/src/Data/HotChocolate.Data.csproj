@@ -12,4 +12,19 @@
     <ProjectReference Include="..\..\..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="DataResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DataResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="DataResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DataResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

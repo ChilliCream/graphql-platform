@@ -1609,15 +1609,15 @@ namespace HotChocolate
         {
 
         }
-        public class TestConvention2 : ConventionBase, ITestConvention
+        public class TestConvention2 : Convention, ITestConvention
         {
         }
-        public class TestConvention : ConventionBase, ITestConvention
+        public class TestConvention : Convention, ITestConvention
         {
 
             public static TestConvention Default = new TestConvention();
         }
-        public class TestConventionServiceDependency : ConventionBase, ITestConvention
+        public class TestConventionServiceDependency : Convention, ITestConvention
         {
             public TestConventionServiceDependency(MyInterceptor dependency)
             {

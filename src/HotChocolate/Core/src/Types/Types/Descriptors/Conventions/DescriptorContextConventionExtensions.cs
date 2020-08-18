@@ -4,7 +4,6 @@ namespace HotChocolate.Types.Descriptors
 {
     public static class DescriptorContextConventionExtensions
     {
-
         public static T GetConventionOrDefault<T>(
             this IDescriptorContext context,
             T defaultConvention)
@@ -15,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
            this IDescriptorContext context,
             Func<T> defaultConvention)
             where T : class, IConvention =>
-            context.GetConventionOrDefault(ConventionBase.DefaultScope, defaultConvention);
+            context.GetConventionOrDefault(Convention.DefaultScope, defaultConvention);
 
         public static T GetConventionOrDefault<T>(
             this IDescriptorContext context,

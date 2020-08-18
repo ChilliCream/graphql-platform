@@ -14,10 +14,16 @@ using HotChocolate.Resolvers;
 namespace HotChocolate.Data.Filters
 {
     public class FilterConvention
-        : ConventionBase<FilterConventionDefinition>
+        : Convention<FilterConventionDefinition>
         , IFilterConvention
     {
         private readonly Action<IFilterConventionDescriptor> _configure;
+        private IReadOnlyDictionary<int, OperationConvention> _operations = default!;
+        private IReadOnlyDictionary<Type, Type> _bindings = default!;
+        private IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> _extensions = default!;
+
+        private NameString _argumentName;
+        private FilterProviderBase _provider = default!;
 
         protected FilterConvention()
         {
@@ -29,18 +35,6 @@ namespace HotChocolate.Data.Filters
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
-
-        public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
-            = null!;
-
-        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; } = null!;
-
-        public IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> Extensions
-        { get; private set; } = null!;
-
-        public string ArgumentName { get; private set; } = null!;
-
-        public FilterProviderBase Provider { get; private set; }
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -61,22 +55,22 @@ namespace HotChocolate.Data.Filters
         {
             if (definition is { })
             {
-                Operations = definition
+                _operations = definition
                     .Operations
                     .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-                Bindings = definition.Bindings;
-                Extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
+                _bindings = definition.Bindings;
+                _extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
 
-                ArgumentName = definition.ArgumentName ??
+                _argumentName = definition.ArgumentName ??
                     throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
 
-                Provider = definition.Provider ??
+                _provider = definition.Provider ??
                     throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
 
                 IFilterProviderInitializationContext? providerContext =
                     FilterProviderInitializationContext.From(context, this);
 
-                Provider.Initialize(providerContext);
+                _provider.Initialize(providerContext);
             }
         }
 

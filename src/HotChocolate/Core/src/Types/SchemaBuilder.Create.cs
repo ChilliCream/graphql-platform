@@ -19,7 +19,7 @@ namespace HotChocolate
         {
             IServiceProvider services = _services ?? new EmptyServiceProvider();
 
-            DescriptorContext descriptorContext = DescriptorContext.Create(
+            var descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
                 CreateConventions(services),

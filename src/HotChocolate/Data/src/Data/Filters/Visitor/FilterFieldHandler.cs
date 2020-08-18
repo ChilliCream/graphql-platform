@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using HotChocolate.Configuration;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterFieldHandler
+    public class FilterFieldHandler : IHasScope
     {
         private FilterFieldHandlerStatus _status = FilterFieldHandlerStatus.Uninitialized;
 
@@ -22,10 +23,10 @@ namespace HotChocolate.Data.Filters
             OnComplete(context);
             MarkInitialized();
         }
-        public virtual bool CanHandle(
+        public abstract bool CanHandle(
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition) => false;
+            FilterFieldDefinition fieldDefinition);
 
         protected virtual void OnComplete(IFilterFieldHandlerInitializationContext context)
         {

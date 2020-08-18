@@ -12,6 +12,11 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor UseDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             descriptor.Operation(DefaultOperations.Equals).Name("eq");
             descriptor.Operation(DefaultOperations.NotEquals).Name("neq");
             descriptor.Operation(DefaultOperations.GreaterThan).Name("gt");
@@ -43,6 +48,11 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor UseDefaultFields(
             this IFilterConventionDescriptor descriptor)
         {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+            
             descriptor.Binding<string, StringOperationInput>();
             descriptor.Binding<bool, BooleanOperationInput>();
             descriptor.Binding<byte, ComparableOperationInput<byte>>();

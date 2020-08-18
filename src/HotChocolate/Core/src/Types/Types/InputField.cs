@@ -15,7 +15,6 @@ namespace HotChocolate.Types
     public class InputField
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
-        , IHasRuntimeType
     {
         public InputField(InputFieldDefinition definition)
             : base(definition)
@@ -38,9 +37,9 @@ namespace HotChocolate.Types
 
         public IValueNode? DefaultValue { get; private set; }
 
-        internal protected PropertyInfo? Property { get; }
+        protected internal PropertyInfo? Property { get; }
 
-        internal protected bool IsOptional { get; }
+        protected internal bool IsOptional { get; }
 
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;
@@ -62,7 +61,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            bool success = Property == null
+            var success = Property == null
                 ? TrySetValueOnUnknownType(obj, value)
                 : TrySetValueOnKnownType(obj, value);
 

@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
@@ -10,7 +12,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type convention,
             CreateConvention conventionFactory,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -22,15 +24,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(convention));
             }
 
-            return builder.AddConvention(
-                scope, convention, conventionFactory);
+            return builder.AddConvention(convention, conventionFactory, scope);
         }
 
         public static ISchemaBuilder AddConvention(
             this ISchemaBuilder builder,
             Type convention,
             IConvention concreteConvention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -61,7 +62,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type convention,
             Type concreteConvention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -101,13 +102,13 @@ namespace HotChocolate
         public static ISchemaBuilder AddConvention<T>(
             this ISchemaBuilder builder,
             IConvention convention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
             where T : IConvention =>
             builder.AddConvention(typeof(T), convention, scope);
 
         public static ISchemaBuilder AddConvention<TConvetion, TConcreteConvention>(
             this ISchemaBuilder builder,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
             where TConvetion : IConvention
             where TConcreteConvention : IConvention =>
             builder.AddConvention(typeof(TConvetion), typeof(TConcreteConvention), scope);
@@ -116,7 +117,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type convention,
             CreateConvention conventionFactory,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -128,15 +129,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(convention));
             }
 
-            return builder.TryAddConvention(
-                scope, convention, conventionFactory);
+            return builder.TryAddConvention(convention, conventionFactory, scope);
         }
 
         public static ISchemaBuilder TryAddConvention(
             this ISchemaBuilder builder,
             Type convention,
             IConvention concreteConvention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -160,14 +160,14 @@ namespace HotChocolate
                     nameof(convention));
             }
 
-            return builder.TryAddConvention(convention, (s) => concreteConvention, scope);
+            return builder.TryAddConvention(convention, s => concreteConvention, scope);
         }
 
         public static ISchemaBuilder TryAddConvention(
             this ISchemaBuilder builder,
             Type convention,
             Type concreteConvention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
         {
             if (builder is null)
             {
@@ -207,22 +207,22 @@ namespace HotChocolate
         public static ISchemaBuilder TryAddConvention<T>(
             this ISchemaBuilder builder,
             CreateConvention conventionFactory,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
             where T : IConvention =>
             builder.TryAddConvention(typeof(T), conventionFactory, scope);
 
         public static ISchemaBuilder TryAddConvention<T>(
             this ISchemaBuilder builder,
             IConvention convention,
-            string scope = ConventionBase.DefaultScope)
+            string? scope = null)
             where T : IConvention =>
             builder.TryAddConvention(typeof(T), convention, scope);
 
-        public static ISchemaBuilder TryAddConvention<TConvetion, TConcreteConvention>(
+        public static ISchemaBuilder TryAddConvention<TConvention, TConcreteConvention>(
             this ISchemaBuilder builder,
-            string scope = ConventionBase.DefaultScope)
-            where TConvetion : IConvention
+            string? scope = null)
+            where TConvention : IConvention
             where TConcreteConvention : IConvention =>
-            builder.TryAddConvention(typeof(TConvetion), typeof(TConcreteConvention), scope);
+            builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
     }
 }

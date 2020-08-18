@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
@@ -7,15 +8,17 @@ namespace HotChocolate.Data.Filters
 {
     public interface IFilterProvider
     {
-        bool TryGetHandler(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
-            [NotNullWhen(true)] out FilterFieldHandler? handler);
+        IReadOnlyCollection<FilterFieldHandler> FilterFieldHandlers { get; }
 
-        Task ExecuteAsync<TEntityType>(
-            FieldDelegate next,
-            IMiddlewareContext context);
+        IFilterExecutor<TEntityType> CreateExecutor<TEntityType>(NameString argumentName);
+    }
+
+
+    public interface IFilterExecutor<TEntityType>
+    {
+        NameString ArgumentName { get; }
+
+        FieldDelegate Execute { get; }
     }
 }
 

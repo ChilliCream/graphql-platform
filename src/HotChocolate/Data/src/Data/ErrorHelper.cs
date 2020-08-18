@@ -1,10 +1,12 @@
 using System.Linq;
+using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Filters.Expressions
+namespace HotChocolate.Data
 {
-    public static class ErrorHelper
+    internal static class ErrorHelper
     {
         public static IError CreateNonNullError<T>(
             IFilterField field,
@@ -24,5 +26,15 @@ namespace HotChocolate.Data.Filters.Expressions
                 .SetExtension("filterType", filterType.Visualize())
                 .Build();
         }
+
+        public static ISchemaError FilterField_RuntimeType_Unknown(FilterField field) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    FilterField_FilterField_TypeUnknown,
+                    field.DeclaringType.Name,
+                    field.Name)
+                .SetTypeSystemObject(field.DeclaringType)
+                .SetExtension(nameof(field), field)
+                .Build();
     }
 }

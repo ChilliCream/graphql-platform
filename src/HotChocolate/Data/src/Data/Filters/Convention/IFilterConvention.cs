@@ -13,39 +13,25 @@ namespace HotChocolate.Data.Filters
     public interface IFilterConvention
         : IConvention
     {
-        NameString GetOperationName(
-            IDescriptorContext context,
-            int operation);
+        NameString GetTypeName(Type entityType);
 
-        NameString GetOperationDescription(
-            IDescriptorContext context,
-            int operation);
+        NameString GetTypeDescription(Type entityType);
 
-        NameString GetFieldName(
-            IDescriptorContext context,
-            MemberInfo member);
+        NameString GetFieldName(MemberInfo member);
 
-        NameString GetFieldDescription(
-            IDescriptorContext context,
-            MemberInfo member);
+        NameString GetFieldDescription(MemberInfo member);
 
-        ITypeReference GetFieldType(
-            IDescriptorContext context,
-            MemberInfo member);
+        ITypeReference GetFieldType(MemberInfo member);
 
-        NameString GetTypeName(
-            IDescriptorContext context,
-            Type entityType);
+        NameString GetOperationName(int operation);
 
-        NameString GetTypeDescription(
-            IDescriptorContext context,
-            Type entityType);
+        NameString GetOperationDescription(int operation);
 
         NameString GetArgumentName();
 
-        IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
-            ITypeReference reference,
-            NameString temporaryName);
+        void ApplyConfigurations(
+            ITypeReference typeReference,
+            IFilterInputTypeDescriptor descriptor);
 
         bool TryGetHandler(
             ITypeDiscoveryContext context,
@@ -56,5 +42,7 @@ namespace HotChocolate.Data.Filters
         Task ExecuteAsync<TEntityType>(
             FieldDelegate next,
             IMiddlewareContext context);
+
+
     }
 }

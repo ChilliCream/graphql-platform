@@ -1,7 +1,7 @@
 #nullable enable
 namespace HotChocolate.Types.Descriptors
 {
-    public abstract class ConventionBase<TDefinition> : ConventionBase
+    public abstract class Convention<TDefinition> : Convention
         where TDefinition : class
     {
         private TDefinition? _definition;

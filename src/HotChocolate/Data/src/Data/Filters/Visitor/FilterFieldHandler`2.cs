@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -32,5 +33,10 @@ namespace HotChocolate.Data.Filters
             action = null;
             return false;
         }
+
+        public override bool CanHandle(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition) => false;
     }
 }

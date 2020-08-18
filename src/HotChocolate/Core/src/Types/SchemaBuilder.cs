@@ -28,8 +28,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<string, Dictionary<Type, CreateConvention>> _conventions =
-            new Dictionary<string, Dictionary<Type, CreateConvention>>();
+        private readonly Dictionary<(Type, string), CreateConvention> _conventions =
+            new Dictionary<(Type, string), CreateConvention>();
         private readonly Dictionary<ClrTypeReference, ITypeReference> _clrTypes =
             new Dictionary<ClrTypeReference, ITypeReference>();
         private readonly List<object> _interceptors = new List<object>();
@@ -171,7 +171,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            string conventionScope = scope ?? ConventionBase.DefaultScope;
+            string conventionScope = scope ?? Convention.DefaultScope;
             if (!_conventions.ContainsKey(conventionScope) ||
                 !_conventions[conventionScope].ContainsKey(convention))
             {
@@ -195,8 +195,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(factory));
             }
 
+            _conventions[(convention, scope)]
+
             if (!_conventions.TryGetValue(
-                scope ?? ConventionBase.DefaultScope,
+                scope ?? Convention.DefaultScope,
                 out Dictionary<Type, CreateConvention> conventionScopes))
             {
                 conventionScopes = new Dictionary<Type, CreateConvention>();
