@@ -7,26 +7,42 @@ namespace HotChocolate.Types.Descriptors
 {
     public abstract class Convention : IConvention
     {
-        private ConventionStatus _status = ConventionStatus.Uninitialized;
+        private string? _scope;
 
-        public string? Scope { get; set; }
-
-        public virtual void Initialize(IConventionContext context)
+        /// <summary>
+        /// Gets a scope name that was provided by an extension.
+        /// </summary>
+        public string? Scope
         {
-            Scope = context.Scope;
+            get => _scope;
+            protected set
+            {
+                if (IsInitialized)
+                {
+                    throw new InvalidOperationException(
+                        "The convention scope is immutable.");
+                }
+                _scope = value;
+            }
+        }
+
+        protected bool IsInitialized { get; private set; }
+
+        internal virtual void Initialize(IConventionContext context)
+        {
             MarkInitialized();
         }
 
         protected void MarkInitialized()
         {
-            Debug.Assert(_status == ConventionStatus.Uninitialized);
+            Debug.Assert(!IsInitialized);
 
-            if (_status != ConventionStatus.Uninitialized)
+            if (IsInitialized)
             {
                 throw new InvalidOperationException();
             }
 
-            _status = ConventionStatus.Initialized;
+            IsInitialized = true;
         }
     }
 }

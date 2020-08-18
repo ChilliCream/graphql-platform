@@ -1,5 +1,7 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public static class DescriptorContextConventionExtensions
@@ -8,19 +10,19 @@ namespace HotChocolate.Types.Descriptors
             this IDescriptorContext context,
             T defaultConvention)
             where T : class, IConvention =>
-            context.GetConventionOrDefault<T>(() => defaultConvention);
+            context.GetConventionOrDefault(() => defaultConvention);
 
         public static T GetConventionOrDefault<T>(
-           this IDescriptorContext context,
+            this IDescriptorContext context,
             Func<T> defaultConvention)
             where T : class, IConvention =>
-            context.GetConventionOrDefault(Convention.DefaultScope, defaultConvention);
+            context.GetConventionOrDefault(defaultConvention);
 
         public static T GetConventionOrDefault<T>(
             this IDescriptorContext context,
             string? scope,
             T defaultConvention)
             where T : class, IConvention =>
-            context.GetConventionOrDefault<T>(scope, () => defaultConvention);
+            context.GetConventionOrDefault(() => defaultConvention, scope);
     }
 }

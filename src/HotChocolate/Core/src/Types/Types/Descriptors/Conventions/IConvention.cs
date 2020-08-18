@@ -6,6 +6,5 @@ namespace HotChocolate.Types.Descriptors
     /// </summary>
     public interface IConvention : IHasScope
     {
-        void Initialize(IConventionContext context);
     }
 }

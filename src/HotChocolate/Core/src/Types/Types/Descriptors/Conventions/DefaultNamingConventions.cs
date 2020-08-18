@@ -5,9 +5,10 @@ using System.Reflection;
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventions
-        : Convention, INamingConventions
+        : Convention
+        , INamingConventions
     {
-        private IDocumentationProvider _documentation;
+        private readonly IDocumentationProvider _documentation;
 
         public DefaultNamingConventions(IDocumentationProvider documentation)
         {

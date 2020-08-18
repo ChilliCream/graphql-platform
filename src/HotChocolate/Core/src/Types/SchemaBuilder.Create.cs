@@ -10,6 +10,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate
 {
@@ -338,46 +339,45 @@ namespace HotChocolate
         {
             var list = new List<ITypeInitializationInterceptor>();
 
-            var obj = services.GetService(typeof(IEnumerable<ITypeInitializationInterceptor>));
-            if (obj is IEnumerable<ITypeInitializationInterceptor> interceptors)
-            {
-                list.AddRange(interceptors);
-            }
+            var interceptors = services.GetServices<ITypeInitializationInterceptor>();
+            list.AddRange(interceptors);
 
-            var serviceFactory = new ServiceFactory { Services = services };
-            foreach (object interceptorOrType in _interceptors)
+            if (_interceptors.Count > 0)
             {
-                if (interceptorOrType is Type type)
+                var serviceFactory = new ServiceFactory {Services = services};
+
+                foreach (object interceptorOrType in _interceptors)
                 {
-                    obj = serviceFactory.CreateInstance(type);
-                    if (obj is ITypeInitializationInterceptor casted)
+                    if (interceptorOrType is Type type)
                     {
-                        list.Add(casted);
+                        var obj = serviceFactory.CreateInstance(type);
+                        if (obj is ITypeInitializationInterceptor casted)
+                        {
+                            list.Add(casted);
+                        }
                     }
-                }
-                else if (interceptorOrType is ITypeInitializationInterceptor interceptor)
-                {
-                    list.Add(interceptor);
+                    else if (interceptorOrType is ITypeInitializationInterceptor interceptor)
+                    {
+                        list.Add(interceptor);
+                    }
                 }
             }
 
             return list;
         }
 
-        private Dictionary<string, IReadOnlyDictionary<Type, IConvention>>
-            CreateConventions(IServiceProvider services)
+        private Dictionary<string, IReadOnlyDictionary<Type, IConvention>> CreateConventions(IServiceProvider services)
         {
             var serviceFactory = new ServiceFactory { Services = services };
-            var conventions = new Dictionary<string, IReadOnlyDictionary<Type, IConvention>>();
+            var conventions = new Dictionary<(Type, string), IConvention>();
 
-            foreach (KeyValuePair<string, Dictionary<Type, CreateConvention>> scope in _conventions)
+            foreach (KeyValuePair<(Type, string), CreateConvention> item in _conventions)
             {
-                var conventionScope = new Dictionary<Type, IConvention>();
                 var conventionContext = new ConventionContext(scope.Key, serviceFactory);
 
                 foreach (KeyValuePair<Type, CreateConvention> conventionConfig in scope.Value)
                 {
-                    IConvention convention = conventionConfig.Value(serviceFactory);
+                    IConvention convention = conventionConfig.Value(services);
                     convention.Initialize(conventionContext);
                     conventionScope.Add(conventionConfig.Key, convention);
                 }

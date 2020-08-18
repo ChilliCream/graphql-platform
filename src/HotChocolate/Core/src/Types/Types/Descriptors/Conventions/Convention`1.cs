@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+
 #nullable enable
 namespace HotChocolate.Types.Descriptors
 {
@@ -14,13 +17,15 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public string? Scope { get; set; }
-
-        public override void Initialize(IConventionContext context)
+        internal sealed override void Initialize(IConventionContext context)
         {
+            AssertUninitialized();
+
             Scope = context.Scope;
             _definition = CreateDefinition(context);
+
             OnComplete(context, Definition);
+
             MarkInitialized();
         }
 
@@ -29,5 +34,21 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected abstract TDefinition? CreateDefinition(IConventionContext context);
+
+        private void AssertUninitialized()
+        {
+            Debug.Assert(
+                !IsInitialized,
+                "The type must be uninitialized.");
+
+            Debug.Assert(
+                _definition is null,
+                "The definition should not exist when the type has not been initialized.");
+
+            if (IsInitialized)
+            {
+                throw new InvalidOperationException();
+            }
+        }
     }
 }

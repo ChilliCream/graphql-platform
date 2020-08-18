@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
@@ -13,18 +12,18 @@ namespace HotChocolate.Types.Descriptors
         : IDescriptorContext
     {
         private readonly IServiceProvider _services;
-        private readonly IReadOnlyDictionary<(Type, string), IConvention> _conventions;
+        private readonly IReadOnlyDictionary<(Type, string?), IConvention> _conventions;
         private INamingConventions? _naming;
         private ITypeInspector? _inspector;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<(Type, string), IConvention> conventions,
+            IReadOnlyDictionary<(Type, string?), IConvention> conventions,
             IServiceProvider services,
             IDictionary<string, object?> contextData)
         {
             Options = options;
-            _conventions = conventions.ToDictionary(t => t.Key, t => t.Value);
+            _conventions = conventions;
             _services = services;
             ContextData = contextData;
         }
@@ -37,7 +36,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (_naming is null)
                 {
-                    _naming = this.GetConventionOrDefault<INamingConventions>(
+                    _naming = GetConventionOrDefault<INamingConventions>(
                         () => new DefaultNamingConventions(Options.UseXmlDocumentation));
                 }
                 return _naming;
@@ -60,8 +59,8 @@ namespace HotChocolate.Types.Descriptors
         public IDictionary<string, object?> ContextData { get; }
 
         public T GetConventionOrDefault<T>(
-            string? scope,
-            Func<T> defaultConvention)
+            Func<T> defaultConvention,
+            string? scope = null)
             where T : class, IConvention
         {
             if (defaultConvention is null)
@@ -69,7 +68,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(scope ?? Convention.DefaultScope, out T? convention))
+            if (!TryGetConvention(scope, out T? convention))
             {
                 convention = _services.GetService(typeof(T)) as T;
             }
@@ -83,14 +82,13 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private bool TryGetConvention<T>(
-            string scope,
+            string? scope,
             [NotNullWhen(true)] out T? convention)
             where T : class, IConvention
         {
             if (_conventions.TryGetValue(
-                    scope, out IReadOnlyDictionary<Type, IConvention>? conventionScope) &&
-                conventionScope.TryGetValue(typeof(T), out IConvention outConvention)
-                && outConvention is T conventionOfT)
+                (typeof(T), scope), out IConvention? outConvention) &&
+                outConvention is T conventionOfT)
             {
                 convention = conventionOfT;
                 return true;
@@ -102,7 +100,7 @@ namespace HotChocolate.Types.Descriptors
         internal static DescriptorContext Create(
             IReadOnlySchemaOptions options,
             IServiceProvider services,
-            Dictionary<(Type, string), IConvention> conventions,
+            IReadOnlyDictionary<(Type, string?), IConvention> conventions,
             IDictionary<string, object?> contextData)
         {
             if (options == null)
@@ -131,7 +129,7 @@ namespace HotChocolate.Types.Descriptors
         {
             return new DescriptorContext(
                 new SchemaOptions(),
-                new Dictionary<(Type, string), IConvention>(),
+                new Dictionary<(Type, string?), IConvention>(),
                 new EmptyServiceProvider(),
                 new Dictionary<string, object?>());
         }

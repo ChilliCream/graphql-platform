@@ -11,7 +11,8 @@ using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultTypeInspector
-        : Convention, ITypeInspector
+        : Convention
+        , ITypeInspector
     {
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
