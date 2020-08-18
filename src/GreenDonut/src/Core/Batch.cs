@@ -2,36 +2,50 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GreenDonut
 {
     public class Batch<TKey, TValue>
         where TKey : notnull
     {
+        private readonly object _sync = new object();
+        private bool _hasDispatched = false;
         private Dictionary<TKey, TaskCompletionSource<TValue>> _items =
             new Dictionary<TKey, TaskCompletionSource<TValue>>();
-
-        public bool HasDispatched { get; private set; }
 
         public IReadOnlyList<TKey> Keys => _items.Keys.ToArray();
 
         public int Size => _items.Count;
 
-        public TaskCompletionSource<TValue> CreateOrGet(TKey key)
+        public bool TryGetOrCreate(
+            TKey key,
+            [NotNullWhen(true)] out TaskCompletionSource<TValue>? promise)
         {
-            ThrowIfDispatched();
-
-            if (_items.ContainsKey(key))
+            if (!_hasDispatched)
             {
-                return _items[key];
+                lock (_sync)
+                {
+                    if (!_hasDispatched)
+                    {
+                        if (_items.ContainsKey(key))
+                        {
+                            promise = _items[key];
+                        }
+                        else
+                        {
+                            promise = new TaskCompletionSource<TValue>(
+                                TaskCreationOptions.RunContinuationsAsynchronously);
+                            _items.Add(key, promise);
+                        }
+
+                        return true;
+                    }
+                }
             }
 
-            var promise = new TaskCompletionSource<TValue>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
-
-            _items.Add(key, promise);
-
-            return promise;
+            promise = null;
+            return false;
         }
 
         public TaskCompletionSource<TValue> Get(TKey key)
@@ -39,19 +53,21 @@ namespace GreenDonut
             return _items[key];
         }
 
-        public void StartDispatching()
+        public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
         {
-            ThrowIfDispatched();
-
-            HasDispatched = true;
-        }
-
-        private void ThrowIfDispatched()
-        {
-            if (HasDispatched)
+            if (!_hasDispatched)
             {
-                throw new InvalidOperationException("This batch has already been dispatched.");
+                lock (_sync)
+                {
+                    if (!_hasDispatched)
+                    {
+                        _hasDispatched = true;
+                        return dispatch();
+                    }
+                }
             }
+
+            return default;
         }
     }
 }

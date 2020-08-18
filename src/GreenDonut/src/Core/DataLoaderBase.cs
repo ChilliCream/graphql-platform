@@ -189,7 +189,6 @@ namespace GreenDonut
             lock (_sync)
             {
                 object cacheKey = _cacheKeyResolver(key);
-                Batch<TKey, TValue> batch = GetCurrentBatch();
 
                 if (_options.Caching && _cache.TryGetValue(cacheKey, out object? cachedValue))
                 {
@@ -200,7 +199,7 @@ namespace GreenDonut
                     return cachedTask;
                 }
 
-                TaskCompletionSource<TValue> promise = batch.CreateOrGet(key);
+                TaskCompletionSource<TValue> promise = GetOrCreatePromise(key);
 
                 if (_options.Caching)
                 {
@@ -316,58 +315,44 @@ namespace GreenDonut
             Batch<TKey, TValue> batch,
             CancellationToken cancellationToken)
         {
-            if (!batch.HasDispatched)
+            return batch.StartDispatchingAsync(async () =>
             {
-                lock (_sync)
+                Activity? activity = DiagnosticEvents.StartBatching(batch.Keys);
+                IReadOnlyList<Result<TValue>> results = new Result<TValue>[0];
+
+                try
                 {
-                    if (!batch.HasDispatched)
-                    {
-                        batch.StartDispatching();
-
-                        return DispatchBatchInternalAsync(batch, batch.Keys, cancellationToken);
-                    }
+                    results = await FetchAsync(batch.Keys, cancellationToken).ConfigureAwait(false);
+                    BatchOperationSucceeded(batch, batch.Keys, results);
                 }
-            }
+                catch (Exception ex)
+                {
+                    BatchOperationFailed(batch, batch.Keys, ex);
+                }
 
-            return default;
+                DiagnosticEvents.StopBatching(activity, batch.Keys,
+                    results.Select(result => result.Value).ToArray());
+            });
         }
 
-        private async ValueTask DispatchBatchInternalAsync(
-            Batch<TKey, TValue> batch,
-            IReadOnlyList<TKey> keys,
-            CancellationToken cancellationToken)
+        private TaskCompletionSource<TValue> GetOrCreatePromise(TKey key)
         {
-            Activity? activity = DiagnosticEvents.StartBatching(keys);
-            IReadOnlyList<Result<TValue>> results = new Result<TValue>[0];
-
-            try
+            if (_currentBatch is {} &&
+                _currentBatch.Size < _maxBatchSize &&
+                _currentBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? promise) &&
+                promise is {})
             {
-                results = await FetchAsync(keys, cancellationToken).ConfigureAwait(false);
-                BatchOperationSucceeded(batch, keys, results);
-            }
-            catch (Exception ex)
-            {
-                BatchOperationFailed(batch, keys, ex);
+                return promise;
             }
 
-            DiagnosticEvents.StopBatching(activity, keys,
-                results.Select(result => result.Value).ToArray());
-        }
+            var newBatch = new Batch<TKey, TValue>();
 
-        private Batch<TKey, TValue> GetCurrentBatch()
-        {
-            if (_currentBatch == null ||
-                _currentBatch.HasDispatched ||
-                _currentBatch.Size == _maxBatchSize)
-            {
-                var newBatch = new Batch<TKey, TValue>();
+            newBatch.TryGetOrCreate(key, out TaskCompletionSource<TValue>? newPromise);
+            _batchScheduler.Schedule(() =>
+                DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
+            _currentBatch = newBatch;
 
-                _batchScheduler.Schedule(() =>
-                    DispatchBatchAsync(newBatch, _disposeTokenSource.Token));
-                _currentBatch = newBatch;
-            }
-
-            return _currentBatch;
+            return newPromise!;
         }
 
         private async Task<IReadOnlyList<TValue>> LoadInternalAsync(
