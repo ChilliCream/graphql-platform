@@ -11,19 +11,22 @@ namespace HotChocolate.Types.Descriptors
     public sealed class DescriptorContext
         : IDescriptorContext
     {
+        private readonly Dictionary<(Type, string?), IConvention> _conventions =
+            new Dictionary<(Type, string?), IConvention>();
+        private readonly IReadOnlyDictionary<(Type, string?), CreateConvention> _convFactories;
         private readonly IServiceProvider _services;
-        private readonly IReadOnlyDictionary<(Type, string?), IConvention> _conventions;
+
         private INamingConventions? _naming;
         private ITypeInspector? _inspector;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<(Type, string?), IConvention> conventions,
+            IReadOnlyDictionary<(Type, string?), CreateConvention> convFactories,
             IServiceProvider services,
             IDictionary<string, object?> contextData)
         {
             Options = options;
-            _conventions = conventions;
+            _convFactories = convFactories;
             _services = services;
             ContextData = contextData;
         }
@@ -87,12 +90,34 @@ namespace HotChocolate.Types.Descriptors
             where T : class, IConvention
         {
             if (_conventions.TryGetValue(
-                (typeof(T), scope), out IConvention? outConvention) &&
-                outConvention is T conventionOfT)
+                (typeof(T), scope), out IConvention? conv))
             {
-                convention = conventionOfT;
-                return true;
+                if (conv is T casted)
+                {
+                    convention = casted;
+                    return true;
+                }
             }
+
+            if (_convFactories.TryGetValue(
+                (typeof(T), scope),
+                out CreateConvention? factory))
+            {
+                conv = factory(_services);
+                if (conv is Convention init)
+                {
+                    var conventionContext = new ConventionContext(init, scope, _services, this);
+                    init.Initialize(conventionContext);
+                    _conventions[(typeof(T), scope)] = init;
+                }
+
+                if (conv is T casted)
+                {
+                    convention = casted;
+                    return true;
+                }
+            }
+
             convention = default;
             return false;
         }
@@ -100,7 +125,7 @@ namespace HotChocolate.Types.Descriptors
         internal static DescriptorContext Create(
             IReadOnlySchemaOptions options,
             IServiceProvider services,
-            IReadOnlyDictionary<(Type, string?), IConvention> conventions,
+            IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
             IDictionary<string, object?> contextData)
         {
             if (options == null)
@@ -129,7 +154,7 @@ namespace HotChocolate.Types.Descriptors
         {
             return new DescriptorContext(
                 new SchemaOptions(),
-                new Dictionary<(Type, string?), IConvention>(),
+                new Dictionary<(Type, string?), CreateConvention>(),
                 new EmptyServiceProvider(),
                 new Dictionary<string, object?>());
         }

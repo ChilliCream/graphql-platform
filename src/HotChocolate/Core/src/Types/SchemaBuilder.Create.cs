@@ -23,7 +23,7 @@ namespace HotChocolate
             var descriptorContext = DescriptorContext.Create(
                 _options,
                 services,
-                CreateConventions(services),
+                _conventions,
                 _contextData);
 
             foreach (Action<IDescriptorContext> action in _onBeforeCreate)
@@ -280,8 +280,7 @@ namespace HotChocolate
                 }
 
                 if (reference is ClrTypeReference cr
-                    && initializer.TryGetRegisteredType(cr,
-                    out RegisteredType registeredType))
+                    && initializer.TryGetRegisteredType(cr, out RegisteredType registeredType))
                 {
                     return (ObjectType)registeredType.Type;
                 }
@@ -364,26 +363,6 @@ namespace HotChocolate
             }
 
             return list;
-        }
-
-        private Dictionary<string, IReadOnlyDictionary<Type, IConvention>> CreateConventions(IServiceProvider services)
-        {
-            var serviceFactory = new ServiceFactory { Services = services };
-            var conventions = new Dictionary<(Type, string), IConvention>();
-
-            foreach (KeyValuePair<(Type, string), CreateConvention> item in _conventions)
-            {
-                var conventionContext = new ConventionContext(scope.Key, serviceFactory);
-
-                foreach (KeyValuePair<Type, CreateConvention> conventionConfig in scope.Value)
-                {
-                    IConvention convention = conventionConfig.Value(services);
-                    convention.Initialize(conventionContext);
-                    conventionScope.Add(conventionConfig.Key, convention);
-                }
-                conventions.Add(scope.Key, conventionScope);
-            }
-            return conventions;
         }
     }
 }

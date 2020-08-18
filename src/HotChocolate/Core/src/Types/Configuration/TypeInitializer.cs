@@ -137,7 +137,7 @@ namespace HotChocolate.Configuration
 
         public bool TryGetRegisteredType(
             ITypeReference reference,
-            out RegisteredType? registeredType)
+            [NotNullWhen(true)]out RegisteredType? registeredType)
         {
             if (reference == null)
             {
