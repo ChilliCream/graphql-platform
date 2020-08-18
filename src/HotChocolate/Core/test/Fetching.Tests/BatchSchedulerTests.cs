@@ -12,21 +12,17 @@ namespace HotChocolate
         public void Dispatch_OneAction_ShouldDispatchOneAction()
         {
             // arrange
-            var hasBeenDispatched = false;
             var scheduler = new BatchScheduler();
-            Func<ValueTask> dispatch = () =>
-            {
-                hasBeenDispatched = true;
-                return default;
-            };
+            Func<ValueTask> dispatch = () => default;
 
             scheduler.Schedule(dispatch);
+            Assert.True(scheduler.HasTasks);
 
             // act
             scheduler.Dispatch(d => { });
 
             // assert
-            Assert.True(hasBeenDispatched);
+            Assert.False(scheduler.HasTasks);
         }
 
         [Fact]
