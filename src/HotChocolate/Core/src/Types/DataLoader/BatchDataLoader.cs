@@ -17,7 +17,7 @@ namespace HotChocolate.DataLoader
             : base(batchScheduler, options)
         { }
 
-        protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {

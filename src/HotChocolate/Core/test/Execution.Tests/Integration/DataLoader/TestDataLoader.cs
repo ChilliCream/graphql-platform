@@ -18,12 +18,12 @@ namespace HotChocolate.Integration.DataLoader
         public List<IReadOnlyList<string>> Loads { get; } =
             new List<IReadOnlyList<string>>();
 
-        protected override Task<IReadOnlyList<Result<string>>> FetchAsync(
+        protected override ValueTask<IReadOnlyList<Result<string>>> FetchAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
         {
             Loads.Add(keys.OrderBy(t => t).ToArray());
-            return Task.FromResult<IReadOnlyList<Result<string>>>(
+            return new ValueTask<IReadOnlyList<Result<string>>>(
                 keys.Select(t => (Result<string>)t).ToArray());
         }
     }

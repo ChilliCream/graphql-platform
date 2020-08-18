@@ -19,7 +19,7 @@ namespace HotChocolate.DataLoader
                 new DataLoaderOptions<TKey> { CacheSize = cacheSize, MaxBatchSize = 1 })
         { }
 
-        protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
@@ -42,7 +42,7 @@ namespace HotChocolate.DataLoader
         }
 
         protected abstract Task<TValue> LoadSingleAsync(
-            TKey key, 
+            TKey key,
             CancellationToken cancellationToken);
     }
 }
