@@ -1,16 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
+using HotChocolate.DataLoader;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
-using HotChocolate.DataLoader;
-using System;
 
 namespace HotChocolate.Integration.DataLoader
 {
