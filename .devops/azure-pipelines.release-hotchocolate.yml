@@ -28,6 +28,14 @@ stages:
         strategy:
           parallel: 8
         steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.401'
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.0-preview.7.20364.11'
           - task: CmdLine@2
             inputs:
               script: './build.cmd test --skip --test-partition $(System.JobPositionInPhase)'
@@ -39,6 +47,14 @@ stages:
         displayName: 'Pack'
         dependsOn: [ ]
         steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.401'
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.0-preview.7.20364.11'
           - task: CmdLine@2
             inputs:
               script: './build.cmd pack --skip'
@@ -50,6 +66,14 @@ stages:
         displayName: 'Publish'
         dependsOn: [ Test, Pack ]
         steps:
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '3.1.401'
+          - task: UseDotNet@2
+            inputs:
+              packageType: 'sdk'
+              version: '5.0.0-preview.7.20364.11'
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'packages'
