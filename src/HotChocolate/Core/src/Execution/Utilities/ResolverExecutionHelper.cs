@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Utilities
                 !executionContext.IsCompleted)
             {
                 while (!cancellationToken.IsCancellationRequested &&
-                    executionContext.TaskBacklog.TryTake(out ITask? task))
+                    executionContext.TaskBacklog.TryTake(out IExecutionTask? task))
                 {
                     task.BeginExecute();
                 }

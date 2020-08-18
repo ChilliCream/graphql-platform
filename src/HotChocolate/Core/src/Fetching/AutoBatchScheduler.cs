@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using GreenDonut;
 
 namespace HotChocolate.Fetching
@@ -7,6 +8,8 @@ namespace HotChocolate.Fetching
         : IBatchScheduler
         , IAutoBatchDispatcher
     {
-        public void Schedule(Action dispatch) => dispatch();
+        public void Schedule(Func<ValueTask> dispatch) => dispatch();
+
+        public static AutoBatchScheduler Default { get; } = new AutoBatchScheduler();
     }
 }

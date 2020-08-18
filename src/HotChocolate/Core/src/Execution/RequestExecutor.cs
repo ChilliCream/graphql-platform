@@ -6,6 +6,7 @@ using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -22,7 +23,7 @@ namespace HotChocolate.Execution
         public RequestExecutor(
             ISchema schema,
             IServiceProvider applicationServices,
-            IServiceProvider schemaServices,
+            IServiceProvider executorServices,
             IErrorHandler errorHandler,
             ITypeConverter converter,
             IActivator activator,
@@ -33,8 +34,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(schema));
             _services = applicationServices ??
                 throw new ArgumentNullException(nameof(applicationServices));
-            Services = schemaServices ?? 
-                throw new ArgumentNullException(nameof(schemaServices));
+            Services = executorServices ??
+                throw new ArgumentNullException(nameof(executorServices));
             _errorHandler = errorHandler ??
                 throw new ArgumentNullException(nameof(errorHandler));
             _converter = converter ??
@@ -61,26 +62,42 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var context = new RequestContext(
-                Schema,
-                request.Services ?? _services,
-                _errorHandler,
-                _converter,
-                _activator,
-                _diagnosticEvents,
-                request)
-            {
-                RequestAborted = cancellationToken
-            };
+            IServiceScope? scope = request.Services is null ? _services.CreateScope() : null;
+            IServiceProvider services = scope is null ? request.Services! : scope.ServiceProvider;
 
-            await _requestDelegate(context).ConfigureAwait(false);
-
-            if (context.Result is null)
+            try
             {
-                throw new InvalidOperationException();
+                var context = new RequestContext(
+                    Schema,
+                    services,
+                    _errorHandler,
+                    _converter,
+                    _activator,
+                    _diagnosticEvents,
+                    request)
+                {
+                    RequestAborted = cancellationToken
+                };
+
+                await _requestDelegate(context).ConfigureAwait(false);
+
+                if (context.Result is null)
+                {
+                    throw new InvalidOperationException();
+                }
+
+                if(scope is not null && context.Result is SubscriptionResult result) 
+                {
+                    context.Result = new SubscriptionResult(result, scope);
+                    scope = null;
+                }
+
+                return context.Result;
             }
-
-            return context.Result;
+            finally
+            {
+                scope?.Dispose();
+            }
         }
 
         public Task<IBatchQueryResult> ExecuteBatchAsync(

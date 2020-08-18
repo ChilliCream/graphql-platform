@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Properties;
 
-#nullable  enable
+#nullable enable
 
 namespace HotChocolate
 {
@@ -33,9 +33,9 @@ namespace HotChocolate
             Extensions = extensions;
             Exception = exception;
 
-            if (code is { } && Extensions is null)
+            if (code is not null && Extensions is null)
             {
-                Extensions = new OrderedDictionary<string, object?> { {_codePropertyName, code} };
+                Extensions = new OrderedDictionary<string, object?> { { _codePropertyName, code } };
             }
         }
 
@@ -71,8 +71,8 @@ namespace HotChocolate
             }
 
             var extensions = Extensions is null
-                ? new OrderedDictionary<string, object?>() {[_codePropertyName] = code}
-                : new OrderedDictionary<string, object?>(Extensions) {[_codePropertyName] = code};
+                ? new OrderedDictionary<string, object?>() { [_codePropertyName] = code }
+                : new OrderedDictionary<string, object?>(Extensions) { [_codePropertyName] = code };
             return new Error(Message, code, Path, Locations, extensions, Exception);
         }
 

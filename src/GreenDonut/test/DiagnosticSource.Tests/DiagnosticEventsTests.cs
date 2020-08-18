@@ -51,7 +51,7 @@ namespace GreenDonut
             }
         }
 
-        private async Task<IReadOnlyList<Result<string>>> FetchDataAsync(
+        private ValueTask<IReadOnlyList<Result<string>>> FetchDataAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
         {
@@ -65,7 +65,7 @@ namespace GreenDonut
                         : Result<string>.Resolve(null);
             }
 
-            return await Task.FromResult(results).ConfigureAwait(false);
+            return new ValueTask<IReadOnlyList<Result<string>>>(results);
         }
 
         private async Task Catch(Func<Task> execute)
