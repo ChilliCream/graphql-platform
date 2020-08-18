@@ -102,6 +102,31 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
+        public IActivityScope RunTask(IExecutionTask task)
+        {
+            if (_listeners.Length == 0)
+            {
+                return _empty;
+            }
+
+            var scopes = new IActivityScope[_resolverListener.Length];
+
+            for (int i = 0; i < _resolverListener.Length; i++)
+            {
+                scopes[i] = _resolverListener[i].RunTask(task);
+            }
+
+            return new AggregateActivityScope(scopes);
+        }
+
+        public void TaskError(IExecutionTask task, IError error)
+        {
+            for (int i = 0; i < _listeners.Length; i++)
+            {
+                _listeners[i].TaskError(task, error);
+            }
+        }
+
         public void AddedDocumentToCache(IRequestContext context)
         {
             for (int i = 0; i < _listeners.Length; i++)

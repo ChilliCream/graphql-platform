@@ -10,7 +10,7 @@ namespace HotChocolate.Execution.Utilities
 
         public event EventHandler? TaskEnqueued;
 
-        public void Dispatch()
+        public void Dispatch(Action<IExecutionTaskDefinition> enqueue)
         {
         }
 
