@@ -338,12 +338,18 @@ namespace HotChocolate
         {
             var list = new List<ITypeInitializationInterceptor>();
 
-            var interceptors = services.GetServices<ITypeInitializationInterceptor>();
-            list.AddRange(interceptors);
+            if (services is not EmptyServiceProvider)
+            {
+                var inter = services.GetService<IEnumerable<ITypeInitializationInterceptor>>();
+                if (inter is not null)
+                {
+                    list.AddRange(inter);
+                }
+            }
 
             if (_interceptors.Count > 0)
             {
-                var serviceFactory = new ServiceFactory {Services = services};
+                var serviceFactory = new ServiceFactory { Services = services };
 
                 foreach (object interceptorOrType in _interceptors)
                 {

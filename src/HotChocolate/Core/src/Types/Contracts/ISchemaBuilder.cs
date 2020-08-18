@@ -68,7 +68,7 @@ namespace HotChocolate
         ISchemaBuilder TryAddConvention(
             Type convention,
             CreateConvention factory,
-            string scope = null);
+            string? scope = null);
 
         ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action);
 
