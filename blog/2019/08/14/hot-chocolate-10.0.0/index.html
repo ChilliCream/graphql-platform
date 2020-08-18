@@ -1213,7 +1213,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Filters let you query your backend with a powerful query input type that translates into native database queries.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37160577994963665000"
+              data-toaster-id="64876930156081316000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1225,7 +1225,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     firstName
     lastName
   }
-}`, `37160577994963665000`)"
+}`, `64876930156081316000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1247,7 +1247,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>All you have to do in your schema type is to add a <code class="language-text">UseFiltering</code> to your field descriptor.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="81392293532338320000"
+              data-toaster-id="90514749602267100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1261,7 +1261,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
           .Type<ListType<PersonType>>()
           .UseFiltering();
     }
-}`, `81392293532338320000`)"
+}`, `90514749602267100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1283,7 +1283,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Filters are easily combined with our pagination.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92744843758154430000"
+              data-toaster-id="81254191027368310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1297,7 +1297,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
           .UsePaging<PersonType>()
           .UseFiltering();
     }
-}`, `92744843758154430000`)"
+}`, `81254191027368310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1319,7 +1319,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Also, it is possible to customize filters by describing what fields are filterable and what operators are allowed.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29969494861292655000"
+              data-toaster-id="45325866515822535000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1334,7 +1334,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
           .UsePaging<PersonType>()
           .UseFiltering(d => d.Ignore(t => t.LastName));
     }
-}`, `29969494861292655000`)"
+}`, `45325866515822535000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1357,7 +1357,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>If you want to use the same filter multiple times all over your schema you can also describe the filter input type separately.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17251843865954974000"
+              data-toaster-id="30247305771070222000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1376,7 +1376,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
             .AllowContains().Name(&quot;contains&quot;).And()
             .AllowIn().Name(&quot;in&quot;);
     }
-}`, `17251843865954974000`)"
+}`, `30247305771070222000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1403,7 +1403,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>And then use this filter type where you need it.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55972456179880490000"
+              data-toaster-id="8999337928218876000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1418,7 +1418,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
           .UsePaging<PersonType>()
           .UseFiltering<PersonFilterType>());
     }
-}`, `55972456179880490000`)"
+}`, `8999337928218876000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1458,7 +1458,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>For the core API we introduced a <em>Redis</em> subscription provider. This means that you now can use <em>Redis</em> as a pub/sub system without a hassle.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="56591119791834776000"
+              data-toaster-id="3585557047864607000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1472,7 +1472,7 @@ data-styled.g127[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 
 configuration.EndPoints.Add(&quot;host:port&quot;);
 
-services.AddRedisSubscriptionProvider(configuration);`, `56591119791834776000`)"
+services.AddRedisSubscriptionProvider(configuration);`, `3585557047864607000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1509,7 +1509,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p><code class="language-text">POST /graphql?batchOperations=[NewsFeed, StoryComments]</code></p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74461932528860380000"
+              data-toaster-id="23348917340973420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1529,7 +1529,7 @@ query StoryComments {
       message
     }
   }
-}`, `74461932528860380000`)"
+}`, `23348917340973420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1561,7 +1561,7 @@ query StoryComments {
 <p>The thing is that with version 11 we will introduce <code class="language-text">@defer</code> which will allow you to do the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="53365023753857610000"
+              data-toaster-id="95737716927865860000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1578,7 +1578,7 @@ query StoryComments {
       }
     }
   }
-}`, `53365023753857610000`)"
+}`, `95737716927865860000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1607,7 +1607,7 @@ query StoryComments {
 <p>Look at how easy you can export data as variable by just adding <code class="language-text">@export</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86203609903973420000"
+              data-toaster-id="99256493933264470000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1616,7 +1616,7 @@ query StoryComments {
   foo {
     bar @export
   }
-}`, `86203609903973420000`)"
+}`, `99256493933264470000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1633,7 +1633,7 @@ query StoryComments {
 <p>What`s important to know here is that you also can export objects that will convert to a matching input type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32817864426856636000"
+              data-toaster-id="30608406911338790000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1642,7 +1642,7 @@ query StoryComments {
   foo @export(as: &quot;something&quot;) {
     bar
   }
-}`, `32817864426856636000`)"
+}`, `30608406911338790000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1723,12 +1723,12 @@ query StoryComments {
 <p>Like now you can add error filter to the dependency injection instead of registering them with the execution builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97411125244070310000"
+              data-toaster-id="50608363086542400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddErrorFilter<MyCustomErrorFilter>();`, `97411125244070310000`)"
+              onClick="copyToClipboard(`services.AddErrorFilter<MyCustomErrorFilter>();`, `50608363086542400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1741,12 +1741,12 @@ query StoryComments {
 <p>The same goes for class <em>DataLoader</em>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="66347921105135630000"
+              data-toaster-id="20361387541443900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddDataLoader<MyCustomDataLoader>();`, `66347921105135630000`)"
+              onClick="copyToClipboard(`services.AddDataLoader<MyCustomDataLoader>();`, `20361387541443900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1760,7 +1760,7 @@ query StoryComments {
 <p>Also, we refined things like the schema builder so that you can in place now define all the types:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55597101097129970000"
+              data-toaster-id="48307380732939580000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1768,7 +1768,7 @@ query StoryComments {
               onClick="copyToClipboard(`SchemaBuilder.New()
   .AddEnumType(d => d.Name(&quot;MyEnum&quot;).Value(&quot;FOO))
   ...
-  .Create();`, `55597101097129970000`)"
+  .Create();`, `48307380732939580000`)"
             >
               <div
                 class="gatsby-code-button"
