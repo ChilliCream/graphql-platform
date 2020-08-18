@@ -17,6 +17,7 @@ namespace HotChocolate.Integration.DataLoader
         [Fact]
         public async Task FetchOnceDataLoader()
         {
+            Snapshot.FullName();
             await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
@@ -24,7 +25,7 @@ namespace HotChocolate.Integration.DataLoader
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .AddResolver(
                         "Query", "fetchItem",
-                        ctx => ctx.FetchOnceAsync(ct => Task.FromResult("fooBar")))
+                        async ctx => await ctx.FetchOnceAsync(ct => Task.FromResult("fooBar")))
             )
             .MatchSnapshotAsync();
         }
@@ -32,6 +33,7 @@ namespace HotChocolate.Integration.DataLoader
         [Fact]
         public async Task FetchSingleDataLoader()
         {
+            Snapshot.FullName();
             await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
@@ -39,7 +41,7 @@ namespace HotChocolate.Integration.DataLoader
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .AddResolver(
                         "Query", "fetchItem",
-                        ctx => ctx.CacheDataLoader<string, string>(
+                        async ctx => await ctx.CacheDataLoader<string, string>(
                             (key, ct) => Task.FromResult(key))
                             .LoadAsync("fooBar"))
             )
@@ -49,6 +51,7 @@ namespace HotChocolate.Integration.DataLoader
         [Fact]
         public async Task FetchDataLoader()
         {
+            Snapshot.FullName();
             await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
@@ -56,7 +59,7 @@ namespace HotChocolate.Integration.DataLoader
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .AddResolver(
                         "Query", "fetchItem",
-                        ctx => ctx.BatchDataLoader<string, string>(
+                        async ctx => await ctx.BatchDataLoader<string, string>(
                             (keys, ct) => Task.FromResult<IReadOnlyDictionary<string, string>>(
                                 keys.ToDictionary(t => t)))
                             .LoadAsync("fooBar"))
@@ -67,6 +70,7 @@ namespace HotChocolate.Integration.DataLoader
         [Fact]
         public async Task FetchGroupDataLoader()
         {
+            Snapshot.FullName();
             await ExpectValid(
                 "{ fetchItem }",
                 configure: b => b
@@ -74,7 +78,7 @@ namespace HotChocolate.Integration.DataLoader
                     .AddDocumentFromString("type Query { fetchItem: String }")
                     .AddResolver(
                         "Query", "fetchItem",
-                        ctx => ctx.GroupDataLoader<string, string>(
+                        async ctx => await ctx.GroupDataLoader<string, string>(
                             (keys, ct) => Task.FromResult(
                                 keys.ToLookup(t => t)))
                             .LoadAsync("fooBar"))

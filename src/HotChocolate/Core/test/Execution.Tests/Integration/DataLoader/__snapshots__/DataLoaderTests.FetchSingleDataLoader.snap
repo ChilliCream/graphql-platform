@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "fetchItem": "fooBar"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }
