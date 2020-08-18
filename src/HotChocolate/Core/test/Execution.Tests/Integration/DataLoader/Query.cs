@@ -48,43 +48,5 @@ namespace HotChocolate.Integration.DataLoader
             s += await testDataLoader.LoadAsync(key + "e", cancellationToken);
             return s;
         }
-
-        public List<string> GetLoads([
-            DataLoader]TestDataLoader testDataLoader)
-        {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
-
-        public List<string> GetLoads2(
-            [DataLoader("fooBar")]TestDataLoader testDataLoader)
-        {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
-
-        public List<string> GetLoads3(ITestDataLoader testDataLoader)
-        {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in ((TestDataLoader)testDataLoader).Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
     }
 }

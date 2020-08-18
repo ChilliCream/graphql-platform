@@ -5,7 +5,30 @@
       "b": "babbbcbdbe"
     },
     "Errors": null,
-    "Extensions": null,
+    "Extensions": {
+      "loads": [
+        [
+          "aa",
+          "ba"
+        ],
+        [
+          "ab",
+          "bb"
+        ],
+        [
+          "ac",
+          "bc"
+        ],
+        [
+          "ad",
+          "bd"
+        ],
+        [
+          "ae",
+          "be"
+        ]
+      ]
+    },
     "ContextData": null
   },
   {
@@ -13,7 +36,25 @@
       "a": "aaabacadae"
     },
     "Errors": null,
-    "Extensions": null,
+    "Extensions": {
+      "loads": [
+        [
+          "aa"
+        ],
+        [
+          "ab"
+        ],
+        [
+          "ac"
+        ],
+        [
+          "ad"
+        ],
+        [
+          "ae"
+        ]
+      ]
+    },
     "ContextData": null
   },
   {
@@ -21,7 +62,25 @@
       "c": "cacbcccdce"
     },
     "Errors": null,
-    "Extensions": null,
+    "Extensions": {
+      "loads": [
+        [
+          "ca"
+        ],
+        [
+          "cb"
+        ],
+        [
+          "cc"
+        ],
+        [
+          "cd"
+        ],
+        [
+          "ce"
+        ]
+      ]
+    },
     "ContextData": null
   }
 ]

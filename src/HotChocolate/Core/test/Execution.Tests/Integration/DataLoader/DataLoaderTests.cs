@@ -9,6 +9,8 @@ using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
+using HotChocolate.DataLoader;
+using System;
 
 namespace HotChocolate.Integration.DataLoader
 {
@@ -90,7 +92,24 @@ namespace HotChocolate.Integration.DataLoader
         public async Task ClassDataLoader()
         {
             // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .UseRequest(next => async context => 
+                {
+                    await next(context);
+
+                    var dataLoader = 
+                        context.Services
+                            .GetRequiredService<IDataLoaderRegistry>()
+                            .GetOrRegister<TestDataLoader>(() => throw new Exception());
+
+                    context.Result = QueryResultBuilder
+                        .FromResult((IQueryResult)context.Result)
+                        .AddExtension("loads", dataLoader.Loads)
+                        .Create();
+                })
+                .UseDefaultPipeline());
 
             // act
             var results = new List<IExecutionResult>();
@@ -120,17 +139,7 @@ namespace HotChocolate.Integration.DataLoader
                         }")
                     .Create()));
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ loads }")
-                    .Create()));
-
             // assert
-            Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
             results.MatchSnapshot();
         }
 
@@ -138,7 +147,24 @@ namespace HotChocolate.Integration.DataLoader
         public async Task ClassDataLoaderWithKey()
         {
             // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .UseRequest(next => async context => 
+                {
+                    await next(context);
+
+                    var dataLoader = 
+                        context.Services
+                            .GetRequiredService<IDataLoaderRegistry>()
+                            .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
+
+                    context.Result = QueryResultBuilder
+                        .FromResult((IQueryResult)context.Result)
+                        .AddExtension("loads", dataLoader.Loads)
+                        .Create();
+                })
+                .UseDefaultPipeline());
 
             // act
             var results = new List<IExecutionResult>();
@@ -168,17 +194,7 @@ namespace HotChocolate.Integration.DataLoader
                         }")
                     .Create()));
 
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ loads loads2 }")
-                    .Create()));
-
             // assert
-            Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
             results.MatchSnapshot();
         }
 
@@ -186,7 +202,24 @@ namespace HotChocolate.Integration.DataLoader
         public async Task StackedDataLoader()
         {
             // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .UseRequest(next => async context => 
+                {
+                    await next(context);
+
+                    var dataLoader = 
+                        context.Services
+                            .GetRequiredService<IDataLoaderRegistry>()
+                            .GetOrRegister<TestDataLoader>("fooBar", () => throw new Exception());
+
+                    context.Result = QueryResultBuilder
+                        .FromResult((IQueryResult)context.Result)
+                        .AddExtension("loads", dataLoader.Loads)
+                        .Create();
+                })
+                .UseDefaultPipeline());
 
             // act
             var results = new List<IExecutionResult>();
@@ -217,10 +250,6 @@ namespace HotChocolate.Integration.DataLoader
                     .Create()));
 
             // assert
-            Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
             results.MatchSnapshot();
         }
 
@@ -228,7 +257,22 @@ namespace HotChocolate.Integration.DataLoader
         public async Task ClassDataLoader_Resolve_From_DependencyInjection()
         {
             // arrange
-            IRequestExecutor executor = await CreateExecutorAsync(c => c.AddQueryType<Query>());
+            IRequestExecutor executor = await CreateExecutorAsync(c => c
+                .AddQueryType<Query>()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .UseRequest(next => async context => 
+                {
+                    await next(context);
+
+                    var dataLoader = 
+                        (TestDataLoader)context.Services.GetRequiredService<ITestDataLoader>();
+
+                    context.Result = QueryResultBuilder
+                        .FromResult((IQueryResult)context.Result)
+                        .AddExtension("loads", dataLoader.Loads)
+                        .Create();
+                })
+                .UseDefaultPipeline());
 
             // act
             var results = new List<IExecutionResult>();
@@ -257,18 +301,8 @@ namespace HotChocolate.Integration.DataLoader
                             c: dataLoaderWithInterface(key: ""c"")
                         }")
                     .Create()));
-
-            results.Add(await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ loads loads2 loads3 }")
-                    .Create()));
-
+                    
             // assert
-            Assert.Collection(results,
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors),
-                t => Assert.Null(t.Errors));
             results.MatchSnapshot();
         }
     }
