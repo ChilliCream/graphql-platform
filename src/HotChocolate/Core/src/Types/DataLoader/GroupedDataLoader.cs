@@ -4,16 +4,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 
+#nullable enable
+
 namespace HotChocolate.DataLoader
 {
     public abstract class GroupedDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue[]>
+        where TKey : notnull
     {
-        protected GroupedDataLoader(IBatchScheduler batchScheduler)
-            : base(batchScheduler)
+        protected GroupedDataLoader(
+            IBatchScheduler batchScheduler,
+            DataLoaderOptions<TKey>? options = null)
+            : base(batchScheduler, options)
         { }
 
-        protected sealed override async Task<IReadOnlyList<Result<TValue[]>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue[]>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {

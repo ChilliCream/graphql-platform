@@ -166,7 +166,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<Task<TResult>> resolver)
+            Func<ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {
@@ -225,7 +225,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            Func<IResolverContext, CancellationToken, Task<TResult>> resolver)
+            Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
         {
             if (builder == null)
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace GreenDonut
 {
@@ -7,20 +8,21 @@ namespace GreenDonut
         : IBatchScheduler
     {
         private readonly object _sync = new object();
-        private readonly ConcurrentQueue<Action> _queue = new ConcurrentQueue<Action>();
+        private readonly ConcurrentQueue<Func<ValueTask>> _queue =
+            new ConcurrentQueue<Func<ValueTask>>();
 
         public void Dispatch()
         {
             lock(_sync)
             {
-                while (_queue.TryDequeue(out Action dispatch))
+                while (_queue.TryDequeue(out Func<ValueTask> dispatch))
                 {
                     dispatch();
                 }
             }
         }
 
-        public void Schedule(Action dispatch)
+        public void Schedule(Func<ValueTask> dispatch)
         {
             _queue.Enqueue(dispatch);
         }
