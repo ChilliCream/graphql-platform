@@ -8,12 +8,16 @@ namespace HotChocolate.Execution
     internal partial class ExecutionContext
         : IExecutionContext
     {
+        private readonly IExecutionTaskContext _taskContext;
         private readonly TaskBacklog _taskBacklog;
         private readonly TaskStatistics _taskStatistics;
         private CancellationTokenSource _completed = default!;
 
-        public ExecutionContext(ObjectPool<ResolverTask> resolverTaskPool)
+        public ExecutionContext(
+            IExecutionTaskContext taskContext,
+            ObjectPool<ResolverTask> resolverTaskPool)
         {
+            _taskContext = taskContext;
             _taskStatistics = new TaskStatistics();
             _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
             TaskPool = resolverTaskPool;
@@ -21,7 +25,9 @@ namespace HotChocolate.Execution
             TaskStats.AllTasksCompleted += OnCompleted;
         }
 
-        public void Initialize(IBatchDispatcher batchDispatcher, CancellationToken requestAborted)
+        public void Initialize(
+            IBatchDispatcher batchDispatcher,
+            CancellationToken requestAborted)
         {
             _completed = new CancellationTokenSource();
             requestAborted.Register(TryComplete);

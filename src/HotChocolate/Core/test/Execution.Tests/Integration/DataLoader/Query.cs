@@ -10,16 +10,18 @@ namespace HotChocolate.Integration.DataLoader
         public Task<string> GetWithDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader]TestDataLoader testDataLoader,
+            [DataLoader] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
             return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
+        public Bar Bar => new Bar();
+
         public Task<string> GetWithDataLoader2(
             string key,
             FieldNode fieldSelection,
-            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            [DataLoader("fooBar")] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
             return testDataLoader.LoadAsync(key, cancellationToken);
@@ -37,7 +39,7 @@ namespace HotChocolate.Integration.DataLoader
         public async Task<string> GetWithStackedDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            [DataLoader("fooBar")] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
 
@@ -48,43 +50,17 @@ namespace HotChocolate.Integration.DataLoader
             s += await testDataLoader.LoadAsync(key + "e", cancellationToken);
             return s;
         }
+    }
 
-        public List<string> GetLoads([
-            DataLoader]TestDataLoader testDataLoader)
+    public class Bar
+    {
+        public Task<string> GetWithDataLoader(
+            string key,
+            FieldNode fieldSelection,
+            [DataLoader] TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
         {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
-
-        public List<string> GetLoads2(
-            [DataLoader("fooBar")]TestDataLoader testDataLoader)
-        {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in testDataLoader.Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
-        }
-
-        public List<string> GetLoads3(ITestDataLoader testDataLoader)
-        {
-            var list = new List<string>();
-
-            foreach (IReadOnlyList<string> request in ((TestDataLoader)testDataLoader).Loads)
-            {
-                list.Add(string.Join(", ", request));
-            }
-
-            return list;
+            return testDataLoader.LoadAsync(key, cancellationToken);
         }
     }
 }

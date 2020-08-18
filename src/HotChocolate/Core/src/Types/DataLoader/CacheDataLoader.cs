@@ -5,20 +5,21 @@ using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Fetching;
 
+#nullable enable
+
 namespace HotChocolate.DataLoader
 {
     public abstract class CacheDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
+        where TKey : notnull
     {
-        protected CacheDataLoader(IAutoBatchDispatcher batchScheduler, FetchCache<TKey, TValue> fetch)
-            : base(batchScheduler)
+        protected CacheDataLoader(int cacheSize)
+            : base(
+                AutoBatchScheduler.Default,
+                new DataLoaderOptions<TKey> { CacheSize = cacheSize, MaxBatchSize = 1 })
         { }
 
-        protected CacheDataLoader(IAutoBatchDispatcher batchScheduler, int cacheSize)
-            : base(batchScheduler, new DataLoaderOptions<TKey> { CacheSize = cacheSize })
-        { }
-
-        protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
@@ -40,6 +41,8 @@ namespace HotChocolate.DataLoader
             return items;
         }
 
-        protected abstract Task<TValue> LoadSingleAsync(TKey key, CancellationToken cancellationToken);
+        protected abstract Task<TValue> LoadSingleAsync(
+            TKey key,
+            CancellationToken cancellationToken);
     }
 }

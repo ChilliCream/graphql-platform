@@ -24,7 +24,7 @@ namespace GreenDonut
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
-        protected override Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected override ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
