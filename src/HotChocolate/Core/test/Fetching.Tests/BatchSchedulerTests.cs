@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Snapshooter.Xunit;
 using Xunit;
@@ -13,15 +14,16 @@ namespace HotChocolate
             // arrange
             var hasBeenDispatched = false;
             var scheduler = new BatchScheduler();
-            Action dispatch = () =>
+            Func<ValueTask> dispatch = () =>
             {
                 hasBeenDispatched = true;
+                return default;
             };
 
             scheduler.Schedule(dispatch);
 
             // act
-            scheduler.Dispatch();
+            scheduler.Dispatch(d => { });
 
             // assert
             Assert.True(hasBeenDispatched);
@@ -42,7 +44,7 @@ namespace HotChocolate
         {
             // arrange
             var scheduler = new BatchScheduler();
-            Action dispatch = () => { };
+            Func<ValueTask> dispatch = () => default;
 
             // act
             scheduler.Schedule(dispatch);
@@ -57,7 +59,7 @@ namespace HotChocolate
             // arrange
             var hasBeenRaised = false;
             var scheduler = new BatchScheduler();
-            Action dispatch = () => { };
+            Func<ValueTask> dispatch = () => default;
 
             scheduler.TaskEnqueued += (s, e) =>
             {
