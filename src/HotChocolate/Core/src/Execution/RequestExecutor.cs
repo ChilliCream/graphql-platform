@@ -86,6 +86,12 @@ namespace HotChocolate.Execution
                     throw new InvalidOperationException();
                 }
 
+                if(scope is not null && context.Result is SubscriptionResult result) 
+                {
+                    context.Result = new SubscriptionResult(result, scope);
+                    scope = null;
+                }
+
                 return context.Result;
             }
             finally

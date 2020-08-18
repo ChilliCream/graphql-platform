@@ -36,6 +36,32 @@ namespace HotChocolate.Execution
             _session = session;
         }
 
+        public SubscriptionResult(
+            SubscriptionResult subscriptionResult,
+            IAsyncDisposable? session = null)
+        {
+            _resultStreamFactory = subscriptionResult._resultStreamFactory;
+            _errors = subscriptionResult._errors;
+            _extensions = subscriptionResult._extensions;
+            _contextData = subscriptionResult._contextData;
+            _session = session is null
+                ? (IAsyncDisposable)subscriptionResult
+                : new CombinedDispose(session, subscriptionResult);
+        }
+
+         public SubscriptionResult(
+            SubscriptionResult subscriptionResult,
+            IDisposable? session = null)
+        {
+            _resultStreamFactory = subscriptionResult._resultStreamFactory;
+            _errors = subscriptionResult._errors;
+            _extensions = subscriptionResult._extensions;
+            _contextData = subscriptionResult._contextData;
+            _session = session is null
+                ? (IAsyncDisposable)subscriptionResult
+                : new CombinedDispose(session.Dispose, subscriptionResult);
+        }
+
         public IReadOnlyList<IError>? Errors => _errors;
 
         public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
@@ -79,5 +105,40 @@ namespace HotChocolate.Execution
             }
         }
 
+        private class CombinedDispose : IAsyncDisposable
+        {
+            private readonly IAsyncDisposable? _aa;
+            private readonly Action? _ab;
+            private readonly IAsyncDisposable _b;
+            private bool _disposed = false;
+
+            public CombinedDispose(IAsyncDisposable a, IAsyncDisposable b)
+            {
+                _aa = a;
+                _b = b;
+            }
+
+            public CombinedDispose(Action a, IAsyncDisposable b)
+            {
+                _ab = a;
+                _b = b;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (!_disposed)
+                {
+                    if (_aa is not null)
+                    {
+                        await _aa.DisposeAsync().ConfigureAwait(false);
+                    }
+
+                    _ab?.Invoke();
+
+                    await _b.DisposeAsync().ConfigureAwait(false);
+                    _disposed = true;
+                }
+            }
+        }
     }
 }
