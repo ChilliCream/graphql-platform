@@ -55,6 +55,8 @@ namespace GreenDonut
 
         public ValueTask StartDispatchingAsync(Func<ValueTask> dispatch)
         {
+            bool execute = false;
+
             if (!_hasDispatched)
             {
                 lock (_sync)
@@ -62,9 +64,14 @@ namespace GreenDonut
                     if (!_hasDispatched)
                     {
                         _hasDispatched = true;
-                        return dispatch();
+                        execute = true;
                     }
                 }
+            }
+
+            if (execute)
+            {
+                return dispatch();
             }
 
             return default;
