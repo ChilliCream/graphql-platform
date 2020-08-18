@@ -35,14 +35,6 @@ stages:
         strategy:
           parallel: 8
         steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.401'
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '3.0.103'
           - task: CmdLine@2
             inputs:
               script: './build.cmd Test --skip --test-partition $(System.JobPositionInPhase)'

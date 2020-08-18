@@ -32,10 +32,6 @@ stages:
         strategy:
           parallel: 8
         steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.401'
           - task: CmdLine@2
             inputs:
               script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
@@ -47,10 +43,6 @@ stages:
         displayName: 'ReportCoverage'
         dependsOn: [ Cover ]
         steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.401'
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'test-results'
@@ -62,10 +54,6 @@ stages:
         displayName: 'SonarPr'
         dependsOn: [ Cover ]
         steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: 'sdk'
-              version: '3.1.401'
           - task: JavaToolInstaller@0
             inputs:
               versionSpec: '11'

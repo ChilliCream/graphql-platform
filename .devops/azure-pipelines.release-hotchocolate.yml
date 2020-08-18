@@ -27,11 +27,7 @@ stages:
         dependsOn: []
         strategy:
           parallel: 8
-        steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: "sdk"
-              version: "3.1.401"
+        steps:          
           - task: CmdLine@2
             inputs:
               script: "./build.cmd test --skip --test-partition $(System.JobPositionInPhase)"
@@ -42,11 +38,7 @@ stages:
       - job: Pack
         displayName: "Pack"
         dependsOn: []
-        steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: "sdk"
-              version: "3.1.401"
+        steps:          
           - task: CmdLine@2
             inputs:
               script: "./build.cmd pack --skip"
@@ -58,10 +50,6 @@ stages:
         displayName: "Publish"
         dependsOn: [Test, Pack]
         steps:
-          - task: UseDotNet@2
-            inputs:
-              packageType: "sdk"
-              version: "3.1.401"
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: "packages"
