@@ -2,14 +2,18 @@
   {
     "Data": {
       "a": "a",
-      "b": "b"
+      "b": "b",
+      "bar": {
+        "c": "c"
+      }
     },
     "Errors": null,
     "Extensions": {
       "loads": [
         [
           "a",
-          "b"
+          "b",
+          "c"
         ]
       ]
     },

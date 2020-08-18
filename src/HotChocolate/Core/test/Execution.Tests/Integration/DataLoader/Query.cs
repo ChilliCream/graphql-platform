@@ -10,16 +10,18 @@ namespace HotChocolate.Integration.DataLoader
         public Task<string> GetWithDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader]TestDataLoader testDataLoader,
+            [DataLoader] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
             return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
+        public Bar Bar => new Bar();
+
         public Task<string> GetWithDataLoader2(
             string key,
             FieldNode fieldSelection,
-            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            [DataLoader("fooBar")] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
             return testDataLoader.LoadAsync(key, cancellationToken);
@@ -37,7 +39,7 @@ namespace HotChocolate.Integration.DataLoader
         public async Task<string> GetWithStackedDataLoader(
             string key,
             FieldNode fieldSelection,
-            [DataLoader("fooBar")]TestDataLoader testDataLoader,
+            [DataLoader("fooBar")] TestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
 
@@ -47,6 +49,18 @@ namespace HotChocolate.Integration.DataLoader
             s += await testDataLoader.LoadAsync(key + "d", cancellationToken);
             s += await testDataLoader.LoadAsync(key + "e", cancellationToken);
             return s;
+        }
+    }
+
+    public class Bar
+    {
+        public Task<string> GetWithDataLoader(
+            string key,
+            FieldNode fieldSelection,
+            [DataLoader] TestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
+        {
+            return testDataLoader.LoadAsync(key, cancellationToken);
         }
     }
 }

@@ -120,6 +120,9 @@ namespace HotChocolate.Integration.DataLoader
                         @"{
                             a: withDataLoader(key: ""a"")
                             b: withDataLoader(key: ""b"")
+                            bar {
+                                c: withDataLoader(key: ""c"")
+                            }
                         }")
                     .Create()));
 
