@@ -43,7 +43,7 @@ namespace HotChocolate.Data.Filters
 
             if (TryCombineOperations(context,
                     operations,
-                    FilterCombinator.AND,
+                    FilterCombinator.And,
                     out T combined))
             {
                 context.GetLevel().Enqueue(combined);
@@ -115,8 +115,8 @@ namespace HotChocolate.Data.Filters
         {
             FilterCombinator combinator =
                 context.Operations.Peek() is OrField
-                    ? FilterCombinator.OR
-                    : FilterCombinator.AND;
+                    ? FilterCombinator.Or
+                    : FilterCombinator.And;
 
             Queue<T> operations = context.PopLevel();
 

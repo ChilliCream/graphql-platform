@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters
 {
     public abstract class FilterVisitorBase<TContext>
         : SyntaxWalker<TContext>
-        where TContext : IFilterVisitorContextBase
+        where TContext : IFilterVisitorContext
     {
         protected FilterVisitorBase()
         {

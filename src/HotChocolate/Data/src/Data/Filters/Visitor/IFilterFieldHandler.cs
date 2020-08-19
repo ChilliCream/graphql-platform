@@ -13,9 +13,9 @@ namespace HotChocolate.Data.Filters
             FilterFieldDefinition fieldDefinition);
     }
 
-    public interface IFilterFieldHandler<T, TContext>
+    public interface IFilterFieldHandler<in TContext>
         : IFilterFieldHandler
-        where TContext : FilterVisitorContext<T>
+        where TContext : IFilterVisitorContext
     {
         bool TryHandleEnter(
             TContext context,
@@ -28,5 +28,11 @@ namespace HotChocolate.Data.Filters
             IFilterField field,
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action);
+    }
+
+    public interface IFilterFieldHandler<in TContext, T>
+        : IFilterFieldHandler<TContext>
+        where TContext : FilterVisitorContext<T>
+    {
     }
 }

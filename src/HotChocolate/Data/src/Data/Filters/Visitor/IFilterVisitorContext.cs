@@ -1,12 +1,17 @@
+using System.Collections.Generic;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {
-    public interface IFilterVisitorContext<T>
-        : IFilterVisitorContextBase
+    public interface IFilterVisitorContext
+        : ISyntaxVisitorContext
     {
-        IStackableList<FilterScope<T>> Scopes { get; }
+        IStackableList<IType> Types { get; }
 
-        FilterScope<T> CreateScope();
+        IStackableList<IInputField> Operations { get; }
+
+        IList<IError> Errors { get; }
     }
 }

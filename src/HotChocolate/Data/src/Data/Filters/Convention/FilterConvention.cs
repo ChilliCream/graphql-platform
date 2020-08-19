@@ -173,7 +173,7 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        public IFilterExecutor<TEntityType> CreateExecutor<TEntityType>() =>
+        public IFilterExecutor CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
         public bool TryGetHandler(

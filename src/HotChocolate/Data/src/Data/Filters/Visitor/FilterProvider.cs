@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
+using HotChocolate.Language.Visitors;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-    public abstract class FilterProvider<T, TContext>
-        : FilterProviderBase<FilterProviderDefiniton<T, TContext>>
+    public abstract class FilterProvider<TContext>
+        : Convention<FilterProviderDefinition>
+        , IFilterProvider
         where TContext : FilterVisitorContext<T>
     {
         private readonly Action<IFilterProviderDescriptor<T, TContext>> _configure;
-
-        public IReadOnlyCollection<FilterFieldHandler<T, TContext>> Handlers { get; private set; } =
-            Array.Empty<FilterFieldHandler<T, TContext>>();
-
-        public FilterVisitor<T, TContext> Visitor { get; private set; }
+        private ISyntaxVisitor<TContext> _visitor;
 
         protected FilterProvider()
         {

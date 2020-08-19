@@ -25,8 +25,8 @@ namespace HotChocolate.Data.Filters.Expressions
             {
                 combined = combinator switch
                 {
-                    FilterCombinator.AND => Expression.AndAlso(combined, operations.Dequeue()),
-                    FilterCombinator.OR => Expression.OrElse(combined, operations.Dequeue()),
+                    FilterCombinator.And => Expression.AndAlso(combined, operations.Dequeue()),
+                    FilterCombinator.Or => Expression.OrElse(combined, operations.Dequeue()),
                     _ => throw new InvalidOperationException(),
                 };
             }

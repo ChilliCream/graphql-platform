@@ -7,10 +7,10 @@ namespace HotChocolate.Data.Filters
         IFilterFieldHandlerInitializationContext
     {
         public FilterFieldHandlerInitializationContext(
-            string? scope,
             IServiceProvider services,
             IFilterConvention convention,
-            IFilterProvider provider)
+            IFilterProvider provider,
+            string? scope)
             : base(scope, services, convention)
         {
             Provider = provider;
@@ -22,6 +22,6 @@ namespace HotChocolate.Data.Filters
             IFilterProviderInitializationContext context,
             IFilterProvider provider) =>
             new FilterFieldHandlerInitializationContext(
-                context.Scope, context.Services, context.Convention, provider);
+                context.Services, context.Convention, provider,context.Scope);
     }
 }

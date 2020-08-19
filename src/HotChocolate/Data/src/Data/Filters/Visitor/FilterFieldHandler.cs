@@ -9,6 +9,7 @@ namespace HotChocolate.Data.Filters
         : IFilterFieldHandler<T, TContext>
         where TContext : FilterVisitorContext<T>
     {
+        /// <inheritdoc />
         public virtual bool TryHandleEnter(
             TContext context,
             IFilterField field,
@@ -19,6 +20,7 @@ namespace HotChocolate.Data.Filters
             return false;
         }
 
+        /// <inheritdoc />
         public virtual bool TryHandleLeave(
             TContext context,
             IFilterField field,
@@ -29,6 +31,7 @@ namespace HotChocolate.Data.Filters
             return false;
         }
 
+        /// <inheritdoc />
         public abstract bool CanHandle(
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
