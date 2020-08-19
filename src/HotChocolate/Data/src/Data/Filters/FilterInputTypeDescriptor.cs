@@ -50,16 +50,16 @@ namespace HotChocolate.Data.Filters
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
+        protected IFilterConvention Convention { get; }
+
+        protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
+            new FilterInputTypeDefinition();
+
         protected BindableList<FilterFieldDescriptor> Fields { get; } =
             new BindableList<FilterFieldDescriptor>();
 
         protected BindableList<FilterOperationFieldDescriptor> Operations { get; } =
             new BindableList<FilterOperationFieldDescriptor>();
-
-        protected IFilterConvention Convention { get; }
-
-        protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
-            new FilterInputTypeDefinition();
 
         Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
