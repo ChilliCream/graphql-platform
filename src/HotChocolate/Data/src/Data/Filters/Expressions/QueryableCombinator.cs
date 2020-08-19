@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableCombinator
-        : FilterOperationCombinator<Expression, QueryableFilterContext>
+        : FilterOperationCombinator<QueryableFilterContext, Expression>
     {
         public override bool TryCombineOperations(
             QueryableFilterContext context,

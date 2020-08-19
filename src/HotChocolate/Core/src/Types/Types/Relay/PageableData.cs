@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace HotChocolate.Types.Relay
 {
+    [Obsolete]
     public class PageableData<T>
     {
         public PageableData(IEnumerable<T> source)

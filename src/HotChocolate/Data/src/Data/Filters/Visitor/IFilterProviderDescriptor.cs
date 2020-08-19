@@ -1,25 +1,13 @@
-﻿using System;
-
-namespace HotChocolate.Data.Filters
+﻿namespace HotChocolate.Data.Filters
 {
-    public interface IFilterProviderDescriptor<TContext> : IFluent
+    public interface IFilterProviderDescriptor<out TContext> : IFluent
+        where TContext : IFilterVisitorContext
     {
-        IFilterProviderDescriptor<T, TContext> AddFieldHandler<TFieldHandler>()
-            where TFieldHandler : FilterFieldHandler<T, TContext>;
+        IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+            where TFieldHandler : IFilterFieldHandler<TContext>;
 
-        IFilterProviderDescriptor<T, TContext> AddFieldHandler<TFieldHandler>(TFieldHandler handler)
-            where TFieldHandler : FilterFieldHandler<T, TContext>;
-
-        IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>()
-            where TVisitor : IFilterVisitorFactory<TContext>
-
-        IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>(TVisitor handler)
-            where TVisitor : IFilterVisitorFactory<TContext>
-
-        IFilterProviderDescriptor<T, TContext> Combinator<TCombinator>(TCombinator handler)
-            where TCombinator : FilterOperationCombinator;
-
-        IFilterProviderDescriptor<T, TContext> Combinator<TCombinator>()
-            where TCombinator : FilterOperationCombinator;
+        IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+            TFieldHandler fieldHandler)
+            where TFieldHandler : IFilterFieldHandler<TContext>;
     }
 }

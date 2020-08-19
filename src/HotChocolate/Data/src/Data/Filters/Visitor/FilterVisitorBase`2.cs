@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public abstract class FilterVisitorBase<T, TContext>
+    public abstract class FilterVisitorBase<TContext, T>
         : FilterVisitorBase<TContext>
         where TContext : FilterVisitorContext<T>
     {
@@ -17,16 +15,12 @@ namespace HotChocolate.Data.Filters
 
         protected abstract ISyntaxVisitorAction OnFieldEnter(
             TContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node);
 
         protected abstract ISyntaxVisitorAction OnFieldLeave(
             TContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node);
 
         protected abstract bool TryCombineOperations(
@@ -64,17 +58,11 @@ namespace HotChocolate.Data.Filters
             ObjectFieldNode node,
             TContext context)
         {
-
             base.Enter(node, context);
 
-            context.Types.TryPeekAt(1, out IType? delaringType);
-            IInputField? currentOperation = context.Operations.Peek();
-            IType? fieldType = context.Types.Peek();
-            if (currentOperation is FilterField field &&
-                delaringType is IFilterInputType declaringFilterType &&
-                fieldType is { })
+            if (context.Operations.Peek() is IFilterField field)
             {
-                return OnFieldEnter(context, declaringFilterType, field, fieldType, node);
+                return OnFieldEnter(context, field, node);
             }
 
             return Continue;
@@ -86,14 +74,9 @@ namespace HotChocolate.Data.Filters
         {
             ISyntaxVisitorAction? result = Continue;
 
-            context.Types.TryPeekAt(1, out IType? delaringType);
-            IInputField? currentOperation = context.Operations.Peek();
-            IType? fieldType = context.Types.Peek();
-            if (currentOperation is FilterField field &&
-                delaringType is IFilterInputType declaringFilterType &&
-                fieldType is { })
+            if (context.Operations.Peek() is IFilterField field)
             {
-                result = OnFieldLeave(context, declaringFilterType, field, fieldType, node);
+                result = OnFieldLeave(context, field, node);
             }
 
             base.Leave(node, context);

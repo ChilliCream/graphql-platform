@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Data.Filters
 {
-    public abstract class FilterOperationCombinator<T, TContext>
+    public abstract class FilterOperationCombinator<TContext, T>
         : FilterOperationCombinator
         where TContext : FilterVisitorContext<T>
     {
@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters
             FilterCombinator combinator,
             [NotNullWhen(true)] out T combined);
 
-        public override bool TryCombineOperations<TOperation, TVisitorContext>(
+        public override bool TryCombineOperations<TVisitorContext, TOperation>(
             TVisitorContext context,
             Queue<TOperation> operations,
             FilterCombinator combinator,
@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Filters
                 combined = combinedOperation;
                 return true;
             }
-            
+
             combined = default!;
             return false;
         }

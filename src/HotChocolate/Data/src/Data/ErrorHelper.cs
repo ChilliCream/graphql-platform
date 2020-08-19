@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
@@ -35,6 +36,18 @@ namespace HotChocolate.Data
                     field.Name)
                 .SetTypeSystemObject(field.DeclaringType)
                 .SetExtension(nameof(field), field)
+                .Build();
+
+        public static ISchemaError FilterProvider_UnableToCreateFieldHandler(
+            IFilterProvider filterProvider,
+            Type fieldHandler) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "Unable to create field handler `{0}` for filter provider `{1}`.",
+                    fieldHandler.FullName ?? fieldHandler.Name,
+                    filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
+                .SetExtension(nameof(filterProvider), filterProvider)
+                .SetExtension(nameof(fieldHandler), fieldHandler)
                 .Build();
     }
 }

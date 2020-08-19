@@ -1,91 +1,87 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Configuration;
-using HotChocolate.Language.Visitors;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+using static HotChocolate.Data.DataResources;
+using static HotChocolate.Data.ThrowHelper;
+using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
         : Convention<FilterProviderDefinition>
         , IFilterProvider
-        where TContext : FilterVisitorContext<T>
+        where TContext : IFilterVisitorContext
     {
-        private readonly Action<IFilterProviderDescriptor<T, TContext>> _configure;
-        private ISyntaxVisitor<TContext> _visitor;
+        private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
+            new List<IFilterFieldHandler<TContext>>();
+        private Action<IFilterProviderDescriptor<TContext>>? _configure;
 
         protected FilterProvider()
         {
             _configure = Configure;
         }
 
-        public FilterProvider(Action<IFilterProviderDescriptor<T, TContext>> configure)
+        public FilterProvider(Action<IFilterProviderDescriptor<TContext>> configure)
         {
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        protected override FilterProviderDefiniton<T, TContext>? CreateDefinition(
-            IFilterProviderInitializationContext context)
+        public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
+
+        protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
         {
-            var descriptor = FilterProviderDescriptor<T, TContext>.New(context);
+            if (_configure is null)
+            {
+                throw new InvalidOperationException(FilterProvider_NoConfigurationSpecified);
+            }
+
+            var descriptor = FilterProviderDescriptor<TContext>.New();
+
             _configure(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
         protected override void OnComplete(
-            IFilterProviderInitializationContext context,
-            FilterProviderDefiniton<T, TContext>? definition)
+            IConventionContext context,
+            FilterProviderDefinition definition)
         {
-            if (definition is { } def)
+            if (definition.Handlers.Count == 0)
             {
-                Handlers = def.Handlers.ToArray();
-                Visitor = def.Visitor ??
-                    throw ThrowHelper.FilterConvention_NoVisitor(def.Scope);
+                throw FilterProvider_NoHandlersConfigured(this);
+            }
 
-                if (def.Combinator is null)
-                {
-                    throw ThrowHelper.FilterConvention_NoCombinatorFound(def.Scope);
-                }
-                else if (def.Combinator is FilterOperationCombinator<T, TContext> combiantorOfT)
-                {
-                    Visitor.Combinator = combiantorOfT;
-                }
-                else
-                {
-                    throw ThrowHelper.FilterConvention_CombinatorOfWrongType<T, TContext>(
-                        def.Scope, def.Combinator);
-                }
+            IServiceProvider services = new DictionaryServiceProvider(
+                (typeof(IFilterProvider), this),
+                (typeof(IConventionContext), context))
+                .Include(context.Services);
 
-                IFilterFieldHandlerInitializationContext? handlerContext =
-                    FilterFieldHandlerInitializationContext.From(context, this);
-
-                foreach (FilterFieldHandler<T, TContext>? handler in Handlers)
+            foreach ((Type Type, IFilterFieldHandler? Instance) handler in definition.Handlers)
+            {
+                switch (handler.Instance)
                 {
-                    handler.Initialize(handlerContext);
+                    case null when services.TryGetOrCreateService(
+                        handler.Type,
+                        out IFilterFieldHandler<TContext>? service):
+                        _fieldHandlers .Add(service);
+                        break;
+                    case null:
+                        context.ReportError(
+                            FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
+                        break;
+                    case IFilterFieldHandler<TContext> casted:
+                        _fieldHandlers .Add(casted);
+                        break;
                 }
             }
         }
 
-        protected virtual void Configure(IFilterProviderDescriptor<T, TContext> descriptor) { }
+        protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
-        public override bool TryGetHandler(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
-            [NotNullWhen(true)] out FilterFieldHandler? handler)
-        {
-            foreach (FilterFieldHandler<T, TContext>? currentHandler in Handlers)
-            {
-                if (currentHandler.CanHandle(context, typeDefinition, fieldDefinition))
-                {
-                    handler = currentHandler;
-                    return true;
-                }
-            }
-            handler = default;
-            return false;
-        }
+        public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
     }
 }

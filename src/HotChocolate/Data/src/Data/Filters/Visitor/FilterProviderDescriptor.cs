@@ -1,79 +1,34 @@
-using System;
-using HotChocolate.Types.Descriptors;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace HotChocolate.Data.Filters
 {
-    public class FilterProviderDescriptor<T, TContext>
-        : IFilterProviderDescriptor<T, TContext>
-        where TContext : FilterVisitorContext<T>
+    public class FilterProviderDescriptor<TContext>
+        : IFilterProviderDescriptor<TContext>
+        where TContext : IFilterVisitorContext
     {
-        private readonly IServiceProvider _services;
-
-        protected FilterProviderDescriptor(IConventionContext context)
+        protected FilterProviderDescriptor()
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            Definition.Scope = context.Scope;
-            _services = context.Services;
         }
 
-        protected FilterProviderDefiniton<T, TContext> Definition { get; set; } =
-            new FilterProviderDefiniton<T, TContext>();
+        protected FilterProviderDefinition Definition { get; } =
+            new FilterProviderDefinition();
 
-        public FilterProviderDefiniton<T, TContext> CreateDefinition()
+        public FilterProviderDefinition CreateDefinition() => Definition;
+
+        public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>()
+            where TFieldHandler : IFilterFieldHandler<TContext>
         {
-            return Definition;
-        }
-
-        public static FilterProviderDescriptor<T, TContext> New(
-            IConventionContext context) =>
-            new FilterProviderDescriptor<T, TContext>(context);
-
-        public IFilterProviderDescriptor<T, TContext> AddFieldHandler<TFieldHandler>()
-            where TFieldHandler : FilterFieldHandler<T, TContext>
-        {
-            Definition.Handlers.Add(_services.GetService<TFieldHandler>());
+            Definition.Handlers.Add((typeof(TFieldHandler), null));
             return this;
         }
 
-        public IFilterProviderDescriptor<T, TContext> AddFieldHandler<TFieldHandler>(
-            TFieldHandler handler)
-            where TFieldHandler : FilterFieldHandler<T, TContext>
+        public IFilterProviderDescriptor<TContext> AddFieldHandler<TFieldHandler>(
+            TFieldHandler fieldHandler)
+            where TFieldHandler : IFilterFieldHandler<TContext>
         {
-            Definition.Handlers.Add(handler);
+            Definition.Handlers.Add((typeof(TFieldHandler), fieldHandler));
             return this;
         }
 
-        public IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>()
-            where TVisitor : FilterVisitor<T, TContext>
-        {
-            Definition.Visitor = _services.GetService<TVisitor>();
-            return this;
-        }
-
-        public IFilterProviderDescriptor<T, TContext> Visitor<TVisitor>(TVisitor visitor)
-            where TVisitor : FilterVisitor<T, TContext>
-        {
-            Definition.Visitor = visitor;
-            return this;
-        }
-
-        public IFilterProviderDescriptor<T, TContext> Combinator<TCombinator>(TCombinator handler)
-            where TCombinator : FilterOperationCombinator
-        {
-            Definition.Combinator = handler;
-            return this;
-        }
-
-        public IFilterProviderDescriptor<T, TContext> Combinator<TCombinator>()
-            where TCombinator : FilterOperationCombinator
-        {
-            Definition.Combinator = _services.GetService<TCombinator>();
-            return this;
-        }
+        public static FilterProviderDescriptor<TContext> New() =>
+            new FilterProviderDescriptor<TContext>();
     }
 }

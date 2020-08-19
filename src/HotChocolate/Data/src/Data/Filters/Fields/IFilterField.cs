@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters
 
         MemberInfo? Member { get; }
 
-        FilterFieldHandler? Handler { get; }
+        IFilterFieldHandler? Handler { get; }
 
         bool? IsNullable { get; }
 

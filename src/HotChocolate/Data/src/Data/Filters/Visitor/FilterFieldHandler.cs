@@ -5,8 +5,8 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Filters
 {
-    public abstract class FilterFieldHandler<T, TContext>
-        : IFilterFieldHandler<T, TContext>
+    public abstract class FilterFieldHandler<TContext, T>
+        : IFilterFieldHandler<TContext, T>
         where TContext : FilterVisitorContext<T>
     {
         /// <inheritdoc />

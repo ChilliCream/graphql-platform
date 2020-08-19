@@ -35,56 +35,15 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(scope), scope)
                     .Build());
 
-        public static SchemaException FilterConvention_NoArgumentNameDefined(string scope) =>
+        public static SchemaException FilterProvider_NoHandlersConfigured(
+            IFilterProvider filterProvider) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        "For the convention of scope {0} is no argument name defined",
-                        scope)
+                        "The filter provider `{0}` does not specify and field handler.",
+                        filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
+                    .SetExtension(nameof(filterProvider), filterProvider)
                     .Build());
-
-        public static SchemaException FilterConvention_NoVisitor(string scope) =>
-            new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "For the provider of scope {0} is no visitor defined",
-                        scope)
-                    .Build());
-
-        public static SchemaException FilterConvention_NoCombinatorFound(string scope) =>
-            new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "For the provider of scope {0} is no combinator defined",
-                        scope)
-                    .Build());
-
-        public static SchemaException FilterConvention_CombinatorOfWrongType<T, TContext>(
-            string scope,
-            FilterOperationCombinator combinator)
-        {
-            Type type = combinator.GetType() ??
-                throw new ArgumentException("Type of combinator is invalid");
-
-            while (type.BaseType != typeof(FilterOperationCombinator))
-            {
-                type = type.BaseType ??
-                    throw new ArgumentException("Type of combinator is invalid");
-            }
-
-            return new SchemaException(
-                SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "The combinator for the filter provider of scope {0} has the wrong type. " +
-                        "The operation should be of type {1} and the context of type {2}" +
-                        " but was of type {3} and the context of type {4} instead",
-                        scope,
-                        typeof(T).Name,
-                        typeof(TContext).Name,
-                        type.GenericTypeArguments[0].Name,
-                        type.GenericTypeArguments[1].Name)
-                .Build());
-        }
 
         public static SchemaException FilterInterceptor_NoHandlerFoundForField(
             FilterInputTypeDefinition type,

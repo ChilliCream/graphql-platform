@@ -61,7 +61,6 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        [SuppressMessage("HotChocolate", "CA1062")]
         protected override void OnComplete(
             IConventionContext context,
             FilterConventionDefinition definition)

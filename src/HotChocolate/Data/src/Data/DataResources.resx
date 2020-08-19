@@ -30,6 +30,9 @@
   <data name="FilterConvention_NoConfigurationSpecified" xml:space="preserve">
     <value>No configuration was specified.</value>
   </data>
+  <data name="FilterProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
   <data name="FilterConvention_UnknownType" xml:space="preserve">
     <value>The type {0} is unknown</value>
   </data>

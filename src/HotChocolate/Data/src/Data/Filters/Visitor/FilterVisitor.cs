@@ -2,29 +2,29 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterVisitor<T, TContext>
-        : FilterVisitorBase<T, TContext>
+    public class FilterVisitor<TContext, T>
+        : FilterVisitorBase<TContext, T>
         where TContext : FilterVisitorContext<T>
     {
-        public FilterOperationCombinator<T, TContext> Combinator { get; internal set; } = null!;
+        private readonly FilterOperationCombinator<TContext, T> _combinator;
+
+        public FilterVisitor(FilterOperationCombinator<TContext, T> combinator)
+        {
+            _combinator = combinator;
+        }
 
         protected override ISyntaxVisitorAction OnFieldEnter(
             TContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node)
         {
-            if (field?.Handler is FilterFieldHandler<T, TContext> handler &&
+            if (field.Handler is IFilterFieldHandler<TContext, T> handler &&
                 handler.TryHandleEnter(
                     context,
-                    declaringType,
                     field,
-                    fieldType,
                     node,
                     out ISyntaxVisitorAction? action))
             {
@@ -35,17 +35,13 @@ namespace HotChocolate.Data.Filters
 
         protected override ISyntaxVisitorAction OnFieldLeave(
             TContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node)
         {
-            if (field?.Handler is FilterFieldHandler<T, TContext> handler &&
+            if (field?.Handler is IFilterFieldHandler<TContext, T> handler &&
                 handler.TryHandleLeave(
                     context,
-                    declaringType,
                     field,
-                    fieldType,
                     node,
                     out ISyntaxVisitorAction? action))
             {
@@ -58,15 +54,7 @@ namespace HotChocolate.Data.Filters
             TContext context,
             Queue<T> operations,
             FilterCombinator combinator,
-            [NotNullWhen(true)] out T combined)
-        {
-            if (Combinator is { })
-            {
-                return Combinator.TryCombineOperations(
-                   context, operations, combinator, out combined);
-            }
-            combined = default;
-            return false;
-        }
+            [NotNullWhen(true)] out T combined) =>
+            _combinator.TryCombineOperations(context, operations, combinator, out combined);
     }
 }

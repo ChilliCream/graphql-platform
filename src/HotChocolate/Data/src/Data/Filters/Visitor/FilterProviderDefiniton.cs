@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterProviderDefinition : IHasScope
+    public class FilterProviderDefinition
     {
-        public string? Scope { get; set; }
+        public IList<(Type Handler, IFilterFieldHandler? HandlerInstance)> Handlers { get; } =
+            new List<(Type Handler, IFilterFieldHandler? HandlerInstance)>();
     }
 }

@@ -6,80 +6,80 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableFilterProvider
-        : FilterProvider<Expression, QueryableFilterContext>
+        : FilterProvider<QueryableFilterContext>
     {
         public QueryableFilterProvider()
         {
         }
 
         public QueryableFilterProvider(
-            Action<IFilterProviderDescriptor<Expression, QueryableFilterContext>> configure)
+            Action<IFilterProviderDescriptor<QueryableFilterContext>> configure)
             : base(configure)
         {
         }
 
-        public override async Task ExecuteAsync<TEntityType>(
-            FieldDelegate next,
-            IMiddlewareContext context)
+        protected virtual FilterVisitor<QueryableFilterContext, Expression> Visitor { get; } =
+            new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator());
+
+        public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
-            await next(context).ConfigureAwait(false);
+            return next => context => ExecuteAsync(next, context);
 
-            string argumentName = Convention!.GetArgumentName();
-
-            IValueNode filter = context.Argument<IValueNode>(argumentName);
-
-            if (filter is null || filter is NullValueNode)
+            async ValueTask ExecuteAsync(
+                FieldDelegate next,
+                IMiddlewareContext context)
             {
-                return;
-            }
+                // first we let the pipeline run and produce a result.
+                await next(context).ConfigureAwait(false);
 
-            IQueryable<TEntityType>? source = null;
-            PageableData<TEntityType>? p = null;
-            if (context.Result is PageableData<TEntityType> pd)
-            {
-                source = pd.Source;
-                p = pd;
-            }
+                // next we get the filter argument.
+                IInputField argument = context.Field.Arguments[argumentName];
+                IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
-            if (context.Result is IQueryable<TEntityType> q)
-            {
-                source = q;
-            }
-            else if (context.Result is IEnumerable<TEntityType> e)
-            {
-                source = e.AsQueryable();
-            }
-
-            if (source != null
-                && context.Field.Arguments[argumentName].Type is InputObjectType iot
-                && iot is IFilterInputType fit)
-            {
-                var visitorContext = new QueryableFilterContext(
-                    fit, source is EnumerableQuery);
-                Visitor.Visit(filter, visitorContext);
-
-                if (visitorContext.TryCreateLambda(
-                        out Expression<Func<TEntityType, bool>>? where))
+                // if no filter is defined we can stop here and yield back control.
+                if (filter.IsNull())
                 {
-                    source = source.Where(where);
-
-                    context.Result = p is null
-                        ? (object)source
-                        : new PageableData<TEntityType>(source, p.Properties);
+                    return;
                 }
-                else
+
+                IQueryable<TEntityType>? source = null;
+
+                if (context.Result is IQueryable<TEntityType> q)
                 {
-                    if (visitorContext.Errors.Count > 0)
+                    source = q;
+                }
+                else if (context.Result is IEnumerable<TEntityType> e)
+                {
+                    source = e.AsQueryable();
+                }
+
+                if (source != null && argument.Type is IFilterInputType filterInput)
+                {
+                    var visitorContext = new QueryableFilterContext(
+                        filterInput, source is EnumerableQuery);
+
+                    // rewrite GraphQL input object into expression tree.
+                    Visitor.Visit(filter, visitorContext);
+
+                    // compile expression tree
+                    if (visitorContext.TryCreateLambda(
+                        out Expression<Func<TEntityType, bool>>? where))
                     {
-                        context.Result = Array.Empty<TEntityType>();
-                        foreach (IError error in visitorContext.Errors)
+                        context.Result = source.Where(where);
+                    }
+                    else
+                    {
+                        if (visitorContext.Errors.Count > 0)
                         {
-                            context.ReportError(error.WithPath(context.Path));
+                            context.Result = Array.Empty<TEntityType>();
+                            foreach (IError error in visitorContext.Errors)
+                            {
+                                context.ReportError(error.WithPath(context.Path));
+                            }
                         }
                     }
                 }

@@ -8,11 +8,11 @@ namespace HotChocolate.Data.Filters
     {
         IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; }
 
-        FieldDelegate CreateExecutor<TEntityType>(NameString argumentName);
+        FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
     }
 
     public interface IFilterVisitorFactory<TContext>
-        where TContext : ISyntaxVisitorContext
+        where TContext : IFilterVisitorContext
     {
         ISyntaxVisitor<TContext> CreateVisitor(FilterOperationCombinator combinator);
     }

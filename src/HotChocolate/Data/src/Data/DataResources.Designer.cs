@@ -69,6 +69,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string FilterProvider_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("FilterProvider_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
         internal static string FilterConvention_UnknownType {
             get {
                 return ResourceManager.GetString("FilterConvention_UnknownType", resourceCulture);
