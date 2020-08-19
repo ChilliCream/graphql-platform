@@ -187,9 +187,9 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public new IFilterInputTypeDescriptor<T> Ignore(int operation)
+        public new IFilterInputTypeDescriptor<T> Ignore(int operationId)
         {
-            base.Ignore(operation);
+            base.Ignore(operationId);
             return this;
         }
 

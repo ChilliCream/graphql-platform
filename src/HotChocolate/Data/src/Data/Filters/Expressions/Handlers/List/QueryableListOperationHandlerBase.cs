@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             return context.Type is IListFilterInputType &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Operation == Operation;
+                operationField.Id == Operation;
         }
 
         public override bool TryHandleEnter(

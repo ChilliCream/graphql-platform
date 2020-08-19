@@ -13,7 +13,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             return context.Type is StringOperationInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Operation == Operation;
+                operationField.Id == Operation;
         }
     }
 }

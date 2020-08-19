@@ -13,14 +13,14 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterOperationFieldDescriptor(
             IDescriptorContext context,
-            string? scope,
-            int operation)
+            int operationId,
+            string? scope)
             : base(context)
         {
             IFilterConvention? convention = context.GetFilterConvention(scope);
-            Definition.Operation = operation;
-            Definition.Name = convention.GetOperationName(context, operation);
-            Definition.Description = convention.GetOperationDescription(context, operation);
+            Definition.Id = operationId;
+            Definition.Name = convention.GetOperationName(context, operationId);
+            Definition.Description = convention.GetOperationDescription(context, operationId);
             Definition.Scope = scope;
         }
 
@@ -89,7 +89,7 @@ namespace HotChocolate.Data.Filters
 
         public IFilterOperationFieldDescriptor Operation(int operation)
         {
-            Definition.Operation = operation;
+            Definition.Id = operation;
             return this;
         }
 
@@ -133,8 +133,8 @@ namespace HotChocolate.Data.Filters
 
         public static FilterOperationFieldDescriptor New(
             IDescriptorContext context,
-            string? scope,
-            int operation) =>
-            new FilterOperationFieldDescriptor(context, scope, operation);
+            int operation,
+            string? scope = null) =>
+            new FilterOperationFieldDescriptor(context, operation, scope);
     }
 }

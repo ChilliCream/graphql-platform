@@ -15,8 +15,8 @@ namespace HotChocolate.Data.Filters
     {
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
-            string? scope,
-            Type entityType)
+            Type entityType,
+            string? scope)
             : base(context)
         {
             Convention = context.GetFilterConvention(scope);
@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Filters
             Definition.Scope = scope;
         }
 
-        protected internal FilterInputTypeDescriptor(
+        protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             FilterInputTypeDefinition definition,
             string? scope)
@@ -92,12 +92,14 @@ namespace HotChocolate.Data.Filters
         {
         }
 
+        /// <inheritdoc />
         public IFilterInputTypeDescriptor Name(NameString value)
         {
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
+        /// <inheritdoc />
         public IFilterInputTypeDescriptor Description(
             string value)
         {
@@ -105,6 +107,99 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        protected IFilterInputTypeDescriptor BindFields(
+            BindingBehavior bindingBehavior)
+        {
+            Definition.Fields.BindingBehavior = bindingBehavior;
+            return this;
+        }
+
+        protected IFilterInputTypeDescriptor BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        protected IFilterInputTypeDescriptor BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
+
+        /// <inheritdoc />
+        public IFilterOperationFieldDescriptor Operation(int operationId)
+        {
+            FilterOperationFieldDescriptor fieldDescriptor =
+                Operations.FirstOrDefault(t => t.Definition.Id == operationId);
+
+            if (fieldDescriptor is null)
+            {
+                fieldDescriptor = FilterOperationFieldDescriptor.New(
+                    Context, operationId, Definition.Scope);
+                Operations.Add(fieldDescriptor);
+            }
+
+            return fieldDescriptor;
+        }
+
+        /// <inheritdoc />
+        public IFilterFieldDescriptor Field(NameString name)
+        {
+            FilterFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name == name);
+
+            if (fieldDescriptor is null)
+            {
+                fieldDescriptor = FilterFieldDescriptor.New(Context, name, Definition.Scope);
+                Fields.Add(fieldDescriptor);
+            }
+
+            return fieldDescriptor;
+        }
+
+        /// <inheritdoc />
+        public IFilterInputTypeDescriptor Ignore(int operationId)
+        {
+            FilterOperationFieldDescriptor fieldDescriptor =
+                Operations.FirstOrDefault(t => t.Definition.Id == operationId);
+
+            if (fieldDescriptor is null)
+            {
+                fieldDescriptor = FilterOperationFieldDescriptor.New(
+                    Context, operationId, Definition.Scope);
+                Operations.Add(fieldDescriptor);
+            }
+
+            fieldDescriptor.Ignore();
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IFilterInputTypeDescriptor Ignore(NameString name)
+        {
+            FilterFieldDescriptor fieldDescriptor =
+                Fields.FirstOrDefault(t => t.Definition.Name == name);
+
+            if (fieldDescriptor is null)
+            {
+                fieldDescriptor = FilterFieldDescriptor.New(
+                    Context, Definition.Scope, name);
+                Fields.Add(fieldDescriptor);
+            }
+
+            fieldDescriptor.Ignore();
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IFilterInputTypeDescriptor AllowOr(bool allow = true)
+        {
+            Definition.UseOr = allow;
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IFilterInputTypeDescriptor AllowAnd(bool allow = true)
+        {
+            Definition.UseAnd = allow;
+            return this;
+        }
+
+        /// <inheritdoc />
         public IFilterInputTypeDescriptor Directive<TDirective>(
             TDirective directive)
             where TDirective : class
@@ -113,6 +208,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        /// <inheritdoc />
         public IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
@@ -120,6 +216,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
+        /// <inheritdoc />
         public IFilterInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
@@ -128,107 +225,18 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor BindFields(
-            BindingBehavior bindingBehavior)
-        {
-            Definition.Fields.BindingBehavior = bindingBehavior;
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor BindFieldsExplicitly() =>
-            BindFields(BindingBehavior.Explicit);
-
-        public IFilterInputTypeDescriptor BindFieldsImplicitly() =>
-            BindFields(BindingBehavior.Implicit);
-
-        public IFilterOperationFieldDescriptor Operation(int operationId)
-        {
-            FilterOperationFieldDescriptor fieldDescriptor =
-                Operations.FirstOrDefault(t => t.Definition.Operation == operationId);
-
-            if (fieldDescriptor is { })
-            {
-                return fieldDescriptor;
-            }
-
-            fieldDescriptor = FilterOperationFieldDescriptor.New(Context, Definition.Scope, operationId);
-
-            Operations.Add(fieldDescriptor);
-            return fieldDescriptor;
-        }
-
-        public IFilterFieldDescriptor Field(NameString name)
-        {
-            FilterFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name == name);
-
-            if (fieldDescriptor is { })
-            {
-                return fieldDescriptor;
-            }
-
-            fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, name);
-
-            Fields.Add(fieldDescriptor);
-            return fieldDescriptor;
-        }
-
-        public IFilterInputTypeDescriptor Ignore(NameString name)
-        {
-            FilterFieldDescriptor fieldDescriptor =
-                Fields.FirstOrDefault(t => t.Definition.Name == name);
-
-            if (fieldDescriptor == null)
-            {
-                fieldDescriptor = FilterFieldDescriptor.New(Context, Definition.Scope, name);
-                Fields.Add(fieldDescriptor);
-            }
-
-            fieldDescriptor.Ignore();
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor Ignore(int operationId)
-        {
-            FilterOperationFieldDescriptor fieldDescriptor =
-                Operations.FirstOrDefault(t => t.Definition.Operation == operationId);
-
-            if (fieldDescriptor == null)
-            {
-                fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, Definition.Scope, operationId);
-
-                Operations.Add(fieldDescriptor);
-            }
-
-            fieldDescriptor.Ignore();
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor AllowOr(bool allow = true)
-        {
-            Definition.UseOr = allow;
-            return this;
-        }
-
-        public IFilterInputTypeDescriptor AllowAnd(bool allow = true)
-        {
-            Definition.UseAnd = allow;
-            return this;
-        }
-
         public static FilterInputTypeDescriptor New(
             IDescriptorContext context,
-            string? scope,
-            Type entityType) =>
-            new FilterInputTypeDescriptor(context, scope, entityType);
+            Type entityType,
+            string? scope = null) =>
+            new FilterInputTypeDescriptor(context, entityType, scope);
 
         public static FilterInputTypeDescriptor FromSchemaType(
             IDescriptorContext context,
-            string? scope,
-            Type schemaType)
+            Type schemaType,
+            string? scope = null)
         {
-            FilterInputTypeDescriptor? descriptor = New(context, scope, schemaType);
+            FilterInputTypeDescriptor? descriptor = New(context, schemaType, scope);
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
@@ -236,13 +244,13 @@ namespace HotChocolate.Data.Filters
         public static FilterInputTypeDescriptor From(
             IDescriptorContext context,
             FilterInputTypeDefinition definition,
-            string? scope) =>
+            string? scope = null) =>
             new FilterInputTypeDescriptor(context, definition, scope);
 
         public static FilterInputTypeDescriptor<T> From<T>(
             IDescriptorContext context,
             FilterInputTypeDefinition definition,
-            string? scope) =>
+            string? scope = null) =>
             new FilterInputTypeDescriptor<T>(context, definition, scope);
     }
 }

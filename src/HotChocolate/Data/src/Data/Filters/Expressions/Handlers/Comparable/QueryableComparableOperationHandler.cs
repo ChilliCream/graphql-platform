@@ -27,7 +27,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             return context.Type is IComparableOperationInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
-                operationField.Operation == Operation;
+                operationField.Id == Operation;
         }
 
         protected object? ParseValue(

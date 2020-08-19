@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -29,7 +28,7 @@ namespace HotChocolate.Data.Filters
         /// </summary>
         /// <param name="value">The filter type description.</param>
         ///
-        IFilterInputTypeDescriptor Description(string value);
+        IFilterInputTypeDescriptor Description(string? value);
 
         /// <summary>
         /// Defines a <see cref="FilterOperationField" /> field.
@@ -40,7 +39,7 @@ namespace HotChocolate.Data.Filters
         IFilterOperationFieldDescriptor Operation(int operationId);
 
         /// <summary>
-        /// Defines a <see cref="FilterField" /> for the given property.
+        /// Defines a <see cref="FilterField" /> with the specified name.
         /// </summary>
         /// <param name="name">
         /// The name of the field.
@@ -50,18 +49,18 @@ namespace HotChocolate.Data.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="name">
-        /// The name of the field.
-        /// </param>
-        IFilterInputTypeDescriptor Ignore(NameString name);
-
-        /// <summary>
-        /// Ignore the specified property.
-        /// </summary>
         /// <param name="operationId">
         /// The internal operation ID.
         /// </param>
         IFilterInputTypeDescriptor Ignore(int operationId);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the field.
+        /// </param>
+        IFilterInputTypeDescriptor Ignore(NameString name);
 
         /// <summary>
         /// Defines if OR-combinators are allowed for this filter.

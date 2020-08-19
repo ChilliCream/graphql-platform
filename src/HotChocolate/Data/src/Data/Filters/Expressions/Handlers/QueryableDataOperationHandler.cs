@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterFieldDefinition fieldDefinition)
         {
             return fieldDefinition is FilterOperationFieldDefinition def &&
-                def.Operation == DefaultOperations.Data;
+                def.Id == DefaultOperations.Data;
         }
     }
 }
