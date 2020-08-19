@@ -4,7 +4,7 @@
 
 ## ChilliCream GraphQL Platform
 
-The ChilliCream GraphQL Platform at its core is a new way to create powerful Backends. HotChocolate, our GraphQL server, connects any service or data source and creates a cohesive service out of it to offer your consumers a unified API.
+The ChilliCream GraphQL Platform, at its core, is a new way to create powerful Backends. HotChocolate, our GraphQL server, connects any service or data source and creates a cohesive service to offer your consumers a unified API.
 
 ![ChilliCream GraphQL Platform](assets/chillicream-graphql-platform.svg)
 
@@ -12,13 +12,13 @@ The ChilliCream GraphQL Platform at its core is a new way to create powerful Bac
 
 ### Banana Cake Pop
 
-Our IDE to explore, request and analyze any GraphQL endpoint.
+Our GraphQL IDE to explore, request and analyze any GraphQL endpoint.
 
 [Readme](src/BananaCakePop/README.md)
 
 ### Green Donut
 
-Our dataloader to solve the N+1 problem.
+Our DataLoader to solve the N+1 problem.
 
 [Readme](src/GreenDonut/README.md)
 
