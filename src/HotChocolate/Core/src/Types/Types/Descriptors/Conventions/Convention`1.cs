@@ -9,14 +9,6 @@ namespace HotChocolate.Types.Descriptors
     {
         private TDefinition? _definition;
 
-        internal TDefinition? Definition
-        {
-            get
-            {
-                return _definition;
-            }
-        }
-
         internal sealed override void Initialize(IConventionContext context)
         {
             AssertUninitialized();
@@ -24,9 +16,10 @@ namespace HotChocolate.Types.Descriptors
             Scope = context.Scope;
             _definition = CreateDefinition(context);
 
-            OnComplete(context, Definition);
+            OnComplete(context, _definition);
 
             MarkInitialized();
+            _definition = null;
         }
 
         protected virtual void OnComplete(IConventionContext context, TDefinition? definition)

@@ -62,9 +62,9 @@ namespace HotChocolate.Data.Filters
         public static FilterConventionDescriptor New(IConventionContext context) =>
             new FilterConventionDescriptor(context);
 
-        public IFilterConventionDescriptor Extension(
+        public IFilterConventionDescriptor Configure(
             NameString typeName,
-            Action<IFilterInputTypeDescriptor> extension)
+            Action<IFilterInputTypeDescriptor> configure)
         {
             TypeReference? typeReference =
                 TypeReference.Create(
@@ -80,12 +80,12 @@ namespace HotChocolate.Data.Filters
                 Definition.Extensions[typeReference] = descriptorList;
             }
 
-            descriptorList.Add(extension);
+            descriptorList.Add(configure);
             return this;
         }
 
-        public IFilterConventionDescriptor Extension<TFilterType>(
-            Action<IFilterInputTypeDescriptor> extension)
+        public IFilterConventionDescriptor Configure<TFilterType>(
+            Action<IFilterInputTypeDescriptor> configure)
             where TFilterType : FilterInputType
         {
             TypeReference? typeReference =
@@ -101,12 +101,12 @@ namespace HotChocolate.Data.Filters
                 Definition.Extensions[typeReference] = descriptorList;
             }
 
-            descriptorList.Add(extension);
+            descriptorList.Add(configure);
             return this;
         }
 
-        public IFilterConventionDescriptor Extension<TFilterType, TType>(
-            Action<IFilterInputTypeDescriptor<TType>> extension)
+        public IFilterConventionDescriptor Configure<TFilterType, TType>(
+            Action<IFilterInputTypeDescriptor<TType>> configure)
             where TFilterType : FilterInputType<TType>
         {
             TypeReference? typeReference =
@@ -126,7 +126,7 @@ namespace HotChocolate.Data.Filters
             {
                 if (descriptor is IFilterInputTypeDescriptor<TType> descriptorOfT)
                 {
-                    extension.Invoke(descriptorOfT);
+                    configure.Invoke(descriptorOfT);
                 }
             });
 

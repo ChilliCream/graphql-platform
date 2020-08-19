@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Tests
             // act
             var convention = new FilterConvention(
             x => x.UseMock()
-                    .Extension<StringOperationInput>(
+                    .Configure<StringOperationInput>(
                         y => y.Operation(DefaultOperations.Like).Type<StringType>())
                     .Operation(DefaultOperations.Like).Name("like"));
 
@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Tests
             // act
             var convention = new FilterConvention(
                 x => x.UseMock()
-                    .Extension(
+                    .Configure(
                         "StringOperationInputFilter",
                         y => y.Operation(DefaultOperations.Like).Type<StringType>())
                     .Operation(DefaultOperations.Like).Name("like"));
