@@ -67,5 +67,14 @@ namespace HotChocolate.Utilities
                     subscribeResolverName)
                 .SetExtension("member", member)
                 .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.", 
+                        convention.FullName ?? convention.Name)
+                    .Build());
     }
 }

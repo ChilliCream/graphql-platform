@@ -1,6 +1,8 @@
 using System;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -95,7 +97,17 @@ namespace HotChocolate
 
             return builder.AddConvention(
                 convention,
-                s => (IConvention)s.GetService(concreteConvention),
+                s =>
+                {
+                    if (s.TryGetOrCreateService<IConvention>(
+                        concreteConvention,
+                        out IConvention convention))
+                    {
+                        return convention;
+                    }
+
+                    throw Convention_UnableToCreateConvention(concreteConvention);
+                },
                 scope);
         }
 
@@ -200,7 +212,17 @@ namespace HotChocolate
 
             return builder.TryAddConvention(
                 convention,
-                s => (IConvention)s.GetService(concreteConvention),
+                s =>
+                {
+                    if (s.TryGetOrCreateService<IConvention>(
+                        concreteConvention,
+                        out IConvention convention))
+                    {
+                        return convention;
+                    }
+
+                    throw Convention_UnableToCreateConvention(concreteConvention);
+                },
                 scope);
         }
 
