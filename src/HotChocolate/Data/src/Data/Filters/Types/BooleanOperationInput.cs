@@ -8,7 +8,7 @@ namespace HotChocolate.Data.Filters
         {
             descriptor.Operation(DefaultOperations.Equals).Type<BooleanType>();
             descriptor.Operation(DefaultOperations.NotEquals).Type<BooleanType>();
-            descriptor.UseAnd(false).UseOr(false);
+            descriptor.AllowAnd(false).AllowOr(false);
         }
     }
 }

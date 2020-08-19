@@ -195,13 +195,13 @@ namespace HotChocolate.Data.Filters
 
         public new IFilterInputTypeDescriptor<T> UseOr(bool isUsed = true)
         {
-            base.UseOr(isUsed);
+            base.AllowOr(isUsed);
             return this;
         }
 
         public new IFilterInputTypeDescriptor<T> UseAnd(bool isUsed = true)
         {
-            base.UseAnd(isUsed);
+            base.AllowAnd(isUsed);
             return this;
         }
 

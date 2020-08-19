@@ -23,10 +23,10 @@ namespace HotChocolate.Data.Filters
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
             Definition.RuntimeType = entityType;
-            Definition.Name = Convention.GetTypeName(context, entityType);
-            Definition.Description = Convention.GetTypeDescription(context, entityType);
+            Definition.Name = Convention.GetTypeName(entityType);
+            Definition.Description = Convention.GetTypeDescription(entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
-            Definition.Scope = scope ?? ConventionBase.DefaultScope;
+            Definition.Scope = scope;
         }
 
         protected FilterInputTypeDescriptor(
@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.RuntimeType = typeof(object);
             Definition.EntityType = typeof(object);
-            Definition.Scope = scope ?? ConventionBase.DefaultScope;
+            Definition.Scope = scope;
         }
 
         protected internal FilterInputTypeDescriptor(
@@ -106,10 +106,10 @@ namespace HotChocolate.Data.Filters
         }
 
         public IFilterInputTypeDescriptor Directive<TDirective>(
-            TDirective directiveInstance)
+            TDirective directive)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directive);
             return this;
         }
 
@@ -141,17 +141,17 @@ namespace HotChocolate.Data.Filters
         public IFilterInputTypeDescriptor BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
-        public IFilterOperationFieldDescriptor Operation(int operation)
+        public IFilterOperationFieldDescriptor Operation(int operationId)
         {
             FilterOperationFieldDescriptor fieldDescriptor =
-                Operations.FirstOrDefault(t => t.Definition.Operation == operation);
+                Operations.FirstOrDefault(t => t.Definition.Operation == operationId);
 
             if (fieldDescriptor is { })
             {
                 return fieldDescriptor;
             }
 
-            fieldDescriptor = FilterOperationFieldDescriptor.New(Context, Definition.Scope, operation);
+            fieldDescriptor = FilterOperationFieldDescriptor.New(Context, Definition.Scope, operationId);
 
             Operations.Add(fieldDescriptor);
             return fieldDescriptor;
@@ -188,15 +188,15 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor Ignore(int operation)
+        public IFilterInputTypeDescriptor Ignore(int operationId)
         {
             FilterOperationFieldDescriptor fieldDescriptor =
-                Operations.FirstOrDefault(t => t.Definition.Operation == operation);
+                Operations.FirstOrDefault(t => t.Definition.Operation == operationId);
 
             if (fieldDescriptor == null)
             {
                 fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, Definition.Scope, operation);
+                    Context, Definition.Scope, operationId);
 
                 Operations.Add(fieldDescriptor);
             }
@@ -205,15 +205,15 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor UseOr(bool isUsed = true)
+        public IFilterInputTypeDescriptor AllowOr(bool allow = true)
         {
-            Definition.UseOr = isUsed;
+            Definition.UseOr = allow;
             return this;
         }
 
-        public IFilterInputTypeDescriptor UseAnd(bool isUsed = true)
+        public IFilterInputTypeDescriptor AllowAnd(bool allow = true)
         {
-            Definition.UseAnd = isUsed;
+            Definition.UseAnd = allow;
             return this;
         }
 

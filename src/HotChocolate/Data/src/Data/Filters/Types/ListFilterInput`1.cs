@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(DefaultOperations.None).Type(typeof(T));
             descriptor.Operation(DefaultOperations.Some).Type(typeof(T));
             descriptor.Operation(DefaultOperations.Any).Type<BooleanType>();
-            descriptor.UseAnd(false).UseOr(false);
+            descriptor.AllowAnd(false).AllowOr(false);
         }
     }
 }

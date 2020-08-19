@@ -4,8 +4,10 @@ namespace HotChocolate.Data.Filters
 {
     public static class FilterVisitorContextExtensions
     {
-        public static void ReportError<T>(this IFilterVisitorContext<T> context, IError error) =>
-                context.Errors.Add(error);
+        public static void ReportError<T>
+            (this IFilterVisitorContext<T> context,
+            IError error) =>
+            context.Errors.Add(error);
 
         public static FilterScope<T> AddScope<T>(
             this IFilterVisitorContext<T> context)

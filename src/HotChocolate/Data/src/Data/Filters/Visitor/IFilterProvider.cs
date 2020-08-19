@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters
@@ -9,12 +8,6 @@ namespace HotChocolate.Data.Filters
         IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; }
 
         FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
-    }
-
-    public interface IFilterVisitorFactory<TContext>
-        where TContext : IFilterVisitorContext
-    {
-        ISyntaxVisitor<TContext> CreateVisitor(FilterOperationCombinator combinator);
     }
 }
 

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
@@ -114,6 +115,6 @@ namespace HotChocolate.Data.Filters
             FilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
-        IFilterExecutor CreateExecutor<TEntityType>();
+        FieldMiddleware CreateExecutor<TEntityType>();
     }
 }

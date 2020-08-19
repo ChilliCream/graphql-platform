@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -89,14 +90,10 @@ namespace HotChocolate.Data.Filters
             _configs = definition.Configurations;
             _argumentName = definition.ArgumentName;
 
-            /*
-            if (_provider is FilterProviderBase init)
+            if (_provider is Convention init)
             {
-                IFilterProviderInitializationContext providerContext =
-                    FilterProviderInitializationContext.From(context, this);
-                _provider.In(providerContext);
+                init.Initialize(context);
             }
-            */
         }
 
         /// <inheritdoc cref="IFilterConvention"/>
@@ -172,7 +169,7 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        public IFilterExecutor CreateExecutor<TEntityType>() =>
+        public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
         public bool TryGetHandler(

@@ -342,7 +342,7 @@ namespace HotChocolate.Data.Filters
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
                 descriptor.Operation(DefaultOperations.Equals).Type<StringType>();
-                descriptor.UseAnd(false).UseOr(false);
+                descriptor.AllowAnd(false).AllowOr(false);
             }
         }
 

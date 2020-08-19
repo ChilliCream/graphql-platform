@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters
     /// Specifies a filter input type.
     /// </summary>
     public interface IFilterInputType
-        :
+        : IInputObjectType
     {
         Type EntityType { get; }
     }

@@ -10,9 +10,7 @@ namespace HotChocolate.Data.Filters
         : InputObjectType
         , IFilterInputType
     {
-        private readonly Action<IFilterInputTypeDescriptor> _configure;
-
-        public Type EntityType { get; private set; }
+        private Action<IFilterInputTypeDescriptor>? _configure;
 
         public FilterInputType()
         {
@@ -25,6 +23,8 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        public Type EntityType { get; private set; }
+
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
@@ -33,12 +33,13 @@ namespace HotChocolate.Data.Filters
                 context.Scope,
                 GetType());
 
-            _configure(descriptor);
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(
-            IFilterInputTypeDescriptor descriptor)
+        protected virtual void Configure(IFilterInputTypeDescriptor descriptor)
         {
         }
 

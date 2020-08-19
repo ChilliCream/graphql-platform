@@ -12,9 +12,12 @@ using HotChocolate.Utilities.Serialization;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a GraphQL input object type
+    /// </summary>
     public class InputObjectType
         : NamedTypeBase<InputObjectTypeDefinition>
-        , INamedInputType
+        , IInputObjectType
     {
         private readonly Action<IInputObjectTypeDescriptor> _configure;
         private InputObjectToObjectValueConverter _objectToValueConverter;
@@ -38,6 +41,8 @@ namespace HotChocolate.Types
         public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
         public FieldCollection<InputField> Fields { get; private set; }
+
+        IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
 
         public virtual bool IsInstanceOfType(IValueNode literal)
         {

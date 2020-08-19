@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(DefaultOperations.NotEquals).Type(typeof(T)).IsNullable();
             descriptor.Operation(DefaultOperations.In).Type(typeof(IEnumerable<T>)).IsNullable();
             descriptor.Operation(DefaultOperations.NotIn).Type(typeof(IEnumerable<T>)).IsNullable();
-            descriptor.UseAnd(false).UseOr(false);
+            descriptor.AllowAnd(false).AllowOr(false);
         }
     }
 }

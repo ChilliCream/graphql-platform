@@ -32,9 +32,9 @@ namespace HotChocolate.Data.Filters
             Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
 
-            Definition.Name = convention.GetFieldName(context, member);
-            Definition.Description = convention.GetFieldDescription(context, member);
-            Definition.Type = convention.GetFieldType(context, member);
+            Definition.Name = convention.GetFieldName(member);
+            Definition.Description = convention.GetFieldDescription(member);
+            Definition.Type = convention.GetFieldType(member);
             Definition.Scope = scope;
         }
 
