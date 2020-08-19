@@ -2,9 +2,9 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterOperationConventionDescriptor : IFilterOperationConventionDescriptor
     {
-        public FilterOperationConventionDescriptor(int operation)
+        public FilterOperationConventionDescriptor(int id)
         {
-            Definition.Operation = operation;
+            Definition.Id = id;
         }
 
         internal FilterOperationConventionDefinition Definition { get; } =

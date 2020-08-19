@@ -22,11 +22,11 @@ namespace HotChocolate.Types.Descriptors
             _definition = null;
         }
 
-        protected virtual void OnComplete(IConventionContext context, TDefinition? definition)
+        protected virtual void OnComplete(IConventionContext context, TDefinition definition)
         {
         }
 
-        protected abstract TDefinition? CreateDefinition(IConventionContext context);
+        protected abstract TDefinition CreateDefinition(IConventionContext context);
 
         private void AssertUninitialized()
         {

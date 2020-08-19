@@ -50,5 +50,29 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("FilterField_FilterField_TypeUnknown", resourceCulture);
             }
         }
+        
+        internal static string FilterConventionDescriptor_MustInheritFromFilterInputType {
+            get {
+                return ResourceManager.GetString("FilterConventionDescriptor_MustInheritFromFilterInputType", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConventionDescriptor_MustImplementIFilterProvider {
+            get {
+                return ResourceManager.GetString("FilterConventionDescriptor_MustImplementIFilterProvider", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("FilterConvention_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_UnknownType {
+            get {
+                return ResourceManager.GetString("FilterConvention_UnknownType", resourceCulture);
+            }
+        }
     }
 }

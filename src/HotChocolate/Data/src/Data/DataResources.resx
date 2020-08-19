@@ -21,4 +21,16 @@
   <data name="FilterField_FilterField_TypeUnknown" xml:space="preserve">
     <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
   </data>
+  <data name="FilterConventionDescriptor_MustInheritFromFilterInputType" xml:space="preserve">
+    <value>The filter type must inherit from `FilterInputType`.</value>
+  </data>
+  <data name="FilterConventionDescriptor_MustImplementIFilterProvider" xml:space="preserve">
+    <value>A filter provider has to implement `IFilterProvider`.</value>
+  </data>
+  <data name="FilterConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="FilterConvention_UnknownType" xml:space="preserve">
+    <value>The type {0} is unknown</value>
+  </data>
 </root>

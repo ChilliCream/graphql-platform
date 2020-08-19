@@ -15,6 +15,11 @@ namespace HotChocolate.Utilities
         [return: MaybeNull]
         public static T GetOrCreateService<T>(this IServiceProvider services, Type type)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             if (services.GetService(type) is T s)
             {
                 return s;
@@ -24,10 +29,15 @@ namespace HotChocolate.Utilities
         }
 
         public static bool TryGetOrCreateService<T>(
-            this IServiceProvider services, 
-            Type type, 
+            this IServiceProvider services,
+            Type type,
             [NotNullWhen(true)] out T service)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             if (services.GetService(type) is T s)
             {
                 service = s;
@@ -37,10 +47,14 @@ namespace HotChocolate.Utilities
             return TryCreateInstance<T>(services, type, out service);
         }
 
-
         [return: MaybeNull]
         public static T CreateInstance<T>(this IServiceProvider services, Type type)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             var factory = new ServiceFactory { Services = services };
             if (factory.CreateInstance(type) is T casted)
             {
@@ -54,6 +68,11 @@ namespace HotChocolate.Utilities
             Type type,
             [NotNullWhen(true)] out T service)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             var factory = new ServiceFactory { Services = services };
             if (factory.CreateInstance(type) is T casted)
             {

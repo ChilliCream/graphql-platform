@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -97,7 +97,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -127,7 +127,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -157,7 +157,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -187,7 +187,7 @@ namespace HotChocolate.Data.Filters
             var convention = new FilterConvention(
                 descriptor =>
                 {
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -218,7 +218,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Description("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 
@@ -248,7 +248,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                 });
 
             var type = new FooFilterType();
@@ -278,7 +278,7 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.Binding<string, TestOperationType>();
+                    descriptor.BindRuntimeType<string, TestOperationType>();
                     descriptor.Provider(provider);
                 });
 

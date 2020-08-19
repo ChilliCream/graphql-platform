@@ -1,156 +1,177 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters
 {
     public class FilterConventionDescriptor
         : IFilterConventionDescriptor
     {
-        private const string DefaultArgumentName = "where";
+        private readonly Dictionary<int, FilterOperationConventionDescriptor> _operations =
+            new Dictionary<int, FilterOperationConventionDescriptor>();
 
-        private readonly IServiceProvider _services;
-
-        protected ICollection<FilterOperationConventionDescriptor> Operations { get; } =
-            new List<FilterOperationConventionDescriptor>();
-
-        protected FilterConventionDescriptor(IConventionContext context)
+        protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            Definition.Scope = context.Scope;
-            Definition.ArgumentName = DefaultArgumentName;
-            _services = context.Services;
+            Definition.Scope = scope;
         }
 
         protected FilterConventionDefinition Definition { get; set; } =
             new FilterConventionDefinition();
 
-        public IFilterOperationConventionDescriptor Operation(int operation)
-        {
-            FilterOperationConventionDescriptor? descriptor =
-                Operations.FirstOrDefault(x => x.Definition.Operation == operation);
-
-            if (descriptor is null)
-            {
-                descriptor = new FilterOperationConventionDescriptor(operation);
-                Operations.Add(descriptor);
-            }
-
-            return descriptor;
-        }
-
         public FilterConventionDefinition CreateDefinition()
         {
-            Definition.Operations = Operations.Select(x => x.CreateDefinition());
+            // collect all operation configurations and add them to the convention definition.
+            foreach (FilterOperationConventionDescriptor operation in _operations.Values)
+            {
+                Definition.Operations.Add(operation.CreateDefinition());
+            }
+
             return Definition;
         }
 
-        public IFilterConventionDescriptor Binding<TRuntime, TInput>()
+        /// <inheritdoc />
+        public IFilterOperationConventionDescriptor Operation(int operationId)
         {
-            Definition.Bindings.Add(typeof(TRuntime), typeof(TInput));
+            if (_operations.TryGetValue(
+                operationId,
+                out FilterOperationConventionDescriptor? descriptor))
+            {
+                return descriptor;
+            }
+
+            descriptor = new FilterOperationConventionDescriptor(operationId);
+            _operations.Add(operationId, descriptor);
+            return descriptor;
+        }
+
+        /// <inheritdoc />
+        public IFilterConventionDescriptor BindRuntimeType<TRuntimeType, TFilterType>()
+            where TFilterType : FilterInputType =>
+            BindRuntimeType(typeof(TRuntimeType), typeof(TFilterType));
+
+        /// <inheritdoc />
+        public IFilterConventionDescriptor BindRuntimeType(Type runtimeType, Type filterType)
+        {
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            if (filterType is null)
+            {
+                throw new ArgumentNullException(nameof(filterType));
+            }
+
+            if (!typeof(FilterInputType).IsAssignableFrom(filterType))
+            {
+                throw new ArgumentException(
+                    FilterConventionDescriptor_MustInheritFromFilterInputType,
+                    nameof(filterType));
+            }
+
+            Definition.Bindings.Add(runtimeType, filterType);
             return this;
         }
 
-        public static FilterConventionDescriptor New(IConventionContext context) =>
-            new FilterConventionDescriptor(context);
-
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
         public IFilterConventionDescriptor Configure(
             NameString typeName,
-            Action<IFilterInputTypeDescriptor> configure)
-        {
-            TypeReference? typeReference =
-                TypeReference.Create(
-                    typeName,
-                    TypeContext.Input,
-                    Definition.Scope);
+            ConfigureFilterInputType configure) =>
+            Configure(
+                TypeReference.Create(typeName, TypeContext.Input, Definition.Scope),
+                configure);
 
-            if (!Definition.Extensions.TryGetValue(
-                typeReference,
-                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
-            {
-                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
-                Definition.Extensions[typeReference] = descriptorList;
-            }
-
-            descriptorList.Add(configure);
-            return this;
-        }
-
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
         public IFilterConventionDescriptor Configure<TFilterType>(
-            Action<IFilterInputTypeDescriptor> configure)
-            where TFilterType : FilterInputType
-        {
-            TypeReference? typeReference =
-                TypeReference.Create<TFilterType>(
-                    TypeContext.Input,
-                    Definition.Scope);
+            ConfigureFilterInputType configure)
+            where TFilterType : FilterInputType =>
+            Configure(
+                TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
+                configure);
 
-            if (!Definition.Extensions.TryGetValue(
-                typeReference,
-                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
-            {
-                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
-                Definition.Extensions[typeReference] = descriptorList;
-            }
-
-            descriptorList.Add(configure);
-            return this;
-        }
-
-        public IFilterConventionDescriptor Configure<TFilterType, TType>(
-            Action<IFilterInputTypeDescriptor<TType>> configure)
-            where TFilterType : FilterInputType<TType>
-        {
-            TypeReference? typeReference =
-                TypeReference.Create<TFilterType>(
-                    TypeContext.Input,
-                    Definition.Scope);
-
-            if (!Definition.Extensions.TryGetValue(
-                typeReference,
-                out List<Action<IFilterInputTypeDescriptor>>? descriptorList))
-            {
-                descriptorList = new List<Action<IFilterInputTypeDescriptor>>();
-                Definition.Extensions[typeReference] = descriptorList;
-            }
-
-            descriptorList.Add(descriptor =>
-            {
-                if (descriptor is IFilterInputTypeDescriptor<TType> descriptorOfT)
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        public IFilterConventionDescriptor Configure<TFilterType, TRuntimeType>(
+            ConfigureFilterInputType<TRuntimeType> configure)
+            where TFilterType : FilterInputType<TRuntimeType> =>
+            Configure(
+                TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
+                d =>
                 {
-                    configure.Invoke(descriptorOfT);
-                }
-            });
+                    if (d is IFilterInputTypeDescriptor<TRuntimeType> descriptor)
+                    {
+                        configure.Invoke(descriptor);
+                    }
+                });
 
+        protected IFilterConventionDescriptor Configure(
+            ITypeReference typeReference,
+            ConfigureFilterInputType configure)
+        {
+            if (!Definition.Configurations.TryGetValue(
+                typeReference,
+                out List<ConfigureFilterInputType>? configurations))
+            {
+                configurations = new List<ConfigureFilterInputType>();
+                Definition.Configurations.Add(typeReference, configurations);
+            }
+
+            configurations.Add(configure);
             return this;
         }
 
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
         public IFilterConventionDescriptor Provider<TProvider>()
-            where TProvider : FilterProviderBase
+            where TProvider : class, IFilterProvider =>
+            Provider(typeof(TProvider));
+
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        public IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
+            where TProvider : class, IFilterProvider
         {
-            Definition.Provider = _services.GetService<TProvider>();
+            Definition.Provider = typeof(TProvider);
+            Definition.ProviderInstance = provider;
             return this;
         }
 
-        public IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
-            where TProvider : FilterProviderBase
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        public IFilterConventionDescriptor Provider(Type provider)
         {
+            if (provider is null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
+
+            if (!typeof(IFilterProvider).IsAssignableFrom(provider))
+            {
+                throw new ArgumentException(
+                    FilterConventionDescriptor_MustImplementIFilterProvider,
+                    nameof(provider));
+            }
+
             Definition.Provider = provider;
             return this;
         }
 
+        /// <inheritdoc cref="IFilterConventionDescriptor" />
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
             Definition.ArgumentName = argumentName;
             return this;
         }
+
+        /// <summary>
+        /// Creates a new descriptor for <see cref="FilterConvention"/>
+        /// </summary>
+        /// <param name="context">The descriptor context.</param>
+        /// <param name="scope">The scope</param>
+        public static FilterConventionDescriptor New(IDescriptorContext context, string? scope) =>
+            new FilterConventionDescriptor(context, scope);
     }
 }

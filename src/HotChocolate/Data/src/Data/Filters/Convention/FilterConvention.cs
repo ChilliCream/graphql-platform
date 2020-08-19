@@ -1,15 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using System.Linq;
-using System.Collections.Generic;
 using HotChocolate.Utilities;
-using HotChocolate.Language;
-using HotChocolate.Configuration;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
+using static HotChocolate.Data.DataResources;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
@@ -17,13 +17,16 @@ namespace HotChocolate.Data.Filters
         : Convention<FilterConventionDefinition>
         , IFilterConvention
     {
-        private readonly Action<IFilterConventionDescriptor> _configure;
-        private IReadOnlyDictionary<int, OperationConvention> _operations = default!;
-        private IReadOnlyDictionary<Type, Type> _bindings = default!;
-        private IReadOnlyDictionary<ITypeReference, Action<IFilterInputTypeDescriptor>[]> _extensions = default!;
+        private const string _typePostFix = "FilterInput";
+
+        private Action<IFilterConventionDescriptor>? _configure;
+        private INamingConventions _namingConventions = default!;
+        private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
+        private IDictionary<Type, Type> _bindings = default!;
+        private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
 
         private NameString _argumentName;
-        private FilterProviderBase _provider = default!;
+        private IFilterProvider _provider = default!;
 
         protected FilterConvention()
         {
@@ -39,102 +42,161 @@ namespace HotChocolate.Data.Filters
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
         {
-            var descriptor = FilterConventionDescriptor.New(context);
+            if (_configure is null)
+            {
+                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+            }
+
+            var descriptor = FilterConventionDescriptor.New(
+                context.DescriptorContext,
+                context.Scope);
+
             _configure(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(
-            IFilterConventionDescriptor descriptor)
+        protected virtual void Configure(IFilterConventionDescriptor descriptor)
         {
         }
 
+        [SuppressMessage("HotChocolate", "CA1062")]
         protected override void OnComplete(
             IConventionContext context,
-            FilterConventionDefinition? definition)
+            FilterConventionDefinition definition)
         {
-            if (definition is { })
+            _namingConventions = context.DescriptorContext.Naming;
+
+            if (definition.Provider is null)
             {
-                _operations = definition
-                    .Operations
-                    .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-                _bindings = definition.Bindings;
-                _extensions = definition.Extensions.ToDictionary(x => x.Key, x => x.Value.ToArray());
-
-                _argumentName = definition.ArgumentName ??
-                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
-
-                _provider = definition.Provider ??
-                    throw ThrowHelper.FilterConvention_NoProviderFound(definition.Scope);
-
-                IFilterProviderInitializationContext? providerContext =
-                    FilterProviderInitializationContext.From(context, this);
-
-                _provider.Initialize(providerContext);
+                throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
             }
+
+            _operations = definition.Operations.ToDictionary(
+                x => x.Id,
+                FilterOperation.FromDefinition);
+            _bindings = definition.Bindings;
+            _configs = definition.Configurations;
+            _argumentName = definition.ArgumentName;
+
+            if(definition.ProviderInstance is null)
+            {
+                _provider =
+                    context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
+                    throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+            }
+            else
+            {
+                _provider = definition.ProviderInstance;
+            }
+
+            /*
+            if (_provider is FilterProviderBase init)
+            {
+                IFilterProviderInitializationContext providerContext =
+                    FilterProviderInitializationContext.From(context, this);
+                _provider.In(providerContext);
+            }
+            */
         }
 
-        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
-            context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
+        /// <inheritdoc cref="IFilterConvention"/>
+        public virtual NameString GetTypeName(Type runtimeType) =>
+            _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
 
-        public NameString GetFieldName(IDescriptorContext context, MemberInfo member) =>
-            context.Naming.GetMemberName(member, MemberKind.InputObjectField);
+        /// <inheritdoc cref="IFilterConvention"/>
+        public virtual string? GetTypeDescription(Type runtimeType) =>
+            _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
 
-        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
+        /// <inheritdoc cref="IFilterConvention"/>
+        public virtual NameString GetFieldName(MemberInfo member) =>
+            _namingConventions.GetMemberName(member, MemberKind.InputObjectField);
+
+        /// <inheritdoc cref="IFilterConvention"/>
+        public virtual string? GetFieldDescription(MemberInfo member) =>
+            _namingConventions.GetMemberDescription(member, MemberKind.InputObjectField);
+
+        /// <inheritdoc cref="IFilterConvention"/>
+        public virtual ClrTypeReference GetFieldType(MemberInfo member)
         {
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryGetTypeOfMember(member, out Type? reflectedType))
+            if (TryGetTypeOfMember(member, out Type? returnType))
             {
-                return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
+                return TypeReference.Create(returnType, TypeContext.Input, Scope);
             }
 
-            throw ThrowHelper.FilterConvention_TypeOfMemberIsUnknown(member);
+            throw FilterConvention_TypeOfMemberIsUnknown(member);
         }
 
-        public NameString GetOperationDescription(IDescriptorContext context, int operation)
+        /// <inheritdoc cref="IFilterConvention"/>
+        public NameString GetOperationName(int operation)
         {
-            if (Operations.TryGetValue(operation, out OperationConvention? operationConvention))
-            {
-                return operationConvention.Description;
-            }
-            return null;
-        }
-
-        public NameString GetOperationName(IDescriptorContext context, int operation)
-        {
-            if (Operations.TryGetValue(operation, out OperationConvention? operationConvention))
+            if (_operations.TryGetValue(operation, out FilterOperation? operationConvention))
             {
                 return operationConvention.Name;
             }
-            throw ThrowHelper.FilterConvention_OperationNameNotFound(operation);
+
+            throw FilterConvention_OperationNameNotFound(operation);
         }
 
-        public NameString GetTypeDescription(IDescriptorContext context, Type entityType) =>
-            context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
+        /// <inheritdoc cref="IFilterConvention"/>
+        public string? GetOperationDescription(int operationId)
+        {
+            if (_operations.TryGetValue(operationId, out FilterOperation? operationConvention))
+            {
+                return operationConvention.Description;
+            }
 
-        public NameString GetTypeName(IDescriptorContext context, Type entityType) =>
-            context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
+            return null;
+        }
+
+        /// <inheritdoc cref="IFilterConvention"/>
+        public NameString GetArgumentName() => _argumentName;
+
+        /// <inheritdoc cref="IFilterConvention"/>
+        public void ApplyConfigurations(
+            ITypeReference typeReference,
+            IFilterInputTypeDescriptor descriptor)
+        {
+            if (_configs.TryGetValue(
+                typeReference,
+                out List<ConfigureFilterInputType>? configurations))
+            {
+                foreach (ConfigureFilterInputType configure in configurations)
+                {
+                    configure(descriptor);
+                }
+            }
+        }
+
+        public bool TryGetHandler(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition,
+            [NotNullWhen(true)] out FilterFieldHandler? handler)
+        {
+            throw new NotImplementedException();
+        }
 
         private bool TryGetTypeOfMember(
             MemberInfo member,
             [NotNullWhen(true)] out Type? type)
         {
-            if (member is PropertyInfo p &&
-                TryGetTypeOfRuntimeType(p.PropertyType, out type))
+            switch (member)
             {
-                return true;
+                case PropertyInfo p when TryGetTypeOfRuntimeType(p.PropertyType, out type):
+                case MethodInfo m when TryGetTypeOfRuntimeType(m.ReturnType, out type):
+                    return true;
+
+                default:
+                    type = null;
+                    return false;
             }
-            if (member is MethodInfo m &&
-                TryGetTypeOfRuntimeType(m.ReturnType, out type))
-            {
-                return true;
-            }
-            type = null;
-            return false;
         }
 
         private bool TryGetTypeOfRuntimeType(
@@ -148,7 +210,7 @@ namespace HotChocolate.Data.Filters
                 underlyingType = innerNullableType;
             }
 
-            if (Bindings.TryGetValue(runtimeType, out type))
+            if (_bindings.TryGetValue(runtimeType, out type))
             {
                 return true;
             }
@@ -160,8 +222,11 @@ namespace HotChocolate.Data.Filters
                     out Utilities.TypeInfo typeInfo))
                 {
                     throw new ArgumentException(
-                        string.Format("The type {0} is unknown", underlyingType.Name),
-                        nameof(underlyingType));
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            FilterConvention_UnknownType,
+                            underlyingType.FullName ?? underlyingType.Name),
+                        nameof(runtimeType));
                 }
 
                 if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
@@ -186,41 +251,5 @@ namespace HotChocolate.Data.Filters
             type = null;
             return false;
         }
-
-        internal static readonly IFilterConvention Default = null!;
-
-        public IEnumerable<Action<IFilterInputTypeDescriptor>> GetExtensions(
-            ITypeReference reference,
-            NameString temporaryName)
-        {
-            // TODO: if this it gonna be the final version we can drop the dicitionaries completely
-            foreach (KeyValuePair<ITypeReference, Action<IFilterInputTypeDescriptor>[]> element in
-                Extensions)
-            {
-                if (element.Key.Equals(reference))
-                {
-                    return element.Value;
-                }
-                else if (element.Key is SyntaxTypeReference key &&
-                  key.Type is NamedTypeNode namedKey &&
-                  temporaryName.Value == namedKey.Name.Value)
-                {
-                    return element.Value;
-                }
-            }
-            return Array.Empty<Action<IFilterInputTypeDescriptor>>();
-        }
-
-        public bool TryGetHandler(
-            ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
-            [NotNullWhen(true)] out FilterFieldHandler? handler) =>
-            Provider.TryGetHandler(context, typeDefinition, fieldDefinition, out handler);
-
-        public Task ExecuteAsync<TEntityType>(FieldDelegate next, IMiddlewareContext context) =>
-            Provider.ExecuteAsync<TEntityType>(next, context);
-
-        public NameString GetArgumentName() => ArgumentName;
     }
 }

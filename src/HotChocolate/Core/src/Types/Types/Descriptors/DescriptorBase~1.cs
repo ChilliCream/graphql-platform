@@ -3,6 +3,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class DescriptorBase<T>
@@ -13,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         , IHasDescriptorContext
         where T : DefinitionBase
     {
-        private List<Action<T>> _modifiers = new List<Action<T>>();
+        private readonly List<Action<T>> _modifiers = new List<Action<T>>();
 
         protected DescriptorBase(IDescriptorContext context)
         {
@@ -25,7 +27,7 @@ namespace HotChocolate.Types.Descriptors
 
         IDescriptorContext IHasDescriptorContext.Context => Context;
 
-        internal protected abstract T Definition { get; protected set; }
+        protected internal abstract T Definition { get; protected set; }
 
         public IDescriptorExtension<T> Extend()
         {
@@ -55,11 +57,11 @@ namespace HotChocolate.Types.Descriptors
             OnBeforeCreate(configure);
 
         void IDescriptorExtension.OnBeforeCreate(Action<DefinitionBase> configure) =>
-            OnBeforeCreate(c => configure(c));
+            OnBeforeCreate(configure);
 
         private void OnBeforeCreate(Action<T> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -78,15 +80,17 @@ namespace HotChocolate.Types.Descriptors
         private INamedDependencyDescriptor OnBeforeNaming(
            Action<ITypeCompletionContext, T> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            var configuration = new TypeConfiguration<T>();
-            configuration.Definition = Definition;
-            configuration.On = ApplyConfigurationOn.Naming;
-            configuration.Configure = configure;
+            var configuration = new TypeConfiguration<T>
+            {
+                Definition = Definition,
+                On = ApplyConfigurationOn.Naming,
+                Configure = configure
+            };
             Definition.Configurations.Add(configuration);
 
             return new NamedDependencyDescriptor<T>(configuration);
@@ -103,10 +107,12 @@ namespace HotChocolate.Types.Descriptors
         private ICompletedDependencyDescriptor OnBeforeCompletion(
             Action<ITypeCompletionContext, T> configure)
         {
-            var configuration = new TypeConfiguration<T>();
-            configuration.Definition = Definition;
-            configuration.On = ApplyConfigurationOn.Completion;
-            configuration.Configure = configure;
+            var configuration = new TypeConfiguration<T>
+            {
+                Definition = Definition,
+                On = ApplyConfigurationOn.Completion,
+                Configure = configure
+            };
             Definition.Configurations.Add(configuration);
 
             return new CompletedDependencyDescriptor<T>(configuration);

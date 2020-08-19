@@ -26,12 +26,13 @@ namespace HotChocolate.Data
                         operation)
                     .Build());
 
-        public static SchemaException FilterConvention_NoProviderFound(string scope) =>
+        public static SchemaException FilterConvention_NoProviderFound(Type convention, string? scope) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        "For the convention of scope {0} is no provider defined",
-                        scope)
+                        "There is now provider defined for the filter convention `{0}`.",
+                        convention.FullName ?? convention.Name)
+                    .SetExtension(nameof(scope), scope)
                     .Build());
 
         public static SchemaException FilterConvention_NoArgumentNameDefined(string scope) =>
