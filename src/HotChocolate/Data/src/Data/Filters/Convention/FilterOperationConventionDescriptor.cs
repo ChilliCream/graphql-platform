@@ -2,29 +2,32 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterOperationConventionDescriptor : IFilterOperationConventionDescriptor
     {
-        public FilterOperationConventionDescriptor(int id)
+        protected FilterOperationConventionDescriptor(int operationId)
         {
-            Definition.Id = id;
+            Definition.Id = operationId;
         }
 
-        internal FilterOperationConventionDefinition Definition { get; } =
+        protected FilterOperationConventionDefinition Definition { get; } =
             new FilterOperationConventionDefinition();
 
-        public FilterOperationConventionDefinition CreateDefinition() => Definition;
+        public FilterOperationConventionDefinition CreateDefinition() =>
+            Definition;
 
+        /// <inheritdoc />
         public IFilterOperationConventionDescriptor Name(string name)
         {
             Definition.Name = name;
             return this;
         }
 
+        /// <inheritdoc />
         public IFilterOperationConventionDescriptor Description(string description)
         {
             Definition.Description = description;
             return this;
         }
 
-        public static FilterOperationConventionDescriptor New(int operation) =>
-            new FilterOperationConventionDescriptor(operation);
+        public static FilterOperationConventionDescriptor New(int operationId) =>
+            new FilterOperationConventionDescriptor(operationId);
     }
 }

@@ -31,7 +31,8 @@ namespace HotChocolate.Data.Filters
                 combined = combinedOperation;
                 return true;
             }
-            combined = default;
+            
+            combined = default!;
             return false;
         }
     }

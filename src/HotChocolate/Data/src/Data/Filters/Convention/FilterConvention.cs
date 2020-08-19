@@ -66,21 +66,12 @@ namespace HotChocolate.Data.Filters
             IConventionContext context,
             FilterConventionDefinition definition)
         {
-            _namingConventions = context.DescriptorContext.Naming;
-
             if (definition.Provider is null)
             {
                 throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
             }
 
-            _operations = definition.Operations.ToDictionary(
-                x => x.Id,
-                FilterOperation.FromDefinition);
-            _bindings = definition.Bindings;
-            _configs = definition.Configurations;
-            _argumentName = definition.ArgumentName;
-
-            if(definition.ProviderInstance is null)
+            if (definition.ProviderInstance is null)
             {
                 _provider =
                     context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
@@ -90,6 +81,14 @@ namespace HotChocolate.Data.Filters
             {
                 _provider = definition.ProviderInstance;
             }
+
+            _namingConventions = context.DescriptorContext.Naming;
+            _operations = definition.Operations.ToDictionary(
+                x => x.Id,
+                FilterOperation.FromDefinition);
+            _bindings = definition.Bindings;
+            _configs = definition.Configurations;
+            _argumentName = definition.ArgumentName;
 
             /*
             if (_provider is FilterProviderBase init)
@@ -174,13 +173,26 @@ namespace HotChocolate.Data.Filters
             }
         }
 
+        public IFilterExecutor<TEntityType> CreateExecutor<TEntityType>() =>
+            _provider.CreateExecutor<TEntityType>(_argumentName);
+
         public bool TryGetHandler(
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition,
-            [NotNullWhen(true)] out FilterFieldHandler? handler)
+            [NotNullWhen(true)] out IFilterFieldHandler? handler)
         {
-            throw new NotImplementedException();
+            foreach (IFilterFieldHandler filterFieldHandler in _provider.FieldHandlers)
+            {
+                if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+                {
+                    handler = filterFieldHandler;
+                    return true;
+                }
+            }
+
+            handler = null;
+            return false;
         }
 
         private bool TryGetTypeOfMember(

@@ -46,7 +46,7 @@ namespace HotChocolate.Data.Filters
                 return descriptor;
             }
 
-            descriptor = new FilterOperationConventionDescriptor(operationId);
+            descriptor = FilterOperationConventionDescriptor.New(operationId);
             _operations.Add(operationId, descriptor);
             return descriptor;
         }
@@ -80,15 +80,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
-        public IFilterConventionDescriptor Configure(
-            NameString typeName,
-            ConfigureFilterInputType configure) =>
-            Configure(
-                TypeReference.Create(typeName, TypeContext.Input, Definition.Scope),
-                configure);
-
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor Configure<TFilterType>(
             ConfigureFilterInputType configure)
             where TFilterType : FilterInputType =>
@@ -96,7 +88,7 @@ namespace HotChocolate.Data.Filters
                 TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
                 configure);
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor Configure<TFilterType, TRuntimeType>(
             ConfigureFilterInputType<TRuntimeType> configure)
             where TFilterType : FilterInputType<TRuntimeType> =>
@@ -104,10 +96,14 @@ namespace HotChocolate.Data.Filters
                 TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
                 d =>
                 {
-                    if (d is IFilterInputTypeDescriptor<TRuntimeType> descriptor)
-                    {
-                        configure.Invoke(descriptor);
-                    }
+                    var descriptor = (FilterInputTypeDescriptor)d;
+
+                    var descriptorOfT = FilterInputTypeDescriptor.From<TRuntimeType>(
+                        descriptor.Context,
+                        descriptor.Definition,
+                        Definition.Scope);
+
+                    configure.Invoke(descriptorOfT);
                 });
 
         protected IFilterConventionDescriptor Configure(
@@ -126,12 +122,12 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor Provider<TProvider>()
             where TProvider : class, IFilterProvider =>
             Provider(typeof(TProvider));
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor Provider<TProvider>(TProvider provider)
             where TProvider : class, IFilterProvider
         {
@@ -140,7 +136,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor Provider(Type provider)
         {
             if (provider is null)
@@ -159,7 +155,7 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        /// <inheritdoc cref="IFilterConventionDescriptor" />
+        /// <inheritdoc />
         public IFilterConventionDescriptor ArgumentName(NameString argumentName)
         {
             Definition.ArgumentName = argumentName;

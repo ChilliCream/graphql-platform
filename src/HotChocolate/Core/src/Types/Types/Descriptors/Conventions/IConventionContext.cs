@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         /// <summary>
         /// The convention that is being initialized.
         /// </summary>
-        public IConvention Convention { get; }
+        IConvention Convention { get; }
 
         /// <summary>
         /// The schema level services.

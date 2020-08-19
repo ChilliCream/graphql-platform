@@ -1,48 +1,37 @@
-﻿using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
-using HotChocolate.Types;
+using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterFieldHandler : IHasScope
+    public abstract class FilterFieldHandler<T, TContext>
+        : IFilterFieldHandler<T, TContext>
+        where TContext : FilterVisitorContext<T>
     {
-        private FilterFieldHandlerStatus _status = FilterFieldHandlerStatus.Uninitialized;
-
-        public string? Scope { get; private set; }
-
-        public IFilterProvider Provider { get; private set; } = null!;
-
-        public IFilterConvention Convention { get; private set; } = null!;
-
-        public virtual void Initialize(IFilterFieldHandlerInitializationContext context)
+        public virtual bool TryHandleEnter(
+            TContext context,
+            IFilterField field,
+            ObjectFieldNode node,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            Scope = context.Scope;
-            Provider = context.Provider;
-            Convention = context.Convention;
-            OnComplete(context);
-            MarkInitialized();
+            action = null;
+            return false;
         }
+
+        public virtual bool TryHandleLeave(
+            TContext context,
+            IFilterField field,
+            ObjectFieldNode node,
+            [NotNullWhen(true)] out ISyntaxVisitorAction? action)
+        {
+            action = null;
+            return false;
+        }
+
         public abstract bool CanHandle(
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition);
-
-        protected virtual void OnComplete(IFilterFieldHandlerInitializationContext context)
-        {
-
-        }
-
-        protected void MarkInitialized()
-        {
-            Debug.Assert(_status == FilterFieldHandlerStatus.Uninitialized);
-
-            if (_status != FilterFieldHandlerStatus.Uninitialized)
-            {
-                throw new InvalidOperationException();
-            }
-
-            _status = FilterFieldHandlerStatus.Initialized;
-        }
     }
 }

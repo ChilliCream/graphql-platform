@@ -112,8 +112,8 @@ namespace HotChocolate.Data.Filters
             ITypeDiscoveryContext context,
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition,
-            [NotNullWhen(true)] out FilterFieldHandler? handler);
+            [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
-        IFilterExecutor<TEntityType> CreateFilterExecutor<TEntityType>();
+        IFilterExecutor<TEntityType> CreateExecutor<TEntityType>();
     }
 }

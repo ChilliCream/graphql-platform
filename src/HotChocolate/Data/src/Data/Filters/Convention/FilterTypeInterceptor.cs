@@ -1,10 +1,9 @@
 using System;
-using HotChocolate.Types.Descriptors;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-using System.Linq;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
@@ -33,22 +32,11 @@ namespace HotChocolate.Data.Filters
                     def,
                     def.Scope);
 
-                SchemaTypeReference? schemaTypeReference = TypeReference.Create(
+                var typeReference = TypeReference.Create(
                     discoveryContext.Type,
                     def.Scope);
 
-                IEnumerable<Action<IFilterInputTypeDescriptor>> extensions =
-                    convention.GetExtensions(schemaTypeReference, def.Name);
-
-                if (extensions.Any())
-                {
-                    foreach (Action<IFilterInputTypeDescriptor>? extension in extensions)
-                    {
-                        extension.Invoke(descriptor);
-                    }
-
-                    descriptor.CreateDefinition();
-                }
+                convention.ApplyConfigurations(typeReference, descriptor);
 
                 foreach (InputFieldDefinition field in def.Fields)
                 {
@@ -60,10 +48,10 @@ namespace HotChocolate.Data.Filters
                         }
 
                         if (convention.TryGetHandler(
-                                discoveryContext,
-                                def,
-                                filterFieldDefinition,
-                                out FilterFieldHandler? handler))
+                            discoveryContext,
+                            def,
+                            filterFieldDefinition,
+                            out IFilterFieldHandler? handler))
                         {
                             filterFieldDefinition.Handler = handler;
                         }

@@ -33,20 +33,7 @@ namespace HotChocolate.Data.Filters
         /// <param name="runtimeType">The runtime type.</param>
         /// <param name="filterType">GraphQL filter type.</param>
         IFilterConventionDescriptor BindRuntimeType(Type runtimeType, Type filterType);
-
-        /// <summary>
-        /// Provides additional configuration for a filter type.
-        /// </summary>
-        /// <param name="typeName">
-        /// The filter type for which additional configuration shall be provided.
-        /// </param>
-        /// <param name="configure">
-        /// The configuration that shall be applied to the specified filter type.
-        /// </param>
-        IFilterConventionDescriptor Configure(
-            NameString typeName,
-            ConfigureFilterInputType configure);
-
+        
         /// <summary>
         /// Provides additional configuration for a filter type.
         /// </summary>
