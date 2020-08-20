@@ -34,31 +34,31 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (field is { })
+            if (field.TypeInfo is null)
             {
-                Expression nestedProperty;
-                if (field.Member is PropertyInfo propertyInfo)
-                {
-                    nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
-                }
-                else if (field.Member is MethodInfo methodInfo)
-                {
-                    nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
-                }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-
-                context.PushInstance(nestedProperty);
-                context.ClrTypes.Push(nestedProperty.Type);
-                context.TypeInfos.Push(field.TypeInfo);
-                action = SyntaxVisitor.Continue;
-                return true;
+                action = null;
+                return false;
             }
 
-            action = null;
-            return false;
+            Expression nestedProperty;
+            if (field.Member is PropertyInfo propertyInfo)
+            {
+                nestedProperty = Expression.Property(context.GetInstance(), propertyInfo);
+            }
+            else if (field.Member is MethodInfo methodInfo)
+            {
+                nestedProperty = Expression.Call(context.GetInstance(), methodInfo);
+            }
+            else
+            {
+                throw new InvalidOperationException();
+            }
+
+            context.PushInstance(nestedProperty);
+            context.ClrTypes.Push(nestedProperty.Type);
+            context.TypeInfos.Push(field.TypeInfo);
+            action = SyntaxVisitor.Continue;
+            return true;
         }
 
         public override bool TryHandleLeave(
@@ -67,28 +67,28 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            if (field is { })
+            if (field.TypeInfo is null)
             {
-                // Deque last
-                Expression condition = context.GetLevel().Dequeue();
-
-                context.PopInstance();
-                context.ClrTypes.Pop();
-                context.TypeInfos.Pop();
-
-                if (context.InMemory)
-                {
-                    condition = FilterExpressionBuilder.NotNullAndAlso(
-                        context.GetInstance(), condition);
-                }
-
-                context.GetLevel().Enqueue(condition);
-                action = SyntaxVisitor.Continue;
-                return true;
+                action = null;
+                return false;
             }
 
-            action = null;
-            return false;
+            // Deque last
+            Expression condition = context.GetLevel().Dequeue();
+
+            context.PopInstance();
+            context.ClrTypes.Pop();
+            context.TypeInfos.Pop();
+
+            if (context.InMemory)
+            {
+                condition = FilterExpressionBuilder.NotNullAndAlso(
+                    context.GetInstance(), condition);
+            }
+
+            context.GetLevel().Enqueue(condition);
+            action = SyntaxVisitor.Continue;
+            return true;
         }
     }
 }

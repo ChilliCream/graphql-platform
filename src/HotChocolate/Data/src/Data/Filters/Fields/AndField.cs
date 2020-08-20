@@ -12,17 +12,17 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             string? scope,
             InputObjectType filterType)
-            : base(CreateDefinition(context, scope, filterType))
+            : base(CreateDefinition(context, filterType, scope))
         {
         }
 
         private static InputFieldDefinition CreateDefinition(
             IDescriptorContext context,
-            string? scope,
-            InputObjectType filterType)
+            InputObjectType filterType,
+            string? scope)
         {
             FilterOperationFieldDefinition? definition = FilterOperationFieldDescriptor
-                .New(context, scope, DefaultOperations.And)
+                .New(context, DefaultOperations.And, scope)
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(

@@ -85,11 +85,10 @@ namespace HotChocolate.Types.Descriptors
             {
                 { (typeof(INamingConventions), null), s => naming }
             };
-            var services = new DictionaryServiceProvider();
 
             // act
             var context = DescriptorContext.Create(
-                options, services, conventions, new Dictionary<string, object>());
+                options, new EmptyServiceProvider(), conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(naming, context.Naming);

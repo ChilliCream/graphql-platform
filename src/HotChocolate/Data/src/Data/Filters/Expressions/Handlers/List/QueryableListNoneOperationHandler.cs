@@ -11,9 +11,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         protected override Expression HandleListOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             Type closureType,
             LambdaExpression lambda) =>

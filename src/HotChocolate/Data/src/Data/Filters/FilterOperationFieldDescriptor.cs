@@ -19,8 +19,8 @@ namespace HotChocolate.Data.Filters
         {
             IFilterConvention? convention = context.GetFilterConvention(scope);
             Definition.Id = operationId;
-            Definition.Name = convention.GetOperationName(context, operationId);
-            Definition.Description = convention.GetOperationDescription(context, operationId);
+            Definition.Name = convention.GetOperationName(operationId);
+            Definition.Description = convention.GetOperationDescription(operationId);
             Definition.Scope = scope;
         }
 

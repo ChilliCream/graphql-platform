@@ -96,7 +96,7 @@ namespace HotChocolate.Data.Filters
             IDictionary<string, object> contextData)
         {
             if (definition is FilterInputTypeDefinition def &&
-                def.Scope != ConventionBase.DefaultScope)
+                def.Scope != null)
             {
                 definition.Name = completionContext?.Scope +
                     "_" +

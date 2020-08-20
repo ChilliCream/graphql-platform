@@ -39,8 +39,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (context.TypeInfos.TryPeek(out FilterTypeInfo? filterTypeInfo) &&
-                filterTypeInfo.TypeArguments.FirstOrDefault() is FilterTypeInfo element)
+            if (context.TypeInfos.Count > 0 &&
+                context.TypeInfos.Peek().TypeArguments.FirstOrDefault() is FilterTypeInfo element)
             {
 
                 Expression nestedProperty = context.GetInstance();

@@ -4,8 +4,9 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static System.Globalization.CultureInfo;
+using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ErrorHelper;
-
 
 namespace HotChocolate.Data.Filters
 {
@@ -30,13 +31,13 @@ namespace HotChocolate.Data.Filters
 
         public MemberInfo? Member { get; }
 
-        public Type? ElementType { get; }
+        public Type? ElementType { get; private set; }
 
-        public FilterFieldHandler? Handler { get; }
+        public IFilterFieldHandler? Handler { get; }
 
         public bool? IsNullable => TypeInfo?.IsNullable;
 
-        public FilterTypeInfo? TypeInfo { get; }
+        public FilterTypeInfo? TypeInfo { get; private set; }
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,
@@ -46,7 +47,8 @@ namespace HotChocolate.Data.Filters
 
             if (Member is { } && Member.DeclaringType != null)
             {
-                IExtendedType extendedTypeInfo;
+                IExtendedType? extendedTypeInfo = null;
+
                 if (Member is PropertyInfo propertyInfo)
                 {
                     extendedTypeInfo = new NullableHelper(Member.DeclaringType)
@@ -62,6 +64,7 @@ namespace HotChocolate.Data.Filters
                 else
                 {
                     context.ReportError(FilterField_RuntimeType_Unknown(this));
+                    return;
                 }
 
                 TypeInfo = FilterTypeInfo.From(extendedTypeInfo);

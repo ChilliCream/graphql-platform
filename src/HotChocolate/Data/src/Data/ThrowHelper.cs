@@ -70,5 +70,15 @@ namespace HotChocolate.Data
                     .SetMessage("The filter type cannot be inferred from `System.Object`.")
                     .SetCode(ErrorCodes.Filtering.FilterObjectType)
                     .Build());
+
+        public static SchemaException FilterDescriptorContextExtensions_NoConvention(
+            string? scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "No filter convention found for scope `{0}`.",
+                        scope ?? "none")
+                    .SetExtension(nameof(scope), scope)
+                    .Build());
     }
 }

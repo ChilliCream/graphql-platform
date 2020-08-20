@@ -1,6 +1,6 @@
-using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
@@ -14,6 +14,8 @@ namespace HotChocolate.Data.Filters
         public static IFilterConvention GetFilterConvention(
             this IDescriptorContext context,
             string? scope = null) =>
-            context.GetConventionOrDefault(FilterConvention.Default, scope);
+            context.GetConventionOrDefault<IFilterConvention>(
+                () => throw FilterDescriptorContextExtensions_NoConvention(scope),
+                scope);
     }
 }

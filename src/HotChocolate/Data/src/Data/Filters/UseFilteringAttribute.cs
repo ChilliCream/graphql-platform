@@ -21,13 +21,13 @@ namespace HotChocolate.Data
         /// Gets or sets the filter type which specifies the filter object structure.
         /// </summary>
         /// <value>The filter type</value>
-        public Type Type { get; set; }
+        public Type? Type { get; set; }
 
         /// <summary>
         /// Sets the scope for the convention
         /// </summary>
-        /// <value>The name of the scoep</value>
-        public string Scope { get; set; } = ConventionBase.DefaultScope;
+        /// <value>The name of the scope</value>
+        public string? Scope { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,
@@ -42,7 +42,7 @@ namespace HotChocolate.Data
             {
                 _generic.MakeGenericMethod(Type).Invoke(
                     null,
-                    new object[] { descriptor, Scope });
+                    new object?[] { descriptor, Scope });
             }
         }
     }
