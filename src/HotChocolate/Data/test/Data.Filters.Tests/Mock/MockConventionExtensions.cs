@@ -9,7 +9,9 @@ namespace HotChocolate.Data.Filters
         {
             return descriptor.UseDefault().Provider(
                  new QueryableFilterProvider(
-                     x => x.UseDefaults().AddFieldHandler<MatchAnyQueryableFieldHandler>()));
+                     x => x
+                         .AddDefaultFieldHandlers()
+                         .AddFieldHandler<MatchAnyQueryableFieldHandler>()));
         }
     }
 }

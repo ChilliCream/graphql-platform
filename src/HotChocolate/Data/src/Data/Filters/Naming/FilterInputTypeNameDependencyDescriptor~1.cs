@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
-    internal class FilterInputTypeNameDependencyDescriptor<T>
+    internal sealed class FilterInputTypeNameDependencyDescriptor<T>
         : IFilterInputTypeNameDependencyDescriptor<T>
     {
         private readonly IFilterInputTypeDescriptor<T> _descriptor;

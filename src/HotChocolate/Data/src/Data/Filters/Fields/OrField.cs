@@ -16,6 +16,10 @@ namespace HotChocolate.Data.Filters
         {
         }
 
+        public new FilterInputType DeclaringType => (FilterInputType)base.DeclaringType;
+
+        IFilterInputType IOrField.DeclaringType => DeclaringType;
+
         private static InputFieldDefinition CreateDefinition(
             IDescriptorContext context,
             InputObjectType filterType,

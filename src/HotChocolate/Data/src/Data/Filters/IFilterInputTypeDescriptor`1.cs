@@ -47,8 +47,7 @@ namespace HotChocolate.Data.Filters
         /// All filters have to be specified explicitly via one of the `Filter`
         /// methods.
         /// </param>
-        IFilterInputTypeDescriptor<T> BindFields(
-            BindingBehavior bindingBehavior);
+        IFilterInputTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
 
         /// <summary>
         /// Defines that all filters have to be specified explicitly.

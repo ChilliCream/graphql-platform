@@ -5,7 +5,7 @@ using HotChocolate.Data.Filters.Expressions;
 namespace HotChocolate.Data.Filters
 {
     public class MatchAnyQueryableFieldHandler
-        : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
