@@ -144,7 +144,7 @@ namespace HotChocolate.Execution
 
         public static QueryResultBuilder New() => new QueryResultBuilder();
 
-        public static QueryResultBuilder FromResult(IReadOnlyQueryResult result)
+        public static QueryResultBuilder FromResult(IQueryResult result)
         {
             var builder = new QueryResultBuilder();
             builder._data = result.Data;

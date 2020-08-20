@@ -24,7 +24,12 @@ namespace HotChocolate.Execution
         {
             if (TaskBacklog.IsEmpty && BatchDispatcher.HasTasks)
             {
-                BatchDispatcher.Dispatch();
+                BatchDispatcher.Dispatch(Register);
+            }
+
+            void Register(IExecutionTaskDefinition taskDefinition)
+            {
+                TaskBacklog.Register(taskDefinition.Create(_taskContext));
             }
         }
 
@@ -37,7 +42,7 @@ namespace HotChocolate.Execution
             TryDispatchBatches();
 
         private void OnCompleted(
-            object? source, 
+            object? source,
             EventArgs args) =>
             _taskBacklog.Complete();
     }

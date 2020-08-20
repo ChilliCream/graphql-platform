@@ -1,13 +1,14 @@
 using System;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fetching
 {
     public interface IBatchDispatcher
     {
-        bool HasTasks { get; }
-
         event EventHandler? TaskEnqueued;
 
-        void Dispatch();
+        bool HasTasks { get; }
+
+        void Dispatch(Action<IExecutionTaskDefinition> enqueue);
     }
 }

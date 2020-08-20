@@ -1,0 +1,110 @@
+schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooSimpleCollectionFilter {
+  AND: [FooSimpleCollectionFilter!]
+  arrayNullable_all: ISingleFilterOfInt32Filter
+  arrayNullable_any: Boolean
+  arrayNullable_none: ISingleFilterOfInt32Filter
+  arrayNullable_some: ISingleFilterOfInt32Filter
+  array_all: ISingleFilterOfInt32Filter
+  array_any: Boolean
+  array_none: ISingleFilterOfInt32Filter
+  array_some: ISingleFilterOfInt32Filter
+  hashSetNullable_all: ISingleFilterOfInt32Filter
+  hashSetNullable_any: Boolean
+  hashSetNullable_none: ISingleFilterOfInt32Filter
+  hashSetNullable_some: ISingleFilterOfInt32Filter
+  hashSet_all: ISingleFilterOfInt32Filter
+  hashSet_any: Boolean
+  hashSet_none: ISingleFilterOfInt32Filter
+  hashSet_some: ISingleFilterOfInt32Filter
+  iCollectionNullable_all: ISingleFilterOfInt32Filter
+  iCollectionNullable_any: Boolean
+  iCollectionNullable_none: ISingleFilterOfInt32Filter
+  iCollectionNullable_some: ISingleFilterOfInt32Filter
+  iCollection_all: ISingleFilterOfInt32Filter
+  iCollection_any: Boolean
+  iCollection_none: ISingleFilterOfInt32Filter
+  iCollection_some: ISingleFilterOfInt32Filter
+  iListNullable_all: ISingleFilterOfInt32Filter
+  iListNullable_any: Boolean
+  iListNullable_none: ISingleFilterOfInt32Filter
+  iListNullable_some: ISingleFilterOfInt32Filter
+  iList_all: ISingleFilterOfInt32Filter
+  iList_any: Boolean
+  iList_none: ISingleFilterOfInt32Filter
+  iList_some: ISingleFilterOfInt32Filter
+  iReadOnlyCollectionNullable_all: ISingleFilterOfInt32Filter
+  iReadOnlyCollectionNullable_any: Boolean
+  iReadOnlyCollectionNullable_none: ISingleFilterOfInt32Filter
+  iReadOnlyCollectionNullable_some: ISingleFilterOfInt32Filter
+  iReadOnlyCollection_all: ISingleFilterOfInt32Filter
+  iReadOnlyCollection_any: Boolean
+  iReadOnlyCollection_none: ISingleFilterOfInt32Filter
+  iReadOnlyCollection_some: ISingleFilterOfInt32Filter
+  iSetNullable_all: ISingleFilterOfInt32Filter
+  iSetNullable_any: Boolean
+  iSetNullable_none: ISingleFilterOfInt32Filter
+  iSetNullable_some: ISingleFilterOfInt32Filter
+  iSet_all: ISingleFilterOfInt32Filter
+  iSet_any: Boolean
+  iSet_none: ISingleFilterOfInt32Filter
+  iSet_some: ISingleFilterOfInt32Filter
+  listNullable_all: ISingleFilterOfInt32Filter
+  listNullable_any: Boolean
+  listNullable_none: ISingleFilterOfInt32Filter
+  listNullable_some: ISingleFilterOfInt32Filter
+  list_all: ISingleFilterOfInt32Filter
+  list_any: Boolean
+  list_none: ISingleFilterOfInt32Filter
+  list_some: ISingleFilterOfInt32Filter
+  OR: [FooSimpleCollectionFilter!]
+  queueNullable_all: ISingleFilterOfInt32Filter
+  queueNullable_any: Boolean
+  queueNullable_none: ISingleFilterOfInt32Filter
+  queueNullable_some: ISingleFilterOfInt32Filter
+  queue_all: ISingleFilterOfInt32Filter
+  queue_any: Boolean
+  queue_none: ISingleFilterOfInt32Filter
+  queue_some: ISingleFilterOfInt32Filter
+  stackNullable_all: ISingleFilterOfInt32Filter
+  stackNullable_any: Boolean
+  stackNullable_none: ISingleFilterOfInt32Filter
+  stackNullable_some: ISingleFilterOfInt32Filter
+  stack_all: ISingleFilterOfInt32Filter
+  stack_any: Boolean
+  stack_none: ISingleFilterOfInt32Filter
+  stack_some: ISingleFilterOfInt32Filter
+}
+
+input ISingleFilterOfInt32Filter {
+  AND: [ISingleFilterOfInt32Filter!]
+  element: Int
+  element_gt: Int
+  element_gte: Int
+  element_in: [Int!]
+  element_lt: Int
+  element_lte: Int
+  element_not: Int
+  element_not_gt: Int
+  element_not_gte: Int
+  element_not_in: [Int!]
+  element_not_lt: Int
+  element_not_lte: Int
+  OR: [ISingleFilterOfInt32Filter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

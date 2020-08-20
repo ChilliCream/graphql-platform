@@ -22,6 +22,10 @@ namespace HotChocolate.Execution.Instrumentation
 
         void ResolverError(IMiddlewareContext context, IError error);
 
+        IActivityScope RunTask(IExecutionTask task);
+
+        void TaskError(IExecutionTask task, IError error);
+
         void AddedDocumentToCache(IRequestContext context);
 
         void RetrievedDocumentFromCache(IRequestContext context);

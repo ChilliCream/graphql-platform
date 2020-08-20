@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace HotChocolate.Execution.Utilities
 {
     /// <summary>
-    /// The task backlog of the execution engine stores <see cref="ITask"/> 
+    /// The task backlog of the execution engine stores <see cref="IExecutionTask"/> 
     /// without any guaranteed order.
     /// </summary>
     internal interface ITaskBacklog
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Utilities
         /// The task is not null when the method returns<c>true</c>
         /// </param>
         /// <returns>Return <c>true</c> if there was a task on the backlog.</returns>
-        bool TryTake([NotNullWhen(true)] out ITask? task);
+        bool TryTake([NotNullWhen(true)] out IExecutionTask? task);
 
         /// <summary>
         /// Waits for either the <paramref name="cancellationToken" /> to raise or 
@@ -39,5 +39,7 @@ namespace HotChocolate.Execution.Utilities
         /// Registers work with the task backlog.
         /// </summary>
         void Register(ResolverTaskDefinition taskDefinition);
+
+        void Register(IExecutionTask task);
     }
 }

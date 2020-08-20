@@ -32,6 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddDefaultCaches();
             services.TryAddDefaultDocumentHashProvider();
             services.TryAddDefaultBatchDispatcher();
+            services.TryAddDefaultDataLoaderRegistry();
 
             // pools
             services.TryAddResultPool();

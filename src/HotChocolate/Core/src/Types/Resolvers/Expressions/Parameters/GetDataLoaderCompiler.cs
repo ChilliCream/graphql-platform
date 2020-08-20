@@ -3,6 +3,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal sealed class GetDataLoaderCompiler<T>

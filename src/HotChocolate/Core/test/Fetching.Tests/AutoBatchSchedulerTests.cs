@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate.Fetching;
 using Xunit;
 
@@ -12,9 +13,10 @@ namespace HotChocolate
             // arrange
             var hasBeenDispatched = false;
             var scheduler = new AutoBatchScheduler();
-            Action dispatch = () =>
+            Func<ValueTask> dispatch = () =>
             {
                 hasBeenDispatched = true;
+                return default;
             };
 
             // act
