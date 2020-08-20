@@ -30,8 +30,8 @@ namespace HotChocolate.Data.Filters
         {
             var descriptor = FilterInputTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
-                context.Scope,
-                GetType());
+                GetType(),
+                context.Scope);
 
             _configure!(descriptor);
             _configure = null;

@@ -20,14 +20,12 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterOperationField field,
-            IType fieldType,
             IValueNode value,
             object? parsedValue)
         {
             Expression property = context.GetInstance();
-            parsedValue = ParseValue(value, parsedValue, fieldType, context);
+            parsedValue = ParseValue(value, parsedValue, field.Type, context);
 
             if (parsedValue == null)
             {

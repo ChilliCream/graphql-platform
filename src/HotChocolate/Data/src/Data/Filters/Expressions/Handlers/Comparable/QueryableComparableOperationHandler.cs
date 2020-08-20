@@ -10,10 +10,10 @@ namespace HotChocolate.Data.Filters.Expressions
     public abstract class QueryableComparableOperationHandler
         : QueryableOperationHandlerBase
     {
-        public QueryableComparableOperationHandler(
+        protected QueryableComparableOperationHandler(
             ITypeConverter typeConverter)
         {
-            TypeConverter = typeConverter ?? DefaultTypeConverter.Default;
+            TypeConverter = typeConverter;
         }
 
         protected abstract int Operation { get; }
@@ -61,19 +61,17 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 return parsedValue;
             }
-            else
-            {
-                if (!returnType.IsInstanceOfType(parsedValue))
-                {
-                    parsedValue = TypeConverter.Convert(
-                        typeof(object),
-                        returnType,
-                        parsedValue) ??
-                        throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
-                }
 
-                return parsedValue;
+            if (!returnType.IsInstanceOfType(parsedValue))
+            {
+                parsedValue = TypeConverter.Convert(
+                                  typeof(object),
+                                  returnType,
+                                  parsedValue) ??
+                              throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
             }
+
+            return parsedValue;
         }
     }
 }

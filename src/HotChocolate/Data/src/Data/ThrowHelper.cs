@@ -63,5 +63,12 @@ namespace HotChocolate.Data
                     .SetMessage("Filtering could not convert value into desired format.")
                     .AddLocation(node)
                     .Build());
+
+        public static SchemaException FilterObjectFieldDescriptorExtensions_CannotInfer() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("The filter type cannot be inferred from `System.Object`.")
+                    .SetCode(ErrorCodes.Filtering.FilterObjectType)
+                    .Build());
     }
 }

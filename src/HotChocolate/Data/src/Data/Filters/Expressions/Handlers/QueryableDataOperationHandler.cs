@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableDataOperationHandler
-        : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,

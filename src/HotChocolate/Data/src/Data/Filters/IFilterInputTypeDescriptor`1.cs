@@ -62,30 +62,6 @@ namespace HotChocolate.Data.Filters
         IFilterInputTypeDescriptor<T> BindFieldsImplicitly();
 
         /// <summary>
-        /// Defines a <see cref="FilterOperationField" /> field.
-        /// </summary>
-        /// <param name="operationId">
-        /// The operation identifier for the operation
-        /// </param>
-        new IFilterOperationFieldDescriptor Operation(int operationId);
-
-        /// <summary>
-        /// Defines a <see cref="FilterOperationField" /> that binds to the specified method.
-        /// </summary>
-        /// <param name="method">
-        /// The method to which a filter operation shall be bound.
-        /// </param>
-        IFilterFieldDescriptor Operation<TField>(Expression<Func<T, TField>> method);
-
-        /// <summary>
-        /// Defines a <see cref="FilterField" /> with the the specified name.
-        /// </summary>
-        /// <param name="name">
-        /// The name of the field.
-        /// </param>
-        new IFilterFieldDescriptor Field(NameString name);
-
-        /// <summary>
         /// Defines a <see cref="FilterField" /> that binds to the specified property.
         /// </summary>
         /// <param name="property">
@@ -110,12 +86,12 @@ namespace HotChocolate.Data.Filters
         new IFilterInputTypeDescriptor<T> Ignore(NameString name);
 
         /// <summary>
-        /// Ignore the specified property or method.
+        /// Ignore the specified property.
         /// </summary>
-        /// <param  name="propertyOrMethod">
-        /// The property or method that hall be ignored.
+        /// <param  name="property">
+        /// The property that shall be ignored.
         /// </param>
-        IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> propertyOrMethod);
+        IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property);
 
         /// <summary>
         /// Defines if OR-combinators are allowed for this filter.

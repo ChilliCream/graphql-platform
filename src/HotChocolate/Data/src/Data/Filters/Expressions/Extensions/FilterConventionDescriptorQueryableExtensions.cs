@@ -7,10 +7,10 @@ namespace HotChocolate.Data.Filters
     {
         public static IFilterConventionDescriptor UseQueryableProvider(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.Provider(new QueryableFilterProvider(x => x.UseDefaults()));
+            descriptor.Provider(new QueryableFilterProvider(x => x.AddDefaultFieldHandlers()));
 
-        public static IFilterProviderDescriptor<Expression, QueryableFilterContext> UseDefaults(
-            this IFilterProviderDescriptor<Expression, QueryableFilterContext> descriptor)
+        public static IFilterProviderDescriptor<QueryableFilterContext> AddDefaultFieldHandlers(
+            this IFilterProviderDescriptor<QueryableFilterContext> descriptor)
         {
             descriptor.AddFieldHandler<QueryableBooleanEqualsHandler>();
             descriptor.AddFieldHandler<QueryableBooleanNotEqualsHandler>();
@@ -52,8 +52,6 @@ namespace HotChocolate.Data.Filters
             descriptor.AddFieldHandler<QueryableDataOperationHandler>();
             descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
 
-            descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-            descriptor.Combinator<QueryableCombinator>();
             return descriptor;
         }
     }

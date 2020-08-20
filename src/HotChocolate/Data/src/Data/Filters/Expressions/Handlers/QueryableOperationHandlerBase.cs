@@ -7,18 +7,16 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public abstract class QueryableOperationHandlerBase
-        : FilterOperationHandler<Expression, QueryableFilterContext>
+        : FilterOperationHandler<QueryableFilterContext, Expression>
     {
         public override bool TryHandleOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterOperationField field,
-            IType fieldType,
             ObjectFieldNode node,
             [NotNullWhen(true)] out Expression result)
         {
-            IValueNode? value = node.Value;
-            var parsedValue = field.Type.ParseLiteral(value);
+            IValueNode value = node.Value;
+            object? parsedValue = field.Type.ParseLiteral(value);
 
             if ((!context.TypeInfos.Peek().IsNullable || !CanBeNull) && parsedValue == null)
             {
@@ -32,10 +30,11 @@ namespace HotChocolate.Data.Filters.Expressions
             if (field.Type.IsInstanceOfType(value))
             {
                 result = HandleOperation(
-                    context, declaringType, field, fieldType, value, parsedValue);
+                    context, field, value, parsedValue);
 
                 return true;
             }
+
             throw new InvalidOperationException();
         }
 
@@ -43,9 +42,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public abstract Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterOperationField field,
-            IType fieldType,
             IValueNode value,
             object parsedValue);
     }

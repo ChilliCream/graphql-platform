@@ -7,6 +7,9 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// The filter convention provides defaults for inferring filters.
+    /// </summary>
     public interface IFilterConvention : IConvention
     {
         /// <summary>
@@ -115,6 +118,17 @@ namespace HotChocolate.Data.Filters
             FilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler);
 
+        /// <summary>
+        /// Creates a middleware that represents the filter execution logic
+        /// for the specified entity type.
+        /// </summary>
+        /// <typeparam name="TEntityType">
+        /// The entity type for which an filter executor shall be created.
+        /// </typeparam>
+        /// <returns>
+        /// Returns a field middleware which represents the filter execution logic
+        /// for the specified entity type.
+        /// </returns>
         FieldMiddleware CreateExecutor<TEntityType>();
     }
 }

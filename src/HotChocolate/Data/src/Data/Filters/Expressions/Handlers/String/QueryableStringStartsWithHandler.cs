@@ -15,9 +15,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterOperationField field,
-            IType fieldType,
             IValueNode value,
             object parsedValue)
         {

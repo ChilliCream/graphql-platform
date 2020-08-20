@@ -10,7 +10,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableDefaultFieldHandler
-        : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
@@ -21,9 +21,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool TryHandleEnter(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
@@ -65,9 +63,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool TryHandleLeave(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {

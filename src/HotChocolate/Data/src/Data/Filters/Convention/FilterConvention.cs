@@ -14,6 +14,9 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// The filter convention provides defaults for inferring filters.
+    /// </summary>
     public class FilterConvention
         : Convention<FilterConventionDefinition>
         , IFilterConvention
@@ -96,23 +99,23 @@ namespace HotChocolate.Data.Filters
             }
         }
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public virtual NameString GetTypeName(Type runtimeType) =>
             _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public virtual string? GetTypeDescription(Type runtimeType) =>
             _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public virtual NameString GetFieldName(MemberInfo member) =>
             _namingConventions.GetMemberName(member, MemberKind.InputObjectField);
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public virtual string? GetFieldDescription(MemberInfo member) =>
             _namingConventions.GetMemberDescription(member, MemberKind.InputObjectField);
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public virtual ClrTypeReference GetFieldType(MemberInfo member)
         {
             if (member is null)
@@ -128,7 +131,7 @@ namespace HotChocolate.Data.Filters
             throw FilterConvention_TypeOfMemberIsUnknown(member);
         }
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public NameString GetOperationName(int operation)
         {
             if (_operations.TryGetValue(operation, out FilterOperation? operationConvention))
@@ -139,7 +142,7 @@ namespace HotChocolate.Data.Filters
             throw FilterConvention_OperationNameNotFound(operation);
         }
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public string? GetOperationDescription(int operationId)
         {
             if (_operations.TryGetValue(operationId, out FilterOperation? operationConvention))
@@ -150,7 +153,7 @@ namespace HotChocolate.Data.Filters
             return null;
         }
 
-        /// <inheritdoc cref="IFilterConvention"/>
+        /// <inheritdoc />
         public NameString GetArgumentName() => _argumentName;
 
         /// <inheritdoc cref="IFilterConvention"/>

@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public QueryableListAnyOperationHandler(
             ITypeConverter typeConverter)
         {
-            TypeConverter = typeConverter ?? DefaultTypeConverter.Default;
+            TypeConverter = typeConverter;
             CanBeNull = false;
         }
 
@@ -32,9 +32,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override Expression HandleOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterOperationField field,
-            IType fieldType,
             IValueNode value,
             object parsedValue)
         {

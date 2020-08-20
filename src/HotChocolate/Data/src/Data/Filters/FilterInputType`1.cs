@@ -23,10 +23,10 @@ namespace HotChocolate.Data.Filters
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
-            var descriptor = FilterInputTypeDescriptor<T>.New(
+            var descriptor = FilterInputTypeDescriptor.New<T>(
                 context.DescriptorContext,
-                context.Scope,
-                typeof(T));
+                typeof(T),
+                context.Scope);
 
             _configure!(descriptor);
             _configure = null;
@@ -40,7 +40,8 @@ namespace HotChocolate.Data.Filters
 
         // we are disabling the default configure method so
         // that this does not lead to confusion.
-        protected sealed override void Configure(IFilterInputTypeDescriptor descriptor)
+        protected sealed override void Configure(
+            IFilterInputTypeDescriptor descriptor)
         {
             throw new NotSupportedException();
         }

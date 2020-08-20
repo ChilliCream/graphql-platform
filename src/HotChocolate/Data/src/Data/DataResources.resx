@@ -36,4 +36,13 @@
   <data name="FilterConvention_UnknownType" xml:space="preserve">
     <value>The type {0} is unknown</value>
   </data>
+  <data name="FilterInputTypeDescriptor_Operation_OnlyMethods" xml:space="preserve">
+    <value>Only method are allowed for filter operations.</value>
+  </data>
+  <data name="FilterInputTypeDescriptor_Field_OnlyProperties" xml:space="preserve">
+    <value>Only properties are supported as fields.</value>
+  </data>
+  <data name="FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType" xml:space="preserve">
+    <value>Cannot handle the specified filter type.</value>
+  </data>
 </root>

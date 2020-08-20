@@ -4,17 +4,23 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterMiddleware<TEntityType>
+    public class FilterMiddleware
     {
-        private readonly FieldDelegate _next;
-        private readonly FilterMiddlewareContext _contextData;
+        private readonly FieldDelegate _execute;
 
         public FilterMiddleware(
             FieldDelegate next,
-            FilterMiddlewareContext contextData)
+            FieldMiddleware filterExecution)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
-            _contextData = contextData ?? throw new ArgumentNullException(nameof(next));
+            if (next is null)
+            {
+                throw new ArgumentNullException(nameof(next));
+            }
+
+            if (filterExecution is null)
+            {
+                throw new ArgumentNullException(nameof(filterExecution));
+            }
         }
 
         public Task InvokeAsync(IMiddlewareContext context) =>

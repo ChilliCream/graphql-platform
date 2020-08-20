@@ -101,7 +101,7 @@ namespace HotChocolate.Data.Filters
 
         /// <inheritdoc />
         public IFilterInputTypeDescriptor Description(
-            string value)
+            string? value)
         {
             Definition.Description = value;
             return this;
@@ -123,7 +123,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         public IFilterOperationFieldDescriptor Operation(int operationId)
         {
-            FilterOperationFieldDescriptor fieldDescriptor =
+            FilterOperationFieldDescriptor? fieldDescriptor =
                 Operations.FirstOrDefault(t => t.Definition.Id == operationId);
 
             if (fieldDescriptor is null)
@@ -139,7 +139,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         public IFilterFieldDescriptor Field(NameString name)
         {
-            FilterFieldDescriptor fieldDescriptor =
+            FilterFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Name == name);
 
             if (fieldDescriptor is null)
@@ -154,7 +154,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         public IFilterInputTypeDescriptor Ignore(int operationId)
         {
-            FilterOperationFieldDescriptor fieldDescriptor =
+            FilterOperationFieldDescriptor? fieldDescriptor =
                 Operations.FirstOrDefault(t => t.Definition.Id == operationId);
 
             if (fieldDescriptor is null)
@@ -171,7 +171,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         public IFilterInputTypeDescriptor Ignore(NameString name)
         {
-            FilterFieldDescriptor fieldDescriptor =
+            FilterFieldDescriptor? fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Name == name);
 
             if (fieldDescriptor is null)
@@ -230,6 +230,12 @@ namespace HotChocolate.Data.Filters
             Type entityType,
             string? scope = null) =>
             new FilterInputTypeDescriptor(context, entityType, scope);
+
+        public static FilterInputTypeDescriptor<T> New<T>(
+            IDescriptorContext context,
+            Type entityType,
+            string? scope = null) =>
+            new FilterInputTypeDescriptor<T>(context, entityType, scope);
 
         public static FilterInputTypeDescriptor FromSchemaType(
             IDescriptorContext context,

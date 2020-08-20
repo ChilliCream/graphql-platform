@@ -10,7 +10,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public abstract class QueryableListOperationHandlerBase
-        : FilterFieldHandler<Expression, QueryableFilterContext>
+        : FilterFieldHandler<QueryableFilterContext, Expression>
     {
         protected abstract int Operation { get; }
 
@@ -26,9 +26,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool TryHandleEnter(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
@@ -63,9 +61,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool TryHandleLeave(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
@@ -77,9 +73,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 context.Scopes.Pop();
                 Expression expression = HandleListOperation(
                     context,
-                    declaringType,
                     field,
-                    fieldType,
                     node,
                     typeInfo.Type,
                     lambda);
@@ -99,9 +93,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
         protected abstract Expression HandleListOperation(
             QueryableFilterContext context,
-            IFilterInputType declaringType,
             IFilterField field,
-            IType fieldType,
             ObjectFieldNode node,
             Type closureType,
             LambdaExpression lambda);
