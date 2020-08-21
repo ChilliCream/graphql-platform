@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Utilities.CompilerServices;
 
 #nullable enable
@@ -106,7 +107,7 @@ namespace HotChocolate.Utilities
                             type,
                             false,
                             ExtendedTypeKind.Extended,
-                            arguments);
+                            typeArguments: arguments);
                     }
                 }
                 else
@@ -144,7 +145,7 @@ namespace HotChocolate.Utilities
                         type,
                         state == Nullable.Yes,
                         ExtendedTypeKind.Extended,
-                        arguments);
+                        typeArguments: arguments);
                 }
                 else if (type.IsArray)
                 {
@@ -158,7 +159,7 @@ namespace HotChocolate.Utilities
                         type,
                         state == Nullable.Yes,
                         ExtendedTypeKind.Extended,
-                        arguments);
+                        typeArguments: arguments);
                 }
                 else
                 {
@@ -236,7 +237,7 @@ namespace HotChocolate.Utilities
         private static NullableContextAttribute? GetNullableContextAttribute(
             IList<CustomAttributeData> attributes)
         {
-            CustomAttributeData data = attributes.FirstOrDefault(t =>
+            CustomAttributeData? data = attributes.FirstOrDefault(t =>
                 t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
             if (data is { })
@@ -252,7 +253,7 @@ namespace HotChocolate.Utilities
             MethodInfo method)
         {
             object[] attributes = method.ReturnTypeCustomAttributes.GetCustomAttributes(false);
-            object attribute = attributes.FirstOrDefault(t =>
+            object? attribute = attributes.FirstOrDefault(t =>
                 t.GetType().FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (attribute is null)
@@ -284,7 +285,7 @@ namespace HotChocolate.Utilities
         private static NullableAttribute? GetNullableAttribute(
             IList<CustomAttributeData> attributes)
         {
-            CustomAttributeData data = attributes.FirstOrDefault(t =>
+            CustomAttributeData? data = attributes.FirstOrDefault(t =>
                 t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
 
             if (data is { })

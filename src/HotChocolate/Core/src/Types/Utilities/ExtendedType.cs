@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 #nullable enable
@@ -15,29 +17,30 @@ namespace HotChocolate.Utilities
         public ExtendedType(
             Type type,
             bool isNullable,
-            ExtendedTypeKind kind)
-            : this(type, isNullable, kind, Array.Empty<IExtendedType>())
-        {
-        }
-
-        public ExtendedType(
-            Type type,
-            bool isNullable,
             ExtendedTypeKind kind,
-            IReadOnlyList<IExtendedType> typeArguments)
+            bool isList = false,
+            bool isNamedType = false,
+            IReadOnlyList<IExtendedType>? typeArguments = null)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
             IsNullable = isNullable;
+            IsList = isList;
             Kind = kind;
-            TypeArguments = typeArguments ?? throw new ArgumentNullException(nameof(typeArguments));
+            TypeArguments = typeArguments ?? Array.Empty<IExtendedType>();
+            IsNamedType = kind == ExtendedTypeKind.Schema && isNamedType;
+
+            if (kind == ExtendedTypeKind.Unknown || kind == ExtendedTypeKind.Extended)
+            {
+                IsList = IsListType(type);
+            }
 
             if (kind == ExtendedTypeKind.Unknown)
             {
-                if (type.IsGenericType && typeArguments.Count == 0)
+                if (type.IsGenericType && TypeArguments.Count == 0)
                 {
                     Type[] arguments = type.GetGenericArguments();
                     var extendedArguments = new IExtendedType[arguments.Length];
-                    for (int i = 0; i < extendedArguments.Length; i++)
+                    for (var i = 0; i < extendedArguments.Length; i++)
                     {
                         extendedArguments[i] = FromType(arguments[i]);
                     }
@@ -67,6 +70,12 @@ namespace HotChocolate.Utilities
         public bool IsGeneric => Type.IsGenericType;
 
         public bool IsArray => Type.IsArray;
+
+        public bool IsList { get; }
+
+        public bool IsCollection => IsList || IsArray;
+
+        public bool IsNamedType { get; }
 
         public bool IsInterface => Type.IsInterface;
 
@@ -100,12 +109,12 @@ namespace HotChocolate.Utilities
                 return true;
             }
 
-            if (other.Type.Equals(Type)
+            if (other.Type == Type
                 && other.Kind.Equals(Kind)
                 && other.IsNullable.Equals(IsNullable)
                 && other.TypeArguments.Count == TypeArguments.Count)
             {
-                for (int i = 0; i < other.TypeArguments.Count; i++)
+                for (var i = 0; i < other.TypeArguments.Count; i++)
                 {
                     if (!other.TypeArguments[i].Equals(TypeArguments[i]))
                     {
@@ -117,32 +126,23 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(obj, null))
-            {
-                return false;
-            }
+        public bool Equals(IExtendedType? other) =>
+            Equals(other as ExtendedType);
 
-            if (ReferenceEquals(obj, this))
-            {
-                return true;
-            }
-
-            return Equals(obj as ExtendedType);
-        }
+        public override bool Equals(object? obj) =>
+            Equals(obj as ExtendedType);
 
         public override int GetHashCode()
         {
             unchecked
             {
-                int hashCode = (Type.GetHashCode() * 397)
-                    ^ (Kind.GetHashCode() * 397)
-                    ^ (IsNullable.GetHashCode() * 397);
+                var hashCode = (Type.GetHashCode() * 397)
+                   ^ (Kind.GetHashCode() * 397)
+                   ^ (IsNullable.GetHashCode() * 397);
 
-                for (int i = 0; i < TypeArguments.Count; i++)
+                for (var i = 0; i < TypeArguments.Count; i++)
                 {
-                    hashCode ^= (TypeArguments[i].GetHashCode() * 397);
+                    hashCode ^= (TypeArguments[i].GetHashCode() * 397 * i);
                 }
 
                 return hashCode;
@@ -159,6 +159,7 @@ namespace HotChocolate.Utilities
         private static ExtendedType FromSystemType(Type type)
         {
             type = RemoveNonEssentialTypes(type);
+
             if (type.IsValueType)
             {
                 if (type.IsGenericType
@@ -171,14 +172,15 @@ namespace HotChocolate.Utilities
                 }
                 return new ExtendedType(type, false, ExtendedTypeKind.Unknown);
             }
-            if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
             {
                 return new ExtendedType(
                     RemoveNonEssentialTypes(type.GetGenericArguments()[0]),
                     false,
                     ExtendedTypeKind.Unknown);
             }
+
             return new ExtendedType(type, true, ExtendedTypeKind.Unknown);
         }
 
@@ -219,7 +221,7 @@ namespace HotChocolate.Utilities
                 current = components.Pop();
 
                 if (components.Count > 0
-                    && components.Peek().GetGenericTypeDefinition() == typeof(Nullable<>))
+                    && components.Peek().GetGenericTypeDefinition() == typeof(NonNullType<>))
                 {
                     nullable = false;
                     components.Pop();
@@ -230,7 +232,8 @@ namespace HotChocolate.Utilities
                     extendedType = new ExtendedType(
                         current,
                         nullable,
-                        ExtendedTypeKind.Schema);
+                        ExtendedTypeKind.Schema,
+                        isNamedType: true);
                 }
                 else
                 {
@@ -238,7 +241,8 @@ namespace HotChocolate.Utilities
                         current,
                         nullable,
                         ExtendedTypeKind.Schema,
-                        new[] { extendedType });
+                        current.GetGenericTypeDefinition() == typeof(ListType<>),
+                        typeArguments: new[] { extendedType });
                 }
             }
 
@@ -247,12 +251,7 @@ namespace HotChocolate.Utilities
 
         private static bool IsSchemaType(Type type)
         {
-            if (typeof(ScalarType).IsAssignableFrom(type)
-                || typeof(ObjectType).IsAssignableFrom(type)
-                || typeof(InterfaceType).IsAssignableFrom(type)
-                || typeof(EnumType).IsAssignableFrom(type)
-                || typeof(UnionType).IsAssignableFrom(type)
-                || typeof(InputObjectType).IsAssignableFrom(type))
+            if (IsNamedSchemaType(type))
             {
                 return true;
             }
@@ -271,6 +270,16 @@ namespace HotChocolate.Utilities
             return false;
         }
 
+        private static bool IsNamedSchemaType(Type type)
+        {
+            return typeof(ScalarType).IsAssignableFrom(type) ||
+               typeof(ObjectType).IsAssignableFrom(type) ||
+               typeof(InterfaceType).IsAssignableFrom(type) ||
+               typeof(EnumType).IsAssignableFrom(type) ||
+               typeof(UnionType).IsAssignableFrom(type) ||
+               typeof(InputObjectType).IsAssignableFrom(type);
+        }
+
         private static Type RemoveNonEssentialTypes(Type type)
         {
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
@@ -278,6 +287,63 @@ namespace HotChocolate.Utilities
                 return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
             }
             return type;
+        }
+
+        private static bool IsListType(Type type) =>
+            type.IsArray
+            || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
+            || ImplementsListInterface(type);
+
+        private static bool ImplementsListInterface(Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
+            {
+                return true;
+            }
+
+            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
+            {
+                return true;
+            }
+
+            foreach (Type interfaceType in type.GetInterfaces())
+            {
+                if (IsSupportedCollectionInterface(interfaceType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsSupportedCollectionInterface(Type type) =>
+            IsSupportedCollectionInterface(type, false);
+
+        private static bool IsSupportedCollectionInterface(
+            Type type,
+            bool allowEnumerable)
+        {
+            if (type.IsGenericType)
+            {
+                Type typeDefinition = type.GetGenericTypeDefinition();
+                if (typeDefinition == typeof(IReadOnlyCollection<>)
+                    || typeDefinition == typeof(IReadOnlyList<>)
+                    || typeDefinition == typeof(ICollection<>)
+                    || typeDefinition == typeof(IList<>)
+                    || typeDefinition == typeof(IQueryable<>)
+                    || typeDefinition == typeof(IAsyncEnumerable<>)
+                    || typeDefinition == typeof(IObservable<>))
+                {
+                    return true;
+                }
+
+                if (allowEnumerable && typeDefinition == typeof(IEnumerable<>))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

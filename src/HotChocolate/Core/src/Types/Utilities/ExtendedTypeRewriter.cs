@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 
 #nullable enable
@@ -14,13 +15,13 @@ namespace HotChocolate.Utilities
         {
             var components = new Stack<IExtendedType>();
             IExtendedType? current = type;
-            int i = 0;
+            var i = 0;
 
             do
             {
                 if (!IsNonEssentialComponent(current))
                 {
-                    bool makeNullable = current.IsNullable;
+                    var makeNullable = current.IsNullable;
 
                     if (nullable.Length > i)
                     {
@@ -38,8 +39,12 @@ namespace HotChocolate.Utilities
                     else
                     {
                         components.Push(new ExtendedType(
-                            current.Type, makeNullable,
-                            current.Kind, current.TypeArguments));
+                            current.Type,
+                            makeNullable,
+                            current.Kind,
+                            current.IsList,
+                            current.IsNamedType,
+                            current.TypeArguments));
                     }
                 }
                 current = GetInnerType(current);

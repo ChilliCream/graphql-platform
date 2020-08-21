@@ -30,28 +30,18 @@ namespace HotChocolate.Types.Relay
 
             var pagingDetails = new PagingDetails
             {
-                First = context.Argument<int?>("first"),
-                After = context.Argument<string>("after"),
-                Last = context.Argument<int?>("last"),
-                Before = context.Argument<string>("before"),
+                First = context.ArgumentValue<int?>("first"),
+                After = context.ArgumentValue<string>("after"),
+                Last = context.ArgumentValue<int?>("last"),
+                Before = context.ArgumentValue<string>("before"),
             };
 
-            IQueryable<T> source = null;
-
-            if (context.Result is PageableData<T> p)
+            IQueryable<T> source = context.Result switch
             {
-                source = p.Source;
-                pagingDetails.Properties = p.Properties;
-            }
-
-            if (context.Result is IQueryable<T> q)
-            {
-                source = q;
-            }
-            else if (context.Result is IEnumerable<T> e)
-            {
-                source = e.AsQueryable();
-            }
+                IQueryable<T> q => q,
+                IEnumerable<T> e => e.AsQueryable(),
+                _ => null
+            };
 
             if (source != null)
             {

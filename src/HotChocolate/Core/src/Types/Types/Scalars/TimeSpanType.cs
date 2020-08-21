@@ -62,7 +62,7 @@ namespace HotChocolate.Types
             return new StringValueNode(value.ToString("c"));
         }
 
-        public override bool TrySerialize(object value, out object? serialized)
+        public override bool TrySerialize(object? value, out object? serialized)
         {
             if (value is null)
             {
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object? value)
+        public override bool TryDeserialize(object? serialized, out object? value)
         {
             if (serialized is null)
             {

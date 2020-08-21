@@ -1,4 +1,4 @@
-namespace HotChocolate.Utilities
+namespace HotChocolate.Internal
 {
     public enum ExtendedTypeKind
     {

@@ -1,5 +1,6 @@
 #nullable enable
 
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using Xunit;
@@ -22,6 +23,38 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
+        public void From_SystemType_List()
+        {
+            // arrange
+            // act
+            ExtendedType list = ExtendedType.FromType(
+                typeof(NonNullType<NativeType<List<byte?>>>));
+
+            ExtendedType nullableList = ExtendedType.FromType(
+                typeof(List<byte?>));
+
+            // assert
+            Assert.True(list.IsList);
+            Assert.True(list.IsCollection);
+            Assert.False(list.IsNullable);
+            Assert.True(nullableList.IsList);
+            Assert.True(nullableList.IsCollection);
+            Assert.True(nullableList.IsNullable);
+        }
+
+        [Fact]
+        public void From_SystemType_Dict()
+        {
+            // arrange
+            // act
+            ExtendedType dict = ExtendedType.FromType(typeof(Dictionary<string, string>));
+
+            // assert
+            Assert.True(dict.IsList);
+            Assert.True(dict.IsCollection);
+        }
+
+        [Fact]
         public void From_SchemaType_ListOfString()
         {
             // arrange
@@ -32,6 +65,19 @@ namespace HotChocolate.Utilities
             Assert.True(extendedType.IsGeneric);
             Assert.Collection(extendedType.TypeArguments.Select(t => t.Type),
                 t => Assert.Equal(typeof(StringType), t));
+        }
+
+        [Fact]
+        public void From_SchemaType_NonNullListOfString()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(NonNullType<ListType<StringType>>));
+
+            // assert
+            Assert.True(extendedType.IsGeneric);
+            Assert.False(extendedType.IsNullable);
         }
 
         [Fact]

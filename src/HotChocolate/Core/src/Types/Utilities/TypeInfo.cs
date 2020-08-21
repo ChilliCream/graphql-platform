@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System;
+using System.Reflection;
 using HotChocolate.Types;
+
+#nullable enable
 
 namespace HotChocolate.Utilities
 {
