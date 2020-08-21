@@ -8,14 +8,14 @@ namespace HotChocolate.Types.Descriptors
             this ITypeInspector typeInspector,
             MemberInfo member)
         {
-            return typeInspector.GetReturnType(member, TypeContext.Input);
+            return typeInspector.GetReturnTypeRef(member, TypeContext.Input);
         }
 
         public static ITypeReference GetOutputReturnType(
             this ITypeInspector typeInspector,
             MemberInfo member)
         {
-            return typeInspector.GetReturnType(member, TypeContext.Output);
+            return typeInspector.GetReturnTypeRef(member, TypeContext.Output);
         }
     }
 }

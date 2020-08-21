@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                ITypeReference typeReference = context.Inspector.GetReturnType(
+                ITypeReference typeReference = context.Inspector.GetReturnTypeRef(
                     member, TypeContext.Output);
 
                 if (typeReference is ClrTypeReference clrTypeRef

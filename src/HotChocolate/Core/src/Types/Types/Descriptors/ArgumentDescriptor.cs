@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.Name = context.Naming.GetArgumentName(parameter);
             Definition.Description = context.Naming.GetArgumentDescription(parameter);
-            Definition.Type = context.Inspector.GetArgumentType(parameter);
+            Definition.Type = context.Inspector.GetArgumentTypeRef(parameter);
             Definition.Parameter = parameter;
 
             if (context.Inspector.TryGetDefaultValue(parameter, out object defaultValue))

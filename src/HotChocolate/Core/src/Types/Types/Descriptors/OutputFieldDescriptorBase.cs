@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            Type extractedType = Context.Inspector.ExtractNamedType(type);
 
             if (Context.Inspector.IsSchemaType(extractedType)
                 && !typeof(IOutputType).IsAssignableFrom(extractedType))

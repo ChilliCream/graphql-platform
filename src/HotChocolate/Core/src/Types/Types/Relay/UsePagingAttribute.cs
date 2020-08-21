@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Relay
             MemberInfo member)
         {
             Type? type = SchemaType;
-            ITypeReference returnType = context.Inspector.GetReturnType(
+            ITypeReference returnType = context.Inspector.GetReturnTypeRef(
                 member, TypeContext.Output);
 
             if (type is null
