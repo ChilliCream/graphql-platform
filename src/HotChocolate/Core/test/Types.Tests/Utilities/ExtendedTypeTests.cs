@@ -35,10 +35,10 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.True(list.IsList);
-            Assert.True(list.IsCollection);
+            Assert.True(list.IsArrayOrList);
             Assert.False(list.IsNullable);
             Assert.True(nullableList.IsList);
-            Assert.True(nullableList.IsCollection);
+            Assert.True(nullableList.IsArrayOrList);
             Assert.True(nullableList.IsNullable);
         }
 
@@ -51,7 +51,7 @@ namespace HotChocolate.Utilities
 
             // assert
             Assert.True(dict.IsList);
-            Assert.True(dict.IsCollection);
+            Assert.True(dict.IsArrayOrList);
         }
 
         [Fact]

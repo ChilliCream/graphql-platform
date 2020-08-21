@@ -16,6 +16,13 @@ namespace HotChocolate.Internal
         Type Type { get; }
 
         /// <summary>
+        /// Gets the original type representation.
+        /// In case of a nullable int the original type will be
+        /// <see cref="System.Nullable{System.Int32}"/>.
+        /// </summary>
+        Type OriginalType { get; }
+
+        /// <summary>
         /// Gets the generic type definition if this is a generic type.
         /// </summary>
         Type? Definition { get; }
@@ -44,7 +51,7 @@ namespace HotChocolate.Internal
         /// Defines if this is a collection type meaning it is either <see cref="IsArray"/> or
         /// <see cref="IsList"/>.
         /// </summary>
-        bool IsCollection { get; }
+        bool IsArrayOrList { get; }
 
         /// <summary>
         /// Specifies that this type is a schema type and implements
@@ -72,5 +79,10 @@ namespace HotChocolate.Internal
         /// Get the interfaces that are implemented by this type.
         /// </summary>
         IReadOnlyList<IExtendedType> GetInterfaces();
+
+        /// <summary>
+        /// Gets the element type if <see cref="IsArrayOrList"/> is <c>true</c>.
+        /// </summary>
+        IExtendedType? GetElementType();
     }
 }

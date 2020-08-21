@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using HotChocolate.DataLoader;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using Nullable = HotChocolate.Utilities.Nullable;
@@ -16,7 +16,7 @@ namespace HotChocolate.Internal
     {
         private readonly IExtendedType _extendedType;
 
-        public TypeInfo2(
+        private TypeInfo2(
             Type namedType,
             Type originalType,
             IReadOnlyList<TypeComponentKind> components,
@@ -71,14 +71,19 @@ namespace HotChocolate.Internal
         /// </returns>
         public IType CreateType(INamedType namedType)
         {
+            if (Components.Count == 1)
+            {
+                return namedType;
+            }
+
             IType current = namedType;
 
-            for (var i = 0; i < Components.Count; i++)
+            for (var i = Components.Count - 2; i >= 0; i--)
             {
                 switch (Components[i])
                 {
                     case TypeComponentKind.Named:
-                        return current;
+                        throw new InvalidOperationException();
 
                     case TypeComponentKind.NonNull:
                         current = new NonNullType(current);
@@ -116,10 +121,16 @@ namespace HotChocolate.Internal
             switch (member)
             {
                 case PropertyInfo p:
-                    return Create(new NullableHelper().GetPropertyInfo(p), p.PropertyType);
+                    return Create(
+                        ExtendedType.FromExtendedType(
+                            NullableHelper.GetReturnType(member)),
+                        p.PropertyType);
 
                 case MethodInfo m:
-                    return Create(new NullableHelper().GetMethodInfo(m).ReturnType, m.ReturnType);
+                    return Create(
+                        ExtendedType.FromExtendedType(
+                            NullableHelper.GetReturnType(member)),
+                        m.ReturnType);
 
                 default:
                     throw new NotSupportedException(
@@ -132,24 +143,101 @@ namespace HotChocolate.Internal
 
         private static TypeInfo2 Create(IExtendedType type, Type? originalType)
         {
-            if (SchemaType.TryCreateTypeInfo(
-                type,
-                originalType ?? type.Type,
-                out TypeInfo2? typeInfo))
-            {
-                return typeInfo;
-            }
-
-            if (RuntimeType.TryCreateTypeInfo(
-                type,
-                originalType ?? type.Type,
-                out typeInfo))
+            if (TryCreate(type, originalType, out TypeInfo2? typeInfo))
             {
                 return typeInfo;
             }
 
             throw new NotSupportedException(
                 "The provided type structure is not supported.");
+        }
+
+        public static bool TryCreate(
+            Type type,
+            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
+            TryCreate(type, null, out typeInfo);
+
+        public static bool TryCreate(
+            Type type,
+            bool[]? nullable,
+            [NotNullWhen(true)] out TypeInfo2? typeInfo)
+        {
+            IExtendedType extendedType = ExtendedType.FromType(type);
+
+            if (nullable is not null)
+            {
+                var nullableState = new Nullable[nullable.Length];
+                for (var i = 0; i < nullable.Length; i++)
+                {
+                    nullableState[i] = nullable[i] ? Nullable.Yes : Nullable.No;
+                }
+
+                extendedType = ExtendedType.FromType(
+                    ExtendedTypeRewriter.Rewrite(extendedType, nullableState));
+            }
+
+            return TryCreate(extendedType, type, out typeInfo);
+        }
+
+        public static bool TryCreate(
+            MemberInfo member,
+            [NotNullWhen(true)] out TypeInfo2? typeInfo)
+        {
+            switch (member)
+            {
+                case PropertyInfo p:
+                    return TryCreate(
+                        new NullableHelper().GetPropertyInfo(p),
+                        p.PropertyType,
+                        out typeInfo);
+
+                case MethodInfo m:
+                    return TryCreate(
+                        new NullableHelper().GetMethodInfo(m).ReturnType,
+                        m.ReturnType,
+                        out typeInfo);
+
+                default:
+                    typeInfo = null;
+                    return false;
+            }
+        }
+
+        public static bool TryCreate(
+            IExtendedType type,
+            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
+            TryCreate(type, null, out typeInfo);
+
+        private static bool TryCreate(
+            IExtendedType type,
+            Type? originalType,
+            [NotNullWhen(true)]out TypeInfo2? typeInfo)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            originalType ??= type.Type;
+
+            if (SchemaType.TryCreateTypeInfo(
+                type,
+                originalType,
+                out typeInfo))
+            {
+                return true;
+            }
+
+            if (RuntimeType.TryCreateTypeInfo(
+                type,
+                originalType,
+                out typeInfo))
+            {
+                return true;
+            }
+
+            typeInfo = null;
+            return false;
         }
 
         private static bool IsStructureValid(IReadOnlyList<TypeComponentKind> components)
@@ -184,13 +272,14 @@ namespace HotChocolate.Internal
                         nonnull = true;
                         break;
 
-                    default:
-                        if (components[i] == TypeComponentKind.NonNull)
-                        {
-                            nonnull = false;
-                            named = true;
-                        }
+                    case TypeComponentKind.Named:
+                        nonnull = false;
+                        named = true;
                         break;
+
+                    default:
+                        throw  new NotSupportedException(
+                            "The type component kind is not supported.");
                 }
             }
 

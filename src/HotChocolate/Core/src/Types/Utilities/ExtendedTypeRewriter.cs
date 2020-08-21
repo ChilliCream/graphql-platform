@@ -44,13 +44,13 @@ namespace HotChocolate.Utilities
                             current.Kind,
                             current.IsList,
                             current.IsNamedType,
-                            current.TypeArguments));
+                            current.TypeArguments,
+                            current.OriginalType));
                     }
                 }
                 current = GetInnerType(current);
             } while (current != null && components.Count < 7);
 
-            current = null;
             Type? rewritten = null;
 
             while (components.Count > 0)
@@ -81,22 +81,16 @@ namespace HotChocolate.Utilities
                 {
                     return typeof(Nullable<>).MakeGenericType(type);
                 }
-                else
-                {
-                    return type;
-                }
+
+                return type;
             }
-            else
+
+            if (isNullable)
             {
-                if (isNullable)
-                {
-                    return type;
-                }
-                else
-                {
-                    return MakeNonNullType(type);
-                }
+                return type;
             }
+
+            return MakeNonNullType(type);
         }
 
         private static Type MakeListType(Type elementType)

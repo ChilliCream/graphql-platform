@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Internal
 {
+    /// <summary>
+    /// The type info provides information about the type structure that is relevant to
+    /// the GraphQL type system. A <see cref="ITypeInfo"/> can be created for runtime
+    /// types as well as for schema types.
+    /// </summary>
     public interface ITypeInfo
     {
         /// <summary>

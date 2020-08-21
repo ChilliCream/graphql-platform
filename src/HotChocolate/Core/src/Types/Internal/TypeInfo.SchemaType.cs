@@ -10,7 +10,7 @@ namespace HotChocolate.Internal
     {
         private static class SchemaType
         {
-            public static bool TryCreateTypeInfo(
+            internal static bool TryCreateTypeInfo(
                 IExtendedType type,
                 Type originalType,
                 [NotNullWhen(true)]out TypeInfo2? typeInfo)
@@ -60,7 +60,7 @@ namespace HotChocolate.Internal
                     if (type.IsList)
                     {
                         list.Add(TypeComponentKind.List);
-                        current = current.TypeArguments[0];
+                        current = current.GetElementType();
                     }
                     else
                     {
