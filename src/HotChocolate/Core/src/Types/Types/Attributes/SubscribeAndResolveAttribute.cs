@@ -1,10 +1,11 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using static HotChocolate.Utilities.DotNetTypeInfoFactory;
+using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
@@ -24,14 +25,16 @@ namespace HotChocolate.Types
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                ITypeReference typeReference = context.Inspector.GetReturnTypeRef(
-                    member, TypeContext.Output);
+                ITypeReference typeReference =
+                    context.Inspector.GetReturnTypeRef(member, TypeContext.Output);
 
-                if (typeReference is ClrTypeReference clrTypeRef
-                    && !NamedTypeInfoFactory.Default.TryCreate(clrTypeRef.Type, out _))
+                if (typeReference is ClrTypeReference extendedTypeRef &&
+                    TypeInfo.TryCreate(extendedTypeRef.Type, out TypeInfo? typeInfo) &&
+                    !typeInfo.IsSchemaType)
                 {
-                    Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));
-                    rewritten = GetInnerListType(rewritten);
+                    IExtendedType? rewritten = extendedTypeRef.Type.IsArrayOrList
+                        ? extendedTypeRef.Type.GetElementType()
+                        : null;
 
                     if (rewritten is null)
                     {
@@ -39,7 +42,7 @@ namespace HotChocolate.Types
                             SchemaErrorBuilder.New()
                                 .SetMessage(
                                     "The specified type `{0}` is not a valid subscription type.",
-                                    clrTypeRef.Type.ToString())
+                                    extendedTypeRef.Type.OriginalType.ToString())
                                 .SetExtension("ClrMember", member)
                                 .SetExtension("ClrType", member.DeclaringType)
                                 .Build());

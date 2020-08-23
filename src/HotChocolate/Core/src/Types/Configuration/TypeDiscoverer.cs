@@ -44,7 +44,7 @@ namespace HotChocolate.Configuration
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ClrTypeReferenceHandler(),
+                new ExtendedTypeReferenceHandler(),
                 new SyntaxTypeReferenceHandler()
             };
         }
@@ -106,7 +106,7 @@ namespace HotChocolate.Configuration
             foreach (ClrTypeReference unresolvedType in
                 _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type, out ClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out ClrTypeReference schemaType))
                 {
                     inferred = true;
 

@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using HotChocolate.Internal;
 using HotChocolate.Types;
 
@@ -10,7 +7,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal sealed class ExtendedType
+    internal sealed partial class ExtendedType
         : IExtendedType
         , IEquatable<ExtendedType>
     {
@@ -72,12 +69,12 @@ namespace HotChocolate.Utilities
             {
                 if (IsArray)
                 {
-                    _elementType = FromType(type.GetElementType()!);
+                    _elementType = TypeArguments[0];
                 }
 
                 if (IsList)
                 {
-                    _elementType = FromType(GetInnerListType(type)!);
+                    _elementType = GetInnerListType(this)!;
                 }
             }
 
@@ -85,7 +82,7 @@ namespace HotChocolate.Utilities
             {
                 OriginalType = originalType;
             }
-            else if(type.IsValueType && IsNullable)
+            else if (type.IsValueType && IsNullable)
             {
                 OriginalType = typeof(Nullable<>).MakeGenericType(type);
             }
@@ -221,7 +218,7 @@ namespace HotChocolate.Utilities
                     }
                 }
 
-                if(type.IsArray) 
+                if (type.IsArray)
                 {
                     elementType = type.GetElementType();
                 }
@@ -326,131 +323,13 @@ namespace HotChocolate.Utilities
                         current,
                         nullable,
                         ExtendedTypeKind.Schema,
-                        current.GetGenericTypeDefinition() == typeof(ListType<>),
-                        typeArguments: new[] { extendedType });
+                        isList: true,
+                        typeArguments: new[] { extendedType },
+                        elementType: extendedType);
                 }
             }
 
             return extendedType!;
-        }
-
-        private static bool IsSchemaType(Type type)
-        {
-            if (IsNamedSchemaType(type))
-            {
-                return true;
-            }
-
-            if (type.IsGenericType)
-            {
-                Type definition = type.GetGenericTypeDefinition();
-                if (typeof(ListType<>) == definition
-                    || typeof(NonNullType<>) == definition
-                    || typeof(NativeType<>) == definition)
-                {
-                    return IsSchemaType(type.GetGenericArguments()[0]);
-                }
-            }
-
-            return false;
-        }
-
-        private static bool IsNamedSchemaType(Type type)
-        {
-            return typeof(ScalarType).IsAssignableFrom(type) ||
-               typeof(ObjectType).IsAssignableFrom(type) ||
-               typeof(InterfaceType).IsAssignableFrom(type) ||
-               typeof(EnumType).IsAssignableFrom(type) ||
-               typeof(UnionType).IsAssignableFrom(type) ||
-               typeof(InputObjectType).IsAssignableFrom(type);
-        }
-
-        private static Type RemoveNonEssentialTypes(Type type)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
-            {
-                return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
-            }
-            return type;
-        }
-
-        private static IExtendedType RemoveNonEssentialTypes(IExtendedType type)
-        {
-            if (type.IsGeneric && type.Definition == typeof(NativeType<>))
-            {
-                return RemoveNonEssentialTypes(type.TypeArguments[0]);
-            }
-            return type;
-        }
-
-        private static bool IsListType(Type type) =>
-            type.IsArray
-            || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
-            || ImplementsListInterface(type);
-
-        private static bool ImplementsListInterface(Type type) =>
-            GetInnerListType(type) is not null;
-
-        private static Type? GetInnerListType(Type type)
-        {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ListType<>))
-            {
-                return type.GetGenericArguments()[0];
-            }
-
-            if (type.IsClass && IsSupportedCollectionInterface(type))
-            {
-                return type.GetGenericArguments()[0];
-            }
-
-            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
-            {
-                return type.GetGenericArguments()[0];
-            }
-
-            foreach (Type interfaceType in type.GetInterfaces())
-            {
-                if (IsSupportedCollectionInterface(interfaceType))
-                {
-                    return interfaceType.GetGenericArguments()[0];
-                }
-            }
-
-            return null;
-        }
-
-        private static bool IsSupportedCollectionInterface(Type type) =>
-            IsSupportedCollectionInterface(type, false);
-
-        private static bool IsSupportedCollectionInterface(
-            Type type,
-            bool allowEnumerable)
-        {
-            if (type.IsGenericType)
-            {
-                Type typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition == typeof(IReadOnlyCollection<>)
-                    || typeDefinition == typeof(IReadOnlyList<>)
-                    || typeDefinition == typeof(ICollection<>)
-                    || typeDefinition == typeof(IList<>)
-                    || typeDefinition == typeof(IQueryable<>)
-                    || typeDefinition == typeof(IAsyncEnumerable<>)
-                    || typeDefinition == typeof(IObservable<>)
-                    || typeDefinition == typeof(List<>)
-                    || typeDefinition == typeof(Collection<>)
-                    || typeDefinition == typeof(Stack<>)
-                    || typeDefinition == typeof(Queue<>)
-                    || typeDefinition == typeof(ConcurrentBag<>))
-                {
-                    return true;
-                }
-
-                if (allowEnumerable && typeDefinition == typeof(IEnumerable<>))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

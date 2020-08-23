@@ -64,7 +64,6 @@ namespace HotChocolate
 
             schema.CompleteSchema(definition);
             lazy.Schema = schema;
-            TypeInspector.Default.Clear();
             return schema;
         }
 

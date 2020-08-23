@@ -240,7 +240,7 @@ namespace HotChocolate.Types.Descriptors
                 return type;
             }
 
-            if (TypeInfo2.TryCreate(type, out TypeInfo2? typeInfo))
+            if (Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? typeInfo))
             {
                 return typeInfo.NamedType;
             }
@@ -307,7 +307,7 @@ namespace HotChocolate.Types.Descriptors
             Type type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo)
         {
-            if(TypeInfo2.TryCreate(type, out TypeInfo2? t))
+            if(Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? t))
             {
                 typeInfo = t;
                 return true;
@@ -321,7 +321,7 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             [NotNullWhen(true)]out ITypeInfo? typeInfo)
         {
-            if(TypeInfo2.TryCreate(type, out TypeInfo2? t))
+            if(Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? t))
             {
                 typeInfo = t;
                 return true;

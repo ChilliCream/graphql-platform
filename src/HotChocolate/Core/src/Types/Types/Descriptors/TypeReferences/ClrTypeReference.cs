@@ -1,45 +1,26 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
+    // TODO : rename to extended type ref
     public sealed class ClrTypeReference
         : TypeReference
         , IEquatable<ClrTypeReference>
     {
         public ClrTypeReference(
-            Type type,
+            IExtendedType type,
             TypeContext context,
-            string? scope = null,
-            bool[]? nullable = null)
-            : base(context, scope, nullable)
+            string? scope = null)
+            : base(context, scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public Type Type { get; }
-
-        public ClrTypeReference Rewrite()
-        {
-            if (Nullable is null)
-            {
-                return this;
-            }
-
-            var nullable = new Utilities.Nullable[Nullable.Length];
-
-            for (var i = 0; i < Nullable.Length; i++)
-            {
-                nullable[i] = Nullable[i] ? Utilities.Nullable.Yes : Utilities.Nullable.No;
-            }
-
-            ExtendedType extendedType = ExtendedType.FromType(Type);
-            return With(
-                type: ExtendedTypeRewriter.Rewrite(extendedType, nullable),
-                nullable: null);
-        }
+        public IExtendedType Type { get; }
 
         public bool Equals(ClrTypeReference? other)
         {
@@ -111,10 +92,10 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: {Type.GetTypeName()}";
+            return $"{Context}: {Type.OriginalType.GetTypeName()}";
         }
 
-        public ClrTypeReference WithType(Type type)
+        public ClrTypeReference WithType(IExtendedType type)
         {
             if (type is null)
             {
@@ -124,8 +105,7 @@ namespace HotChocolate.Types.Descriptors
             return TypeReference.Create(
                 type,
                 Context,
-                Scope,
-                Nullable);
+                Scope);
         }
 
         public ClrTypeReference WithContext(TypeContext context = TypeContext.None)
@@ -133,8 +113,7 @@ namespace HotChocolate.Types.Descriptors
             return TypeReference.Create(
                 Type,
                 context,
-                Scope,
-                Nullable);
+                Scope);
         }
 
         public ClrTypeReference WithScope(string? scope = null)
@@ -142,24 +121,13 @@ namespace HotChocolate.Types.Descriptors
             return TypeReference.Create(
                 Type,
                 Context,
-                scope,
-                Nullable);
-        }
-
-        public ClrTypeReference WithNullable(bool[]? nullable = null)
-        {
-            return TypeReference.Create(
-                Type,
-                Context,
-                Scope,
-                nullable);
+                scope);
         }
 
         public ClrTypeReference With(
-            Optional<Type> type = default,
+            Optional<IExtendedType> type = default,
             Optional<TypeContext> context = default,
-            Optional<string?> scope = default,
-            Optional<bool[]?> nullable = default)
+            Optional<string?> scope = default)
         {
             if (type.HasValue && type.Value is null)
             {
@@ -169,8 +137,7 @@ namespace HotChocolate.Types.Descriptors
             return TypeReference.Create(
                 type.HasValue ? type.Value! : Type,
                 context.HasValue ? context.Value : Context,
-                scope.HasValue ? scope.Value : Scope,
-                nullable.HasValue ? nullable.Value : Nullable);
+                scope.HasValue ? scope.Value : Scope);
         }
     }
 }

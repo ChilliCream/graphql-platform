@@ -10,16 +10,16 @@ using Nullable = HotChocolate.Utilities.Nullable;
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo2
+    public sealed partial class TypeInfo
         : ITypeFactory
         , ITypeInfo
     {
         private readonly IExtendedType _extendedType;
 
-        private TypeInfo2(
+        private TypeInfo(
             Type namedType,
             Type originalType,
-            IReadOnlyList<TypeComponentKind> components,
+            IReadOnlyList<TypeComponent> components,
             bool isSchemaType,
             IExtendedType extendedType)
         {
@@ -44,7 +44,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// The components represent the GraphQL type structure.
         /// </summary>
-        public IReadOnlyList<TypeComponentKind> Components { get; }
+        public IReadOnlyList<TypeComponent> Components { get; }
 
         /// <summary>
         /// Defines if the <see cref="NamedType"/> is a GraphQL schema type.
@@ -80,7 +80,7 @@ namespace HotChocolate.Internal
 
             for (var i = Components.Count - 2; i >= 0; i--)
             {
-                switch (Components[i])
+                switch (Components[i].Kind)
                 {
                     case TypeComponentKind.Named:
                         throw new InvalidOperationException();
@@ -98,7 +98,7 @@ namespace HotChocolate.Internal
             return current;
         }
 
-        public static TypeInfo2 Create(Type type, bool[]? nullable = null)
+        public static TypeInfo Create(Type type, bool[]? nullable = null)
         {
             ExtendedType extendedType = ExtendedType.FromType(type);
 
@@ -116,7 +116,7 @@ namespace HotChocolate.Internal
             return Create(extendedType, type);
         }
 
-        public static TypeInfo2 Create(MemberInfo member)
+        public static TypeInfo Create(MemberInfo member)
         {
             switch (member)
             {
@@ -138,12 +138,12 @@ namespace HotChocolate.Internal
             }
         }
 
-        public static TypeInfo2 Create(IExtendedType type) =>
+        public static TypeInfo Create(IExtendedType type) =>
             Create(type, null);
 
-        private static TypeInfo2 Create(IExtendedType type, Type? originalType)
+        private static TypeInfo Create(IExtendedType type, Type? originalType)
         {
-            if (TryCreate(type, originalType, out TypeInfo2? typeInfo))
+            if (TryCreate(type, originalType, out TypeInfo? typeInfo))
             {
                 return typeInfo;
             }
@@ -154,13 +154,13 @@ namespace HotChocolate.Internal
 
         public static bool TryCreate(
             Type type,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
+            [NotNullWhen(true)] out TypeInfo? typeInfo) =>
             TryCreate(type, null, out typeInfo);
 
         public static bool TryCreate(
             Type type,
             bool[]? nullable,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo)
+            [NotNullWhen(true)] out TypeInfo? typeInfo)
         {
             IExtendedType extendedType = ExtendedType.FromType(type);
 
@@ -181,7 +181,7 @@ namespace HotChocolate.Internal
 
         public static bool TryCreate(
             MemberInfo member,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo)
+            [NotNullWhen(true)] out TypeInfo? typeInfo)
         {
             switch (member)
             {
@@ -205,13 +205,13 @@ namespace HotChocolate.Internal
 
         public static bool TryCreate(
             IExtendedType type,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
+            [NotNullWhen(true)] out TypeInfo? typeInfo) =>
             TryCreate(type, null, out typeInfo);
 
         private static bool TryCreate(
             IExtendedType type,
             Type? originalType,
-            [NotNullWhen(true)]out TypeInfo2? typeInfo)
+            [NotNullWhen(true)]out TypeInfo? typeInfo)
         {
             if (type == null)
             {
@@ -240,7 +240,7 @@ namespace HotChocolate.Internal
             return false;
         }
 
-        private static bool IsStructureValid(IReadOnlyList<TypeComponentKind> components)
+        private static bool IsStructureValid(IReadOnlyList<TypeComponent> components)
         {
             var nonnull = false;
             var named = false;
@@ -253,7 +253,7 @@ namespace HotChocolate.Internal
                     return false;
                 }
 
-                switch (components[i])
+                switch (components[i].Kind)
                 {
                     case TypeComponentKind.List:
                         nonnull = false;

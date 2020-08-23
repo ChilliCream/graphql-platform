@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.DirectiveArgument);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.DirectiveArgument);
-            Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Type = context.Inspector.GetInputReturnTypeRef(property);
             Definition.Property = property;
 
             if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))

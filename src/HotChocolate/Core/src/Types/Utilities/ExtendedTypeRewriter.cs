@@ -113,7 +113,7 @@ namespace HotChocolate.Utilities
         {
             if (type.IsArrayOrList)
             {
-                return type.TypeArguments[0];
+                return type.GetElementType();
             }
 
             if (IsTaskType(type))

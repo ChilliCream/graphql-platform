@@ -23,7 +23,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// The components represent the GraphQL type structure.
         /// </summary>
-        IReadOnlyList<TypeComponentKind> Components { get; }
+        IReadOnlyList<TypeComponent> Components { get; }
 
         /// <summary>
         /// Defines if the <see cref="NamedType"/> is a GraphQL schema type.

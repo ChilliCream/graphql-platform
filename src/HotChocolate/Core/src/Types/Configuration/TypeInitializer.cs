@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration.Validation;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -20,8 +21,6 @@ namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {
-        private static readonly TypeInspector _typeInspector =
-            new TypeInspector();
         private readonly List<TypeDiscoveryContext> _initContexts =
             new List<TypeDiscoveryContext>();
         private readonly Dictionary<RegisteredType, TypeCompletionContext> _completionContext =
@@ -62,8 +61,6 @@ namespace HotChocolate.Configuration
             _isOfType = isOfType;
             _isQueryType = isQueryType;
         }
-
-        public TypeInspector TypeInspector => _typeInspector;
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
 
@@ -371,8 +368,6 @@ namespace HotChocolate.Configuration
             }
         }
 
-
-
         private void RegisterImplicitInterfaceDependencies(DiscoveredTypes discoveredTypes)
         {
             var withClrType = discoveredTypes.Types
@@ -396,12 +391,11 @@ namespace HotChocolate.Configuration
             {
                 foreach (RegisteredType interfaceType in interfaceTypes)
                 {
-                    if (interfaceType.RuntimeType.IsAssignableFrom(
-                        objectType.RuntimeType))
+                    if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
                     {
                         dependencies.Add(new TypeDependency(
                             TypeReference.Create(
-                                interfaceType.RuntimeType,
+                                ExtendedType.FromType(interfaceType.RuntimeType),
                                 TypeContext.Output),
                             TypeDependencyKind.Completed));
                     }
@@ -651,7 +645,9 @@ namespace HotChocolate.Configuration
 
                 case SchemaTypeReference r:
                     var internalReference = TypeReference.Create(
-                        r.Type.GetType(), r.Context, scope: typeReference.Scope);
+                        ExtendedType.FromType(r.Type.GetType()), 
+                        r.Context, 
+                        scope: typeReference.Scope);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
@@ -674,19 +670,19 @@ namespace HotChocolate.Configuration
             ClrTypeReference typeReference,
             out ITypeReference? normalized)
         {
-            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                && _typeInspector.TryCreate(typeReference.Type, out Utilities.TypeInfo? typeInfo))
+            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
+                && Internal.TypeInfo.TryCreate(typeReference.Type, out Internal.TypeInfo? typeInfo))
             {
-                if (IsTypeSystemObject(typeInfo.ClrType))
+                if (typeInfo.IsSchemaType)
                 {
-                    normalized = typeReference.With(typeInfo.ClrType);
+                    normalized = typeReference.With(ExtendedType.FromType(typeInfo.NamedType));
                     return true;
                 }
                 else
                 {
                     for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        var n = typeReference.With(typeInfo.Components[i]);
+                        var n = typeReference.WithType(typeInfo.Components[i].Type);
 
                         if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
                             || ClrTypes.TryGetValue(n.WithContext(), out r)))

@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.Type = context.Inspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 

@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {
                         typeRegistrar.Register(
-                            typeRegistrar.CreateInstance(namedTypeReference.Type),
+                            typeRegistrar.CreateInstance(namedTypeReference.Type.Type),
                             typeReference.Scope);
                     }
                 }

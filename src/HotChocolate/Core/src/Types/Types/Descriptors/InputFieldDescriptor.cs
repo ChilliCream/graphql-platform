@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
-            Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Type = context.Inspector.GetInputReturnTypeRef(property);
 
             if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
             {

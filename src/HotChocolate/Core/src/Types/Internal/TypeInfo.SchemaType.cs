@@ -6,23 +6,23 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo2
+    public sealed partial class TypeInfo
     {
         private static class SchemaType
         {
             internal static bool TryCreateTypeInfo(
                 IExtendedType type,
                 Type originalType,
-                [NotNullWhen(true)]out TypeInfo2? typeInfo)
+                [NotNullWhen(true)]out TypeInfo? typeInfo)
             {
                 if (type.Kind == ExtendedTypeKind.Schema)
                 {
-                    IReadOnlyList<TypeComponentKind> components =
+                    IReadOnlyList<TypeComponent> components =
                         Decompose(type, out IExtendedType namedType);
 
                     if (IsStructureValid(components))
                     {
-                        typeInfo = new TypeInfo2(
+                        typeInfo = new TypeInfo(
                             namedType.Type,
                             originalType,
                             components,
@@ -36,30 +36,30 @@ namespace HotChocolate.Internal
                 return false;
             }
 
-            private static IReadOnlyList<TypeComponentKind> Decompose(
+            private static IReadOnlyList<TypeComponent> Decompose(
                 IExtendedType type,
                 out IExtendedType namedType)
             {
-                var list = new List<TypeComponentKind>();
+                var list = new List<TypeComponent>();
                 IExtendedType? current = type;
 
                 while (current is not null)
                 {
                     if (!current.IsNullable)
                     {
-                        list.Add(TypeComponentKind.NonNull);
+                        list.Add((TypeComponentKind.NonNull, current));
                     }
 
                     if (current.IsNamedType)
                     {
-                        list.Add(TypeComponentKind.Named);
+                        list.Add((TypeComponentKind.Named, current));
                         namedType = current;
                         return list;
                     }
 
                     if (type.IsList)
                     {
-                        list.Add(TypeComponentKind.List);
+                        list.Add((TypeComponentKind.List, current));
                         current = current.GetElementType();
                     }
                     else

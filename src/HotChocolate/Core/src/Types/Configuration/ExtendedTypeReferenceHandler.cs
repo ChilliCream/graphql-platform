@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -9,24 +10,24 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class ClrTypeReferenceHandler
+    internal sealed class ExtendedTypeReferenceHandler
         : ITypeRegistrarHandler
     {
-        private readonly TypeInspector _typeInspector = TypeInspector.Default;
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
             foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
             {
-                if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                    && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
+                if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
+                    && TypeInfo.TryCreate(typeReference.Type, out TypeInfo? typeInfo))
                 {
-                    Type type = typeInfo.ClrType;
+                    Type type = typeInfo.NamedType;
 
                     if (IsTypeSystemObject(type))
                     {
-                        ClrTypeReference namedTypeReference = typeReference.With(type);
+                        ClrTypeReference namedTypeReference = 
+                            typeReference.With(ExtendedType.FromType(type));
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
@@ -60,7 +61,7 @@ namespace HotChocolate.Configuration
             for (int i = 0; i < typeInfo.Components.Count; i++)
             {
                 normalizedTypeRef = TypeReference.Create(
-                    typeInfo.Components[i],
+                    typeInfo.Components[i].Type,
                     context,
                     scope: scope);
 

@@ -52,6 +52,19 @@ namespace HotChocolate.Internal
             if (changeNullability ||
                 !ReferenceEquals(typeArguments, type.TypeArguments))
             {
+                IExtendedType? elementType = type.IsArrayOrList ? type.GetElementType() : null;
+
+                if (elementType is not null && typeArguments != type.TypeArguments)
+                {
+                    for (int e = 0; e < type.TypeArguments.Count; e++)
+                    {
+                        if (elementType == type.TypeArguments[e])
+                        {
+                            elementType = typeArguments[e];
+                        }
+                    }
+                }
+
                 type = new ExtendedType(
                     type.Type,
                     nullable[i]!.Value,
@@ -59,7 +72,8 @@ namespace HotChocolate.Internal
                     type.IsList,
                     type.IsNamedType,
                     typeArguments,
-                    type.OriginalType);
+                    type.OriginalType,
+                    elementType);
             }
 
             return type;
