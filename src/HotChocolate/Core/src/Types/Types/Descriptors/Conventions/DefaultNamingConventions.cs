@@ -204,7 +204,7 @@ namespace HotChocolate.Types.Descriptors
 
                 fixed (char* charPtr = buffer)
                 {
-                    return new string(charPtr);
+                    return new string(charPtr, 0, p);
                 }
             }
             finally

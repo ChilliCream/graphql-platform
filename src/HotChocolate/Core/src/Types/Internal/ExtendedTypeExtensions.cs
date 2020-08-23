@@ -31,7 +31,7 @@ namespace HotChocolate.Internal
             int i)
         {
             var next = i + 1;
-            var makeNullable = nullable[i].HasValue && nullable[i]!.Value != type.IsNullable;
+            var changeNullability = nullable[i].HasValue && nullable[i]!.Value != type.IsNullable;
             IReadOnlyList<IExtendedType> typeArguments = type.TypeArguments;
 
             if (nullable.Length > next)
@@ -49,12 +49,12 @@ namespace HotChocolate.Internal
                 typeArguments = args;
             }
 
-            if (makeNullable != type.IsNullable ||
+            if (changeNullability ||
                 !ReferenceEquals(typeArguments, type.TypeArguments))
             {
                 type = new ExtendedType(
                     type.Type,
-                    makeNullable,
+                    nullable[i]!.Value,
                     type.Kind,
                     type.IsList,
                     type.IsNamedType,

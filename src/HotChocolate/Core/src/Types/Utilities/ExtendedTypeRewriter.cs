@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Types;
@@ -112,69 +111,17 @@ namespace HotChocolate.Utilities
 
         public static IExtendedType? GetInnerType(IExtendedType type)
         {
-            if (type.IsArray)
+            if (type.IsArrayOrList)
             {
                 return type.TypeArguments[0];
             }
 
-            if (IsTaskType(type)
-                || IsNonNullType(type))
+            if (IsTaskType(type))
             {
                 return type.TypeArguments[0];
-            }
-
-            if (ImplementsListInterface(type))
-            {
-                return GetElementType(type);
             }
 
             return null;
-        }
-
-        private static IExtendedType? GetElementType(IExtendedType type)
-        {
-            if (type.IsInterface && IsSupportedCollectionInterface(type, true))
-            {
-                return type.TypeArguments[0];
-            }
-
-            foreach (IExtendedType interfaceType in type.GetInterfaces())
-            {
-                if (IsSupportedCollectionInterface(interfaceType))
-                {
-                    return interfaceType.TypeArguments[0];
-                }
-            }
-
-            return null;
-        }
-
-        private static bool IsSupportedCollectionInterface(IExtendedType type) =>
-            IsSupportedCollectionInterface(type, false);
-
-        private static bool IsSupportedCollectionInterface(
-            IExtendedType type,
-            bool allowEnumerable)
-        {
-            if (type.TypeArguments.Count == 1)
-            {
-                if (type.Definition == typeof(IReadOnlyCollection<>)
-                    || type.Definition == typeof(IReadOnlyList<>)
-                    || type.Definition == typeof(ICollection<>)
-                    || type.Definition == typeof(IList<>)
-                    || type.Definition == typeof(IQueryable<>)
-                    || type.Definition == typeof(IAsyncEnumerable<>)
-                    || type.Definition == typeof(IObservable<>))
-                {
-                    return true;
-                }
-
-                if (allowEnumerable && type.Definition == typeof(IEnumerable<>))
-                {
-                    return true;
-                }
-            }
-            return false;
         }
 
         private static bool IsTaskType(IExtendedType type)
@@ -182,17 +129,6 @@ namespace HotChocolate.Utilities
             return type.IsGeneric
                 && (typeof(Task<>) == type.Definition
                     || typeof(ValueTask<>) == type.Definition);
-        }
-
-        private static bool IsNonNullType(IExtendedType type)
-        {
-            return type.IsGeneric
-                && typeof(NonNullType<>) == type.Definition;
-        }
-
-        private static bool ImplementsListInterface(IExtendedType type)
-        {
-            return GetElementType(type) != null;
         }
     }
 }

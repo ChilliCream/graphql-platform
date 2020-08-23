@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities
                 }
                 else if (type.IsArray)
                 {
-                    // legacy behaviour -> remove
+                    // legacy behavior -> remove
                     TypeArguments = new IExtendedType[]
                     {
                         FromType(type.GetElementType()!)

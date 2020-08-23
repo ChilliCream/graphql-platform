@@ -234,6 +234,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
+            if (type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            {
+                return type;
+            }
+
             if (TypeInfo2.TryCreate(type, out TypeInfo2? typeInfo))
             {
                 return typeInfo.NamedType;
