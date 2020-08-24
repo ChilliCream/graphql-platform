@@ -165,26 +165,6 @@ namespace HotChocolate.Utilities
             return type.Namespace;
         }
 
-        public static ITypeReference GetOutputType(this MemberInfo member) =>
-            member.GetTypeReference(TypeContext.Output);
-
-        public static ITypeReference GetInputType(this MemberInfo member) =>
-            member.GetTypeReference(TypeContext.Input);
-
-        private static ITypeReference GetTypeReference(
-            this MemberInfo member,
-            TypeContext context)
-        {
-            Type type = GetReturnType(member);
-
-            if (type != null)
-            {
-                return TypeReference.Create(type, context);
-            }
-
-            return null;
-        }
-
         public static Type GetReturnType(this MemberInfo member)
         {
             if (member.IsDefined(typeof(GraphQLTypeAttribute)))
