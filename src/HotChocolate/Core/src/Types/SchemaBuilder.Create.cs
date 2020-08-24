@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -166,7 +165,7 @@ namespace HotChocolate
                 _resolverTypes,
                 interceptor,
                 _isOfType,
-                IsQueryType);
+                type => IsQueryType(descriptorContext.Inspector, type));
 
             foreach (FieldMiddleware component in _globalComponents)
             {
@@ -299,7 +298,9 @@ namespace HotChocolate
             return null;
         }
 
-        private bool IsQueryType(TypeSystemObjectBase type)
+        private bool IsQueryType(
+            ITypeInspector typeInspector,
+            TypeSystemObjectBase type)
         {
             if (type is ObjectType objectType)
             {
@@ -312,8 +313,8 @@ namespace HotChocolate
 
                     if (reference is ClrTypeReference cr)
                     {
-                        return cr.Type == objectType.GetType().ToExtendedType()
-                            || cr.Type == objectType.RuntimeType.ToExtendedType();
+                        return cr.Type == typeInspector.GetType(objectType.GetType())
+                               || cr.Type == typeInspector.GetType(objectType.RuntimeType);
                     }
 
                     if (reference is SyntaxTypeReference str)
@@ -323,8 +324,7 @@ namespace HotChocolate
                 }
                 else
                 {
-                    return type is ObjectType
-                        && type.Name.Equals(WellKnownTypes.Query);
+                    return type.Name.Equals(WellKnownTypes.Query);
                 }
             }
 

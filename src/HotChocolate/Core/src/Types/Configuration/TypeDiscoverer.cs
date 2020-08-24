@@ -19,6 +19,7 @@ namespace HotChocolate.Configuration
         private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
+        private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
             ISet<ITypeReference> initialTypes,
@@ -47,6 +48,8 @@ namespace HotChocolate.Configuration
                 new ExtendedTypeReferenceHandler(descriptorContext.Inspector),
                 new SyntaxTypeReferenceHandler()
             };
+
+            _typeInspector = descriptorContext.Inspector;
         }
 
         public DiscoveredTypes DiscoverTypes()
@@ -118,7 +121,8 @@ namespace HotChocolate.Configuration
                         _clrTypeReferences.Add(unresolvedType, schemaType);
                     }
                 }
-                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType, out schemaType))
+                else if (SchemaTypeResolver.TryInferSchemaType(
+                    _typeInspector, unresolvedType, out schemaType))
                 {
                     inferred = true;
 

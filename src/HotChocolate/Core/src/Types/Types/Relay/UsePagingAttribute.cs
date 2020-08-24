@@ -67,8 +67,7 @@ namespace HotChocolate.Types.Relay
             MemberInfo member)
         {
             Type? type = SchemaType;
-            ITypeReference returnType = context.Inspector.GetReturnTypeRef(
-                member, TypeContext.Output);
+            ITypeReference returnType = context.Inspector.GetOutputReturnTypeRef(member);
 
             if (type is null
                 && returnType is ClrTypeReference clr
@@ -79,7 +78,8 @@ namespace HotChocolate.Types.Relay
                     type = typeInfo.NamedType;
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    clr.WithType(typeInfo.NamedType),
+                    context.Inspector,
+                    clr.WithType(context.Inspector.GetType(typeInfo.NamedType)),
                     out ClrTypeReference schemaType))
                 {
                     type = schemaType.Type.Source;

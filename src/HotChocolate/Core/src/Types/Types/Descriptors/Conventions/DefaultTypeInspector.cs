@@ -119,14 +119,15 @@ namespace HotChocolate.Types.Descriptors
             {
                 GraphQLTypeAttribute attribute =
                     member.GetCustomAttribute<GraphQLTypeAttribute>()!;
-                returnType = ExtendedType.FromType(attribute.Type);
+                returnType = GetType(attribute.Type);
             }
 
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
                 GraphQLNonNullTypeAttribute attribute =
                     member.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
-                return returnType.RewriteNullability(
+                return RewriteNullability(
+                    returnType,
                     attribute.Nullable.Select(t => new bool?(t)).ToArray());
             }
 

@@ -112,12 +112,6 @@ namespace HotChocolate.Types.Descriptors
             Create(typeof(T), context, scope);
 
         public static ClrTypeReference Create(
-            Type type,
-            TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            Create(ExtendedType.FromType(type), context, scope);
-
-        public static ClrTypeReference Create(
             IExtendedType type,
             TypeContext context = TypeContext.None,
             string? scope = null)

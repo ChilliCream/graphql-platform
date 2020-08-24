@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -103,7 +102,7 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.SetMoreSpecificType(
-                    value.GetType().ToExtendedType(),
+                    Context.Inspector.GetType(value.GetType()),
                     TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;

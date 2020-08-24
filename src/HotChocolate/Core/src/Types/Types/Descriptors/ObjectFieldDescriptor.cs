@@ -222,7 +222,7 @@ namespace HotChocolate.Types.Descriptors
             if (resultType != null)
             {
                 Definition.SetMoreSpecificType(
-                    resultType.ToExtendedType(),
+                    Context.Inspector.GetType(resultType),
                     TypeContext.Output);
 
                 if (resultType.IsGenericType)
@@ -257,7 +257,7 @@ namespace HotChocolate.Types.Descriptors
                 Type resultType = member.GetReturnType();
 
                 Definition.SetMoreSpecificType(
-                    resultType.ToExtendedType(),
+                    Context.Inspector.GetType(resultType),
                     TypeContext.Output);
 
                 Definition.ResolverType = typeof(TResolver);
