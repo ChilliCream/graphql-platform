@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using HotChocolate.Properties;
+using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
@@ -59,8 +61,8 @@ namespace HotChocolate.Utilities
             MemberInfo member, string subscribeResolverName) =>
             new SchemaException(SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to find the subscribe resolver `{2}` defined on {0}.{1}. " + 
-                    "The subscribe resolver bust be a method that is public, non-static " + 
+                    "Unable to find the subscribe resolver `{2}` defined on {0}.{1}. " +
+                    "The subscribe resolver bust be a method that is public, non-static " +
                     "and on the same type as the resolver. (SubscribeAttribute)",
                     member.DeclaringType!.FullName,
                     member.Name,
@@ -73,8 +75,17 @@ namespace HotChocolate.Utilities
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        "Unable to create a convention instance from {0}.", 
+                        "Unable to create a convention instance from {0}.",
                         convention.FullName ?? convention.Name)
+                    .Build());
+
+        public static SchemaException UsePagingAttribute_NodeTypeUnknown(
+            MemberInfo member) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("The UsePaging attribute needs a valid node schema type.")
+                    .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
+                    .SetExtension(nameof(member), member)
                     .Build());
     }
 }

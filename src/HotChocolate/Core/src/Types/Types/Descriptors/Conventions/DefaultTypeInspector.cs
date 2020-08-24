@@ -9,7 +9,6 @@ using HotChocolate.Properties;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
-using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 
@@ -181,6 +180,14 @@ namespace HotChocolate.Types.Descriptors
             return argumentType;
         }
 
+        public ClrTypeReference GetTypeRef(
+            Type type,
+            TypeContext context = TypeContext.None,
+            string? scope = null)
+        {
+            throw new NotImplementedException();
+        }
+
         private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
         {
             MethodInfo method = (MethodInfo)parameter.Member;
@@ -302,6 +309,26 @@ namespace HotChocolate.Types.Descriptors
 
             defaultValue = null;
             return false;
+        }
+
+        public IExtendedType RewriteNullability(IExtendedType type, params bool?[] nullable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IExtendedType GetType(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ITypeInfo CreateTypeInfo(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ITypeInfo CreateTypeInfo(IExtendedType type)
+        {
+            throw new NotImplementedException();
         }
 
         public bool TryCreateTypeInfo(

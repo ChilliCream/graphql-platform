@@ -84,6 +84,13 @@ namespace HotChocolate.Types.Descriptors
         /// </returns>
         IExtendedType GetArgumentType(ParameterInfo parameter);
 
+        ClrTypeReference GetTypeRef(
+            Type type,
+            TypeContext context = TypeContext.None,
+            string? scope = null);
+
+        IExtendedType GetType(Type type);
+
         /// <summary>
         /// Extracts the values of an enum type.
         /// </summary>
@@ -179,14 +186,11 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             params bool?[] nullable);
 
-        
-        IExtendedType ToExtendedType(Type type);
-
         /// <summary>
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
-        /// 
+        ///
         /// </param>
         /// <returns></returns>
         ITypeInfo CreateTypeInfo(Type type);
@@ -196,8 +200,8 @@ namespace HotChocolate.Types.Descriptors
         /// </summary>
         /// <param name="type"></param>
         /// <returns>
-        /// 
-        /// 
+        ///
+        ///
         /// </returns>
         ITypeInfo CreateTypeInfo(IExtendedType type);
 

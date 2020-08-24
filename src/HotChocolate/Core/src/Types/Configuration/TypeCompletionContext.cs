@@ -14,10 +14,11 @@ namespace HotChocolate.Configuration
     internal sealed class TypeCompletionContext
         : ITypeCompletionContext
     {
+        private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
         private readonly TypeDiscoveryContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
-        private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
+        private readonly ITypeInspector _typeInspector;
 
         public TypeCompletionContext(
             TypeDiscoveryContext initializationContext,
@@ -34,6 +35,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(schemaResolver));
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
+            _typeInspector = _initializationContext.DescriptorContext.Inspector;
 
             _alternateNames.Add(_initializationContext.InternalName);
         }
@@ -67,6 +69,7 @@ namespace HotChocolate.Configuration
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
         public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
+
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {
@@ -113,11 +116,11 @@ namespace HotChocolate.Configuration
             if (reference is ClrTypeReference clrRef
                 && _typeInitializer.TryNormalizeReference(
                     clrRef, out ITypeReference normalized)
-                && _typeInitializer.DiscoveredTypes is { }
+                && _typeInitializer.DiscoveredTypes is not null
                 && _typeInitializer.DiscoveredTypes.TryGetType(
                     normalized, out RegisteredType registered)
                 && registered.Type is INamedType namedType
-                && TypeInfo.TryCreate(clrRef.Type, out TypeInfo typeInfo)
+                && _typeInspector.TryCreateTypeInfo(clrRef.Type, out ITypeInfo typeInfo)
                 && typeInfo.CreateType(namedType) is T casted)
             {
                 type = casted;
@@ -193,8 +196,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                var clrTypeReference = TypeReference.Create(
-                    cr.ClrType, TypeContext.None);
+                ClrTypeReference clrTypeReference = TypeReference.Create(cr.ClrType);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,
                     out ITypeReference internalReference))

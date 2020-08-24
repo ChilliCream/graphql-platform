@@ -2,14 +2,17 @@ using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using TypeInfo = HotChocolate.Internal.TypeInfo;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// Applies a cursor paging middleware to a resolver.
+    /// </summary>
     public sealed class UsePagingAttribute : DescriptorAttribute
     {
         private static readonly MethodInfo _off = typeof(PagingObjectFieldDescriptorExtensions)
@@ -30,6 +33,14 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
 
+        public UsePagingAttribute(Type? schemaType = null)
+        {
+            SchemaType = schemaType;
+        }
+
+        /// <summary>
+        /// The schema type representation of the entity.
+        /// </summary>
         public Type? SchemaType { get; set; }
 
         protected internal override void TryConfigure(
@@ -61,7 +72,7 @@ namespace HotChocolate.Types.Relay
 
             if (type is null
                 && returnType is ClrTypeReference clr
-                && TypeInfo.TryCreate(clr.Type, out TypeInfo? typeInfo))
+                && context.Inspector.TryCreateTypeInfo(clr.Type, out ITypeInfo? typeInfo))
             {
                 if (typeInfo.IsSchemaType)
                 {
@@ -77,16 +88,10 @@ namespace HotChocolate.Types.Relay
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))
             {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("The UsePaging attribute needs a valid node schema type.")
-                        .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
-                        .Build());
+                throw UsePagingAttribute_NodeTypeUnknown(member);
             }
 
             return type;
         }
-
-
     }
 }

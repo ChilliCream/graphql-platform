@@ -8,6 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 
 namespace HotChocolate
@@ -207,7 +208,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (!BaseTypes.IsSchemaType(schemaType))
+            if (!schemaType.IsSchemaType())
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_MustBeSchemaType,
@@ -234,7 +235,7 @@ namespace HotChocolate
                 foreach (Type schemaType in attribute.Types)
                 {
                     if (typeof(ObjectType).IsAssignableFrom(schemaType)
-                        && !BaseTypes.IsNonGenericBaseType(schemaType))
+                        && schemaType.IsSchemaType())
                     {
                         _types.Add(TypeReference.Create(
                             schemaType,
@@ -293,14 +294,14 @@ namespace HotChocolate
                     nameof(type));
             }
 
-            if (BaseTypes.IsNonGenericBaseType(type))
+            if (type.IsNonGenericSchemaType())
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_RootType_NonGenericType,
                     nameof(type));
             }
 
-            if (BaseTypes.IsSchemaType(type)
+            if (type.IsSchemaType()
                 && !typeof(ObjectType).IsAssignableFrom(type))
             {
                 throw new ArgumentException(

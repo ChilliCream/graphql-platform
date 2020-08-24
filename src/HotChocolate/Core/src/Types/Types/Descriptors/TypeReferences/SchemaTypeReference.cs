@@ -159,14 +159,14 @@ namespace HotChocolate.Types.Descriptors
             return TypeContext.None;
         }
 
-        internal static TypeContext InferTypeContext(TypeInfo typeInfo)
+        internal static TypeContext InferTypeContext(IExtendedType type)
         {
-            if (typeInfo is null)
+            if (type is null)
             {
-                throw new ArgumentNullException(nameof(typeInfo));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            return InferTypeContext(typeInfo.NamedType);
+            return InferTypeContext(type.Type);
         }
 
         internal static TypeContext InferTypeContext(Type type)
@@ -176,6 +176,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
+            Type? namedType = ExtendedType.GetNamedTypeInternal(type);
+            return InferTypeContextInternal(namedType ?? type);
+        }
+
+        private static TypeContext InferTypeContextInternal(Type type)
+        {
             if (typeof(IInputType).IsAssignableFrom(type)
                 && typeof(IOutputType).IsAssignableFrom(type))
             {

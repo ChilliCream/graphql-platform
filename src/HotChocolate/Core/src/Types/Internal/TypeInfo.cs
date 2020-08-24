@@ -116,9 +116,9 @@ namespace HotChocolate.Internal
             return current;
         }
 
-        public static TypeInfo Create(IExtendedType type)
+        public static TypeInfo Create1(IExtendedType type)
         {
-            if (TryCreate(type, out TypeInfo? typeInfo))
+            if (TryCreate1(type, out TypeInfo? typeInfo))
             {
                 return typeInfo;
             }
@@ -127,7 +127,7 @@ namespace HotChocolate.Internal
                 "The provided type structure is not supported.");
         }
 
-        public static bool TryCreate(
+        public static bool TryCreate1(
             IExtendedType type,
             [NotNullWhen(true)] out TypeInfo? typeInfo)
         {

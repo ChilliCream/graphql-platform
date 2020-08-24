@@ -44,7 +44,7 @@ namespace HotChocolate.Configuration
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ExtendedTypeReferenceHandler(),
+                new ExtendedTypeReferenceHandler(descriptorContext.Inspector),
                 new SyntaxTypeReferenceHandler()
             };
         }

@@ -190,7 +190,7 @@ namespace HotChocolate.Internal
         public override string ToString() =>
             ExtendedTypeRewriter.Rewrite(this).GetTypeName();
 
-        public static ExtendedType FromType(Type type) =>
+        public static ExtendedType FromType1(Type type) =>
             TypeCache.GetOrCreateType(type, () => FromTypeInternal(type));
 
         private static ExtendedType FromTypeInternal(Type type)
@@ -200,7 +200,7 @@ namespace HotChocolate.Internal
                 : FromSystemType(type);
         }
 
-        public static ExtendedType FromExtendedType(IExtendedType type, MemberInfo? member = null)
+        public static ExtendedType FromExtendedType1(IExtendedType type, MemberInfo? member = null)
         {
             if (type.Kind == ExtendedTypeKind.Extended)
             {

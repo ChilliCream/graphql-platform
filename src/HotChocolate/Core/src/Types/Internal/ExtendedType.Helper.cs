@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -14,9 +15,9 @@ namespace HotChocolate.Internal
         public static Type? GetElementType(Type listType) =>
             FromType(listType).GetElementType()?.Source;
 
-        private static bool IsSchemaTypeInternal(Type type)
+        internal static bool IsSchemaTypeInternal(Type type)
         {
-            if (IsNamedSchemaType(type))
+            if (BaseTypes.IsGenericBaseType(type))
             {
                 return true;
             }
@@ -35,15 +36,25 @@ namespace HotChocolate.Internal
             return false;
         }
 
-        private static bool IsNamedSchemaType(Type type)
+        internal static Type? GetNamedTypeInternal(Type type)
         {
-            return typeof(ScalarType).IsAssignableFrom(type) ||
-               typeof(ObjectType).IsAssignableFrom(type) ||
-               typeof(InterfaceType).IsAssignableFrom(type) ||
-               typeof(EnumType).IsAssignableFrom(type) ||
-               typeof(UnionType).IsAssignableFrom(type) ||
-               typeof(InputObjectType).IsAssignableFrom(type) ||
-               typeof(DirectiveType).IsAssignableFrom(type);
+            if (BaseTypes.IsGenericBaseType(type))
+            {
+                return type;
+            }
+
+            if (type.IsGenericType)
+            {
+                Type definition = type.GetGenericTypeDefinition();
+                if (typeof(ListType<>) == definition
+                    || typeof(NonNullType<>) == definition
+                    || typeof(NativeType<>) == definition)
+                {
+                    return GetNamedTypeInternal(type.GetGenericArguments()[0]);
+                }
+            }
+
+            return null;
         }
 
         private static Type RemoveNonEssentialTypes(Type type)

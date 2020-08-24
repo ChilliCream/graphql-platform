@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
-using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 
@@ -95,9 +94,6 @@ namespace HotChocolate.Types.Descriptors
         {
             return $"{Context}: {Type.Source.GetTypeName()}";
         }
-
-        public ClrTypeReference WithType(Type type) =>
-            WithType(ExtendedType.FromType(type));
 
         public ClrTypeReference WithType(IExtendedType type)
         {

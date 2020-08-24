@@ -122,12 +122,11 @@ namespace HotChocolate.Types.Descriptors
             TypeContext context = TypeContext.None,
             string? scope = null)
         {
-            if (TypeInfo.TryCreate(type, out TypeInfo? typeInfo) &&
-                typeInfo.IsSchemaType)
+            if (type.IsSchemaType)
             {
                 return new ClrTypeReference(
                     type,
-                    InferTypeContext(typeInfo),
+                    InferTypeContext(type),
                     scope);
             }
             else

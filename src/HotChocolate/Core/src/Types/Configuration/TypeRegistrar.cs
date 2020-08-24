@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -182,7 +183,7 @@ namespace HotChocolate.Configuration
                         scope: scope));
                 }
 
-                if (!BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
+                if (!ExtendedType.BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
                     references.Add(TypeReference.Create(
                         typeSystemObject.GetType(),

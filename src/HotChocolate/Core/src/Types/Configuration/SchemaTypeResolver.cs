@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Configuration
 {
@@ -12,43 +10,44 @@ namespace HotChocolate.Configuration
         private static readonly Type _keyValuePair = typeof(KeyValuePair<,>);
 
         public static bool TryInferSchemaType(
+            ITypeInspector typeInspector,
             ClrTypeReference unresolvedType,
             out ClrTypeReference schemaType)
         {
             if (IsObjectTypeExtension(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType(
+                    type: typeInspector.GetType(
                         typeof(ObjectTypeExtension<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else if (IsUnionType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType(
+                    type: typeInspector.GetType(
                         typeof(UnionType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else if (IsInterfaceType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType( 
+                    type: typeInspector.GetType(
                         typeof(InterfaceType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else if (IsObjectType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType( 
+                    type: typeInspector.GetType(
                         typeof(ObjectType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else if (IsInputObjectType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType(
+                    type: typeInspector.GetType(
                         typeof(InputObjectType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else if (IsEnumType(unresolvedType))
             {
                 schemaType = unresolvedType.With(
-                    type: ExtendedType.FromType(
+                    type: typeInspector.GetType(
                         typeof(EnumType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
             else
@@ -118,9 +117,8 @@ namespace HotChocolate.Configuration
 
         private static bool IsPublic(ClrTypeReference unresolvedType)
         {
-
             return unresolvedType.Type.Type.IsPublic
-                || unresolvedType.Type.Type.IsNestedPublic;
+                   || unresolvedType.Type.Type.IsNestedPublic;
         }
     }
 }

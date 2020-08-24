@@ -28,12 +28,12 @@ namespace HotChocolate.Types
                 ITypeReference typeReference =
                     context.Inspector.GetReturnTypeRef(member, TypeContext.Output);
 
-                if (typeReference is ClrTypeReference extendedTypeRef &&
-                    TypeInfo.TryCreate(extendedTypeRef.Type, out TypeInfo? typeInfo) &&
+                if (typeReference is ClrTypeReference typeRef &&
+                    context.Inspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
                     !typeInfo.IsSchemaType)
                 {
-                    IExtendedType? rewritten = extendedTypeRef.Type.IsArrayOrList
-                        ? extendedTypeRef.Type.GetElementType()
+                    IExtendedType? rewritten = typeRef.Type.IsArrayOrList
+                        ? typeRef.Type.GetElementType()
                         : null;
 
                     if (rewritten is null)
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
                             SchemaErrorBuilder.New()
                                 .SetMessage(
                                     "The specified type `{0}` is not a valid subscription type.",
-                                    extendedTypeRef.Type.Source.ToString())
+                                    typeRef.Type.Source.ToString())
                                 .SetExtension("ClrMember", member)
                                 .SetExtension("ClrType", member.DeclaringType)
                                 .Build());
