@@ -20,16 +20,14 @@ namespace HotChocolate.Internal
                     IReadOnlyList<TypeComponent> components =
                         Decompose(type, out IExtendedType namedType);
 
-                    if (IsStructureValid(components))
-                    {
                         typeInfo = new TypeInfo(
                             namedType.Type,
                             originalType,
                             components,
                             true,
-                            type);
+                            type,
+                            IsStructureValid(components));
                         return true;
-                    }
                 }
 
                 typeInfo = null;

@@ -28,23 +28,21 @@ namespace HotChocolate.Internal
             internal static bool TryCreateTypeInfo(
                 IExtendedType type,
                 Type originalType,
-                [NotNullWhen(true)]out TypeInfo? typeInfo)
+                [NotNullWhen(true)] out TypeInfo? typeInfo)
             {
                 if (type.Kind != ExtendedTypeKind.Schema)
                 {
                     IReadOnlyList<TypeComponent> components =
                         Decompose(type, out IExtendedType namedType);
 
-                    if (IsStructureValid(components))
-                    {
-                        typeInfo = new TypeInfo(
-                            namedType.Type,
-                            originalType,
-                            components,
-                            true,
-                            type);
-                        return true;
-                    }
+                    typeInfo = new TypeInfo(
+                        namedType.Type,
+                        originalType,
+                        components,
+                        false,
+                        type,
+                        IsStructureValid(components));
+                    return true;
                 }
 
                 typeInfo = null;

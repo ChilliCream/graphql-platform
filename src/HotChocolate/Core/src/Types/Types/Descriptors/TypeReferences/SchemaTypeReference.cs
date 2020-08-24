@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 
 #nullable enable
 
@@ -156,6 +157,16 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return TypeContext.None;
+        }
+
+        internal static TypeContext InferTypeContext(TypeInfo typeInfo)
+        {
+            if (typeInfo is null)
+            {
+                throw new ArgumentNullException(nameof(typeInfo));
+            }
+
+            return InferTypeContext(typeInfo.NamedType);
         }
 
         internal static TypeContext InferTypeContext(Type type)

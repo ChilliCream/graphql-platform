@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Configuration
 {

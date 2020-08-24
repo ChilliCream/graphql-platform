@@ -3,12 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using HotChocolate.Internal;
+using System.Reflection;
 using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Internal
 {
     internal sealed partial class ExtendedType
     {
@@ -84,7 +84,7 @@ namespace HotChocolate.Utilities
                 IExtendedType key = type.TypeArguments[0];
                 IExtendedType value = type.TypeArguments[1];
 
-                return new ExtendedType(
+                return new Internal.ExtendedType(
                     typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type),
                     false,
                     type.Kind,

@@ -13,6 +13,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 
@@ -131,7 +132,7 @@ namespace HotChocolate.Configuration
 
         public bool TryGetRegisteredType(
             ITypeReference reference,
-            [NotNullWhen(true)]out RegisteredType? registeredType)
+            [NotNullWhen(true)] out RegisteredType? registeredType)
         {
             if (reference == null)
             {
@@ -589,6 +590,8 @@ namespace HotChocolate.Configuration
                     {
                         yield return type;
                     }
+
+                    var x = normalized.Except(processed).ToList();
                 }
             }
         }
@@ -606,8 +609,12 @@ namespace HotChocolate.Configuration
                     normalized = null;
                     return false;
                 }
-                _dependencyLookup[reference] = nr!;
-                n.Add(nr!);
+
+                if (!n.Contains(nr))
+                {
+                    _dependencyLookup[reference] = nr!;
+                    n.Add(nr!);
+                }
             }
 
             normalized = n;
@@ -616,7 +623,7 @@ namespace HotChocolate.Configuration
 
         internal bool TryNormalizeReference(
             ITypeReference typeReference,
-            [NotNullWhen(true)]out ITypeReference? normalized)
+            [NotNullWhen(true)] out ITypeReference? normalized)
         {
             if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference? nr))
             {
@@ -660,7 +667,7 @@ namespace HotChocolate.Configuration
 
         private bool TryNormalizeClrReference(
             ClrTypeReference typeReference,
-            [NotNullWhen(true)]out ITypeReference? normalized)
+            [NotNullWhen(true)] out ITypeReference? normalized)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
                 && Internal.TypeInfo.TryCreate(typeReference.Type, out Internal.TypeInfo? typeInfo))

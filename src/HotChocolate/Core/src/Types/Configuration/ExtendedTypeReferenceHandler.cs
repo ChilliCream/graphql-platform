@@ -5,6 +5,7 @@ using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 

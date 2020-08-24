@@ -14,7 +14,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            ExtendedType extendedType = ExtendedType.FromType(typeof(byte[]));
+            Internal.ExtendedType extendedType = Internal.ExtendedType.FromType(typeof(byte[]));
 
             // assert
             Assert.True(extendedType.IsArray);
@@ -27,10 +27,10 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            ExtendedType list = ExtendedType.FromType(
+            Internal.ExtendedType list = Internal.ExtendedType.FromType(
                 typeof(NonNullType<NativeType<List<byte?>>>));
 
-            ExtendedType nullableList = ExtendedType.FromType(
+            Internal.ExtendedType nullableList = Internal.ExtendedType.FromType(
                 typeof(List<byte?>));
 
             // assert
@@ -47,7 +47,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            ExtendedType dict = ExtendedType.FromType(typeof(Dictionary<string, string>));
+            Internal.ExtendedType dict = Internal.ExtendedType.FromType(typeof(Dictionary<string, string>));
 
             // assert
             Assert.True(dict.IsList);
@@ -59,7 +59,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            ExtendedType extendedType = ExtendedType.FromType(typeof(ListType<StringType>));
+            Internal.ExtendedType extendedType = Internal.ExtendedType.FromType(typeof(ListType<StringType>));
 
             // assert
             Assert.True(extendedType.IsGeneric);
@@ -72,7 +72,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             // act
-            ExtendedType extendedType = ExtendedType.FromType(
+            Internal.ExtendedType extendedType = Internal.ExtendedType.FromType(
                 typeof(NonNullType<ListType<StringType>>));
 
             // assert
@@ -84,8 +84,8 @@ namespace HotChocolate.Utilities
         public void IsEqual_Byte_Byte_True()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
-            ExtendedType b = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType b = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
             bool result = a.Equals(b);
@@ -98,8 +98,8 @@ namespace HotChocolate.Utilities
         public void IsEqual_Object_Byte_Byte_True()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
-            ExtendedType b = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType b = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
             bool result = a.Equals((object)b);
@@ -112,7 +112,7 @@ namespace HotChocolate.Utilities
         public void IsEqual_Ref_Byte_Byte_True()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
             bool result = a.Equals(a);
@@ -125,7 +125,7 @@ namespace HotChocolate.Utilities
         public void IsEqual_Ref_Object_Byte_Byte_True()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
             bool result = a.Equals((object)a);
@@ -138,10 +138,10 @@ namespace HotChocolate.Utilities
         public void IsEqual_Byte_Null_False()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
-            bool result = a.Equals(default(ExtendedType));
+            bool result = a.Equals(default(Internal.ExtendedType));
 
             // assert
             Assert.False(result);
@@ -151,7 +151,7 @@ namespace HotChocolate.Utilities
         public void IsEqual_Object_Byte_Null_False()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
 
             // act
             bool result = a.Equals(default(object));
@@ -164,8 +164,8 @@ namespace HotChocolate.Utilities
         public void IsEqual_Byte_String_False()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
-            ExtendedType b = ExtendedType.FromType(typeof(string));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType b = Internal.ExtendedType.FromType(typeof(string));
 
             // act
             bool result = a.Equals(b);
@@ -178,8 +178,8 @@ namespace HotChocolate.Utilities
         public void IsEqual_Object_Byte_String_False()
         {
             // arrange
-            ExtendedType a = ExtendedType.FromType(typeof(byte));
-            ExtendedType b = ExtendedType.FromType(typeof(string));
+            Internal.ExtendedType a = Internal.ExtendedType.FromType(typeof(byte));
+            Internal.ExtendedType b = Internal.ExtendedType.FromType(typeof(string));
 
             // act
             bool result = a.Equals((object)b);

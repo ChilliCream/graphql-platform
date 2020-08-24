@@ -71,7 +71,7 @@ namespace HotChocolate.Utilities
             IReadOnlyList<object> list,
             ConverterContext context)
         {
-            Type elementType = ExtendedType.GetElementType(context.ClrType);
+            Type elementType = Internal.ExtendedType.GetElementType(context.ClrType);
 
             if (elementType is not null)
             {

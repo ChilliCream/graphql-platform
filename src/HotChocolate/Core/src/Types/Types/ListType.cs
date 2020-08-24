@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Types
 {

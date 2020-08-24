@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Internal;
+using System.Reflection;
 using HotChocolate.Types;
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Internal
 {
     internal sealed partial class ExtendedType
         : IExtendedType
@@ -14,7 +14,7 @@ namespace HotChocolate.Utilities
         private readonly IExtendedType? _elementType;
         private List<IExtendedType>? _interfaces;
 
-        public ExtendedType(
+        internal ExtendedType(
             Type type,
             bool isNullable,
             ExtendedTypeKind kind,
@@ -186,57 +186,77 @@ namespace HotChocolate.Utilities
             }
         }
 
-        public static ExtendedType FromType(Type type)
+        public static ExtendedType FromType(Type type) =>
+            TypeCache.GetOrCreateType(type, () => FromTypeInternal(type));
+
+        private static ExtendedType FromTypeInternal(Type type)
         {
             return IsSchemaTypeInternal(type)
                 ? FromSchemaType(type)
                 : FromSystemType(type);
         }
 
-        public static ExtendedType FromExtendedType(IExtendedType type)
+        public static ExtendedType FromExtendedType(IExtendedType type, MemberInfo? member = null)
         {
             if (type.Kind == ExtendedTypeKind.Extended)
             {
-                type = RemoveNonEssentialTypes(type);
-
-                IReadOnlyList<IExtendedType> arguments = type.TypeArguments;
-                var extendedArguments = new IExtendedType[arguments.Count];
-
-                for (var i = 0; i < extendedArguments.Length; i++)
-                {
-                    extendedArguments[i] = FromExtendedType(arguments[i]);
-                }
-
-                IExtendedType? elementType = null;
-                bool isList = !type.IsArray && IsSupportedCollectionInterface(type.Type);
-
-                if (isList && type.TypeArguments.Count == 1)
-                {
-                    Type a = GetInnerListType(type.Type)!;
-                    IExtendedType b = type.TypeArguments[0];
-                    if (a == b.Type || a == b.OriginalType)
-                    {
-                        elementType = b;
-                    }
-                }
-
-                if (type.IsArray)
-                {
-                    elementType = type.GetElementType();
-                }
-
-                return new ExtendedType(
-                    type.Type,
-                    type.IsNullable,
-                    ExtendedTypeKind.Unknown,
-                    isList,
-                    false,
-                    extendedArguments,
-                    type.OriginalType,
-                    elementType);
+                return member is null
+                    ? TypeCache.GetOrCreateType(() => FromExtendedTypeInternal(type))
+                    : TypeCache.GetOrCreateType(member, () => FromExtendedTypeInternal(type));
             }
 
             throw new NotSupportedException("Kind must be extended.");
+        }
+
+        public static ExtendedType FromExtendedType(IExtendedType type, ParameterInfo member)
+        {
+            if (type.Kind == ExtendedTypeKind.Extended)
+            {
+                return TypeCache.GetOrCreateType(member, () => FromExtendedTypeInternal(type));
+            }
+
+            throw new NotSupportedException("Kind must be extended.");
+        }
+
+        private static ExtendedType FromExtendedTypeInternal(IExtendedType type)
+        {
+            type = RemoveNonEssentialTypes(type);
+
+            IReadOnlyList<IExtendedType> arguments = type.TypeArguments;
+            var extendedArguments = new IExtendedType[arguments.Count];
+
+            for (var i = 0; i < extendedArguments.Length; i++)
+            {
+                extendedArguments[i] = FromExtendedType(arguments[i]);
+            }
+
+            IExtendedType? elementType = null;
+            var isList = !type.IsArray && IsSupportedCollectionInterface(type.Type);
+
+            if (isList && type.TypeArguments.Count == 1)
+            {
+                Type a = GetInnerListType(type.Type)!;
+                IExtendedType b = type.TypeArguments[0];
+                if (a == b.Type || a == b.OriginalType)
+                {
+                    elementType = b;
+                }
+            }
+
+            if (type.IsArray)
+            {
+                elementType = type.GetElementType();
+            }
+
+            return new ExtendedType(
+                type.Type,
+                type.IsNullable,
+                ExtendedTypeKind.Unknown,
+                isList,
+                false,
+                extendedArguments,
+                type.OriginalType,
+                elementType);
         }
 
         private static ExtendedType FromSystemType(Type type)

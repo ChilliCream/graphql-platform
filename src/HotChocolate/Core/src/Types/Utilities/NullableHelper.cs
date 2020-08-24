@@ -1,7 +1,6 @@
-using System.Collections.ObjectModel;
-using System.Net.NetworkInformation;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -36,6 +35,11 @@ namespace HotChocolate.Utilities
 
         public static IExtendedType GetReturnType(MemberInfo member)
         {
+            return ExtendedType.FromExtendedType(GetReturnTypeInternal(member), member);
+        }
+
+        private static IExtendedType GetReturnTypeInternal(MemberInfo member)
+        {
             var helper = new NullableHelper(member.DeclaringType!);
             Nullable context = helper.GetContext(member);
             ReadOnlySpan<byte> flags = GetFlags(member);
@@ -54,20 +58,17 @@ namespace HotChocolate.Utilities
             }
         }
 
-        public IExtendedType GetPropertyInfo(PropertyInfo property)
+        public static ExtendedMethodTypeInfo GetExtendedMethodInfo(MethodInfo method)
         {
-            return CreateExtendedType(
-                GetContext(property),
-                GetFlags(property),
-                property.PropertyType);
+            var helper = new NullableHelper(method.DeclaringType!);
+            return helper.GetMethodInfo(method);
         }
 
-        public ExtendedMethodTypeInfo GetMethodInfo(MethodInfo method)
+        private ExtendedMethodTypeInfo GetMethodInfo(MethodInfo method)
         {
-            IExtendedType returnType = CreateExtendedType(
-                GetContext(method),
-                GetFlags(method),
-                method.ReturnType);
+            IExtendedType returnType = ExtendedType.FromExtendedType(
+                CreateExtendedType(GetContext(method), GetFlags(method), method.ReturnType),
+                method);
 
             ParameterInfo[] parameters = method.GetParameters();
             var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
@@ -76,10 +77,12 @@ namespace HotChocolate.Utilities
             {
                 parameterTypes.Add(
                     parameter,
-                    CreateExtendedType(
-                        GetContext(parameter),
-                        GetFlags(parameter),
-                        parameter.ParameterType));
+                    ExtendedType.FromExtendedType(
+                        CreateExtendedType(
+                            GetContext(parameter),
+                            GetFlags(parameter),
+                            parameter.ParameterType),
+                        parameter));
             }
 
             return new ExtendedMethodTypeInfo(returnType, parameterTypes);
@@ -106,7 +109,7 @@ namespace HotChocolate.Utilities
                 {
                     if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
-                        return new ExtendedType(
+                        return new Internal.ExtendedType(
                             type.GetGenericArguments()[0],
                             true,
                             ExtendedTypeKind.Extended);
@@ -118,14 +121,14 @@ namespace HotChocolate.Utilities
                         arguments.Add(CreateExtendedType(
                             context, flags, argumentType, ref position));
                     }
-                    return new ExtendedType(
+                    return new Internal.ExtendedType(
                         type,
                         false,
                         ExtendedTypeKind.Extended,
                         typeArguments: arguments);
                 }
 
-                return new ExtendedType(
+                return new Internal.ExtendedType(
                     type,
                     false,
                     ExtendedTypeKind.Extended);
@@ -154,7 +157,7 @@ namespace HotChocolate.Utilities
                         context, flags, argumentType, ref position));
                 }
 
-                return new ExtendedType(
+                return new Internal.ExtendedType(
                     type,
                     state == Nullable.Yes,
                     ExtendedTypeKind.Extended,
@@ -170,7 +173,7 @@ namespace HotChocolate.Utilities
                         type.GetElementType()!,
                         ref position);
 
-                return new ExtendedType(
+                return new Internal.ExtendedType(
                     type,
                     state == Nullable.Yes,
                     ExtendedTypeKind.Extended,
@@ -178,7 +181,7 @@ namespace HotChocolate.Utilities
                     elementType: elementType);
             }
 
-            return new ExtendedType(
+            return new Internal.ExtendedType(
                 type,
                 state == Nullable.Yes,
                 ExtendedTypeKind.Extended);

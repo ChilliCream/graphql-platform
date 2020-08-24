@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 

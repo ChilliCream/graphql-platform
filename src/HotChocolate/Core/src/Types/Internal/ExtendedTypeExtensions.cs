@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -17,15 +16,12 @@ namespace HotChocolate.Internal
             this IExtendedType type,
             params bool?[] nullable)
         {
-            if (nullable.Length == 0)
-            {
-                return type;
-            }
-
-            return RewriteNullability(type, nullable, 0);
+            return nullable.Length == 0
+                ? type
+                : TypeCache.GetOrCreateType(() =>  RewriteNullability(type, nullable, 0));
         }
 
-        private static IExtendedType RewriteNullability(
+        private static ExtendedType RewriteNullability(
             IExtendedType type,
             bool?[] nullable,
             int i)
@@ -76,7 +72,7 @@ namespace HotChocolate.Internal
                     elementType);
             }
 
-            return type;
+            return (ExtendedType)type;
         }
 
         public static IExtendedType ToExtendedType(this Type type) =>

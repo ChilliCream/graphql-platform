@@ -21,8 +21,8 @@ namespace HotChocolate.Utilities
             ChangeTypeProvider root,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            Type sourceElement = ExtendedType.FromType(source).GetElementType()!.OriginalType;
-            Type targetElement = ExtendedType.FromType(target).GetElementType()!.OriginalType;
+            Type sourceElement = Internal.ExtendedType.FromType(source).GetElementType()!.OriginalType;
+            Type targetElement = Internal.ExtendedType.FromType(target).GetElementType()!.OriginalType;
 
             if (sourceElement != null
                 && targetElement != null

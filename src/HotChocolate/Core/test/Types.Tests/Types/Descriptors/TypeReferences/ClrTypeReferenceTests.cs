@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Internal;
-using HotChocolate.Utilities;
 using Xunit;
-using Nullable = System.Nullable;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -34,20 +31,6 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public void Foo()
-        {
-            TypeReference ref1 = TypeReference.Create(typeof(string), TypeContext.None);
-            TypeReference ref2 = TypeReference.Create(typeof(string), TypeContext.None);
-            TypeReference ref3 = TypeReference.Create(typeof(string), TypeContext.Output);
-
-            var set = new HashSet<TypeReference>();
-            set.Add(ref1);
-
-            bool r2 = set.Contains(ref2);
-            bool r3 = set.Contains(ref3);
-        }
-
-        [Fact]
         public void TypeReference_Create_Generic()
         {
             // arrange
@@ -59,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal(typeof(int), typeReference.Type.OriginalType);
             Assert.Equal(TypeContext.Input, typeReference.Context);
-            Assert.Equal("abc", typeReference.Scope); 
+            Assert.Equal("abc", typeReference.Scope);
         }
 
         [Fact]
@@ -97,7 +80,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            ClrTypeReference typeReference = 
+            ClrTypeReference typeReference =
                 TypeReference.Create<ObjectType<string>>(scope: "abc");
 
             // assert
@@ -111,7 +94,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            ClrTypeReference typeReference = 
+            ClrTypeReference typeReference =
                 TypeReference.Create<InputObjectType<string>>(scope: "abc");
 
             // assert
@@ -203,33 +186,6 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.True(xy);
             Assert.False(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
-        public void ClrTypeReference_Equals_Nullability()
-        {
-            // arrange
-            ClrTypeReference x = TypeReference.Create(
-                typeof(string),
-                TypeContext.None);
-
-            var y = TypeReference.Create(
-                typeof(string),
-                TypeContext.Output);
-
-            var z = TypeReference.Create(
-                typeof(string),
-                TypeContext.Input);
-
-            // act
-            var xy = x.Equals(y);
-            var xz = x.Equals(z);
-            var yz = y.Equals(z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
             Assert.False(yz);
         }
 
@@ -331,33 +287,6 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.True(xy);
             Assert.False(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
-        public void ITypeReference_Equals_Nullability()
-        {
-            // arrange
-            ClrTypeReference x = TypeReference.Create(
-                typeof(string),
-                TypeContext.None);
-
-            var y = TypeReference.Create(
-                typeof(string),
-                TypeContext.Output);
-
-            var z = TypeReference.Create(
-                typeof(string),
-                TypeContext.Input);
-
-            // act
-            var xy = x.Equals((ITypeReference)y);
-            var xz = x.Equals((ITypeReference)z);
-            var yz = y.Equals((ITypeReference)z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
             Assert.False(yz);
         }
 
@@ -654,22 +583,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeof(int), typeReference2.Type.OriginalType);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-        }
-
-        [Fact]
-        public void ClrTypeReference_With_Type_Null()
-        {
-            // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
-                typeof(string),
-                TypeContext.Input,
-                scope: "foo");
-
-            // act
-            Action action = () => typeReference1.With(null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]

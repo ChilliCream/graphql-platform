@@ -9,6 +9,7 @@ using HotChocolate.Properties;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 

@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
                     }
                     else
                     {
-                        components.Push(new ExtendedType(
+                        components.Push(new Internal.ExtendedType(
                             current.Type,
                             makeNullable,
                             current.Kind,
