@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -302,8 +303,7 @@ namespace HotChocolate
         {
             if (type is ObjectType objectType)
             {
-                if (_operations.TryGetValue(OperationType.Query,
-                    out ITypeReference reference))
+                if (_operations.TryGetValue(OperationType.Query, out ITypeReference reference))
                 {
                     if (reference is SchemaTypeReference sr)
                     {
@@ -312,14 +312,13 @@ namespace HotChocolate
 
                     if (reference is ClrTypeReference cr)
                     {
-                        return cr.Type == objectType.GetType()
-                            || cr.Type == objectType.RuntimeType;
+                        return cr.Type == objectType.GetType().ToExtendedType()
+                            || cr.Type == objectType.RuntimeType.ToExtendedType();
                     }
 
                     if (reference is SyntaxTypeReference str)
                     {
-                        return objectType.Name.Equals(
-                            str.Type.NamedType().Name.Value);
+                        return objectType.Name.Equals(str.Type.NamedType().Name.Value);
                     }
                 }
                 else

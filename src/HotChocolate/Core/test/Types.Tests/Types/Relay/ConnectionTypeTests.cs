@@ -94,8 +94,7 @@ namespace HotChocolate.Types.Relay
         public async Task UsePaging_WithNonNull_ElementType()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                c => c.RegisterQueryType<QueryType2>());
+            ISchema schema = Schema.Create(c => c.RegisterQueryType<QueryType2>());
             IRequestExecutor executor = schema.MakeExecutable();
 
             var query = @"

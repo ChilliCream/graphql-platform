@@ -68,7 +68,7 @@ namespace HotChocolate.Internal
                     type.IsList,
                     type.IsNamedType,
                     typeArguments,
-                    type.OriginalType,
+                    type.Source,
                     elementType);
             }
 

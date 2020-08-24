@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Descriptors
             ITypeNode type,
             TypeContext context = TypeContext.None,
             string? scope = null) =>
-            new SyntaxTypeReference(type, context);
+            new SyntaxTypeReference(type, context, scope);
 
         public static SyntaxTypeReference Create(
             NameString typeName,

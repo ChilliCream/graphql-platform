@@ -1,10 +1,11 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Reflection;
-using System.Linq;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -59,17 +60,16 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractNamedType(type);
+            var typeInfo = Context.Inspector.CreateTypeInfo(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IOutputType).IsAssignableFrom(extractedType))
+            if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
                 throw new ArgumentException(
                     TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.SetMoreSpecificType(
-                type,
+                typeInfo.GetExtendedType(), 
                 TypeContext.Output);
         }
 

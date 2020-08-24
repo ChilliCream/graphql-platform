@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -9,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         public static TDefinition SetMoreSpecificType<TDefinition>(
             this TDefinition definition,
-            Type type,
+            IExtendedType type,
             TypeContext context)
             where TDefinition : FieldDefinitionBase
         {
@@ -35,21 +36,20 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsTypeMoreSpecific(
             ITypeReference typeReference,
-            Type type)
+            IExtendedType type)
         {
             if (typeReference is SchemaTypeReference)
             {
                 return false;
             }
 
-            if (typeReference == null
-                || BaseTypes.IsSchemaType(type))
+            if (typeReference == null || type.IsSchemaType)
             {
                 return true;
             }
 
-            return typeReference is ClrTypeReference clr &&
-                   !clr.Type.IsSchemaType;
+            return typeReference is ClrTypeReference clr && 
+                !clr.Type.IsSchemaType;
         }
 
         private static bool IsTypeMoreSpecific(

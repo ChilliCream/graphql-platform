@@ -41,7 +41,7 @@ namespace HotChocolate.Configuration
             bool isInferred = false)
         {
             RegisteredType registeredType = InitializeType(
-                typeSystemObject, 
+                typeSystemObject,
                 scope,
                 isInferred);
 

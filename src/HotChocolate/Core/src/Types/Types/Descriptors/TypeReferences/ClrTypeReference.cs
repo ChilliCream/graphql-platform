@@ -93,7 +93,7 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: {Type.OriginalType.GetTypeName()}";
+            return $"{Context}: {Type.Source.GetTypeName()}";
         }
 
         public ClrTypeReference WithType(Type type) =>

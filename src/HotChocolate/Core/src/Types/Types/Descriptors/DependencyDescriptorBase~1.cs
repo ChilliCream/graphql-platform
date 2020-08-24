@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void DependsOn(Type schemaType, bool mustBeNamedOrCompleted)
         {
-            if (schemaType == null)
+            if (schemaType is null)
             {
                 throw new ArgumentNullException(nameof(schemaType));
             }
@@ -40,9 +40,7 @@ namespace HotChocolate.Types.Descriptors
                 ? DependencyKind
                 : TypeDependencyKind.Default;
 
-            _configuration.Dependencies.Add(
-                TypeDependency.FromSchemaType(
-                    schemaType, kind));
+            _configuration.Dependencies.Add(TypeDependency.FromSchemaType(schemaType, kind));
         }
 
         protected void DependsOn(
@@ -57,8 +55,7 @@ namespace HotChocolate.Types.Descriptors
 
             _configuration.Dependencies.Add(
                 new TypeDependency(
-                    TypeReference.Create(
-                        new NamedTypeNode(typeName), TypeContext.None),
+                    TypeReference.Create(new NamedTypeNode(typeName), TypeContext.None),
                     kind));
         }
     }

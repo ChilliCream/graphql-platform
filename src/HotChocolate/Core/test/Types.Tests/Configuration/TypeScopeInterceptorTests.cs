@@ -124,7 +124,7 @@ namespace HotChocolate.Configuration
                 ITypeDiscoveryContext discoveryContext,
                 [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
             {
-                if (discoveryContext is { Scope: { } })
+                if (discoveryContext is { Scope: not null })
                 {
                     typeDependencies = discoveryContext.TypeDependencies
                         .Where(t => t.TypeReference.Scope is null)

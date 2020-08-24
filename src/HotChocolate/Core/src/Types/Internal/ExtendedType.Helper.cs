@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 using HotChocolate.Types;
 
 #nullable enable
@@ -13,7 +12,7 @@ namespace HotChocolate.Internal
     internal sealed partial class ExtendedType
     {
         public static Type? GetElementType(Type listType) =>
-            FromType(listType).GetElementType()?.OriginalType;
+            FromType(listType).GetElementType()?.Source;
 
         private static bool IsSchemaTypeInternal(Type type)
         {
@@ -43,7 +42,8 @@ namespace HotChocolate.Internal
                typeof(InterfaceType).IsAssignableFrom(type) ||
                typeof(EnumType).IsAssignableFrom(type) ||
                typeof(UnionType).IsAssignableFrom(type) ||
-               typeof(InputObjectType).IsAssignableFrom(type);
+               typeof(InputObjectType).IsAssignableFrom(type) ||
+               typeof(DirectiveType).IsAssignableFrom(type);
         }
 
         private static Type RemoveNonEssentialTypes(Type type)
@@ -122,7 +122,7 @@ namespace HotChocolate.Internal
             return null;
         }
 
-        private static Type? GetInnerListType(Type type)
+        internal static Type? GetInnerListType(Type type)
         {
             Type? typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
 

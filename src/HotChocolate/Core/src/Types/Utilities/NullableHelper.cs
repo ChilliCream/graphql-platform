@@ -19,7 +19,7 @@ namespace HotChocolate.Utilities
 
         private readonly Nullable _context;
 
-        public NullableHelper(Type type)
+        private NullableHelper(Type type)
         {
             _context = GetContext(GetNullableContextAttribute(type.Assembly), Nullable.Yes);
 

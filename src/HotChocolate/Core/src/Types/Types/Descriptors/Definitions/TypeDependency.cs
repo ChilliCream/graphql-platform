@@ -30,23 +30,20 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 kind ?? Kind);
         }
 
-        public static TypeDependency FromSchemaType(Type type) =>
-            FromSchemaType(type, TypeDependencyKind.Default);
-
         public static TypeDependency FromSchemaType(
             Type type,
-            TypeDependencyKind kind)
+            TypeDependencyKind kind = TypeDependencyKind.Default)
         {
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (BaseTypes.IsSchemaType(type))
+            ClrTypeReference typeReference = Descriptors.TypeReference.Create(type);
+            
+            if (typeReference.Type.IsSchemaType)
             {
-                TypeContext context = SchemaTypeReference.InferTypeContext(type);
-                var reference = Descriptors.TypeReference.Create(type, context);
-                return new TypeDependency(reference, kind);
+                return new TypeDependency(typeReference, kind);
             }
 
             throw new ArgumentException(

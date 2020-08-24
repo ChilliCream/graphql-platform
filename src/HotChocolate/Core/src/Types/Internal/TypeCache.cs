@@ -74,5 +74,47 @@ namespace HotChocolate.Internal
             }
             return typeInfo;
         }
+
+        public static IReadOnlyList<IExtendedType> FindType(string phrase)
+        {
+            var list = new List<IExtendedType>();
+
+            lock (_types)
+            {
+                foreach (IExtendedType type in _types.Values)
+                {
+                    if (type.ToString().Contains(phrase))
+                    {
+                        if (!list.Contains(type))
+                        {
+                            list.Add(type);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public static IReadOnlyList<TypeInfo> FindTypeInfo(string phrase)
+        {
+            var list = new List<TypeInfo>();
+
+            lock (_typeInfos)
+            {
+                foreach (TypeInfo typeInfo in _typeInfos.Values)
+                {
+                    if (typeInfo.GetExtendedType().ToString().Contains(phrase))
+                    {
+                        if (!list.Contains(typeInfo))
+                        {
+                            list.Add(typeInfo);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }

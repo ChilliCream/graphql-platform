@@ -42,7 +42,7 @@ namespace HotChocolate.Types
                             SchemaErrorBuilder.New()
                                 .SetMessage(
                                     "The specified type `{0}` is not a valid subscription type.",
-                                    extendedTypeRef.Type.OriginalType.ToString())
+                                    extendedTypeRef.Type.Source.ToString())
                                 .SetExtension("ClrMember", member)
                                 .SetExtension("ClrType", member.DeclaringType)
                                 .Build());

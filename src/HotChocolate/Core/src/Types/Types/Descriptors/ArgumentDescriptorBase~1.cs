@@ -1,5 +1,5 @@
 using System;
-using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -37,18 +37,15 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractNamedType(type);
+            var typeInfo = Context.Inspector.CreateTypeInfo(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IInputType).IsAssignableFrom(extractedType))
+            if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
                 throw new ArgumentException(
                     TypeResources.ArgumentDescriptor_InputTypeViolation);
             }
 
-            Definition.SetMoreSpecificType(
-                type,
-                TypeContext.Input);
+            Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
         }
 
         public void Type<TInputType>(TInputType inputType)
@@ -105,7 +102,9 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.SetMoreSpecificType(value.GetType(), TypeContext.Input);
+                Definition.SetMoreSpecificType(
+                    value.GetType().ToExtendedType(),
+                    TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
             }

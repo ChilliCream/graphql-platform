@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -42,7 +43,7 @@ namespace HotChocolate.Types.Descriptors
             Type? resolverType)
             : base(context)
         {
-            Definition.Member = member ?? 
+            Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
                 member, MemberKind.ObjectField);
@@ -220,7 +221,9 @@ namespace HotChocolate.Types.Descriptors
 
             if (resultType != null)
             {
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    resultType.ToExtendedType(),
+                    TypeContext.Output);
 
                 if (resultType.IsGenericType)
                 {
@@ -253,7 +256,9 @@ namespace HotChocolate.Types.Descriptors
             {
                 Type resultType = member.GetReturnType();
 
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    resultType.ToExtendedType(),
+                    TypeContext.Output);
 
                 Definition.ResolverType = typeof(TResolver);
                 Definition.ResolverMember = member;

@@ -14,6 +14,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -470,8 +471,8 @@ namespace HotChocolate.Configuration
             {
                 foreach (RegisteredType registeredType in _discoveredTypes.Types)
                 {
-                    TryNormalizeDependencies(registeredType.Dependencies
-                            .Select(t => t.TypeReference),
+                    TryNormalizeDependencies(
+                        registeredType.Dependencies.Select(t => t.TypeReference),
                         out _);
                 }
             }
@@ -547,12 +548,12 @@ namespace HotChocolate.Configuration
                         : type.References[0].ToString()!;
 
                     _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            TypeResources.TypeInitializer_CannotResolveDependency,
+                        .SetMessage(
+                            TypeInitializer_CannotResolveDependency,
                             name,
                             string.Join(", ", type.Dependencies
                                 .Where(t => t.Kind == kind)
-                                .Select(t => t.TypeReference))))
+                                .Select(t => t.TypeReference)))
                         .SetTypeSystemObject(type.Type)
                         .Build());
                 }
@@ -590,8 +591,6 @@ namespace HotChocolate.Configuration
                     {
                         yield return type;
                     }
-
-                    var x = normalized.Except(processed).ToList();
                 }
             }
         }
@@ -713,5 +712,20 @@ namespace HotChocolate.Configuration
 
         private static bool IsTypeSystemObject(Type type) =>
             typeof(TypeSystemObjectBase).IsAssignableFrom(type);
+
+        internal IReadOnlyList<ITypeReference> Find(string phrase)
+        {
+            var list = new List<ITypeReference>();
+
+            foreach (ClrTypeReference key in ClrTypes!.Keys)
+            {
+                if (key.Type.ToString()!.Contains(phrase))
+                {
+                    list.Add(key);
+                }
+            }
+
+            return list;
+        }
     }
 }

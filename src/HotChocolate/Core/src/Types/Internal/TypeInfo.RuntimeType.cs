@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo
+    internal sealed partial class TypeInfo
     {
         public static class RuntimeType
         {

@@ -44,7 +44,7 @@ namespace HotChocolate.Utilities
                             current.IsList,
                             current.IsNamedType,
                             current.TypeArguments,
-                            current.OriginalType));
+                            current.Source));
                     }
                 }
                 current = GetInnerType(current);

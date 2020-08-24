@@ -9,20 +9,12 @@ namespace HotChocolate.Types.Descriptors
         public static ITypeReference With(
             this ITypeReference typeReference,
             Optional<TypeContext> context = default,
-            Optional<string?> scope = default,
-            Optional<bool[]?> nullable = default)
-        {
-            switch (typeReference)
+            Optional<string?> scope = default) => typeReference switch
             {
-                case ClrTypeReference clr:
-                    return clr.With(context: context, scope: scope, nullable: nullable);
-                case SchemaTypeReference schema:
-                    return schema.With(context: context, scope: scope, nullable: nullable);
-                case SyntaxTypeReference syntax:
-                    return syntax.With(context: context, scope: scope, nullable: nullable);
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+                ClrTypeReference clr => clr.With(context: context, scope: scope),
+                SchemaTypeReference schema => schema.With(context: context, scope: scope),
+                SyntaxTypeReference syntax => syntax.With(context: context, scope: scope),
+                _ => throw new NotSupportedException()
+            };
     }
 }

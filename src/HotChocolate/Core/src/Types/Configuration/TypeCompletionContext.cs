@@ -8,7 +8,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Configuration
 {

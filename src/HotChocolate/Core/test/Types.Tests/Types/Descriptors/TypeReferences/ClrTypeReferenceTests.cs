@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
                 scope: scope);
 
             // assert
-            Assert.Equal(clrType, typeReference.Type.OriginalType);
+            Assert.Equal(clrType, typeReference.Type.Source);
             Assert.Equal(context, typeReference.Context);
             Assert.Equal(scope, typeReference.Scope);
         }
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
                 scope: "abc");
 
             // assert
-            Assert.Equal(typeof(int), typeReference.Type.OriginalType);
+            Assert.Equal(typeof(int), typeReference.Type.Source);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Descriptors
                 scope: "abc");
 
             // assert
-            Assert.Equal(typeof(ObjectType<string>), typeReference.Type.OriginalType);
+            Assert.Equal(typeof(ObjectType<string>), typeReference.Type.Source);
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Descriptors
                 scope: "abc");
 
             // assert
-            Assert.Equal(typeof(InputObjectType<string>), typeReference.Type.OriginalType);
+            Assert.Equal(typeof(InputObjectType<string>), typeReference.Type.Source);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -84,7 +84,7 @@ namespace HotChocolate.Types.Descriptors
                 TypeReference.Create<ObjectType<string>>(scope: "abc");
 
             // assert
-            Assert.Equal(typeof(ObjectType<string>), typeReference.Type.OriginalType);
+            Assert.Equal(typeof(ObjectType<string>), typeReference.Type.Source);
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Descriptors
                 TypeReference.Create<InputObjectType<string>>(scope: "abc");
 
             // assert
-            Assert.Equal(typeof(InputObjectType<string>), typeReference.Type.OriginalType);
+            Assert.Equal(typeof(InputObjectType<string>), typeReference.Type.Source);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
         }
@@ -419,7 +419,7 @@ namespace HotChocolate.Types.Descriptors
             ClrTypeReference typeReference2 = typeReference1.WithType(typeof(int));
 
             // assert
-            Assert.Equal(typeof(int), typeReference2.Type.OriginalType);
+            Assert.Equal(typeof(int), typeReference2.Type.Source);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
         }
@@ -544,7 +544,7 @@ namespace HotChocolate.Types.Descriptors
                 scope: "bar");
 
             // assert
-            Assert.Equal(typeof(int), typeReference2.Type.OriginalType);
+            Assert.Equal(typeof(int), typeReference2.Type.Source);
             Assert.Equal(TypeContext.Output, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
         }
@@ -580,7 +580,7 @@ namespace HotChocolate.Types.Descriptors
             ClrTypeReference typeReference2 = typeReference1.With(typeof(int).ToExtendedType());
 
             // assert
-            Assert.Equal(typeof(int), typeReference2.Type.OriginalType);
+            Assert.Equal(typeof(int), typeReference2.Type.Source);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
         }

@@ -20,7 +20,7 @@ namespace HotChocolate.Internal
         /// In case of a nullable int the original type will be
         /// <see cref="System.Nullable{System.Int32}"/>.
         /// </summary>
-        Type OriginalType { get; }
+        Type Source { get; }
 
         /// <summary>
         /// Gets the generic type definition if this is a generic type.

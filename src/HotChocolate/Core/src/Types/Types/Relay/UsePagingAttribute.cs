@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Relay
                     clr.WithType(typeInfo.NamedType),
                     out ClrTypeReference schemaType))
                 {
-                    type = schemaType.Type.OriginalType;
+                    type = schemaType.Type.Source;
                 }
             }
 

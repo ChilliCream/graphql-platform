@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -33,12 +34,12 @@ namespace HotChocolate.Internal
             _elementType = elementType;
 
             if (!IsArrayOrList &&
-                (kind == ExtendedTypeKind.Unknown || kind == ExtendedTypeKind.Extended))
+                (kind == ExtendedTypeKind.Runtime || kind == ExtendedTypeKind.Extended))
             {
                 IsList = IsListType(type);
             }
 
-            if (kind == ExtendedTypeKind.Unknown && typeArguments is null)
+            if (kind == ExtendedTypeKind.Runtime && typeArguments is null)
             {
                 if (type.IsGenericType && TypeArguments.Count == 0)
                 {
@@ -80,21 +81,21 @@ namespace HotChocolate.Internal
 
             if (originalType is not null)
             {
-                OriginalType = originalType;
+                Source = originalType;
             }
             else if (type.IsValueType && IsNullable)
             {
-                OriginalType = typeof(Nullable<>).MakeGenericType(type);
+                Source = typeof(Nullable<>).MakeGenericType(type);
             }
             else
             {
-                OriginalType = type;
+                Source = type;
             }
         }
 
         public Type Type { get; }
 
-        public Type OriginalType { get; }
+        public Type Source { get; }
 
         public Type? Definition { get; }
 
@@ -186,6 +187,9 @@ namespace HotChocolate.Internal
             }
         }
 
+        public override string ToString() =>
+            ExtendedTypeRewriter.Rewrite(this).GetTypeName();
+
         public static ExtendedType FromType(Type type) =>
             TypeCache.GetOrCreateType(type, () => FromTypeInternal(type));
 
@@ -237,25 +241,25 @@ namespace HotChocolate.Internal
             {
                 Type a = GetInnerListType(type.Type)!;
                 IExtendedType b = type.TypeArguments[0];
-                if (a == b.Type || a == b.OriginalType)
+                if (a == b.Type || a == b.Source)
                 {
-                    elementType = b;
+                    elementType = extendedArguments[0];
                 }
             }
 
-            if (type.IsArray)
+            if (type.IsArray && elementType is null)
             {
-                elementType = type.GetElementType();
+                elementType = FromExtendedType(type.GetElementType()!);
             }
 
             return new ExtendedType(
                 type.Type,
                 type.IsNullable,
-                ExtendedTypeKind.Unknown,
+                ExtendedTypeKind.Runtime,
                 isList,
                 false,
                 extendedArguments,
-                type.OriginalType,
+                type.Source,
                 elementType);
         }
 
@@ -271,10 +275,10 @@ namespace HotChocolate.Internal
                     return new ExtendedType(
                         type.GetGenericArguments()[0],
                         true,
-                        ExtendedTypeKind.Unknown,
+                        ExtendedTypeKind.Runtime,
                         originalType: type);
                 }
-                return new ExtendedType(type, false, ExtendedTypeKind.Unknown);
+                return new ExtendedType(type, false, ExtendedTypeKind.Runtime);
             }
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
@@ -282,10 +286,10 @@ namespace HotChocolate.Internal
                 return new ExtendedType(
                     RemoveNonEssentialTypes(type.GetGenericArguments()[0]),
                     false,
-                    ExtendedTypeKind.Unknown);
+                    ExtendedTypeKind.Runtime);
             }
 
-            return new ExtendedType(type, true, ExtendedTypeKind.Unknown);
+            return new ExtendedType(type, true, ExtendedTypeKind.Runtime);
         }
 
         private static ExtendedType FromSchemaType(Type type)
@@ -337,7 +341,10 @@ namespace HotChocolate.Internal
                         current,
                         nullable,
                         ExtendedTypeKind.Schema,
-                        isNamedType: true);
+                        isNamedType: true,
+                        originalType: nullable
+                            ? current
+                            : typeof(NonNullType<>).MakeGenericType(current));
                 }
                 else
                 {
@@ -347,7 +354,10 @@ namespace HotChocolate.Internal
                         ExtendedTypeKind.Schema,
                         isList: true,
                         typeArguments: new[] { extendedType },
-                        elementType: extendedType);
+                        elementType: extendedType,
+                        originalType: nullable
+                            ? current
+                            : typeof(NonNullType<>).MakeGenericType(current));
                 }
             }
 

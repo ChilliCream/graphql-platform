@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo
+    internal sealed partial class TypeInfo
     {
         private static class SchemaType
         {

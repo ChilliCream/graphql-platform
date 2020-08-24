@@ -36,6 +36,16 @@ namespace HotChocolate.Internal
         bool IsRuntimeType { get; }
 
         /// <summary>
+        /// If this type is a schema type then this method defines if it is an input type.
+        /// </summary>
+        bool IsInputType();
+
+        /// <summary>
+        /// If this type is a schema type then this method defines if it is an output type.
+        /// </summary>
+        bool IsOutputType();
+
+        /// <summary>
         /// Gets the extended type that contains information
         /// about type arguments and nullability.
         /// </summary>

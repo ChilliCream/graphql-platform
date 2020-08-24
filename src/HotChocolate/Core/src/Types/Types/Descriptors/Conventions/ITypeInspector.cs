@@ -175,6 +175,32 @@ namespace HotChocolate.Types.Descriptors
             PropertyInfo property,
             out object? defaultValue);
 
+        IExtendedType RewriteNullability(
+            IExtendedType type,
+            params bool?[] nullable);
+
+        
+        IExtendedType ToExtendedType(Type type);
+
+        /// <summary>
+        /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// 
+        /// </param>
+        /// <returns></returns>
+        ITypeInfo CreateTypeInfo(Type type);
+
+        /// <summary>
+        /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns>
+        /// 
+        /// 
+        /// </returns>
+        ITypeInfo CreateTypeInfo(IExtendedType type);
+
         /// <summary>
         /// Tries to create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
