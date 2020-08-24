@@ -16,14 +16,12 @@ namespace HotChocolate.Types.Descriptors
             // act
             SchemaTypeReference typeReference = TypeReference.Create(
                 type,
-                scope: "abc",
-                nullable: new bool[] { true });
+                scope: "abc");
 
             // assert
             Assert.Equal(type, typeReference.Type);
             Assert.Equal(TypeContext.Output, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable!, Assert.True);
         }
 
         [Fact]
@@ -35,14 +33,12 @@ namespace HotChocolate.Types.Descriptors
             // act
             SchemaTypeReference typeReference = TypeReference.Create(
                 type,
-                scope: "abc",
-                nullable: new bool[] { true });
+                scope: "abc");
 
             // assert
             Assert.Equal(type, typeReference.Type);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable!, Assert.True);
         }
 
         [Fact]
@@ -54,14 +50,12 @@ namespace HotChocolate.Types.Descriptors
             // act
             SchemaTypeReference typeReference = TypeReference.Create(
                 type,
-                scope: "abc",
-                nullable: new bool[] { true });
+                scope: "abc");
 
             // assert
             Assert.Equal(type, typeReference.Type);
             Assert.Equal(TypeContext.None, typeReference.Context);
             Assert.Equal("abc", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable!, Assert.True);
         }
 
         [Fact]
@@ -108,26 +102,6 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.False(xy);
             Assert.False(xz);
-        }
-
-        [Fact]
-        public async Task SchemaTypeReference_Equals_Nullability()
-        {
-            // arrange
-            StringType type = await CreateTypeAsync<StringType>();
-            SchemaTypeReference x = TypeReference.Create(type, nullable: new[] { true, false });
-            SchemaTypeReference y = TypeReference.Create(type, nullable: new[] { false, false });
-            SchemaTypeReference z = TypeReference.Create(type, nullable: new[] { true, false });
-
-            // act
-            var xy = x.Equals(y);
-            var xz = x.Equals(z);
-            var yz = y.Equals(z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
-            Assert.False(yz);
         }
 
         [Fact]
@@ -191,26 +165,6 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public async Task ITypeReference_Equals_Nullability()
-        {
-            // arrange
-            StringType type = await CreateTypeAsync<StringType>();
-            SchemaTypeReference x = TypeReference.Create(type, nullable: new[] { true, false });
-            SchemaTypeReference y = TypeReference.Create(type, nullable: new[] { false, false });
-            SchemaTypeReference z = TypeReference.Create(type, nullable: new[] { true, false });
-
-            // act
-            var xy = x.Equals((ITypeReference)y);
-            var xz = x.Equals((ITypeReference)z);
-            var yz = y.Equals((ITypeReference)z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
         public async Task Object_Equals_To_Null()
         {
             // arrange
@@ -271,26 +225,6 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public async Task Object_Equals_Nullability()
-        {
-            // arrange
-            StringType type = await CreateTypeAsync<StringType>();
-            SchemaTypeReference x = TypeReference.Create(type, nullable: new[] { true, false });
-            SchemaTypeReference y = TypeReference.Create(type, nullable: new[] { false, false });
-            SchemaTypeReference z = TypeReference.Create(type, nullable: new[] { true, false });
-
-            // act
-            var xy = x.Equals((object)y);
-            var xz = x.Equals((object)z);
-            var yz = y.Equals((object)z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
         public async Task SchemaTypeReference_ToString()
         {
             // arrange
@@ -312,8 +246,7 @@ namespace HotChocolate.Types.Descriptors
             IntType intType = await CreateTypeAsync<IntType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.WithType(intType);
@@ -322,7 +255,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(intType, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -332,8 +264,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             Action action = () => typeReference1.WithType(null!);
@@ -349,8 +280,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
@@ -359,7 +289,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.Output, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -369,8 +298,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.WithContext();
@@ -379,7 +307,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.None, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -389,8 +316,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.WithScope("bar");
@@ -399,7 +325,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -409,8 +334,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.WithScope();
@@ -419,47 +343,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Null(typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
-        }
-
-        [Fact]
-        public async Task SchemaTypeReference_WithNullable()
-        {
-            // arrange
-            StringType stringType = await CreateTypeAsync<StringType>();
-            SchemaTypeReference typeReference1 = TypeReference.Create(
-                stringType,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SchemaTypeReference typeReference2 = typeReference1.WithNullable(new[] { false });
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Collection(typeReference2.Nullable!, Assert.False);
-        }
-
-        [Fact]
-        public async Task SchemaTypeReference_WithNullable_Nothing()
-        {
-            // arrange
-            StringType stringType = await CreateTypeAsync<StringType>();
-            SchemaTypeReference typeReference1 = TypeReference.Create(
-                stringType,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SchemaTypeReference typeReference2 = typeReference1.WithNullable();
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Null(typeReference2.Nullable);
         }
 
         [Fact]
@@ -470,20 +353,17 @@ namespace HotChocolate.Types.Descriptors
             IntType intType = await CreateTypeAsync<IntType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.With(
                 intType,
-                scope: "bar",
-                nullable: new[] { false });
+                scope: "bar");
 
             // assert
             Assert.Equal(intType, typeReference2.Type);
             Assert.Equal(TypeContext.None, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Collection(typeReference2.Nullable!, Assert.False);
         }
 
         [Fact]
@@ -493,8 +373,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.With();
@@ -503,7 +382,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -514,8 +392,7 @@ namespace HotChocolate.Types.Descriptors
             IntType intType = await CreateTypeAsync<IntType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.With(intType);
@@ -524,7 +401,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(intType, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -534,8 +410,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             Action action = () => typeReference1.With(null);
@@ -551,8 +426,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
@@ -561,7 +435,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.None, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -571,8 +444,7 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference typeReference1 = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SchemaTypeReference typeReference2 = typeReference1.With(scope: "bar");
@@ -581,27 +453,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
-        }
-
-        [Fact]
-        public async Task SchemaTypeReference_With_Nullable()
-        {
-            // arrange
-            StringType stringType = await CreateTypeAsync<StringType>();
-            SchemaTypeReference typeReference1 = TypeReference.Create(
-                stringType,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SchemaTypeReference typeReference2 = typeReference1.With(nullable: null);
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Null(typeReference2.Nullable);
         }
 
         [Fact]
@@ -611,13 +462,11 @@ namespace HotChocolate.Types.Descriptors
             StringType stringType = await CreateTypeAsync<StringType>();
             SchemaTypeReference x = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { false });
+                scope: "foo");
 
             SchemaTypeReference y = TypeReference.Create(
                 stringType,
-                scope: "foo",
-                nullable: new[] { false });
+                scope: "foo");
 
             SchemaTypeReference z = TypeReference.Create(
                 stringType);

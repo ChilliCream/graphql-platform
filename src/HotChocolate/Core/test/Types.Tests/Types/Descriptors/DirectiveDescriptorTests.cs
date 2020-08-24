@@ -155,10 +155,10 @@ namespace HotChocolate.Types
             Assert.Collection(description.Arguments,
                 t => Assert.Equal(
                     typeof(NonNullType<StringType>),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type),
+                    Assert.IsType<ClrTypeReference>(t.Type).Type.OriginalType),
                 t => Assert.Equal(
                     typeof(string),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type));
+                    Assert.IsType<ClrTypeReference>(t.Type).Type.OriginalType));
         }
 
         [Fact]
@@ -177,10 +177,10 @@ namespace HotChocolate.Types
             Assert.Collection(description.Arguments,
                 t => Assert.Equal(
                     typeof(NonNullType<StringType>),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type),
+                    Assert.IsType<ClrTypeReference>(t.Type).Type.OriginalType),
                 t => Assert.Equal(
                     typeof(string),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type));
+                    Assert.IsType<ClrTypeReference>(t.Type).Type.OriginalType));
         }
 
         [Fact]

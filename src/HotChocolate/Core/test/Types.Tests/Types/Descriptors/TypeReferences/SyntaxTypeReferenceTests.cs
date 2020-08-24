@@ -359,7 +359,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]

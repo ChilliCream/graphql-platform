@@ -128,17 +128,12 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public ClrTypeReference With(
-            Optional<IExtendedType> type = default,
+            IExtendedType? type = default,
             Optional<TypeContext> context = default,
             Optional<string?> scope = default)
         {
-            if (type.HasValue && type.Value is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             return TypeReference.Create(
-                type.HasValue ? type.Value! : Type,
+                type ?? Type,
                 context.HasValue ? context.Value : Context,
                 scope.HasValue ? scope.Value : Scope);
         }

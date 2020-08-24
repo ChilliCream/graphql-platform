@@ -27,7 +27,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(StringType),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(StringType),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace HotChocolate.Types
             ObjectFieldDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace HotChocolate.Types
             ObjectFieldDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(NonNullType<ListType<NonNullType<__InputValue>>>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
         }
 
         [Fact]
@@ -161,7 +161,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(NativeType<string>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
 
             Assert.NotNull(description.Resolver);
 
@@ -191,7 +191,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(__Type),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ClrTypeReference>(typeRef).Type.OriginalType);
             Assert.NotNull(description.Resolver);
         }
 

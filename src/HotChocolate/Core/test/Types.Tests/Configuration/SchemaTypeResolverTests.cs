@@ -25,7 +25,7 @@ namespace HotChocolate
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Output, schemaType.Context);
-            Assert.Equal(typeof(ObjectType<Bar>), schemaType.Type);
+            Assert.Equal(typeof(ObjectType<Bar>), schemaType.Type.OriginalType);
         }
 
         [InlineData(TypeContext.Output)]
@@ -46,7 +46,7 @@ namespace HotChocolate
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Output, schemaType.Context);
-            Assert.Equal(typeof(InterfaceType<IBar>), schemaType.Type);
+            Assert.Equal(typeof(InterfaceType<IBar>), schemaType.Type.OriginalType);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace HotChocolate
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Input, schemaType.Context);
-            Assert.Equal(typeof(InputObjectType<Bar>), schemaType.Type);
+            Assert.Equal(typeof(InputObjectType<Bar>), schemaType.Type.OriginalType);
         }
 
         [InlineData(TypeContext.Output)]
@@ -87,7 +87,7 @@ namespace HotChocolate
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.None, schemaType.Context);
-            Assert.Equal(typeof(EnumType<Foo>), schemaType.Type);
+            Assert.Equal(typeof(EnumType<Foo>), schemaType.Type.OriginalType);
         }
 
         public class Bar

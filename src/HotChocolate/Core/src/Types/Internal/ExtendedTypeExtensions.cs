@@ -78,5 +78,8 @@ namespace HotChocolate.Internal
 
             return type;
         }
+
+        public static IExtendedType ToExtendedType(this Type type) =>
+            ExtendedType.FromType(type);
     }
 }
