@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
-        protected internal ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -27,13 +28,13 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
-        protected internal ObjectTypeDescriptor(IDescriptorContext context)
+        protected ObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
         }
 
-        protected internal ObjectTypeDescriptor(
+        protected ObjectTypeDescriptor(
             IDescriptorContext context,
             ObjectTypeDefinition definition)
             : base(context)
@@ -41,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        internal protected override ObjectTypeDefinition Definition { get; protected set; } =
+        protected internal override ObjectTypeDefinition Definition { get; protected set; } =
             new ObjectTypeDefinition();
 
         protected ICollection<ObjectFieldDescriptor> Fields { get; } =
@@ -135,20 +136,19 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             MemberInfo resolver)
         {
-            if (resolver is PropertyInfo)
+            switch (resolver)
             {
-                return true;
-            }
+                case PropertyInfo:
+                    return true;
 
-            if (resolver is MethodInfo m)
-            {
-                ParameterInfo parent = m.GetParameters()
-                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
-                    || parent.ParameterType.IsAssignableFrom(sourceType);
-            }
+                case MethodInfo m:
+                    ParameterInfo parent = m.GetParameters()
+                        .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                    return parent == null || parent.ParameterType.IsAssignableFrom(sourceType);
 
-            return false;
+                default:
+                    return false;
+            }
         }
 
         public IObjectTypeDescriptor SyntaxNode(
@@ -205,8 +205,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
             return this;
         }
 
@@ -225,8 +224,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
             {
-                throw new ArgumentException(
-                    TypeResources.ObjectTypeDescriptor_Resolver_SchemaType);
+                throw new ArgumentException(ObjectTypeDescriptor_Resolver_SchemaType);
             }
 
             ResolverTypes.Add(typeof(TResolver));
@@ -283,7 +281,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             throw new ArgumentException(
-                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
                 nameof(member));
         }
 

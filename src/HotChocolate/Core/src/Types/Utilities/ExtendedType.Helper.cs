@@ -12,7 +12,10 @@ namespace HotChocolate.Utilities
 {
     internal sealed partial class ExtendedType
     {
-        private static bool IsSchemaType(Type type)
+        public static Type? GetElementType(Type listType) =>
+            FromType(listType).GetElementType()?.OriginalType;
+
+        private static bool IsSchemaTypeInternal(Type type)
         {
             if (IsNamedSchemaType(type))
             {
@@ -26,7 +29,7 @@ namespace HotChocolate.Utilities
                     || typeof(NonNullType<>) == definition
                     || typeof(NativeType<>) == definition)
                 {
-                    return IsSchemaType(type.GetGenericArguments()[0]);
+                    return IsSchemaTypeInternal(type.GetGenericArguments()[0]);
                 }
             }
 
@@ -106,7 +109,7 @@ namespace HotChocolate.Utilities
                 {
                     Type elementType = interfaceType.GetGenericArguments()[0];
 
-                    if (type.TypeArguments.Count == 1 && 
+                    if (type.TypeArguments.Count == 1 &&
                         type.TypeArguments[0].Type == elementType)
                     {
                         return type.TypeArguments[0];

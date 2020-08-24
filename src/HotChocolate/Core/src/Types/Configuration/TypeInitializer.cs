@@ -5,7 +5,6 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration.Validation;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -37,11 +36,10 @@ namespace HotChocolate.Configuration
         private readonly IDescriptorContext _descriptorContext;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
-        private readonly IDictionary<string, object?> _contextData;
         private readonly ITypeInterceptor _interceptor;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
-        private DiscoveredTypes? _discoveredTypes = null;
+        private DiscoveredTypes? _discoveredTypes;
 
         public TypeInitializer(
             IServiceProvider services,
@@ -54,7 +52,6 @@ namespace HotChocolate.Configuration
         {
             _services = services;
             _descriptorContext = descriptorContext;
-            _contextData = _descriptorContext.ContextData;
             _initialTypes = initialTypes.ToList();
             _externalResolverTypes = externalResolverTypes.ToList();
             _interceptor = interceptor;
@@ -193,8 +190,8 @@ namespace HotChocolate.Configuration
                 foreach (IGrouping<NameString, RegisteredType> group in
                     extensions.GroupBy(t => t.Type.Name))
                 {
-                    RegisteredType type = types.FirstOrDefault(t =>
-                        t.Type.Name.Equals(group.Key));
+                    RegisteredType? type =
+                        types.FirstOrDefault(t => t.Type.Name.Equals(group.Key));
 
                     if (type != null && type.Type is INamedType targetType)
                     {
@@ -293,10 +290,10 @@ namespace HotChocolate.Configuration
                         .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
                     {
 
-                        ObjectType objectType = types.Values
+                        ObjectType? objectType = types.Values
                             .FirstOrDefault(t => t.GetType() == sourceType
                                 || t.RuntimeType == sourceType);
-                        if (objectType != null)
+                        if (objectType is not null)
                         {
                             AddResolvers(_descriptorContext, objectType, type);
                         }
@@ -337,9 +334,9 @@ namespace HotChocolate.Configuration
 
             if (resolver is MethodInfo m)
             {
-                ParameterInfo parent = m.GetParameters()
+                ParameterInfo? parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
+                return parent is null
                     || parent.ParameterType.IsAssignableFrom(sourceType);
             }
 
@@ -472,9 +469,7 @@ namespace HotChocolate.Configuration
             {
                 foreach (RegisteredType registeredType in _discoveredTypes.Types)
                 {
-                    TryNormalizeDependencies(
-                        registeredType,
-                        registeredType.Dependencies
+                    TryNormalizeDependencies(registeredType.Dependencies
                             .Select(t => t.TypeReference),
                         out _);
                 }
@@ -588,9 +583,7 @@ namespace HotChocolate.Configuration
                         type.Dependencies.Where(t => t.Kind == kind)
                             .Select(t => t.TypeReference);
 
-                    if (TryNormalizeDependencies(
-                        type,
-                        references,
+                    if (TryNormalizeDependencies(references,
                         out IReadOnlyList<ITypeReference>? normalized)
                         && processed.IsSupersetOf(normalized))
                     {
@@ -601,7 +594,6 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryNormalizeDependencies(
-            RegisteredType registeredType,
             IEnumerable<ITypeReference> dependencies,
             [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
         {
@@ -624,7 +616,7 @@ namespace HotChocolate.Configuration
 
         internal bool TryNormalizeReference(
             ITypeReference typeReference,
-            out ITypeReference? normalized)
+            [NotNullWhen(true)]out ITypeReference? normalized)
         {
             if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference? nr))
             {
@@ -645,8 +637,8 @@ namespace HotChocolate.Configuration
 
                 case SchemaTypeReference r:
                     var internalReference = TypeReference.Create(
-                        ExtendedType.FromType(r.Type.GetType()), 
-                        r.Context, 
+                        ExtendedType.FromType(r.Type.GetType()),
+                        r.Context,
                         scope: typeReference.Scope);
                     _dependencyLookup[typeReference] = internalReference;
                     normalized = internalReference;
@@ -668,7 +660,7 @@ namespace HotChocolate.Configuration
 
         private bool TryNormalizeClrReference(
             ClrTypeReference typeReference,
-            out ITypeReference? normalized)
+            [NotNullWhen(true)]out ITypeReference? normalized)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type.Type)
                 && Internal.TypeInfo.TryCreate(typeReference.Type, out Internal.TypeInfo? typeInfo))
@@ -680,12 +672,11 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    for (int i = 0; i < typeInfo.Components.Count; i++)
+                    for (var i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        var n = typeReference.WithType(typeInfo.Components[i].Type);
-
+                        ClrTypeReference? n = typeReference.WithType(typeInfo.Components[i].Type);
                         if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
-                            || ClrTypes.TryGetValue(n.WithContext(), out r)))
+                             || ClrTypes.TryGetValue(n.WithContext(), out r)))
                         {
                             normalized = r;
                             return true;

@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (IsTypeMoreSpecific(definition.Type, typeNode))
             {
-                definition.Type = new SyntaxTypeReference(typeNode, context);
+                definition.Type = TypeReference.Create(typeNode, context);
             }
             return definition;
         }
@@ -48,13 +48,8 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (typeReference is ClrTypeReference clr
-                && !BaseTypes.IsSchemaType(clr.Type))
-            {
-                return true;
-            }
-
-            return false;
+            return typeReference is ClrTypeReference clr &&
+                   !clr.Type.IsSchemaType;
         }
 
         private static bool IsTypeMoreSpecific(

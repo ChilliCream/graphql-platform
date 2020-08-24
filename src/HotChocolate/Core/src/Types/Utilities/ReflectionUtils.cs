@@ -142,16 +142,14 @@ namespace HotChocolate.Utilities
         private static string CreateGenericTypeName(Type type)
         {
             string name = type.Name.Substring(0, type.Name.Length - 2);
-            IEnumerable<string> arguments = type.GetGenericArguments()
-                .Select(GetTypeName);
-            return CreateTypeName(type,
-                $"{name}<{string.Join(", ", arguments)}>");
+            IEnumerable<string> arguments = type.GetGenericArguments().Select(GetTypeName);
+            return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
         }
 
         private static string CreateTypeName(Type type, string typeName)
         {
             string ns = GetNamespace(type);
-            if (ns == null)
+            if (ns is null)
             {
                 return typeName;
             }

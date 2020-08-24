@@ -68,9 +68,8 @@ namespace HotChocolate.Types
                 return IsInstanceOfType(literal);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract bool IsInstanceOfType(IValueNode literal);
@@ -87,9 +86,8 @@ namespace HotChocolate.Types
                 return ParseLiteral(literal);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract object ParseLiteral(IValueNode literal);
@@ -101,9 +99,8 @@ namespace HotChocolate.Types
                 return IsInstanceOfType(value);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract bool IsInstanceOfType(object value);
@@ -115,9 +112,8 @@ namespace HotChocolate.Types
                 return ParseValue(value);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract IValueNode ParseValue(object value);
@@ -131,15 +127,13 @@ namespace HotChocolate.Types
                     return serialized;
                 }
 
-                // TODO : resources
                 throw new ScalarSerializationException(
                     TypeResourceHelper.Scalar_Cannot_Serialize(
                         this.Visualize()));
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract bool TrySerialize(
@@ -160,26 +154,22 @@ namespace HotChocolate.Types
                         this.Visualize()));
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         bool ISerializableType.TryDeserialize(
-            object serialized, out object value)
+            object? serialized, out object? value)
         {
             if (IsInputType)
             {
                 return TryDeserialize(serialized, out value);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract bool TryDeserialize(
-            object serialized,
-            out object value);
+        protected abstract bool TryDeserialize(object? serialized, out object? value);
     }
 }

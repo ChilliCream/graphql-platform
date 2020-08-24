@@ -11,9 +11,8 @@ namespace HotChocolate.Types.Descriptors
         public SchemaTypeReference(
             ITypeSystemMember type,
             TypeContext? context = null,
-            string? scope = null,
-            bool[]? nullable = null)
-            : base(context ?? InferTypeContext(type), scope, nullable)
+            string? scope = null)
+            : base(context ?? InferTypeContext(type), scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
@@ -100,45 +99,23 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return new SchemaTypeReference(
-                type,
-                Context,
-                Scope,
-                Nullable);
+            return new SchemaTypeReference(type, Context, Scope);
         }
 
         public SchemaTypeReference WithContext(TypeContext context = TypeContext.None)
         {
-            return new SchemaTypeReference(
-                Type,
-                context,
-                Scope,
-                Nullable);
+            return new SchemaTypeReference(Type, context, Scope);
         }
 
         public SchemaTypeReference WithScope(string? scope = null)
         {
-            return new SchemaTypeReference(
-                Type,
-                Context,
-                scope,
-                Nullable);
-        }
-
-        public SchemaTypeReference WithNullable(bool[]? nullable = null)
-        {
-            return new SchemaTypeReference(
-                Type,
-                Context,
-                Scope,
-                nullable);
+            return new SchemaTypeReference(Type, Context, scope);
         }
 
         public SchemaTypeReference With(
             Optional<ITypeSystemMember> type = default,
             Optional<TypeContext> context = default,
-            Optional<string?> scope = default(Optional<string>),
-            Optional<bool[]?> nullable = default(Optional<bool[]>))
+            Optional<string?> scope = default)
         {
             if (type.HasValue && type.Value is null)
             {
@@ -148,8 +125,7 @@ namespace HotChocolate.Types.Descriptors
             return new SchemaTypeReference(
                 type.HasValue ? type.Value! : Type,
                 context.HasValue ? context.Value : Context,
-                scope.HasValue ? scope.Value : Scope,
-                nullable.HasValue ? nullable.Value : Nullable);
+                scope.HasValue ? scope.Value : Scope);
         }
 
         internal static TypeContext InferTypeContext(object? type)

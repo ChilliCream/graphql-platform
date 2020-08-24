@@ -61,6 +61,11 @@ namespace HotChocolate.Internal
         bool IsNamedType { get; }
 
         /// <summary>
+        /// Specifies that this type is a schema type.
+        /// </summary>
+        bool IsSchemaType { get;  }
+
+        /// <summary>
         /// Specifies if this type is an interface.
         /// </summary>
         bool IsInterface { get; }

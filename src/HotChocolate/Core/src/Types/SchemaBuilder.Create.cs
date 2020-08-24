@@ -143,7 +143,7 @@ namespace HotChocolate
                 && !string.IsNullOrEmpty(typeName))
             {
                 _operations.Add(operation,
-                    new SyntaxTypeReference(
+                    TypeReference.Create(
                         new NamedTypeNode(typeName),
                         TypeContext.Output));
             }

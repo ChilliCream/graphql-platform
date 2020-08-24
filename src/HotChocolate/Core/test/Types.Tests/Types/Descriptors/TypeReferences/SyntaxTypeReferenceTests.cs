@@ -16,14 +16,12 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference = TypeReference.Create(
                 namedType,
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new bool[] { false });
+                scope: "foo");
 
             // assert
             Assert.Equal(namedType, typeReference.Type);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("foo", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable, Assert.False);
         }
 
         [Fact]
@@ -34,123 +32,13 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new bool[] { false });
+                scope: "foo");
 
             // assert
             Assert.Equal("Foo", typeReference.Type.NamedType().Name.Value);
             Assert.Equal(TypeContext.Input, typeReference.Context);
             Assert.Equal("foo", typeReference.Scope);
-            Assert.Collection(typeReference.Nullable, Assert.False);
         }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_Type_Is_The_Same()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create("Foo");
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal(typeReference, rewritten);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_SimpleNamedType()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create(
-                "Foo",
-                nullable: new bool[] { false });
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal("Foo",
-                Assert.IsType<NamedTypeNode>(
-                    Assert.IsType<NonNullTypeNode>(rewritten.Type).Type).Name.Value);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_NonNullToNullable()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create(
-                new NonNullTypeNode(new NamedTypeNode("Foo")),
-                nullable: new bool[] { true });
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal("Foo",
-                Assert.IsType<NamedTypeNode>(
-                    rewritten.Type).Name.Value);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_List()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create(
-                new ListTypeNode(new NamedTypeNode("Foo")),
-                nullable: new bool[] { false });
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal("Foo",
-                Assert.IsType<NamedTypeNode>(
-                    Assert.IsType<ListTypeNode>(
-                        Assert.IsType<NonNullTypeNode>(rewritten.Type).Type)
-                            .Type).Name.Value);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_List_2()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create(
-                new ListTypeNode(new NamedTypeNode("Foo")),
-                nullable: new bool[] { false, false });
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal("Foo",
-                Assert.IsType<NamedTypeNode>(
-                    Assert.IsType<NonNullTypeNode>(
-                        Assert.IsType<ListTypeNode>(
-                            Assert.IsType<NonNullTypeNode>(rewritten.Type).Type)
-                                .Type).Type).Name.Value);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_RewriteType_NestedList()
-        {
-            // arrange
-            SyntaxTypeReference typeReference = TypeReference.Create(
-                new ListTypeNode(new ListTypeNode(new NamedTypeNode("Foo"))),
-                nullable: new bool[] { false, false });
-
-            // act
-            SyntaxTypeReference rewritten = typeReference.Rewrite();
-
-            // assert
-            Assert.Equal("Foo",
-                Assert.IsType<NamedTypeNode>(
-                    Assert.IsType<ListTypeNode>(
-                        Assert.IsType<NonNullTypeNode>(
-                            Assert.IsType<ListTypeNode>(
-                                Assert.IsType<NonNullTypeNode>(rewritten.Type).Type)
-                                    .Type).Type).Type).Name.Value);
-        }
-
 
         [Fact]
         public void SyntaxTypeReference_Equals_To_Null()
@@ -238,35 +126,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.False(yz);
         }
 
-        [Fact]
-        public void SyntaxTypeReference_Equals_Nullability()
-        {
-            // arrange
-            SyntaxTypeReference x = TypeReference.Create(
-                "Foo",
-                TypeContext.None,
-                nullable: new bool[] { true, false });
-
-            SyntaxTypeReference y = TypeReference.Create(
-                "Foo",
-                TypeContext.Output,
-                nullable: new bool[] { false, false });
-
-            SyntaxTypeReference z = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                nullable: new bool[] { true, false });
-
-            // act
-            var xy = x.Equals(y);
-            var xz = x.Equals(z);
-            var yz = y.Equals(z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
-            Assert.False(yz);
-        }
         [Fact]
         public void ITypeReference_Equals_To_Null()
         {
@@ -365,36 +224,6 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.True(xy);
             Assert.False(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
-        public void ITypeReference_Equals_Nullability()
-        {
-            // arrange
-            SyntaxTypeReference x = TypeReference.Create(
-                "Foo",
-                TypeContext.None,
-                nullable: new bool[] { true, false });
-
-            SyntaxTypeReference y = TypeReference.Create(
-                "Foo",
-                TypeContext.Output,
-                nullable: new bool[] { false, false });
-
-            SyntaxTypeReference z = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                nullable: new bool[] { true, false });
-
-            // act
-            var xy = x.Equals((ITypeReference)y);
-            var xz = x.Equals((ITypeReference)z);
-            var yz = y.Equals((ITypeReference)z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
             Assert.False(yz);
         }
 
@@ -500,36 +329,6 @@ namespace HotChocolate.Types.Descriptors
         }
 
         [Fact]
-        public void Object_Equals_Nullability()
-        {
-            // arrange
-            SyntaxTypeReference x = TypeReference.Create(
-                "Foo",
-                TypeContext.None,
-                nullable: new bool[] { true, false });
-
-            SyntaxTypeReference y = TypeReference.Create(
-                "Foo",
-                TypeContext.Output,
-                nullable: new bool[] { false, false });
-
-            SyntaxTypeReference z = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                nullable: new bool[] { true, false });
-
-            // act
-            var xy = x.Equals((object)y);
-            var xz = x.Equals((object)z);
-            var yz = y.Equals((object)z);
-
-            // assert
-            Assert.False(xy);
-            Assert.True(xz);
-            Assert.False(yz);
-        }
-
-        [Fact]
         public void SyntaxTypeReference_ToString()
         {
             // arrange
@@ -551,8 +350,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.WithType(new NamedTypeNode("Bar"));
@@ -571,8 +369,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             Action action = () => typeReference1.WithType(null!);
@@ -588,8 +385,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
@@ -598,7 +394,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.Output, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -608,8 +403,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.WithContext();
@@ -618,7 +412,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.None, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -628,8 +421,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.WithScope("bar");
@@ -638,7 +430,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -648,8 +439,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.WithScope();
@@ -658,47 +448,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Null(typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_WithNullable()
-        {
-            // arrange
-            SyntaxTypeReference typeReference1 = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SyntaxTypeReference typeReference2 = typeReference1.WithNullable(new[] { false });
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Collection(typeReference2.Nullable!, Assert.False);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_WithNullable_Nothing()
-        {
-            // arrange
-            SyntaxTypeReference typeReference1 = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SyntaxTypeReference typeReference2 = typeReference1.WithNullable();
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Null(typeReference2.Nullable);
         }
 
         [Fact]
@@ -708,21 +457,18 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.With(
                 new NamedTypeNode("Bar"),
                 TypeContext.Output,
-                scope: "bar",
-                nullable: new[] { false });
+                scope: "bar");
 
             // assert
             Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
             Assert.Equal(TypeContext.Output, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Collection(typeReference2.Nullable!, Assert.False);
         }
 
         [Fact]
@@ -732,8 +478,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.With();
@@ -742,7 +487,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -752,8 +496,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.With(new NamedTypeNode("Bar"));
@@ -762,7 +505,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -772,8 +514,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             Action action = () => typeReference1.With(null);
@@ -789,8 +530,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
@@ -799,7 +539,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(TypeContext.None, typeReference2.Context);
             Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
         }
 
         [Fact]
@@ -809,8 +548,7 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference typeReference1 = TypeReference.Create(
                 "Foo",
                 TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
+                scope: "foo");
 
             // act
             SyntaxTypeReference typeReference2 = typeReference1.With(scope: "bar");
@@ -819,27 +557,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.Equal(typeReference1.Type, typeReference2.Type);
             Assert.Equal(typeReference1.Context, typeReference2.Context);
             Assert.Equal("bar", typeReference2.Scope);
-            Assert.Equal(typeReference1.Nullable, typeReference2.Nullable);
-        }
-
-        [Fact]
-        public void SyntaxTypeReference_With_Nullable()
-        {
-            // arrange
-            SyntaxTypeReference typeReference1 = TypeReference.Create(
-                "Foo",
-                TypeContext.Input,
-                scope: "foo",
-                nullable: new[] { true });
-
-            // act
-            SyntaxTypeReference typeReference2 = typeReference1.With(nullable: null);
-
-            // assert
-            Assert.Equal(typeReference1.Type, typeReference2.Type);
-            Assert.Equal(typeReference1.Context, typeReference2.Context);
-            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
-            Assert.Null(typeReference2.Nullable);
         }
 
         [Fact]
@@ -849,14 +566,12 @@ namespace HotChocolate.Types.Descriptors
             SyntaxTypeReference x = TypeReference.Create(
                 "Foo",
                 TypeContext.None,
-                scope: "foo",
-                nullable: new[] { false });
+                scope: "foo");
 
             SyntaxTypeReference y = TypeReference.Create(
                 "Foo",
                 TypeContext.None,
-                scope: "foo",
-                nullable: new[] { false });
+                scope: "foo");
 
             SyntaxTypeReference z = TypeReference.Create(
                 "Foo",

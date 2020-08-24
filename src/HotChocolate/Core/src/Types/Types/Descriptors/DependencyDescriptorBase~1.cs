@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Descriptors
 
             _configuration.Dependencies.Add(
                 new TypeDependency(
-                    new SyntaxTypeReference(
+                    TypeReference.Create(
                         new NamedTypeNode(typeName), TypeContext.None),
                     kind));
         }

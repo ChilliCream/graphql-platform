@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return true;
             }
-            
+
             if (other is ClrTypeReference c)
             {
                 return Equals(c);
@@ -94,6 +94,9 @@ namespace HotChocolate.Types.Descriptors
         {
             return $"{Context}: {Type.OriginalType.GetTypeName()}";
         }
+
+        public ClrTypeReference WithType(Type type) =>
+            WithType(ExtendedType.FromType(type));
 
         public ClrTypeReference WithType(IExtendedType type)
         {

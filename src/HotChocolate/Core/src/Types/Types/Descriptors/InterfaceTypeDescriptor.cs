@@ -135,8 +135,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
             return this;
         }
 

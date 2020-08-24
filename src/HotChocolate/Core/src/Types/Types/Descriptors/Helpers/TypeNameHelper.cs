@@ -1,7 +1,7 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -35,9 +35,8 @@ namespace HotChocolate.Types.Descriptors
                     nameof(dependency));
             }
 
-            if (!NamedTypeInfoFactory.Default.TryCreate(
-                dependency,
-                out TypeInfo typeInfo))
+            if (!TypeInfo.TryCreate(dependency, out TypeInfo typeInfo) ||
+                !typeInfo.IsSchemaType)
             {
                 throw new ArgumentException(
                     TypeResources.TypeNameHelper_InvalidTypeStructure,
@@ -49,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                 .OnBeforeNaming((ctx, definition) =>
                 {
                     INamedType type = ctx.GetType<INamedType>(
-                        TypeReference.Create(typeInfo.ClrType));
+                        TypeReference.Create(typeInfo.GetExtendedType()));
                     definition.Name = createName(type);
                 })
                 .DependsOn(dependency, true);

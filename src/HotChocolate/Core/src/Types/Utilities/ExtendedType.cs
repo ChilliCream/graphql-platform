@@ -110,6 +110,8 @@ namespace HotChocolate.Utilities
 
         public bool IsNamedType { get; }
 
+        public bool IsSchemaType => Kind == ExtendedTypeKind.Schema;
+
         public bool IsInterface => Type.IsInterface;
 
         public bool IsNullable { get; }
@@ -186,7 +188,7 @@ namespace HotChocolate.Utilities
 
         public static ExtendedType FromType(Type type)
         {
-            return IsSchemaType(type)
+            return IsSchemaTypeInternal(type)
                 ? FromSchemaType(type)
                 : FromSystemType(type);
         }

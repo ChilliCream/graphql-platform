@@ -1,22 +1,23 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
-    public interface ISerializableType
-        : IType
+    public interface ISerializableType : IType
     {
         /// <summary>
         /// Serializes an instance of this type to
         /// the specified serialization type.
         /// </summary>
-        object Serialize(object value);
+        object? Serialize(object? value);
 
         /// <summary>
         /// Deserializes a serialized instance of this type.
         /// </summary>
-        object Deserialize(object serialized);
+        object? Deserialize(object? serialized);
 
         /// <summary>
         /// Tries to deserialize a serialized instance of this type.
         /// </summary>
-        bool TryDeserialize(object serialized, out object value);
+        bool TryDeserialize(object? serialized, out object? value);
     }
 }

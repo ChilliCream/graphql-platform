@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -117,9 +118,8 @@ namespace HotChocolate.Configuration
                 && _typeInitializer.DiscoveredTypes.TryGetType(
                     normalized, out RegisteredType registered)
                 && registered.Type is INamedType namedType
-                && _typeInitializer.TypeInspector.TryCreate(
-                    clrRef.Type, out TypeInfo typeInfo)
-                && typeInfo.TypeFactory.Invoke(namedType) is T casted)
+                && TypeInfo.TryCreate(clrRef.Type, out TypeInfo typeInfo)
+                && typeInfo.CreateType(namedType) is T casted)
             {
                 type = casted;
                 return true;

@@ -4,6 +4,7 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
@@ -41,11 +42,11 @@ namespace HotChocolate.Types.Relay
                 Type schemaType = GetSchemaType(context, m);
                 if (descriptor is IObjectFieldDescriptor ofd)
                 {
-                    _off.MakeGenericMethod(schemaType).Invoke(null, new[] { ofd });
+                    _off.MakeGenericMethod(schemaType).Invoke(null, new object?[] { ofd });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
                 {
-                    _iff.MakeGenericMethod(schemaType).Invoke(null, new[] { ifd });
+                    _iff.MakeGenericMethod(schemaType).Invoke(null, new object?[] { ifd });
                 }
             }
         }
@@ -60,17 +61,17 @@ namespace HotChocolate.Types.Relay
 
             if (type is null
                 && returnType is ClrTypeReference clr
-                && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
+                && TypeInfo.TryCreate(clr.Type, out TypeInfo? typeInfo))
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                if (typeInfo.IsSchemaType)
                 {
-                    type = typeInfo.ClrType;
+                    type = typeInfo.NamedType;
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    clr.WithType(typeInfo.ClrType),
+                    clr.WithType(typeInfo.NamedType),
                     out ClrTypeReference schemaType))
                 {
-                    type = schemaType.Type;
+                    type = schemaType.Type.OriginalType;
                 }
             }
 
