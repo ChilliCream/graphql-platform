@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Xunit;
@@ -7,18 +8,22 @@ namespace HotChocolate
 {
     public class SchemaTypeResolverTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
+        private IExtendedType TypeOf<T>() =>
+            _typeInspector.GetType(typeof(T));
+
         [InlineData(TypeContext.Output)]
         [InlineData(TypeContext.None)]
         [Theory]
         public void InferObjectType(TypeContext context)
         {
             // arrange
-            ClrTypeReference typeReference = TypeReference.Create(
-                typeof(Bar),
-                context);
+            ClrTypeReference typeReference = TypeReference.Create(TypeOf<Bar>(), context);
 
             // act
             var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
                 out ClrTypeReference schemaType);
 
@@ -34,12 +39,11 @@ namespace HotChocolate
         public void InferInterfaceType(TypeContext context)
         {
             // arrange
-            ClrTypeReference typeReference = TypeReference.Create(
-                typeof(IBar),
-                context);
+            ClrTypeReference typeReference = TypeReference.Create(TypeOf<IBar>(), context);
 
             // act
             var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
                 out ClrTypeReference schemaType);
 
@@ -53,12 +57,11 @@ namespace HotChocolate
         public void InferInputObjectType()
         {
             // arrange
-            ClrTypeReference typeReference = TypeReference.Create(
-                typeof(Bar),
-                TypeContext.Input);
+            ClrTypeReference typeReference = TypeReference.Create(TypeOf<Bar>(), TypeContext.Input);
 
             // act
             var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
                 out ClrTypeReference schemaType);
 
@@ -75,12 +78,11 @@ namespace HotChocolate
         public void InferEnumType(TypeContext context)
         {
             // arrange
-            ClrTypeReference typeReference = TypeReference.Create(
-                typeof(Foo),
-                context);
+            ClrTypeReference typeReference = TypeReference.Create(TypeOf<Foo>(), context);
 
             // act
             var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
                 out ClrTypeReference schemaType);
 

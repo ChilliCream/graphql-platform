@@ -175,6 +175,11 @@ namespace HotChocolate.Internal
                 throw new ArgumentNullException(nameof(cache));
             }
 
+            if (member is Type type)
+            {
+                return FromType(type, cache);
+            }
+
             return Members.FromMember(member, cache);
         }
 

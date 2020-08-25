@@ -6,12 +6,16 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Xunit;
 
 namespace HotChocolate.Internal
 {
     public class TypeInfoTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+        private readonly TypeCache _cache = new TypeCache();
+
         [InlineData(typeof(string), "String")]
         [InlineData(typeof(Task<string>), "String")]
         [InlineData(typeof(List<string>), "[String]")]
@@ -63,7 +67,7 @@ namespace HotChocolate.Internal
         {
             // arrange
             // act
-            var typeInfo = TypeInfo.Create(clrType);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetType(clrType), _cache);
 
             // assert
             Assert.Equal(expectedTypeName, typeInfo.CreateType(new StringType()).Print());
@@ -86,7 +90,7 @@ namespace HotChocolate.Internal
         {
             // arrange
             // act
-            var typeInfo = TypeInfo.Create(clrType);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetType(clrType), _cache);
 
             // assert
             Assert.Equal(expectedTypeName, typeInfo.CreateType(new StringType()).Print());
@@ -100,7 +104,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullListNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]!" , typeInfo.CreateType(new StringType()).Print());
@@ -114,7 +118,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullListNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]!" , typeInfo.CreateType(new StringType()).Print());
@@ -128,7 +132,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableListNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]" , typeInfo.CreateType(new StringType()).Print());
@@ -142,7 +146,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableListNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]" , typeInfo.CreateType(new StringType()).Print());
@@ -156,7 +160,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullCollectionNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]!" , typeInfo.CreateType(new StringType()).Print());
@@ -170,7 +174,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullCollectionNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]!" , typeInfo.CreateType(new StringType()).Print());
@@ -184,7 +188,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableCollectionNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]" , typeInfo.CreateType(new StringType()).Print());
@@ -198,7 +202,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableCollectionNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]" , typeInfo.CreateType(new StringType()).Print());
@@ -212,7 +216,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullArrayNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]!" , typeInfo.CreateType(new StringType()).Print());
@@ -226,7 +230,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NonNullArrayNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]!" , typeInfo.CreateType(new StringType()).Print());
@@ -240,7 +244,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableArrayNullableElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String]" , typeInfo.CreateType(new StringType()).Print());
@@ -254,7 +258,7 @@ namespace HotChocolate.Internal
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableArrayNonNullElement));
 
             // act
-            var typeInfo = TypeInfo.Create(methodInfo!);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
 
             // assert
             Assert.Equal("[String!]" , typeInfo.CreateType(new StringType()).Print());
@@ -271,7 +275,7 @@ namespace HotChocolate.Internal
         {
             // arrange
             // act
-            var typeInfo = TypeInfo.Create(clrType);
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(clrType), _cache);
 
             // assert
             Assert.Equal(expectedTypeName, typeInfo.CreateType(new StringType()).Print());
@@ -287,7 +291,8 @@ namespace HotChocolate.Internal
         {
             // arrange
             // act
-            IExtendedType reducedType = TypeInfo.RuntimeType.Unwrap(type);
+            IExtendedType reducedType = TypeInfo.RuntimeType.Unwrap(
+                _typeInspector.GetReturnType(type));
 
             // assert
             Assert.Equal(expectedReducedType, reducedType.Type);
@@ -300,7 +305,10 @@ namespace HotChocolate.Internal
             Type type = typeof(ListType<NonNullType<NativeType<string>>>);
 
             // act
-            bool success = TypeInfo.TryCreate(type, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(type),
+                _cache,
+                out TypeInfo typeInfo);
 
             // assert
             Assert.True(success);
@@ -325,7 +333,10 @@ namespace HotChocolate.Internal
                 typeof(NonNullType<ListType<NonNullType<ListType<NonNullType<StringType>>>>>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -340,7 +351,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -361,7 +375,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(ListType<NonNullType<StringType>>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -380,7 +397,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(NonNullType<ListType<StringType>>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -399,7 +419,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(NonNullType<StringType>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -416,7 +439,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(ListType<StringType>);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
@@ -433,7 +459,10 @@ namespace HotChocolate.Internal
             Type nativeType = typeof(StringType);
 
             // act
-            var success = TypeInfo.TryCreate(nativeType, out TypeInfo typeInfo);
+            var success = TypeInfo.TryCreate(
+                _typeInspector.GetReturnType(nativeType),
+                _cache,
+                out TypeInfo typeInfo);
             IType type = typeInfo!.CreateType(new StringType());
 
             // assert
