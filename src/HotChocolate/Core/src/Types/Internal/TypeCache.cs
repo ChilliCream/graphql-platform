@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Internal
 {
-    internal static class TypeCache
+    internal sealed class TypeCache
     {
         private static readonly Dictionary<object, ExtendedType> _types =
             new Dictionary<object, ExtendedType>();
@@ -12,7 +15,12 @@ namespace HotChocolate.Internal
         private static readonly Dictionary<IExtendedType, TypeInfo> _typeInfos =
             new Dictionary<IExtendedType, TypeInfo>();
 
-        public static ExtendedType GetOrCreateType(object member, Func<ExtendedType> create)
+        public bool TryGetType(
+            Type type, 
+            [NotNullWhen(true)]out ExtendedType? extendedType) =>
+            _types.TryGetValue(type, out extendedType);
+
+        public ExtendedType GetOrCreateType(object member, Func<ExtendedType> create)
         {
             if (!_types.TryGetValue(member, out ExtendedType? extendedType))
             {
@@ -40,7 +48,7 @@ namespace HotChocolate.Internal
             return extendedType;
         }
 
-        public static ExtendedType GetOrCreateType(Func<ExtendedType> create)
+        public ExtendedType GetOrCreateType(Func<ExtendedType> create)
         {
             lock (_types)
             {
@@ -57,7 +65,7 @@ namespace HotChocolate.Internal
             }
         }
 
-        public static TypeInfo GetOrCreateTypeInfo(
+        public TypeInfo GetOrCreateTypeInfo(
             IExtendedType extendedType,
             Func<TypeInfo> create)
         {
@@ -75,7 +83,7 @@ namespace HotChocolate.Internal
             return typeInfo;
         }
 
-        public static IReadOnlyList<IExtendedType> FindType(string phrase)
+        public IReadOnlyList<IExtendedType> FindType(string phrase)
         {
             var list = new List<IExtendedType>();
 
@@ -96,7 +104,7 @@ namespace HotChocolate.Internal
             return list;
         }
 
-        public static IReadOnlyList<TypeInfo> FindTypeInfo(string phrase)
+        public IReadOnlyList<TypeInfo> FindTypeInfo(string phrase)
         {
             var list = new List<TypeInfo>();
 

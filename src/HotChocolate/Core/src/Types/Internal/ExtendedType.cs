@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -10,132 +8,78 @@ namespace HotChocolate.Internal
 {
     internal sealed partial class ExtendedType
         : IExtendedType
-        , IEquatable<ExtendedType>
     {
-        private readonly IExtendedType? _elementType;
-        private List<IExtendedType>? _interfaces;
-
-        internal ExtendedType(
+        private ExtendedType(
             Type type,
-            bool isNullable,
             ExtendedTypeKind kind,
+            IReadOnlyList<ExtendedType>? typeArguments = null,
+            Type? source = null,
+            Type? definition = null,
+            IExtendedType? elementType = null,
             bool isList = false,
             bool isNamedType = false,
-            IReadOnlyList<IExtendedType>? typeArguments = null,
-            Type? originalType = null,
-            IExtendedType? elementType = null)
+            bool isNullable = false)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            IsNullable = isNullable;
-            IsList = isList;
+            Type = type;
             Kind = kind;
-            TypeArguments = typeArguments ?? Array.Empty<IExtendedType>();
-            IsNamedType = kind == ExtendedTypeKind.Schema && isNamedType;
-            _elementType = elementType;
+            TypeArguments = typeArguments ?? Array.Empty<ExtendedType>();
+            Source = source ?? type;
+            Definition = definition;
+            ElementType = elementType;
+            IsList = isList;
+            IsNamedType = isNamedType;
+            IsNullable = isNullable;
 
-            if (!IsArrayOrList &&
-                (kind == ExtendedTypeKind.Runtime || kind == ExtendedTypeKind.Extended))
-            {
-                IsList = IsListType(type);
-            }
-
-            if (kind == ExtendedTypeKind.Runtime && typeArguments is null)
-            {
-                if (type.IsGenericType && TypeArguments.Count == 0)
-                {
-                    Type[] arguments = type.GetGenericArguments();
-                    var extendedArguments = new IExtendedType[arguments.Length];
-                    for (var i = 0; i < extendedArguments.Length; i++)
-                    {
-                        extendedArguments[i] = FromType(arguments[i]);
-                    }
-                    TypeArguments = extendedArguments;
-                }
-                else if (type.IsArray)
-                {
-                    // legacy behavior -> remove
-                    TypeArguments = new IExtendedType[]
-                    {
-                        FromType(type.GetElementType()!)
-                    };
-                }
-            }
-
-            if (type.IsGenericType)
+            if (type.IsGenericType && definition is null)
             {
                 Definition = type.GetGenericTypeDefinition();
             }
-
-            if (_elementType is null)
-            {
-                if (IsArray)
-                {
-                    _elementType = TypeArguments[0];
-                }
-
-                if (IsList)
-                {
-                    _elementType = GetInnerListType(this)!;
-                }
-            }
-
-            if (originalType is not null)
-            {
-                Source = originalType;
-            }
-            else if (type.IsValueType && IsNullable)
-            {
-                Source = typeof(Nullable<>).MakeGenericType(type);
-            }
-            else
-            {
-                Source = type;
-            }
         }
 
+        /// <inheritdoc />
         public Type Type { get; }
 
+        /// <inheritdoc />
         public Type Source { get; }
 
+        /// <inheritdoc />
         public Type? Definition { get; }
 
+        /// <inheritdoc />
         public ExtendedTypeKind Kind { get; }
 
+        /// <inheritdoc />
         public bool IsGeneric => Type.IsGenericType;
 
+        /// <inheritdoc />
         public bool IsArray => Type.IsArray;
 
+        /// <inheritdoc />
         public bool IsList { get; }
 
+        /// <inheritdoc />
         public bool IsArrayOrList => IsList || IsArray;
 
+        /// <inheritdoc />
         public bool IsNamedType { get; }
 
+        /// <inheritdoc />
         public bool IsSchemaType => Kind == ExtendedTypeKind.Schema;
 
+        /// <inheritdoc />
         public bool IsInterface => Type.IsInterface;
 
+        /// <inheritdoc />
         public bool IsNullable { get; }
 
+        /// <inheritdoc />
         public IReadOnlyList<IExtendedType> TypeArguments { get; }
 
-        public IReadOnlyList<IExtendedType> GetInterfaces()
-        {
-            if (_interfaces is null)
-            {
-                var types = new List<IExtendedType>();
-                foreach (Type type in Type.GetInterfaces())
-                {
-                    types.Add(FromSystemType(type));
-                }
-                _interfaces = types;
-            }
-            return _interfaces;
-        }
+        /// <inheritdoc />
+        public IExtendedType? ElementType { get; }
 
-        public IExtendedType? GetElementType() => _elementType;
-
-        public bool Equals(ExtendedType? other)
+        /// <inheritdoc />
+        public bool Equals(IExtendedType? other)
         {
             if (ReferenceEquals(other, null))
             {
@@ -164,12 +108,11 @@ namespace HotChocolate.Internal
             return false;
         }
 
-        public bool Equals(IExtendedType? other) =>
-            Equals(other as ExtendedType);
-
+        /// <inheritdoc />
         public override bool Equals(object? obj) =>
             Equals(obj as ExtendedType);
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked
@@ -187,181 +130,58 @@ namespace HotChocolate.Internal
             }
         }
 
-        public override string ToString() =>
-            ExtendedTypeRewriter.Rewrite(this).GetTypeName();
-
-        public static ExtendedType FromType1(Type type) =>
-            TypeCache.GetOrCreateType(type, () => FromTypeInternal(type));
-
-        private static ExtendedType FromTypeInternal(Type type)
+        public static ExtendedType FromType(Type type, TypeCache cache)
         {
-            return IsSchemaTypeInternal(type)
-                ? FromSchemaType(type)
-                : FromSystemType(type);
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (cache is null)
+            {
+                throw new ArgumentNullException(nameof(cache));
+            }
+
+            if (cache.TryGetType(type, out ExtendedType? extendedType))
+            {
+                return extendedType;
+            }
+            return FromTypeInternal(type, cache);
         }
 
-        public static ExtendedType FromExtendedType1(IExtendedType type, MemberInfo? member = null)
+        private static ExtendedType FromTypeInternal(Type type, TypeCache cache) =>
+            Helper.IsSchemaType(type)
+                ? SchemaType.FromType(type, cache)
+                : SystemType.FromType(type, cache);
+
+        public static ExtendedType FromMember(MemberInfo member, TypeCache cache)
         {
-            if (type.Kind == ExtendedTypeKind.Extended)
+            if (member is null)
             {
-                return member is null
-                    ? TypeCache.GetOrCreateType(() => FromExtendedTypeInternal(type))
-                    : TypeCache.GetOrCreateType(member, () => FromExtendedTypeInternal(type));
+                throw new ArgumentNullException(nameof(member));
             }
 
-            throw new NotSupportedException("Kind must be extended.");
+            if (cache is null)
+            {
+                throw new ArgumentNullException(nameof(cache));
+            }
+
+            return Members.FromMember(member, cache);
         }
 
-        public static ExtendedType FromExtendedType(IExtendedType type, ParameterInfo member)
+        public static ExtendedMethodInfo FromMethod(MethodInfo method, TypeCache cache)
         {
-            if (type.Kind == ExtendedTypeKind.Extended)
+            if (method is null)
             {
-                return TypeCache.GetOrCreateType(member, () => FromExtendedTypeInternal(type));
+                throw new ArgumentNullException(nameof(method));
             }
 
-            throw new NotSupportedException("Kind must be extended.");
-        }
-
-        private static ExtendedType FromExtendedTypeInternal(IExtendedType type)
-        {
-            type = RemoveNonEssentialTypes(type);
-
-            IReadOnlyList<IExtendedType> arguments = type.TypeArguments;
-            var extendedArguments = new IExtendedType[arguments.Count];
-
-            for (var i = 0; i < extendedArguments.Length; i++)
+            if (cache is null)
             {
-                extendedArguments[i] = FromExtendedType(arguments[i]);
+                throw new ArgumentNullException(nameof(cache));
             }
 
-            IExtendedType? elementType = null;
-            var isList = !type.IsArray && IsSupportedCollectionInterface(type.Type);
-
-            if (isList && type.TypeArguments.Count == 1)
-            {
-                Type a = GetInnerListType(type.Type)!;
-                IExtendedType b = type.TypeArguments[0];
-                if (a == b.Type || a == b.Source)
-                {
-                    elementType = extendedArguments[0];
-                }
-            }
-
-            if (type.IsArray && elementType is null)
-            {
-                elementType = FromExtendedType(type.GetElementType()!);
-            }
-
-            return new ExtendedType(
-                type.Type,
-                type.IsNullable,
-                ExtendedTypeKind.Runtime,
-                isList,
-                false,
-                extendedArguments,
-                type.Source,
-                elementType);
-        }
-
-        private static ExtendedType FromSystemType(Type type)
-        {
-            type = RemoveNonEssentialTypes(type);
-
-            if (type.IsValueType)
-            {
-                if (type.IsGenericType
-                    && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    return new ExtendedType(
-                        type.GetGenericArguments()[0],
-                        true,
-                        ExtendedTypeKind.Runtime,
-                        originalType: type);
-                }
-                return new ExtendedType(type, false, ExtendedTypeKind.Runtime);
-            }
-
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NonNullType<>))
-            {
-                return new ExtendedType(
-                    RemoveNonEssentialTypes(type.GetGenericArguments()[0]),
-                    false,
-                    ExtendedTypeKind.Runtime);
-            }
-
-            return new ExtendedType(type, true, ExtendedTypeKind.Runtime);
-        }
-
-        private static ExtendedType FromSchemaType(Type type)
-        {
-            var components = new Stack<Type>();
-            Type? current = type;
-
-            while (current != null)
-            {
-                if (current.IsGenericType)
-                {
-                    Type definition = current.GetGenericTypeDefinition();
-                    if (definition == typeof(ListType<>)
-                        || definition == typeof(NonNullType<>))
-                    {
-                        components.Push(current);
-                        current = current.GetGenericArguments()[0];
-                    }
-                    else
-                    {
-                        components.Push(current);
-                        current = null;
-                    }
-                }
-                else
-                {
-                    components.Push(current);
-                    current = null;
-                }
-            }
-
-            ExtendedType? extendedType = null;
-
-            while (components.Count > 0)
-            {
-                var nullable = true;
-                current = components.Pop();
-
-                if (components.Count > 0
-                    && components.Peek().GetGenericTypeDefinition() == typeof(NonNullType<>))
-                {
-                    nullable = false;
-                    components.Pop();
-                }
-
-                if (extendedType is null)
-                {
-                    extendedType = new ExtendedType(
-                        current,
-                        nullable,
-                        ExtendedTypeKind.Schema,
-                        isNamedType: true,
-                        originalType: nullable
-                            ? current
-                            : typeof(NonNullType<>).MakeGenericType(current));
-                }
-                else
-                {
-                    extendedType = new ExtendedType(
-                        current,
-                        nullable,
-                        ExtendedTypeKind.Schema,
-                        isList: true,
-                        typeArguments: new[] { extendedType },
-                        elementType: extendedType,
-                        originalType: nullable
-                            ? current
-                            : typeof(NonNullType<>).MakeGenericType(current));
-                }
-            }
-
-            return extendedType!;
+            return Members.FromMethod(method, cache);
         }
     }
 }

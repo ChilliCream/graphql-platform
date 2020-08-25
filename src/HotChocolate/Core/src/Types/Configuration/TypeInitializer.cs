@@ -44,7 +44,6 @@ namespace HotChocolate.Configuration
         private DiscoveredTypes? _discoveredTypes;
 
         public TypeInitializer(
-            IServiceProvider services,
             IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
@@ -52,7 +51,7 @@ namespace HotChocolate.Configuration
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
-            _services = services;
+            _services = descriptorContext.Services;
             _descriptorContext = descriptorContext;
             _initialTypes = initialTypes.ToList();
             _externalResolverTypes = externalResolverTypes.ToList();

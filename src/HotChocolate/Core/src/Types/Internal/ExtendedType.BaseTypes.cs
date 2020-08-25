@@ -8,7 +8,7 @@ namespace HotChocolate.Internal
 {
     internal sealed partial class ExtendedType
     {
-        public static class BaseTypes
+        private static class BaseTypes
         {
             private static readonly HashSet<Type> _baseTypes = new HashSet<Type>
             {

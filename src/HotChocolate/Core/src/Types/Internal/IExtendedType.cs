@@ -63,7 +63,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// Specifies that this type is a schema type.
         /// </summary>
-        bool IsSchemaType { get;  }
+        bool IsSchemaType { get; }
 
         /// <summary>
         /// Specifies if this type is an interface.
@@ -81,13 +81,8 @@ namespace HotChocolate.Internal
         IReadOnlyList<IExtendedType> TypeArguments { get; }
 
         /// <summary>
-        /// Get the interfaces that are implemented by this type.
-        /// </summary>
-        IReadOnlyList<IExtendedType> GetInterfaces();
-
-        /// <summary>
         /// Gets the element type if <see cref="IsArrayOrList"/> is <c>true</c>.
         /// </summary>
-        IExtendedType? GetElementType();
+        IExtendedType? ElementType { get; }
     }
 }

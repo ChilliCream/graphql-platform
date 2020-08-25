@@ -46,10 +46,16 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="context">
         /// The context defines if the field has an input or output context.
         /// </param>
+        /// <param name="scope">
+        /// The type reference scope.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ITypeReference GetReturnTypeRef(MemberInfo member, TypeContext context);
+        ITypeReference GetReturnTypeRef(
+            MemberInfo member,
+            TypeContext context = TypeContext.None,
+            string? scope = null);
 
         /// <summary>
         /// Gets the field type from a <see cref="MemberInfo" />.
@@ -68,10 +74,13 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="parameter">
         /// The parameter from which the argument type shall be extracted.
         /// </param>
+        /// <param name="scope">
+        /// The type reference scope.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ITypeReference GetArgumentTypeRef(ParameterInfo parameter);
+        ITypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
 
         /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
@@ -84,12 +93,38 @@ namespace HotChocolate.Types.Descriptors
         /// </returns>
         IExtendedType GetArgumentType(ParameterInfo parameter);
 
+        /// <summary>
+        /// Gets a type reference from a <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="context">
+        /// The context defines if the field has an input or output context.
+        /// </param>
+        /// <param name="scope">
+        /// The type scope.
+        /// </param>
+        /// <returns></returns>
         ClrTypeReference GetTypeRef(
             Type type,
             TypeContext context = TypeContext.None,
             string? scope = null);
 
-        IExtendedType GetType(Type type);
+        /// <summary>
+        /// Gets the extended type representation for the provided <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="nullable">
+        /// Defines an array that specifies how to apply nullability information
+        /// to the type components.
+        /// </param>
+        /// <returns>
+        /// Returns the extended type representation for the provided <paramref name="type"/>.
+        /// </returns>
+        IExtendedType GetType(Type type, bool?[]? nullable = null);
 
         /// <summary>
         /// Extracts the values of an enum type.

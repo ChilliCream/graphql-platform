@@ -9,6 +9,7 @@ using HotChocolate.Properties;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
+using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
@@ -71,17 +72,17 @@ namespace HotChocolate.Types.Descriptors
             type.GetMembers(BindingFlags.Instance | BindingFlags.Public).Where(CanBeHandled);
 
         /// <inheritdoc />
-        public virtual ITypeReference GetReturnTypeRef(MemberInfo member, TypeContext context)
+        public virtual ITypeReference GetReturnTypeRef(
+            MemberInfo member,
+            TypeContext context = TypeContext.None,
+            string? scope = null)
         {
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return TypeReference.Create(
-                ExtendedTypeRewriter.Rewrite(
-                    GetReturnType(member)),
-                context);
+            return TypeReference.Create(GetReturnType(member), context);
         }
 
         /// <inheritdoc />
@@ -115,42 +116,18 @@ namespace HotChocolate.Types.Descriptors
                         nameof(member));
             }
 
-            if (member.IsDefined(typeof(GraphQLTypeAttribute)))
-            {
-                GraphQLTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLTypeAttribute>()!;
-                returnType = GetType(attribute.Type);
-            }
-
-            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
-            {
-                GraphQLNonNullTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
-                return RewriteNullability(
-                    returnType,
-                    attribute.Nullable.Select(t => new bool?(t)).ToArray());
-            }
-
-            if (RequiredAsNonNull && member.IsDefined(typeof(RequiredAttribute)))
-            {
-                returnType = returnType.RewriteNullability(false);
-            }
-
-            return returnType;
+            return ApplyTypeAttributes(returnType, member);
         }
 
         /// <inheritdoc />
-        public ITypeReference GetArgumentTypeRef(ParameterInfo parameter)
+        public ITypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
         {
             if (parameter is null)
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            return TypeReference.Create(
-                ExtendedTypeRewriter.Rewrite(
-                    GetArgumentType(parameter)),
-                TypeContext.Input);
+            return TypeReference.Create(GetArgumentType(parameter), TypeContext.Input, scope);
         }
 
         /// <inheritdoc />
@@ -162,31 +139,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             IExtendedType argumentType = GetArgumentTypeInternal(parameter);
-
-            if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
-            {
-                GraphQLTypeAttribute attribute =
-                    parameter.GetCustomAttribute<GraphQLTypeAttribute>()!;
-                return ExtendedType.FromType(attribute.Type);
-            }
-
-            if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
-            {
-                GraphQLNonNullTypeAttribute attribute =
-                    parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
-                return argumentType.RewriteNullability(
-                    attribute.Nullable.Select(t => new bool?(t)).ToArray());
-            }
-
-            return argumentType;
-        }
-
-        public ClrTypeReference GetTypeRef(
-            Type type,
-            TypeContext context = TypeContext.None,
-            string? scope = null)
-        {
-            throw new NotImplementedException();
+            return ApplyTypeAttributes(argumentType, parameter);
         }
 
         private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
@@ -199,6 +152,19 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return info.ParameterTypes[parameter];
+        }
+
+        /// <inheritdoc />
+        public ClrTypeReference GetTypeRef(
+            Type type,
+            TypeContext context = TypeContext.None,
+            string? scope = null) =>
+            TypeReference.Create(GetType(type), context, scope);
+
+        /// <inheritdoc />
+        public IExtendedType GetType(Type type, bool?[]? nullable = null)
+        {
+            throw new NotImplementedException();
         }
 
         /// <inheritdoc />
@@ -243,18 +209,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
             {
                 return type;
             }
 
-            if (Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? typeInfo))
-            {
-                return typeInfo.NamedType;
-            }
-
-            return type;
+            return ExtendedType.GetNamedTypeInternal(type) ?? type;
         }
 
         /// <inheritdoc />
@@ -265,7 +225,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return BaseTypes.IsSchemaType(type);
+            return ExtendedType.IsSchemaTypeInternal(type);
         }
 
         /// <inheritdoc />
@@ -317,10 +277,7 @@ namespace HotChocolate.Types.Descriptors
             throw new NotImplementedException();
         }
 
-        public IExtendedType GetType(Type type)
-        {
-            throw new NotImplementedException();
-        }
+
 
         public ITypeInfo CreateTypeInfo(Type type)
         {
@@ -334,9 +291,16 @@ namespace HotChocolate.Types.Descriptors
 
         public bool TryCreateTypeInfo(
             Type type,
-            [NotNullWhen(true)] out ITypeInfo? typeInfo)
+            [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
+            TryCreateTypeInfo(GetType(type), out typeInfo);
+
+
+
+        public bool TryCreateTypeInfo(
+            IExtendedType type,
+            [NotNullWhen(true)]out ITypeInfo? typeInfo)
         {
-            if(Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? t))
+            if(TypeInfo.TryCreate1(type, out TypeInfo? t))
             {
                 typeInfo = t;
                 return true;
@@ -346,17 +310,46 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        public bool TryCreateTypeInfo(
+        private IExtendedType ApplyTypeAttributes(
             IExtendedType type,
-            [NotNullWhen(true)]out ITypeInfo? typeInfo)
+            ICustomAttributeProvider attributeProvider)
         {
-            if(Internal.TypeInfo.TryCreate(type, out Internal.TypeInfo? t))
+            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute))
             {
-                typeInfo = t;
+                return GetType(typeAttribute.Type);
+            }
+
+            if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
+            {
+                return RewriteNullability(
+                    type,
+                    nullAttribute.Nullable);
+            }
+
+            if (RequiredAsNonNull &&
+                TryGetAttribute(attributeProvider, out RequiredAttribute? requiredAttribute))
+            {
+                return RewriteNullability(type, false);
+            }
+
+            return type;
+        }
+
+        private static bool TryGetAttribute<T>(
+            ICustomAttributeProvider attributeProvider,
+            [NotNullWhen(true)]out T? attribute)
+            where T : Attribute
+        {
+            if (attributeProvider.IsDefined(typeof(T), true))
+            {
+                attribute = attributeProvider
+                    .GetCustomAttributes(typeof(T), true)
+                    .OfType<T>()
+                    .First();
                 return true;
             }
 
-            typeInfo = null;
+            attribute = null;
             return false;
         }
 

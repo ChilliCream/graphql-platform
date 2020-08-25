@@ -31,6 +31,8 @@ namespace HotChocolate.Types.Descriptors
             ContextData = contextData;
         }
 
+        public IServiceProvider Services => _services;
+
         public IReadOnlySchemaOptions Options { get; }
 
         public INamingConventions Naming

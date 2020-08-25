@@ -18,6 +18,11 @@ namespace HotChocolate.Types.Descriptors
         IReadOnlySchemaOptions Options { get; }
 
         /// <summary>
+        /// Gets the schema services.
+        /// </summary>
+        IServiceProvider Services { get; }
+
+        /// <summary>
         /// Gets the naming conventions.
         /// </summary>
         INamingConventions Naming { get; }

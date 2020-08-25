@@ -59,7 +59,7 @@ namespace HotChocolate.Internal
                     if (type.IsList)
                     {
                         list.Add((TypeComponentKind.List, current));
-                        current = current.GetElementType();
+                        current = current.ElementType;
                     }
                     else
                     {

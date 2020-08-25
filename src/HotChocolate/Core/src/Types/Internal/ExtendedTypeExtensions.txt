@@ -12,7 +12,7 @@ namespace HotChocolate.Internal
             IExtendedType extendedType) =>
             type.IsAssignableFrom(extendedType.Type);
 
-        private static IExtendedType RewriteNullability(
+        internal static IExtendedType RewriteNullability1(
             this IExtendedType type,
             params bool?[] nullable)
         {

@@ -15,12 +15,6 @@ namespace HotChocolate.Internal
             /// <summary>
             /// Removes non-essential parts from the type.
             /// </summary>
-            public static IExtendedType Unwrap(Type type) =>
-                Unwrap(ExtendedType.FromType(type));
-
-            /// <summary>
-            /// Removes non-essential parts from the type.
-            /// </summary>
             public static IExtendedType Unwrap(IExtendedType type) =>
                 RemoveNonEssentialParts(type);
 
@@ -67,7 +61,7 @@ namespace HotChocolate.Internal
                     if (current.IsArrayOrList)
                     {
                         list.Add((TypeComponentKind.List, current));
-                        current = current.GetElementType();
+                        current = current.ElementType;
                     }
                     else
                     {

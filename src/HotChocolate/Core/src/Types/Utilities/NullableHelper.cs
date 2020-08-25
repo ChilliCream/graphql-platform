@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Utilities.CompilerServices;
 
 #nullable enable
 
 namespace HotChocolate.Utilities
 {
-    internal readonly ref struct NullableHelper
+    internal readonly struct NullableHelper
     {
         private const string _nullableContextAttributeName =
             "System.Runtime.CompilerServices.NullableContextAttribute";
         private const string _nullableAttributeName =
             "System.Runtime.CompilerServices.NullableAttribute";
 
-        private readonly Nullable _context;
+        private readonly bool? _context;
 
-        private NullableHelper(Type type)
+        public NullableHelper(Type type)
         {
-            _context = GetContext(GetNullableContextAttribute(type.Assembly), Nullable.Yes);
+            _context = GetContext(GetNullableContextAttribute(type.Assembly), true);
 
             Type? current = type.DeclaringType;
             while (current != null)
@@ -33,189 +32,40 @@ namespace HotChocolate.Utilities
             _context = GetContext(GetNullableContextAttribute(type), _context);
         }
 
-        public static IExtendedType GetReturnType(MemberInfo member)
-        {
-            return ExtendedType.FromExtendedType(GetReturnTypeInternal(member), member);
-        }
-
-        private static IExtendedType GetReturnTypeInternal(MemberInfo member)
-        {
-            var helper = new NullableHelper(member.DeclaringType!);
-            Nullable context = helper.GetContext(member);
-            ReadOnlySpan<byte> flags = GetFlags(member);
-
-            switch (member)
-            {
-                case PropertyInfo p:
-                    return helper.CreateExtendedType(context, flags, p.PropertyType);
-
-                case MethodInfo m:
-                    return helper.CreateExtendedType(context, flags, m.ReturnType);
-
-                default:
-                    throw new NotSupportedException(
-                        "Only PropertyInfo and MethodInfo are supported.");
-            }
-        }
-
-        public static ExtendedMethodTypeInfo GetExtendedMethodInfo(MethodInfo method)
-        {
-            var helper = new NullableHelper(method.DeclaringType!);
-            return helper.GetMethodInfo(method);
-        }
-
-        private ExtendedMethodTypeInfo GetMethodInfo(MethodInfo method)
-        {
-            IExtendedType returnType = ExtendedType.FromExtendedType(
-                CreateExtendedType(GetContext(method), GetFlags(method), method.ReturnType),
-                method);
-
-            ParameterInfo[] parameters = method.GetParameters();
-            var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
-
-            foreach (ParameterInfo parameter in parameters)
-            {
-                parameterTypes.Add(
-                    parameter,
-                    ExtendedType.FromExtendedType(
-                        CreateExtendedType(
-                            GetContext(parameter),
-                            GetFlags(parameter),
-                            parameter.ParameterType),
-                        parameter));
-            }
-
-            return new ExtendedMethodTypeInfo(returnType, parameterTypes);
-        }
-
-        private IExtendedType CreateExtendedType(
-            Nullable context,
-            ReadOnlySpan<byte> flags,
-            Type type)
-        {
-            var position = 0;
-            return CreateExtendedType(context, flags, type, ref position);
-        }
-
-        private IExtendedType CreateExtendedType(
-            Nullable context,
-            ReadOnlySpan<byte> flags,
-            Type type,
-            ref int position)
-        {
-            if (type.IsValueType)
-            {
-                if (type.IsGenericType)
-                {
-                    if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    {
-                        return new Internal.ExtendedType(
-                            type.GetGenericArguments()[0],
-                            true,
-                            ExtendedTypeKind.Extended);
-                    }
-
-                    var arguments = new List<IExtendedType>();
-                    foreach (Type argumentType in type.GetGenericArguments())
-                    {
-                        arguments.Add(CreateExtendedType(
-                            context, flags, argumentType, ref position));
-                    }
-                    return new Internal.ExtendedType(
-                        type,
-                        false,
-                        ExtendedTypeKind.Extended,
-                        typeArguments: arguments);
-                }
-
-                return new Internal.ExtendedType(
-                    type,
-                    false,
-                    ExtendedTypeKind.Extended);
-            }
-
-            Nullable state = context;
-            if (!flags.IsEmpty)
-            {
-                if (flags.Length > position)
-                {
-                    state = (Nullable)flags[position++];
-                }
-                else if (flags.Length == 1)
-                {
-                    state = (Nullable)flags[0];
-                }
-            }
-
-            if (type.IsGenericType)
-            {
-                var arguments = new List<IExtendedType>();
-
-                foreach (Type argumentType in type.GetGenericArguments())
-                {
-                    arguments.Add(CreateExtendedType(
-                        context, flags, argumentType, ref position));
-                }
-
-                return new Internal.ExtendedType(
-                    type,
-                    state == Nullable.Yes,
-                    ExtendedTypeKind.Extended,
-                    typeArguments: arguments);
-            }
-
-            if (type.IsArray)
-            {
-                IExtendedType elementType =
-                    CreateExtendedType(
-                        context,
-                        flags,
-                        type.GetElementType()!,
-                        ref position);
-
-                return new Internal.ExtendedType(
-                    type,
-                    state == Nullable.Yes,
-                    ExtendedTypeKind.Extended,
-                    typeArguments: new[] { elementType },
-                    elementType: elementType);
-            }
-
-            return new Internal.ExtendedType(
-                type,
-                state == Nullable.Yes,
-                ExtendedTypeKind.Extended);
-        }
-
-        private Nullable GetContext(MemberInfo member)
+        public bool? GetContext(MemberInfo member)
         {
             NullableContextAttribute? attribute = GetNullableContextAttribute(member);
             return GetContext(attribute);
         }
 
-        private Nullable GetContext(ParameterInfo parameter)
+        private bool? GetContext(ParameterInfo parameter)
         {
             NullableContextAttribute? attribute = GetNullableContextAttribute(parameter);
             return GetContext(attribute, GetContext(parameter.Member));
         }
 
-        private Nullable GetContext(NullableContextAttribute? attribute)
+        private bool? GetContext(NullableContextAttribute? attribute)
         {
             return GetContext(attribute, _context);
         }
 
-        private static Nullable GetContext(
+        private static bool? GetContext(
             NullableContextAttribute? attribute,
-            Nullable parent)
+            bool? parent)
         {
-            if (attribute is { })
+            if (attribute is not null)
             {
-                return (Nullable)attribute.Flag;
+                return (Nullable)attribute.Flag switch
+                {
+                    Nullable.Yes => true,
+                    Nullable.No => false,
+                    _ => null
+                };
             }
             return parent;
         }
 
-        private static ReadOnlySpan<byte> GetFlags(MemberInfo member)
+        public bool?[] GetFlags(MemberInfo member)
         {
             if (member is MethodInfo m)
             {
@@ -224,18 +74,30 @@ namespace HotChocolate.Utilities
             return GetFlags(GetNullableAttribute(member));
         }
 
-        private static ReadOnlySpan<byte> GetFlags(ParameterInfo parameter)
+        public bool?[] GetFlags(ParameterInfo parameter)
         {
             return GetFlags(GetNullableAttribute(parameter));
         }
 
-        private static ReadOnlySpan<byte> GetFlags(NullableAttribute? attribute)
+        private static bool?[] GetFlags(NullableAttribute? attribute)
         {
-            if (attribute is { })
+            if (attribute is not null)
             {
-                return attribute.Flags;
+                var flags = new bool?[attribute.Flags.Length];
+
+                for (int i = 0; i < attribute.Flags.Length; i++)
+                {
+                    flags[i] = (Nullable)attribute.Flags[i] switch
+                    {
+                        Nullable.Yes => true,
+                        Nullable.No => false,
+                        _ => null
+                    };
+                }
+
+                return flags;
             }
-            return default;
+            return Array.Empty<bool?>();
         }
 
         private static NullableContextAttribute? GetNullableContextAttribute(
