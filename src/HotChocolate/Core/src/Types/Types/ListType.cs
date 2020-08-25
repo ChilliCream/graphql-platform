@@ -123,7 +123,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            Type elementType = ExtendedType.GetElementType(value.GetType());
+            Type elementType = ExtendedType.Tools.GetElementType(value.GetType());
 
             if (elementType is null)
             {

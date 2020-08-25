@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
 
@@ -39,13 +40,9 @@ namespace HotChocolate.Types
             {
                 if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {
-                    // TODO : resources
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage("COULD NOT RESOLVE INTERFACE")
-                        .SetCode(ErrorCodes.Schema.MissingType)
-                        .SetTypeSystemObject(interfaceOrObject)
-                        .AddSyntaxNode(node)
-                        .Build());
+                    context.ReportError(
+                        CompleteInterfacesHelper_UnableToResolveInterface(
+                            interfaceOrObject, node));
                 }
 
                 if (!interfaces.Contains(type))
@@ -63,7 +60,8 @@ namespace HotChocolate.Types
             foreach (Type interfaceType in clrType.GetInterfaces())
             {
                 if (context.TryGetType(
-                    TypeReference.Create(interfaceType, TypeContext.Output),
+                    context.DescriptorContext.Inspector.GetTypeRef(
+                        interfaceType, TypeContext.Output),
                     out InterfaceType type) &&
                     !interfaces.Contains(type))
                 {

@@ -22,9 +22,10 @@ namespace HotChocolate.Types.Descriptors
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
         private const string _equals = "Equals";
-
-        private readonly Dictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
-            new Dictionary<MemberInfo, IExtendedMethodTypeInfo>();
+        
+        private readonly TypeCache _typeCache = new TypeCache();
+        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
+            new Dictionary<MemberInfo, ExtendedMethodInfo>();
 
         public static DefaultTypeInspector Default { get; } =
             new DefaultTypeInspector();

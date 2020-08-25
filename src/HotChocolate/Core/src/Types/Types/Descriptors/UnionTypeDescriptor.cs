@@ -73,8 +73,8 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType
         {
-            Definition.Types.Add(TypeReference.Create(
-                 typeof(TObjectType), TypeContext.Output));
+            Definition.Types.Add(
+                Context.Inspector.GetTypeRef(typeof(TObjectType), TypeContext.Output));
             return this;
         }
 

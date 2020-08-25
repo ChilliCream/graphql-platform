@@ -1,10 +1,5 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -42,6 +37,42 @@ namespace HotChocolate.Internal
                 }
 
                 return BaseTypes.IsNonGenericBaseType(type);
+            }
+
+            public static Type? GetElementType(Type type)
+            {
+                if (type is null)
+                {
+                    throw new ArgumentNullException(nameof(type));
+                }
+
+                return Helper.GetInnerListType(type);
+            }
+
+            public static Type? GetNamedType(Type type)
+            {
+                if (type is null)
+                {
+                    throw new ArgumentNullException(nameof(type));
+                }
+
+                if (BaseTypes.IsGenericBaseType(type))
+                {
+                    return type;
+                }
+
+                if (type.IsGenericType)
+                {
+                    Type definition = type.GetGenericTypeDefinition();
+                    if (typeof(ListType<>) == definition
+                        || typeof(NonNullType<>) == definition
+                        || typeof(NativeType<>) == definition)
+                    {
+                        return GetNamedType(type.GetGenericArguments()[0]);
+                    }
+                }
+
+                return null;
             }
         }
     }

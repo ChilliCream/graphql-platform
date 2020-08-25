@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -162,7 +161,7 @@ namespace HotChocolate.Types.Descriptors
             if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
-                    TypeReference.Create(
+                    Context.Inspector.GetTypeRef(
                         typeof(DeprecatedDirectiveType),
                         TypeContext.None),
                     TypeDependencyKind.Completed));

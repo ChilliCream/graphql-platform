@@ -179,7 +179,8 @@ namespace HotChocolate.Types.Descriptors
                     TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
             }
 
-            Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
+            Definition.Interfaces.Add(
+                Context.Inspector.GetTypeRef(typeof(TInterface)));
             return this;
         }
 

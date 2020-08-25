@@ -9,10 +9,10 @@ namespace HotChocolate.Internal
 {
     internal sealed class TypeCache
     {
-        private static readonly Dictionary<object, ExtendedType> _types =
+        private readonly Dictionary<object, ExtendedType> _types =
             new Dictionary<object, ExtendedType>();
 
-        private static readonly Dictionary<IExtendedType, TypeInfo> _typeInfos =
+        private readonly Dictionary<IExtendedType, TypeInfo> _typeInfos =
             new Dictionary<IExtendedType, TypeInfo>();
 
         public bool TryGetType(

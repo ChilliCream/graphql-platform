@@ -176,7 +176,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            Type? namedType = ExtendedType.GetNamedTypeInternal(type);
+            Type? namedType = ExtendedType.Tools.GetNamedType(type);
             return InferTypeContextInternal(namedType ?? type);
         }
 

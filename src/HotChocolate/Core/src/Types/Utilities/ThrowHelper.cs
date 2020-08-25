@@ -1,7 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {

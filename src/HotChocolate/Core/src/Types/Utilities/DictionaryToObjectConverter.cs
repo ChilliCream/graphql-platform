@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities
 {
@@ -71,7 +72,7 @@ namespace HotChocolate.Utilities
             IReadOnlyList<object> list,
             ConverterContext context)
         {
-            Type elementType = Internal.ExtendedType.GetElementType(context.ClrType);
+            Type elementType = ExtendedType.Tools.GetElementType(context.ClrType);
 
             if (elementType is not null)
             {
