@@ -59,7 +59,12 @@ namespace HotChocolate.Configuration
         /// The type initialization interceptor that allows to intercept
         /// objects that er being initialized.
         /// </summary>
-        ITypeInterceptor Interceptor { get; }
+        ITypeInterceptor TypeInterceptor { get; }
+
+        /// <summary>
+        /// Gets the type inspector.
+        /// </summary>
+        ITypeInspector TypeInspector { get; }
 
         /// <summary>
         /// Report a schema initialization error.

@@ -27,7 +27,7 @@ namespace HotChocolate.Configuration
             foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
             {
                 if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
-                    !ExtendedType.BaseTypes.IsNonGenericBaseType(typeInfo.NamedType))
+                    !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
                 {
                     Type namedType = typeInfo.NamedType;
                     if (IsTypeSystemObject(namedType))

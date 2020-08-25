@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Relay
                 .OnBeforeCompletion((context, defintion) =>
                 {
                     ITypeReference reference =
-                        context.DescriptorContext.Inspector.GetTypeRef(typeof(TSchemaType));
+                        context.DescriptorContext.TypeInspector.GetTypeRef(typeof(TSchemaType));
                     IOutputType type = context.GetType<IOutputType>(reference);
                     if (type.NamedType() is IHasRuntimeType hasClrType)
                     {

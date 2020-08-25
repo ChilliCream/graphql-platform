@@ -34,7 +34,11 @@ namespace HotChocolate.Internal
             {
                 Definition = type.GetGenericTypeDefinition();
             }
+
+            Id = Helper.CreateIdentifier(this);
         }
+
+        public ExtendedTypeId Id { get; }
 
         /// <inheritdoc />
         public Type Type { get; }
@@ -128,6 +132,11 @@ namespace HotChocolate.Internal
 
                 return hashCode;
             }
+        }
+
+        public override string ToString()
+        {
+            return Source.ToString() + Id.Nullability;
         }
 
         public static ExtendedType FromType(Type type, TypeCache cache)

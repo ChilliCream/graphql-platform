@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (definition.FieldBindingType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.FieldBindingType);

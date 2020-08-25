@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(schemaResolver));
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
-            _typeInspector = _initializationContext.DescriptorContext.Inspector;
+            _typeInspector = _initializationContext.DescriptorContext.TypeInspector;
 
             _alternateNames.Add(_initializationContext.InternalName);
         }
@@ -68,7 +68,9 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
-        public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
+        public ITypeInterceptor TypeInterceptor => _initializationContext.TypeInterceptor;
+
+        public ITypeInspector TypeInspector => _initializationContext.TypeInspector;
 
         public T GetType<T>(ITypeReference reference)
             where T : IType
@@ -196,7 +198,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                ClrTypeReference clrTypeReference = TypeReference.Create(cr.ClrType);
+                var clrTypeReference = (ClrTypeReference)_typeInspector.GetTypeRef(cr.ClrType);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,
                     out ITypeReference internalReference))

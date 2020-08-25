@@ -28,8 +28,8 @@ namespace HotChocolate.Configuration
             ITypeInterceptor interceptor,
             IServiceProvider services)
         {
-            _unregistered.AddRange(IntrospectionTypes.All);
-            _unregistered.AddRange(Directives.All);
+            _unregistered.AddRange(IntrospectionTypes.CreateReferences(descriptorContext.TypeInspector));
+            _unregistered.AddRange(Directives.CreateReferences(descriptorContext.TypeInspector));
             _unregistered.AddRange(clrTypeReferences.Values);
             _unregistered.AddRange(initialTypes);
 
@@ -45,11 +45,11 @@ namespace HotChocolate.Configuration
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ExtendedTypeReferenceHandler(descriptorContext.Inspector),
-                new SyntaxTypeReferenceHandler()
+                new ExtendedTypeReferenceHandler(descriptorContext.TypeInspector),
+                new SyntaxTypeReferenceHandler(descriptorContext.TypeInspector)
             };
 
-            _typeInspector = descriptorContext.Inspector;
+            _typeInspector = descriptorContext.TypeInspector;
         }
 
         public DiscoveredTypes DiscoverTypes()
@@ -109,20 +109,21 @@ namespace HotChocolate.Configuration
             foreach (ClrTypeReference unresolvedType in
                 _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out ClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
                 {
                     inferred = true;
 
-                    _unregistered.Add(schemaType);
+                    ClrTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
+                    _unregistered.Add(typeReference);
                     _typeRegistrar.MarkResolved(unresolvedType);
 
                     if (!_clrTypeReferences.ContainsKey(unresolvedType))
                     {
-                        _clrTypeReferences.Add(unresolvedType, schemaType);
+                        _clrTypeReferences.Add(unresolvedType, typeReference);
                     }
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    _typeInspector, unresolvedType, out schemaType))
+                    _typeInspector, unresolvedType, out ClrTypeReference schemaType))
                 {
                     inferred = true;
 

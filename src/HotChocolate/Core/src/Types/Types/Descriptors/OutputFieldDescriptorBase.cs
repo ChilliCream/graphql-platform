@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(Type type)
         {
-            var typeInfo = Context.Inspector.CreateTypeInfo(type);
+            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
             if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.SetMoreSpecificType(
-                typeInfo.GetExtendedType(), 
+                typeInfo.GetExtendedType(),
                 TypeContext.Output);
         }
 
@@ -136,7 +136,7 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.DeprecationReason = reason;
-                AddDeprectedDirective(reason);
+                AddDeprecatedDirective(reason);
             }
         }
 
@@ -144,10 +144,10 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprectedDirective(null);
+            AddDeprecatedDirective(null);
         }
 
-        private void AddDeprectedDirective(string reason)
+        private void AddDeprecatedDirective(string reason)
         {
             if (_deprecatedDirective != null)
             {
@@ -155,15 +155,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
             _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason));
+                new DeprecatedDirective(reason),
+                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
             Definition.Directives.Add(_deprecatedDirective);
 
             if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
-                    Context.Inspector.GetTypeRef(
-                        typeof(DeprecatedDirectiveType),
-                        TypeContext.None),
+                    Context.TypeInspector.GetTypeRef(
+                        typeof(DeprecatedDirectiveType)),
                     TypeDependencyKind.Completed));
                 _deprecatedDependencySet = true;
             }
@@ -177,13 +177,13 @@ namespace HotChocolate.Types.Descriptors
         protected void Directive<T>(T directive)
             where T : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directive, Context.TypeInspector);
         }
 
         protected void Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
         }
 
         protected void Directive(

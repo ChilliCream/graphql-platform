@@ -10,14 +10,14 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumTypeDefinition>
         , IEnumTypeDescriptor
     {
-        protected internal EnumTypeDescriptor(IDescriptorContext context)
+        protected EnumTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.RuntimeType = typeof(object);
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected internal EnumTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             Definition.RuntimeType = clrType ?? throw new ArgumentNullException(nameof(clrType));
@@ -26,13 +26,13 @@ namespace HotChocolate.Types.Descriptors
             Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
         }
 
-        protected internal EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
+        protected EnumTypeDescriptor(IDescriptorContext context, EnumTypeDefinition definition)
             : base(context)
         {
             Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        internal protected override EnumTypeDefinition Definition { get; protected set; } =
+        protected internal override EnumTypeDefinition Definition { get; protected set; } =
             new EnumTypeDefinition();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
@@ -68,13 +68,14 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeDefinition.Values.IsImplicitBinding())
             {
-                foreach (object value in Context.Inspector.GetEnumValues(typeDefinition.RuntimeType))
+                foreach (object value in Context.TypeInspector.GetEnumValues(typeDefinition.RuntimeType))
                 {
                     EnumValueDefinition valueDefinition =
                         EnumValueDescriptor.New(Context, value)
                             .CreateDefinition();
 
-                    if (!values.ContainsKey(valueDefinition.Value))
+                    if (valueDefinition.Value is not null &&
+                        !values.ContainsKey(valueDefinition.Value))
                     {
                         values.Add(valueDefinition.Value, valueDefinition);
                     }
@@ -121,13 +122,15 @@ namespace HotChocolate.Types.Descriptors
         public IEnumValueDescriptor Item<T>(T value)
         {
             EnumValueDescriptor descriptor = Values.FirstOrDefault(t =>
+                t.Definition.Value is not null &&
                 t.Definition.Value.Equals(value));
-            if (descriptor is { })
+
+            if (descriptor is not null)
             {
                 return descriptor;
             }
 
-            descriptor = new EnumValueDescriptor(Context, value);
+            descriptor = EnumValueDescriptor.New(Context, value);
             Values.Add(descriptor);
             return descriptor;
         }
@@ -137,14 +140,14 @@ namespace HotChocolate.Types.Descriptors
         public IEnumTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IEnumTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -172,7 +175,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             Type schemaType)
         {
-            var descriptor = New(context, schemaType);
+            EnumTypeDescriptor descriptor = New(context, schemaType);
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }

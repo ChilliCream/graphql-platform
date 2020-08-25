@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Descriptors
             where TObjectType : ObjectType
         {
             Definition.Types.Add(
-                Context.Inspector.GetTypeRef(typeof(TObjectType), TypeContext.Output));
+                Context.TypeInspector.GetTypeRef(typeof(TObjectType), TypeContext.Output));
             return this;
         }
 
@@ -110,14 +110,14 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IUnionTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using System;
 
 #nullable enable
 
@@ -11,6 +12,13 @@ namespace HotChocolate.Configuration
     internal sealed class SyntaxTypeReferenceHandler
         : ITypeRegistrarHandler
     {
+        private ITypeInspector _typeInspector;
+
+        public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
+        {
+            _typeInspector = typeInspector;
+        }
+
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
@@ -20,8 +28,10 @@ namespace HotChocolate.Configuration
             {
                 if (Scalars.TryGetScalar(
                     typeReference.Type.NamedType().Name.Value,
-                    out ClrTypeReference namedTypeReference))
+                    out Type? scalarType))
                 {
+                    ClrTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {
                         typeRegistrar.Register(

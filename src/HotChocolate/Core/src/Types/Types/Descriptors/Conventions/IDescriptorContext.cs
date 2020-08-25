@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
         /// <summary>
         /// Gets the type inspector.
         /// </summary>
-        ITypeInspector Inspector { get; }
+        ITypeInspector TypeInspector { get; }
 
         /// <summary>
         /// Gets the context for the schema creation process.

@@ -58,7 +58,7 @@ namespace HotChocolate.Configuration
             _interceptor = interceptor;
             _isOfType = isOfType;
             _isQueryType = isQueryType;
-            _typeInspector = descriptorContext.Inspector;
+            _typeInspector = descriptorContext.TypeInspector;
         }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
@@ -310,7 +310,7 @@ namespace HotChocolate.Configuration
             Type resolverType)
         {
             foreach (MemberInfo member in
-                context.Inspector.GetMembers(resolverType))
+                context.TypeInspector.GetMembers(resolverType))
             {
                 if (IsResolverRelevant(objectType.RuntimeType, member))
                 {

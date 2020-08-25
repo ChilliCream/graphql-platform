@@ -1,12 +1,10 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.Utilities;
-using HotChocolate.Properties;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Internal;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
@@ -22,7 +20,7 @@ namespace HotChocolate.Types.Descriptors
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
         private const string _equals = "Equals";
-        
+
         private readonly TypeCache _typeCache = new TypeCache();
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
@@ -94,29 +92,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            IExtendedType returnType;
-
-            switch (member)
-            {
-                case MethodInfo m:
-                    if (!_methods.TryGetValue(member, out IExtendedMethodTypeInfo? methodTypeInfo))
-                    {
-                        methodTypeInfo = m.GetExtendedMethodTypeInfo();
-                        _methods[m] = methodTypeInfo;
-                    }
-                    returnType = methodTypeInfo.ReturnType;
-                    break;
-
-                case PropertyInfo p:
-                    returnType =  p.GetExtendedReturnType();
-                    break;
-
-                default:
-                    throw new ArgumentException(
-                        TypeResources.DefaultTypeInspector_MemberInvalid,
-                        nameof(member));
-            }
-
+            IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
             return ApplyTypeAttributes(returnType, member);
         }
 
@@ -147,9 +123,10 @@ namespace HotChocolate.Types.Descriptors
         {
             MethodInfo method = (MethodInfo)parameter.Member;
 
-            if (!_methods.TryGetValue(method, out IExtendedMethodTypeInfo? info))
+            if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
             {
-                info = method.GetExtendedMethodTypeInfo();
+                info = ExtendedType.FromMethod(method, _typeCache);
+                _methods[method] = info;
             }
 
             return info.ParameterTypes[parameter];
@@ -215,7 +192,7 @@ namespace HotChocolate.Types.Descriptors
                 return type;
             }
 
-            return ExtendedType.GetNamedTypeInternal(type) ?? type;
+            return ExtendedType.Tools.GetNamedType(type) ?? type;
         }
 
         /// <inheritdoc />
@@ -226,7 +203,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return ExtendedType.IsSchemaTypeInternal(type);
+            return ExtendedType.Tools.IsSchemaType(type);
         }
 
         /// <inheritdoc />
@@ -273,35 +250,81 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        public IExtendedType RewriteNullability(IExtendedType type, params bool?[] nullable)
+        public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
         {
-            throw new NotImplementedException();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable == null)
+            {
+                throw new ArgumentNullException(nameof(nullable));
+            }
+
+            if (nullable.Length > 32)
+            {
+                throw new ArgumentException(
+                    "Types with more than 32 components are not supported.");
+            }
+
+            if (nullable.Length == 0)
+            {
+                return type;
+            }
+
+            return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
         }
 
-
-
-        public ITypeInfo CreateTypeInfo(Type type)
+        private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
         {
-            throw new NotImplementedException();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable == null)
+            {
+                throw new ArgumentNullException(nameof(nullable));
+            }
+
+            if (nullable.Length > 32)
+            {
+                throw new ArgumentException(
+                    "Types with more than 32 components are not supported.");
+            }
+
+            if (nullable.Length == 0)
+            {
+                return type;
+            }
+
+            Span<bool?> n = stackalloc bool?[nullable.Length];
+
+            for (var i = 0; i < n.Length; i++)
+            {
+                n[i] = nullable[i];
+            }
+
+            return ExtendedType.Tools.ChangeNullability(type, n, _typeCache);
         }
 
-        public ITypeInfo CreateTypeInfo(IExtendedType type)
-        {
-            throw new NotImplementedException();
-        }
+        public ITypeInfo CreateTypeInfo(Type type) =>
+            TypeInfo.Create(GetType(type), _typeCache);
+
+        public ITypeInfo CreateTypeInfo(IExtendedType type) =>
+            TypeInfo.Create(type, _typeCache);
 
         public bool TryCreateTypeInfo(
             Type type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
             TryCreateTypeInfo(GetType(type), out typeInfo);
 
-
-
         public bool TryCreateTypeInfo(
             IExtendedType type,
-            [NotNullWhen(true)]out ITypeInfo? typeInfo)
+            [NotNullWhen(true)] out ITypeInfo? typeInfo)
         {
-            if(TypeInfo.TryCreate1(type, out TypeInfo? t))
+            if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
             {
                 typeInfo = t;
                 return true;
@@ -322,15 +345,15 @@ namespace HotChocolate.Types.Descriptors
 
             if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
             {
-                return RewriteNullability(
+                return ChangeNullabilityInternal(
                     type,
                     nullAttribute.Nullable);
             }
 
             if (RequiredAsNonNull &&
-                TryGetAttribute(attributeProvider, out RequiredAttribute? requiredAttribute))
+                TryGetAttribute(attributeProvider, out RequiredAttribute? _))
             {
-                return RewriteNullability(type, false);
+                return ChangeNullability(type, false);
             }
 
             return type;
@@ -338,7 +361,7 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool TryGetAttribute<T>(
             ICustomAttributeProvider attributeProvider,
-            [NotNullWhen(true)]out T? attribute)
+            [NotNullWhen(true)] out T? attribute)
             where T : Attribute
         {
             if (attributeProvider.IsDefined(typeof(T), true))

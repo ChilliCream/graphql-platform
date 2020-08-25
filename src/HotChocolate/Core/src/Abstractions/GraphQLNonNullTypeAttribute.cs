@@ -13,16 +13,16 @@ namespace HotChocolate
     {
         public GraphQLNonNullTypeAttribute()
         {
-            Nullable =  new bool?[] { false };
+            Nullable =  new[] { false };
         }
 
-        public GraphQLNonNullTypeAttribute(params bool?[] nullable)
+        public GraphQLNonNullTypeAttribute(params bool[] nullable)
         {
             Nullable = nullable.Length == 0
-                ? new bool?[] { false }
+                ? new[] { false }
                 : nullable;
         }
 
-        public bool?[] Nullable { get; }
+        public bool[] Nullable { get; }
     }
 }

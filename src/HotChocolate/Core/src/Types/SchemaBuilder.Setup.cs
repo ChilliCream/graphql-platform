@@ -63,7 +63,7 @@ namespace HotChocolate
 
                 foreach (CreateRef typeRef in builder._types)
                 {
-                    types.Add(typeRef(context.Inspector));
+                    types.Add(typeRef(context.TypeInspector));
                 }
 
                 if (builder._documents.Count > 0)
@@ -77,7 +77,7 @@ namespace HotChocolate
                 }
                 else
                 {
-                    types.Add(builder._schema(context.Inspector));
+                    types.Add(builder._schema(context.TypeInspector));
                 }
 
                 return types;
@@ -167,7 +167,7 @@ namespace HotChocolate
                 IEnumerable<ITypeReference> typeReferences)
             {
                 Dictionary<OperationType, ITypeReference> operations =
-                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.Inspector));
+                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
 
                 var interceptor = new AggregateTypeInitializationInterceptor(
                     CreateInterceptors(builder, context.Services));
@@ -178,7 +178,7 @@ namespace HotChocolate
                     builder._resolverTypes,
                     interceptor,
                     builder._isOfType,
-                    type => IsQueryType(context.Inspector, type, operations));
+                    type => IsQueryType(context.TypeInspector, type, operations));
 
                 foreach (FieldMiddleware component in builder._globalComponents)
                 {
@@ -202,8 +202,8 @@ namespace HotChocolate
 
                 foreach (KeyValuePair<Type, (CreateRef, CreateRef)> binding in builder._clrTypes)
                 {
-                    initializer.ClrTypes[(ClrTypeReference)binding.Value.Item1(context.Inspector)] =
-                        binding.Value.Item2.Invoke(context.Inspector);
+                    initializer.ClrTypes[(ClrTypeReference)binding.Value.Item1(context.TypeInspector)] =
+                        binding.Value.Item2.Invoke(context.TypeInspector);
                 }
 
                 return initializer;
@@ -328,7 +328,7 @@ namespace HotChocolate
                     builder._options.SubscriptionTypeName);
 
                 Dictionary<OperationType, ITypeReference> operations =
-                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.Inspector));
+                    builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
 
 
                 definition.QueryType = ResolveOperation(

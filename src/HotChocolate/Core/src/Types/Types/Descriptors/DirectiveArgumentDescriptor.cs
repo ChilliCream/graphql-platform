@@ -26,10 +26,10 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.DirectiveArgument);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.DirectiveArgument);
-            Definition.Type = context.Inspector.GetInputReturnTypeRef(property);
+            Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
             Definition.Property = property;
 
-            if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
+            if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Property);

@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
@@ -26,14 +24,14 @@ namespace HotChocolate.Types
             descriptor.Extend().OnBeforeCreate(d =>
             {
                 ITypeReference typeReference =
-                    context.Inspector.GetReturnTypeRef(member, TypeContext.Output);
+                    context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
                 if (typeReference is ClrTypeReference typeRef &&
-                    context.Inspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+                    context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
                     !typeInfo.IsSchemaType)
                 {
                     IExtendedType? rewritten = typeRef.Type.IsArrayOrList
-                        ? typeRef.Type.GetElementType()
+                        ? typeRef.Type.ElementType
                         : null;
 
                     if (rewritten is null)

@@ -6,6 +6,7 @@ using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public static class FieldDescriptorUtilities
@@ -63,7 +64,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (fieldBindingType != typeof(object))
             {
-                List<TMember> members = descriptor.Context.Inspector
+                List<TMember> members = descriptor.Context.TypeInspector
                     .GetMembers(fieldBindingType)
                     .OfType<TMember>()
                     .ToList();

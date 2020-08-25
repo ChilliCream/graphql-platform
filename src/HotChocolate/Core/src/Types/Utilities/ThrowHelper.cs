@@ -85,5 +85,17 @@ namespace HotChocolate.Utilities
                     .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
                     .SetExtension(nameof(member), member)
                     .Build());
+
+        public static SchemaException TypeRegistrar_CreateInstanceFailed(
+            Type namedSchemaType,
+            Exception exception) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create instance of type `{0}`.",
+                        namedSchemaType.FullName)
+                    .SetException(exception)
+                    .SetExtension(nameof(namedSchemaType), namedSchemaType)
+                    .Build());
     }
 }

@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.RuntimeType != typeof(object))
             {
-                foreach (Type resolverType in Context.Inspector
+                foreach (Type resolverType in Context.TypeInspector
                     .GetResolverTypes(Definition.RuntimeType))
                 {
                     ResolverTypes.Add(resolverType);
@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType)
         {
-            foreach (MemberInfo member in Context.Inspector.GetMembers(resolverType))
+            foreach (MemberInfo member in Context.TypeInspector.GetMembers(resolverType))
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
@@ -180,7 +180,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.Interfaces.Add(
-                Context.Inspector.GetTypeRef(typeof(TInterface)));
+                Context.TypeInspector.GetTypeRef(typeof(TInterface)));
             return this;
         }
 
@@ -289,14 +289,14 @@ namespace HotChocolate.Types.Descriptors
         public IObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IObjectTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 

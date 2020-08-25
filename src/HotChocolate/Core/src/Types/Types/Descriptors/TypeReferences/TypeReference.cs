@@ -106,11 +106,6 @@ namespace HotChocolate.Types.Descriptors
             string? scope = null) =>
             new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope);
 
-        public static ClrTypeReference Create<T>(
-            TypeContext context = TypeContext.None,
-            string? scope = null) =>
-            Create(typeof(T), context, scope);
-
         public static ClrTypeReference Create(
             IExtendedType type,
             TypeContext context = TypeContext.None,

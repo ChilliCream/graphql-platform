@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnTypeRef(member);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
@@ -87,7 +87,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -222,7 +222,7 @@ namespace HotChocolate.Types.Descriptors
             if (resultType != null)
             {
                 Definition.SetMoreSpecificType(
-                    Context.Inspector.GetType(resultType),
+                    Context.TypeInspector.GetType(resultType),
                     TypeContext.Output);
 
                 if (resultType.IsGenericType)
@@ -257,7 +257,7 @@ namespace HotChocolate.Types.Descriptors
                 Type resultType = member.GetReturnType();
 
                 Definition.SetMoreSpecificType(
-                    Context.Inspector.GetType(resultType),
+                    Context.TypeInspector.GetType(resultType),
                     TypeContext.Output);
 
                 Definition.ResolverType = typeof(TResolver);

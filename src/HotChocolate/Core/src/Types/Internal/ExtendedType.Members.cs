@@ -12,7 +12,9 @@ namespace HotChocolate.Internal
         private static class Members
         {
             public static ExtendedType FromMember(MemberInfo member, TypeCache cache) =>
-                cache.GetOrCreateType(member, () => Rewrite(FromMember(member), member, cache));
+                cache.GetOrCreateType(
+                    member,
+                    () => Rewrite(FromMember(member), member, cache));
 
             private static ExtendedType FromMember(MemberInfo member)
             {
@@ -35,8 +37,10 @@ namespace HotChocolate.Internal
                 bool? context = helper.GetContext(method);
 
                 IExtendedType returnType = cache.GetOrCreateType(
-                    method, 
-                    () => CreateExtendedType(context, helper.GetFlags(method), method.ReturnType));
+                    method,
+                    () => Rewrite(
+                        CreateExtendedType(context, helper.GetFlags(method), method.ReturnType),
+                        method, cache));
 
                 ParameterInfo[] parameters = method.GetParameters();
                 var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
@@ -47,10 +51,13 @@ namespace HotChocolate.Internal
                         parameter,
                         cache.GetOrCreateType(
                             parameter,
-                            () => CreateExtendedType(
-                                context,
-                                helper.GetFlags(parameter),
-                                parameter.ParameterType)));
+                            () => Rewrite(
+                                CreateExtendedType(
+                                    context,
+                                    helper.GetFlags(parameter),
+                                    parameter.ParameterType),
+                                parameter,
+                                cache)));
                 }
 
                 return new ExtendedMethodInfo(returnType, parameterTypes);
@@ -89,7 +96,7 @@ namespace HotChocolate.Internal
                     elementType = Rewrite(extendedType.ElementType!, null, cache);
                 }
 
-                return new ExtendedType(
+                var rewritten  = new ExtendedType(
                     extendedType.Type,
                     ExtendedTypeKind.Runtime,
                     typeArguments: extendedArguments,
@@ -98,6 +105,10 @@ namespace HotChocolate.Internal
                     elementType: elementType,
                     isList: extendedType.IsList,
                     isNullable: extendedType.IsNullable);
+
+                return cache.TryAdd(rewritten, member)
+                    ? rewritten
+                    : cache.GetType(rewritten.Id);
             }
 
             private static ExtendedType CreateExtendedType(

@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -93,7 +93,7 @@ namespace HotChocolate.Types.Descriptors
             };
             Definition.Configurations.Add(configuration);
 
-            return new NamedDependencyDescriptor<T>(configuration);
+            return new NamedDependencyDescriptor<T>(Context.TypeInspector, configuration);
         }
 
         ICompletedDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Descriptors
             };
             Definition.Configurations.Add(configuration);
 
-            return new CompletedDependencyDescriptor<T>(configuration);
+            return new CompletedDependencyDescriptor<T>(Context.TypeInspector, configuration);
         }
     }
 }

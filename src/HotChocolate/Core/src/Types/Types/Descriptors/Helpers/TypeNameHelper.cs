@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -49,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                 .OnBeforeNaming((ctx, definition) =>
                 {
                     INamedType type = ctx.GetType<INamedType>(
-                        ctx.DescriptorContext.Inspector.GetTypeRef(dependency));
+                        ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency));
                     definition.Name = createName(type);
                 })
                 .DependsOn(dependency, true);

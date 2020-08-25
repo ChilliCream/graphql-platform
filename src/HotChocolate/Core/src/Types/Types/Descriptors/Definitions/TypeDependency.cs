@@ -1,6 +1,6 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         public static TypeDependency FromSchemaType(
-            Type type,
+            IExtendedType type,
             TypeDependencyKind kind = TypeDependencyKind.Default)
         {
             if (type is null)
@@ -39,16 +39,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 throw new ArgumentNullException(nameof(type));
             }
 
-            ClrTypeReference typeReference = Descriptors.TypeReference.Create(type);
-            
-            if (typeReference.Type.IsSchemaType)
+            if (!type.IsSchemaType)
             {
-                return new TypeDependency(typeReference, kind);
+                throw new ArgumentException(
+                    TypeResources.TypeDependency_MustBeSchemaType,
+                    nameof(type));
             }
 
-            throw new ArgumentException(
-                TypeResources.TypeDependency_MustBeSchemaType,
-                nameof(type));
+            return new TypeDependency(
+                Descriptors.TypeReference.Create(type),
+                kind);
         }
     }
 }

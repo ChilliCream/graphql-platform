@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public ITypeInspector Inspector
+        public ITypeInspector TypeInspector
         {
             get
             {

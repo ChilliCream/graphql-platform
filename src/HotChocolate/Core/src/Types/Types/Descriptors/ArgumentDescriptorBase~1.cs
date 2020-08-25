@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(Type type)
         {
-            var typeInfo = Context.Inspector.CreateTypeInfo(type);
+            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
             if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
@@ -102,7 +102,7 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.SetMoreSpecificType(
-                    Context.Inspector.GetType(value.GetType()),
+                    Context.TypeInspector.GetType(value.GetType()),
                     TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
@@ -112,13 +112,13 @@ namespace HotChocolate.Types.Descriptors
         public void Directive<TDirective>(TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
         }
 
         public void Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
         }
 
         public void Directive(

@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);

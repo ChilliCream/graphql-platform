@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.InputObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnTypeRef(member);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (context.Naming.IsDeprecated(member, out string reason))
             {
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);

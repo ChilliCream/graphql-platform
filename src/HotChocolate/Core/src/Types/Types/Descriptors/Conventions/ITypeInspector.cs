@@ -217,7 +217,19 @@ namespace HotChocolate.Types.Descriptors
             PropertyInfo property,
             out object? defaultValue);
 
-        IExtendedType RewriteNullability(
+        /// <summary>
+        /// Rewrites a types nullability.
+        /// </summary>
+        /// <param name="type">
+        /// The original type.
+        /// </param>
+        /// <param name="nullable">
+        /// The new nullability pattern.
+        /// </param>
+        /// <returns>
+        /// Returns a new type that conforms to the new nullability pattern.
+        /// </returns>
+        IExtendedType ChangeNullability(
             IExtendedType type,
             params bool?[] nullable);
 

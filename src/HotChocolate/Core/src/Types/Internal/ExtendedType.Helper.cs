@@ -181,6 +181,185 @@ namespace HotChocolate.Internal
                 }
                 return false;
             }
+
+            internal static IExtendedType ChangeNullability(
+                IExtendedType type,
+                ReadOnlySpan<bool?> nullable,
+                TypeCache cache)
+            {
+                if (nullable.Length == 0)
+                {
+                    return type;
+                }
+
+                ExtendedTypeId id = Tools.CreateId(type, nullable);
+
+                if (cache.TryGetType(id, out ExtendedType? extendedType))
+                {
+                    return extendedType;
+                }
+
+                var pos = 0;
+                return ChangeNullability(id, type, nullable, ref pos, cache);
+            }
+
+            private static ExtendedType ChangeNullability(
+                ExtendedTypeId id,
+                IExtendedType type,
+                ReadOnlySpan<bool?> nullable,
+                ref int position,
+                TypeCache cache)
+            {
+                if (cache.TryGetType(id, out ExtendedType? cached))
+                {
+                    return cached;
+                }
+
+                var pos = position++;
+                var changeNullability =
+                    nullable[position].HasValue &&
+                    nullable[position]!.Value != type.IsNullable;
+                var typeArguments = (IReadOnlyList<ExtendedType>)type.TypeArguments;
+
+                if (nullable.Length > position)
+                {
+                    var args = new ExtendedType[type.TypeArguments.Count];
+
+                    for (var j = 0; j < type.TypeArguments.Count; j++)
+                    {
+                        IExtendedType typeArgument = type.TypeArguments[j];
+                        ExtendedTypeId typeArgumentId =
+                            Tools.CreateId(typeArgument, nullable.Slice(position));
+
+                        args[j] = nullable.Length > position
+                            ? ChangeNullability(
+                                typeArgumentId,
+                                typeArgument,
+                                nullable,
+                                ref position,
+                                cache)
+                            : (ExtendedType)type.TypeArguments[j];
+                    }
+
+                    typeArguments = args;
+                }
+
+                if (changeNullability || !ReferenceEquals(typeArguments, type.TypeArguments))
+                {
+                    IExtendedType? elementType = type.IsArrayOrList ? type.ElementType : null;
+
+                    if (elementType is not null &&
+                        !ReferenceEquals(typeArguments, type.TypeArguments))
+                    {
+                        for (var e = 0; e < type.TypeArguments.Count; e++)
+                        {
+                            if (elementType == type.TypeArguments[e])
+                            {
+                                elementType = typeArguments[e];
+                            }
+                        }
+                    }
+
+                    var rewritten = new ExtendedType(
+                        type.Type,
+                        ExtendedTypeKind.Runtime,
+                        typeArguments: typeArguments,
+                        source: type.Source,
+                        definition: type.Definition,
+                        elementType: elementType,
+                        isList: type.IsList,
+                        isNullable: nullable[pos]!.Value);
+
+                    return cache.TryAdd(rewritten)
+                        ? rewritten
+                        : cache.GetType(rewritten.Id);
+                }
+
+                return (ExtendedType)type;
+            }
+
+            internal static ExtendedTypeId CreateIdentifier(IExtendedType type)
+            {
+                var position = 0;
+                Span<bool> nullability = stackalloc bool[32];
+                CollectNullability(type, nullability, ref position);
+
+                return CreateIdentifier(
+                    type.Source,
+                    type.Kind,
+                    nullability.Slice(0, position));
+            }
+
+            internal static ExtendedTypeId CreateIdentifier(
+                IExtendedType type,
+                ReadOnlySpan<bool?> nullabilityChange)
+            {
+                var position = 0;
+                Span<bool> nullability = stackalloc bool[32];
+                CollectNullability(type, nullability, ref position);
+                nullability = nullability.Slice(0, position);
+
+                var length = nullability.Length < nullabilityChange.Length
+                    ? nullability.Length
+                    : nullabilityChange.Length;
+
+                for (var i = 0; i < length; i++)
+                {
+                    bool? change = nullabilityChange[i];
+                    if (change.HasValue)
+                    {
+                        nullability[i] = change.Value;
+                    }
+                }
+
+                return CreateIdentifier(
+                    type.Source,
+                    type.Kind,
+                    nullability);
+            }
+
+            private static ExtendedTypeId CreateIdentifier(
+                Type source,
+                ExtendedTypeKind kind,
+                ReadOnlySpan<bool> nullability)
+            {
+                return new ExtendedTypeId(
+                    source,
+                    kind,
+                    CompactNullability(nullability));
+            }
+
+            private static void CollectNullability(
+                IExtendedType type,
+                Span<bool> nullability,
+                ref int position)
+            {
+                if (position >= 32)
+                {
+                    throw new NotSupportedException(
+                        "Types with more than 32 components are not allowed.");
+                }
+
+                nullability[position++] = type.IsNullable;
+
+                foreach (IExtendedType typeArgument in type.TypeArguments)
+                {
+                    CollectNullability(typeArgument, nullability, ref position);
+                }
+            }
+
+            private static uint CompactNullability(ReadOnlySpan<bool> bits)
+            {
+                uint nullability = 0;
+                for (var i = 0; i < bits.Length; i++)
+                {
+                    if (bits[i])
+                    {
+                        nullability |= 1u << (bits.Length - i);
+                    }
+                }
+                return nullability;
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ namespace HotChocolate.Types
             foreach (Type interfaceType in clrType.GetInterfaces())
             {
                 if (context.TryGetType(
-                    context.DescriptorContext.Inspector.GetTypeRef(
+                    context.DescriptorContext.TypeInspector.GetTypeRef(
                         interfaceType, TypeContext.Output),
                     out InterfaceType type) &&
                     !interfaces.Contains(type))
