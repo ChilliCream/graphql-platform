@@ -94,6 +94,34 @@ namespace HotChocolate.Internal
         }
 
         [Fact]
+        public void Schema_Type_Cache_Id_Distinguishes_Between_NonNull_And_Nullable()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType1 = ExtendedType.FromType(
+                typeof(NonNullType<ListType<StringType>>),
+                _cache);
+
+            ExtendedType extendedType2 = ExtendedType.FromType(
+                typeof(NonNullType<StringType>),
+                _cache);
+
+            ExtendedType extendedType3 = ExtendedType.FromType(
+                typeof(ListType<StringType>),
+                _cache);
+
+            ExtendedType extendedType4 = ExtendedType.FromType(
+                typeof(StringType),
+                _cache);
+
+            // assert
+            Assert.False(extendedType1.IsNullable);
+            Assert.False(extendedType2.IsNullable);
+            Assert.True(extendedType3.IsNullable);
+            Assert.True(extendedType4.IsNullable);
+        }
+
+        [Fact]
         public void IsEqual_Byte_Byte_True()
         {
             // arrange

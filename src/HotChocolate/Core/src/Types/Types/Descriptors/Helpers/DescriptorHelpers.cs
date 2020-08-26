@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return typeReference is ClrTypeReference clr && 
+            return typeReference is ExtendedTypeReference clr && 
                 !clr.Type.IsSchemaType;
         }
 

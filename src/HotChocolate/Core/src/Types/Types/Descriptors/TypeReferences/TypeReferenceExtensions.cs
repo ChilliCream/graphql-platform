@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
             Optional<TypeContext> context = default,
             Optional<string?> scope = default) => typeReference switch
             {
-                ClrTypeReference clr => clr.With(context: context, scope: scope),
+                ExtendedTypeReference clr => clr.With(context: context, scope: scope),
                 SchemaTypeReference schema => schema.With(context: context, scope: scope),
                 SyntaxTypeReference syntax => syntax.With(context: context, scope: scope),
                 _ => throw new NotSupportedException()

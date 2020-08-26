@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ClrTypeReference GetReturnTypeRef(
+        ExtendedTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null);
@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ClrTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
+        ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
 
         /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
@@ -106,7 +106,7 @@ namespace HotChocolate.Types.Descriptors
         /// The type scope.
         /// </param>
         /// <returns></returns>
-        ClrTypeReference GetTypeRef(
+        ExtendedTypeReference GetTypeRef(
             Type type,
             TypeContext context = TypeContext.None,
             string? scope = null);

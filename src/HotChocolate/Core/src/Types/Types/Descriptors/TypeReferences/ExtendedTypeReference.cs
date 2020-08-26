@@ -6,12 +6,11 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    // TODO : rename to extended type ref
-    public sealed class ClrTypeReference
+    public sealed class ExtendedTypeReference
         : TypeReference
-        , IEquatable<ClrTypeReference>
+        , IEquatable<ExtendedTypeReference>
     {
-        public ClrTypeReference(
+        public ExtendedTypeReference(
             IExtendedType type,
             TypeContext context,
             string? scope = null)
@@ -22,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IExtendedType Type { get; }
 
-        public bool Equals(ClrTypeReference? other)
+        public bool Equals(ExtendedTypeReference? other)
         {
             if (other is null)
             {
@@ -54,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (other is ClrTypeReference c)
+            if (other is ExtendedTypeReference c)
             {
                 return Equals(c);
             }
@@ -74,7 +73,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (obj is ClrTypeReference c)
+            if (obj is ExtendedTypeReference c)
             {
                 return Equals(c);
             }
@@ -92,10 +91,10 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: {Type.Source.GetTypeName()}";
+            return $"{Context}: {Type.ToString()}";
         }
 
-        public ClrTypeReference WithType(IExtendedType type)
+        public ExtendedTypeReference WithType(IExtendedType type)
         {
             if (type is null)
             {
@@ -108,7 +107,7 @@ namespace HotChocolate.Types.Descriptors
                 Scope);
         }
 
-        public ClrTypeReference WithContext(TypeContext context = TypeContext.None)
+        public ExtendedTypeReference WithContext(TypeContext context = TypeContext.None)
         {
             return TypeReference.Create(
                 Type,
@@ -116,7 +115,7 @@ namespace HotChocolate.Types.Descriptors
                 Scope);
         }
 
-        public ClrTypeReference WithScope(string? scope = null)
+        public ExtendedTypeReference WithScope(string? scope = null)
         {
             return TypeReference.Create(
                 Type,
@@ -124,7 +123,7 @@ namespace HotChocolate.Types.Descriptors
                 scope);
         }
 
-        public ClrTypeReference With(
+        public ExtendedTypeReference With(
             IExtendedType? type = default,
             Optional<TypeContext> context = default,
             Optional<string?> scope = default)

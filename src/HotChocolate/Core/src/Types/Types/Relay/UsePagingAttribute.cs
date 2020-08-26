@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Relay
             ITypeReference returnType = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (type is null
-                && returnType is ClrTypeReference clr
+                && returnType is ExtendedTypeReference clr
                 && context.TypeInspector.TryCreateTypeInfo(clr.Type, out ITypeInfo? typeInfo))
             {
                 if (typeInfo.IsSchemaType)
@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Relay
                 else if (SchemaTypeResolver.TryInferSchemaType(
                     context.TypeInspector,
                     clr.WithType(context.TypeInspector.GetType(typeInfo.NamedType)),
-                    out ClrTypeReference schemaType))
+                    out ExtendedTypeReference schemaType))
                 {
                     type = schemaType.Type.Source;
                 }

@@ -42,7 +42,7 @@ namespace HotChocolate.Configuration
                     .Extend()
                     .OnBeforeCreate((c,d) =>
                     {
-                        ClrTypeReference reference =
+                        ExtendedTypeReference reference =
                             c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
                         ILazyTypeConfiguration lazyConfiguration =

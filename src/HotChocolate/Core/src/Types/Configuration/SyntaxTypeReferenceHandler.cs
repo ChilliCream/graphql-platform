@@ -30,7 +30,7 @@ namespace HotChocolate.Configuration
                     typeReference.Type.NamedType().Name.Value,
                     out Type? scalarType))
                 {
-                    ClrTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+                    ExtendedTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
 
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {

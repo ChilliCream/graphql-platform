@@ -202,7 +202,7 @@ namespace HotChocolate
 
                 foreach (KeyValuePair<Type, (CreateRef, CreateRef)> binding in builder._clrTypes)
                 {
-                    initializer.ClrTypes[(ClrTypeReference)binding.Value.Item1(context.TypeInspector)] =
+                    initializer.ClrTypes[(ExtendedTypeReference)binding.Value.Item1(context.TypeInspector)] =
                         binding.Value.Item2.Invoke(context.TypeInspector);
                 }
 
@@ -262,7 +262,7 @@ namespace HotChocolate
                             return sr.Type == objectType;
                         }
 
-                        if (reference is ClrTypeReference cr)
+                        if (reference is ExtendedTypeReference cr)
                         {
                             return cr.Type == typeInspector.GetType(objectType.GetType())
                                    || cr.Type == typeInspector.GetType(objectType.RuntimeType);
@@ -367,7 +367,7 @@ namespace HotChocolate
                         return (ObjectType)sr.Type;
                     }
 
-                    if (reference is ClrTypeReference cr &&
+                    if (reference is ExtendedTypeReference cr &&
                         initializer.TryGetRegisteredType(cr, out RegisteredType? registeredType))
                     {
                         return (ObjectType)registeredType.Type;

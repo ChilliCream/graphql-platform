@@ -19,13 +19,13 @@ namespace HotChocolate.Configuration
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
         private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
             IServiceProvider services)
@@ -54,7 +54,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasRuntimeType hasClrType
                     && hasClrType.RuntimeType != typeof(object))
                 {
-                    var clrRef = _descriptorContext.TypeInspector.GetTypeRef(
+                    ExtendedTypeReference? clrRef = _descriptorContext.TypeInspector.GetTypeRef(
                         hasClrType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope);
@@ -102,7 +102,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (typeReference is ClrTypeReference clrTypeReference)
+            if (typeReference is ExtendedTypeReference clrTypeReference)
             {
                 return _clrTypeReferences.ContainsKey(clrTypeReference);
             }

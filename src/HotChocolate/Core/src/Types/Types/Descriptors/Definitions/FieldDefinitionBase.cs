@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             get => type;
             set
             {
-                if(type is ClrTypeReference r && 
+                if(type is ExtendedTypeReference r && 
                     r.Type.Kind == ExtendedTypeKind.Extended) 
                 {
                     

@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
+            foreach (ExtendedTypeReference typeReference in typeReferences.OfType<ExtendedTypeReference>())
             {
                 if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
                     !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration
                     if (IsTypeSystemObject(namedType))
                     {
                         IExtendedType extendedType = _typeInspector.GetType(namedType);
-                        ClrTypeReference namedTypeReference = typeReference.With(extendedType);
+                        ExtendedTypeReference namedTypeReference = typeReference.With(extendedType);
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
@@ -61,7 +61,7 @@ namespace HotChocolate.Configuration
             TypeContext context,
             string? scope)
         {
-            ClrTypeReference? normalizedTypeRef = null;
+            ExtendedTypeReference? normalizedTypeRef = null;
             var resolved = false;
 
             for (var i = 0; i < typeInfo.Components.Count; i++)

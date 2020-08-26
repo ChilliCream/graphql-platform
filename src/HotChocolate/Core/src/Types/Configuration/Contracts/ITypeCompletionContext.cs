@@ -18,13 +18,13 @@ namespace HotChocolate.Configuration
 
         IsOfTypeFallback IsOfType { get; }
 
-        bool TryGetType<T>(ITypeReference reference, out T type) where T : IType;
+        bool TryGetType<T>(ITypeReference typeRef, out T type) where T : IType;
 
-        T GetType<T>(ITypeReference reference) where T : IType;
+        T GetType<T>(ITypeReference typeRef) where T : IType;
 
         IEnumerable<T> GetTypes<T>() where T : IType;
 
-        DirectiveType GetDirectiveType(IDirectiveReference reference);
+        DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
 
         FieldResolver GetResolver(NameString fieldName);
 

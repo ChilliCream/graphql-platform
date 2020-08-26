@@ -106,21 +106,21 @@ namespace HotChocolate.Types.Descriptors
             string? scope = null) =>
             new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope);
 
-        public static ClrTypeReference Create(
+        public static ExtendedTypeReference Create(
             IExtendedType type,
             TypeContext context = TypeContext.None,
             string? scope = null)
         {
             if (type.IsSchemaType)
             {
-                return new ClrTypeReference(
+                return new ExtendedTypeReference(
                     type,
                     InferTypeContext(type),
                     scope);
             }
             else
             {
-                return new ClrTypeReference(
+                return new ExtendedTypeReference(
                     type,
                     context,
                     scope);

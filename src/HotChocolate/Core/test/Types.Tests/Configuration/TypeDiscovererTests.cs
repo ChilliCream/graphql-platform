@@ -13,6 +13,47 @@ namespace HotChocolate.Configuration
         private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
 
         [Fact]
+        public void Register_SchemaType_ClrTypeExists_NoSystemTypes()
+        {
+            // arrange
+            var initialTypes = new HashSet<ITypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+            };
+
+            var serviceProvider = new EmptyServiceProvider();
+
+            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+
+            var typeDiscoverer = new TypeDiscoverer(
+                initialTypes,
+                clrTypeReferences,
+                DescriptorContext.Create(),
+                new AggregateTypeInitializationInterceptor(),
+                serviceProvider,
+                false);
+
+            // act
+            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Empty(result.Errors);
+
+            new
+            {
+                registered = result.Types
+                    .Select(t => t.Type)
+                    .OfType<IHasRuntimeType>()
+                    .ToDictionary(
+                        t => t.GetType().GetTypeName(),
+                        t => t.RuntimeType.GetTypeName()),
+                clr = clrTypeReferences.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+            }.MatchSnapshot();
+        }
+
+        [Fact]
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
@@ -23,7 +64,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
@@ -63,7 +104,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,
@@ -104,7 +145,7 @@ namespace HotChocolate.Configuration
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var clrTypeReferences = new Dictionary<ClrTypeReference, ITypeReference>();
+            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
 
             var typeDiscoverer = new TypeDiscoverer(
                 initialTypes,

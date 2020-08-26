@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
             type.GetMembers(BindingFlags.Instance | BindingFlags.Public).Where(CanBeHandled);
 
         /// <inheritdoc />
-        public virtual ClrTypeReference GetReturnTypeRef(
+        public virtual ExtendedTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null)
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public ClrTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
+        public ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
         {
             if (parameter is null)
             {
@@ -133,7 +133,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public ClrTypeReference GetTypeRef(
+        public ExtendedTypeReference GetTypeRef(
             Type type,
             TypeContext context = TypeContext.None,
             string? scope = null) =>

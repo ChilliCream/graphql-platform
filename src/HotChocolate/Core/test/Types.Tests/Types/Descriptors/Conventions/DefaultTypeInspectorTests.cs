@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ClrTypeReference typeReference =
+            ExtendedTypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output);
 
             // assert
@@ -188,7 +188,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
             MethodInfo method = typeof(Foo).GetMethod(nameof(Foo.Bar));
             // act
-            ClrTypeReference typeReference =
+            ExtendedTypeReference typeReference =
                 typeInspector.GetReturnTypeRef(method!, TypeContext.Output, "abc");
 
             // assert
@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ClrTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!);
+            ExtendedTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!);
 
             // assert
             Assert.Equal("String!", typeReference.Type.ToString());
@@ -262,7 +262,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ClrTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!, "abc");
+            ExtendedTypeReference typeReference = typeInspector.GetArgumentTypeRef(parameter!, "abc");
 
             // assert
             Assert.Equal("String!", typeReference.Type.ToString());
@@ -318,7 +318,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ClrTypeReference typeReference =
+            ExtendedTypeReference typeReference =
                 typeInspector.GetTypeRef(type!, TypeContext.Output);
 
             // assert
@@ -335,7 +335,7 @@ namespace HotChocolate.Types.Descriptors
             var typeInspector = new DefaultTypeInspector();
 
             // act
-            ClrTypeReference typeReference =
+            ExtendedTypeReference typeReference =
                 typeInspector.GetTypeRef(type!, TypeContext.Output, "abc");
 
             // assert

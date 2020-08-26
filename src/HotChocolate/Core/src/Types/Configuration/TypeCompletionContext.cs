@@ -16,7 +16,8 @@ namespace HotChocolate.Configuration
     {
         private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
         private readonly TypeDiscoveryContext _initializationContext;
-        private readonly TypeInitializer _typeInitializer;
+        private readonly TypeLookup _typeLookup;
+        // private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
         private readonly ITypeInspector _typeInspector;
 
@@ -95,27 +96,31 @@ namespace HotChocolate.Configuration
             return type;
         }
 
-        public bool TryGetType<T>(ITypeReference reference, out T type)
+        public bool TryGetType<T>(ITypeReference typeRef, out T type)
             where T : IType
         {
-            if (reference == null)
+            if (typeRef is null)
             {
-                throw new ArgumentNullException(nameof(reference));
+                throw new ArgumentNullException(nameof(typeRef));
             }
 
-            if (reference is SchemaTypeReference schemaRef
+            
+
+
+
+            if (typeRef is SchemaTypeReference schemaRef
                 && TryGetType(schemaRef, out type))
             {
                 return true;
             }
 
-            if (reference is SyntaxTypeReference syntaxRef
+            if (typeRef is SyntaxTypeReference syntaxRef
                 && TryGetType(syntaxRef, out type))
             {
                 return true;
             }
 
-            if (reference is ClrTypeReference clrRef
+            if (typeRef is ExtendedTypeReference clrRef
                 && _typeInitializer.TryNormalizeReference(
                     clrRef, out ITypeReference normalized)
                 && _typeInitializer.DiscoveredTypes is not null
@@ -198,7 +203,7 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                var clrTypeReference = (ClrTypeReference)_typeInspector.GetTypeRef(cr.ClrType);
+                var clrTypeReference = (ExtendedTypeReference)_typeInspector.GetTypeRef(cr.ClrType);
                 if (!_typeInitializer.ClrTypes.TryGetValue(
                     clrTypeReference,
                     out ITypeReference internalReference))

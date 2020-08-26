@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Descriptors
         {
             var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
-            if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
+            if (typeInfo.IsSchemaType && !typeInfo.IsOutputType())
             {
                 throw new ArgumentException(
                     TypeResources.ObjectFieldDescriptorBase_FieldType);

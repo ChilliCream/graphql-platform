@@ -64,7 +64,7 @@ namespace HotChocolate.Configuration
                     .Extend()
                     .OnBeforeCreate(d =>
                     {
-                        d.Type = ((ClrTypeReference)d.Type).WithScope(Scope);
+                        d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
                     });
             }
         }
@@ -129,7 +129,7 @@ namespace HotChocolate.Configuration
                     typeDependencies = discoveryContext.TypeDependencies
                         .Where(t => t.TypeReference.Scope is null)
                         .Select(t => t
-                            .With(((ClrTypeReference)t.TypeReference)
+                            .With(((ExtendedTypeReference)t.TypeReference)
                             .WithScope(discoveryContext.Scope)))
                         .ToList();
                     return true;

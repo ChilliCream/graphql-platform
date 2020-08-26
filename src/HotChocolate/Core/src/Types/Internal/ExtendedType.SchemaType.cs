@@ -26,7 +26,7 @@ namespace HotChocolate.Internal
                     if (definition == typeof(ListType<>))
                     {
                         return cache.GetOrCreateType(
-                            type,
+                            source is not null ? source : type,
                             () =>
                             {
                                 ExtendedType elementType =
@@ -46,7 +46,7 @@ namespace HotChocolate.Internal
                 }
 
                 return cache.GetOrCreateType(
-                    type,
+                    source is not null ? source : type,
                     () =>
                     {
                         Type? definition = type.IsGenericType 

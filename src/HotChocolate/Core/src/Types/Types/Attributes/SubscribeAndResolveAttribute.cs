@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                 ITypeReference typeReference =
                     context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
-                if (typeReference is ClrTypeReference typeRef &&
+                if (typeReference is ExtendedTypeReference typeRef &&
                     context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
                     !typeInfo.IsSchemaType)
                 {

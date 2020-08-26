@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            ClrTypeReference typeReference = TypeReference.Create(
+            ExtendedTypeReference typeReference = TypeReference.Create(
                 _typeInspector.GetType(clrType),
                 context,
                 scope: scope);
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            ClrTypeReference typeReference = TypeReference.Create(
+            ExtendedTypeReference typeReference = TypeReference.Create(
                 _typeInspector.GetType(typeof(ObjectType<string>)),
                 scope: "abc");
 
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            ClrTypeReference typeReference = TypeReference.Create(
+            ExtendedTypeReference typeReference = TypeReference.Create(
                 _typeInspector.GetType(typeof(InputObjectType<string>)),
                 scope: "abc");
 
@@ -66,11 +66,11 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_Equals_To_Null()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
-            var result = x.Equals((ClrTypeReference)null);
+            var result = x.Equals((ExtendedTypeReference)null);
 
             // assert
             Assert.False(result);
@@ -80,11 +80,11 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_Equals_To_Same()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
-            var xx = x.Equals((ClrTypeReference)x);
+            var xx = x.Equals((ExtendedTypeReference)x);
 
             // assert
             Assert.True(xx);
@@ -94,14 +94,14 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_Equals_Context_None_Does_Not_Matter()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
-            ClrTypeReference y = TypeReference.Create(
+            ExtendedTypeReference y = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Output);
 
-            ClrTypeReference z = TypeReference.Create(
+            ExtendedTypeReference z = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
@@ -120,17 +120,17 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_Equals_Scope_Different()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None,
                 scope: "a");
 
-            ClrTypeReference y = TypeReference.Create(
+            ExtendedTypeReference y = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Output,
                 scope: "a");
 
-            ClrTypeReference z = TypeReference.Create(
+            ExtendedTypeReference z = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
@@ -149,7 +149,7 @@ namespace HotChocolate.Types.Descriptors
         public void ITypeReference_Equals_To_Null()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -163,7 +163,7 @@ namespace HotChocolate.Types.Descriptors
         public void ITypeReference_Equals_To_Same()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -177,7 +177,7 @@ namespace HotChocolate.Types.Descriptors
         public void ITypeReference_Equals_To_SyntaxTypeRef()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -191,7 +191,7 @@ namespace HotChocolate.Types.Descriptors
         public void ITypeReference_Equals_Context_None_Does_Not_Matter()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None);
 
@@ -218,7 +218,7 @@ namespace HotChocolate.Types.Descriptors
         public void ITypeReference_Equals_Scope_Different()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None,
                 scope: "a");
@@ -247,7 +247,7 @@ namespace HotChocolate.Types.Descriptors
         public void Object_Equals_To_Null()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -261,7 +261,7 @@ namespace HotChocolate.Types.Descriptors
         public void Object_Equals_To_Same()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -275,7 +275,7 @@ namespace HotChocolate.Types.Descriptors
         public void Object_Equals_To_Object()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
             // act
@@ -289,14 +289,14 @@ namespace HotChocolate.Types.Descriptors
         public void Object_Equals_Context_None_Does_Not_Matter()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)));
 
-            ClrTypeReference y = TypeReference.Create(
+            ExtendedTypeReference y = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Output);
 
-            ClrTypeReference z = TypeReference.Create(
+            ExtendedTypeReference z = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
@@ -315,7 +315,7 @@ namespace HotChocolate.Types.Descriptors
         public void Object_Equals_Scope_Different()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None,
                 scope: "a");
@@ -344,7 +344,7 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_ToString()
         {
             // arrange
-            ClrTypeReference typeReference = TypeReference.Create(
+            ExtendedTypeReference typeReference = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
@@ -359,13 +359,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithType()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 =
+            ExtendedTypeReference typeReference2 =
                 typeReference1.WithType(_typeInspector.GetType(typeof(int)));
 
             // assert
@@ -378,7 +378,7 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithType_Null()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
@@ -394,13 +394,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithContext()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
+            ExtendedTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -412,13 +412,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithContext_Nothing()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.WithContext();
+            ExtendedTypeReference typeReference2 = typeReference1.WithContext();
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -430,13 +430,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithScope()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.WithScope("bar");
+            ExtendedTypeReference typeReference2 = typeReference1.WithScope("bar");
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -448,13 +448,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_WithScope_Nothing()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.WithScope();
+            ExtendedTypeReference typeReference2 = typeReference1.WithScope();
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -466,13 +466,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_With()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.With(
+            ExtendedTypeReference typeReference2 = typeReference1.With(
                 _typeInspector.GetType(typeof(int)),
                 TypeContext.Output,
                 scope: "bar");
@@ -487,13 +487,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_With_Nothing()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.With();
+            ExtendedTypeReference typeReference2 = typeReference1.With();
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -505,13 +505,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_With_Type()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.With(
+            ExtendedTypeReference typeReference2 = typeReference1.With(
                 _typeInspector.GetType(typeof(int)));
 
             // assert
@@ -524,13 +524,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_With_Context()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
+            ExtendedTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -542,13 +542,13 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_With_Scope()
         {
             // arrange
-            ClrTypeReference typeReference1 = TypeReference.Create(
+            ExtendedTypeReference typeReference1 = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input,
                 scope: "foo");
 
             // act
-            ClrTypeReference typeReference2 = typeReference1.With(scope: "bar");
+            ExtendedTypeReference typeReference2 = typeReference1.With(scope: "bar");
 
             // assert
             Assert.Equal(typeReference1.Type, typeReference2.Type);
@@ -560,17 +560,17 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_GetHashCode()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None,
                 scope: "foo");
 
-            ClrTypeReference y = TypeReference.Create(
+            ExtendedTypeReference y = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None,
                 scope: "foo");
 
-            ClrTypeReference z = TypeReference.Create(
+            ExtendedTypeReference z = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
@@ -588,15 +588,15 @@ namespace HotChocolate.Types.Descriptors
         public void ClrTypeReference_GetHashCode_Context_HasNoEffect()
         {
             // arrange
-            ClrTypeReference x = TypeReference.Create(
+            ExtendedTypeReference x = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.None);
 
-            ClrTypeReference y = TypeReference.Create(
+            ExtendedTypeReference y = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Output);
 
-            ClrTypeReference z = TypeReference.Create(
+            ExtendedTypeReference z = TypeReference.Create(
                 _typeInspector.GetType(typeof(string)),
                 TypeContext.Input);
 
