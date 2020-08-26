@@ -139,13 +139,16 @@ namespace HotChocolate.Internal
 
             typeInfo = cache.GetOrCreateTypeInfo(
                 type,
-                () => CreateInternal(type, type.Source));
+                () => CreateInternal(type, type.Source, cache));
 
             typeInfo = typeInfo.IsValid ? typeInfo : null;
             return typeInfo is not null;
         }
 
-        private static TypeInfo CreateInternal(IExtendedType type, Type originalType)
+        private static TypeInfo CreateInternal(
+            IExtendedType type, 
+            Type originalType,
+            TypeCache cache)
         {
             if (SchemaType.TryCreateTypeInfo(
                 type,
@@ -158,6 +161,7 @@ namespace HotChocolate.Internal
             if (RuntimeType.TryCreateTypeInfo(
                 type,
                 originalType,
+                cache,
                 out typeInfo))
             {
                 return typeInfo;

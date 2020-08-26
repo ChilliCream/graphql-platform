@@ -21,12 +21,13 @@ namespace HotChocolate.Internal
             internal static bool TryCreateTypeInfo(
                 IExtendedType type,
                 Type originalType,
+                TypeCache cache,
                 [NotNullWhen(true)] out TypeInfo? typeInfo)
             {
                 if (type.Kind != ExtendedTypeKind.Schema)
                 {
                     IReadOnlyList<TypeComponent> components =
-                        Decompose(type, out IExtendedType namedType);
+                        Decompose(type, cache, out IExtendedType namedType);
 
                     typeInfo = new TypeInfo(
                         namedType.Type,
@@ -44,6 +45,7 @@ namespace HotChocolate.Internal
 
             private static IReadOnlyList<TypeComponent> Decompose(
                 IExtendedType type,
+                TypeCache cache,
                 out IExtendedType namedType)
             {
                 var list = new List<TypeComponent>();
@@ -60,12 +62,22 @@ namespace HotChocolate.Internal
 
                     if (current.IsArrayOrList)
                     {
-                        list.Add((TypeComponentKind.List, current));
+                        IExtendedType rewritten = current.IsNullable
+                            ? current
+                            : ExtendedType.Tools.ChangeNullability(
+                                current, new bool?[] { true }, cache);
+
+                        list.Add((TypeComponentKind.List, rewritten));
                         current = current.ElementType;
                     }
                     else
                     {
-                        list.Add((TypeComponentKind.Named, current));
+                        IExtendedType rewritten = current.IsNullable
+                            ? current
+                            : ExtendedType.Tools.ChangeNullability(
+                                current, new bool?[] { true }, cache);
+
+                        list.Add((TypeComponentKind.Named, rewritten));
                         namedType = current;
                         return list;
                     }

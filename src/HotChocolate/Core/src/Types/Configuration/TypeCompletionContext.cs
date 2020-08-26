@@ -84,7 +84,7 @@ namespace HotChocolate.Configuration
                     SchemaErrorBuilder.New()
                         .SetMessage(string.Format(
                             CultureInfo.InvariantCulture,
-                            "Unable to resolve type directiveRef `{0}`.",
+                            "Unable to resolve type reference `{0}`.",
                             reference))
                         .SetTypeSystemObject(Type)
                         .SetExtension(nameof(reference), reference)
