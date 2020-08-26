@@ -23,7 +23,6 @@ namespace HotChocolate.Internal
                             ExtendedTypeKind.Runtime,
                             typeArguments: GetGenericArguments(type, cache),
                             source: type,
-                            definition: typeof(Nullable<>),
                             isNullable: true);
                     }
 

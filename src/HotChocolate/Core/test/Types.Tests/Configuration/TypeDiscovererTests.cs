@@ -10,14 +10,16 @@ namespace HotChocolate.Configuration
 {
     public class TypeDiscovererTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
         [Fact]
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(FooType),
-                TypeContext.Output));
+            var initialTypes = new HashSet<ITypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+            };
 
             var serviceProvider = new EmptyServiceProvider();
 
@@ -54,10 +56,10 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(Foo),
-                TypeContext.Output));
+            var initialTypes = new HashSet<ITypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+            };
 
             var serviceProvider = new EmptyServiceProvider();
 
@@ -94,13 +96,11 @@ namespace HotChocolate.Configuration
         public void Upgrade_Type_From_GenericType()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(ObjectType<Foo>),
-                TypeContext.Output));
-            initialTypes.Add(TypeReference.Create(
-                typeof(FooType),
-                TypeContext.Output));
+            var initialTypes = new HashSet<ITypeReference>
+            {
+                _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
+                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+            };
 
             var serviceProvider = new EmptyServiceProvider();
 
@@ -136,8 +136,7 @@ namespace HotChocolate.Configuration
         public class FooType
             : ObjectType<Foo>
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
             }

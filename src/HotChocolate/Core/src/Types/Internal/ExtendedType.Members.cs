@@ -139,7 +139,6 @@ namespace HotChocolate.Internal
                                 typeArguments:
                                     GetGenericArguments(context, flags, type, ref position),
                                 source: type,
-                                definition: typeof(Nullable<>),
                                 isNullable: true);
                         }
                     }

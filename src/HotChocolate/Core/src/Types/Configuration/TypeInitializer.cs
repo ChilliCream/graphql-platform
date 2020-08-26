@@ -347,7 +347,7 @@ namespace HotChocolate.Configuration
 
         private void CompileResolvers()
         {
-            foreach (var item in _resolvers.ToArray())
+            foreach (KeyValuePair<FieldReference, RegisteredResolver> item in _resolvers.ToArray())
             {
                 RegisteredResolver registered = item.Value;
                 if (registered.Field is FieldMember member)

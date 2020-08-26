@@ -136,7 +136,26 @@ namespace HotChocolate.Internal
 
         public override string ToString()
         {
-            return Source.ToString() + Id.Nullability;
+            string typeName;
+
+            if (IsArray)
+            {
+                typeName = $"[{TypeArguments[0]}]";
+            }
+            else
+            {
+                if (Definition is not null)
+                {
+                    typeName = Definition.Name.Substring(0, Definition.Name.Length - 2);
+                    typeName = $"{typeName}<{string.Join(", ", TypeArguments)}>";
+                }
+                else
+                {
+                    typeName = Type.Name;
+                }
+            }
+
+            return IsNullable ? typeName : typeName + "!";
         }
 
         public static ExtendedType FromType(Type type, TypeCache cache)

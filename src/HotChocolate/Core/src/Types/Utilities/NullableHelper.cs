@@ -85,7 +85,7 @@ namespace HotChocolate.Utilities
             {
                 var flags = new bool?[attribute.Flags.Length];
 
-                for (int i = 0; i < attribute.Flags.Length; i++)
+                for (var i = 0; i < attribute.Flags.Length; i++)
                 {
                     flags[i] = (Nullable)attribute.Flags[i] switch
                     {
@@ -118,7 +118,7 @@ namespace HotChocolate.Utilities
             CustomAttributeData? data = attributes.FirstOrDefault(t =>
                 t.AttributeType.FullName.EqualsOrdinal(_nullableContextAttributeName));
 
-            if (data is { })
+            if (data is not null)
             {
                 return new NullableContextAttribute(
                     (byte)data.ConstructorArguments[0].Value!);
@@ -166,7 +166,7 @@ namespace HotChocolate.Utilities
             CustomAttributeData? data = attributes.FirstOrDefault(t =>
                 t.AttributeType.FullName.EqualsOrdinal(_nullableAttributeName));
 
-            if (data is { })
+            if (data is not null)
             {
                 switch (data.ConstructorArguments[0].Value)
                 {
@@ -179,8 +179,7 @@ namespace HotChocolate.Utilities
                     case ReadOnlyCollection<CustomAttributeTypedArgument> a:
                         return new NullableAttribute(a.Select(t => (byte)t.Value!).ToArray());
                     default:
-                        throw new InvalidOperationException(
-                            "Unexpected nullable attribute data.");
+                        throw new InvalidOperationException("Unexpected nullable attribute data.");
                 }
             }
 

@@ -6,6 +6,8 @@ namespace HotChocolate.Types.Descriptors
 {
     public class SyntaxTypeReferenceTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
         [Fact]
         public void TypeReference_Create()
         {
@@ -165,7 +167,7 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.None);
 
             // act
-            var xx = x.Equals(TypeReference.Create(typeof(int)));
+            var xx = x.Equals(TypeReference.Create(_typeInspector.GetType(typeof(int))));
 
             // assert
             Assert.False(xx);
