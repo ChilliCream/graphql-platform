@@ -248,20 +248,34 @@ namespace HotChocolate.Types.Descriptors
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
-        ///
+        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
         /// </param>
-        /// <returns></returns>
+        /// <returns>
+        /// The type info.
+        /// </returns>
         ITypeInfo CreateTypeInfo(Type type);
 
         /// <summary>
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">
+        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
+        /// </param>
         /// <returns>
-        ///
-        ///
+        /// The type info.
         /// </returns>
         ITypeInfo CreateTypeInfo(IExtendedType type);
+
+        /// <summary>
+        /// Create a <see cref="ITypeFactory"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The system type from which the <see cref="ITypeFactory"/> shall be created.
+        /// </param>
+        /// <returns>
+        /// The type factory.
+        /// </returns>
+        ITypeFactory CreateTypeFactory(IExtendedType type);
 
         /// <summary>
         /// Tries to create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.

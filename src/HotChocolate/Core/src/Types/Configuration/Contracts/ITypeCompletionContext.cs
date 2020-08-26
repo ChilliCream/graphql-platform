@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -18,7 +19,10 @@ namespace HotChocolate.Configuration
 
         IsOfTypeFallback IsOfType { get; }
 
-        bool TryGetType<T>(ITypeReference typeRef, out T type) where T : IType;
+        bool TryGetType<T>(
+            ITypeReference typeRef,
+            [NotNullWhen(true)]out T type)
+            where T : IType;
 
         T GetType<T>(ITypeReference typeRef) where T : IType;
 

@@ -333,9 +333,9 @@ namespace HotChocolate
 
                 definition.QueryType = ResolveOperation(
                     OperationType.Query, operations, typeInitializer);
-                definition.QueryType = ResolveOperation(
+                definition.MutationType = ResolveOperation(
                     OperationType.Mutation, operations, typeInitializer);
-                definition.QueryType = ResolveOperation(
+                definition.SubscriptionType = ResolveOperation(
                     OperationType.Subscription, operations, typeInitializer);
 
                 IReadOnlyCollection<TypeSystemObjectBase> types =

@@ -6,14 +6,12 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Internal;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using TypeInfo = HotChocolate.Internal.TypeInfo;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -43,7 +41,8 @@ namespace HotChocolate.Configuration
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
         private DiscoveredTypes? _discoveredTypes;
-        private readonly TypeLookup _typeLookup;
+        private TypeLookup? _typeLookup;
+        private TypeReferenceResolver? _typeReferenceResolver;
 
         public TypeInitializer(
             IDescriptorContext descriptorContext,
@@ -84,6 +83,11 @@ namespace HotChocolate.Configuration
                 _services);
 
             _discoveredTypes = typeRegistrar.DiscoverTypes();
+            _typeLookup = new TypeLookup(
+                _typeInspector, _dependencyLookup,
+                ClrTypes, _named, _discoveredTypes);
+            _typeReferenceResolver = new TypeReferenceResolver(
+                _typeInspector, _discoveredTypes, _typeLookup);
 
             if (_discoveredTypes.Errors.Count == 0)
             {
@@ -122,6 +126,11 @@ namespace HotChocolate.Configuration
             ITypeReference reference,
             [NotNullWhen(true)] out RegisteredType? registeredType)
         {
+            if (_typeLookup is null)
+            {
+                throw new NotSupportedException("The types have not been initialized yet.");
+            }
+
             if (reference == null)
             {
                 throw new ArgumentNullException(nameof(reference));
@@ -138,7 +147,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (TryNormalizeReference(reference, out ITypeReference? nr)
+            if (_typeLookup!.TryNormalizeReference(reference, out ITypeReference? nr)
                 && _discoveredTypes.TryGetType(nr!, out registeredType))
             {
                 return true;
@@ -401,7 +410,7 @@ namespace HotChocolate.Configuration
 
         private void CompleteNames(DiscoveredTypes discoveredTypes, Func<ISchema> schemaResolver)
         {
-            bool success = CompleteTypes(
+            var success = CompleteTypes(
                 discoveredTypes,
                 TypeDependencyKind.Named,
                 registeredType =>
@@ -411,8 +420,12 @@ namespace HotChocolate.Configuration
                             t.Type == registeredType.Type);
 
                     var completionContext = new TypeCompletionContext(
-                        initializationContext, this,
-                        _isOfType, schemaResolver);
+                        initializationContext,
+                        _typeReferenceResolver,
+                        GlobalComponents,
+                        Resolvers,
+                        _isOfType,
+                        schemaResolver);
 
                     _completionContext[registeredType] = completionContext;
 
@@ -499,7 +512,7 @@ namespace HotChocolate.Configuration
         {
             var processed = new HashSet<ITypeReference>();
             var batch = new List<RegisteredType>(GetInitialBatch(discoveredTypes, kind));
-            bool failed = false;
+            var failed = false;
 
             while (!failed
                 && processed.Count < discoveredTypes.TypeReferenceCount
@@ -591,7 +604,9 @@ namespace HotChocolate.Configuration
 
             foreach (ITypeReference reference in dependencies)
             {
-                if (!TryNormalizeReference(reference, out ITypeReference? nr))
+                if (!_typeLookup!.TryNormalizeReference(
+                    reference,
+                    out ITypeReference? nr))
                 {
                     normalized = null;
                     return false;
@@ -607,8 +622,6 @@ namespace HotChocolate.Configuration
             normalized = n;
             return true;
         }
-
-
 
         private void EnsureNoErrors()
         {
@@ -642,249 +655,5 @@ namespace HotChocolate.Configuration
             return list;
         }
 #endif
-    }
-
-    internal class TypeLookup
-    {
-        private readonly Dictionary<TypeId, IType> _typeCache = new Dictionary<TypeId, IType>();
-        private readonly ITypeInspector _typeInspector;
-        private readonly Dictionary<ITypeReference, ITypeReference> _refs;
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs;
-        private readonly Dictionary<NameString, ITypeReference> _nameTypeRefs;
-        private readonly DiscoveredTypes _types;
-
-        public TypeLookup(
-            ITypeInspector typeInspector,
-            Dictionary<ITypeReference, ITypeReference> refs,
-            IDictionary<ExtendedTypeReference, ITypeReference> runtimeTypeRefs,
-            Dictionary<NameString, ITypeReference> nameTypeRefs,
-            DiscoveredTypes types)
-        {
-            _typeInspector = typeInspector;
-            _refs = refs;
-            _runtimeTypeRefs = runtimeTypeRefs;
-            _nameTypeRefs = nameTypeRefs;
-            _types = types;
-        }
-
-        public bool TryGetType(ITypeReference typeRef, out IType type)
-        {
-            if (typeRef is null)
-            {
-                throw new ArgumentNullException(nameof(typeRef));
-            }
-
-
-            if (typeRef is SchemaTypeReference schemaRef
-                && TryGetType(schemaRef, out type))
-            {
-                return true;
-            }
-
-            if (typeRef is SyntaxTypeReference syntaxRef
-                && TryGetType(syntaxRef, out type))
-            {
-                return true;
-            }
-
-            if (typeRef is ExtendedTypeReference clrRef
-                && _typeInitializer.TryNormalizeReference(
-                    clrRef, out ITypeReference normalized)
-                && _typeInitializer.DiscoveredTypes is not null
-                && _typeInitializer.DiscoveredTypes.TryGetType(
-                    normalized, out RegisteredType registered)
-                && registered.Type is INamedType namedType
-                && _typeInspector.TryCreateTypeInfo(clrRef.Type, out ITypeInfo typeInfo)
-                && typeInfo.CreateType(namedType) is T casted)
-            {
-                type = casted;
-                return true;
-            }
-
-            type = default;
-            return false;
-        }
-
-        private bool TryGetType(SyntaxTypeReference reference,  out IType type)
-        {
-            NamedTypeNode namedType = reference.Type.NamedType();
-            if (
-            {
-                type = casted;
-                return true;
-            }
-
-            type = default;
-            return false;
-        }
-
-        private static IType CreateType(
-           IType namedType,
-           ITypeNode typeNode)
-        {
-            if (typeNode is NonNullTypeNode nonNullType)
-            {
-                return new NonNullType(CreateType(namedType, nonNullType.Type));
-            }
-            else if (typeNode is ListTypeNode listType)
-            {
-                return new ListType(CreateType(namedType, listType.Type));
-            }
-            return namedType;
-        }
-
-        private bool TryGetType(
-            NameString typeName,
-            [NotNullWhen(true)] out IType? type)
-        {
-            if (_nameTypeRefs.TryGetValue(typeName, out ITypeReference? reference)
-                && _types.TryGetType(reference, out RegisteredType? registered)
-                && registered.Type is IType t)
-            {
-                type = t;
-                return true;
-            }
-
-            type = null;
-            return false;
-        }
-
-        public bool TryNormalizeReference(
-            ITypeReference typeRef,
-            [NotNullWhen(true)] out ITypeReference? namedTypeRef)
-        {
-            // if we already created a lookup for this type reference we can just return the
-            // the type reference to the named type.
-            if (_refs.TryGetValue(typeRef, out namedTypeRef))
-            {
-                return true;
-            }
-
-            switch (typeRef)
-            {
-                case ExtendedTypeReference r:
-                    if (TryNormalizeExtendedTypeReference(r, out namedTypeRef))
-                    {
-                        _refs[typeRef] = namedTypeRef;
-                        return true;
-                    }
-                    break;
-
-                case SchemaTypeReference r:
-                    namedTypeRef = _typeInspector.GetTypeRef(
-                        r.Type.GetType(), r.Context, typeRef.Scope);
-                    _refs[typeRef] = namedTypeRef;
-                    return true;
-
-                case SyntaxTypeReference r:
-                    NameString typeName = r.Type.NamedType().Name.Value;
-                    if (_nameTypeRefs.TryGetValue(typeName, out namedTypeRef))
-                    {
-                        _refs[typeRef] = namedTypeRef;
-                        return true;
-                    }
-                    break;
-            }
-
-            namedTypeRef = null;
-            return false;
-        }
-
-        private bool TryNormalizeExtendedTypeReference(
-            ExtendedTypeReference typeRef,
-            [NotNullWhen(true)] out ITypeReference? namedTypeRef)
-        {
-            // if the typeRef refers to a schema type base class we skip since such a type is not
-            // resolvable.
-            if (typeRef.Type.Type.IsNonGenericSchemaType() ||
-                !_typeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo))
-            {
-                namedTypeRef = null;
-                return false;
-            }
-
-            // if we have a concrete schema type we will extract the named type component of
-            // the type and rewrite the type reference.
-            if (typeRef.Type.IsSchemaType)
-            {
-                namedTypeRef = typeRef.With(_typeInspector.GetType(typeInfo.NamedType));
-                return true;
-            }
-
-            // we check each component layer since there could be a binding on a list type,
-            // eg list<byte> to ByteArray.
-            for (var i = 0; i < typeInfo.Components.Count; i++)
-            {
-                ExtendedTypeReference componentRef = typeRef.WithType(typeInfo.Components[i].Type);
-                if (_runtimeTypeRefs.TryGetValue(componentRef, out namedTypeRef) ||
-                    _runtimeTypeRefs.TryGetValue(componentRef.WithContext(), out namedTypeRef))
-                {
-                    return true;
-                }
-            }
-
-            namedTypeRef = null;
-            return false;
-        }
-
-        private static int CreateFlags(TypeInfo typeInfo)
-        {
-            int flags = 1;
-
-            for (int i = 0; i < typeInfo.Components.Count; i++)
-            {
-                if (typeInfo.Components[i].Kind == TypeComponentKind.List)
-                {
-                    flags <<= 1;
-                    flags = flags | 1;
-                }
-                else if (typeInfo.Components[i].Kind == TypeComponentKind.NonNull)
-                {
-                    flags <<= 1;
-                }
-            }
-
-            return flags;
-        }
-
-        private static int CreateFlags(ITypeNode type)
-        {
-            int flags = 1;
-            ITypeNode current = type;
-
-            while (current is not NamedTypeNode)
-            {
-                if (current is ListTypeNode listType)
-                {
-                    flags <<= 1;
-                    flags = flags | 1;
-                    current = listType.Type;
-                }
-                else if (current is NonNullTypeNode nonNullType)
-                {
-                    flags <<= 1;
-                    current = nonNullType.Type;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return flags;
-        }
-
-        private readonly struct TypeId
-        {
-            public TypeId(ITypeReference typeRef, int flags)
-            {
-                TypeRef = typeRef;
-                Flags = flags;
-            }
-
-            public ITypeReference TypeRef { get; }
-
-            public int Flags { get; }
-        }
     }
 }

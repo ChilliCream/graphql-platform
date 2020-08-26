@@ -340,6 +340,9 @@ namespace HotChocolate.Types.Descriptors
         public ITypeInfo CreateTypeInfo(IExtendedType type) =>
             TypeInfo.Create(type, _typeCache);
 
+        public ITypeFactory CreateTypeFactory(IExtendedType type) =>
+            TypeInfo.Create(type, _typeCache);
+
         public bool TryCreateTypeInfo(
             Type type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo) =>

@@ -570,13 +570,13 @@ Type: `{0}`</value>
     <value>A Union type must define one or more unique member types.</value>
   </data>
   <data name="UnionType_UnableToResolveType" xml:space="preserve">
-    <value>Unable to resolve the specified type reference.</value>
+    <value>Unable to resolve the specified type directiveRef.</value>
   </data>
   <data name="SchemaBuilder_MustBeSchemaType" xml:space="preserve">
     <value>schemaType must be a schema type.</value>
   </data>
   <data name="TypeRegistrar_TypesInconsistent" xml:space="preserve">
-    <value>Unable to infer or resolve a schema type from the type reference `{0}`.</value>
+    <value>Unable to infer or resolve a schema type from the type directiveRef `{0}`.</value>
   </data>
   <data name="TypeConvertion_ConvertNotSupported" xml:space="preserve">
     <value>Unable to convert type from `{0}` to `{1}`</value>
