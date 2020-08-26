@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ITypeReference GetReturnTypeRef(
+        ClrTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null);
@@ -80,7 +80,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ITypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
+        ClrTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
 
         /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
@@ -117,6 +117,17 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="type">
         /// The type.
         /// </param>
+        /// <returns>
+        /// Returns the extended type representation for the provided <paramref name="type"/>.
+        /// </returns>
+        IExtendedType GetType(Type type);
+
+        /// <summary>
+        /// Gets the extended type representation for the provided <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
         /// <param name="nullable">
         /// Defines an array that specifies how to apply nullability information
         /// to the type components.
@@ -124,7 +135,7 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns the extended type representation for the provided <paramref name="type"/>.
         /// </returns>
-        IExtendedType GetType(Type type, bool?[]? nullable = null);
+        IExtendedType GetType(Type type, params bool?[] nullable);
 
         /// <summary>
         /// Extracts the values of an enum type.

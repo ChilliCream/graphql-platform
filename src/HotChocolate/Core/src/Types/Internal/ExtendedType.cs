@@ -15,7 +15,7 @@ namespace HotChocolate.Internal
             IReadOnlyList<ExtendedType>? typeArguments = null,
             Type? source = null,
             Type? definition = null,
-            IExtendedType? elementType = null,
+            ExtendedType? elementType = null,
             bool isList = false,
             bool isNamedType = false,
             bool isNullable = false)
@@ -76,11 +76,15 @@ namespace HotChocolate.Internal
         /// <inheritdoc />
         public bool IsNullable { get; }
 
-        /// <inheritdoc />
-        public IReadOnlyList<IExtendedType> TypeArguments { get; }
+        public IReadOnlyList<ExtendedType> TypeArguments { get; }
 
         /// <inheritdoc />
-        public IExtendedType? ElementType { get; }
+        IReadOnlyList<IExtendedType> IExtendedType.TypeArguments => TypeArguments;
+
+        public ExtendedType? ElementType { get; }
+
+        /// <inheritdoc />
+        IExtendedType? IExtendedType.ElementType => ElementType;
 
         /// <inheritdoc />
         public bool Equals(IExtendedType? other)
@@ -174,6 +178,7 @@ namespace HotChocolate.Internal
             {
                 return extendedType;
             }
+
             return FromTypeInternal(type, cache);
         }
 

@@ -9,41 +9,42 @@ namespace HotChocolate.Internal
     {
         private static class SystemType
         {
-            public static ExtendedType FromType(Type type, TypeCache cache)
+            public static ExtendedType FromType(Type type, TypeCache cache) =>
+                cache.GetOrCreateType(type, () => FromTypeInternal(type, cache));
+
+            private static ExtendedType FromTypeInternal(Type type, TypeCache cache)
             {
                 type = Helper.RemoveNonEssentialTypes(type);
 
-                if (type.IsValueType)
+                if (type.IsGenericType
+                    && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
-                    if (type.IsGenericType
-                        && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                    {
-                        return new ExtendedType(
-                            type.GetGenericArguments()[0],
-                            ExtendedTypeKind.Runtime,
-                            typeArguments: GetGenericArguments(type, cache),
-                            source: type,
-                            isNullable: true);
-                    }
-
                     return new ExtendedType(
-                        type,
+                        type.GetGenericArguments()[0],
                         ExtendedTypeKind.Runtime,
                         typeArguments: GetGenericArguments(type, cache),
-                        isNullable: false);
+                        source: type,
+                        isNullable: true);
                 }
 
-                Type? elementType = Helper.GetInnerListType(type);
+                ExtendedType? elementType =
+                    Helper.GetInnerListType(type) is Type e
+                        ? FromType(e, cache)
+                        : null;
+
+                IReadOnlyList<ExtendedType> typeArguments =
+                    type.IsArray && elementType is not null
+                        ? (IReadOnlyList<ExtendedType>)new[] { elementType }
+                        : GetGenericArguments(type, cache);
 
                 return new ExtendedType(
-                    type.GetGenericArguments()[0],
+                    type,
                     ExtendedTypeKind.Runtime,
-                    typeArguments: GetGenericArguments(type, cache),
+                    typeArguments: typeArguments,
                     source: type,
-                    definition: typeof(Nullable<>),
-                    isNullable: true,
+                    isNullable: !type.IsValueType,
                     isList: Helper.IsListType(type),
-                    elementType: elementType is null ? null : FromType(elementType, cache));
+                    elementType: elementType);
             }
 
             public static IReadOnlyList<ExtendedType> GetGenericArguments(Type type, TypeCache cache)

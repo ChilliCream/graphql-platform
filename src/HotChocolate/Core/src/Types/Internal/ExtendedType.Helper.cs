@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
@@ -16,7 +16,7 @@ namespace HotChocolate.Internal
         {
             internal static bool IsSchemaType(Type type)
             {
-                if (BaseTypes.IsGenericBaseType(type))
+                if (BaseTypes.IsNamedType(type))
                 {
                     return true;
                 }
@@ -24,9 +24,9 @@ namespace HotChocolate.Internal
                 if (type.IsGenericType)
                 {
                     Type definition = type.GetGenericTypeDefinition();
-                    if (typeof(ListType<>) == definition
-                        || typeof(NonNullType<>) == definition
-                        || typeof(NativeType<>) == definition)
+                    if (typeof(ListType<>) == definition ||
+                        typeof(NonNullType<>) == definition ||
+                        typeof(NativeType<>) == definition)
                     {
                         return IsSchemaType(type.GetGenericArguments()[0]);
                     }
@@ -61,24 +61,25 @@ namespace HotChocolate.Internal
             private static bool ImplementsListInterface(Type type) =>
                 GetInnerListType(type) is not null;
 
-            /*
-            private static IExtendedType? GetInnerListType(IExtendedType type)
+            internal static ExtendedType? GetInnerListType(
+                ExtendedType type,
+                TypeCache cache)
             {
-                if (type.Definition == typeof(ListType<>))
-                {
-                    return type.TypeArguments[0];
-                }
-
                 if (IsDictionary(type.Type))
                 {
                     IExtendedType key = type.TypeArguments[0];
                     IExtendedType value = type.TypeArguments[1];
 
-                    return new ExtendedType2(
-                        typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type),
-                        ExtendedTypeKind.Runtime,
-                        new [] { (ExtendedType2)key, (ExtendedType2)value },
-                        isNullable: false);
+                    Type itemType = typeof(KeyValuePair<,>).MakeGenericType(key.Type, value.Type);
+
+                    return cache.GetOrCreateType(itemType, () =>
+                    {
+                        return new ExtendedType(
+                            itemType,
+                            ExtendedTypeKind.Runtime,
+                            new[] { (ExtendedType)key, (ExtendedType)value },
+                            isNullable: false);
+                    });
                 }
 
                 if (IsSupportedCollectionInterface(type.Type))
@@ -103,22 +104,16 @@ namespace HotChocolate.Internal
                             return type.TypeArguments[0];
                         }
 
-                        return SystemType.FromType (elementType);
+                        return SystemType.FromType(elementType, cache);
                     }
                 }
 
                 return null;
             }
-            */
 
             internal static Type? GetInnerListType(Type type)
             {
                 Type? typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
-
-                if (typeDefinition == typeof(ListType<>))
-                {
-                    return type.GetGenericArguments()[0];
-                }
 
                 if (IsSupportedCollectionInterface(type))
                 {
@@ -150,14 +145,21 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(IReadOnlyList<>)
                         || typeDefinition == typeof(ICollection<>)
                         || typeDefinition == typeof(IList<>)
+                        || typeDefinition == typeof(ISet<>)
                         || typeDefinition == typeof(IQueryable<>)
                         || typeDefinition == typeof(IAsyncEnumerable<>)
                         || typeDefinition == typeof(IObservable<>)
                         || typeDefinition == typeof(List<>)
                         || typeDefinition == typeof(Collection<>)
                         || typeDefinition == typeof(Stack<>)
+                        || typeDefinition == typeof(HashSet<>)
                         || typeDefinition == typeof(Queue<>)
-                        || typeDefinition == typeof(ConcurrentBag<>))
+                        || typeDefinition == typeof(ConcurrentBag<>)
+                        || typeDefinition == typeof(ImmutableArray<>)
+                        || typeDefinition == typeof(ImmutableList<>)
+                        || typeDefinition == typeof(ImmutableQueue<>)
+                        || typeDefinition == typeof(ImmutableStack<>)
+                        || typeDefinition == typeof(ImmutableHashSet<>))
                     {
                         return true;
                     }
@@ -174,7 +176,8 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(IReadOnlyDictionary<,>)
                         || typeDefinition == typeof(Dictionary<,>)
                         || typeDefinition == typeof(ConcurrentDictionary<,>)
-                        || typeDefinition == typeof(SortedDictionary<,>))
+                        || typeDefinition == typeof(SortedDictionary<,>)
+                        || typeDefinition == typeof(ImmutableDictionary<,>))
                     {
                         return true;
                     }
@@ -200,12 +203,12 @@ namespace HotChocolate.Internal
                 }
 
                 var pos = 0;
-                return ChangeNullability(id, type, nullable, ref pos, cache);
+                return ChangeNullability(id, (ExtendedType)type, nullable, ref pos, cache);
             }
 
             private static ExtendedType ChangeNullability(
                 ExtendedTypeId id,
-                IExtendedType type,
+                ExtendedType type,
                 ReadOnlySpan<bool?> nullable,
                 ref int position,
                 TypeCache cache)
@@ -217,17 +220,18 @@ namespace HotChocolate.Internal
 
                 var pos = position++;
                 var changeNullability =
-                    nullable[position].HasValue &&
-                    nullable[position]!.Value != type.IsNullable;
-                var typeArguments = (IReadOnlyList<ExtendedType>)type.TypeArguments;
+                    nullable.Length > pos &&
+                    nullable[pos].HasValue &&
+                    nullable[pos]!.Value != type.IsNullable;
+                var typeArguments = type.TypeArguments;
 
-                if (nullable.Length > position)
+                if (type.TypeArguments.Count > 0 && nullable.Length > position)
                 {
                     var args = new ExtendedType[type.TypeArguments.Count];
 
                     for (var j = 0; j < type.TypeArguments.Count; j++)
                     {
-                        IExtendedType typeArgument = type.TypeArguments[j];
+                        ExtendedType typeArgument = type.TypeArguments[j];
                         ExtendedTypeId typeArgumentId =
                             Tools.CreateId(typeArgument, nullable.Slice(position));
 
@@ -246,7 +250,9 @@ namespace HotChocolate.Internal
 
                 if (changeNullability || !ReferenceEquals(typeArguments, type.TypeArguments))
                 {
-                    IExtendedType? elementType = type.IsArrayOrList ? type.ElementType : null;
+                    ExtendedType? elementType = type.IsArrayOrList
+                        ? (ExtendedType?)type.ElementType
+                        : null;
 
                     if (elementType is not null &&
                         !ReferenceEquals(typeArguments, type.TypeArguments))
@@ -268,7 +274,7 @@ namespace HotChocolate.Internal
                         definition: type.Definition,
                         elementType: elementType,
                         isList: type.IsList,
-                        isNullable: nullable[pos]!.Value);
+                        isNullable: nullable[pos] ?? type.IsNullable);
 
                     return cache.TryAdd(rewritten)
                         ? rewritten

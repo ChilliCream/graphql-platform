@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Internal
 {
-    public class ExtendedTypeRewriterTests
+    public class ExtendedTypeNullabilityTests
     {
         private readonly TypeCache _typeCache = new TypeCache();
 
@@ -47,6 +47,22 @@ namespace HotChocolate.Internal
         {
             // arrange
             MethodInfo method = typeof(Lists).GetMethod(methodName)!;
+
+            // act
+            ExtendedType extendedType = ExtendedType.FromMember(method, _typeCache);
+
+            // assert
+            Assert.Equal(typeName, extendedType.ToString());
+        }
+
+        [InlineData("Dict1", "Dictionary<Byte!, Object>!")]
+        [InlineData("Dict2", "Dictionary<Byte!, Object>")]
+        [InlineData("Tuple", "Tuple<Tuple<Int32!, Int32>!, Tuple<Object!, Tuple<Object, String!>!>!>")]
+        [Theory]
+        public void DetectNullabilityWithGenerics(string methodName, string typeName)
+        {
+            // arrange
+            MethodInfo method = typeof(Generics).GetMethod(methodName)!;
 
             // act
             ExtendedType extendedType = ExtendedType.FromMember(method, _typeCache);
@@ -136,6 +152,24 @@ namespace HotChocolate.Internal
             }
 
             public List<object?>? NullableObjectListNullableElement()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class Generics
+        {
+            public Dictionary<byte, object?> Dict1()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Dictionary<byte, object?>? Dict2()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Tuple<Tuple<int, int?>, Tuple<object, Tuple<object?, string>>>? Tuple()
             {
                 throw new NotImplementedException();
             }

@@ -96,14 +96,19 @@ namespace HotChocolate.Internal
                     elementType = Rewrite(extendedType.ElementType!, null, cache);
                 }
 
-                var rewritten  = new ExtendedType(
+                if (!extendedType.IsArray)
+                {
+                    elementType = Helper.GetInnerListType((ExtendedType)extendedType, cache);
+                }
+
+                var rewritten = new ExtendedType(
                     extendedType.Type,
                     ExtendedTypeKind.Runtime,
                     typeArguments: extendedArguments,
                     source: extendedType.Source,
                     definition: extendedType.Definition,
                     elementType: elementType,
-                    isList: extendedType.IsList,
+                    isList: !extendedType.IsArray && elementType is not null,
                     isNullable: extendedType.IsNullable);
 
                 return cache.TryAdd(rewritten, member)
@@ -147,6 +152,7 @@ namespace HotChocolate.Internal
                         type,
                         ExtendedTypeKind.Extended,
                         typeArguments: GetGenericArguments(context, flags, type, ref position),
+                        source: type,
                         isNullable: false);
                 }
 

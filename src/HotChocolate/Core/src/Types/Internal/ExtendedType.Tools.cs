@@ -56,7 +56,7 @@ namespace HotChocolate.Internal
                     throw new ArgumentNullException(nameof(type));
                 }
 
-                if (BaseTypes.IsGenericBaseType(type))
+                if (BaseTypes.IsNamedType(type))
                 {
                     return type;
                 }

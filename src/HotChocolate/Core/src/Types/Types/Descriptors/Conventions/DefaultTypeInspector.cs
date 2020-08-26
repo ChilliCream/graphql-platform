@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
             type.GetMembers(BindingFlags.Instance | BindingFlags.Public).Where(CanBeHandled);
 
         /// <inheritdoc />
-        public virtual ITypeReference GetReturnTypeRef(
+        public virtual ClrTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
             string? scope = null)
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return TypeReference.Create(GetReturnType(member), context);
+            return TypeReference.Create(GetReturnType(member), context, scope);
         }
 
         /// <inheritdoc />
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public ITypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
+        public ClrTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
         {
             if (parameter is null)
             {
@@ -140,9 +140,34 @@ namespace HotChocolate.Types.Descriptors
             TypeReference.Create(GetType(type), context, scope);
 
         /// <inheritdoc />
-        public IExtendedType GetType(Type type, bool?[]? nullable = null)
+        public IExtendedType GetType(Type type)
         {
-            throw new NotImplementedException();
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return ExtendedType.FromType(type, _typeCache);
+        }
+
+        /// <inheritdoc />
+        public IExtendedType GetType(Type type, params bool?[] nullable)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+
+            return nullable is { Length: > 0} ?
+                ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+                : extendedType;
         }
 
         /// <inheritdoc />

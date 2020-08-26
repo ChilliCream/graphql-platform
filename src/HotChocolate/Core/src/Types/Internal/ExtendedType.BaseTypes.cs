@@ -27,6 +27,32 @@ namespace HotChocolate.Internal
                 typeof(DirectiveType<>)
             };
 
+            /// <summary>
+            /// Defines if the specified type is a named type that can be instantiated.
+            /// </summary>
+            public static bool IsNamedType(Type type)
+            {
+                if (type.IsAbstract || IsNonGenericBaseType(type))
+                {
+                    return false;
+                }
+
+                if (IsGenericBaseType(type))
+                {
+                    return true;
+                }
+
+                foreach (Type baseType in _baseTypes)
+                {
+                    if (baseType.IsAssignableFrom(type))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
             public static bool IsGenericBaseType(Type type)
             {
                 if (type is null)
@@ -39,6 +65,7 @@ namespace HotChocolate.Internal
                 {
                     return true;
                 }
+
                 return false;
             }
 

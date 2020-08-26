@@ -53,9 +53,6 @@ namespace HotChocolate.Internal
                             ? type.GetGenericTypeDefinition() 
                             : null;
 
-                        ExtendedType elementType =
-                            FromType(type.GetGenericArguments()[0], null, true, cache);
-
                         return new ExtendedType(
                             type,
                             ExtendedTypeKind.Schema,

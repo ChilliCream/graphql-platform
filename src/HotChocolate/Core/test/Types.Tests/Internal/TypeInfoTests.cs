@@ -264,23 +264,6 @@ namespace HotChocolate.Internal
             Assert.Equal("[String!]" , typeInfo.CreateType(new StringType()).Print());
         }
 
-        [InlineData(typeof(NonNullType<NativeType<string>>), "String!")]
-        [InlineData(typeof(NonNullType<NativeType<int?>>), "String!")]
-        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<string>>>>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<string>>[]>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<List<NonNullType<NativeType<int?>>>>>), "[String!]!")]
-        [InlineData(typeof(NonNullType<NativeType<NonNullType<NativeType<int?>>[]>>), "[String!]!")]
-        [Theory]
-        public void MixedTypes(Type clrType, string expectedTypeName)
-        {
-            // arrange
-            // act
-            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(clrType), _cache);
-
-            // assert
-            Assert.Equal(expectedTypeName, typeInfo.CreateType(new StringType()).Print());
-        }
-
         [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
         [InlineData(typeof(NativeType<string>), typeof(string))]
         [InlineData(typeof(Task<string>), typeof(string))]
@@ -302,11 +285,11 @@ namespace HotChocolate.Internal
         public void Create_TypeInfo_From_RewrittenType()
         {
             // arrange
-            Type type = typeof(ListType<NonNullType<NativeType<string>>>);
+            IExtendedType extendedType = _typeInspector.GetType(typeof(List<string>), null, false);
 
             // act
             var success = TypeInfo.TryCreate(
-                _typeInspector.GetReturnType(type),
+                extendedType,
                 _cache,
                 out TypeInfo typeInfo);
 

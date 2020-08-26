@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Linq;
-using HotChocolate.Internal;
 using HotChocolate.Types;
 using Xunit;
 
@@ -21,7 +23,8 @@ namespace HotChocolate.Internal
 
             // assert
             Assert.True(extendedType.IsArray);
-            Assert.Collection(extendedType.TypeArguments.Select(t => t.Type),
+            Assert.Collection(
+                extendedType.TypeArguments.Select(t => t.Type),
                 t => Assert.Equal(typeof(byte), t));
         }
 
@@ -30,9 +33,11 @@ namespace HotChocolate.Internal
         {
             // arrange
             // act
-            ExtendedType list = ExtendedType.FromType(
-                typeof(NonNullType<NativeType<List<byte?>>>),
+            IExtendedType list = ExtendedType.FromType(
+                typeof(NativeType<List<byte?>>),
                 _cache);
+            list = ExtendedType.Tools.ChangeNullability(
+                list, new bool?[] { false }, _cache);
 
             ExtendedType nullableList = ExtendedType.FromType(
                 typeof(List<byte?>),
@@ -194,6 +199,75 @@ namespace HotChocolate.Internal
 
             // assert
             Assert.False(result);
+        }
+
+        [InlineData(typeof(CustomStringList1), "CustomStringList1", "String")]
+        [InlineData(typeof(CustomStringList2<string>), "CustomStringList2<String>", "String")]
+        [InlineData(
+            typeof(CustomStringList3<string, int>),
+            "CustomStringList3<String, Int32!>",
+            "String")]
+        [InlineData(typeof(List<string>), "List<String>", "String")]
+        [InlineData(typeof(Collection<string>), "Collection<String>", "String")]
+        [InlineData(typeof(ReadOnlyCollection<string>), "ReadOnlyCollection<String>", "String")]
+        [InlineData(typeof(ImmutableList<string>), "ImmutableList<String>", "String")]
+        [InlineData(typeof(ImmutableArray<string>), "ImmutableArray<String>!", "String")]
+        [InlineData(typeof(IList<string>), "IList<String>", "String")]
+        [InlineData(typeof(ICollection<string>), "ICollection<String>", "String")]
+        [InlineData(typeof(IEnumerable<string>), "IEnumerable<String>", "String")]
+        [InlineData(typeof(IReadOnlyCollection<string>), "IReadOnlyCollection<String>", "String")]
+        [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
+        [InlineData(typeof(string[]), "[String]", "String")]
+        [Theory]
+        public void SupportedListTypes(Type type, string listTypeName, string elementTypeName)
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(type, _cache);
+
+            // assert
+            Assert.Equal(listTypeName, extendedType.ToString());
+            Assert.Equal(elementTypeName, extendedType.ElementType?.ToString());
+        }
+
+        [InlineData(typeof(List<string>))]
+        [InlineData(typeof(IReadOnlyList<string>))]
+        [InlineData(typeof(IList<string>))]
+        [InlineData(typeof(CustomStringList2<string>))]
+        [InlineData(typeof(ImmutableArray<string>))]
+        [InlineData(typeof(IEnumerable<string>))]
+        [Theory]
+        public void ChangeNullability_From_ElementType(Type listType)
+        {
+            // arrange
+            // act
+            IExtendedType list = ExtendedType.FromType(
+                listType,
+                _cache);
+            list = ExtendedType.Tools.ChangeNullability(
+                list, new bool?[] { null, false }, _cache);
+
+            // assert
+            Assert.False(list.ElementType!.IsNullable);
+            Assert.Same(list.ElementType, list.TypeArguments[0]);
+        }
+
+        private class CustomStringList1
+            : List<string>
+        {
+        }
+
+        private class CustomStringList2<T>
+            : List<T>
+            where T : notnull
+        {
+        }
+
+        private class CustomStringList3<T, TK>
+            : List<T>
+            where T : notnull
+        {
+            public TK Foo { get; set; }
         }
     }
 }
