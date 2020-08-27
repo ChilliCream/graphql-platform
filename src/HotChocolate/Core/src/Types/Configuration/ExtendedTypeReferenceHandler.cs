@@ -1,39 +1,46 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 #nullable enable
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class ClrTypeReferenceHandler
+    internal sealed class ExtendedTypeReferenceHandler
         : ITypeRegistrarHandler
     {
-        private readonly TypeInspector _typeInspector = TypeInspector.Default;
+        private readonly ITypeInspector _typeInspector;
+
+        public ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
+        {
+            _typeInspector = typeInspector;
+        }
+
         public void Register(
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ClrTypeReference typeReference in typeReferences.OfType<ClrTypeReference>())
+            foreach (ExtendedTypeReference typeReference in typeReferences.OfType<ExtendedTypeReference>())
             {
-                if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                    && _typeInspector.TryCreate(typeReference.Type, out TypeInfo typeInfo))
+                if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
+                    !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
                 {
-                    Type type = typeInfo.ClrType;
-
-                    if (IsTypeSystemObject(type))
+                    Type namedType = typeInfo.NamedType;
+                    if (IsTypeSystemObject(namedType))
                     {
-                        ClrTypeReference namedTypeReference = typeReference.With(type);
+                        IExtendedType extendedType = _typeInspector.GetType(namedType);
+                        ExtendedTypeReference namedTypeReference = typeReference.With(extendedType);
 
                         if (!typeRegistrar.IsResolved(namedTypeReference))
                         {
                             typeRegistrar.Register(
-                                typeRegistrar.CreateInstance(type),
+                                typeRegistrar.CreateInstance(namedType),
                                 typeReference.Scope,
-                                BaseTypes.IsGenericBaseType(type));
+                                extendedType.IsSchemaType);
                         }
                     }
                     else
@@ -50,19 +57,19 @@ namespace HotChocolate.Configuration
 
         private void TryMapToExistingRegistration(
             ITypeRegistrar typeRegistrar,
-            TypeInfo typeInfo,
+            ITypeInfo typeInfo,
             TypeContext context,
             string? scope)
         {
-            ClrTypeReference? normalizedTypeRef = null;
-            bool resolved = false;
+            ExtendedTypeReference? normalizedTypeRef = null;
+            var resolved = false;
 
-            for (int i = 0; i < typeInfo.Components.Count; i++)
+            for (var i = 0; i < typeInfo.Components.Count; i++)
             {
                 normalizedTypeRef = TypeReference.Create(
-                    typeInfo.Components[i],
+                    typeInfo.Components[i].Type,
                     context,
-                    scope: scope);
+                    scope);
 
                 if (typeRegistrar.IsResolved(normalizedTypeRef))
                 {

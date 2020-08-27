@@ -1,0 +1,12 @@
+﻿{
+  "registered": {
+    "HotChocolate.Configuration.TypeDiscovererTests.FooType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
+    "HotChocolate.Configuration.TypeDiscovererTests.BarType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
+    "HotChocolate.Types.StringType": "System.String"
+  },
+  "clr": {
+    "Output: Foo": "Output: FooType",
+    "Output: Bar": "Output: BarType",
+    "Output: String": "None: StringType"
+  }
+}

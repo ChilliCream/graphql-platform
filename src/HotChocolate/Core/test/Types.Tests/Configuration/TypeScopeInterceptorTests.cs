@@ -64,7 +64,7 @@ namespace HotChocolate.Configuration
                     .Extend()
                     .OnBeforeCreate(d =>
                     {
-                        d.Type = ((ClrTypeReference)d.Type).WithScope(Scope);
+                        d.Type = ((ExtendedTypeReference)d.Type).WithScope(Scope);
                     });
             }
         }
@@ -124,12 +124,12 @@ namespace HotChocolate.Configuration
                 ITypeDiscoveryContext discoveryContext,
                 [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
             {
-                if (discoveryContext is { Scope: { } })
+                if (discoveryContext is { Scope: not null })
                 {
                     typeDependencies = discoveryContext.TypeDependencies
                         .Where(t => t.TypeReference.Scope is null)
                         .Select(t => t
-                            .With(((ClrTypeReference)t.TypeReference)
+                            .With(((ExtendedTypeReference)t.TypeReference)
                             .WithScope(discoveryContext.Scope)))
                         .ToList();
                     return true;

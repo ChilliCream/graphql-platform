@@ -3,22 +3,15 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 #nullable enable
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo2
+    internal sealed partial class TypeInfo
     {
         public static class RuntimeType
         {
-            /// <summary>
-            /// Removes non-essential parts from the type.
-            /// </summary>
-            public static IExtendedType Unwrap(Type type) =>
-                Unwrap(ExtendedType.FromType(type));
-
             /// <summary>
             /// Removes non-essential parts from the type.
             /// </summary>
@@ -28,34 +21,34 @@ namespace HotChocolate.Internal
             internal static bool TryCreateTypeInfo(
                 IExtendedType type,
                 Type originalType,
-                [NotNullWhen(true)]out TypeInfo2? typeInfo)
+                TypeCache cache,
+                [NotNullWhen(true)] out TypeInfo? typeInfo)
             {
                 if (type.Kind != ExtendedTypeKind.Schema)
                 {
-                    IReadOnlyList<TypeComponentKind> components =
-                        Decompose(type, out IExtendedType namedType);
+                    IReadOnlyList<TypeComponent> components =
+                        Decompose(type, cache, out IExtendedType namedType);
 
-                    if (IsStructureValid(components))
-                    {
-                        typeInfo = new TypeInfo2(
-                            namedType.Type,
-                            originalType,
-                            components,
-                            true,
-                            type);
-                        return true;
-                    }
+                    typeInfo = new TypeInfo(
+                        namedType.Type,
+                        originalType,
+                        components,
+                        false,
+                        type,
+                        IsStructureValid(components));
+                    return true;
                 }
 
                 typeInfo = null;
                 return false;
             }
 
-            private static IReadOnlyList<TypeComponentKind> Decompose(
+            private static IReadOnlyList<TypeComponent> Decompose(
                 IExtendedType type,
+                TypeCache cache,
                 out IExtendedType namedType)
             {
-                var list = new List<TypeComponentKind>();
+                var list = new List<TypeComponent>();
                 IExtendedType? current = type;
 
                 while (current is not null)
@@ -64,17 +57,27 @@ namespace HotChocolate.Internal
 
                     if (!current.IsNullable)
                     {
-                        list.Add(TypeComponentKind.NonNull);
+                        list.Add((TypeComponentKind.NonNull, current));
                     }
 
                     if (current.IsArrayOrList)
                     {
-                        list.Add(TypeComponentKind.List);
-                        current = current.GetElementType();
+                        IExtendedType rewritten = current.IsNullable
+                            ? current
+                            : ExtendedType.Tools.ChangeNullability(
+                                current, new bool?[] { true }, cache);
+
+                        list.Add((TypeComponentKind.List, rewritten));
+                        current = current.ElementType;
                     }
                     else
                     {
-                        list.Add(TypeComponentKind.Named);
+                        IExtendedType rewritten = current.IsNullable
+                            ? current
+                            : ExtendedType.Tools.ChangeNullability(
+                                current, new bool?[] { true }, cache);
+
+                        list.Add((TypeComponentKind.Named, rewritten));
                         namedType = current;
                         return list;
                     }

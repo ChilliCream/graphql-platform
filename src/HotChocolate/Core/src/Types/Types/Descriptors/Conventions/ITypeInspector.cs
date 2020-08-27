@@ -46,10 +46,16 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="context">
         /// The context defines if the field has an input or output context.
         /// </param>
+        /// <param name="scope">
+        /// The type reference scope.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        ITypeReference GetReturnTypeRef(MemberInfo member, TypeContext context);
+        ExtendedTypeReference GetReturnTypeRef(
+            MemberInfo member,
+            TypeContext context = TypeContext.None,
+            string? scope = null);
 
         /// <summary>
         /// Gets the field type from a <see cref="MemberInfo" />.
@@ -68,10 +74,13 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="parameter">
         /// The parameter from which the argument type shall be extracted.
         /// </param>
+        /// <param name="scope">
+        /// The type reference scope.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ITypeReference GetArgumentTypeRef(ParameterInfo parameter);
+        ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
 
         /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
@@ -83,6 +92,50 @@ namespace HotChocolate.Types.Descriptors
         /// Returns a type reference describing the type of the argument.
         /// </returns>
         IExtendedType GetArgumentType(ParameterInfo parameter);
+
+        /// <summary>
+        /// Gets a type reference from a <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="context">
+        /// The context defines if the field has an input or output context.
+        /// </param>
+        /// <param name="scope">
+        /// The type scope.
+        /// </param>
+        /// <returns></returns>
+        ExtendedTypeReference GetTypeRef(
+            Type type,
+            TypeContext context = TypeContext.None,
+            string? scope = null);
+
+        /// <summary>
+        /// Gets the extended type representation for the provided <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <returns>
+        /// Returns the extended type representation for the provided <paramref name="type"/>.
+        /// </returns>
+        IExtendedType GetType(Type type);
+
+        /// <summary>
+        /// Gets the extended type representation for the provided <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="nullable">
+        /// Defines an array that specifies how to apply nullability information
+        /// to the type components.
+        /// </param>
+        /// <returns>
+        /// Returns the extended type representation for the provided <paramref name="type"/>.
+        /// </returns>
+        IExtendedType GetType(Type type, params bool?[] nullable);
 
         /// <summary>
         /// Extracts the values of an enum type.
@@ -174,6 +227,55 @@ namespace HotChocolate.Types.Descriptors
         bool TryGetDefaultValue(
             PropertyInfo property,
             out object? defaultValue);
+
+        /// <summary>
+        /// Rewrites a types nullability.
+        /// </summary>
+        /// <param name="type">
+        /// The original type.
+        /// </param>
+        /// <param name="nullable">
+        /// The new nullability pattern.
+        /// </param>
+        /// <returns>
+        /// Returns a new type that conforms to the new nullability pattern.
+        /// </returns>
+        IExtendedType ChangeNullability(
+            IExtendedType type,
+            params bool?[] nullable);
+
+        /// <summary>
+        /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
+        /// </param>
+        /// <returns>
+        /// The type info.
+        /// </returns>
+        ITypeInfo CreateTypeInfo(Type type);
+
+        /// <summary>
+        /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
+        /// </param>
+        /// <returns>
+        /// The type info.
+        /// </returns>
+        ITypeInfo CreateTypeInfo(IExtendedType type);
+
+        /// <summary>
+        /// Create a <see cref="ITypeFactory"/> from the given <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The system type from which the <see cref="ITypeFactory"/> shall be created.
+        /// </param>
+        /// <returns>
+        /// The type factory.
+        /// </returns>
+        ITypeFactory CreateTypeFactory(IExtendedType type);
 
         /// <summary>
         /// Tries to create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.

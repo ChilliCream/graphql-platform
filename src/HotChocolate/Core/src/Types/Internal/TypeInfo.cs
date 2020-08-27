@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
-using Nullable = HotChocolate.Utilities.Nullable;
 
 #nullable enable
 
 namespace HotChocolate.Internal
 {
-    public sealed partial class TypeInfo2
-        : ITypeFactory
-        , ITypeInfo
+    internal sealed partial class TypeInfo
+        : ITypeInfo
+        , ITypeFactory
     {
         private readonly IExtendedType _extendedType;
 
-        private TypeInfo2(
+        private TypeInfo(
             Type namedType,
             Type originalType,
-            IReadOnlyList<TypeComponentKind> components,
+            IReadOnlyList<TypeComponent> components,
             bool isSchemaType,
-            IExtendedType extendedType)
+            IExtendedType extendedType,
+            bool isStructureValid)
         {
             NamedType = namedType;
             OriginalType = originalType;
@@ -29,6 +27,7 @@ namespace HotChocolate.Internal
             IsSchemaType = isSchemaType;
             IsRuntimeType = !isSchemaType;
             _extendedType = extendedType;
+            IsValid = isStructureValid;
         }
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// The components represent the GraphQL type structure.
         /// </summary>
-        public IReadOnlyList<TypeComponentKind> Components { get; }
+        public IReadOnlyList<TypeComponent> Components { get; }
 
         /// <summary>
         /// Defines if the <see cref="NamedType"/> is a GraphQL schema type.
@@ -61,6 +60,25 @@ namespace HotChocolate.Internal
         /// about type arguments and nullability.
         /// </summary>
         public IExtendedType GetExtendedType() => _extendedType;
+
+        /// <summary>
+        /// Defines if the component structure is valid in the GraphQL context.
+        /// </summary>
+        public bool IsValid { get; }
+
+        /// <summary>
+        /// If this type is a schema type then this method defines if it is an input type.
+        /// </summary>
+        public bool IsInputType() =>
+            IsSchemaType &&
+            typeof(INamedInputType).IsAssignableFrom(NamedType);
+
+        /// <summary>
+        /// If this type is a schema type then this method defines if it is an output type.
+        /// </summary>
+        public bool IsOutputType() =>
+            IsSchemaType &&
+            typeof(INamedOutputType).IsAssignableFrom(NamedType);
 
         /// <summary>
         /// Creates a type structure with the <paramref name="namedType"/>.
@@ -80,7 +98,7 @@ namespace HotChocolate.Internal
 
             for (var i = Components.Count - 2; i >= 0; i--)
             {
-                switch (Components[i])
+                switch (Components[i].Kind)
                 {
                     case TypeComponentKind.Named:
                         throw new InvalidOperationException();
@@ -98,52 +116,9 @@ namespace HotChocolate.Internal
             return current;
         }
 
-        public static TypeInfo2 Create(Type type, bool[]? nullable = null)
+        public static TypeInfo Create(IExtendedType type, TypeCache cache)
         {
-            ExtendedType extendedType = ExtendedType.FromType(type);
-
-            if (nullable is not null)
-            {
-                var nullableState = new Nullable[nullable.Length];
-                for (var i = 0; i < nullable.Length; i++)
-                {
-                    nullableState[i] = nullable[i] ? Nullable.Yes : Nullable.No;
-                }
-
-                return Create(ExtendedTypeRewriter.Rewrite(extendedType, nullableState));
-            }
-
-            return Create(extendedType, type);
-        }
-
-        public static TypeInfo2 Create(MemberInfo member)
-        {
-            switch (member)
-            {
-                case PropertyInfo p:
-                    return Create(
-                        ExtendedType.FromExtendedType(
-                            NullableHelper.GetReturnType(member)),
-                        p.PropertyType);
-
-                case MethodInfo m:
-                    return Create(
-                        ExtendedType.FromExtendedType(
-                            NullableHelper.GetReturnType(member)),
-                        m.ReturnType);
-
-                default:
-                    throw new NotSupportedException(
-                        "Only PropertyInfo and MethodInfo are supported.");
-            }
-        }
-
-        public static TypeInfo2 Create(IExtendedType type) =>
-            Create(type, null);
-
-        private static TypeInfo2 Create(IExtendedType type, Type? originalType)
-        {
-            if (TryCreate(type, originalType, out TypeInfo2? typeInfo))
+            if (TryCreate(type, cache, out TypeInfo? typeInfo))
             {
                 return typeInfo;
             }
@@ -153,94 +128,49 @@ namespace HotChocolate.Internal
         }
 
         public static bool TryCreate(
-            Type type,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
-            TryCreate(type, null, out typeInfo);
-
-        public static bool TryCreate(
-            Type type,
-            bool[]? nullable,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo)
-        {
-            IExtendedType extendedType = ExtendedType.FromType(type);
-
-            if (nullable is not null)
-            {
-                var nullableState = new Nullable[nullable.Length];
-                for (var i = 0; i < nullable.Length; i++)
-                {
-                    nullableState[i] = nullable[i] ? Nullable.Yes : Nullable.No;
-                }
-
-                extendedType = ExtendedType.FromType(
-                    ExtendedTypeRewriter.Rewrite(extendedType, nullableState));
-            }
-
-            return TryCreate(extendedType, type, out typeInfo);
-        }
-
-        public static bool TryCreate(
-            MemberInfo member,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo)
-        {
-            switch (member)
-            {
-                case PropertyInfo p:
-                    return TryCreate(
-                        new NullableHelper().GetPropertyInfo(p),
-                        p.PropertyType,
-                        out typeInfo);
-
-                case MethodInfo m:
-                    return TryCreate(
-                        new NullableHelper().GetMethodInfo(m).ReturnType,
-                        m.ReturnType,
-                        out typeInfo);
-
-                default:
-                    typeInfo = null;
-                    return false;
-            }
-        }
-
-        public static bool TryCreate(
             IExtendedType type,
-            [NotNullWhen(true)] out TypeInfo2? typeInfo) =>
-            TryCreate(type, null, out typeInfo);
-
-        private static bool TryCreate(
-            IExtendedType type,
-            Type? originalType,
-            [NotNullWhen(true)]out TypeInfo2? typeInfo)
+            TypeCache cache,
+            [NotNullWhen(true)] out TypeInfo? typeInfo)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            originalType ??= type.Type;
+            typeInfo = cache.GetOrCreateTypeInfo(
+                type,
+                () => CreateInternal(type, type.Source, cache));
 
+            typeInfo = typeInfo.IsValid ? typeInfo : null;
+            return typeInfo is not null;
+        }
+
+        private static TypeInfo CreateInternal(
+            IExtendedType type, 
+            Type originalType,
+            TypeCache cache)
+        {
             if (SchemaType.TryCreateTypeInfo(
                 type,
                 originalType,
-                out typeInfo))
+                out TypeInfo? typeInfo))
             {
-                return true;
+                return typeInfo;
             }
 
             if (RuntimeType.TryCreateTypeInfo(
                 type,
                 originalType,
+                cache,
                 out typeInfo))
             {
-                return true;
+                return typeInfo;
             }
 
-            typeInfo = null;
-            return false;
+            throw new InvalidOperationException("Unable to create type info.");
         }
 
-        private static bool IsStructureValid(IReadOnlyList<TypeComponentKind> components)
+        private static bool IsStructureValid(IReadOnlyList<TypeComponent> components)
         {
             var nonnull = false;
             var named = false;
@@ -253,7 +183,7 @@ namespace HotChocolate.Internal
                     return false;
                 }
 
-                switch (components[i])
+                switch (components[i].Kind)
                 {
                     case TypeComponentKind.List:
                         nonnull = false;
@@ -278,7 +208,7 @@ namespace HotChocolate.Internal
                         break;
 
                     default:
-                        throw  new NotSupportedException(
+                        throw new NotSupportedException(
                             "The type component kind is not supported.");
                 }
             }

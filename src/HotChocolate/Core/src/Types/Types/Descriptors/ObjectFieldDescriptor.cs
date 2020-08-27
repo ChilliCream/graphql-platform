@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -42,13 +43,13 @@ namespace HotChocolate.Types.Descriptors
             Type? resolverType)
             : base(context)
         {
-            Definition.Member = member ?? 
+            Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
@@ -86,7 +87,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -220,7 +221,9 @@ namespace HotChocolate.Types.Descriptors
 
             if (resultType != null)
             {
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
 
                 if (resultType.IsGenericType)
                 {
@@ -230,7 +233,7 @@ namespace HotChocolate.Types.Descriptors
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
 
-                    if (!BaseTypes.IsSchemaType(clrResultType))
+                    if (clrResultType.IsSchemaType())
                     {
                         Definition.ResultType = clrResultType;
                     }
@@ -253,7 +256,9 @@ namespace HotChocolate.Types.Descriptors
             {
                 Type resultType = member.GetReturnType();
 
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
 
                 Definition.ResolverType = typeof(TResolver);
                 Definition.ResolverMember = member;

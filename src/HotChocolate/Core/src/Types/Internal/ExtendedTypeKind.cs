@@ -2,7 +2,7 @@ namespace HotChocolate.Internal
 {
     public enum ExtendedTypeKind
     {
-        Unknown,
+        Runtime,
         Extended,
         Schema
     }

@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Descriptors
 
             // assert
             Assert.Equal(naming, context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
             Assert.Equal(options, context.Options);
         }
 
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Descriptors
 
             // assert
             Assert.Equal(naming, context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
             Assert.Equal(options, context.Options);
         }
 
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Descriptors
                 options, services, conventions, new Dictionary<string, object>());
 
             // assert
-            Assert.Equal(inspector, context.Inspector);
+            Assert.Equal(inspector, context.TypeInspector);
             Assert.NotNull(context.Naming);
             Assert.Equal(options, context.Options);
         }
@@ -127,7 +127,7 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.NotNull(context.Options);
             Assert.NotNull(context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
         }
 
         private class Convention : Descriptors.Convention

@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -15,7 +15,8 @@ namespace HotChocolate.Types.Descriptors
         , IHasDescriptorContext
         where T : DefinitionBase
     {
-        private readonly List<Action<T>> _modifiers = new List<Action<T>>();
+        private readonly List<Action<IDescriptorContext, T>> _modifiers =
+            new List<Action<IDescriptorContext, T>>();
 
         protected DescriptorBase(IDescriptorContext context)
         {
@@ -38,9 +39,9 @@ namespace HotChocolate.Types.Descriptors
         {
             OnCreateDefinition(Definition);
 
-            foreach (Action<T> modifier in _modifiers)
+            foreach (Action<IDescriptorContext, T> modifier in _modifiers)
             {
-                modifier.Invoke(Definition);
+                modifier.Invoke(Context, Definition);
             }
 
             return Definition;
@@ -53,13 +54,23 @@ namespace HotChocolate.Types.Descriptors
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
 
-        void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure) =>
+        void IDescriptorExtension<T>.OnBeforeCreate(
+            Action<T> configure) =>
+            OnBeforeCreate((c, d) => configure(d));
+
+        void IDescriptorExtension<T>.OnBeforeCreate(
+            Action<IDescriptorContext, T> configure) =>
             OnBeforeCreate(configure);
 
-        void IDescriptorExtension.OnBeforeCreate(Action<DefinitionBase> configure) =>
+        void IDescriptorExtension.OnBeforeCreate(
+            Action<DefinitionBase> configure) =>
+            OnBeforeCreate((c, d) => configure(d));
+
+        void IDescriptorExtension.OnBeforeCreate(
+            Action<IDescriptorContext, DefinitionBase> configure) =>
             OnBeforeCreate(configure);
 
-        private void OnBeforeCreate(Action<T> configure)
+        private void OnBeforeCreate(Action<IDescriptorContext, T> configure)
         {
             if (configure is null)
             {
@@ -93,7 +104,7 @@ namespace HotChocolate.Types.Descriptors
             };
             Definition.Configurations.Add(configuration);
 
-            return new NamedDependencyDescriptor<T>(configuration);
+            return new NamedDependencyDescriptor<T>(Context.TypeInspector, configuration);
         }
 
         ICompletedDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
@@ -115,7 +126,7 @@ namespace HotChocolate.Types.Descriptors
             };
             Definition.Configurations.Add(configuration);
 
-            return new CompletedDependencyDescriptor<T>(configuration);
+            return new CompletedDependencyDescriptor<T>(Context.TypeInspector, configuration);
         }
     }
 }

@@ -2,13 +2,17 @@ using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
 namespace HotChocolate.Types.Relay
 {
+    /// <summary>
+    /// Applies a cursor paging middleware to a resolver.
+    /// </summary>
     public sealed class UsePagingAttribute : DescriptorAttribute
     {
         private static readonly MethodInfo _off = typeof(PagingObjectFieldDescriptorExtensions)
@@ -29,6 +33,14 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
 
+        public UsePagingAttribute(Type? schemaType = null)
+        {
+            SchemaType = schemaType;
+        }
+
+        /// <summary>
+        /// The schema type representation of the entity.
+        /// </summary>
         public Type? SchemaType { get; set; }
 
         protected internal override void TryConfigure(
@@ -41,11 +53,11 @@ namespace HotChocolate.Types.Relay
                 Type schemaType = GetSchemaType(context, m);
                 if (descriptor is IObjectFieldDescriptor ofd)
                 {
-                    _off.MakeGenericMethod(schemaType).Invoke(null, new[] { ofd });
+                    _off.MakeGenericMethod(schemaType).Invoke(null, new object?[] { ofd });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
                 {
-                    _iff.MakeGenericMethod(schemaType).Invoke(null, new[] { ifd });
+                    _iff.MakeGenericMethod(schemaType).Invoke(null, new object?[] { ifd });
                 }
             }
         }
@@ -55,37 +67,31 @@ namespace HotChocolate.Types.Relay
             MemberInfo member)
         {
             Type? type = SchemaType;
-            ITypeReference returnType = context.Inspector.GetReturnTypeRef(
-                member, TypeContext.Output);
+            ITypeReference returnType = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (type is null
-                && returnType is ClrTypeReference clr
-                && TypeInspector.Default.TryCreate(clr.Type, out var typeInfo))
+                && returnType is ExtendedTypeReference clr
+                && context.TypeInspector.TryCreateTypeInfo(clr.Type, out ITypeInfo? typeInfo))
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                if (typeInfo.IsSchemaType)
                 {
-                    type = typeInfo.ClrType;
+                    type = typeInfo.NamedType;
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
-                    clr.WithType(typeInfo.ClrType),
-                    out ClrTypeReference schemaType))
+                    context.TypeInspector,
+                    clr.WithType(context.TypeInspector.GetType(typeInfo.NamedType)),
+                    out ExtendedTypeReference schemaType))
                 {
-                    type = schemaType.Type;
+                    type = schemaType.Type.Source;
                 }
             }
 
             if (type is null || !typeof(IType).IsAssignableFrom(type))
             {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("The UsePaging attribute needs a valid node schema type.")
-                        .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
-                        .Build());
+                throw UsePagingAttribute_NodeTypeUnknown(member);
             }
 
             return type;
         }
-
-
     }
 }

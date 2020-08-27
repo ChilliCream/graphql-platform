@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -17,13 +19,13 @@ namespace HotChocolate.Configuration
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
         private readonly IDescriptorContext _descriptorContext;
         private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
             IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
             IServiceProvider services)
@@ -41,7 +43,7 @@ namespace HotChocolate.Configuration
             bool isInferred = false)
         {
             RegisteredType registeredType = InitializeType(
-                typeSystemObject, 
+                typeSystemObject,
                 scope,
                 isInferred);
 
@@ -52,7 +54,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasRuntimeType hasClrType
                     && hasClrType.RuntimeType != typeof(object))
                 {
-                    var clrRef = TypeReference.Create(
+                    ExtendedTypeReference? clrRef = _descriptorContext.TypeInspector.GetTypeRef(
                         hasClrType.RuntimeType,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope);
@@ -100,7 +102,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (typeReference is ClrTypeReference clrTypeReference)
+            if (typeReference is ExtendedTypeReference clrTypeReference)
             {
                 return _clrTypeReferences.ContainsKey(clrTypeReference);
             }
@@ -116,15 +118,7 @@ namespace HotChocolate.Configuration
             }
             catch (Exception ex)
             {
-                // todo : resources
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "Unable to create instance of type `{0}`.",
-                            namedSchemaType.FullName)
-                        .SetException(ex)
-                        .SetExtension(nameof(namedSchemaType), namedSchemaType)
-                        .Build());
+                throw TypeRegistrar_CreateInstanceFailed(namedSchemaType, ex);
             }
         }
 
@@ -182,9 +176,9 @@ namespace HotChocolate.Configuration
                         scope: scope));
                 }
 
-                if (!BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
+                if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    references.Add(TypeReference.Create(
+                    references.Add(_descriptorContext.TypeInspector.GetTypeRef(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope));
@@ -193,7 +187,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
                     && hasTypeIdentity.TypeIdentity is { })
                 {
-                    var reference = TypeReference.Create(
+                    var reference = _descriptorContext.TypeInspector.GetTypeRef(
                         hasTypeIdentity.TypeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope);
@@ -227,7 +221,7 @@ namespace HotChocolate.Configuration
         private IReadOnlyList<TypeDependency> CollectDependencies(
             ITypeDiscoveryContext discoveryContext)
         {
-            if (discoveryContext.Interceptor.TryCreateScope(
+            if (discoveryContext.TypeInterceptor.TryCreateScope(
                 discoveryContext,
                 out IReadOnlyList<TypeDependency>? dependencies))
             {

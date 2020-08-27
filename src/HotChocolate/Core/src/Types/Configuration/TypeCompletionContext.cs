@@ -1,40 +1,41 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using HotChocolate.Language;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Configuration
 {
     internal sealed class TypeCompletionContext
         : ITypeCompletionContext
     {
-        private readonly TypeDiscoveryContext _initializationContext;
-        private readonly TypeInitializer _typeInitializer;
-        private readonly Func<ISchema> _schemaResolver;
         private readonly HashSet<NameString> _alternateNames = new HashSet<NameString>();
+        private readonly TypeDiscoveryContext _initializationContext;
+        private readonly TypeReferenceResolver _typeReferenceResolver;
+        private readonly IDictionary<FieldReference, RegisteredResolver> _resolvers;
+        private readonly Func<ISchema> _schemaResolver;
 
         public TypeCompletionContext(
             TypeDiscoveryContext initializationContext,
-            TypeInitializer typeInitializer,
+            TypeReferenceResolver typeReferenceResolver,
+            IList<FieldMiddleware> globalComponents,
+            IDictionary<FieldReference, RegisteredResolver> resolvers,
             IsOfTypeFallback isOfType,
             Func<ISchema> schemaResolver)
         {
-            _initializationContext = initializationContext
-                ?? throw new ArgumentNullException(nameof(initializationContext));
-            _typeInitializer = typeInitializer
-                ?? throw new ArgumentNullException(nameof(typeInitializer));
+            _initializationContext = initializationContext ??
+                throw new ArgumentNullException(nameof(initializationContext));
+            _typeReferenceResolver = typeReferenceResolver ??
+                throw new ArgumentNullException(nameof(typeReferenceResolver));
+            _resolvers = resolvers ??
+                throw new ArgumentNullException(nameof(resolvers));
             IsOfType = isOfType;
-            _schemaResolver = schemaResolver
-                ?? throw new ArgumentNullException(nameof(schemaResolver));
-            GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
-                _typeInitializer.GlobalComponents);
-
+            _schemaResolver = schemaResolver ??
+                throw new ArgumentNullException(nameof(schemaResolver));
+            GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(globalComponents);
             _alternateNames.Add(_initializationContext.InternalName);
         }
 
@@ -66,161 +67,54 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext => _initializationContext.DescriptorContext;
 
-        public ITypeInterceptor Interceptor => _initializationContext.Interceptor;
-        public T GetType<T>(ITypeReference reference)
+        public ITypeInterceptor TypeInterceptor => _initializationContext.TypeInterceptor;
+
+        public ITypeInspector TypeInspector => _initializationContext.TypeInspector;
+
+        /// <inheritdoc />
+        public bool TryGetType<T>(ITypeReference typeRef, out T type)
             where T : IType
         {
-            if (reference == null)
+            if (_typeReferenceResolver.TryGetType(typeRef, out IType t) &&
+                t is T casted)
             {
-                throw new ArgumentNullException(nameof(reference));
+                type = casted;
+                return true;
             }
 
-            if (!TryGetType(reference, out T type))
+            type = default;
+            return false;
+        }
+
+        /// <inheritdoc />
+        public T GetType<T>(ITypeReference typeRef)
+            where T : IType
+        {
+            if (typeRef is null)
             {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Unable to resolve type reference `{0}`.",
-                            reference))
-                        .SetTypeSystemObject(Type)
-                        .SetExtension(nameof(reference), reference)
-                        .Build());
+                throw new ArgumentNullException(nameof(typeRef));
             }
+
+            if (!TryGetType(typeRef, out T type))
+            {
+                throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
+            }
+
             return type;
         }
 
-        public bool TryGetType<T>(ITypeReference reference, out T type)
-            where T : IType
+        public bool TryGetDirectiveType(
+            IDirectiveReference directiveRef, 
+            [NotNullWhen(true)] out DirectiveType directiveType) =>
+            _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
+
+        public DirectiveType GetDirectiveType(IDirectiveReference directiveRef)
         {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            if (reference is SchemaTypeReference schemaRef
-                && TryGetType(schemaRef, out type))
-            {
-                return true;
-            }
-
-            if (reference is SyntaxTypeReference syntaxRef
-                && TryGetType(syntaxRef, out type))
-            {
-                return true;
-            }
-
-            if (reference is ClrTypeReference clrRef
-                && _typeInitializer.TryNormalizeReference(
-                    clrRef, out ITypeReference normalized)
-                && _typeInitializer.DiscoveredTypes is { }
-                && _typeInitializer.DiscoveredTypes.TryGetType(
-                    normalized, out RegisteredType registered)
-                && registered.Type is INamedType namedType
-                && _typeInitializer.TypeInspector.TryCreate(
-                    clrRef.Type, out TypeInfo typeInfo)
-                && typeInfo.TypeFactory.Invoke(namedType) is T casted)
-            {
-                type = casted;
-                return true;
-            }
-
-            type = default;
-            return false;
-        }
-
-        private bool TryGetType<T>(
-            SchemaTypeReference reference,
-            out T type)
-            where T : IType
-        {
-            if (reference.Type is IType schemaType)
-            {
-                INamedType namedType = schemaType.NamedType();
-                if (_typeInitializer.DiscoveredTypes is { }
-                    && _typeInitializer.DiscoveredTypes.Types.Any(t => t.Type == namedType)
-                    && schemaType is T casted)
-                {
-                    type = casted;
-                    return true;
-                }
-            }
-
-            type = default;
-            return false;
-        }
-
-        private bool TryGetType<T>(
-            SyntaxTypeReference reference,
-            out T type)
-            where T : IType
-        {
-            NamedTypeNode namedType = reference.Type.NamedType();
-            if (_typeInitializer.TryGetType(namedType.Name.Value, out IType t)
-                && WrapType(t, reference.Type) is T casted)
-            {
-                type = casted;
-                return true;
-            }
-
-            type = default;
-            return false;
-        }
-
-        private static IType WrapType(
-           IType namedType,
-           ITypeNode typeNode)
-        {
-            if (typeNode is NonNullTypeNode nntn)
-            {
-                return new NonNullType(WrapType(namedType, nntn.Type));
-            }
-            else if (typeNode is ListTypeNode ltn)
-            {
-                return new ListType(WrapType(namedType, ltn.Type));
-            }
-            else
-            {
-                return namedType;
-            }
-        }
-
-        public DirectiveType GetDirectiveType(IDirectiveReference reference)
-        {
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
-            if (reference is ClrTypeDirectiveReference cr)
-            {
-                var clrTypeReference = TypeReference.Create(
-                    cr.ClrType, TypeContext.None);
-                if (!_typeInitializer.ClrTypes.TryGetValue(
-                    clrTypeReference,
-                    out ITypeReference internalReference))
-                {
-                    internalReference = clrTypeReference;
-                }
-
-                if (_typeInitializer.TryGetRegisteredType(
-                    internalReference,
-                    out RegisteredType registeredType))
-                {
-                    return (DirectiveType)registeredType.Type;
-                }
-            }
-
-            if (reference is NameDirectiveReference nr
-                && _typeInitializer.DiscoveredTypes is { })
-            {
-                return _typeInitializer.DiscoveredTypes.Types
-                    .Select(t => t.Type)
-                    .OfType<DirectiveType>()
-                    .FirstOrDefault(t => t.Name.Equals(nr.Name));
-            }
-
-            return null;
+            return _typeReferenceResolver.TryGetDirectiveType(
+                directiveRef,
+                out DirectiveType directiveType)
+                ? directiveType
+                : null;
         }
 
         public FieldResolver GetResolver(NameString fieldName)
@@ -254,7 +148,7 @@ namespace HotChocolate.Configuration
             NameString fieldName,
             out FieldResolver resolver)
         {
-            if (_typeInitializer.Resolvers.TryGetValue(
+            if (_resolvers.TryGetValue(
                 new FieldReference(typeName, fieldName),
                 out RegisteredResolver rr)
                 && rr.Field is FieldResolver r)
@@ -280,16 +174,12 @@ namespace HotChocolate.Configuration
         public IEnumerable<T> GetTypes<T>()
             where T : IType
         {
-            if (Status == TypeStatus.Initialized
-                || _typeInitializer.DiscoveredTypes is null)
+            if (Status == TypeStatus.Initialized)
             {
                 throw new NotSupportedException();
             }
 
-            return _typeInitializer.DiscoveredTypes.Types
-                .Select(t => t.Type)
-                .OfType<T>()
-                .Distinct();
+            return _typeReferenceResolver.GetTypes<T>();
         }
 
         public void ReportError(ISchemaError error)
@@ -301,5 +191,7 @@ namespace HotChocolate.Configuration
 
             _initializationContext.ReportError(error);
         }
+
+        
     }
 }

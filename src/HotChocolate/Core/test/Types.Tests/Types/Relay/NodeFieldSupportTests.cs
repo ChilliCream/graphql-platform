@@ -44,8 +44,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Bar>(d => d
                     .AsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) =>
-                        Task.FromResult(new Bar { Id = id })))
+                    .NodeResolver((ctx, id) => Task.FromResult(new Bar { Id = id })))
                 .Use(next => async ctx =>
                 {
                     await next(ctx);

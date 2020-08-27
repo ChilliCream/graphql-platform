@@ -9,11 +9,11 @@ namespace HotChocolate.Configuration
     internal sealed class DiscoveredTypes
     {
         private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
 
         public DiscoveredTypes(
             IDictionary<ITypeReference, RegisteredType> registered,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
             IReadOnlyCollection<ISchemaError> errors)
         {
             _registered = registered;
@@ -34,7 +34,7 @@ namespace HotChocolate.Configuration
         {
             ITypeReference typeRef = typeReference;
 
-            if (typeRef is ClrTypeReference clrTypeRef
+            if (typeRef is ExtendedTypeReference clrTypeRef
                 && _clrTypeReferences.TryGetValue(clrTypeRef, out ITypeReference? t))
             {
                 typeRef = t;

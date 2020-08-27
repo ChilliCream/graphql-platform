@@ -30,7 +30,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(services));
             DescriptorContext = descriptorContext
                 ?? throw new ArgumentNullException(nameof(descriptorContext));
-            Interceptor = interceptor
+            TypeInterceptor = interceptor
                 ?? throw new ArgumentNullException(nameof(interceptor));
             IsDirective = type is DirectiveType;
             IsSchema = type is Schema;
@@ -74,9 +74,11 @@ namespace HotChocolate.Configuration
 
         public IDictionary<string, object> ContextData => DescriptorContext.ContextData;
 
-        public IDescriptorContext DescriptorContext { get; private set; }
+        public IDescriptorContext DescriptorContext { get; }
 
-        public ITypeInterceptor Interceptor { get; }
+        public ITypeInterceptor TypeInterceptor { get; }
+
+        public ITypeInspector TypeInspector => DescriptorContext.TypeInspector;
 
         public void RegisterDependency(
             ITypeReference reference,

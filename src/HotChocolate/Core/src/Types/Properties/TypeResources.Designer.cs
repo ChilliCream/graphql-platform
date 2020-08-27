@@ -1010,5 +1010,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate", resourceCulture);
             }
         }
+        
+        internal static string NonNamedType_IsInstanceOfType_NotAnInputType {
+            get {
+                return ResourceManager.GetString("NonNamedType_IsInstanceOfType_NotAnInputType", resourceCulture);
+            }
+        }
     }
 }

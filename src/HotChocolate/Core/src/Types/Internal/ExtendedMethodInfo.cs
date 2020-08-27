@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Internal;
 
 #nullable enable
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Internal
 {
-    internal sealed class ExtendedMethodTypeInfo : IExtendedMethodTypeInfo
+    internal sealed class ExtendedMethodInfo
     {
-        public ExtendedMethodTypeInfo(
+        public ExtendedMethodInfo(
             IExtendedType returnType,
             IReadOnlyDictionary<ParameterInfo, IExtendedType> parameterTypes)
         {

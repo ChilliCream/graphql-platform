@@ -13,76 +13,13 @@ namespace HotChocolate.Types.Descriptors
         public SyntaxTypeReference(
             ITypeNode type,
             TypeContext context,
-            string? scope = null,
-            bool[]? nullable = null)
-            : base(context, scope, nullable)
+            string? scope = null)
+            : base(context, scope)
         {
             Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITypeNode Type { get; }
-
-        public SyntaxTypeReference Rewrite()
-        {
-            if (Nullable is null)
-            {
-                return this;
-            }
-
-            Span<bool> segments = stackalloc bool[8];
-            var nullable = true;
-            ITypeNode? current = Type;
-
-            var i = 0;
-            var l = 0;
-            while (current is { })
-            {
-                if (current is NonNullTypeNode)
-                {
-                    nullable = false;
-                }
-                else
-                {
-                    if (i < Nullable.Length)
-                    {
-                        nullable = Nullable[i++];
-                    }
-
-                    if (current is ListTypeNode)
-                    {
-                        segments[l++] = nullable;
-                        nullable = true;
-                    }
-                    else
-                    {
-                        Debug.Assert(current is NamedTypeNode);
-
-                        ITypeNode rewritten = nullable
-                            ? current
-                            : new NonNullTypeNode((INullableTypeNode)current);
-
-                        if (l > 0)
-                        {
-                            for (var j = l - 1; j >= 0; j--)
-                            {
-                                rewritten = segments[j]
-                                    ? (ITypeNode)new ListTypeNode(rewritten)
-                                    : new NonNullTypeNode(new ListTypeNode(rewritten));
-                            }
-                        }
-
-                        return With(
-                            type: new Optional<ITypeNode>(rewritten),
-                            nullable: null);
-                    }
-                }
-
-                current = current.InnerType();
-            }
-
-            throw new InvalidOperationException();
-        }
-
 
         public bool Equals(SyntaxTypeReference? other)
         {
@@ -164,45 +101,23 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return new SyntaxTypeReference(
-                type,
-                Context,
-                Scope,
-                Nullable);
+            return new SyntaxTypeReference(type, Context, Scope);
         }
 
         public SyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
         {
-            return new SyntaxTypeReference(
-                Type,
-                context,
-                Scope,
-                Nullable);
+            return new SyntaxTypeReference(Type, context, Scope);
         }
 
         public SyntaxTypeReference WithScope(string? scope = null)
         {
-            return new SyntaxTypeReference(
-                Type,
-                Context,
-                scope,
-                Nullable);
-        }
-
-        public SyntaxTypeReference WithNullable(bool[]? nullable = null)
-        {
-            return new SyntaxTypeReference(
-                Type,
-                Context,
-                Scope,
-                nullable);
+            return new SyntaxTypeReference(Type, Context, scope);
         }
 
         public SyntaxTypeReference With(
             Optional<ITypeNode> type = default,
             Optional<TypeContext> context = default,
-            Optional<string?> scope = default,
-            Optional<bool[]?> nullable = default)
+            Optional<string?> scope = default)
         {
             if (type.HasValue && type.Value is null)
             {
@@ -212,8 +127,7 @@ namespace HotChocolate.Types.Descriptors
             return new SyntaxTypeReference(
                 type.HasValue ? type.Value! : Type,
                 context.HasValue ? context.Value : Context,
-                scope.HasValue ? scope.Value : Scope,
-                nullable.HasValue ? nullable.Value : Nullable);
+                scope.HasValue ? scope.Value : Scope);
         }
     }
 }

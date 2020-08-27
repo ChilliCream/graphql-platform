@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
+using ExtendedType = HotChocolate.Internal.ExtendedType;
 
 namespace HotChocolate.Types
 {
@@ -122,7 +123,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            Type elementType = DotNetTypeInfoFactory.GetInnerListType(value.GetType());
+            Type elementType = ExtendedType.Tools.GetElementType(value.GetType());
 
             if (elementType is null)
             {

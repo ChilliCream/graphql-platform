@@ -1,14 +1,13 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using HotChocolate.Utilities;
-using HotChocolate.Properties;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 using HotChocolate.Internal;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
+using TypeInfo = HotChocolate.Internal.TypeInfo;
 
 #nullable enable
 
@@ -22,8 +21,9 @@ namespace HotChocolate.Types.Descriptors
         private const string _getHashCode = "GetHashCode";
         private const string _equals = "Equals";
 
-        private readonly Dictionary<MemberInfo, IExtendedMethodTypeInfo> _methods =
-            new Dictionary<MemberInfo, IExtendedMethodTypeInfo>();
+        private readonly TypeCache _typeCache = new TypeCache();
+        private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
+            new Dictionary<MemberInfo, ExtendedMethodInfo>();
 
         public static DefaultTypeInspector Default { get; } =
             new DefaultTypeInspector();
@@ -71,17 +71,17 @@ namespace HotChocolate.Types.Descriptors
             type.GetMembers(BindingFlags.Instance | BindingFlags.Public).Where(CanBeHandled);
 
         /// <inheritdoc />
-        public virtual ITypeReference GetReturnTypeRef(MemberInfo member, TypeContext context)
+        public virtual ExtendedTypeReference GetReturnTypeRef(
+            MemberInfo member,
+            TypeContext context = TypeContext.None,
+            string? scope = null)
         {
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return TypeReference.Create(
-                ExtendedTypeRewriter.Rewrite(
-                    GetReturnType(member)),
-                context);
+            return TypeReference.Create(GetReturnType(member), context, scope);
         }
 
         /// <inheritdoc />
@@ -92,64 +92,19 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            IExtendedType returnType;
-
-            switch (member)
-            {
-                case MethodInfo m:
-                    if (!_methods.TryGetValue(member, out IExtendedMethodTypeInfo? methodTypeInfo))
-                    {
-                        methodTypeInfo = m.GetExtendedMethodTypeInfo();
-                        _methods[m] = methodTypeInfo;
-                    }
-                    returnType = methodTypeInfo.ReturnType;
-                    break;
-
-                case PropertyInfo p:
-                    returnType =  p.GetExtendedReturnType();
-                    break;
-
-                default:
-                    throw new ArgumentException(
-                        TypeResources.DefaultTypeInspector_MemberInvalid,
-                        nameof(member));
-            }
-
-            if (member.IsDefined(typeof(GraphQLTypeAttribute)))
-            {
-                GraphQLTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLTypeAttribute>()!;
-                returnType = ExtendedType.FromType(attribute.Type);
-            }
-
-            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
-            {
-                GraphQLNonNullTypeAttribute attribute =
-                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
-                return returnType.RewriteNullability(
-                    attribute.Nullable.Select(t => new bool?(t)).ToArray());
-            }
-
-            if (RequiredAsNonNull && member.IsDefined(typeof(RequiredAttribute)))
-            {
-                returnType = returnType.RewriteNullability(false);
-            }
-
-            return returnType;
+            IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
+            return ApplyTypeAttributes(returnType, member);
         }
 
         /// <inheritdoc />
-        public ITypeReference GetArgumentTypeRef(ParameterInfo parameter)
+        public ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
         {
             if (parameter is null)
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            return TypeReference.Create(
-                ExtendedTypeRewriter.Rewrite(
-                    GetArgumentType(parameter)),
-                TypeContext.Input);
+            return TypeReference.Create(GetArgumentType(parameter), TypeContext.Input, scope);
         }
 
         /// <inheritdoc />
@@ -161,35 +116,58 @@ namespace HotChocolate.Types.Descriptors
             }
 
             IExtendedType argumentType = GetArgumentTypeInternal(parameter);
-
-            if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
-            {
-                GraphQLTypeAttribute attribute =
-                    parameter.GetCustomAttribute<GraphQLTypeAttribute>()!;
-                return ExtendedType.FromType(attribute.Type);
-            }
-
-            if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
-            {
-                GraphQLNonNullTypeAttribute attribute =
-                    parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>()!;
-                return argumentType.RewriteNullability(
-                    attribute.Nullable.Select(t => new bool?(t)).ToArray());
-            }
-
-            return argumentType;
+            return ApplyTypeAttributes(argumentType, parameter);
         }
 
         private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
         {
             MethodInfo method = (MethodInfo)parameter.Member;
 
-            if (!_methods.TryGetValue(method, out IExtendedMethodTypeInfo? info))
+            if (!_methods.TryGetValue(method, out ExtendedMethodInfo? info))
             {
-                info = method.GetExtendedMethodTypeInfo();
+                info = ExtendedType.FromMethod(method, _typeCache);
+                _methods[method] = info;
             }
 
             return info.ParameterTypes[parameter];
+        }
+
+        /// <inheritdoc />
+        public ExtendedTypeReference GetTypeRef(
+            Type type,
+            TypeContext context = TypeContext.None,
+            string? scope = null) =>
+            TypeReference.Create(GetType(type), context, scope);
+
+        /// <inheritdoc />
+        public IExtendedType GetType(Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return ExtendedType.FromType(type, _typeCache);
+        }
+
+        /// <inheritdoc />
+        public IExtendedType GetType(Type type, params bool?[] nullable)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+
+            return nullable is { Length: > 0} ?
+                ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+                : extendedType;
         }
 
         /// <inheritdoc />
@@ -234,18 +212,12 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsGenericType
-                && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
             {
                 return type;
             }
 
-            if (TypeInfo2.TryCreate(type, out TypeInfo2? typeInfo))
-            {
-                return typeInfo.NamedType;
-            }
-
-            return type;
+            return ExtendedType.Tools.GetNamedType(type) ?? type;
         }
 
         /// <inheritdoc />
@@ -256,7 +228,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return BaseTypes.IsSchemaType(type);
+            return ExtendedType.Tools.IsSchemaType(type);
         }
 
         /// <inheritdoc />
@@ -303,11 +275,84 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable == null)
+            {
+                throw new ArgumentNullException(nameof(nullable));
+            }
+
+            if (nullable.Length > 32)
+            {
+                throw new ArgumentException(
+                    "Types with more than 32 components are not supported.");
+            }
+
+            if (nullable.Length == 0)
+            {
+                return type;
+            }
+
+            return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
+        }
+
+        private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable == null)
+            {
+                throw new ArgumentNullException(nameof(nullable));
+            }
+
+            if (nullable.Length > 32)
+            {
+                throw new ArgumentException(
+                    "Types with more than 32 components are not supported.");
+            }
+
+            if (nullable.Length == 0)
+            {
+                return type;
+            }
+
+            Span<bool?> n = stackalloc bool?[nullable.Length];
+
+            for (var i = 0; i < n.Length; i++)
+            {
+                n[i] = nullable[i];
+            }
+
+            return ExtendedType.Tools.ChangeNullability(type, n, _typeCache);
+        }
+
+        public ITypeInfo CreateTypeInfo(Type type) =>
+            TypeInfo.Create(GetType(type), _typeCache);
+
+        public ITypeInfo CreateTypeInfo(IExtendedType type) =>
+            TypeInfo.Create(type, _typeCache);
+
+        public ITypeFactory CreateTypeFactory(IExtendedType type) =>
+            TypeInfo.Create(type, _typeCache);
+
         public bool TryCreateTypeInfo(
             Type type,
+            [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
+            TryCreateTypeInfo(GetType(type), out typeInfo);
+
+        public bool TryCreateTypeInfo(
+            IExtendedType type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo)
         {
-            if(TypeInfo2.TryCreate(type, out TypeInfo2? t))
+            if (TypeInfo.TryCreate(type, _typeCache, out TypeInfo? t))
             {
                 typeInfo = t;
                 return true;
@@ -317,17 +362,46 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
-        public bool TryCreateTypeInfo(
+        private IExtendedType ApplyTypeAttributes(
             IExtendedType type,
-            [NotNullWhen(true)]out ITypeInfo? typeInfo)
+            ICustomAttributeProvider attributeProvider)
         {
-            if(TypeInfo2.TryCreate(type, out TypeInfo2? t))
+            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute))
             {
-                typeInfo = t;
+                return GetType(typeAttribute.Type);
+            }
+
+            if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
+            {
+                return ChangeNullabilityInternal(
+                    type,
+                    nullAttribute.Nullable);
+            }
+
+            if (RequiredAsNonNull &&
+                TryGetAttribute(attributeProvider, out RequiredAttribute? _))
+            {
+                return ChangeNullability(type, false);
+            }
+
+            return type;
+        }
+
+        private static bool TryGetAttribute<T>(
+            ICustomAttributeProvider attributeProvider,
+            [NotNullWhen(true)] out T? attribute)
+            where T : Attribute
+        {
+            if (attributeProvider.IsDefined(typeof(T), true))
+            {
+                attribute = attributeProvider
+                    .GetCustomAttributes(typeof(T), true)
+                    .OfType<T>()
+                    .First();
                 return true;
             }
 
-            typeInfo = null;
+            attribute = null;
             return false;
         }
 

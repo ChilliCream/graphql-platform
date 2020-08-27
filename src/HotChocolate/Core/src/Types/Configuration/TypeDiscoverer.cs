@@ -16,19 +16,27 @@ namespace HotChocolate.Configuration
             new Dictionary<ITypeReference, RegisteredType>();
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
+        private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
             ISet<ITypeReference> initialTypes,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
+            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
-            IServiceProvider services)
+            IServiceProvider services,
+            bool includeSystemTypes = true)
         {
-            _unregistered.AddRange(IntrospectionTypes.All);
-            _unregistered.AddRange(Directives.All);
+            if (includeSystemTypes)
+            {
+                _unregistered.AddRange(
+                    IntrospectionTypes.CreateReferences(descriptorContext.TypeInspector));
+                _unregistered.AddRange(
+                    Directives.CreateReferences(descriptorContext.TypeInspector));
+            }
+
             _unregistered.AddRange(clrTypeReferences.Values);
             _unregistered.AddRange(initialTypes);
 
@@ -44,9 +52,11 @@ namespace HotChocolate.Configuration
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ClrTypeReferenceHandler(),
-                new SyntaxTypeReferenceHandler()
+                new ExtendedTypeReferenceHandler(descriptorContext.TypeInspector),
+                new SyntaxTypeReferenceHandler(descriptorContext.TypeInspector)
             };
+
+            _typeInspector = descriptorContext.TypeInspector;
         }
 
         public DiscoveredTypes DiscoverTypes()
@@ -89,7 +99,7 @@ namespace HotChocolate.Configuration
         {
             while (_unregistered.Count > 0)
             {
-                for (int i = 0; i < _handlers.Length; i++)
+                for (var i = 0; i < _handlers.Length; i++)
                 {
                     _handlers[i].Register(_typeRegistrar, _unregistered);
                 }
@@ -103,22 +113,24 @@ namespace HotChocolate.Configuration
         {
             var inferred = false;
 
-            foreach (ClrTypeReference unresolvedType in
-                _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
+            foreach (ExtendedTypeReference unresolvedType in
+                _typeRegistrar.GetUnresolved().OfType<ExtendedTypeReference>())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type, out ClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
                 {
                     inferred = true;
 
-                    _unregistered.Add(schemaType);
+                    ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
+                    _unregistered.Add(typeReference);
                     _typeRegistrar.MarkResolved(unresolvedType);
 
                     if (!_clrTypeReferences.ContainsKey(unresolvedType))
                     {
-                        _clrTypeReferences.Add(unresolvedType, schemaType);
+                        _clrTypeReferences.Add(unresolvedType, typeReference);
                     }
                 }
-                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType, out schemaType))
+                else if (SchemaTypeResolver.TryInferSchemaType(
+                    _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
                 {
                     inferred = true;
 

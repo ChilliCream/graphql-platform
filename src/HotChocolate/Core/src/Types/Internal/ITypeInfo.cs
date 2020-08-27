@@ -23,7 +23,7 @@ namespace HotChocolate.Internal
         /// <summary>
         /// The components represent the GraphQL type structure.
         /// </summary>
-        IReadOnlyList<TypeComponentKind> Components { get; }
+        IReadOnlyList<TypeComponent> Components { get; }
 
         /// <summary>
         /// Defines if the <see cref="NamedType"/> is a GraphQL schema type.
@@ -34,6 +34,16 @@ namespace HotChocolate.Internal
         /// Defines if the <see cref="NamedType"/> is a runtime type.
         /// </summary>
         bool IsRuntimeType { get; }
+
+        /// <summary>
+        /// If this type is a schema type then this method defines if it is an input type.
+        /// </summary>
+        bool IsInputType();
+
+        /// <summary>
+        /// If this type is a schema type then this method defines if it is an output type.
+        /// </summary>
+        bool IsOutputType();
 
         /// <summary>
         /// Gets the extended type that contains information
