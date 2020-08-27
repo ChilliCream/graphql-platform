@@ -15,8 +15,6 @@ partial class Build : NukeBuild
     [Parameter] readonly string SonarServer = "https://sonarcloud.io";
 
      Target SonarPr => _ => _
-        .DependsOn(Cover)
-        .Consumes(Cover)
         .Requires(() => GitHubRepository != null)
         .Requires(() => GitHubHeadRef != null)
         .Requires(() => GitHubBaseRef != null)
@@ -36,6 +34,7 @@ partial class Build : NukeBuild
 
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
             DotNetBuild(SonarBuildAll);
+            DotNetTest(CoverSettings);
             SonarScannerEnd(SonarEndSettings);
         });
 

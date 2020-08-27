@@ -52,13 +52,14 @@ stages:
               script: './build.cmd ReportCoverage --skip'
       - job: SonarPr
         displayName: 'SonarPr'
-        dependsOn: [ Cover ]
+        dependsOn: [ ]
         steps:
           - task: JavaToolInstaller@0
             inputs:
               versionSpec: '11'
               jdkArchitectureOption: 'x64'
               jdkSourceOption: 'PreInstalled'
+              jdkDestinationDirectory: ./.java
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'test-results'
