@@ -60,10 +60,6 @@ stages:
               jdkArchitectureOption: 'x64'
               jdkSourceOption: 'PreInstalled'
               jdkDestinationDirectory: ./.java
-          - task: DownloadBuildArtifacts@0
-            inputs:
-              artifactName: 'test-results'
-              downloadPath: '$(Build.Repository.LocalPath)/output'
           - task: CmdLine@2
             inputs:
               script: './build.cmd SonarPr --skip'
