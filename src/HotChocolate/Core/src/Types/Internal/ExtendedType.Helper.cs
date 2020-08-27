@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 #nullable enable
@@ -37,7 +38,10 @@ namespace HotChocolate.Internal
 
             internal static Type RemoveNonEssentialTypes(Type type)
             {
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+                if (type.IsGenericType &&
+                    (type.GetGenericTypeDefinition() == typeof(NativeType<>) ||
+                    type.GetGenericTypeDefinition() == typeof(ValueTask<>) ||
+                    type.GetGenericTypeDefinition() == typeof(Task<>)))
                 {
                     return RemoveNonEssentialTypes(type.GetGenericArguments()[0]);
                 }
@@ -46,7 +50,10 @@ namespace HotChocolate.Internal
 
             internal static IExtendedType RemoveNonEssentialTypes(IExtendedType type)
             {
-                if (type.IsGeneric && type.Definition == typeof(NativeType<>))
+                if (type.IsGeneric &&
+                    (type.Definition == typeof(NativeType<>) ||
+                    type.Definition == typeof(ValueTask<>) ||
+                    type.Definition == typeof(Task<>)))
                 {
                     return RemoveNonEssentialTypes(type.TypeArguments[0]);
                 }

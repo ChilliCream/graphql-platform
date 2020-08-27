@@ -122,7 +122,7 @@ namespace HotChocolate.Types
                     context.ReportError(
                         DirectiveCollection_ArgumentDoesNotExist(
                             directive.Type, context.Type, directive.ToNode(), 
-                            _source, arg.Name));
+                            _source, argument.Name.Value));
                 }
             }
 

@@ -160,7 +160,7 @@ namespace HotChocolate.Types
             ObjectFieldDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
             Assert.Equal(
-                typeof(NativeType<string>),
+                typeof(string),
                 Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
 
             Assert.NotNull(description.Resolver);

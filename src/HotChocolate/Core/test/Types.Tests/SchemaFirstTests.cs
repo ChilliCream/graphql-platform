@@ -204,7 +204,7 @@ namespace HotChocolate
         public void DirectiveArgumentsAreValidated()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     foo: String @a(b:1 e:true)
                 }
@@ -213,14 +213,15 @@ namespace HotChocolate
             ";
 
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .AddResolver("Query", "foo", "bar")
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddDocumentFromString(sourceText)
+                    .AddResolver("Query", "foo", "bar")
+                    .Create();
 
             // assert
             Assert.Collection(
-                Assert.Throws<SchemaException>(action).Errors,
+                Assert.Throws<SchemaException>((Action) Action).Errors,
                     error => Assert.Equal(
                         ErrorCodes.Schema.InvalidArgument,
                         error.Code),

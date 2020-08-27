@@ -246,7 +246,7 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
-            Assert.Equal(typeof(List<Argument>),
+            Assert.Equal(typeof(FieldCollection<Argument>),
                 Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("arguments", description.Name);
         }

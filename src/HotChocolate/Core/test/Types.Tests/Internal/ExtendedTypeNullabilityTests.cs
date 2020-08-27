@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Internal;
-using HotChocolate.Types;
+using System.Threading.Tasks;
 using Xunit;
 
 #nullable enable
@@ -57,7 +56,11 @@ namespace HotChocolate.Internal
 
         [InlineData("Dict1", "Dictionary<Byte!, Object>!")]
         [InlineData("Dict2", "Dictionary<Byte!, Object>")]
-        [InlineData("Tuple", "Tuple<Tuple<Int32!, Int32>!, Tuple<Object!, Tuple<Object, String!>!>!>")]
+        [InlineData(
+            "Tuple", 
+            "Tuple<Tuple<Int32!, Int32>!, Tuple<Object!, Tuple<Object, String!>!>!>")]
+        [InlineData("TaskAsyncEnumerable", "IAsyncEnumerable<String!>!")]
+        [InlineData("ValueTaskAsyncEnumerable", "IAsyncEnumerable<String!>!")]
         [Theory]
         public void DetectNullabilityWithGenerics(string methodName, string typeName)
         {
@@ -173,6 +176,12 @@ namespace HotChocolate.Internal
             {
                 throw new NotImplementedException();
             }
+
+            public Task<IAsyncEnumerable<string>> TaskAsyncEnumerable() => 
+                throw new NotImplementedException();
+
+            public ValueTask<IAsyncEnumerable<string>> ValueTaskAsyncEnumerable() => 
+                throw new NotImplementedException();
         }
     }
 }

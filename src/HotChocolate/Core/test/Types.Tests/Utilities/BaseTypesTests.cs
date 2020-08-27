@@ -8,7 +8,7 @@ namespace HotChocolate.Utilities
     public class BaseTypesTests
     {
         [InlineData(typeof(StringType), true)]
-        [InlineData(typeof(ScalarType), true)]
+        [InlineData(typeof(ScalarType), false)]
         [InlineData(typeof(ListType<StringType>), true)]
         [InlineData(typeof(NonNullType<StringType>), true)]
         [InlineData(typeof(InputObjectType), false)]
@@ -18,7 +18,7 @@ namespace HotChocolate.Utilities
         [InlineData(typeof(EnumType), false)]
         [InlineData(typeof(EnumType<FooEnum>), true)]
         [InlineData(typeof(InterfaceType), false)]
-        [InlineData(typeof(InterfaceType<object>), false)]
+        [InlineData(typeof(InterfaceType<object>), true)]
         [InlineData(typeof(UnionType), false)]
         [InlineData(typeof(UnionType<object>), true)]
         [InlineData(typeof(Foo), false)]

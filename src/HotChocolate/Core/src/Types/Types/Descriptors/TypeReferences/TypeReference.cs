@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = 0;
+                var hash = 0;
 
                 if (Scope is { })
                 {

@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            return Type == other.Type;
+            return ReferenceEquals(Type, other.Type) || Type.Equals(other.Type);
         }
 
         public override bool Equals(ITypeReference? other)
@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return TypeReference.Create(
+            return Create(
                 type,
                 Context,
                 Scope);
@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ExtendedTypeReference WithContext(TypeContext context = TypeContext.None)
         {
-            return TypeReference.Create(
+            return Create(
                 Type,
                 context,
                 Scope);
@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ExtendedTypeReference WithScope(string? scope = null)
         {
-            return TypeReference.Create(
+            return Create(
                 Type,
                 Context,
                 scope);
@@ -128,7 +128,7 @@ namespace HotChocolate.Types.Descriptors
             Optional<TypeContext> context = default,
             Optional<string?> scope = default)
         {
-            return TypeReference.Create(
+            return Create(
                 type ?? Type,
                 context.HasValue ? context.Value : Context,
                 scope.HasValue ? scope.Value : Scope);

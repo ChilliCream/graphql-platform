@@ -47,9 +47,9 @@ namespace HotChocolate.Types.Descriptors
                 .Extend()
                 .OnBeforeNaming((ctx, definition) =>
                 {
-                    INamedType type = ctx.GetType<INamedType>(
+                    IType type = ctx.GetType<IType>(
                         ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency));
-                    definition.Name = createName(type);
+                    definition.Name = createName(type.NamedType());
                 })
                 .DependsOn(dependency, true);
         }

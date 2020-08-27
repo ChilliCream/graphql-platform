@@ -79,17 +79,26 @@ namespace HotChocolate.Internal
                 }
 
                 ExtendedType? elementType = null;
-                var isList = 
-                    !extendedType.IsArray && 
-                    Helper.IsSupportedCollectionInterface(extendedType.Type);
+                var isList =
+                    !extendedType.IsArray &&
+                    Helper.IsListType(extendedType.Type);
 
-                if (isList && extendedType.TypeArguments.Count == 1)
+                if (isList)
                 {
-                    Type a = Helper.GetInnerListType(extendedType.Type)!;
-                    IExtendedType b = extendedType.TypeArguments[0];
-                    if (a == b.Type || a == b.Source)
+                    Type itemType = Helper.GetInnerListType(extendedType.Type)!;
+
+                    if (extendedType.TypeArguments.Count == 1)
+                    {    
+                        IExtendedType typeArgument = extendedType.TypeArguments[0];
+                        if (itemType == typeArgument.Type || itemType == typeArgument.Source)
+                        {
+                            elementType = extendedArguments[0];
+                        }
+                    }
+                    
+                    if(elementType is null)
                     {
-                        elementType = extendedArguments[0];
+                        elementType = ExtendedType.FromType(itemType, cache);
                     }
                 }
 

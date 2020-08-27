@@ -134,7 +134,8 @@ namespace HotChocolate.Configuration
             // eg list<byte> to ByteArray.
             for (var i = 0; i < typeInfo.Components.Count; i++)
             {
-                ExtendedTypeReference componentRef = typeRef.WithType(typeInfo.Components[i].Type);
+                IExtendedType componentType = typeInfo.Components[i].Type;
+                ExtendedTypeReference componentRef = typeRef.WithType(componentType);
                 if (_runtimeTypeRefs.TryGetValue(componentRef, out namedTypeRef) ||
                     _runtimeTypeRefs.TryGetValue(componentRef.WithContext(), out namedTypeRef))
                 {

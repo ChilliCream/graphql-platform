@@ -12,6 +12,7 @@ using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
@@ -67,7 +68,7 @@ namespace HotChocolate.Configuration
         public DiscoveredTypes? DiscoveredTypes => _discoveredTypes;
 
         public IDictionary<ExtendedTypeReference, ITypeReference> ClrTypes { get; } =
-            new Dictionary<ExtendedTypeReference, ITypeReference>();
+            new Dictionary<ExtendedTypeReference, ITypeReference>(new ExtendedTypeReferenceEqualityComparer());
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers => _resolvers;
 
@@ -548,13 +549,21 @@ namespace HotChocolate.Configuration
                         ? type.Type.Name.Value
                         : type.References[0].ToString()!;
 
+                    IEnumerable<ITypeReference> references =
+                        type.Dependencies.Where(t => t.Kind == kind)
+                            .Select(t => t.TypeReference);
+
+                    IReadOnlyList<ITypeReference> needed =
+                        TryNormalizeDependencies(references,
+                            out IReadOnlyList<ITypeReference>? normalized)
+                            ? normalized.Except(processed).ToArray()
+                            : references.ToArray();
+
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(
                             TypeInitializer_CannotResolveDependency,
                             name,
-                            string.Join(", ", type.Dependencies
-                                .Where(t => t.Kind == kind)
-                                .Select(t => t.TypeReference)))
+                            string.Join(", ", needed))
                         .SetTypeSystemObject(type.Type)
                         .Build());
                 }
@@ -614,8 +623,8 @@ namespace HotChocolate.Configuration
 
                 if (!n.Contains(nr))
                 {
-                    _dependencyLookup[reference] = nr!;
-                    n.Add(nr!);
+                    _dependencyLookup[reference] = nr;
+                    n.Add(nr);
                 }
             }
 
@@ -655,5 +664,83 @@ namespace HotChocolate.Configuration
             return list;
         }
 #endif
+    }
+
+    internal sealed class ExtendedTypeReferenceEqualityComparer
+        : IEqualityComparer<ExtendedTypeReference>
+    {
+        public bool Equals([AllowNull] ExtendedTypeReference x, [AllowNull] ExtendedTypeReference y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+            {
+                return false;
+            }
+
+            if (x.Context != y.Context
+                && x.Context != TypeContext.None
+                && y.Context != TypeContext.None)
+            {
+                return false;
+            }
+
+            if (!x.Scope.EqualsOrdinal(y.Scope))
+            {
+                return false;
+            }
+
+            return Equals(x.Type, y.Type);
+        }
+
+        private static bool Equals([AllowNull] IExtendedType x, [AllowNull] IExtendedType y)
+        {
+            if (ReferenceEquals(x, y))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+            {
+                return false;
+            }
+
+            return ReferenceEquals(x.Type, y.Type) && x.Kind == y.Kind;
+        }
+
+        public int GetHashCode([DisallowNull] ExtendedTypeReference obj)
+        {
+            unchecked
+            {
+                var hashCode = GetHashCode(obj.Type);
+
+                if (obj.Scope is not null)
+                {
+                    hashCode ^= obj.GetHashCode() * 397;
+                }
+
+                return hashCode;
+            }
+        }
+
+        private static int GetHashCode([DisallowNull] IExtendedType obj)
+        {
+            unchecked
+            {
+                var hashCode = (obj.Type.GetHashCode() * 397)
+                   ^ (obj.Kind.GetHashCode() * 397);
+
+                for (var i = 0; i < obj.TypeArguments.Count; i++)
+                {
+                    hashCode ^= (GetHashCode(obj.TypeArguments[i]) * 397 * i);
+                }
+
+                return hashCode;
+            }
+        }
+
     }
 }

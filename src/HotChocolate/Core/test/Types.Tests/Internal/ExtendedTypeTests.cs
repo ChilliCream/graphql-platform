@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
 
@@ -246,6 +247,14 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IReadOnlyCollection<string>), "IReadOnlyCollection<String>", "String")]
         [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
         [InlineData(typeof(string[]), "[String]", "String")]
+        [InlineData(
+            typeof(Task<IAsyncEnumerable<string>>), 
+            "IAsyncEnumerable<String>", 
+            "String")]
+        [InlineData(
+            typeof(ValueTask<IAsyncEnumerable<string>>), 
+            "IAsyncEnumerable<String>", 
+            "String")]
         [Theory]
         public void SupportedListTypes(Type type, string listTypeName, string elementTypeName)
         {
@@ -264,14 +273,14 @@ namespace HotChocolate.Internal
         [InlineData(typeof(CustomStringList2<string>))]
         [InlineData(typeof(ImmutableArray<string>))]
         [InlineData(typeof(IEnumerable<string>))]
+        [InlineData(typeof(Task<IAsyncEnumerable<string>>))]
+        [InlineData(typeof(ValueTask<IAsyncEnumerable<string>>))]
         [Theory]
         public void ChangeNullability_From_ElementType(Type listType)
         {
             // arrange
             // act
-            IExtendedType list = ExtendedType.FromType(
-                listType,
-                _cache);
+            IExtendedType list = ExtendedType.FromType(listType, _cache);
             list = ExtendedType.Tools.ChangeNullability(
                 list, new bool?[] { null, false }, _cache);
 
