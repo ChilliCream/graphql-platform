@@ -1,10 +1,11 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Configuration
 {
@@ -70,37 +71,10 @@ namespace HotChocolate.Configuration
 
         public ITypeInspector TypeInspector => _initializationContext.TypeInspector;
 
-        public T GetType<T>(ITypeReference reference)
-            where T : IType
-        {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            if (!TryGetType(reference, out T type))
-            {
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Unable to resolve type reference `{0}`.",
-                            reference))
-                        .SetTypeSystemObject(Type)
-                        .SetExtension(nameof(reference), reference)
-                        .Build());
-            }
-            return type;
-        }
-
+        /// <inheritdoc />
         public bool TryGetType<T>(ITypeReference typeRef, out T type)
             where T : IType
         {
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
             if (_typeReferenceResolver.TryGetType(typeRef, out IType t) &&
                 t is T casted)
             {
@@ -112,13 +86,30 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public DirectiveType GetDirectiveType(IDirectiveReference directiveRef)
+        /// <inheritdoc />
+        public T GetType<T>(ITypeReference typeRef)
+            where T : IType
         {
-            if (Status == TypeStatus.Initialized)
+            if (typeRef is null)
             {
-                throw new NotSupportedException();
+                throw new ArgumentNullException(nameof(typeRef));
             }
 
+            if (!TryGetType(typeRef, out T type))
+            {
+                throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
+            }
+
+            return type;
+        }
+
+        public bool TryGetDirectiveType(
+            IDirectiveReference directiveRef, 
+            [NotNullWhen(true)] out DirectiveType directiveType) =>
+            _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
+
+        public DirectiveType GetDirectiveType(IDirectiveReference directiveRef)
+        {
             return _typeReferenceResolver.TryGetDirectiveType(
                 directiveRef,
                 out DirectiveType directiveType)
@@ -200,5 +191,7 @@ namespace HotChocolate.Configuration
 
             _initializationContext.ReportError(error);
         }
+
+        
     }
 }

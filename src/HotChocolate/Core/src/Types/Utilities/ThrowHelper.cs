@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {
@@ -96,6 +98,18 @@ namespace HotChocolate.Utilities
                         namedSchemaType.FullName)
                     .SetException(exception)
                     .SetExtension(nameof(namedSchemaType), namedSchemaType)
+                    .Build());
+
+        public static SchemaException TypeCompletionContext_UnableToResolveType(
+            ITypeSystemObject type, 
+            ITypeReference typeRef) => 
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to resolve type reference `{0}`.",
+                        typeRef)
+                    .SetTypeSystemObject(type)
+                    .SetExtension(nameof(typeRef), typeRef)
                     .Build());
     }
 }

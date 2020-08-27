@@ -352,7 +352,7 @@ namespace HotChocolate.Types.Descriptors
             var result = typeReference.ToString();
 
             // assert
-            Assert.Equal("Input: System.String", result);
+            Assert.Equal("Input: String", result);
         }
 
         [Fact]

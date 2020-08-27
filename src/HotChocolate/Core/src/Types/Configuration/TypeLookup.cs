@@ -90,11 +90,11 @@ namespace HotChocolate.Configuration
             if (directiveRef is ClrTypeDirectiveReference cr)
             {
                 ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
-                if (!_runtimeTypeRefs.TryGetValue(directiveTypeRef,
-                    out namedTypeRef))
+                if (!_runtimeTypeRefs.TryGetValue(directiveTypeRef, out namedTypeRef))
                 {
                     namedTypeRef = directiveTypeRef;
                 }
+                return namedTypeRef is not null;
             }
 
             if (directiveRef is NameDirectiveReference nr)
