@@ -39,7 +39,7 @@ namespace HotChocolate.Types.Descriptors
                 _definition is null,
                 "The definition should not exist when the type has not been initialized.");
 
-            if (IsInitialized)
+            if (IsInitialized || _definition is not null)
             {
                 throw new InvalidOperationException();
             }
