@@ -37,7 +37,8 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(ulong?), "GetUInt64" },
                 { typeof(decimal?), "GetDecimal" },
                 { typeof(float?), "GetSingle" },
-                { typeof(double?), "GetDouble" }
+                { typeof(double?), "GetDouble" },
+                { typeof(object), "GetRawText" }
             };
 
         private readonly LanguageVersion _languageVersion;

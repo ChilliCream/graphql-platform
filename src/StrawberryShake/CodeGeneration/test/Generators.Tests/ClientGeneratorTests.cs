@@ -540,22 +540,26 @@ namespace StrawberryShake.Generators
                     foo: Bar
                     baz: Qux
                     abc: String
+                    obj: Foo
                 }
 
                 scalar String
                 scalar Bar
                 scalar Qux
+                scalar Foo
                 ";
 
             string extensions = @"
                 extend scalar Bar @runtimeType(name: ""System.String"")
-                extend scalar Qux @runtimeType(name: ""System.Int32"")";
+                extend scalar Qux @runtimeType(name: ""System.Int32"")
+                extend scalar Foo @runtimeType(name: ""System.Object"")";
 
             string query =
                @"
                 query getFoo {
                     foo
                     baz
+                    obj
                 }
                 ";
 
