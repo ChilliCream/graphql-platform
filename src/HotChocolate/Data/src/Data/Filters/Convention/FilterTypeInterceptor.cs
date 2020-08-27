@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -69,11 +70,11 @@ namespace HotChocolate.Data.Filters
         // TODO: This is just a temporary workaraound to avoid scopeing scalars
         public bool ShouldScopeTypeOfField(FilterFieldDefinition definition)
         {
+            /*
             switch (definition.Type)
             {
-                case ClrTypeReference clrRef:
-                    if (!BaseTypes.IsNonGenericBaseType(clrRef.Type)
-                        && TypeInspector.Default.TryCreate(clrRef.Type, out TypeInfo typeInfo))
+                case ExtendedTypeReference extendedTypeRef:
+                    if (TypeInfo.)
                     {
                         return !typeof(ScalarType).IsAssignableFrom(typeInfo.ClrType) &&
                             !typeInfo.ClrType.IsEnum &&
@@ -88,6 +89,8 @@ namespace HotChocolate.Data.Filters
                 default:
                     return true;
             };
+            */
+            return true;
         }
 
         public override void OnBeforeCompleteName(

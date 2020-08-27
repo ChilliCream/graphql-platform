@@ -8,40 +8,40 @@ namespace HotChocolate.Data.Filters
         {
             descriptor.Operation(DefaultOperations.Equals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotEquals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.In)
                 .Type(typeof(IEnumerable<T>))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotIn)
                 .Type(typeof(IEnumerable<T>))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.GreaterThan)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotGreaterThan)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.GreaterThanOrEquals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotGreaterThanOrEquals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.LowerThan)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotLowerThan)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.LowerThanOrEquals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.Operation(DefaultOperations.NotLowerThanOrEquals)
                 .Type(typeof(T))
-                .IsNullable();
+                .MakeNullable();
             descriptor.AllowAnd(false).AllowOr(false);
         }
     }

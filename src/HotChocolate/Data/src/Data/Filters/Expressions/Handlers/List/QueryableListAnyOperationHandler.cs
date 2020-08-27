@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -36,8 +37,8 @@ namespace HotChocolate.Data.Filters.Expressions
             IValueNode value,
             object parsedValue)
         {
-            if (context.TypeInfos.Count > 0 && 
-                context.TypeInfos.Peek().TypeArguments.FirstOrDefault() is FilterTypeInfo element &&
+            if (context.RuntimeTypes.Count > 0 &&
+                context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args &&
                 parsedValue is bool parsedBool)
             {
                 Expression? property = context.GetInstance();
@@ -45,22 +46,17 @@ namespace HotChocolate.Data.Filters.Expressions
                 Expression expression;
                 if (parsedBool)
                 {
-                    expression = FilterExpressionBuilder.Any(
-                        element.Type,
-                        property);
+                    expression = FilterExpressionBuilder.Any(args[0].Source, property);
                 }
                 else
                 {
                     expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.Any(
-                            element.Type,
-                            property));
+                        FilterExpressionBuilder.Any(args[0].Source, property));
                 }
 
                 if (context.InMemory)
                 {
-                    expression =
-                        FilterExpressionBuilder.NotNullAndAlso(property, expression);
+                    expression = FilterExpressionBuilder.NotNullAndAlso(property, expression);
                 }
 
                 return expression;

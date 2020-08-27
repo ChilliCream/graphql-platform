@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -31,6 +31,7 @@ namespace HotChocolate.Data.Filters
 
         private NameString _argumentName;
         private IFilterProvider _provider = default!;
+        private ITypeInspector _typeInspector = default!;
 
         protected FilterConvention()
         {
@@ -93,10 +94,12 @@ namespace HotChocolate.Data.Filters
             _configs = definition.Configurations;
             _argumentName = definition.ArgumentName;
 
-            if (_provider is Convention init)
+            if (_provider is IFilterProviderConvention init)
             {
                 init.Initialize(context);
             }
+
+            _typeInspector = context.DescriptorContext.TypeInspector;
         }
 
         /// <inheritdoc />
@@ -116,16 +119,16 @@ namespace HotChocolate.Data.Filters
             _namingConventions.GetMemberDescription(member, MemberKind.InputObjectField);
 
         /// <inheritdoc />
-        public virtual ClrTypeReference GetFieldType(MemberInfo member)
+        public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
         {
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryGetTypeOfMember(member, out Type? returnType))
+            if (TryCreateFilterType(_typeInspector.GetReturnType(member), out Type? returnType))
             {
-                return TypeReference.Create(returnType, TypeContext.Input, Scope);
+                return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
             }
 
             throw FilterConvention_TypeOfMemberIsUnknown(member);
@@ -194,68 +197,33 @@ namespace HotChocolate.Data.Filters
             return false;
         }
 
-        private bool TryGetTypeOfMember(
-            MemberInfo member,
+        private bool TryCreateFilterType(
+            IExtendedType runtimeType,
             [NotNullWhen(true)] out Type? type)
         {
-            switch (member)
-            {
-                case PropertyInfo p when TryGetTypeOfRuntimeType(p.PropertyType, out type):
-                case MethodInfo m when TryGetTypeOfRuntimeType(m.ReturnType, out type):
-                    return true;
-
-                default:
-                    type = null;
-                    return false;
-            }
-        }
-
-        private bool TryGetTypeOfRuntimeType(
-            Type runtimeType,
-            [NotNullWhen(true)] out Type? type)
-        {
-            Type underlyingType = runtimeType;
-            if (runtimeType.IsGenericType &&
-                System.Nullable.GetUnderlyingType(runtimeType) is { } innerNullableType)
-            {
-                underlyingType = innerNullableType;
-            }
-
-            if (_bindings.TryGetValue(runtimeType, out type))
+            if (_bindings.TryGetValue(runtimeType.Source, out type))
             {
                 return true;
             }
 
-            if (DotNetTypeInfoFactory.IsListType(underlyingType))
+            if (runtimeType.IsArrayOrList)
             {
-                if (!TypeInspector.Default.TryCreate(
-                    underlyingType,
-                    out Utilities.TypeInfo typeInfo))
+                if (TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
                 {
-                    throw new ArgumentException(
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            FilterConvention_UnknownType,
-                            underlyingType.FullName ?? underlyingType.Name),
-                        nameof(runtimeType));
-                }
-
-                if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
-                {
-                    type = typeof(ListFilterInput<>).MakeGenericType(clrType);
+                    type = typeof(ListFilterInput<>).MakeGenericType(elementType);
                     return true;
                 }
             }
 
-            if (underlyingType.IsEnum)
+            if (runtimeType.Type.IsEnum)
             {
-                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
+                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 
-            if (underlyingType.IsClass)
+            if (runtimeType.Type.IsClass)
             {
-                type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
+                type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 

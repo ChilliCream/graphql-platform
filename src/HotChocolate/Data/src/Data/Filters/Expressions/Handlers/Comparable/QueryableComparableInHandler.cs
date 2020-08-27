@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             return FilterExpressionBuilder.In(
                     property,
-                    context.ClrTypes.Peek(),
+                    context.RuntimeTypes.Peek().Source,
                     parsedValue);
 
             throw new InvalidOperationException();

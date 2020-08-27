@@ -52,7 +52,7 @@ namespace HotChocolate.Data.Filters
 
         protected IFilterConvention Convention { get; }
 
-        protected internal override FilterInputTypeDefinition Definition { get; protected set; } =
+        protected override FilterInputTypeDefinition Definition { get; set; } =
             new FilterInputTypeDefinition();
 
         protected BindableList<FilterFieldDescriptor> Fields { get; } =
@@ -68,7 +68,7 @@ namespace HotChocolate.Data.Filters
         {
             if (Definition.EntityType is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
             var fields = new Dictionary<NameString, FilterFieldDefinition>();
@@ -204,7 +204,7 @@ namespace HotChocolate.Data.Filters
             TDirective directive)
             where TDirective : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directive, Context.TypeInspector);
             return this;
         }
 
@@ -212,7 +212,7 @@ namespace HotChocolate.Data.Filters
         public IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
             return this;
         }
 
@@ -258,5 +258,10 @@ namespace HotChocolate.Data.Filters
             FilterInputTypeDefinition definition,
             string? scope = null) =>
             new FilterInputTypeDescriptor<T>(context, definition, scope);
+
+        public static FilterInputTypeDescriptor<T> From<T>(
+            FilterInputTypeDescriptor descriptor,
+            string? scope = null) =>
+            From<T>(descriptor.Context, descriptor.Definition, scope);
     }
 }

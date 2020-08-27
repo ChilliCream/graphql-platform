@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context)
         {
             var closure = new QueryableScope(
-                context.ClrTypes.Peek(), "_s" + context.Scopes.Count, false);
+                context.RuntimeTypes.Peek(), "_s" + context.Scopes.Count, false);
 
             context.Scopes.Push(closure);
 

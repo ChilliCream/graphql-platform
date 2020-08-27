@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -23,7 +24,7 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public Type EntityType { get; private set; }
+        public IExtendedType EntityType { get; private set; } = default!;
 
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -52,7 +53,7 @@ namespace HotChocolate.Data.Filters
             if (definition is FilterInputTypeDefinition ft &&
                 ft.EntityType is { })
             {
-                EntityType = ft.EntityType;
+                EntityType = context.TypeInspector.GetType(ft.EntityType);
             }
         }
 

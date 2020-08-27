@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 return parsedValue;
             }
 
-            Type? returnType = context.ClrTypes.Peek();
+            Type returnType = context.RuntimeTypes.Peek().Source;
 
             if (type.IsListType())
             {
@@ -49,13 +49,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 if (returnType != elementType)
                 {
-                    Type listType = typeof(List<>).MakeGenericType(
-                        returnType);
-
-                    parsedValue = TypeConverter.Convert(
-                        typeof(object),
-                        listType,
-                        parsedValue) ??
+                    Type listType = typeof(List<>).MakeGenericType(returnType);
+                    parsedValue = TypeConverter.Convert(typeof(object), listType, parsedValue) ??
                         throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
                 }
 
@@ -64,11 +59,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (!returnType.IsInstanceOfType(parsedValue))
             {
-                parsedValue = TypeConverter.Convert(
-                                  typeof(object),
-                                  returnType,
-                                  parsedValue) ??
-                              throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
+                parsedValue = TypeConverter.Convert(typeof(object), returnType, parsedValue) ??
+                    throw ThrowHelper.FilterConvention_CouldNotConvertValue(node);
             }
 
             return parsedValue;

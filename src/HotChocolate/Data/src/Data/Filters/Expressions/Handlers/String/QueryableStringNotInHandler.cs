@@ -20,9 +20,9 @@ namespace HotChocolate.Data.Filters.Expressions
 
             return FilterExpressionBuilder.Not(
                 FilterExpressionBuilder.In(
-                        property,
-                        context.ClrTypes.Peek(),
-                        parsedValue));
+                    property,
+                    context.RuntimeTypes.Peek().Source,
+                    parsedValue));
         }
     }
 }

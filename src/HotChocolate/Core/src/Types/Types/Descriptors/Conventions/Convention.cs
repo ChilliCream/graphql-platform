@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected bool IsInitialized { get; private set; }
 
-        internal virtual void Initialize(IConventionContext context)
+        protected internal virtual void Initialize(IConventionContext context)
         {
             MarkInitialized();
         }

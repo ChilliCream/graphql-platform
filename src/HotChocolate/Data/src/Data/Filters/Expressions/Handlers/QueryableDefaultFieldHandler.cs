@@ -5,7 +5,6 @@ using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -17,7 +16,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition) =>
             !(fieldDefinition is FilterOperationFieldDefinition) &&
-                fieldDefinition.Member is { };
+            fieldDefinition.Member is not null;
 
         public override bool TryHandleEnter(
             QueryableFilterContext context,
@@ -34,7 +33,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (field.TypeInfo is null)
+            if (field.RuntimeType is null)
             {
                 action = null;
                 return false;
@@ -55,8 +54,7 @@ namespace HotChocolate.Data.Filters.Expressions
             }
 
             context.PushInstance(nestedProperty);
-            context.ClrTypes.Push(nestedProperty.Type);
-            context.TypeInfos.Push(field.TypeInfo);
+            context.RuntimeTypes.Push(field.RuntimeType);
             action = SyntaxVisitor.Continue;
             return true;
         }
@@ -67,7 +65,7 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            if (field.TypeInfo is null)
+            if (field.RuntimeType is null)
             {
                 action = null;
                 return false;
@@ -77,8 +75,7 @@ namespace HotChocolate.Data.Filters.Expressions
             Expression condition = context.GetLevel().Dequeue();
 
             context.PopInstance();
-            context.ClrTypes.Pop();
-            context.TypeInfos.Pop();
+            context.RuntimeTypes.Pop();
 
             if (context.InMemory)
             {

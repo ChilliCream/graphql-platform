@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Filters
         /// <returns>
         /// Returns a <see cref="ClrTypeReference"/> that represents the field type.
         /// </returns>
-        ClrTypeReference GetFieldType(MemberInfo member);
+        ExtendedTypeReference GetFieldType(MemberInfo member);
 
         /// <summary>
         /// Gets the operation name for the provided <paramref name="operationId"/>.

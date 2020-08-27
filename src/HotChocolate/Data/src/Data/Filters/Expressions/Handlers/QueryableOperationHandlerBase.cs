@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IValueNode value = node.Value;
             object? parsedValue = field.Type.ParseLiteral(value);
 
-            if ((!context.TypeInfos.Peek().IsNullable || !CanBeNull) && parsedValue == null)
+            if ((!context.RuntimeTypes.Peek().IsNullable || !CanBeNull) && parsedValue == null)
             {
                 context.ReportError(
                     ErrorHelper.CreateNonNullError(field, value, context));

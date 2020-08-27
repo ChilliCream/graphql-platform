@@ -1,11 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -39,16 +38,14 @@ namespace HotChocolate.Data.Filters.Expressions
                 return true;
             }
 
-            if (context.TypeInfos.Count > 0 &&
-                context.TypeInfos.Peek().TypeArguments.FirstOrDefault() is FilterTypeInfo element)
+            if (context.RuntimeTypes.Count > 0 &&
+                context.RuntimeTypes.Peek().TypeArguments is { Count: > 0 } args)
             {
-
                 Expression nestedProperty = context.GetInstance();
                 context.PushInstance(nestedProperty);
 
-                Type closureType = element.Type;
-                context.TypeInfos.Push(element);
-                context.ClrTypes.Push(closureType);
+                IExtendedType element = args[0];
+                context.RuntimeTypes.Push(element);
                 context.AddScope();
 
                 action = SyntaxVisitor.Continue;
@@ -65,8 +62,7 @@ namespace HotChocolate.Data.Filters.Expressions
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            context.ClrTypes.Pop();
-            FilterTypeInfo typeInfo = context.TypeInfos.Pop();
+            IExtendedType runtimeType = context.RuntimeTypes.Pop();
 
             if (context.TryCreateLambda(out LambdaExpression? lambda))
             {
@@ -75,7 +71,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     context,
                     field,
                     node,
-                    typeInfo.Type,
+                    runtimeType.Source,
                     lambda);
 
                 if (context.InMemory)

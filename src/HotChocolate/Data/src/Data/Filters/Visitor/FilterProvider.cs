@@ -12,6 +12,7 @@ namespace HotChocolate.Data.Filters
     public abstract class FilterProvider<TContext>
         : Convention<FilterProviderDefinition>
         , IFilterProvider
+        , IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
@@ -30,6 +31,11 @@ namespace HotChocolate.Data.Filters
         }
 
         public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
+
+        public void Initialize(IConventionContext context)
+        {
+            base.Initialize(context);
+        }
 
         protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
         {

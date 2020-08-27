@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -7,11 +8,11 @@ namespace HotChocolate.Data.Filters.Expressions
         : FilterScope<Expression>
     {
         public QueryableScope(
-            Type type,
+            IExtendedType type,
             string parameterName,
             bool inMemory)
         {
-            Parameter = Expression.Parameter(type, parameterName);
+            Parameter = Expression.Parameter(type.Source, parameterName);
             InMemory = inMemory;
             Instance.Push(Parameter);
         }

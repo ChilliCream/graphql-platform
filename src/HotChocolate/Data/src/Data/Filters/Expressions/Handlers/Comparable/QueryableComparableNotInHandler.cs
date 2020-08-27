@@ -35,7 +35,7 @@ namespace HotChocolate.Data.Filters.Expressions
             return FilterExpressionBuilder.Not(
                 FilterExpressionBuilder.In(
                     property,
-                    context.ClrTypes.Peek(),
+                    context.RuntimeTypes.Peek().Source,
                     parsedValue));
         }
     }

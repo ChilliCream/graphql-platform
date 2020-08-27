@@ -24,12 +24,14 @@ namespace HotChocolate.Data.Filters
             Definition.Scope = scope;
         }
 
+        protected internal new FilterOperationFieldDefinition Definition => base.Definition;
+
         protected override void OnCreateDefinition(
             FilterOperationFieldDefinition definition)
         {
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
             }
 
             base.OnCreateDefinition(definition);

@@ -8,50 +8,25 @@ namespace HotChocolate.Data.Filters
 {
     public static class FilterFieldDescriptorExtensions
     {
-        public static void IsNullable(this IFilterFieldDescriptor descriptor) =>
-            descriptor.Extend().OnBeforeCreate(def => def.Type = RewriteTypeToNullableType(def));
+        public static void MakeNullable(this IFilterFieldDescriptor descriptor) =>
+            descriptor.Extend().OnBeforeCreate(
+                (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
-        public static void IsNullable(this IFilterOperationFieldDescriptor descriptor) =>
-            descriptor.Extend().OnBeforeCreate(def => def.Type = RewriteTypeToNullableType(def));
+        public static void MakeNullable(this IFilterOperationFieldDescriptor descriptor) =>
+            descriptor.Extend().OnBeforeCreate(
+                (c, def) => def.Type = RewriteTypeToNullableType(def, c.TypeInspector));
 
-        private static ITypeReference RewriteTypeToNullableType(FilterFieldDefinition definition)
+        private static ITypeReference RewriteTypeToNullableType(
+            FilterFieldDefinition definition,
+            ITypeInspector typeInspector)
         {
             ITypeReference reference = definition.Type;
 
-            if (reference is ClrTypeReference clrRef
-                && TypeInspector.Default.TryCreate(
-                    clrRef.Type,
-                    out TypeInfo typeInfo))
+            if (reference is ExtendedTypeReference extendedTypeRef)
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
-                {
-                    if (clrRef.Type.IsGenericType
-                        && clrRef.Type.GetGenericTypeDefinition() ==
-                            typeof(NonNullType<>))
-                    {
-                        return clrRef.WithType(typeInfo.Components[1]);
-                    }
-                    return clrRef;
-                }
-                else
-                {
-                    if (clrRef.Type.IsValueType)
-                    {
-                        if (System.Nullable.GetUnderlyingType(clrRef.Type) == null)
-                        {
-                            return clrRef.WithType(
-                                typeof(Nullable<>).MakeGenericType(clrRef.Type));
-                        }
-                        return clrRef;
-                    }
-                    else if (clrRef.Type.IsGenericType
-                        && clrRef.Type.GetGenericTypeDefinition() ==
-                            typeof(NonNullType<>))
-                    {
-                        return clrRef.WithType(typeInfo.Components[1]);
-                    }
-                    return clrRef;
-                }
+                return extendedTypeRef.Type.IsNullable
+                    ? extendedTypeRef
+                    : extendedTypeRef.WithType(typeInspector.ChangeNullability(extendedTypeRef.Type, true));
             }
 
             if (reference is SchemaTypeReference schemaRef)

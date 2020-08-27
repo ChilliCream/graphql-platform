@@ -19,12 +19,9 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterType(),
-                new FilterConvention(
-                    x => x.UseDefault()
-                          .Provider(
-                            new QueryableFilterProvider(
-                                p => p.AddFieldHandler<QueryableComplexMethodTest>()
-                                      .UseDefaults()))));
+                new FilterConvention(x => x.UseDefault().Provider(
+                    new QueryableFilterProvider(
+                        p => p.AddFieldHandler<QueryableComplexMethodTest>().AddDefaultFieldHandlers()))));
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
@@ -43,11 +40,9 @@ namespace HotChocolate.Data.Filters.Expressions
             // arrange
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterType(),
                 new FilterConvention(
-                    x => x.UseDefault()
-                          .Provider(
-                            new QueryableFilterProvider(
-                                p => p.AddFieldHandler<QueryableComplexMethodTest>()
-                                      .UseDefaults()))));
+                    x => x.UseDefault().Provider(
+                        new QueryableFilterProvider(
+                            p => p.AddFieldHandler<QueryableComplexMethodTest>().AddDefaultFieldHandlers()))));
             IValueNode? valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
@@ -74,14 +69,11 @@ namespace HotChocolate.Data.Filters.Expressions
                 ITypeDiscoveryContext context,
                 FilterInputTypeDefinition typeDefinition,
                 FilterFieldDefinition fieldDefinition) =>
-                !(fieldDefinition is FilterOperationFieldDefinition) &&
-                    fieldDefinition.Member == Method;
+                fieldDefinition is FilterOperationFieldDefinition {Id: 155 };
 
             public override bool TryHandleEnter(
                 QueryableFilterContext context,
-                IFilterInputType declaringType,
                 IFilterField field,
-                IType fieldType,
                 ObjectFieldNode node,
                 [NotNullWhen(true)] out ISyntaxVisitorAction? action)
             {
@@ -94,9 +86,8 @@ namespace HotChocolate.Data.Filters.Expressions
                     return true;
                 }
 
-                if (fieldType is StringOperationInput operationType &&
-                    node.Value is ObjectValueNode objectValue &&
-                    field is { })
+                if (field.Type is StringOperationInput operationType &&
+                    node.Value is ObjectValueNode objectValue)
                 {
                     IValueNode? parameterNode = null;
 
@@ -122,8 +113,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     {
                         nestedProperty = Expression.Call(
                             context.GetInstance(),
-                            methodInfo,
-                            new Expression[] { Expression.Constant(value) });
+                            methodInfo, Expression.Constant(value));
                     }
                     else
                     {
@@ -131,8 +121,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     }
 
                     context.PushInstance(nestedProperty);
-                    context.ClrTypes.Push(nestedProperty.Type);
-                    context.TypeInfos.Push(field.TypeInfo);
+                    context.RuntimeTypes.Push(field.RuntimeType);
                     action = SyntaxVisitor.Continue;
                     return true;
                 }
@@ -158,7 +147,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Ignore();
-                descriptor.Operation(t => t.Complex(default)).Type<TestComplexInput>();
+                descriptor.Operation(155).Type<TestComplexInput>();
                 descriptor.Operation(t => t.Simple());
             }
         }

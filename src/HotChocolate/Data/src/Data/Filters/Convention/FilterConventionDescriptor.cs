@@ -14,15 +14,13 @@ namespace HotChocolate.Data.Filters
 
         protected FilterConventionDescriptor(IDescriptorContext context, string? scope)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
+            Context = context ?? throw new ArgumentNullException(nameof(context));
             Definition.Scope = scope;
         }
 
-        protected FilterConventionDefinition Definition { get; set; } =
+        protected IDescriptorContext Context { get; }
+
+        protected FilterConventionDefinition Definition { get; } =
             new FilterConventionDefinition();
 
         public FilterConventionDefinition CreateDefinition()
@@ -85,7 +83,7 @@ namespace HotChocolate.Data.Filters
             ConfigureFilterInputType configure)
             where TFilterType : FilterInputType =>
             Configure(
-                TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
+                Context.TypeInspector.GetTypeRef(typeof(TFilterType), TypeContext.Input, Definition.Scope),
                 configure);
 
         /// <inheritdoc />
@@ -93,17 +91,12 @@ namespace HotChocolate.Data.Filters
             ConfigureFilterInputType<TRuntimeType> configure)
             where TFilterType : FilterInputType<TRuntimeType> =>
             Configure(
-                TypeReference.Create<TFilterType>(TypeContext.Input, Definition.Scope),
+                Context.TypeInspector.GetTypeRef(typeof(TFilterType), TypeContext.Input, Definition.Scope),
                 d =>
                 {
-                    var descriptor = (FilterInputTypeDescriptor)d;
-
-                    var descriptorOfT = FilterInputTypeDescriptor.From<TRuntimeType>(
-                        descriptor.Context,
-                        descriptor.Definition,
-                        Definition.Scope);
-
-                    configure.Invoke(descriptorOfT);
+                    configure.Invoke(FilterInputTypeDescriptor.From<TRuntimeType>(
+                        (FilterInputTypeDescriptor)d,
+                        Definition.Scope));
                 });
 
         protected IFilterConventionDescriptor Configure(

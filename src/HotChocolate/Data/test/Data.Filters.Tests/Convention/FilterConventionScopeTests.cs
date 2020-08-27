@@ -78,8 +78,7 @@ namespace HotChocolate.Data.Filters
         }
 
         public class FailingCombinator
-            : FilterOperationCombinator<string
-            , FilterVisitorContext<string>>
+            : FilterOperationCombinator<FilterVisitorContext<string>, string>
         {
             public override bool TryCombineOperations(
                 FilterVisitorContext<string> context,
@@ -103,7 +102,7 @@ namespace HotChocolate.Data.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar);
-                descriptor.UseAnd(false).UseOr(false);
+                descriptor.AllowAnd(false).AllowOr(false);
             }
         }
     }

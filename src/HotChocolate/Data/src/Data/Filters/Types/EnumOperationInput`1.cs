@@ -6,10 +6,10 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(DefaultOperations.Equals).Type(typeof(T)).IsNullable();
-            descriptor.Operation(DefaultOperations.NotEquals).Type(typeof(T)).IsNullable();
-            descriptor.Operation(DefaultOperations.In).Type(typeof(IEnumerable<T>)).IsNullable();
-            descriptor.Operation(DefaultOperations.NotIn).Type(typeof(IEnumerable<T>)).IsNullable();
+            descriptor.Operation(DefaultOperations.Equals).Type(typeof(T)).MakeNullable();
+            descriptor.Operation(DefaultOperations.NotEquals).Type(typeof(T)).MakeNullable();
+            descriptor.Operation(DefaultOperations.In).Type(typeof(IEnumerable<T>)).MakeNullable();
+            descriptor.Operation(DefaultOperations.NotIn).Type(typeof(IEnumerable<T>)).MakeNullable();
             descriptor.AllowAnd(false).AllowOr(false);
         }
     }

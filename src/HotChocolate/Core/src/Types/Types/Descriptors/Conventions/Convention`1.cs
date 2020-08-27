@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 
 #nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class Convention<TDefinition> : Convention
@@ -9,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private TDefinition? _definition;
 
-        internal sealed override void Initialize(IConventionContext context)
+        protected internal sealed override void Initialize(IConventionContext context)
         {
             AssertUninitialized();
 

@@ -38,12 +38,18 @@ namespace HotChocolate.Data.Filters
             Definition.Scope = scope;
         }
 
+        protected internal new FilterFieldDefinition Definition
+        {
+            get => base.Definition;
+            protected set => base.Definition = value;
+        }
+
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.Member);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             }
 
             base.OnCreateDefinition(definition);

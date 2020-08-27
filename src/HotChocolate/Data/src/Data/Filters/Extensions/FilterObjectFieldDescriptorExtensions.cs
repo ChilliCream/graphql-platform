@@ -2,12 +2,11 @@ using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
-using TypeInfo = HotChocolate.Utilities.TypeInfo;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
@@ -79,27 +78,26 @@ namespace HotChocolate.Data
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((c, definition) =>
                 {
                     Type? argumentType = filterType;
 
                     if (argumentType is null)
                     {
-                        if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                        if (!c.TypeInspector.TryCreateTypeInfo(
+                            definition.ResultType, out ITypeInfo typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
                                 nameof(descriptor));
                         }
 
-                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
+                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.NamedType);
                     }
 
                     ITypeReference argumentTypeReference = filterTypeInstance is null
-                        ? (ITypeReference)new ClrTypeReference(
-                            argumentType, TypeContext.Input, scope)
-                        : new SchemaTypeReference(filterTypeInstance, scope: scope);
+                        ? (ITypeReference)c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input, scope)
+                        : TypeReference.Create(filterTypeInstance, scope);
 
                     if (argumentType == typeof(object))
                     {
@@ -109,7 +107,7 @@ namespace HotChocolate.Data
                     var argumentDefinition = new ArgumentDefinition
                     {
                         Name = argumentPlaceholder,
-                        Type = new ClrTypeReference(argumentType, TypeContext.Input, scope)
+                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input, scope)
                     };
                     definition.Arguments.Add(argumentDefinition);
 
@@ -152,7 +150,7 @@ namespace HotChocolate.Data
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
 
-            MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType);
+            MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;

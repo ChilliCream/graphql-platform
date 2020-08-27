@@ -19,9 +19,9 @@ namespace HotChocolate.Data.Filters.Expressions
             Expression property = context.GetInstance();
 
             return FilterExpressionBuilder.In(
-                    property,
-                context.ClrTypes.Peek(),
-                    parsedValue);
+                property,
+                context.RuntimeTypes.Peek().Source,
+                parsedValue);
         }
     }
 }
