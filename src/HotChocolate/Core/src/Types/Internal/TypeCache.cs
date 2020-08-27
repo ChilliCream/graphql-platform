@@ -8,6 +8,7 @@ namespace HotChocolate.Internal
 {
     internal sealed class TypeCache
     {
+        private static readonly object _sync = new object();
         private readonly Dictionary<ExtendedTypeId, ExtendedType> _types =
             new Dictionary<ExtendedTypeId, ExtendedType>();
 
@@ -21,43 +22,50 @@ namespace HotChocolate.Internal
 
         public bool TryGetType(
             ExtendedTypeId id,
-            [NotNullWhen(true)]out ExtendedType? extendedType) =>
-            _types.TryGetValue(id, out extendedType);
+            [NotNullWhen(true)] out ExtendedType? extendedType)
+        {
+            lock (_sync)
+            {
+                return _types.TryGetValue(id, out extendedType);
+            }
+        }
 
         public bool TryGetType(
             Type type,
-            [NotNullWhen(true)]out ExtendedType? extendedType) =>
-            _typeMemberLookup.TryGetValue(type, out extendedType);
+            [NotNullWhen(true)] out ExtendedType? extendedType)
+        {
+            lock (_sync)
+            {
+                return _typeMemberLookup.TryGetValue(type, out extendedType);
+            }
+        }
 
         public ExtendedType GetOrCreateType(object member, Func<ExtendedType> create)
         {
-            if (!_typeMemberLookup.TryGetValue(member, out ExtendedType? extendedType))
+            lock (_sync)
             {
-                lock (_typeMemberLookup)
+                if (!_typeMemberLookup.TryGetValue(member, out ExtendedType? extendedType))
                 {
-                    if (!_typeMemberLookup.TryGetValue(member, out extendedType))
-                    {
-                        ExtendedType type = create();
+                    ExtendedType type = create();
 
-                        if (_types.TryGetValue(type.Id, out extendedType))
-                        {
-                            _typeMemberLookup[member] = extendedType;
-                        }
-                        else
-                        {
-                            extendedType = type;
-                            _types[extendedType.Id] = extendedType;
-                            _typeMemberLookup[member] = extendedType;
-                        }
+                    if (_types.TryGetValue(type.Id, out extendedType))
+                    {
+                        _typeMemberLookup[member] = extendedType;
+                    }
+                    else
+                    {
+                        extendedType = type;
+                        _types[extendedType.Id] = extendedType;
+                        _typeMemberLookup[member] = extendedType;
                     }
                 }
+                return extendedType;
             }
-            return extendedType;
         }
 
         public bool TryAdd(ExtendedType extendedType, object? member = null)
         {
-            lock (_typeMemberLookup)
+            lock (_sync)
             {
                 if (!_types.ContainsKey(extendedType.Id))
                 {
@@ -78,64 +86,15 @@ namespace HotChocolate.Internal
         {
             ExtendedTypeId id = ((ExtendedType)extendedType).Id;
 
-            if (!_typeInfos.TryGetValue(id, out TypeInfo? typeInfo))
+            lock (_sync)
             {
-                lock (_typeInfos)
+                if (!_typeInfos.TryGetValue(id, out TypeInfo? typeInfo))
                 {
-                    if (!_typeInfos.TryGetValue(id, out typeInfo))
-                    {
-                        typeInfo = create();
-                        _typeInfos.Add(id, typeInfo);
-                    }
+                    typeInfo = create();
+                    _typeInfos.Add(id, typeInfo);
                 }
+                return typeInfo;
             }
-            return typeInfo;
         }
-
-        #if DEBUG
-
-        public IReadOnlyList<IExtendedType> FindType(string phrase)
-        {
-            var list = new List<IExtendedType>();
-
-            lock (_types)
-            {
-                foreach (ExtendedType type in _types.Values)
-                {
-                    if (type.Source.ToString().Contains(phrase))
-                    {
-                        if (!list.Contains(type))
-                        {
-                            list.Add(type);
-                        }
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        public IReadOnlyList<TypeInfo> FindTypeInfo(string phrase)
-        {
-            var list = new List<TypeInfo>();
-
-            lock (_typeInfos)
-            {
-                foreach (TypeInfo typeInfo in _typeInfos.Values)
-                {
-                    if (typeInfo.GetExtendedType().Source.ToString().Contains(phrase))
-                    {
-                        if (!list.Contains(typeInfo))
-                        {
-                            list.Add(typeInfo);
-                        }
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        #endif
     }
 }
