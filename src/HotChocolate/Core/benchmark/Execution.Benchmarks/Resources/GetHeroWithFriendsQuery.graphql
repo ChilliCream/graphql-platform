@@ -1,5 +1,5 @@
 query getHero {
-  hero(episode: NEWHOPE) {
+  hero(episode: NEW_HOPE) {
     ...Hero
   }
 }
