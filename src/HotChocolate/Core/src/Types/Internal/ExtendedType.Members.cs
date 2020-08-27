@@ -79,7 +79,9 @@ namespace HotChocolate.Internal
                 }
 
                 ExtendedType? elementType = null;
-                var isList = !extendedType.IsArray && Helper.IsSupportedCollectionInterface(extendedType.Type);
+                var isList = 
+                    !extendedType.IsArray && 
+                    Helper.IsSupportedCollectionInterface(extendedType.Type);
 
                 if (isList && extendedType.TypeArguments.Count == 1)
                 {
@@ -96,11 +98,6 @@ namespace HotChocolate.Internal
                     elementType = Rewrite(extendedType.ElementType!, null, cache);
                 }
 
-                if (!extendedType.IsArray)
-                {
-                    elementType = Helper.GetInnerListType((ExtendedType)extendedType, cache);
-                }
-
                 var rewritten = new ExtendedType(
                     extendedType.Type,
                     ExtendedTypeKind.Runtime,
@@ -108,7 +105,7 @@ namespace HotChocolate.Internal
                     source: extendedType.Source,
                     definition: extendedType.Definition,
                     elementType: elementType,
-                    isList: !extendedType.IsArray && elementType is not null,
+                    isList: isList,
                     isNullable: extendedType.IsNullable);
 
                 return cache.TryAdd(rewritten, member)

@@ -68,8 +68,7 @@ namespace HotChocolate.Types
             ISet<string> processed,
             out Directive directive)
         {
-
-            if (context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
+            if (!context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
             {
                 directive = null;
                 return false;

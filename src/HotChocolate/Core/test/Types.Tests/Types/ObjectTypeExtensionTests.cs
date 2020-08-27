@@ -437,7 +437,7 @@ namespace HotChocolate.Types
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["name"].Arguments["a"]
+            var value = type.Fields["name"].Arguments["a"]
                 .Directives["dummy_arg"]
                 .First().GetArgument<string>("a");
             Assert.Equal("b", value);

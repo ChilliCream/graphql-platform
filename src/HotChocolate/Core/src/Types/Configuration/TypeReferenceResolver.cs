@@ -105,7 +105,7 @@ namespace HotChocolate.Configuration
                 registeredType.Type is DirectiveType d)
             {
                 directiveType = d;
-                return false;
+                return true;
             }
 
             directiveType = null;
