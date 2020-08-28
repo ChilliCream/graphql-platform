@@ -13,16 +13,16 @@ namespace HotChocolate.Configuration
     internal sealed class TypeLookup
     {
         private readonly ITypeInspector _typeInspector;
-        private readonly Dictionary<ITypeReference, ITypeReference> _refs;
+        private readonly IDictionary<ITypeReference, ITypeReference> _refs;
         private readonly IDictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs;
-        private readonly Dictionary<NameString, ITypeReference> _nameTypeRefs;
+        private readonly IDictionary<NameString, ITypeReference> _nameTypeRefs;
         private readonly DiscoveredTypes _types;
 
         public TypeLookup(
             ITypeInspector typeInspector,
-            Dictionary<ITypeReference, ITypeReference> refs,
+            IDictionary<ITypeReference, ITypeReference> refs,
             IDictionary<ExtendedTypeReference, ITypeReference> runtimeTypeRefs,
-            Dictionary<NameString, ITypeReference> nameTypeRefs,
+            IDictionary<NameString, ITypeReference> nameTypeRefs,
             DiscoveredTypes types)
         {
             _typeInspector = typeInspector;

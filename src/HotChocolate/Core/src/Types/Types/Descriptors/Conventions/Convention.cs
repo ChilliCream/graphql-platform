@@ -35,11 +35,10 @@ namespace HotChocolate.Types.Descriptors
 
         protected void MarkInitialized()
         {
-            Debug.Assert(!IsInitialized);
-
             if (IsInitialized)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    $"The convention {GetType().Name} has already been marked as initialized.");
             }
 
             IsInitialized = true;
