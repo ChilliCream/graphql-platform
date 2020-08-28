@@ -12,23 +12,23 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeDiscoverer
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _registeredTypes =
-            new Dictionary<ITypeReference, RegisteredType>();
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
         private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
+            TypeRegistry typeRegistry,
             ISet<ITypeReference> initialTypes,
-            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
             IServiceProvider services,
             bool includeSystemTypes = true)
         {
+            _typeRegistry = typeRegistry;
+
             if (includeSystemTypes)
             {
                 _unregistered.AddRange(
@@ -37,14 +37,11 @@ namespace HotChocolate.Configuration
                     Directives.CreateReferences(descriptorContext.TypeInspector));
             }
 
-            _unregistered.AddRange(clrTypeReferences.Values);
+            _unregistered.AddRange(typeRegistry.GetTypeRefs());
             _unregistered.AddRange(initialTypes);
 
-            _clrTypeReferences = clrTypeReferences;
-
             _typeRegistrar = new TypeRegistrar(
-                _registeredTypes,
-                clrTypeReferences,
+                _typeRegistry,
                 descriptorContext,
                 interceptor,
                 services);
@@ -59,7 +56,7 @@ namespace HotChocolate.Configuration
             _typeInspector = descriptorContext.TypeInspector;
         }
 
-        public DiscoveredTypes DiscoverTypes()
+        public IReadOnlyList<ISchemaError> DiscoverTypes()
         {
             const int max = 1000;
             var tries = 0;
@@ -89,10 +86,7 @@ namespace HotChocolate.Configuration
 
             CollectErrors();
 
-            return new DiscoveredTypes(
-                _registeredTypes,
-                _clrTypeReferences,
-                _errors);
+            return _errors;
         }
 
         private void RegisterTypes()

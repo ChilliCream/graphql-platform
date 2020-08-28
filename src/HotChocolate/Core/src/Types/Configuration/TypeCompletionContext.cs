@@ -192,6 +192,7 @@ namespace HotChocolate.Configuration
             _initializationContext.ReportError(error);
         }
 
-        
+        public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind) => 
+            _initializationContext.TryPredictTypeKind(typeRef, out kind);
     }
 }

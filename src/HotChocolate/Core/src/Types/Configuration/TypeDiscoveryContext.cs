@@ -178,8 +178,10 @@ namespace HotChocolate.Configuration
 
             Errors.Add(error);
         }
-
-        private static FieldReference Normalize(IFieldReference reference) =>
-            new FieldReference(reference.TypeName, reference.FieldName);
+        
+        public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

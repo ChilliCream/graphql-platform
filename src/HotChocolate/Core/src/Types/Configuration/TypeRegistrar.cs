@@ -18,20 +18,17 @@ namespace HotChocolate.Configuration
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
-        private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly TypeRegistry _typeRegistry;
         private readonly IDescriptorContext _descriptorContext;
         private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
-            IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
+            TypeRegistry typeRegistry,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
             IServiceProvider services)
         {
-            _registered = registeredTypes;
-            _clrTypeReferences = clrTypeReferences;
+            _typeRegistry = typeRegistry;
             _descriptorContext = descriptorContext;
             _interceptor = interceptor;
             _serviceFactory.Services = services;
@@ -51,25 +48,22 @@ namespace HotChocolate.Configuration
             {
                 ResolveReferences(registeredType);
 
-                if (typeSystemObject is IHasRuntimeType hasClrType
-                    && hasClrType.RuntimeType != typeof(object))
+                if (typeSystemObject is IHasRuntimeType hasRuntimeType
+                    && hasRuntimeType.RuntimeType != typeof(object))
                 {
-                    ExtendedTypeReference? clrRef = _descriptorContext.TypeInspector.GetTypeRef(
-                        hasClrType.RuntimeType,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope: scope);
+                    ExtendedTypeReference? runtimeTypeRef = 
+                        _descriptorContext.TypeInspector.GetTypeRef(
+                            hasRuntimeType.RuntimeType,
+                            SchemaTypeReference.InferTypeContext(typeSystemObject),
+                            scope: scope);
 
                     var explicitBind = typeSystemObject is ScalarType scalar
                         && scalar.Bind == BindingBehavior.Explicit;
 
                     if (!explicitBind)
                     {
-                        MarkResolved(clrRef);
-
-                        if (!_clrTypeReferences.ContainsKey(clrRef))
-                        {
-                            _clrTypeReferences.Add(clrRef, registeredType.References[0]);
-                        }
+                        MarkResolved(runtimeTypeRef);
+                        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
                     }
                 }
             }
@@ -77,38 +71,22 @@ namespace HotChocolate.Configuration
 
         private void ResolveReferences(RegisteredType registeredType)
         {
+            _typeRegistry.Register(registeredType);
+
             foreach (ITypeReference typeReference in registeredType.References)
             {
-                _registered[typeReference] = registeredType;
                 MarkResolved(typeReference);
             }
-
         }
 
-        public void MarkUnresolved(ITypeReference typeReference)
-        {
+        public void MarkUnresolved(ITypeReference typeReference) =>
             _unresolved.Add(typeReference);
-        }
 
-        public void MarkResolved(ITypeReference typeReference)
-        {
+        public void MarkResolved(ITypeReference typeReference) =>
             _unresolved.Remove(typeReference);
-        }
 
-        public bool IsResolved(ITypeReference typeReference)
-        {
-            if (_registered.ContainsKey(typeReference))
-            {
-                return true;
-            }
-
-            if (typeReference is ExtendedTypeReference clrTypeReference)
-            {
-                return _clrTypeReferences.ContainsKey(clrTypeReference);
-            }
-
-            return false;
-        }
+        public bool IsResolved(ITypeReference typeReference) =>
+            _typeRegistry.IsRegistered(typeReference);
 
         public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
         {
@@ -122,10 +100,8 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public IReadOnlyCollection<ITypeReference> GetUnresolved()
-        {
-            return _unresolved.ToList();
-        }
+        public IReadOnlyCollection<ITypeReference> GetUnresolved() =>
+            _unresolved.ToList();
 
         public IReadOnlyCollection<ITypeReference> GetUnhandled()
         {
@@ -133,7 +109,7 @@ namespace HotChocolate.Configuration
             var unhandled = new List<ITypeReference>();
             var registered = new HashSet<ITypeReference>();
 
-            foreach (RegisteredType type in _registered.Values)
+            foreach (RegisteredType type in _typeRegistry.Types)
             {
                 if (_handled.Add(type))
                 {

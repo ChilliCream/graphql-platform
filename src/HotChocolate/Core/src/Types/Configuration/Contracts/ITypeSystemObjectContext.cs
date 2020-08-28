@@ -73,5 +73,15 @@ namespace HotChocolate.Configuration
         /// The error that occurred during initialization.
         /// </param>
         void ReportError(ISchemaError error);
+
+        /// <summary>
+        /// Tries to infer the possible type kind from a type reference.
+        /// </summary>
+        /// <param name="typeRef">
+        /// The type reference.
+        /// </param>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind);
     }
 }
