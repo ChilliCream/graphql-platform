@@ -549,15 +549,15 @@ namespace HotChocolate.Configuration
                         ? type.Type.Name.Value
                         : type.References[0].ToString()!;
 
-                    IEnumerable<ITypeReference> references =
+                    ITypeReference[] references =
                         type.Dependencies.Where(t => t.Kind == kind)
-                            .Select(t => t.TypeReference);
+                            .Select(t => t.TypeReference).ToArray();
 
                     IReadOnlyList<ITypeReference> needed =
                         TryNormalizeDependencies(references,
                             out IReadOnlyList<ITypeReference>? normalized)
                             ? normalized.Except(processed).ToArray()
-                            : references.ToArray();
+                            : references;
 
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(
@@ -646,24 +646,6 @@ namespace HotChocolate.Configuration
                 throw new SchemaException(errors);
             }
         }
-
-#if DEBUG
-        // this is a helper to debug the type initializer and will be removed on release build.
-        internal IReadOnlyList<ITypeReference> Find(string phrase)
-        {
-            var list = new List<ITypeReference>();
-
-            foreach (ExtendedTypeReference key in ClrTypes!.Keys)
-            {
-                if (key.Type.ToString()!.Contains(phrase))
-                {
-                    list.Add(key);
-                }
-            }
-
-            return list;
-        }
-#endif
     }
 
     internal sealed class ExtendedTypeReferenceEqualityComparer
