@@ -8,7 +8,7 @@ namespace HotChocolate.Internal
 {
     internal sealed class TypeCache
     {
-        private static readonly object _sync = new object();
+        private readonly object _sync = new object();
         private readonly Dictionary<ExtendedTypeId, ExtendedType> _types =
             new Dictionary<ExtendedTypeId, ExtendedType>();
 
