@@ -13,24 +13,19 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeLookup
     {
+        private readonly Dictionary<ITypeReference, ITypeReference> _refs =
+            new Dictionary<ITypeReference, ITypeReference>();
         private readonly ITypeInspector _typeInspector;
-        private readonly IDictionary<ITypeReference, ITypeReference> _refs;
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs;
-        private readonly IDictionary<NameString, ITypeReference> _nameTypeRefs;
-        private readonly DiscoveredTypes _types;
+        private readonly TypeRegistry _typeRegistry;
 
         public TypeLookup(
             ITypeInspector typeInspector,
-            IDictionary<ITypeReference, ITypeReference> refs,
-            IDictionary<ExtendedTypeReference, ITypeReference> runtimeTypeRefs,
-            IDictionary<NameString, ITypeReference> nameTypeRefs,
-            DiscoveredTypes types)
+            TypeRegistry typeRegistry)
         {
-            _typeInspector = typeInspector;
-            _refs = refs;
-            _runtimeTypeRefs = runtimeTypeRefs;
-            _nameTypeRefs = nameTypeRefs;
-            _types = types;
+            _typeInspector = typeInspector ??
+                throw new ArgumentNullException(nameof(typeInspector));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
         }
 
         public bool TryNormalizeReference(
@@ -62,17 +57,7 @@ namespace HotChocolate.Configuration
 
                 case SyntaxTypeReference r:
                     NameString typeName = r.Type.NamedType().Name.Value;
-                    if (_nameTypeRefs.TryGetValue(typeName, out namedTypeRef))
-                    {
-                        _refs[typeRef] = namedTypeRef;
-                        return true;
-                    }
-
-                    namedTypeRef = _types.Types
-                        .FirstOrDefault(t => t.Type.Name.Equals(typeName))
-                        ?.References[0];
-
-                    if (namedTypeRef is not null)
+                    if (_typeRegistry.TryGetTypeRef(typeName, out namedTypeRef))
                     {
                         _refs[typeRef] = namedTypeRef;
                         return true;
@@ -91,7 +76,7 @@ namespace HotChocolate.Configuration
             if (directiveRef is ClrTypeDirectiveReference cr)
             {
                 ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
-                if (!_runtimeTypeRefs.TryGetValue(directiveTypeRef, out namedTypeRef))
+                if (!_typeRegistry.TryGetTypeRef(directiveTypeRef, out namedTypeRef))
                 {
                     namedTypeRef = directiveTypeRef;
                 }
@@ -100,8 +85,8 @@ namespace HotChocolate.Configuration
 
             if (directiveRef is NameDirectiveReference nr)
             {
-                namedTypeRef = _types.Types
-                    .FirstOrDefault(t => t.Type.Name.Equals(nr.Name) && t.Type is DirectiveType)?
+                namedTypeRef = _typeRegistry.Types
+                    .FirstOrDefault(t =>t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
                     .References[0];
                 return namedTypeRef is not null;
             }
@@ -137,8 +122,8 @@ namespace HotChocolate.Configuration
             {
                 IExtendedType componentType = typeInfo.Components[i].Type;
                 ExtendedTypeReference componentRef = typeRef.WithType(componentType);
-                if (_runtimeTypeRefs.TryGetValue(componentRef, out namedTypeRef) ||
-                    _runtimeTypeRefs.TryGetValue(componentRef.WithContext(), out namedTypeRef))
+                if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
+                    _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
                 {
                     return true;
                 }
@@ -146,95 +131,6 @@ namespace HotChocolate.Configuration
 
             namedTypeRef = null;
             return false;
-        }
-    }
-
-    internal class TypeRegistry
-    {
-        private readonly Dictionary<ITypeReference, RegisteredType> _types =
-            new Dictionary<ITypeReference, RegisteredType>();
-        private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
-            new Dictionary<ExtendedTypeReference, ITypeReference>(
-                new ExtendedTypeReferenceEqualityComparer());
-        private readonly Dictionary<NameString, ITypeReference> _nameRefs =
-            new Dictionary<NameString, ITypeReference>();
-
-        private int Count => _types.Count;
-
-        public IReadOnlyList<RegisteredType> Types { get; private set; } =
-            Array.Empty<RegisteredType>();
-
-        public bool IsRegistered(ITypeReference typeReference)
-        {
-            if (_types.ContainsKey(typeReference))
-            {
-                return true;
-            }
-
-            if (typeReference is ExtendedTypeReference clrTypeReference)
-            {
-                return _runtimeTypeRefs.ContainsKey(clrTypeReference);
-            }
-
-            return false;
-        }
-
-        public bool TryGetType(
-            ITypeReference typeRef,
-            [NotNullWhen(true)] out RegisteredType? registeredType)
-        {
-            if (typeRef is ExtendedTypeReference clrTypeRef &&
-                _runtimeTypeRefs.TryGetValue(clrTypeRef, out ITypeReference? internalRef))
-            {
-                typeRef = internalRef;
-            }
-
-            return _types.TryGetValue(typeRef, out registeredType);
-        }
-
-        public bool TryGetTypeRef(
-            ExtendedTypeReference runtimeTypeRef,
-            [NotNullWhen(true)] out ITypeReference? typeRef) =>
-            _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
-
-        public bool TryGetType(
-            NameString typeName,
-            [NotNullWhen(true)] out RegisteredType? registeredType)
-        {
-            registeredType = null;
-            return _nameRefs.TryGetValue(typeName, out ITypeReference? typeRef) &&
-                _types.TryGetValue(typeRef, out registeredType);
-        }
-
-        public IEnumerable<ITypeReference> GetTypeRefs() => _runtimeTypeRefs.Values;
-
-        public void TryRegister(ExtendedTypeReference runtimeTypeRef, ITypeReference typeRef)
-        {
-            if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
-            {
-                _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
-            }
-        }
-
-        public void Register(RegisteredType registeredType)
-        {
-            foreach (ITypeReference typeReference in registeredType.References)
-            {
-                _types[typeReference] = registeredType;
-            }
-        }
-
-        public void RebuildIndexes(bool names = false)
-        {
-            Types = new List<RegisteredType>(_types.Values.Distinct());
-
-            if (names)
-            {
-                foreach (RegisteredType type in Types)
-                {
-                    _nameRefs[type.Type.Name] = type.References[0];
-                }
-            }
         }
     }
 }

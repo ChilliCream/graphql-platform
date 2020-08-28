@@ -24,7 +24,6 @@ namespace HotChocolate.Configuration
             ISet<ITypeReference> initialTypes,
             IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
-            IServiceProvider services,
             bool includeSystemTypes = true)
         {
             _typeRegistry = typeRegistry;
@@ -44,7 +43,7 @@ namespace HotChocolate.Configuration
                 _typeRegistry,
                 descriptorContext,
                 interceptor,
-                services);
+                descriptorContext.Services);
 
             _handlers = new ITypeRegistrarHandler[]
             {
@@ -117,11 +116,7 @@ namespace HotChocolate.Configuration
                     ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
                     _unregistered.Add(typeReference);
                     _typeRegistrar.MarkResolved(unresolvedType);
-
-                    if (!_clrTypeReferences.ContainsKey(unresolvedType))
-                    {
-                        _clrTypeReferences.Add(unresolvedType, typeReference);
-                    }
+                    _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
                     _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
@@ -138,8 +133,8 @@ namespace HotChocolate.Configuration
 
         private void CollectErrors()
         {
-            foreach (TypeDiscoveryContext context in
-                _registeredTypes.Values.Distinct().Select(t => t.DiscoveryContext))
+            foreach (TypeDiscoveryContext context in 
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);
             }

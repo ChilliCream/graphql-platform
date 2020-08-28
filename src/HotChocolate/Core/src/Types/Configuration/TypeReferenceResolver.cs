@@ -15,24 +15,24 @@ namespace HotChocolate.Configuration
     {
         private readonly Dictionary<TypeId, IType> _typeCache = new Dictionary<TypeId, IType>();
         private readonly ITypeInspector _typeInspector;
-        private readonly DiscoveredTypes _types;
+        private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
 
         public TypeReferenceResolver(
             ITypeInspector typeInspector,
-            DiscoveredTypes types,
+            TypeRegistry typeRegistry,
             TypeLookup typeLookup)
         {
             _typeInspector = typeInspector ??
                 throw new ArgumentNullException(nameof(typeInspector));
-            _types = types ??
+            _typeRegistry = typeRegistry ??
                 throw new ArgumentNullException(nameof(types));
             _typeLookup = typeLookup ??
                 throw new ArgumentNullException(nameof(typeLookup));
         }
 
         public IEnumerable<T> GetTypes<T>() =>
-            _types.Types
+            _typeRegistry.Types
                 .Select(t => t.Type)
                 .OfType<T>()
                 .Distinct();
@@ -56,7 +56,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (!_types.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
+            if (!_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) ||
                 registeredType.Type is not INamedType)
             {
                 type = null;
@@ -101,7 +101,7 @@ namespace HotChocolate.Configuration
                 return false;
             }
 
-            if (_types.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
+            if (_typeRegistry.TryGetType(namedTypeRef, out RegisteredType? registeredType) &&
                 registeredType.Type is DirectiveType d)
             {
                 directiveType = d;
