@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
         private readonly Dictionary<NameString, ITypeReference> _nameRefs =
             new Dictionary<NameString, ITypeReference>();
 
-        private int Count => _types.Count;
+        public int Count => _types.Count;
 
         public IReadOnlyList<RegisteredType> Types { get; private set; } =
             Array.Empty<RegisteredType>();
