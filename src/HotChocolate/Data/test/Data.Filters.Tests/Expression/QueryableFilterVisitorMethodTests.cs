@@ -21,16 +21,18 @@ namespace HotChocolate.Data.Filters.Expressions
             ExecutorBuilder? tester = CreateProviderTester(new FooFilterType(),
                 new FilterConvention(x => x.UseDefault().Provider(
                     new QueryableFilterProvider(
-                        p => p.AddFieldHandler<QueryableComplexMethodTest>().AddDefaultFieldHandlers()))));
+                        p => p.AddFieldHandler<QueryableSimpleMethodTest>()
+                            .AddFieldHandler<QueryableComplexMethodTest>()
+                            .AddDefaultFieldHandlers()))));
 
             // act
             Func<Foo, bool>? func = tester.Build<Foo>(value);
 
             // assert
-            var a = new Foo { Bar = "a" };
+            var a = new Foo {Bar = "a"};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = "b" };
+            var b = new Foo {Bar = "b"};
             Assert.False(func(b));
         }
 
@@ -42,7 +44,10 @@ namespace HotChocolate.Data.Filters.Expressions
                 new FilterConvention(
                     x => x.UseDefault().Provider(
                         new QueryableFilterProvider(
-                            p => p.AddFieldHandler<QueryableComplexMethodTest>().AddDefaultFieldHandlers()))));
+                            p => p.AddFieldHandler<QueryableSimpleMethodTest>()
+                                .AddFieldHandler<QueryableComplexMethodTest>()
+                                .AddDefaultFieldHandlers()))));
+
             IValueNode? valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
@@ -58,6 +63,55 @@ namespace HotChocolate.Data.Filters.Expressions
 
             var b = new Foo();
             Assert.False(funcFalse(b));
+        }
+
+        public class QueryableSimpleMethodTest
+            : QueryableDefaultFieldHandler
+        {
+            public static MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
+
+            public override bool CanHandle(
+                ITypeDiscoveryContext context,
+                FilterInputTypeDefinition typeDefinition,
+                FilterFieldDefinition fieldDefinition) =>
+                fieldDefinition is FilterOperationFieldDefinition {Id: 156 };
+
+            public override bool TryHandleEnter(
+                QueryableFilterContext context,
+                IFilterField field,
+                ObjectFieldNode node,
+                [NotNullWhen(true)] out ISyntaxVisitorAction? action)
+            {
+                if (node.Value.IsNull())
+                {
+                    context.ReportError(ErrorBuilder.New()
+                        .SetMessage(
+                            "The provided value for filter `{0}` of type {1} is invalid. " +
+                            "Null values are not supported.",
+                            context.Operations.Peek().Name,
+                            field.Type.Visualize())
+                        .Build());
+
+                    action = SyntaxVisitor.Skip;
+                    return true;
+                }
+
+                if (field.Type is StringOperationInput operationType &&
+                    node.Value is ObjectValueNode objectValue)
+                {
+                    IValueNode? parameterNode = null;
+
+                    Expression nestedProperty = Expression.Call(context.GetInstance(), Method);
+
+                    context.PushInstance(nestedProperty);
+                    context.RuntimeTypes.Push(field.RuntimeType);
+                    action = SyntaxVisitor.Continue;
+                    return true;
+                }
+
+                action = null;
+                return false;
+            }
         }
 
         public class QueryableComplexMethodTest
@@ -79,8 +133,13 @@ namespace HotChocolate.Data.Filters.Expressions
             {
                 if (node.Value.IsNull())
                 {
-                    context.ReportError(
-                        ErrorHelper.CreateNonNullError(field, node.Value, context));
+                    context.ReportError(ErrorBuilder.New()
+                        .SetMessage(
+                            "The provided value for filter `{0}` of type {1} is invalid. " +
+                            "Null values are not supported.",
+                            context.Operations.Peek().Name,
+                            field.Type.Visualize())
+                        .Build());
 
                     action = SyntaxVisitor.Skip;
                     return true;
@@ -148,7 +207,7 @@ namespace HotChocolate.Data.Filters.Expressions
             {
                 descriptor.Field(t => t.Bar).Ignore();
                 descriptor.Operation(155).Type<TestComplexInput>();
-                descriptor.Operation(t => t.Simple());
+                descriptor.Operation(156).Type<StringOperationInput>();
             }
         }
 

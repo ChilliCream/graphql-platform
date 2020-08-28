@@ -23,4 +23,3 @@ namespace HotChocolate.Data.Filters
         }
     }
 }
-

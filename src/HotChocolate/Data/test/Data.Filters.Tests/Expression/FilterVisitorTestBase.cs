@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             builder.Create();
 
-            return new ExecutorBuilder(type, convention);
+            return new ExecutorBuilder(type);
         }
 
         protected ISchema CreateSchema<T>(T type)

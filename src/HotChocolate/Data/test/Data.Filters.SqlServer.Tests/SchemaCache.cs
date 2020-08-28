@@ -9,12 +9,6 @@ namespace HotChocolate.Data.Filters
         private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
             new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
 
-        public SchemaCache()
-            : base()
-        {
-
-        }
-
         public IRequestExecutor CreateSchema<T, TType>(T[] entites)
             where T : class
             where TType : IFilterInputType

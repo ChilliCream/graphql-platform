@@ -13,36 +13,8 @@ namespace HotChocolate.Data.Tests
             // arrange
             // act
             var convention = new FilterConvention(
-            x => x.UseMock()
-                    .Configure<StringOperationInput>(
-                        y => y.Operation(DefaultOperations.Like).Type<StringType>())
-                    .Operation(DefaultOperations.Like).Name("like"));
-
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("bar")
-                        .Argument("test", x => x.Type<TestFilter>()));
-
-            ISchema? schema = builder.Create();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Convention_DefaultScope_NamedExtensions()
-        {
-            // arrange
-            // act
-            var convention = new FilterConvention(
                 x => x.UseMock()
-                    .Configure(
-                        "StringOperationInputFilter",
+                    .Configure<StringOperationInput>(
                         y => y.Operation(DefaultOperations.Like).Type<StringType>())
                     .Operation(DefaultOperations.Like).Name("like"));
 

@@ -22,8 +22,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -39,15 +37,15 @@ namespace HotChocolate.Data.Filters
 
             //act
             ISchema? schema = CreateSchemaWith(type, convention);
-            var executor = new ExecutorBuilder(type, convention);
+            var executor = new ExecutorBuilder(type);
 
             Func<Foo, bool>? func = executor.Build<Foo>(value);
 
             // assert
-            var a = new Foo { Bar = "a" };
+            var a = new Foo {Bar = "a"};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = "b" };
+            var b = new Foo {Bar = "b"};
             Assert.False(func(b));
         }
 
@@ -59,8 +57,6 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -89,8 +85,6 @@ namespace HotChocolate.Data.Filters
                 descriptor =>
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -120,7 +114,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -150,7 +143,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
                 });
 
             var convention = new FilterConvention(
@@ -180,8 +172,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -210,8 +200,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -240,8 +228,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -270,8 +256,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<FailingCombinator>();
                 });
 
             var convention = new FilterConvention(
@@ -301,8 +285,6 @@ namespace HotChocolate.Data.Filters
                 {
                     descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
                     descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                    descriptor.Visitor<FilterVisitor<Expression, QueryableFilterContext>>();
-                    descriptor.Combinator<QueryableCombinator>();
                 });
 
             var convention = new FilterConvention(

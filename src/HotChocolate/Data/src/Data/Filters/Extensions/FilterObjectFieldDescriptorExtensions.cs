@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
@@ -73,7 +74,7 @@ namespace HotChocolate.Data
             string? scope)
         {
             FieldMiddleware placeholder = next => context => default;
-            string argumentPlaceholder = Guid.NewGuid().ToString();
+            string argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             descriptor
                 .Use(placeholder)
@@ -151,7 +152,7 @@ namespace HotChocolate.Data
             IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
+            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] {convention})!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

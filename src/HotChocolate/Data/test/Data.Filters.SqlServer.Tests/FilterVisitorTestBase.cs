@@ -53,7 +53,15 @@ namespace HotChocolate.Data.Filters
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
             dbContext.AddRange(results);
-            dbContext.SaveChanges();
+            try
+            {
+                dbContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+
+            }
 
             return ctx => dbContext.Data.AsQueryable();
         }
@@ -78,22 +86,22 @@ namespace HotChocolate.Data.Filters
                         .Field("root")
                         .Resolver(resolver)
                         .Use(next => async context =>
-                            {
-                                await next(context);
+                        {
+                            await next(context);
 
-                                if (context.Result is IQueryable<TEntity> queryable)
+                            if (context.Result is IQueryable<TEntity> queryable)
+                            {
+                                try
                                 {
-                                    try
-                                    {
-                                        context.ContextData["sql"] = queryable.ToQueryString();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        context.ContextData["sql"] =
-                                            "EF Core 3.1 does not support ToQuerString offically";
-                                    }
+                                    context.ContextData["sql"] = queryable.ToQueryString();
                                 }
-                            })
+                                catch (Exception)
+                                {
+                                    context.ContextData["sql"] =
+                                        "EF Core 3.1 does not support ToQuerString offically";
+                                }
+                            }
+                        })
                         .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
@@ -125,4 +133,3 @@ namespace HotChocolate.Data.Filters
         }
     }
 }
-
