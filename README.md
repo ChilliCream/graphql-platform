@@ -44,6 +44,10 @@ Our GraphQL client to fetch data from any GraphQL endpoint.
 
 TBD
 
+## From our community
+
+[Check out](Community.md) what members of our awesome community have made!
+
 ## Contribution
 
 TBD
