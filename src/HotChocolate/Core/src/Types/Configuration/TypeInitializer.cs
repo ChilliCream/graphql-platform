@@ -21,8 +21,6 @@ namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {
-        private readonly Dictionary<RegisteredType, TypeCompletionContext> _completionContext =
-            new Dictionary<RegisteredType, TypeCompletionContext>();
         private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers =
             new Dictionary<FieldReference, RegisteredResolver>();
         private readonly List<FieldMiddleware> _globalComps = new List<FieldMiddleware>();
@@ -96,12 +94,12 @@ namespace HotChocolate.Configuration
             // before we can start completing type names we need to register the field resolvers.
             RegisterResolvers();
 
-            // now that we have the resolvers sorted and know what types our schema will roughly 
-            // consist of we are going to have a look if we can infer interface usage 
+            // now that we have the resolvers sorted and know what types our schema will roughly
+            // consist of we are going to have a look if we can infer interface usage
             // from .NET classes that implement .NET interfaces.
             RegisterImplicitInterfaceDependencies();
 
-            CompleteNames(_discoveredTypes, schemaResolver);
+            CompleteNames(schemaResolver);
             MergeTypeExtensions(_discoveredTypes);
             RegisterExternalResolvers(_discoveredTypes);
             CompileResolvers();
@@ -176,9 +174,9 @@ namespace HotChocolate.Configuration
 
                 if (dependencies.Count > 0)
                 {
-                    dependencies.AddRange(objectType.Dependencies);
-                    _typeRegistry.Register(objectType.WithDependencies(dependencies));
-                    dependencies = new List<TypeDependency>();
+                    objectType.AddDependencies(dependencies);
+                    _typeRegistry.Register(objectType);
+                    dependencies.Clear();
                 }
             }
 
@@ -187,55 +185,47 @@ namespace HotChocolate.Configuration
 
         private void CompleteNames(Func<ISchema> schemaResolver)
         {
-            var success = CompleteTypes(
-                TypeDependencyKind.Named,
-                registeredType =>
-                {
-                    TypeDiscoveryContext initializationContext =
-                        _initContexts.First(t =>
-                            t.Type == registeredType.Type);
-
-                    var completionContext = new TypeCompletionContext(
-                        initializationContext,
+            bool CompleteName(RegisteredType registeredType)
+            {
+                registeredType.SetCompletionContext(
+                    new TypeCompletionContext(
+                        registeredType.DiscoveryContext,
                         _typeReferenceResolver,
                         GlobalComponents,
                         Resolvers,
                         _isOfType,
-                        schemaResolver);
+                        schemaResolver));
 
-                    _completionContext[registeredType] = completionContext;
+                registeredType.Type.CompleteName(registeredType.CompletionContext);
 
-                    registeredType.Type.CompleteName(completionContext);
-
-                    if (registeredType.Type is INamedType
-                        || registeredType.Type is DirectiveType)
+                if (registeredType.Type is INamedType
+                    || registeredType.Type is DirectiveType)
+                {
+                    if (_typeRegistry.Register() _named.ContainsKey(registeredType.Type.Name))
                     {
-                        if (_named.ContainsKey(registeredType.Type.Name))
-                        {
-                            _errors.Add(SchemaErrorBuilder.New()
-                                .SetMessage(string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    TypeResources.TypeInitializer_CompleteName_Duplicate,
-                                    registeredType.Type.Name))
-                                .SetTypeSystemObject(registeredType.Type)
-                                .Build());
-                            return false;
-                        }
-                        _named[registeredType.Type.Name] =
-                            registeredType.References[0];
+                        _errors.Add(SchemaErrorBuilder.New()
+                            .SetMessage(
+                                TypeInitializer_CompleteName_Duplicate,
+                                registeredType.Type.Name)
+                            .SetTypeSystemObject(registeredType.Type)
+                            .Build());
+                        return false;
                     }
+                    _named[registeredType.Type.Name] =
+                        registeredType.References[0];
+                }
 
-                    return true;
-                });
+                return true;
+            }
 
-            if (success)
+            if (ProcessTypes(TypeDependencyKind.Named, CompleteName))
             {
                 UpdateDependencyLookup();
 
                 if (_interceptor.TriggerAggregations)
                 {
                     _interceptor.OnTypesCompletedName(
-                        _completionContext.Values.Where(t => t is { }).ToList());
+                        _completionContext.Values.Where(t => t is not null).ToList());
                 }
             }
 
@@ -297,7 +287,7 @@ namespace HotChocolate.Configuration
                         throw new SchemaException(SchemaErrorBuilder.New()
                             .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
-                                TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
+                                TypeInitializer_Merge_KindDoesNotMatch,
                                 targetType.Name))
                             .SetTypeSystemObject((ITypeSystemObject)targetType)
                             .Build());
@@ -444,9 +434,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        
 
-        
+
+
 
         private void CompleteTypes()
         {
@@ -502,13 +492,13 @@ namespace HotChocolate.Configuration
                 if (!failed)
                 {
                     batch.Clear();
-                    batch.AddRange(GetNextBatch(discoveredTypes, processed, kind));
+                    batch.AddRange(GetNextBatch(processed, kind));
                 }
             }
 
-            if (!failed && processed.Count < discoveredTypes.TypeReferenceCount)
+            if (!failed && processed.Count < _typeRegistry.Count)
             {
-                foreach (RegisteredType type in discoveredTypes.Types
+                foreach (RegisteredType type in _typeRegistry.Types
                     .Where(t => !processed.Contains(t.References[0])))
                 {
                     string name = type.Type.Name.HasValue

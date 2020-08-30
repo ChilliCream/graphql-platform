@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable  enable
 
@@ -88,6 +89,16 @@ namespace HotChocolate.Configuration
             foreach (ITypeReference typeReference in registeredType.References)
             {
                 _types[typeReference] = registeredType;
+            }
+        }
+
+        public void Register(NameString typeName, RegisteredType registeredType)
+        {
+            if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
+                TryGetType(typeRef, out RegisteredType? type) &&
+                !ReferenceEquals(type, registeredType))
+            {
+                throw new TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
             }
         }
 
