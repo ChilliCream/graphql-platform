@@ -43,7 +43,10 @@ namespace HotChocolate.Data.Filters
                 {
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
-                        if (ShouldScopeTypeOfField(filterFieldDefinition))
+                        if (discoveryContext.TryPredictTypeKind(
+                            filterFieldDefinition.Type,
+                            out TypeKind kind) &&
+                            kind != TypeKind.Scalar && kind != TypeKind.Enum)
                         {
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
                         }
@@ -65,32 +68,6 @@ namespace HotChocolate.Data.Filters
                     }
                 }
             }
-        }
-
-        // TODO: This is just a temporary workaraound to avoid scopeing scalars
-        public bool ShouldScopeTypeOfField(FilterFieldDefinition definition)
-        {
-            /*
-            switch (definition.Type)
-            {
-                case ExtendedTypeReference extendedTypeRef:
-                    if (TypeInfo.)
-                    {
-                        return !typeof(ScalarType).IsAssignableFrom(typeInfo.ClrType) &&
-                            !typeInfo.ClrType.IsEnum &&
-                            !typeof(EnumType).IsAssignableFrom(typeInfo.ClrType);
-                    }
-                    return true;
-                case SchemaTypeReference schemaRef:
-                    Type? type = schemaRef.Type.GetType();
-                    return !typeof(ScalarType).IsAssignableFrom(type) &&
-                            !type.IsEnum &&
-                            !typeof(EnumType).IsAssignableFrom(type);
-                default:
-                    return true;
-            };
-            */
-            return true;
         }
 
         public override void OnBeforeCompleteName(
