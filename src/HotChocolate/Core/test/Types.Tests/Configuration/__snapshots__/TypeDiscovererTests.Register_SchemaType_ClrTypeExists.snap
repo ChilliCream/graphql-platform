@@ -16,7 +16,7 @@
     "HotChocolate.Types.DeprecatedDirectiveType": "HotChocolate.Types.DeprecatedDirective",
     "HotChocolate.Configuration.TypeDiscovererTests.BarType": "HotChocolate.Configuration.TypeDiscovererTests.Bar"
   },
-  "clr": {
+  "runtimeTypeRefs": {
     "None: DirectiveLocation!": "None: __DirectiveLocation",
     "Output: EnumValue": "Output: __EnumValue",
     "Output: IOutputField": "Output: __Field",

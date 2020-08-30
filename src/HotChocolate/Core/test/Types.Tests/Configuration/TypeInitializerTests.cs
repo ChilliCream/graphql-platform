@@ -16,24 +16,25 @@ namespace HotChocolate.Configuration
         {
             // arrange
             IDescriptorContext context = DescriptorContext.Create();
-            var initialTypes = new List<ITypeReference>
-            {
-                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
                 context,
-                initialTypes,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
-                null!,
+                null,
                 t => t is FooType);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            var exists = typeInitializer.DiscoveredTypes!.TryGetType(
+            var exists = typeRegistry.TryGetType(
                 context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
@@ -43,7 +44,7 @@ namespace HotChocolate.Configuration
                     t => t.Name.ToString(),
                     t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
+            exists = typeRegistry.TryGetType(
                 context.TypeInspector.GetTypeRef(typeof(BarType), TypeContext.Output),
                 out type);
 
@@ -61,24 +62,25 @@ namespace HotChocolate.Configuration
         {
             // arrange
             IDescriptorContext context = DescriptorContext.Create();
-            var initialTypes = new List<ITypeReference>
-            {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
-            };
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
                 context,
-                initialTypes,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
-                null!,
+                null,
                 t => t is ObjectType<Foo>);
 
             // act
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            var exists = typeInitializer.DiscoveredTypes!.TryGetType(
+            var exists = typeRegistry.TryGetType(
                 context.TypeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                 out RegisteredType type);
 
@@ -88,7 +90,7 @@ namespace HotChocolate.Configuration
                 t => t.Name.ToString(),
                 t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
+            exists = typeRegistry.TryGetType(
                 context.TypeInspector.GetTypeRef(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
@@ -106,14 +108,15 @@ namespace HotChocolate.Configuration
         {
             // arrange
             IDescriptorContext context = DescriptorContext.Create();
-            var initialTypes = new List<ITypeReference>
-            {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
-            };
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
                 context,
-                initialTypes,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
                 null!,
@@ -131,16 +134,15 @@ namespace HotChocolate.Configuration
         {
             // arrange
             IDescriptorContext context = DescriptorContext.Create();
-            var initialTypes = new List<ITypeReference>
-            {
-                context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
                 context,
-                initialTypes,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
                 null!,

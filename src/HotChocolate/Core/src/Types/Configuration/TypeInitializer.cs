@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration.Validation;
 using HotChocolate.Internal;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
@@ -30,7 +29,7 @@ namespace HotChocolate.Configuration
         private readonly IReadOnlyList<ITypeReference> _initialTypes;
         private readonly IReadOnlyList<Type> _externalResolverTypes;
         private readonly ITypeInterceptor _interceptor;
-        private readonly IsOfTypeFallback _isOfType;
+        private readonly IsOfTypeFallback? _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
         private readonly TypeRegistry _typeRegistry;
         private readonly TypeLookup _typeLookup;
@@ -42,7 +41,7 @@ namespace HotChocolate.Configuration
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
             ITypeInterceptor interceptor,
-            IsOfTypeFallback isOfType,
+            IsOfTypeFallback? isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
             _context = descriptorContext ??
@@ -55,8 +54,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(externalResolverTypes));
             _interceptor = interceptor ??
                 throw new ArgumentNullException(nameof(interceptor));
-            _isOfType = isOfType ??
-                throw new ArgumentNullException(nameof(isOfType));
+            _isOfType = isOfType;
             _isQueryType = isQueryType ??
                 throw new ArgumentNullException(nameof(isQueryType));
 
@@ -290,7 +288,7 @@ namespace HotChocolate.Configuration
                     context = type.CompletionContext;
                     type.AddDependencies(extension.Dependencies);
                     _typeRegistry.Register(type);
-                    CopyAlternateNames(type.CompletionContext, context);
+                    CopyAlternateNames(extension.CompletionContext, context);
                 }
             }
         }

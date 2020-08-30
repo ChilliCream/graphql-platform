@@ -11,18 +11,18 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeRegistry
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _types =
+        private readonly Dictionary<ITypeReference, RegisteredType> _typeRegister =
             new Dictionary<ITypeReference, RegisteredType>();
         private readonly Dictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs =
             new Dictionary<ExtendedTypeReference, ITypeReference>(
                 new ExtendedTypeReferenceEqualityComparer());
         private readonly Dictionary<NameString, ITypeReference> _nameRefs =
             new Dictionary<NameString, ITypeReference>();
+        private List<RegisteredType> _types = new List<RegisteredType>();
 
-        public int Count => _types.Count;
+        public int Count => _typeRegister.Count;
 
-        public IReadOnlyList<RegisteredType> Types { get; private set; } =
-            Array.Empty<RegisteredType>();
+        public IReadOnlyList<RegisteredType> Types => _types;
 
         public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
             _runtimeTypeRefs;
@@ -36,7 +36,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (_types.ContainsKey(typeReference))
+            if (_typeRegister.ContainsKey(typeReference))
             {
                 return true;
             }
@@ -64,7 +64,7 @@ namespace HotChocolate.Configuration
                 typeRef = internalRef;
             }
 
-            return _types.TryGetValue(typeRef, out registeredType);
+            return _typeRegister.TryGetValue(typeRef, out registeredType);
         }
 
         public bool TryGetTypeRef(
@@ -88,12 +88,8 @@ namespace HotChocolate.Configuration
             if (!_nameRefs.TryGetValue(typeName, out typeRef))
             {
                 typeRef = Types
-                    .FirstOrDefault(t => t.Type.Name.Equals(typeName))
+                    .FirstOrDefault(t => !t.IsExtension && t.Type.Name.Equals(typeName))
                     ?.References[0];
-                if (typeRef is not null)
-                {
-                    _nameRefs[typeName] = typeRef;
-                }
             }
             return typeRef is not null;
         }
@@ -125,9 +121,16 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(registeredType));
             }
 
+            bool addToTypes = !_typeRegister.ContainsValue(registeredType);
+
             foreach (ITypeReference typeReference in registeredType.References)
             {
-                _types[typeReference] = registeredType;
+                _typeRegister[typeReference] = registeredType;
+            }
+
+            if (addToTypes)
+            {
+                _types.Add(registeredType);
             }
         }
 
@@ -140,17 +143,30 @@ namespace HotChocolate.Configuration
 
             typeName.EnsureNotEmpty(nameof(typeName));
 
+            if(registeredType.IsExtension)
+            {
+                return;
+            }
+
+            if(!registeredType.IsNamedType && !registeredType.IsDirectiveType)
+            {
+                return;
+            }
+
             if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
                 TryGetType(typeRef, out RegisteredType? type) &&
                 !ReferenceEquals(type, registeredType))
             {
                 throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
             }
+
+            _nameRefs[typeName] = registeredType.References[0];
         }
 
         public void RebuildIndexes()
         {
-            Types = new List<RegisteredType>(_types.Values.Distinct());
+            _types.Clear();
+            _types.AddRange(_typeRegister.Values.Distinct());
         }
     }
 }
