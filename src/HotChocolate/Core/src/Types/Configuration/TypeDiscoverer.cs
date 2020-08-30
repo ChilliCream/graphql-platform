@@ -12,54 +12,47 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeDiscoverer
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _registeredTypes =
-            new Dictionary<ITypeReference, RegisteredType>();
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
         private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
+            IDescriptorContext context,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
             ISet<ITypeReference> initialTypes,
-            IDictionary<ExtendedTypeReference, ITypeReference> clrTypeReferences,
-            IDescriptorContext descriptorContext,
             ITypeInterceptor interceptor,
-            IServiceProvider services,
             bool includeSystemTypes = true)
         {
+            _typeRegistry = typeRegistry;
+
             if (includeSystemTypes)
             {
                 _unregistered.AddRange(
-                    IntrospectionTypes.CreateReferences(descriptorContext.TypeInspector));
+                    IntrospectionTypes.CreateReferences(context.TypeInspector));
                 _unregistered.AddRange(
-                    Directives.CreateReferences(descriptorContext.TypeInspector));
+                    Directives.CreateReferences(context.TypeInspector));
             }
 
-            _unregistered.AddRange(clrTypeReferences.Values);
+            _unregistered.AddRange(typeRegistry.GetTypeRefs());
             _unregistered.AddRange(initialTypes);
 
-            _clrTypeReferences = clrTypeReferences;
-
-            _typeRegistrar = new TypeRegistrar(
-                _registeredTypes,
-                clrTypeReferences,
-                descriptorContext,
-                interceptor,
-                services);
+            _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ExtendedTypeReferenceHandler(descriptorContext.TypeInspector),
-                new SyntaxTypeReferenceHandler(descriptorContext.TypeInspector)
+                new ExtendedTypeReferenceHandler(context.TypeInspector),
+                new SyntaxTypeReferenceHandler(context.TypeInspector)
             };
 
-            _typeInspector = descriptorContext.TypeInspector;
+            _typeInspector = context.TypeInspector;
         }
 
-        public DiscoveredTypes DiscoverTypes()
+        public IReadOnlyList<ISchemaError> DiscoverTypes()
         {
             const int max = 1000;
             var tries = 0;
@@ -89,10 +82,7 @@ namespace HotChocolate.Configuration
 
             CollectErrors();
 
-            return new DiscoveredTypes(
-                _registeredTypes,
-                _clrTypeReferences,
-                _errors);
+            return _errors;
         }
 
         private void RegisterTypes()
@@ -123,11 +113,7 @@ namespace HotChocolate.Configuration
                     ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
                     _unregistered.Add(typeReference);
                     _typeRegistrar.MarkResolved(unresolvedType);
-
-                    if (!_clrTypeReferences.ContainsKey(unresolvedType))
-                    {
-                        _clrTypeReferences.Add(unresolvedType, typeReference);
-                    }
+                    _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
                 else if (SchemaTypeResolver.TryInferSchemaType(
                     _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
@@ -145,7 +131,7 @@ namespace HotChocolate.Configuration
         private void CollectErrors()
         {
             foreach (TypeDiscoveryContext context in
-                _registeredTypes.Values.Distinct().Select(t => t.DiscoveryContext))
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);
             }

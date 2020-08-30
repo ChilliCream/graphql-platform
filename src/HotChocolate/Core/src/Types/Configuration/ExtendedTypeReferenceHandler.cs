@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            if (!resolved && normalizedTypeRef is { })
+            if (!resolved && normalizedTypeRef is not null)
             {
                 typeRegistrar.MarkUnresolved(normalizedTypeRef);
             }

@@ -16,7 +16,7 @@
     "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
     "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Bar>": "HotChocolate.Configuration.TypeDiscovererTests.Bar"
   },
-  "clr": {
+  "runtimeTypeRefs": {
     "None: DirectiveLocation!": "None: __DirectiveLocation",
     "Output: EnumValue": "Output: __EnumValue",
     "Output: IOutputField": "Output: __Field",

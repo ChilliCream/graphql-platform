@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -101,8 +102,8 @@ namespace HotChocolate.Utilities
                     .Build());
 
         public static SchemaException TypeCompletionContext_UnableToResolveType(
-            ITypeSystemObject type, 
-            ITypeReference typeRef) => 
+            ITypeSystemObject type,
+            ITypeReference typeRef) =>
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
@@ -111,5 +112,16 @@ namespace HotChocolate.Utilities
                     .SetTypeSystemObject(type)
                     .SetExtension(nameof(typeRef), typeRef)
                     .Build());
+
+        public static SchemaException TypeInitializer_DuplicateTypeName(
+            ITypeSystemObject type,
+            ITypeSystemObject otherType) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.TypeInitializer_CompleteName_Duplicate,
+                    type.Name)
+                .SetTypeSystemObject(type)
+                .SetExtension(nameof(otherType), otherType)
+                .Build());
     }
 }

@@ -5,6 +5,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
+#nullable enable
+
 namespace HotChocolate.Configuration
 {
     public interface ITypeCompletionContext
@@ -17,7 +19,7 @@ namespace HotChocolate.Configuration
 
         IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 
-        IsOfTypeFallback IsOfType { get; }
+        IsOfTypeFallback? IsOfType { get; }
 
         /// <summary>
         /// Tries to resolve a type by its <paramref name="typeRef" />.
@@ -56,8 +58,8 @@ namespace HotChocolate.Configuration
         IEnumerable<T> GetTypes<T>() where T : IType;
 
         bool TryGetDirectiveType(
-            IDirectiveReference directiveRef, 
-            [NotNullWhen(true)] out DirectiveType directiveType);
+            IDirectiveReference directiveRef,
+            [NotNullWhen(true)] out DirectiveType? directiveType);
 
         DirectiveType GetDirectiveType(IDirectiveReference directiveRef);
 

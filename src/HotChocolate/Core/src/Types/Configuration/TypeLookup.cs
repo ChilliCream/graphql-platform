@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -12,30 +13,30 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeLookup
     {
+        private readonly Dictionary<ITypeReference, ITypeReference> _refs =
+            new Dictionary<ITypeReference, ITypeReference>();
         private readonly ITypeInspector _typeInspector;
-        private readonly IDictionary<ITypeReference, ITypeReference> _refs;
-        private readonly IDictionary<ExtendedTypeReference, ITypeReference> _runtimeTypeRefs;
-        private readonly IDictionary<NameString, ITypeReference> _nameTypeRefs;
-        private readonly DiscoveredTypes _types;
+        private readonly TypeRegistry _typeRegistry;
 
         public TypeLookup(
             ITypeInspector typeInspector,
-            IDictionary<ITypeReference, ITypeReference> refs,
-            IDictionary<ExtendedTypeReference, ITypeReference> runtimeTypeRefs,
-            IDictionary<NameString, ITypeReference> nameTypeRefs,
-            DiscoveredTypes types)
+            TypeRegistry typeRegistry)
         {
-            _typeInspector = typeInspector;
-            _refs = refs;
-            _runtimeTypeRefs = runtimeTypeRefs;
-            _nameTypeRefs = nameTypeRefs;
-            _types = types;
+            _typeInspector = typeInspector ??
+                throw new ArgumentNullException(nameof(typeInspector));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
         }
 
         public bool TryNormalizeReference(
             ITypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (typeRef == null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
             // if we already created a lookup for this type reference we can just return the
             // the type reference to the named type.
             if (_refs.TryGetValue(typeRef, out namedTypeRef))
@@ -61,17 +62,7 @@ namespace HotChocolate.Configuration
 
                 case SyntaxTypeReference r:
                     NameString typeName = r.Type.NamedType().Name.Value;
-                    if (_nameTypeRefs.TryGetValue(typeName, out namedTypeRef))
-                    {
-                        _refs[typeRef] = namedTypeRef;
-                        return true;
-                    }
-
-                    namedTypeRef = _types.Types
-                        .FirstOrDefault(t => t.Type.Name.Equals(typeName))
-                        ?.References[0];
-
-                    if (namedTypeRef is not null)
+                    if (_typeRegistry.TryGetTypeRef(typeName, out namedTypeRef))
                     {
                         _refs[typeRef] = namedTypeRef;
                         return true;
@@ -87,20 +78,25 @@ namespace HotChocolate.Configuration
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (directiveRef == null)
+            {
+                throw new ArgumentNullException(nameof(directiveRef));
+            }
+
             if (directiveRef is ClrTypeDirectiveReference cr)
             {
                 ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
-                if (!_runtimeTypeRefs.TryGetValue(directiveTypeRef, out namedTypeRef))
+                if (!_typeRegistry.TryGetTypeRef(directiveTypeRef, out namedTypeRef))
                 {
                     namedTypeRef = directiveTypeRef;
                 }
-                return namedTypeRef is not null;
+                return true;
             }
 
             if (directiveRef is NameDirectiveReference nr)
             {
-                namedTypeRef = _types.Types
-                    .FirstOrDefault(t => t.Type.Name.Equals(nr.Name) && t.Type is DirectiveType)?
+                namedTypeRef = _typeRegistry.Types
+                    .FirstOrDefault(t =>t.Type is DirectiveType && t.Type.Name.Equals(nr.Name))?
                     .References[0];
                 return namedTypeRef is not null;
             }
@@ -113,6 +109,11 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (typeRef == null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+            
             // if the typeRef refers to a schema type base class we skip since such a type is not
             // resolvable.
             if (typeRef.Type.Type.IsNonGenericSchemaType() ||
@@ -136,8 +137,8 @@ namespace HotChocolate.Configuration
             {
                 IExtendedType componentType = typeInfo.Components[i].Type;
                 ExtendedTypeReference componentRef = typeRef.WithType(componentType);
-                if (_runtimeTypeRefs.TryGetValue(componentRef, out namedTypeRef) ||
-                    _runtimeTypeRefs.TryGetValue(componentRef.WithContext(), out namedTypeRef))
+                if (_typeRegistry.TryGetTypeRef(componentRef, out namedTypeRef) ||
+                    _typeRegistry.TryGetTypeRef(componentRef.WithContext(), out namedTypeRef))
                 {
                     return true;
                 }

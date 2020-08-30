@@ -10,13 +10,14 @@
     "HotChocolate.Types.Introspection.__TypeKind": "HotChocolate.Types.TypeKind",
     "HotChocolate.Types.SkipDirectiveType": "System.Object",
     "HotChocolate.Types.IncludeDirectiveType": "System.Object",
+    "HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.Foo>": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
     "HotChocolate.Configuration.TypeDiscovererTests.FooType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
     "HotChocolate.Types.StringType": "System.String",
     "HotChocolate.Types.BooleanType": "System.Boolean",
     "HotChocolate.Types.DeprecatedDirectiveType": "HotChocolate.Types.DeprecatedDirective",
     "HotChocolate.Configuration.TypeDiscovererTests.BarType": "HotChocolate.Configuration.TypeDiscovererTests.Bar"
   },
-  "clr": {
+  "runtimeTypeRefs": {
     "None: DirectiveLocation!": "None: __DirectiveLocation",
     "Output: EnumValue": "Output: __EnumValue",
     "Output: IOutputField": "Output: __Field",

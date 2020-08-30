@@ -4,10 +4,12 @@
 
 type A_Bar {
   baz: C_Baz
+  someString: String
 }
 
 type B_Bar {
   baz: C_Baz
+  someString: String
 }
 
 type C_Baz {

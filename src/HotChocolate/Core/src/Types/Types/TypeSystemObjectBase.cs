@@ -16,8 +16,6 @@ namespace HotChocolate.Types
         private string? _scope;
         private string? _description;
 
-        protected TypeSystemObjectBase() { }
-
         /// <summary>
         /// Gets a scope name that was provided by an extension.
         /// </summary>

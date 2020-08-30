@@ -31,10 +31,10 @@ namespace HotChocolate
                 IReadOnlyList<ITypeReference> typeReferences =
                     CreateTypeReferences(builder, context, bindingLookup);
 
-                TypeInitializer initializer =
+                TypeRegistry typeRegistry =
                     InitializeTypes(builder, context, bindingLookup, typeReferences, lazySchema);
 
-                return CompleteSchema(builder, context, lazySchema, initializer);
+                return CompleteSchema(builder, context, lazySchema, typeRegistry);
             }
 
             private static DescriptorContext CreateContext(
@@ -147,24 +147,26 @@ namespace HotChocolate
                 }
             }
 
-            private static TypeInitializer InitializeTypes(
+            private static TypeRegistry InitializeTypes(
                 SchemaBuilder builder,
                 DescriptorContext context,
                 IBindingLookup bindingLookup,
                 IReadOnlyList<ITypeReference> types,
                 LazySchema lazySchema)
             {
+                var typeRegistry = new TypeRegistry();
                 TypeInitializer initializer =
-                    CreateTypeInitializer(builder, context, bindingLookup, types);
+                    CreateTypeInitializer(builder, context, bindingLookup, types, typeRegistry);
                 initializer.Initialize(() => lazySchema.Schema, builder._options);
-                return initializer;
+                return typeRegistry;
             }
 
             private static TypeInitializer CreateTypeInitializer(
                 SchemaBuilder builder,
                 IDescriptorContext context,
                 IBindingLookup bindingLookup,
-                IEnumerable<ITypeReference> typeReferences)
+                IReadOnlyList<ITypeReference> typeReferences,
+                TypeRegistry typeRegistry)
             {
                 Dictionary<OperationType, ITypeReference> operations =
                     builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
@@ -174,6 +176,7 @@ namespace HotChocolate
 
                 var initializer = new TypeInitializer(
                     context,
+                    typeRegistry,
                     typeReferences,
                     builder._resolverTypes,
                     interceptor,
@@ -202,8 +205,9 @@ namespace HotChocolate
 
                 foreach (KeyValuePair<Type, (CreateRef, CreateRef)> binding in builder._clrTypes)
                 {
-                    initializer.ClrTypes[(ExtendedTypeReference)binding.Value.Item1(context.TypeInspector)] =
-                        binding.Value.Item2.Invoke(context.TypeInspector);
+                    typeRegistry.TryRegister(
+                        (ExtendedTypeReference)binding.Value.Item1(context.TypeInspector),
+                        binding.Value.Item2.Invoke(context.TypeInspector));
                 }
 
                 return initializer;
@@ -286,10 +290,10 @@ namespace HotChocolate
                 SchemaBuilder builder,
                 DescriptorContext context,
                 LazySchema lazySchema,
-                TypeInitializer typeInitializer)
+                TypeRegistry typeRegistry)
             {
                 SchemaTypesDefinition definition =
-                    CreateSchemaDefinition(builder, context, typeInitializer);
+                    CreateSchemaDefinition(builder, context, typeRegistry);
 
                 if (definition.QueryType == null && builder._options.StrictValidation)
                 {
@@ -299,7 +303,7 @@ namespace HotChocolate
                             .Build());
                 }
 
-                Schema schema = typeInitializer.DiscoveredTypes!.Types
+                Schema schema = typeRegistry.Types
                     .Select(t => t.Type).OfType<Schema>().First();
 
                 schema.CompleteSchema(definition);
@@ -310,7 +314,7 @@ namespace HotChocolate
             private static SchemaTypesDefinition CreateSchemaDefinition(
                 SchemaBuilder builder,
                 DescriptorContext context,
-                TypeInitializer typeInitializer)
+                TypeRegistry typeRegistry)
             {
                 var definition = new SchemaTypesDefinition();
 
@@ -332,14 +336,14 @@ namespace HotChocolate
 
 
                 definition.QueryType = ResolveOperation(
-                    OperationType.Query, operations, typeInitializer);
+                    OperationType.Query, operations, typeRegistry);
                 definition.MutationType = ResolveOperation(
-                    OperationType.Mutation, operations, typeInitializer);
+                    OperationType.Mutation, operations, typeRegistry);
                 definition.SubscriptionType = ResolveOperation(
-                    OperationType.Subscription, operations, typeInitializer);
+                    OperationType.Subscription, operations, typeRegistry);
 
                 IReadOnlyCollection<TypeSystemObjectBase> types =
-                    RemoveUnreachableTypes(builder, typeInitializer.DiscoveredTypes!, definition);
+                    RemoveUnreachableTypes(builder, typeRegistry, definition);
 
                 definition.Types = types.OfType<INamedType>().Distinct().ToArray();
                 definition.DirectiveTypes = types.OfType<DirectiveType>().Distinct().ToArray();
@@ -350,12 +354,12 @@ namespace HotChocolate
             private static ObjectType? ResolveOperation(
                 OperationType operation,
                 Dictionary<OperationType, ITypeReference> operations,
-                TypeInitializer initializer)
+                TypeRegistry typeRegistry)
             {
                 if (!operations.ContainsKey(operation))
                 {
                     NameString typeName = operation.ToString();
-                    return initializer.DiscoveredTypes!.Types
+                    return typeRegistry.Types
                         .Select(t => t.Type)
                         .OfType<ObjectType>()
                         .FirstOrDefault(t => t.Name.Equals(typeName));
@@ -368,7 +372,7 @@ namespace HotChocolate
                     }
 
                     if (reference is ExtendedTypeReference cr &&
-                        initializer.TryGetRegisteredType(cr, out RegisteredType? registeredType))
+                        typeRegistry.TryGetType(cr, out RegisteredType? registeredType))
                     {
                         return (ObjectType)registeredType.Type;
                     }
@@ -376,7 +380,7 @@ namespace HotChocolate
                     if (reference is SyntaxTypeReference str)
                     {
                         NamedTypeNode namedType = str.Type.NamedType();
-                        return initializer.DiscoveredTypes!.Types
+                        return typeRegistry.Types
                             .Select(t => t.Type)
                             .OfType<ObjectType>()
                             .FirstOrDefault(t => t.Name.Equals(
@@ -389,12 +393,12 @@ namespace HotChocolate
 
             private static IReadOnlyCollection<TypeSystemObjectBase> RemoveUnreachableTypes(
                 SchemaBuilder builder,
-                DiscoveredTypes discoveredTypes,
+                TypeRegistry typeRegistry,
                 SchemaTypesDefinition definition)
             {
                 if (builder._options.RemoveUnreachableTypes)
                 {
-                    var trimmer = new TypeTrimmer(discoveredTypes);
+                    var trimmer = new TypeTrimmer(typeRegistry);
 
                     if (definition.QueryType is { })
                     {
@@ -414,7 +418,7 @@ namespace HotChocolate
                     return trimmer.Types;
                 }
 
-                return discoveredTypes.Types.Select(t => t.Type).ToList();
+                return typeRegistry.Types.Select(t => t.Type).ToList();
             }
         }
     }

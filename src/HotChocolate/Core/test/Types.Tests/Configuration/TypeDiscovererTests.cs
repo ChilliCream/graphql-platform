@@ -16,38 +16,36 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists_NoSystemTypes()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 new AggregateTypeInitializationInterceptor(),
-                serviceProvider,
                 false);
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
             }.MatchSnapshot();
@@ -57,37 +55,35 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
             }.MatchSnapshot();
@@ -97,39 +93,37 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
             }.MatchSnapshot();
         }
 
@@ -137,38 +131,36 @@ namespace HotChocolate.Configuration
         public void Upgrade_Type_From_GenericType()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
             }.MatchSnapshot();
