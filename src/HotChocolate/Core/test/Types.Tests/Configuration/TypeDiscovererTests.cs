@@ -16,15 +16,18 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists_NoSystemTypes()
         {
             // arrange
+            var context = DescriptorContext.Create();
             var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
+                context,
                 typeRegistry,
+                typeLookup,
                 new HashSet<ITypeReference>
                 {
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                DescriptorContext.Create(),
                 new AggregateTypeInitializationInterceptor(),
                 false);
 
@@ -52,15 +55,18 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
+            var context = DescriptorContext.Create();
             var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
+                context,
                 typeRegistry,
+                typeLookup,
                 new HashSet<ITypeReference>
                 {
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                DescriptorContext.Create(),
                 new AggregateTypeInitializationInterceptor());
 
             // act
@@ -87,15 +93,18 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
+            var context = DescriptorContext.Create();
             var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
+                context,
                 typeRegistry,
+                typeLookup,
                 new HashSet<ITypeReference>
                 {
                     _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                DescriptorContext.Create(),
                 new AggregateTypeInitializationInterceptor());
 
             // act
@@ -122,16 +131,19 @@ namespace HotChocolate.Configuration
         public void Upgrade_Type_From_GenericType()
         {
             // arrange
+            var context = DescriptorContext.Create();
             var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
+                context,
                 typeRegistry,
+                typeLookup,
                 new HashSet<ITypeReference>
                 {
                     _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                DescriptorContext.Create(),
                 new AggregateTypeInitializationInterceptor());
 
             // act

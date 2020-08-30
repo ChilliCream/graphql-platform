@@ -44,6 +44,9 @@ namespace HotChocolate.Configuration
         {
             [Scope(Scope = "C")]
             public Baz Baz => new Baz();
+
+            [Scope(Scope = "D")]
+            public string SomeString => "hello";
         }
 
         public class Baz
@@ -126,13 +129,34 @@ namespace HotChocolate.Configuration
             {
                 if (discoveryContext is { Scope: not null })
                 {
-                    typeDependencies = discoveryContext.TypeDependencies
-                        .Where(t => t.TypeReference.Scope is null)
-                        .Select(t => t
-                            .With(((ExtendedTypeReference)t.TypeReference)
-                            .WithScope(discoveryContext.Scope)))
-                        .ToList();
-                    return true;
+                    var list = new List<TypeDependency>();
+
+                    foreach (TypeDependency typeDependency in discoveryContext.TypeDependencies)
+                    {
+                        if (!discoveryContext.TryPredictTypeKind(
+                            typeDependency.TypeReference,
+                            out TypeKind kind) ||
+                            kind == TypeKind.Scalar)
+                        {
+                            list.Add(typeDependency);
+                            continue;
+                        }
+
+                        var typeReference = (ExtendedTypeReference)typeDependency.TypeReference;
+
+                        if (typeDependency.TypeReference.Scope is null)
+                        {
+                            typeReference = typeReference.WithScope(discoveryContext.Scope);
+                            list.Add(typeDependency.With(typeReference));
+                        }
+                        else
+                        {
+                            list.Add(typeDependency);
+                        }
+
+                        typeDependencies = list;
+                        return true;
+                    }
                 }
 
                 typeDependencies = null;

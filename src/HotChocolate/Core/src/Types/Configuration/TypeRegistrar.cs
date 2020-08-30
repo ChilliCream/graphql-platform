@@ -19,19 +19,25 @@ namespace HotChocolate.Configuration
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
         private readonly TypeRegistry _typeRegistry;
-        private readonly IDescriptorContext _descriptorContext;
+        private readonly TypeLookup _typeLookup;
+        private readonly IDescriptorContext _context;
         private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
+            IDescriptorContext context,
             TypeRegistry typeRegistry,
-            IDescriptorContext descriptorContext,
-            ITypeInterceptor interceptor,
-            IServiceProvider services)
+            TypeLookup typeLookup,
+            ITypeInterceptor typeInterceptor)
         {
-            _typeRegistry = typeRegistry;
-            _descriptorContext = descriptorContext;
-            _interceptor = interceptor;
-            _serviceFactory.Services = services;
+            _context = context ??
+                throw new ArgumentNullException(nameof(context));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
+            _typeLookup = typeLookup ??
+                throw new ArgumentNullException(nameof(typeLookup));
+            _interceptor = typeInterceptor ??
+                throw new ArgumentNullException(nameof(typeInterceptor));
+            _serviceFactory.Services = context.Services;
         }
 
         public void Register(
@@ -57,7 +63,7 @@ namespace HotChocolate.Configuration
                     && hasRuntimeType.RuntimeType != typeof(object))
                 {
                     ExtendedTypeReference? runtimeTypeRef =
-                        _descriptorContext.TypeInspector.GetTypeRef(
+                        _context.TypeInspector.GetTypeRef(
                             hasRuntimeType.RuntimeType,
                             SchemaTypeReference.InferTypeContext(typeSystemObject),
                             scope: scope);
@@ -161,10 +167,11 @@ namespace HotChocolate.Configuration
             {
                 var discoveryContext = new TypeDiscoveryContext(
                     typeSystemObject,
-                    scope,
-                    _serviceFactory.Services,
-                    _descriptorContext,
-                    _interceptor);
+                    _typeRegistry,
+                    _typeLookup,
+                    _context,
+                    _interceptor,
+                    scope);
 
                 typeSystemObject.Initialize(discoveryContext);
 
@@ -179,7 +186,7 @@ namespace HotChocolate.Configuration
 
                 if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    references.Add(_descriptorContext.TypeInspector.GetTypeRef(
+                    references.Add(_context.TypeInspector.GetTypeRef(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope));
@@ -188,7 +195,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
                     && hasTypeIdentity.TypeIdentity is { })
                 {
-                    var reference = _descriptorContext.TypeInspector.GetTypeRef(
+                    ExtendedTypeReference reference = _context.TypeInspector.GetTypeRef(
                         hasTypeIdentity.TypeIdentity,
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope);

@@ -20,9 +20,10 @@ namespace HotChocolate.Configuration
         private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
-            TypeRegistry typeRegistry,
-            ISet<ITypeReference> initialTypes,
             IDescriptorContext context,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
+            ISet<ITypeReference> initialTypes,
             ITypeInterceptor interceptor,
             bool includeSystemTypes = true)
         {
@@ -39,11 +40,7 @@ namespace HotChocolate.Configuration
             _unregistered.AddRange(typeRegistry.GetTypeRefs());
             _unregistered.AddRange(initialTypes);
 
-            _typeRegistrar = new TypeRegistrar(
-                _typeRegistry,
-                context,
-                interceptor,
-                context.Services);
+            _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 
             _handlers = new ITypeRegistrarHandler[]
             {

@@ -58,6 +58,50 @@ namespace HotChocolate.Configuration
             return schemaType != null;
         }
 
+        public static bool TryInferSchemaTypeKind(
+            ExtendedTypeReference unresolvedType,
+            out TypeKind kind)
+        {
+            if (IsObjectTypeExtension(unresolvedType))
+            {
+                kind = TypeKind.Object;
+                return true;
+            }
+
+            if (IsUnionType(unresolvedType))
+            {
+                kind = TypeKind.Union;
+                return true;
+            }
+
+            if (IsInterfaceType(unresolvedType))
+            {
+                kind = TypeKind.Interface;
+                return true;
+            }
+
+            if (IsObjectType(unresolvedType))
+            {
+                kind = TypeKind.Object;
+                return true;
+            }
+
+            if (IsInputObjectType(unresolvedType))
+            {
+                kind = TypeKind.InputObject;
+                return true;
+            }
+
+            if (IsEnumType(unresolvedType))
+            {
+                kind = TypeKind.Enum;
+                return true;
+            }
+            
+            kind = default;
+            return false;
+        }
+
         private static bool IsObjectType(ExtendedTypeReference unresolvedType)
         {
             return (IsComplexType(unresolvedType)

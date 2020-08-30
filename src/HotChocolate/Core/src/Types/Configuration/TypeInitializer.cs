@@ -74,8 +74,11 @@ namespace HotChocolate.Configuration
         {
             // first we are going to find and initialize all types that belong to our schema.
             var typeRegistrar = new TypeDiscoverer(
-                _typeRegistry, new HashSet<ITypeReference>(_initialTypes),
-                _context, _interceptor);
+                _context,
+                _typeRegistry,
+                _typeLookup,
+                new HashSet<ITypeReference>(_initialTypes),
+                _interceptor);
 
             if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
             {

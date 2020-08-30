@@ -1,6 +1,8 @@
 using System.Reflection;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -11,6 +13,8 @@ namespace HotChocolate.Configuration
     internal sealed class TypeDiscoveryContext
         : ITypeDiscoveryContext
     {
+        private readonly TypeRegistry _typeRegistry;
+        private readonly TypeLookup _typeLookup;
         private readonly List<TypeDependency> _typeDependencies =
             new List<TypeDependency>();
         private readonly List<IDirectiveReference> _directiveReferences =
@@ -18,20 +22,24 @@ namespace HotChocolate.Configuration
 
         public TypeDiscoveryContext(
             ITypeSystemObject type,
-            string scope,
-            IServiceProvider services,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
             IDescriptorContext descriptorContext,
-            ITypeInterceptor interceptor)
+            ITypeInterceptor typeInterceptor,
+            string scope)
         {
-            Type = type
-                ?? throw new ArgumentNullException(nameof(type));
+            Type = type ??
+                throw new ArgumentNullException(nameof(type));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
+            _typeLookup = typeLookup ??
+                throw new ArgumentNullException(nameof(typeLookup));
+            DescriptorContext = descriptorContext ??
+                throw new ArgumentNullException(nameof(descriptorContext));
+            TypeInterceptor = typeInterceptor ??
+                throw new ArgumentNullException(nameof(typeInterceptor));
             Scope = scope;
-            Services = services
-                ?? throw new ArgumentNullException(nameof(services));
-            DescriptorContext = descriptorContext
-                ?? throw new ArgumentNullException(nameof(descriptorContext));
-            TypeInterceptor = interceptor
-                ?? throw new ArgumentNullException(nameof(interceptor));
+
             IsDirective = type is DirectiveType;
             IsSchema = type is Schema;
 
@@ -58,13 +66,11 @@ namespace HotChocolate.Configuration
 
         public bool IsSchema { get; }
 
-        public IServiceProvider Services { get; }
+        public IServiceProvider Services => DescriptorContext.Services;
 
-        public IReadOnlyList<TypeDependency> TypeDependencies =>
-            _typeDependencies;
+        public IReadOnlyList<TypeDependency> TypeDependencies => _typeDependencies;
 
-        public ICollection<IDirectiveReference> DirectiveReferences =>
-            _directiveReferences;
+        public ICollection<IDirectiveReference> DirectiveReferences => _directiveReferences;
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers { get; } =
             new Dictionary<FieldReference, RegisteredResolver>();
@@ -178,10 +184,95 @@ namespace HotChocolate.Configuration
 
             Errors.Add(error);
         }
-        
+
         public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind)
         {
-            throw new NotImplementedException();
+            if (_typeLookup.TryNormalizeReference(typeRef, out ITypeReference namedTypeRef) &&
+                _typeRegistry.TryGetType(namedTypeRef, out RegisteredType registeredType))
+            {
+                switch (registeredType.Type)
+                {
+                    case INamedType namedType:
+                        kind = namedType.Kind;
+                        return true;
+
+                    case DirectiveType:
+                        kind = TypeKind.Directive;
+                        return true;
+
+                    default:
+                        kind = default;
+                        return false;
+                }
+            }
+
+            namedTypeRef ??= typeRef;
+
+            switch (namedTypeRef)
+            {
+                case ExtendedTypeReference r:
+                    if (Scalars.TryGetScalar(r.Type.Type, out _))
+                    {
+                        kind = TypeKind.Scalar;
+                        return true;
+                    }
+
+                    if (r.Type.IsSchemaType)
+                    {
+                        kind = GetTypeKindFromSchemaType(r.Type);
+                        return true;
+                    }
+
+                    return SchemaTypeResolver.TryInferSchemaTypeKind(r, out kind);
+
+                case SchemaTypeReference r:
+                    kind = GetTypeKindFromSchemaType(TypeInspector.GetType(r.Type.GetType()));
+                    return true;
+
+                default:
+                    kind = default;
+                    return false;
+            }
+        }
+
+        private static TypeKind GetTypeKindFromSchemaType(IExtendedType type)
+        {
+            if (typeof(ScalarType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Scalar;
+            }
+
+            if (typeof(InputObjectType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.InputObject;
+            }
+
+            if (typeof(EnumType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Enum;
+            }
+
+            if (typeof(ObjectType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Object;
+            }
+
+            if (typeof(InterfaceType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Interface;
+            }
+
+            if (typeof(UnionType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Union;
+            }
+
+            if (typeof(DirectiveType).IsAssignableFrom(type.Type))
+            {
+                return TypeKind.Directive;
+            }
+
+            throw new NotSupportedException();
         }
     }
 }
