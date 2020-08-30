@@ -39,6 +39,11 @@ namespace HotChocolate.Configuration
             string? scope,
             bool isInferred = false)
         {
+            if (typeSystemObject is null)
+            {
+                throw new ArgumentNullException(nameof(typeSystemObject));
+            }
+
             RegisteredType registeredType = InitializeType(
                 typeSystemObject,
                 scope,
@@ -51,7 +56,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasRuntimeType hasRuntimeType
                     && hasRuntimeType.RuntimeType != typeof(object))
                 {
-                    ExtendedTypeReference? runtimeTypeRef = 
+                    ExtendedTypeReference? runtimeTypeRef =
                         _descriptorContext.TypeInspector.GetTypeRef(
                             hasRuntimeType.RuntimeType,
                             SchemaTypeReference.InferTypeContext(typeSystemObject),
@@ -79,14 +84,35 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public void MarkUnresolved(ITypeReference typeReference) =>
+        public void MarkUnresolved(ITypeReference typeReference)
+        {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
             _unresolved.Add(typeReference);
+        }
 
-        public void MarkResolved(ITypeReference typeReference) =>
+        public void MarkResolved(ITypeReference typeReference)
+        {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
             _unresolved.Remove(typeReference);
+        }
 
-        public bool IsResolved(ITypeReference typeReference) =>
-            _typeRegistry.IsRegistered(typeReference);
+        public bool IsResolved(ITypeReference typeReference)
+        {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
+            return _typeRegistry.IsRegistered(typeReference);
+        }
 
         public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
         {
@@ -100,8 +126,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        public IReadOnlyCollection<ITypeReference> GetUnresolved() =>
-            _unresolved.ToList();
+        public IReadOnlyCollection<ITypeReference> GetUnresolved() => _unresolved.ToList();
 
         public IReadOnlyCollection<ITypeReference> GetUnhandled()
         {
@@ -175,10 +200,10 @@ namespace HotChocolate.Configuration
                 }
 
                 var registeredType = new RegisteredType(
-                    references,
                     typeSystemObject,
-                    discoveryContext,
+                    references,
                     CollectDependencies(discoveryContext),
+                    discoveryContext,
                     isInferred);
 
                 return registeredType;

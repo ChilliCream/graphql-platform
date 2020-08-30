@@ -24,8 +24,18 @@ namespace HotChocolate.Configuration
         public IReadOnlyList<RegisteredType> Types { get; private set; } =
             Array.Empty<RegisteredType>();
 
+        public IReadOnlyDictionary<ExtendedTypeReference, ITypeReference> RuntimeTypeRefs =>
+            _runtimeTypeRefs;
+
+        public IReadOnlyDictionary<NameString, ITypeReference> NameRefs => _nameRefs;
+
         public bool IsRegistered(ITypeReference typeReference)
         {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
             if (_types.ContainsKey(typeReference))
             {
                 return true;
@@ -43,6 +53,11 @@ namespace HotChocolate.Configuration
             ITypeReference typeRef,
             [NotNullWhen(true)] out RegisteredType? registeredType)
         {
+            if (typeRef is null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
             if (typeRef is ExtendedTypeReference clrTypeRef &&
                 _runtimeTypeRefs.TryGetValue(clrTypeRef, out ITypeReference? internalRef))
             {
@@ -54,13 +69,22 @@ namespace HotChocolate.Configuration
 
         public bool TryGetTypeRef(
             ExtendedTypeReference runtimeTypeRef,
-            [NotNullWhen(true)] out ITypeReference? typeRef) =>
-            _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+            [NotNullWhen(true)] out ITypeReference? typeRef)
+        {
+            if (runtimeTypeRef is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeTypeRef));
+            }
+
+            return _runtimeTypeRefs.TryGetValue(runtimeTypeRef, out typeRef);
+        }
 
         public bool TryGetTypeRef(
             NameString typeName,
             [NotNullWhen(true)] out ITypeReference? typeRef)
         {
+            typeName.EnsureNotEmpty(nameof(typeName));
+
             if (!_nameRefs.TryGetValue(typeName, out typeRef))
             {
                 typeRef = Types
@@ -78,6 +102,16 @@ namespace HotChocolate.Configuration
 
         public void TryRegister(ExtendedTypeReference runtimeTypeRef, ITypeReference typeRef)
         {
+            if (runtimeTypeRef is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeTypeRef));
+            }
+
+            if (typeRef is null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
             if (!_runtimeTypeRefs.ContainsKey(runtimeTypeRef))
             {
                 _runtimeTypeRefs.Add(runtimeTypeRef, typeRef);
@@ -86,6 +120,11 @@ namespace HotChocolate.Configuration
 
         public void Register(RegisteredType registeredType)
         {
+            if (registeredType is null)
+            {
+                throw new ArgumentNullException(nameof(registeredType));
+            }
+
             foreach (ITypeReference typeReference in registeredType.References)
             {
                 _types[typeReference] = registeredType;
@@ -94,25 +133,24 @@ namespace HotChocolate.Configuration
 
         public void Register(NameString typeName, RegisteredType registeredType)
         {
+            if (registeredType is null)
+            {
+                throw new ArgumentNullException(nameof(registeredType));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+
             if (TryGetTypeRef(typeName, out ITypeReference? typeRef) &&
                 TryGetType(typeRef, out RegisteredType? type) &&
                 !ReferenceEquals(type, registeredType))
             {
-                throw new TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
+                throw TypeInitializer_DuplicateTypeName(registeredType.Type, type.Type);
             }
         }
 
-        public void RebuildIndexes(bool names = false)
+        public void RebuildIndexes()
         {
             Types = new List<RegisteredType>(_types.Values.Distinct());
-
-            if (names)
-            {
-                foreach (RegisteredType type in Types)
-                {
-                    _nameRefs[type.Type.Name] = type.References[0];
-                }
-            }
         }
     }
 }

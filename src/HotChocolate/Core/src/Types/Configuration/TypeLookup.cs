@@ -32,6 +32,11 @@ namespace HotChocolate.Configuration
             ITypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (typeRef == null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+
             // if we already created a lookup for this type reference we can just return the
             // the type reference to the named type.
             if (_refs.TryGetValue(typeRef, out namedTypeRef))
@@ -73,6 +78,11 @@ namespace HotChocolate.Configuration
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (directiveRef == null)
+            {
+                throw new ArgumentNullException(nameof(directiveRef));
+            }
+
             if (directiveRef is ClrTypeDirectiveReference cr)
             {
                 ExtendedTypeReference directiveTypeRef = _typeInspector.GetTypeRef(cr.ClrType);
@@ -80,7 +90,7 @@ namespace HotChocolate.Configuration
                 {
                     namedTypeRef = directiveTypeRef;
                 }
-                return namedTypeRef is not null;
+                return true;
             }
 
             if (directiveRef is NameDirectiveReference nr)
@@ -99,6 +109,11 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
+            if (typeRef == null)
+            {
+                throw new ArgumentNullException(nameof(typeRef));
+            }
+            
             // if the typeRef refers to a schema type base class we skip since such a type is not
             // resolvable.
             if (typeRef.Type.Type.IsNonGenericSchemaType() ||

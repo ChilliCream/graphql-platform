@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
         public TypeDiscoverer(
             TypeRegistry typeRegistry,
             ISet<ITypeReference> initialTypes,
-            IDescriptorContext descriptorContext,
+            IDescriptorContext context,
             ITypeInterceptor interceptor,
             bool includeSystemTypes = true)
         {
@@ -31,9 +31,9 @@ namespace HotChocolate.Configuration
             if (includeSystemTypes)
             {
                 _unregistered.AddRange(
-                    IntrospectionTypes.CreateReferences(descriptorContext.TypeInspector));
+                    IntrospectionTypes.CreateReferences(context.TypeInspector));
                 _unregistered.AddRange(
-                    Directives.CreateReferences(descriptorContext.TypeInspector));
+                    Directives.CreateReferences(context.TypeInspector));
             }
 
             _unregistered.AddRange(typeRegistry.GetTypeRefs());
@@ -41,18 +41,18 @@ namespace HotChocolate.Configuration
 
             _typeRegistrar = new TypeRegistrar(
                 _typeRegistry,
-                descriptorContext,
+                context,
                 interceptor,
-                descriptorContext.Services);
+                context.Services);
 
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ExtendedTypeReferenceHandler(descriptorContext.TypeInspector),
-                new SyntaxTypeReferenceHandler(descriptorContext.TypeInspector)
+                new ExtendedTypeReferenceHandler(context.TypeInspector),
+                new SyntaxTypeReferenceHandler(context.TypeInspector)
             };
 
-            _typeInspector = descriptorContext.TypeInspector;
+            _typeInspector = context.TypeInspector;
         }
 
         public IReadOnlyList<ISchemaError> DiscoverTypes()
@@ -133,7 +133,7 @@ namespace HotChocolate.Configuration
 
         private void CollectErrors()
         {
-            foreach (TypeDiscoveryContext context in 
+            foreach (TypeDiscoveryContext context in
                 _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);

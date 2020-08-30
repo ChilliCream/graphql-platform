@@ -99,19 +99,29 @@ namespace HotChocolate.Configuration
             // from .NET classes that implement .NET interfaces.
             RegisterImplicitInterfaceDependencies();
 
+            // with all types (implicit and explicit) known we complete the type names.
             CompleteNames(schemaResolver);
-            MergeTypeExtensions(_discoveredTypes);
-            RegisterExternalResolvers(_discoveredTypes);
+
+            // with the type names all known we can now build pairs to bring together types and
+            // their type extensions.
+            MergeTypeExtensions();
+
+            // external resolvers are resolvers that are defined on the schema and are associated
+            // with the types after they have received a name and the extensions are removed.
+            RegisterExternalResolvers();
+
+            // with all resolvers in place we compile the once inferred from a C# member.
             CompileResolvers();
-            CompleteTypes(_discoveredTypes);
 
+            // last we complete the types. Completing types means that we will assign all
+            // the fields resolving all missing parts and then making the types immutable.
+            CompleteTypes();
 
-            _errors.AddRange(_discoveredTypes.Errors);
-
+            // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
             {
                 _errors.AddRange(SchemaValidator.Validate(
-                    _discoveredTypes.Types.Select(t => t.Type),
+                    _typeRegistry.Types.Select(t => t.Type),
                     options));
             }
 
@@ -119,8 +129,6 @@ namespace HotChocolate.Configuration
             {
                 throw new SchemaException(_errors);
             }
-
-            return _discoveredTypes;
         }
 
         private void RegisterResolvers()
@@ -198,21 +206,9 @@ namespace HotChocolate.Configuration
 
                 registeredType.Type.CompleteName(registeredType.CompletionContext);
 
-                if (registeredType.Type is INamedType
-                    || registeredType.Type is DirectiveType)
+                if (registeredType.IsNamedType || registeredType.IsDirectiveType)
                 {
-                    if (_typeRegistry.Register() _named.ContainsKey(registeredType.Type.Name))
-                    {
-                        _errors.Add(SchemaErrorBuilder.New()
-                            .SetMessage(
-                                TypeInitializer_CompleteName_Duplicate,
-                                registeredType.Type.Name)
-                            .SetTypeSystemObject(registeredType.Type)
-                            .Build());
-                        return false;
-                    }
-                    _named[registeredType.Type.Name] =
-                        registeredType.References[0];
+                    _typeRegistry.Register(registeredType.Type.Name, registeredType);
                 }
 
                 return true;
@@ -220,29 +216,14 @@ namespace HotChocolate.Configuration
 
             if (ProcessTypes(TypeDependencyKind.Named, CompleteName))
             {
-                UpdateDependencyLookup();
-
                 if (_interceptor.TriggerAggregations)
                 {
                     _interceptor.OnTypesCompletedName(
-                        _completionContext.Values.Where(t => t is not null).ToList());
+                        _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
                 }
             }
 
             EnsureNoErrors();
-        }
-
-        private void UpdateDependencyLookup()
-        {
-            if (_discoveredTypes is { })
-            {
-                foreach (RegisteredType registeredType in _discoveredTypes.Types)
-                {
-                    TryNormalizeDependencies(
-                        registeredType.Dependencies.Select(t => t.TypeReference),
-                        out _);
-                }
-            }
         }
 
         private void MergeTypeExtensions()
@@ -301,16 +282,15 @@ namespace HotChocolate.Configuration
                     }
 
                     // merge
-                    TypeCompletionContext context = _completionContext[extension];
+                    TypeCompletionContext context = extension.CompletionContext;
                     context.Status = TypeStatus.Named;
                     m.Merge(context, targetType);
 
                     // update dependencies
-                    context = _completionContext[type];
-                    type = type.AddDependencies(extension.Dependencies);
+                    context = type.CompletionContext;
+                    type.AddDependencies(extension.Dependencies);
                     _typeRegistry.Register(type);
-                    _completionContext[type] = context;
-                    CopyAlternateNames(_completionContext[extension], context);
+                    CopyAlternateNames(type.CompletionContext, context);
                 }
             }
         }
@@ -333,7 +313,7 @@ namespace HotChocolate.Configuration
             }
 
             Dictionary<NameString, ObjectType> types =
-                discoveredTypes.Types.Select(t => t.Type)
+                _typeRegistry.Types.Select(t => t.Type)
                     .OfType<ObjectType>()
                     .ToDictionary(t => t.Name);
 
@@ -342,7 +322,7 @@ namespace HotChocolate.Configuration
                 GraphQLResolverOfAttribute? attribute =
                     type.GetCustomAttribute<GraphQLResolverOfAttribute>();
 
-                if (attribute?.TypeNames != null)
+                if (attribute?.TypeNames is not null)
                 {
                     foreach (string typeName in attribute.TypeNames)
                     {
@@ -353,15 +333,16 @@ namespace HotChocolate.Configuration
                     }
                 }
 
-                if (attribute?.Types != null)
+                if (attribute?.Types is not null)
                 {
                     foreach (Type sourceType in attribute.Types
                         .Where(t => !t.IsNonGenericSchemaType()))
                     {
-
                         ObjectType? objectType = types.Values
-                            .FirstOrDefault(t => t.GetType() == sourceType
-                                || t.RuntimeType == sourceType);
+                            .FirstOrDefault(t =>
+                                t.GetType() == sourceType ||
+                                t.RuntimeType == sourceType);
+
                         if (objectType is not null)
                         {
                             AddResolvers(_context, objectType, type);
@@ -434,32 +415,27 @@ namespace HotChocolate.Configuration
             }
         }
 
-
-
-
-
         private void CompleteTypes()
         {
-            ProcessTypes(
-                TypeDependencyKind.Completed,
-                registeredType =>
+            bool CompleteType(RegisteredType registeredType)
+            {
+                if (!registeredType.IsExtension)
                 {
-                    if (!registeredType.IsExtension)
-                    {
-                        TypeCompletionContext context = _completionContext[registeredType];
-                        context.Status = TypeStatus.Named;
-                        context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                        registeredType.Type.CompleteType(context);
-                    }
-                    return true;
-                });
+                    TypeCompletionContext context = registeredType.CompletionContext;
+                    context.Status = TypeStatus.Named;
+                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                    registeredType.Type.CompleteType(context);
+                }
+                return true;
+            }
 
+            ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
 
             if (_interceptor.TriggerAggregations)
             {
                 _interceptor.OnTypesCompleted(
-                    _completionContext.Values.Where(t => t is { }).ToList());
+                    _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
         }
 
@@ -588,7 +564,8 @@ namespace HotChocolate.Configuration
         {
             var errors = new List<ISchemaError>(_errors);
 
-            foreach (TypeDiscoveryContext context in _typeRegistry. )
+            foreach (TypeDiscoveryContext context in
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 errors.AddRange(context.Errors);
             }

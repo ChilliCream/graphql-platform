@@ -26,7 +26,7 @@ namespace HotChocolate.Configuration
             _typeInspector = typeInspector ??
                 throw new ArgumentNullException(nameof(typeInspector));
             _typeRegistry = typeRegistry ??
-                throw new ArgumentNullException(nameof(types));
+                throw new ArgumentNullException(nameof(typeRegistry));
             _typeLookup = typeLookup ??
                 throw new ArgumentNullException(nameof(typeLookup));
         }
@@ -140,7 +140,7 @@ namespace HotChocolate.Configuration
                 case SyntaxTypeReference r:
                     return new TypeId(namedTypeRef, CreateFlags(r.Type));
 
-                case SchemaTypeReference r:
+                case SchemaTypeReference:
                     return new TypeId(namedTypeRef, 1);
 
                 default:

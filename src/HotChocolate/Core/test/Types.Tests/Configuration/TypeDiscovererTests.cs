@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -16,38 +17,33 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists_NoSystemTypes()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var typeRegistry = new TypeRegistry();
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
+                typeRegistry,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 DescriptorContext.Create(),
                 new AggregateTypeInitializationInterceptor(),
-                serviceProvider,
                 false);
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
             }.MatchSnapshot();
@@ -57,37 +53,32 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>
-            {
-                _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
-            };
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<ExtendedTypeReference, ITypeReference>();
+            var typeRegistry = new TypeRegistry();
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
+                typeRegistry,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 DescriptorContext.Create(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
             new
             {
-                registered = result.Types
+                registered = typeRegistry.Types
                     .Select(t => t.Type)
                     .OfType<IHasRuntimeType>()
                     .ToDictionary(
                         t => t.GetType().GetTypeName(),
                         t => t.RuntimeType.GetTypeName()),
-                clr = clrTypeReferences.ToDictionary(
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
             }.MatchSnapshot();
