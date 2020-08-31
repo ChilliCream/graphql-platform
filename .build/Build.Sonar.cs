@@ -1,4 +1,5 @@
 using System.IO;
+using Colorful;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
@@ -18,8 +19,14 @@ partial class Build : NukeBuild
         .Requires(() => GitHubRepository != null)
         .Requires(() => GitHubHeadRef != null)
         .Requires(() => GitHubBaseRef != null)
+        .Requires(() => GitHubRef != null)
         .Executes(() =>
         {
+            Console.WriteLine($"GitHubRepository: {GitHubRepository}");
+            Console.WriteLine($"GitHubRepository: {GitHubHeadRef}");
+            Console.WriteLine($"GitHubRepository: {GitHubBaseRef}");
+            Console.WriteLine($"GitHubRepository: {GitHubRef}");
+
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
             {
