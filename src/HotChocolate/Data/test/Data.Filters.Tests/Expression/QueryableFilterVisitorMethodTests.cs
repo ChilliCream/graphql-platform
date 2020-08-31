@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -7,7 +6,9 @@ using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Xunit;
+using static HotChocolate.Language.Utf8GraphQLParser;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
@@ -18,7 +19,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_MethodSimple_Expression()
         {
             // arrange
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
+            IValueNode? value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
             ExecutorBuilder? tester = CreateProviderTester(
                 new FooFilterType(),
                 new FilterConvention(
@@ -85,16 +86,18 @@ namespace HotChocolate.Data.Filters.Expressions
             : QueryableDefaultFieldHandler
         {
             private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Simple))!;
+            private IExtendedType _extendedType;
 
-            private IExtendedType? _extendedType;
+            public QueryableSimpleMethodTest(ITypeInspector typeInspector)
+            {
+                _extendedType = typeInspector.GetReturnType(Method);
+            }
 
             public override bool CanHandle(
                 ITypeDiscoveryContext context,
                 FilterInputTypeDefinition typeDefinition,
                 FilterFieldDefinition fieldDefinition)
             {
-                _extendedType ??= context.TypeInspector.GetReturnType(Method);
-
                 return fieldDefinition is FilterOperationFieldDefinition { Id: 155 };
             }
 

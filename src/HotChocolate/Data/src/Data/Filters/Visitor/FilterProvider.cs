@@ -63,7 +63,9 @@ namespace HotChocolate.Data.Filters
 
             IServiceProvider services = new DictionaryServiceProvider(
                 (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context))
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, IFilterFieldHandler? Instance) handler in definition.Handlers)
