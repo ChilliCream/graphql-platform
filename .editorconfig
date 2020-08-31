@@ -165,5 +165,3 @@ csharp_new_line_before_members_in_object_initializers = true
 csharp_new_line_before_members_in_anonymous_types = true
 
 dotnet_style_require_accessibility_modifiers = always
-
-
