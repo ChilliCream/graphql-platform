@@ -106,64 +106,6 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void FilterConvention_Should_Fail_When_VisitorIsNotRegistered()
-        {
-            // arrange
-            var provider = new QueryableFilterProvider(
-                descriptor =>
-                {
-                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                });
-
-            var convention = new FilterConvention(
-                descriptor =>
-                {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationType>();
-                    descriptor.Provider(provider);
-                });
-
-            var type = new FooFilterType();
-
-            //act
-            SchemaException? error =
-                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
-
-            Assert.Single(error.Errors);
-            error.Errors[0].Message.MatchSnapshot();
-        }
-
-        [Fact]
-        public void FilterConvention_Should_Fail_When_CombinatorIsNotRegistered()
-        {
-            // arrange
-            var provider = new QueryableFilterProvider(
-                descriptor =>
-                {
-                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                });
-
-            var convention = new FilterConvention(
-                descriptor =>
-                {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationType>();
-                    descriptor.Provider(provider);
-                });
-
-            var type = new FooFilterType();
-
-            //act
-            SchemaException? error =
-                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
-
-            Assert.Single(error.Errors);
-            error.Errors[0].Message.MatchSnapshot();
-        }
-
-        [Fact]
         public void FilterConvention_Should_Fail_When_OperationsInUknown()
         {
             // arrange
@@ -184,7 +126,7 @@ namespace HotChocolate.Data.Filters
             var type = new FooFilterType();
 
             //act
-            SchemaException? error =
+            SchemaException error =
                 Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
             Assert.Single(error.Errors);
@@ -248,35 +190,6 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
-        public void FilterConvention_Should_Fail_When_CombinatorDoesNotMatchProvider()
-        {
-            // arrange
-            var provider = new QueryableFilterProvider(
-                descriptor =>
-                {
-                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
-                });
-
-            var convention = new FilterConvention(
-                descriptor =>
-                {
-                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
-                    descriptor.BindRuntimeType<string, TestOperationType>();
-                    descriptor.Provider(provider);
-                });
-
-            var type = new FooFilterType();
-
-            //act
-            SchemaException? error =
-                Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
-
-            Assert.Single(error.Errors);
-            error.Errors[0].Message.MatchSnapshot();
-        }
-
-        [Fact]
         public void FilterConvention_Should_Fail_When_NoMatchingBindingWasFound()
         {
             // arrange
@@ -309,11 +222,12 @@ namespace HotChocolate.Data.Filters
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("foo")
-                        .Type<StringType>()
-                        .Resolver("bar"))
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<StringType>()
+                            .Resolver("bar"))
                 .AddType(type);
 
             return builder.Create();
@@ -335,7 +249,7 @@ namespace HotChocolate.Data.Filters
                 FilterVisitorContext<string> context,
                 Queue<string> operations,
                 FilterCombinator combinator,
-                [NotNullWhen(true)] out string combined)
+                out string combined)
             {
                 throw new NotImplementedException();
             }

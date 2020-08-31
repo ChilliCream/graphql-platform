@@ -28,26 +28,25 @@ namespace HotChocolate.Data.Filters
             TEntity[] entities,
             FilterConvention? convention = null)
             where TEntity : class
-            where T : IFilterInputType
+            where T : FilterInputType<TEntity>
         {
-            convention ??= new FilterConvention(x => x.UseDefault());
+            convention ??= new FilterConvention(x => x.UseDefault().BindRuntimeType<TEntity, T>());
 
             Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("root")
-                        .Resolver(resolver)
-                        .UseFiltering<T>());
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("root")
+                            .Resolver(resolver)
+                            .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
 
             return schema.MakeExecutable();
         }
-
     }
 }
-

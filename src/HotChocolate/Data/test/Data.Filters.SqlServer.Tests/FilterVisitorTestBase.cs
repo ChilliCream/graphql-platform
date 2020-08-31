@@ -59,8 +59,6 @@ namespace HotChocolate.Data.Filters
             }
             catch (Exception ex)
             {
-
-
             }
 
             return ctx => dbContext.Data.AsQueryable();
@@ -72,37 +70,39 @@ namespace HotChocolate.Data.Filters
             TEntity[] entities,
             FilterConvention? convention = null)
             where TEntity : class
-            where T : IFilterInputType
+            where T : FilterInputType<TEntity>
         {
-            convention ??= new FilterConvention(x => x.UseDefault());
+            convention ??= new FilterConvention(x => x.UseDefault().BindRuntimeType<TEntity, T>());
 
             Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
-                .AddQueryType(c =>
-                    c.Name("Query")
-                        .Field("root")
-                        .Resolver(resolver)
-                        .Use(next => async context =>
-                        {
-                            await next(context);
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("root")
+                            .Resolver(resolver)
+                            .Use(
+                                next => async context =>
+                                {
+                                    await next(context);
 
-                            if (context.Result is IQueryable<TEntity> queryable)
-                            {
-                                try
-                                {
-                                    context.ContextData["sql"] = queryable.ToQueryString();
-                                }
-                                catch (Exception)
-                                {
-                                    context.ContextData["sql"] =
-                                        "EF Core 3.1 does not support ToQuerString offically";
-                                }
-                            }
-                        })
-                        .UseFiltering<T>());
+                                    if (context.Result is IQueryable<TEntity> queryable)
+                                    {
+                                        try
+                                        {
+                                            context.ContextData["sql"] = queryable.ToQueryString();
+                                        }
+                                        catch (Exception)
+                                        {
+                                            context.ContextData["sql"] =
+                                                "EF Core 3.1 does not support ToQuerString offically";
+                                        }
+                                    }
+                                })
+                            .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
 

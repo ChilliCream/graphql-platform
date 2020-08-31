@@ -111,8 +111,10 @@ namespace HotChocolate.Internal
                         return false;
                     }
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -126,8 +128,8 @@ namespace HotChocolate.Internal
             unchecked
             {
                 var hashCode = (Type.GetHashCode() * 397)
-                   ^ (Kind.GetHashCode() * 397)
-                   ^ (IsNullable.GetHashCode() * 397);
+                    ^ (Kind.GetHashCode() * 397)
+                    ^ (IsNullable.GetHashCode() * 397);
 
                 for (var i = 0; i < TypeArguments.Count; i++)
                 {
@@ -186,6 +188,24 @@ namespace HotChocolate.Internal
             Helper.IsSchemaType(type)
                 ? SchemaType.FromType(type, cache)
                 : SystemType.FromType(type, cache);
+
+        public static IReadOnlyList<ExtendedType> GetGenericArguments(Type type, TypeCache cache)
+        {
+            if (type.IsGenericType)
+            {
+                Type[] arguments = type.GetGenericArguments();
+                ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
+
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    extendedArguments[i] = FromType(arguments[i], cache);
+                }
+
+                return extendedArguments;
+            }
+
+            return Array.Empty<ExtendedType>();
+        }
 
         public static ExtendedType FromMember(MemberInfo member, TypeCache cache)
         {

@@ -3,28 +3,28 @@
 }
 
 type Query {
-  foo(test: FooFilter): String
+  foo(test: FooFilterInput): String
 }
 
-input EnumOperationInputOfFooBarFilter {
+input EnumOperationInputOfFooBarFilterInput {
   eq: FooBar
   in: [FooBar!]
   neq: FooBar
   nin: [FooBar!]
 }
 
-input EnumOperationInputOfNullableOfFooBarFilter {
+input EnumOperationInputOfNullableOfFooBarFilterInput {
   eq: FooBar
   in: [FooBar]
   neq: FooBar
   nin: [FooBar]
 }
 
-input FooFilter {
-  and: [FooFilter!]
-  fooBar: EnumOperationInputOfFooBarFilter
-  fooBarNullable: EnumOperationInputOfNullableOfFooBarFilter
-  or: [FooFilter!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  fooBar: EnumOperationInputOfFooBarFilterInput
+  fooBarNullable: EnumOperationInputOfNullableOfFooBarFilterInput
+  or: [FooFilterInput!]
 }
 
 enum FooBar {

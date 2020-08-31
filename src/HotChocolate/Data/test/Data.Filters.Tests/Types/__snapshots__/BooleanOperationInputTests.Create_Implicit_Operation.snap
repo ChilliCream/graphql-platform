@@ -3,19 +3,19 @@
 }
 
 type Query {
-  foo(test: FooFilter): String
+  foo(test: FooFilterInput): String
 }
 
-input BooleanOperationInputFilter {
+input BooleanOperationInputFilterInput {
   eq: Boolean
   neq: Boolean
 }
 
-input FooFilter {
-  and: [FooFilter!]
-  boolean: BooleanOperationInputFilter
-  booleanNullable: BooleanOperationInputFilter
-  or: [FooFilter!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  boolean: BooleanOperationInputFilterInput
+  booleanNullable: BooleanOperationInputFilterInput
+  or: [FooFilterInput!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

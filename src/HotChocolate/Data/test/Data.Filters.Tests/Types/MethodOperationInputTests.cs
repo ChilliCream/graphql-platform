@@ -10,7 +10,13 @@ namespace HotChocolate.Data.Filters
         public void Create_Explicit_Operation()
         {
             // arrange
-            var convention = new FilterConvention(x => x.UseMock());
+            var convention = new FilterConvention(
+                x =>
+                {
+                    x.UseMock();
+                    x.Operation(155).Name("SimpleMethod");
+                    x.Operation(156).Name("ComplexMethod");
+                });
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -27,7 +33,7 @@ namespace HotChocolate.Data.Filters
         public void Create_Implicit_Operation()
         {
             // arrange
-            var convention = new FilterConvention(x => x.UseMock());
+            var convention = new FilterConvention(x => x.UseMock().Operation(155).Name("Method155"));
 
             // act
             ISchema schema = SchemaBuilder.New()

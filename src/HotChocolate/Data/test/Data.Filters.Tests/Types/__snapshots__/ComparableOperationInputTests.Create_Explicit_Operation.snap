@@ -3,10 +3,10 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilter): String
+  foo(test: FooFilterTypeFilterInput): String
 }
 
-input ComparableOperationInputOfInt32Filter {
+input ComparableOperationInputOfInt32FilterInput {
   eq: Int
   gt: Int
   gte: Int
@@ -21,10 +21,10 @@ input ComparableOperationInputOfInt32Filter {
   nlte: Int
 }
 
-input FooFilterTypeFilter {
-  and: [FooFilterTypeFilter!]
-  comparable: ComparableOperationInputOfInt32Filter
-  or: [FooFilterTypeFilter!]
+input FooFilterTypeFilterInput {
+  and: [FooFilterTypeFilterInput!]
+  comparable: ComparableOperationInputOfInt32FilterInput
+  or: [FooFilterTypeFilterInput!]
 }
 
 "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."

@@ -7,14 +7,14 @@ type Query {
 }
 
 "Test"
-input FooFilter {
-  and: [FooFilter!]
-  bar: StringOperationInputFilter
-  or: [FooFilter!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  bar: StringOperationInputFilterInput
+  or: [FooFilterInput!]
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -24,7 +24,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

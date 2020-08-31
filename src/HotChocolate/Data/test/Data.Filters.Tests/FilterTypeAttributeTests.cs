@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Filters
 
             // assert
             Assert.NotNull(
-                schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
+                schema.GetType<FilterInputType<FooFields>>("FooFieldsFilterInput")
                     .Fields
                     .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.Field));
         }
@@ -51,8 +51,7 @@ namespace HotChocolate.Data.Filters
         [FilterFieldAttributeTest]
         public class FooFields
         {
-            [FilterFieldAttributeTest]
-            public string Field { get; set; }
+            [FilterFieldAttributeTest] public string Field { get; set; }
         }
 
         public class GenericTypeFilterAttribute

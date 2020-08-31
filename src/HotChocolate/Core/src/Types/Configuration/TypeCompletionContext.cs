@@ -104,7 +104,7 @@ namespace HotChocolate.Configuration
         }
 
         public bool TryGetDirectiveType(
-            IDirectiveReference directiveRef, 
+            IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType directiveType) =>
             _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
 

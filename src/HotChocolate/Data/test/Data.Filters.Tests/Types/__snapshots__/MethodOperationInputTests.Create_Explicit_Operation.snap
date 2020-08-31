@@ -15,19 +15,19 @@ type QueryExplicit {
   foos(where: Test): [Foo!]!
 }
 
-input BarFilter {
-  and: [BarFilter!]
-  or: [BarFilter!]
-  stringOperation: StringOperationInputFilter
+input BarFilterInput {
+  and: [BarFilterInput!]
+  or: [BarFilterInput!]
+  stringOperation: StringOperationInputFilterInput
 }
 
-input BooleanOperationInputFilter {
+input BooleanOperationInputFilterInput {
   eq: Boolean
   neq: Boolean
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -37,15 +37,15 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 
 input Test {
   and: [Test!]
   or: [Test!]
-  TestComplexMethod: BarFilter
-  TestSimpleMethod: BooleanOperationInputFilter
+  TestComplexMethod: BarFilterInput
+  TestSimpleMethod: BooleanOperationInputFilterInput
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

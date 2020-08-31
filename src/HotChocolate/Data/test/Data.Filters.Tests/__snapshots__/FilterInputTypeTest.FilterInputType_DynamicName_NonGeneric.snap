@@ -8,12 +8,12 @@ type Query {
 
 input StringFoo {
   and: [StringFoo!]
-  bar: StringOperationInputFilter
+  bar: StringOperationInputFilterInput
   or: [StringFoo!]
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -23,7 +23,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

@@ -12,12 +12,12 @@ type Foo {
 }
 
 type Query {
-  foos(where: FooFilter): [Foo!]!
+  foos(where: FooFilterInput): [Foo!]!
 }
 
-input FooFilter {
-  and: [FooFilter!]
-  or: [FooFilter!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

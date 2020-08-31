@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Tests
                         .Resolver("bar")
                         .Argument("test", x => x.Type<TestFilter>()));
 
-            ISchema? schema = builder.Create();
+            ISchema schema = builder.Create();
 
             // assert
             schema.ToString().MatchSnapshot();

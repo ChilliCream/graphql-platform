@@ -7,18 +7,18 @@ type Foo {
 }
 
 type Query1 {
-  foos(where: FooFilter): [Foo!]!
-  foosBar(where: Bar_FooFilter): [Foo!]!
+  foos(where: FooFilterInput): [Foo!]!
+  foosBar(where: Bar_FooFilterInput): [Foo!]!
 }
 
-input Bar_FooFilter {
-  and: [Bar_FooFilter!]
-  bar: Bar_StringOperationInputFilter
-  or: [Bar_FooFilter!]
+input Bar_FooFilterInput {
+  and: [Bar_FooFilterInput!]
+  bar: Bar_StringOperationInputFilterInput
+  or: [Bar_FooFilterInput!]
 }
 
-input Bar_StringOperationInputFilter {
-  and: [Bar_StringOperationInputFilter!]
+input Bar_StringOperationInputFilterInput {
+  and: [Bar_StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   EQUALS: String
@@ -28,18 +28,18 @@ input Bar_StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [Bar_StringOperationInputFilter!]
+  or: [Bar_StringOperationInputFilterInput!]
   startsWith: String
 }
 
-input FooFilter {
-  and: [FooFilter!]
-  bar: StringOperationInputFilter
-  or: [FooFilter!]
+input FooFilterInput {
+  and: [FooFilterInput!]
+  bar: StringOperationInputFilterInput
+  or: [FooFilterInput!]
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -49,7 +49,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

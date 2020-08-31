@@ -84,7 +84,7 @@ namespace HotChocolate.Data.Filters
                 FilterVisitorContext<string> context,
                 Queue<string> operations,
                 FilterCombinator combinator,
-                [NotNullWhen(true)] out string combined)
+                out string combined)
             {
                 throw new NotImplementedException();
             }

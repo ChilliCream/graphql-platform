@@ -153,8 +153,9 @@ namespace HotChocolate.Data.Filters
 
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
-            string? scope,
-            NameString fieldName) =>
+            NameString fieldName,
+            string? scope)
+             =>
             new FilterFieldDescriptor(context, scope, fieldName);
     }
 }

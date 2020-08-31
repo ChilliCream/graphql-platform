@@ -3,10 +3,10 @@
 }
 
 type Query {
-  foo(test: BooleanOperationInputFilter): String
+  foo(test: BooleanOperationInputFilterInput): String
 }
 
-input BooleanOperationInputFilter {
+input BooleanOperationInputFilterInput {
   eq: Boolean
   neq: Boolean
 }

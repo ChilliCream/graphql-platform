@@ -47,7 +47,7 @@ namespace HotChocolate.Data.Filters
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
-                    Definition.RuntimeType,
+                    Definition.EntityType,
                     p => FilterFieldDescriptor
                         .New(Context, Definition.Scope, p)
                         .CreateDefinition(),

@@ -22,6 +22,7 @@ namespace HotChocolate.Types.Descriptors
         private const string _equals = "Equals";
 
         private readonly TypeCache _typeCache = new TypeCache();
+
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
 
@@ -53,6 +54,7 @@ namespace HotChocolate.Types.Descriptors
                     .OfType<GraphQLResolverAttribute>()
                     .SelectMany(attr => attr.ResolverTypes);
             }
+
             return Enumerable.Empty<Type>();
         }
 
@@ -74,7 +76,8 @@ namespace HotChocolate.Types.Descriptors
         public virtual ExtendedTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
-            string? scope = null)
+            string? scope = null,
+            bool ignoreAttributes = false)
         {
             if (member is null)
             {
@@ -85,7 +88,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
-        public virtual IExtendedType GetReturnType(MemberInfo member)
+        public virtual IExtendedType GetReturnType(
+            MemberInfo member,
+            bool ignoreAttributes = false)
         {
             if (member is null)
             {
@@ -93,22 +98,33 @@ namespace HotChocolate.Types.Descriptors
             }
 
             IExtendedType returnType = ExtendedType.FromMember(member, _typeCache);
-            return ApplyTypeAttributes(returnType, member);
+
+            return ignoreAttributes ? returnType : ApplyTypeAttributes(returnType, member);
         }
 
         /// <inheritdoc />
-        public ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null)
+        public ExtendedTypeReference GetArgumentTypeRef(
+            ParameterInfo parameter,
+            string? scope = null,
+            bool ignoreAttributes = false)
         {
             if (parameter is null)
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
 
-            return TypeReference.Create(GetArgumentType(parameter), TypeContext.Input, scope);
+            return TypeReference.Create(
+                GetArgumentType(
+                    parameter,
+                    ignoreAttributes),
+                TypeContext.Input,
+                scope);
         }
 
         /// <inheritdoc />
-        public IExtendedType GetArgumentType(ParameterInfo parameter)
+        public IExtendedType GetArgumentType(
+            ParameterInfo parameter,
+            bool ignoreAttributes = false)
         {
             if (parameter is null)
             {
@@ -116,7 +132,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             IExtendedType argumentType = GetArgumentTypeInternal(parameter);
-            return ApplyTypeAttributes(argumentType, parameter);
+            return ignoreAttributes ? argumentType : ApplyTypeAttributes(argumentType, parameter);
         }
 
         private IExtendedType GetArgumentTypeInternal(ParameterInfo parameter)
@@ -165,8 +181,8 @@ namespace HotChocolate.Types.Descriptors
 
             ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
 
-            return nullable is { Length: > 0} ?
-                ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+            return nullable is { Length: > 0 }
+                ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
                 : extendedType;
         }
 
@@ -440,8 +456,8 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 if ((method.ReturnType == typeof(object)
-                    || method.ReturnType == typeof(Task<object>)
-                    || method.ReturnType == typeof(ValueTask<object>))
+                        || method.ReturnType == typeof(Task<object>)
+                        || method.ReturnType == typeof(ValueTask<object>))
                     && !HasConfiguration(method))
                 {
                     return false;
@@ -472,6 +488,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return true;
             }
+
             return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
 

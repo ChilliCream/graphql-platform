@@ -12,7 +12,11 @@ namespace HotChocolate.Internal
             public static ExtendedType FromType(Type type, TypeCache cache) =>
                 FromType(type, null, true, cache);
 
-            private static ExtendedType FromType(Type type, Type? source, bool nullable, TypeCache cache)
+            private static ExtendedType FromType(
+                Type type,
+                Type? source,
+                bool nullable,
+                TypeCache cache)
             {
                 if (type.IsGenericType)
                 {
@@ -49,19 +53,19 @@ namespace HotChocolate.Internal
                     source is not null ? source : type,
                     () =>
                     {
-                        Type? definition = type.IsGenericType 
-                            ? type.GetGenericTypeDefinition() 
+                        Type? definition = type.IsGenericType
+                            ? type.GetGenericTypeDefinition()
                             : null;
 
                         return new ExtendedType(
                             type,
                             ExtendedTypeKind.Schema,
-                            typeArguments: SystemType.GetGenericArguments(type, cache),
+                            typeArguments: ExtendedType.GetGenericArguments(type, cache),
                             source: source,
                             definition: definition,
                             isNullable: nullable,
                             isNamedType: true);
-                    }); 
+                    });
             }
         }
     }
