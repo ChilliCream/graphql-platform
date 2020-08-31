@@ -20,11 +20,11 @@ pr:
 - master
 
 stages:
-  - stage: ubuntu_latest
-    displayName: 'ubuntu-latest'
+  - stage: macOS_latest
+    displayName: 'macOS-latest'
     dependsOn: [  ]
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'macOS-latest'
     jobs:
       - job: Cover
         displayName: 'Cover'
@@ -32,6 +32,29 @@ stages:
         strategy:
           parallel: 8
         steps:
+          - task: CmdLine@2
+            inputs:
+              script: |
+                #!/bin/bash
+                       retries=0
+                       brew cask install https://raw.githubusercontent.com/Homebrew/homebrew-cask/8ce4e89d10716666743b28c5a46cd54af59a9cc2/Casks/docker.rb
+                       sudo /Applications/Docker.app/Contents/MacOS/Docker --quit-after-install --unattended
+                       /Applications/Docker.app/Contents/MacOS/Docker --unattended &
+                       while ! docker info 2>/dev/null ; do
+                           sleep 5
+                           retries=`expr $retries + 1`
+                           if pgrep -xq -- "Docker"; then
+                               echo 'docker is starting...'
+                           else
+                               echo 'docker not running, restart'
+                               /Applications/Docker.app/Contents/MacOS/Docker --unattended &
+                           fi
+                           if [ $retries -gt 30 ]; then
+                               >&2 echo 'Failed to run docker'
+                               exit 1
+                           fi;
+                           echo 'Waiting for docker service to be in the running state'
+                       done
           - task: CmdLine@2
             inputs:
               script: './build.cmd Cover --skip --test-partition $(System.JobPositionInPhase)'
@@ -54,6 +77,29 @@ stages:
         displayName: 'SonarPr'
         dependsOn: [ ]
         steps:
+          - task: CmdLine@2
+            inputs:
+              script: |
+                #!/bin/bash
+                       retries=0
+                       brew cask install https://raw.githubusercontent.com/Homebrew/homebrew-cask/8ce4e89d10716666743b28c5a46cd54af59a9cc2/Casks/docker.rb
+                       sudo /Applications/Docker.app/Contents/MacOS/Docker --quit-after-install --unattended
+                       /Applications/Docker.app/Contents/MacOS/Docker --unattended &
+                       while ! docker info 2>/dev/null ; do
+                           sleep 5
+                           retries=`expr $retries + 1`
+                           if pgrep -xq -- "Docker"; then
+                               echo 'docker is starting...'
+                           else
+                               echo 'docker not running, restart'
+                               /Applications/Docker.app/Contents/MacOS/Docker --unattended &
+                           fi
+                           if [ $retries -gt 30 ]; then
+                               >&2 echo 'Failed to run docker'
+                               exit 1
+                           fi;
+                           echo 'Waiting for docker service to be in the running state'
+                       done
           - task: JavaToolInstaller@0
             inputs:
               versionSpec: '11'
