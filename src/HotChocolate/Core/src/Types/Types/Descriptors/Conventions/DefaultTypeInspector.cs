@@ -455,7 +455,7 @@ namespace HotChocolate.Types.Descriptors
                     return false;
                 }
 
-                if ((method.ReturnType = typeof(object)
+                if ((method.ReturnType == typeof(object)
                     || method.ReturnType == typeof(Task<object>)
                     || method.ReturnType == typeof(ValueTask<object>))
                     && !HasConfiguration(method))
