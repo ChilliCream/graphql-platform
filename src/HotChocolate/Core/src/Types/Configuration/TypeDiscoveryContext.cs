@@ -1,7 +1,6 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;

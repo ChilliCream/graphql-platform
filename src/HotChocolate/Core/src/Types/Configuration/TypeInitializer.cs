@@ -224,13 +224,11 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if (ProcessTypes(TypeDependencyKind.Named, CompleteName))
+            if (ProcessTypes(TypeDependencyKind.Named, CompleteName) &&
+                _interceptor.TriggerAggregations)
             {
-                if (_interceptor.TriggerAggregations)
-                {
-                    _interceptor.OnTypesCompletedName(
-                        _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
-                }
+                _interceptor.OnTypesCompletedName(
+                    _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
 
             EnsureNoErrors();
