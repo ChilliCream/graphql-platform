@@ -37,12 +37,11 @@ namespace HotChocolate.Data.Filters
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
-                .AddQueryType(
-                    c =>
-                        c.Name("Query")
-                            .Field("root")
-                            .Resolver(resolver)
-                            .UseFiltering<T>());
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("root")
+                    .Resolver(resolver)
+                    .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
 

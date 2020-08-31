@@ -80,50 +80,47 @@ namespace HotChocolate.Data.Filters
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
                 .AddQueryType(
-                    c =>
-                        c.Name("Query")
-                            .Field("root")
-                            .Resolver(resolver)
-                            .Use(
-                                next => async context =>
-                                {
-                                    await next(context);
+                    c => c
+                        .Name("Query")
+                        .Field("root")
+                        .Resolver(resolver)
+                        .Use(next => async context =>
+                        {
+                            await next(context);
 
-                                    if (context.Result is IQueryable<TEntity> queryable)
-                                    {
-                                        try
-                                        {
-                                            context.ContextData["sql"] = queryable.ToQueryString();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            context.ContextData["sql"] =
-                                                "EF Core 3.1 does not support ToQuerString offically";
-                                        }
-                                    }
-                                })
-                            .UseFiltering<T>());
+                            if (context.Result is IQueryable<TEntity> queryable)
+                            {
+                                try
+                                {
+                                    context.ContextData["sql"] = queryable.ToQueryString();
+                                }
+                                catch (Exception)
+                                {
+                                    context.ContextData["sql"] =
+                                        "EF Core 3.1 does not support ToQuerString offically";
+                                }
+                            }
+                        })
+                        .UseFiltering<T>());
 
             ISchema? schema = builder.Create();
 
             return new ServiceCollection()
                 .Configure<RequestExecutorFactoryOptions>(Schema.DefaultName, o => o.Schema = schema)
                 .AddGraphQL()
-                .UseRequest(
-                    next => async context =>
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    if (context.Result is IReadOnlyQueryResult result &&
+                        context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("sql", out var queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("sql", queryString)
-                                    .Create();
-                        }
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(result)
+                                .SetContextData("sql", queryString)
+                                .Create();
                     }
-                )
+                })
                 .UseDefaultPipeline()
                 .Services
                 .BuildServiceProvider()
