@@ -20,7 +20,7 @@ pr:
 - master
 
 stages:
-  - stage: macOS-latest
+  - stage: macOS_latest
     displayName: 'macOS-latest'
     dependsOn: [  ]
     pool:
