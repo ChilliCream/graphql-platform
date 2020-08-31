@@ -49,13 +49,17 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="scope">
         /// The type reference scope.
         /// </param>
+        /// <param name="ignoreAttributes">
+        /// Ignores the attributes applied to the member e.g. <see cref="GraphQLTypeAttribute"/>.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
         ExtendedTypeReference GetReturnTypeRef(
             MemberInfo member,
             TypeContext context = TypeContext.None,
-            string? scope = null);
+            string? scope = null,
+            bool ignoreAttributes = false);
 
         /// <summary>
         /// Gets the field type from a <see cref="MemberInfo" />.
@@ -63,10 +67,13 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="member">
         /// The member from which the field type shall be extracted.
         /// </param>
+        /// <param name="ignoreAttributes">
+        /// Ignores the attributes applied to the member e.g. <see cref="GraphQLTypeAttribute"/>.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the field.
         /// </returns>
-        IExtendedType GetReturnType(MemberInfo member);
+        IExtendedType GetReturnType(MemberInfo member, bool ignoreAttributes = false);
 
         /// <summary>
         /// Gets the field argument type reference from a <see cref="ParameterInfo" />.
@@ -77,10 +84,16 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="scope">
         /// The type reference scope.
         /// </param>
+        /// <param name="ignoreAttributes">
+        /// Ignores the attributes applied to the member e.g. <see cref="GraphQLTypeAttribute"/>.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        ExtendedTypeReference GetArgumentTypeRef(ParameterInfo parameter, string? scope = null);
+        ExtendedTypeReference GetArgumentTypeRef(
+            ParameterInfo parameter,
+            string? scope = null,
+            bool ignoreAttributes = false);
 
         /// <summary>
         /// Gets the field argument type from a <see cref="ParameterInfo" />.
@@ -88,10 +101,15 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="parameter">
         /// The parameter from which the argument type shall be extracted.
         /// </param>
+        /// <param name="ignoreAttributes">
+        /// Ignores the attributes applied to the member e.g. <see cref="GraphQLTypeAttribute"/>.
+        /// </param>
         /// <returns>
         /// Returns a type reference describing the type of the argument.
         /// </returns>
-        IExtendedType GetArgumentType(ParameterInfo parameter);
+        IExtendedType GetArgumentType(
+            ParameterInfo parameter,
+            bool ignoreAttributes = false);
 
         /// <summary>
         /// Gets a type reference from a <see cref="Type"/>.
@@ -291,7 +309,7 @@ namespace HotChocolate.Types.Descriptors
         /// </returns>
         bool TryCreateTypeInfo(
             Type type,
-            [NotNullWhen(true)]out ITypeInfo? typeInfo);
+            [NotNullWhen(true)] out ITypeInfo? typeInfo);
 
         /// <summary>
         /// Tries to create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
@@ -307,6 +325,6 @@ namespace HotChocolate.Types.Descriptors
         /// </returns>
         bool TryCreateTypeInfo(
             IExtendedType type,
-            [NotNullWhen(true)]out ITypeInfo? typeInfo);
+            [NotNullWhen(true)] out ITypeInfo? typeInfo);
     }
 }

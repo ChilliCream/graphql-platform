@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -22,6 +21,7 @@ namespace HotChocolate.Data.Filters
         public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
 
         public IDictionary<ITypeReference, List<ConfigureFilterInputType>> Configurations { get; } =
-            new Dictionary<ITypeReference, List<ConfigureFilterInputType>>();
+            new Dictionary<ITypeReference, List<ConfigureFilterInputType>>(
+                TypeReferenceComparer.Default);
     }
 }

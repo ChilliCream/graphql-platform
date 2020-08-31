@@ -44,8 +44,8 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
-                descriptor.Field("foos").Resolver(new Foo[0].AsQueryable()).UseFiltering();
-                descriptor.Field("foosBar").Resolver(new Foo[0].AsQueryable()).UseFiltering("Bar");
+                descriptor.Field("foos").Resolve(new Foo[0].AsQueryable()).UseFiltering();
+                descriptor.Field("foosBar").Resolve(new Foo[0].AsQueryable()).UseFiltering("Bar");
             }
         }
 
@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterConventionDescriptor descriptor)
             {
-                descriptor.UseDefault();
+                descriptor.AddDefaults();
                 descriptor.Operation(DefaultOperations.Equals).Name("EQUALS");
             }
         }
@@ -84,7 +84,7 @@ namespace HotChocolate.Data.Filters
                 FilterVisitorContext<string> context,
                 Queue<string> operations,
                 FilterCombinator combinator,
-                [NotNullWhen(true)] out string combined)
+                out string combined)
             {
                 throw new NotImplementedException();
             }

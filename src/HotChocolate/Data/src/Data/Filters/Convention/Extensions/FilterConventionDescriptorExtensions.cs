@@ -5,14 +5,14 @@ namespace HotChocolate.Data.Filters
 {
     public static class FilterConventionDescriptorExtensions
     {
-        public static IFilterConventionDescriptor UseDefault(
+        public static IFilterConventionDescriptor AddDefaults(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.UseDefaultOperations().UseDefaultFields().UseQueryableProvider();
+            descriptor.AddDefaultOperations().BindDefaultTypes().UseQueryableProvider();
 
-        public static IFilterConventionDescriptor UseDefaultOperations(
+        public static IFilterConventionDescriptor AddDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -42,17 +42,18 @@ namespace HotChocolate.Data.Filters
             descriptor.Operation(DefaultOperations.And).Name("and");
             descriptor.Operation(DefaultOperations.Or).Name("or");
             descriptor.Operation(DefaultOperations.Data).Name("data");
+
             return descriptor;
         }
 
-        public static IFilterConventionDescriptor UseDefaultFields(
+        public static IFilterConventionDescriptor BindDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
-            
+
             descriptor.BindRuntimeType<string, StringOperationInput>();
             descriptor.BindRuntimeType<bool, BooleanOperationInput>();
             descriptor.BindRuntimeType<byte, ComparableOperationInput<byte>>();
@@ -74,6 +75,7 @@ namespace HotChocolate.Data.Filters
             descriptor.BindRuntimeType<DateTime, ComparableOperationInput<DateTime>>();
             descriptor.BindRuntimeType<DateTimeOffset, ComparableOperationInput<DateTimeOffset>>();
             descriptor.BindRuntimeType<TimeSpan, ComparableOperationInput<TimeSpan>>();
+
             return descriptor;
         }
     }

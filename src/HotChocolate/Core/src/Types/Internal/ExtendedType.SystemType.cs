@@ -47,7 +47,9 @@ namespace HotChocolate.Internal
                     elementType: elementType);
             }
 
-            public static IReadOnlyList<ExtendedType> GetGenericArguments(Type type, TypeCache cache)
+            public static IReadOnlyList<ExtendedType> GetGenericArguments(
+                Type type, 
+                TypeCache cache)
             {
                 if (type.IsGenericType)
                 {
@@ -56,7 +58,7 @@ namespace HotChocolate.Internal
 
                     for (int i = 0; i < arguments.Length; i++)
                     {
-                        extendedArguments[i] = FromType(arguments[i], cache);
+                        extendedArguments[i] = ExtendedType.FromType(arguments[i], cache);
                     }
 
                     return extendedArguments;

@@ -28,11 +28,11 @@ namespace HotChocolate.Data.Filters
 
         public virtual void Init(SqlServerResource resource)
         {
-            if (Resource == null)
+            if (Resource is null)
             {
                 lock (_lock)
                 {
-                    if (Resource == null)
+                    if (Resource is null)
                     {
                         Resource = resource;
                     }
@@ -44,7 +44,7 @@ namespace HotChocolate.Data.Filters
             params TResult[] results)
             where TResult : class
         {
-            if (Resource == null)
+            if (Resource is null)
             {
                 throw new InvalidOperationException();
             }
@@ -59,8 +59,6 @@ namespace HotChocolate.Data.Filters
             }
             catch (Exception ex)
             {
-
-
             }
 
             return ctx => dbContext.Data.AsQueryable();
@@ -72,17 +70,18 @@ namespace HotChocolate.Data.Filters
             TEntity[] entities,
             FilterConvention? convention = null)
             where TEntity : class
-            where T : IFilterInputType
+            where T : FilterInputType<TEntity>
         {
-            convention ??= new FilterConvention(x => x.UseDefault());
+            convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
             Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .UseFiltering()
-                .AddQueryType(c =>
-                    c.Name("Query")
+                .AddQueryType(
+                    c => c
+                        .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
                         .Use(next => async context =>
@@ -109,21 +108,19 @@ namespace HotChocolate.Data.Filters
             return new ServiceCollection()
                 .Configure<RequestExecutorFactoryOptions>(Schema.DefaultName, o => o.Schema = schema)
                 .AddGraphQL()
-                .UseRequest(
-                    next => async context =>
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+                    if (context.Result is IReadOnlyQueryResult result &&
+                        context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("sql", out var queryString))
-                        {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("sql", queryString)
-                                    .Create();
-                        }
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(result)
+                                .SetContextData("sql", queryString)
+                                .Create();
                     }
-                )
+                })
                 .UseDefaultPipeline()
                 .Services
                 .BuildServiceProvider()

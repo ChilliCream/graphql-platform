@@ -111,8 +111,10 @@ namespace HotChocolate.Internal
                         return false;
                     }
                 }
+
                 return true;
             }
+
             return false;
         }
 
@@ -126,8 +128,8 @@ namespace HotChocolate.Internal
             unchecked
             {
                 var hashCode = (Type.GetHashCode() * 397)
-                   ^ (Kind.GetHashCode() * 397)
-                   ^ (IsNullable.GetHashCode() * 397);
+                    ^ (Kind.GetHashCode() * 397)
+                    ^ (IsNullable.GetHashCode() * 397);
 
                 for (var i = 0; i < TypeArguments.Count; i++)
                 {

@@ -64,11 +64,11 @@ namespace HotChocolate.Data.Filters
         {
             if (definition is FilterInputTypeDefinition { UseAnd: true } def)
             {
-                fields.Add(new AndField(context.DescriptorContext, def.Scope, this));
+                fields.Add(new AndField(context.DescriptorContext, def.Scope));
             }
             if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
             {
-                fields.Add(new OrField(context.DescriptorContext, defOr.Scope, this));
+                fields.Add(new OrField(context.DescriptorContext, defOr.Scope));
             }
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)

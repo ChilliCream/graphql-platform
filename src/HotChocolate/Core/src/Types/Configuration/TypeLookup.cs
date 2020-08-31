@@ -32,7 +32,7 @@ namespace HotChocolate.Configuration
             ITypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
-            if (typeRef == null)
+            if (typeRef is null)
             {
                 throw new ArgumentNullException(nameof(typeRef));
             }
@@ -78,7 +78,7 @@ namespace HotChocolate.Configuration
             IDirectiveReference directiveRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
-            if (directiveRef == null)
+            if (directiveRef is null)
             {
                 throw new ArgumentNullException(nameof(directiveRef));
             }
@@ -109,7 +109,7 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference typeRef,
             [NotNullWhen(true)] out ITypeReference? namedTypeRef)
         {
-            if (typeRef == null)
+            if (typeRef is null)
             {
                 throw new ArgumentNullException(nameof(typeRef));
             }

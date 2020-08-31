@@ -1,5 +1,7 @@
-﻿using HotChocolate.Types;
+﻿using HotChocolate.Configuration;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
@@ -10,9 +12,8 @@ namespace HotChocolate.Data.Filters
     {
         internal AndField(
             IDescriptorContext context,
-            string? scope,
-            InputObjectType filterType)
-            : base(CreateDefinition(context, filterType, scope))
+            string? scope)
+            : base(CreateDefinition(context, scope))
         {
         }
 
@@ -20,20 +21,25 @@ namespace HotChocolate.Data.Filters
 
         IFilterInputType IAndField.DeclaringType => DeclaringType;
 
+        protected override void OnCompleteField(
+            ITypeCompletionContext context,
+            InputFieldDefinition definition)
+        {
+            definition.Type = TypeReference.Create(
+                new ListTypeNode(
+                    new NonNullTypeNode(
+                        new NamedTypeNode(context.Type.Name))),
+                TypeContext.Input,
+                context.Type.Scope);
+
+            base.OnCompleteField(context, definition);
+        }
+
         private static InputFieldDefinition CreateDefinition(
             IDescriptorContext context,
-            InputObjectType filterType,
-            string? scope)
-        {
-            FilterOperationFieldDefinition? definition = FilterOperationFieldDescriptor
+            string? scope) =>
+            FilterOperationFieldDescriptor
                 .New(context, DefaultOperations.And, scope)
                 .CreateDefinition();
-
-            definition.Type = new SchemaTypeReference(
-                new ListType(new NonNullType(filterType)),
-                scope: scope);
-
-            return definition;
-        }
     }
 }

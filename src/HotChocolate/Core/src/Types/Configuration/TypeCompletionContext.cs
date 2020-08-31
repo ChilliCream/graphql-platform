@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -97,6 +98,11 @@ namespace HotChocolate.Configuration
 
             if (!TryGetType(typeRef, out T type))
             {
+                if (typeRef is ExtendedTypeReference r)
+                {
+                    r.Type.Type.IsSchemaType();
+                }
+
                 throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
             }
 
@@ -104,7 +110,7 @@ namespace HotChocolate.Configuration
         }
 
         public bool TryGetDirectiveType(
-            IDirectiveReference directiveRef, 
+            IDirectiveReference directiveRef,
             [NotNullWhen(true)] out DirectiveType directiveType) =>
             _typeReferenceResolver.TryGetDirectiveType(directiveRef, out directiveType);
 
@@ -192,7 +198,7 @@ namespace HotChocolate.Configuration
             _initializationContext.ReportError(error);
         }
 
-        public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind) => 
+        public bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind) =>
             _initializationContext.TryPredictTypeKind(typeRef, out kind);
     }
 }

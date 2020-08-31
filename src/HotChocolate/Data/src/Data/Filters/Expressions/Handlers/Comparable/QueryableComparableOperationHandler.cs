@@ -36,7 +36,7 @@ namespace HotChocolate.Data.Filters.Expressions
             IType type,
             QueryableFilterContext context)
         {
-            if (parsedValue == null)
+            if (parsedValue is null)
             {
                 return parsedValue;
             }

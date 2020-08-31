@@ -9,10 +9,10 @@ type Foo {
 }
 
 type Query1 {
-  foos(where: FooFilter): [Foo!]!
+  foos(where: FooFilterInput): [Foo!]!
 }
 
-input ComparableOperationInputOfInt64Filter {
+input ComparableOperationInputOfInt64FilterInput {
   eq: Long
   gt: Long
   gte: Long
@@ -27,7 +27,7 @@ input ComparableOperationInputOfInt64Filter {
   nlte: Long
 }
 
-input ComparableOperationInputOfNullableOfInt32Filter {
+input ComparableOperationInputOfNullableOfInt32FilterInput {
   eq: Int
   gt: Int
   gte: Int
@@ -42,16 +42,16 @@ input ComparableOperationInputOfNullableOfInt32Filter {
   nlte: Int
 }
 
-input FooFilter {
-  and: [FooFilter!]
-  bar: StringOperationInputFilter
-  baz: ComparableOperationInputOfInt64Filter
-  or: [FooFilter!]
-  qux: ComparableOperationInputOfNullableOfInt32Filter
+input FooFilterInput {
+  and: [FooFilterInput!]
+  bar: StringOperationInputFilterInput
+  baz: ComparableOperationInputOfInt64FilterInput
+  or: [FooFilterInput!]
+  qux: ComparableOperationInputOfNullableOfInt32FilterInput
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -61,7 +61,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

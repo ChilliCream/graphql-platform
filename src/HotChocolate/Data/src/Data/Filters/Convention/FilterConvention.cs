@@ -102,6 +102,7 @@ namespace HotChocolate.Data.Filters
             _typeInspector = context.DescriptorContext.TypeInspector;
         }
 
+
         /// <inheritdoc />
         public virtual NameString GetTypeName(Type runtimeType) =>
             _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
@@ -126,7 +127,8 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryCreateFilterType(_typeInspector.GetReturnType(member), out Type? returnType))
+            if (TryCreateFilterType(
+                    _typeInspector.GetReturnType(member, true), out Type? returnType))
             {
                 return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
             }
@@ -171,6 +173,11 @@ namespace HotChocolate.Data.Filters
                 foreach (ConfigureFilterInputType configure in configurations)
                 {
                     configure(descriptor);
+                }
+
+                if (descriptor is FilterInputTypeDescriptor inputTypeDescriptor)
+                {
+                    inputTypeDescriptor.CreateDefinition();
                 }
             }
         }

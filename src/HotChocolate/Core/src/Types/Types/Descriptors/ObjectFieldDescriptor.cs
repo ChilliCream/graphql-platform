@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
-            if (context.Naming.IsDeprecated(member, out string reason))
+            if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
@@ -199,7 +199,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -212,7 +212,7 @@ namespace HotChocolate.Types.Descriptors
             FieldResolverDelegate fieldResolver,
             Type resultType)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -233,7 +233,7 @@ namespace HotChocolate.Types.Descriptors
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
 
-                    if (clrResultType.IsSchemaType())
+                    if (!clrResultType.IsSchemaType())
                     {
                         Definition.ResultType = clrResultType;
                     }
@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
@@ -275,7 +275,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor ResolveWith(
             MemberInfo propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
@@ -301,7 +301,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }

@@ -3,24 +3,24 @@
 }
 
 type Query {
-  foo(test: FooFilterTypeFilter): String
+  foo(test: FooFilterTypeFilterInput): String
 }
 
-input FooFilterTypeFilter {
-  and: [FooFilterTypeFilter!]
-  or: [FooFilterTypeFilter!]
-  string: ListFilterInputOfStringOperationInputFilter
+input FooFilterTypeFilterInput {
+  and: [FooFilterTypeFilterInput!]
+  or: [FooFilterTypeFilterInput!]
+  string: ListFilterInputOfStringOperationInputFilterInput
 }
 
-input ListFilterInputOfStringOperationInputFilter {
-  all: StringOperationInputFilter
+input ListFilterInputOfStringOperationInputFilterInput {
+  all: StringOperationInputFilterInput
   any: Boolean
-  none: StringOperationInputFilter
-  some: StringOperationInputFilter
+  none: StringOperationInputFilterInput
+  some: StringOperationInputFilterInput
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -30,7 +30,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

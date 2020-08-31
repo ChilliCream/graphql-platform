@@ -125,7 +125,7 @@ namespace HotChocolate.Configuration
 
             public bool TryCreateScope(
                 ITypeDiscoveryContext discoveryContext,
-                [NotNullWhen(true)] out IReadOnlyList<TypeDependency> typeDependencies)
+                out IReadOnlyList<TypeDependency> typeDependencies)
             {
                 if (discoveryContext is { Scope: not null })
                 {

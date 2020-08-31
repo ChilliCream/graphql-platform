@@ -3,18 +3,18 @@
 }
 
 type Query {
-  foo(test: ListFilterInputOfStringOperationInputFilter): String
+  foo(test: ListFilterInputOfStringOperationInputFilterInput): String
 }
 
-input ListFilterInputOfStringOperationInputFilter {
-  all: StringOperationInputFilter
+input ListFilterInputOfStringOperationInputFilterInput {
+  all: StringOperationInputFilterInput
   any: Boolean
-  none: StringOperationInputFilter
-  some: StringOperationInputFilter
+  none: StringOperationInputFilterInput
+  some: StringOperationInputFilterInput
 }
 
-input StringOperationInputFilter {
-  and: [StringOperationInputFilter!]
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
   contains: String
   endsWith: String
   eq: String
@@ -24,7 +24,7 @@ input StringOperationInputFilter {
   neq: String
   nin: [String]
   nstartsWith: String
-  or: [StringOperationInputFilter!]
+  or: [StringOperationInputFilterInput!]
   startsWith: String
 }
 

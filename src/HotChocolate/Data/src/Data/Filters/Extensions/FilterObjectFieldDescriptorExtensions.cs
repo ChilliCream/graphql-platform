@@ -17,7 +17,7 @@ namespace HotChocolate.Data
     {
         private static readonly MethodInfo _factoryTemplate =
             typeof(FilterObjectFieldDescriptorExtensions)
-                .GetMethod(nameof(CreateMiddleware))!;
+                .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor,
@@ -74,7 +74,8 @@ namespace HotChocolate.Data
             string? scope)
         {
             FieldMiddleware placeholder = next => context => default;
-            string argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+            string argumentPlaceholder =
+                "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             descriptor
                 .Use(placeholder)
@@ -85,19 +86,25 @@ namespace HotChocolate.Data
 
                     if (argumentType is null)
                     {
-                        if (!c.TypeInspector.TryCreateTypeInfo(
-                            definition.ResultType, out ITypeInfo typeInfo))
+                        if (definition.ResultType is null || 
+                            definition.ResultType == typeof(object) ||
+                            !c.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType, out ITypeInfo? typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
                                 nameof(descriptor));
                         }
 
-                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.NamedType);
+                        argumentType = typeof(FilterInputType<>)
+                            .MakeGenericType(typeInfo.NamedType);
                     }
 
                     ITypeReference argumentTypeReference = filterTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input, scope)
+                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                            argumentType,
+                            TypeContext.Input,
+                            scope)
                         : TypeReference.Create(filterTypeInstance, scope);
 
                     if (argumentType == typeof(object))
@@ -152,7 +159,7 @@ namespace HotChocolate.Data
             IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] {convention})!;
+            var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

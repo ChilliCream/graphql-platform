@@ -1,5 +1,7 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate.Internal
 {
     public readonly struct ExtendedTypeId
