@@ -7,7 +7,8 @@ namespace HotChocolate.Data.Filters.Expressions
 {
 
     public class QueryableFilterVisitorEnumTests
-        : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
+        : IClassFixture<SchemaCache>
+        , IClassFixture<SqlServerResource>
     {
         private static readonly Foo[] _fooEntities = new[]{
             new Foo { BarEnum = FooEnum.BAR },

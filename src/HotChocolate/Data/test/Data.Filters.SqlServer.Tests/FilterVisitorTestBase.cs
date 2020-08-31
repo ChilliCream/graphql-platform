@@ -12,25 +12,24 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterVisitorTestBase
     {
-        private readonly object _lock = new object();
-
-        protected SqlServerResource? Resource { get; set; }
+        private readonly object _sync = new object();
 
         public FilterVisitorTestBase(SqlServerResource resource)
         {
             Init(resource);
         }
 
-
         public FilterVisitorTestBase()
         {
         }
+
+        protected SqlServerResource? Resource { get; set; }
 
         public virtual void Init(SqlServerResource resource)
         {
             if (Resource is null)
             {
-                lock (_lock)
+                lock (_sync)
                 {
                     if (Resource is null)
                     {
@@ -53,6 +52,7 @@ namespace HotChocolate.Data.Filters
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
             dbContext.AddRange(results);
+
             try
             {
                 dbContext.SaveChanges();

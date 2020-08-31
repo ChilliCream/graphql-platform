@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters
             _resource = resource;
         }
 
-        public DbSet<T> Data { get; set; }
+        public DbSet<T> Data { get; set; } = default!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
