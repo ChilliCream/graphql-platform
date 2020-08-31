@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor AddDefaultOperations(
             this IFilterConventionDescriptor descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor BindDefaultTypes(
             this IFilterConventionDescriptor descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }

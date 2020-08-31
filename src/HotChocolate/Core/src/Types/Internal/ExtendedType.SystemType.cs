@@ -58,7 +58,7 @@ namespace HotChocolate.Internal
 
                     for (int i = 0; i < arguments.Length; i++)
                     {
-                        extendedArguments[i] = FromType(arguments[i], cache);
+                        extendedArguments[i] = ExtendedType.FromType(arguments[i], cache);
                     }
 
                     return extendedArguments;

@@ -179,7 +179,7 @@ namespace HotChocolate.Data.Filters.Expressions
                         }
                     }
 
-                    if (parameterNode == null)
+                    if (parameterNode is null)
                     {
                         throw new InvalidOperationException();
                     }

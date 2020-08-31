@@ -28,11 +28,11 @@ namespace HotChocolate.Data.Filters
 
         public virtual void Init(SqlServerResource resource)
         {
-            if (Resource == null)
+            if (Resource is null)
             {
                 lock (_lock)
                 {
-                    if (Resource == null)
+                    if (Resource is null)
                     {
                         Resource = resource;
                     }
@@ -44,7 +44,7 @@ namespace HotChocolate.Data.Filters
             params TResult[] results)
             where TResult : class
         {
-            if (Resource == null)
+            if (Resource is null)
             {
                 throw new InvalidOperationException();
             }

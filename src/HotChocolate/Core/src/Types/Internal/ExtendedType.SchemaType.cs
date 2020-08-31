@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 
 #nullable enable
@@ -66,7 +67,7 @@ namespace HotChocolate.Internal
                             isNullable: nullable,
                             isNamedType: true);
                     });
-            }
+            }            
         }
     }
 }
