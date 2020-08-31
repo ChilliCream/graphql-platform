@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
 using Squadron;
 using Xunit;
@@ -7,7 +8,8 @@ using Xunit;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableFilterVisitorObjectTests
-        : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
+        : IClassFixture<SchemaCache>
+        , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
         private static readonly Bar[] _barEntities = new[]{
             new Bar {
@@ -111,7 +113,7 @@ namespace HotChocolate.Data.Filters.Expressions
         private readonly SchemaCache _cache;
 
         public QueryableFilterVisitorObjectTests(
-            SqlServerResource sqlServer,
+            SqlServerResource<CustomSqlServerOptions> sqlServer,
             SchemaCache cache)
         {
             _cache = cache;

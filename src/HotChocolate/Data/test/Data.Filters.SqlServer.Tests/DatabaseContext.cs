@@ -1,4 +1,5 @@
 using System;
+using Data.Filters.SqlServer.Tests;
 using Microsoft.EntityFrameworkCore;
 using Squadron;
 
@@ -7,9 +8,9 @@ namespace HotChocolate.Data.Filters
     public class DatabaseContext<T> : DbContext
         where T : class
     {
-        private readonly SqlServerResource _resource;
+        private readonly SqlServerResource<CustomSqlServerOptions> _resource;
 
-        public DatabaseContext(SqlServerResource resource)
+        public DatabaseContext(SqlServerResource<CustomSqlServerOptions> resource)
         {
             _resource = resource;
         }

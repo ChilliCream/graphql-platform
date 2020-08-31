@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -14,18 +15,9 @@ namespace HotChocolate.Data.Filters
     {
         private readonly object _sync = new object();
 
-        public FilterVisitorTestBase(SqlServerResource resource)
-        {
-            Init(resource);
-        }
+        protected SqlServerResource<CustomSqlServerOptions>? Resource { get; set; }
 
-        public FilterVisitorTestBase()
-        {
-        }
-
-        protected SqlServerResource? Resource { get; set; }
-
-        public void Init(SqlServerResource resource)
+        public void Init(SqlServerResource<CustomSqlServerOptions> resource)
         {
             if (Resource is null)
             {

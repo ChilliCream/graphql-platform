@@ -1,32 +1,36 @@
 using System.Threading.Tasks;
+using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
 using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-
     public class QueryableFilterVisitorEnumTests
         : IClassFixture<SchemaCache>
-        , IClassFixture<SqlServerResource>
+        , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
-        private static readonly Foo[] _fooEntities = new[]{
-            new Foo { BarEnum = FooEnum.BAR },
-            new Foo { BarEnum = FooEnum.BAZ },
-            new Foo { BarEnum = FooEnum.FOO },
-            new Foo { BarEnum = FooEnum.QUX }};
+        private static readonly Foo[] _fooEntities = new[]
+        {
+            new Foo {BarEnum = FooEnum.BAR},
+            new Foo {BarEnum = FooEnum.BAZ},
+            new Foo {BarEnum = FooEnum.FOO},
+            new Foo {BarEnum = FooEnum.QUX}
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
-            new FooNullable { BarEnum = FooEnum.BAR },
-            new FooNullable { BarEnum = FooEnum.BAZ },
-            new FooNullable { BarEnum = FooEnum.FOO },
-            new FooNullable { BarEnum = null},
-            new FooNullable { BarEnum = FooEnum.QUX }};
+        private static readonly FooNullable[] _fooNullableEntities = new[]
+        {
+            new FooNullable {BarEnum = FooEnum.BAR},
+            new FooNullable {BarEnum = FooEnum.BAZ},
+            new FooNullable {BarEnum = FooEnum.FOO},
+            new FooNullable {BarEnum = null},
+            new FooNullable {BarEnum = FooEnum.QUX}
+        };
 
         private readonly SchemaCache _cache;
 
         public QueryableFilterVisitorEnumTests(
-            SqlServerResource sqlServer,
+            SqlServerResource<CustomSqlServerOptions> sqlServer,
             SchemaCache cache)
         {
             _cache = cache;
@@ -42,22 +46,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: BAR}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: BAR}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: FOO}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: FOO}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: null}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: null}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("null");
         }
@@ -71,22 +75,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: BAR}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: BAR}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: FOO}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: FOO}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: null}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: null}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("null");
         }
@@ -100,22 +104,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("nullAndFoo");
         }
@@ -129,22 +133,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ]}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ FOO ]}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ]}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("nullAndFoo");
         }
@@ -159,22 +163,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: BAR}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: BAR}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: FOO}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: FOO}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { eq: null}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { eq: null}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("null");
         }
@@ -189,22 +193,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: BAR}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: BAR}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BAR");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: FOO}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: FOO}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { neq: null}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { neq: null}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("null");
         }
@@ -219,22 +223,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ BAR FOO ]}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ FOO ]}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { in: [ null FOO ]}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("nullAndFoo");
         }
@@ -249,22 +253,22 @@ namespace HotChocolate.Data.Filters.Expressions
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ BAR FOO ]}}){ barEnum}}")
+                    .Create());
 
             res1.MatchSqlSnapshot("BarAndFoo");
 
             IExecutionResult? res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ FOO ]}}){ barEnum}}")
+                    .Create());
 
             res2.MatchSqlSnapshot("FOO");
 
             IExecutionResult? res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ]}}){ barEnum}}")
-                .Create());
+                    .SetQuery("{ root(where: { barEnum: { nin: [ null FOO ]}}){ barEnum}}")
+                    .Create());
 
             res3.MatchSqlSnapshot("nullAndFoo");
         }
