@@ -60,7 +60,7 @@ namespace HotChocolate.Internal
                         return new ExtendedType(
                             type,
                             ExtendedTypeKind.Schema,
-                            typeArguments: ExtendedType.GetGenericArguments(type, cache),
+                            typeArguments: SystemType.GetGenericArguments(type, cache),
                             source: source,
                             definition: definition,
                             isNullable: nullable,

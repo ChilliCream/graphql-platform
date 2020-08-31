@@ -47,7 +47,9 @@ namespace HotChocolate.Internal
                     elementType: elementType);
             }
 
-            public static IReadOnlyList<ExtendedType> GetGenericArguments(Type type, TypeCache cache)
+            public static IReadOnlyList<ExtendedType> GetGenericArguments(
+                Type type, 
+                TypeCache cache)
             {
                 if (type.IsGenericType)
                 {
