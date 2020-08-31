@@ -44,8 +44,8 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
-                descriptor.Field("foos").Resolver(new Foo[0].AsQueryable()).UseFiltering();
-                descriptor.Field("foosBar").Resolver(new Foo[0].AsQueryable()).UseFiltering("Bar");
+                descriptor.Field("foos").Resolve(new Foo[0].AsQueryable()).UseFiltering();
+                descriptor.Field("foosBar").Resolve(new Foo[0].AsQueryable()).UseFiltering("Bar");
             }
         }
 

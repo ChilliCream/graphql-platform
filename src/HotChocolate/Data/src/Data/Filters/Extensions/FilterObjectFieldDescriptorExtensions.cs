@@ -86,8 +86,10 @@ namespace HotChocolate.Data
 
                     if (argumentType is null)
                     {
-                        if (!c.TypeInspector.TryCreateTypeInfo(
-                            definition.ResultType, out ITypeInfo typeInfo))
+                        if (definition.ResultType is null || 
+                            definition.ResultType == typeof(object) ||
+                            !c.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType, out ITypeInfo? typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,

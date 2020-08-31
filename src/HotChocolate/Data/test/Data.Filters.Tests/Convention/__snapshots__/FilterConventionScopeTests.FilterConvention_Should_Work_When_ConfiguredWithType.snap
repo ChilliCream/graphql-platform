@@ -7,18 +7,50 @@ type Foo {
 }
 
 type QueryType {
-  foos(where: ObjectFilterInput): [Foo]
-  foosBar(where: Bar_ObjectFilterInput): [Foo]
+  foos(where: FooFilterInput): [Foo]
+  foosBar(where: Bar_FooFilterInput): [Foo]
 }
 
-input Bar_ObjectFilterInput {
-  and: [Bar_ObjectFilterInput!]
-  or: [Bar_ObjectFilterInput!]
+input Bar_FooFilterInput {
+  and: [Bar_FooFilterInput!]
+  bar: Bar_StringOperationInputFilterInput
+  or: [Bar_FooFilterInput!]
 }
 
-input ObjectFilterInput {
-  and: [ObjectFilterInput!]
-  or: [ObjectFilterInput!]
+input Bar_StringOperationInputFilterInput {
+  and: [Bar_StringOperationInputFilterInput!]
+  contains: String
+  endsWith: String
+  EQUALS: String
+  in: [String]
+  ncontains: String
+  nendsWith: String
+  neq: String
+  nin: [String]
+  nstartsWith: String
+  or: [Bar_StringOperationInputFilterInput!]
+  startsWith: String
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  bar: StringOperationInputFilterInput
+  or: [FooFilterInput!]
+}
+
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
+  contains: String
+  endsWith: String
+  eq: String
+  in: [String]
+  ncontains: String
+  nendsWith: String
+  neq: String
+  nin: [String]
+  nstartsWith: String
+  or: [StringOperationInputFilterInput!]
+  startsWith: String
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

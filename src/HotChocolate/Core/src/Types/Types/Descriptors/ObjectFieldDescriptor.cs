@@ -233,7 +233,7 @@ namespace HotChocolate.Types.Descriptors
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
 
-                    if (clrResultType.IsSchemaType())
+                    if (!clrResultType.IsSchemaType())
                     {
                         Definition.ResultType = clrResultType;
                     }
