@@ -98,11 +98,6 @@ namespace HotChocolate.Configuration
 
             if (!TryGetType(typeRef, out T type))
             {
-                if (typeRef is ExtendedTypeReference r)
-                {
-                    r.Type.Type.IsSchemaType();
-                }
-
                 throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
             }
 

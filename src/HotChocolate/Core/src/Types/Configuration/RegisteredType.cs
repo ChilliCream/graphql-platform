@@ -73,16 +73,14 @@ namespace HotChocolate.Configuration
 
         public bool IsDirectiveType { get; }
 
-        public void AddReferences(
-            IReadOnlyList<ITypeReference> references)
+        public void AddReferences(IEnumerable<ITypeReference> references)
         {
             var merged = References.ToList();
             merged.AddRange(references);
             _references = merged;
         }
 
-        public void AddDependencies(
-            IReadOnlyList<TypeDependency> dependencies)
+        public void AddDependencies(IEnumerable<TypeDependency> dependencies)
         {
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);

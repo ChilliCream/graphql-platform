@@ -19,6 +19,8 @@ namespace HotChocolate.Internal
                 bool nullable,
                 TypeCache cache)
             {
+                type = Helper.RemoveNonEssentialTypes(type);
+
                 if (type.IsGenericType)
                 {
                     Type definition = type.GetGenericTypeDefinition();
@@ -51,7 +53,7 @@ namespace HotChocolate.Internal
                 }
 
                 return cache.GetOrCreateType(
-                    source is not null ? source : type,
+                    source ?? type,
                     () =>
                     {
                         Type? definition = type.IsGenericType
@@ -67,7 +69,7 @@ namespace HotChocolate.Internal
                             isNullable: nullable,
                             isNamedType: true);
                     });
-            }            
+            }
         }
     }
 }

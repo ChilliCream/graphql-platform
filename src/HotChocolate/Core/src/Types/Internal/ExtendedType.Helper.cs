@@ -230,7 +230,7 @@ namespace HotChocolate.Internal
                     nullable.Length > pos &&
                     nullable[pos].HasValue &&
                     nullable[pos]!.Value != type.IsNullable;
-                var typeArguments = type.TypeArguments;
+                IReadOnlyList<ExtendedType>? typeArguments = type.TypeArguments;
 
                 if (type.TypeArguments.Count > 0 && nullable.Length > position)
                 {
@@ -249,7 +249,7 @@ namespace HotChocolate.Internal
                                 nullable,
                                 ref position,
                                 cache)
-                            : (ExtendedType)type.TypeArguments[j];
+                            : type.TypeArguments[j];
                     }
 
                     typeArguments = args;
@@ -258,7 +258,7 @@ namespace HotChocolate.Internal
                 if (changeNullability || !ReferenceEquals(typeArguments, type.TypeArguments))
                 {
                     ExtendedType? elementType = type.IsArrayOrList
-                        ? (ExtendedType?)type.ElementType
+                        ? type.ElementType
                         : null;
 
                     if (elementType is not null &&
@@ -266,7 +266,7 @@ namespace HotChocolate.Internal
                     {
                         for (var e = 0; e < type.TypeArguments.Count; e++)
                         {
-                            if (elementType == type.TypeArguments[e])
+                            if (ReferenceEquals(elementType, type.TypeArguments[e]))
                             {
                                 elementType = typeArguments[e];
                             }
@@ -275,12 +275,13 @@ namespace HotChocolate.Internal
 
                     var rewritten = new ExtendedType(
                         type.Type,
-                        ExtendedTypeKind.Runtime,
+                        type.Kind,
                         typeArguments: typeArguments,
                         source: type.Source,
                         definition: type.Definition,
                         elementType: elementType,
                         isList: type.IsList,
+                        isNamedType: type.IsNamedType,
                         isNullable: nullable[pos] ?? type.IsNullable);
 
                     return cache.TryAdd(rewritten)
