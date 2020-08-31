@@ -26,7 +26,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     {
                         x.Operation(155).Name("simple");
                         x.Operation(156).Name("complex");
-                        x.UseDefault();
+                        x.AddDefaults();
                         x.Provider(
                             new QueryableFilterProvider(
                                 p => p.AddFieldHandler<QueryableSimpleMethodTest>()
@@ -56,7 +56,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     {
                         x.Operation(155).Name("simple");
                         x.Operation(156).Name("complex");
-                        x.UseDefault();
+                        x.AddDefaults();
                         x.Provider(
                             new QueryableFilterProvider(
                                 p => p.AddFieldHandler<QueryableSimpleMethodTest>()

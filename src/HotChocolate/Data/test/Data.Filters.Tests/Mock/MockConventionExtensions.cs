@@ -7,7 +7,7 @@ namespace HotChocolate.Data.Filters
         public static IFilterConventionDescriptor UseMock(
             this IFilterConventionDescriptor descriptor)
         {
-            return descriptor.UseDefault().Provider(
+            return descriptor.AddDefaults().Provider(
                  new QueryableFilterProvider(
                      x => x
                          .AddDefaultFieldHandlers()

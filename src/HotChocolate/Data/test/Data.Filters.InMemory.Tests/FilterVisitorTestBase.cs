@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Filters
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
-            convention ??= new FilterConvention(x => x.UseDefault().BindRuntimeType<TEntity, T>());
+            convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
             Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
 

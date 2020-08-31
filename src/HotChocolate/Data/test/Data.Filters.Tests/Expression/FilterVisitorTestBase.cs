@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             convention ??=
                 new FilterConvention(
-                    x => x.UseDefault().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
+                    x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
@@ -31,7 +31,7 @@ namespace HotChocolate.Data.Filters.Expressions
         protected ISchema CreateSchema<T>(T type)
             where T : IFilterInputType
         {
-            var convention = new FilterConvention(x => x.UseDefault());
+            var convention = new FilterConvention(x => x.AddDefaults());
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .AddTypeInterceptor<FilterTypeInterceptor>()

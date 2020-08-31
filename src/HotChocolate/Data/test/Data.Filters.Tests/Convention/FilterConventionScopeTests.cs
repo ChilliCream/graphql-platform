@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterConventionDescriptor descriptor)
             {
-                descriptor.UseDefault();
+                descriptor.AddDefaults();
                 descriptor.Operation(DefaultOperations.Equals).Name("EQUALS");
             }
         }
