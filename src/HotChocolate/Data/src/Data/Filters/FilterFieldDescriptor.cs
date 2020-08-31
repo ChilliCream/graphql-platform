@@ -44,6 +44,8 @@ namespace HotChocolate.Data.Filters
             protected set => base.Definition = value;
         }
 
+        internal InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
+
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
@@ -143,8 +145,6 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
-
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
             string? scope,
@@ -154,8 +154,7 @@ namespace HotChocolate.Data.Filters
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
             NameString fieldName,
-            string? scope)
-             =>
+            string? scope) =>
             new FilterFieldDescriptor(context, scope, fieldName);
     }
 }
