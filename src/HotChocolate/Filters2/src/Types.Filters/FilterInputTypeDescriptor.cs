@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -17,7 +18,6 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
@@ -26,17 +26,21 @@ namespace HotChocolate.Types.Filters
             IFilterNamingConvention convention = context.GetFilterNamingConvention();
             Definition.EntityType = entityType
                 ?? throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
             Definition.Name = convention.GetFilterTypeName(context, entityType);
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
-                entityType, TypeKind.Object);
+                entityType,
+                TypeKind.Object);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected internal sealed override FilterInputTypeDefinition Definition { get; } =
-            new FilterInputTypeDefinition();
+        protected internal sealed override FilterInputTypeDefinition Definition
+        {
+            get;
+            protected set;
+        } = new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
@@ -58,14 +62,14 @@ namespace HotChocolate.Types.Filters
             TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IFilterInputTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
             return this;
         }
 
@@ -82,7 +86,7 @@ namespace HotChocolate.Types.Filters
         {
             if (Definition.EntityType is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
@@ -113,12 +117,13 @@ namespace HotChocolate.Types.Filters
             if (Definition.Fields.IsImplicitBinding()
                 && Definition.EntityType != typeof(object))
             {
-                foreach (PropertyInfo property in Context.Inspector
+                foreach (PropertyInfo property in Context.TypeInspector
                     .GetMembers(Definition.EntityType)
                     .OfType<PropertyInfo>())
                 {
                     if (!handledProperties.Contains(property)
-                        && TryCreateImplicitFilter(property,
+                        && TryCreateImplicitFilter(
+                            property,
                             out FilterFieldDefintion? definition))
                     {
                         foreach (FilterOperationDefintion filter in definition.Filters)
@@ -155,7 +160,8 @@ namespace HotChocolate.Types.Filters
             if (type == typeof(bool))
             {
                 var field = new BooleanFilterFieldDescriptor(
-                    Context, property);
+                    Context,
+                    property);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -163,21 +169,15 @@ namespace HotChocolate.Types.Filters
             if (IsComparable(property.PropertyType))
             {
                 var field = new ComparableFilterFieldDescriptor(
-                    Context, property);
+                    Context,
+                    property);
                 definition = field.CreateDefinition();
                 return true;
             }
 
-            if (DotNetTypeInfoFactory.IsListType(type))
+            if (Context.TypeInspector.TryCreateTypeInfo(type, out ITypeInfo? typeInfo) &&
+                typeInfo.GetExtendedType()?.ElementType?.Source is { } elementType)
             {
-                if (!TypeInspector.Default.TryCreate(type, out Utilities.TypeInfo typeInfo))
-                {
-                    throw new ArgumentException(
-                        FilterResources.FilterArrayFieldDescriptor_InvalidType,
-                        nameof(property));
-                }
-
-                Type elementType = typeInfo.ClrType;
                 ArrayFilterFieldDescriptor field;
 
                 if (elementType == typeof(string)
@@ -201,7 +201,9 @@ namespace HotChocolate.Types.Filters
             if (type.IsClass)
             {
                 var field = new ObjectFilterFieldDescriptor(
-                    Context, property, property.PropertyType);
+                    Context,
+                    property,
+                    property.PropertyType);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -246,7 +248,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
+                return Fields.GetOrAddDescriptor(
+                    p,
                     () => new StringFilterFieldDescriptor(Context, p));
             }
 
@@ -260,7 +263,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
+                return Fields.GetOrAddDescriptor(
+                    p,
                     () => new BooleanFilterFieldDescriptor(Context, p));
             }
 
@@ -274,7 +278,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
+                return Fields.GetOrAddDescriptor(
+                    p,
                     () => new ComparableFilterFieldDescriptor(Context, p));
             }
 
@@ -288,7 +293,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                Fields.GetOrAddDescriptor(p,
+                Fields.GetOrAddDescriptor(
+                    p,
                     () => new IgnoredFilterFieldDescriptor(Context, p));
                 return this;
             }
@@ -303,7 +309,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
+                return Fields.GetOrAddDescriptor(
+                    p,
                     () => new ObjectFilterFieldDescriptor<TObject>(Context, p));
             }
 
@@ -317,7 +324,8 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
+                return Fields.GetOrAddDescriptor(
+                    p,
                     () => new ArrayFilterFieldDescriptor<TObject>(Context, p));
             }
 

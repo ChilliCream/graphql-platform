@@ -9,9 +9,15 @@ namespace HotChocolate.Types
     public abstract class DescriptorAttribute
         : Attribute
     {
-        internal protected abstract void TryConfigure(
+        protected abstract void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element);
+
+        internal void TryConfigureInternal(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element) =>
+            TryConfigure(context, descriptor, element);
     }
 }

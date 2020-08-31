@@ -646,7 +646,7 @@ namespace HotChocolate.Types.Descriptors
         public sealed class SomeAttribute
             : DescriptorAttribute
         {
-            protected internal override void TryConfigure(
+            protected override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor descriptor,
                 ICustomAttributeProvider element)

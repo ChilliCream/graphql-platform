@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddDescriptor_Argument_Factory()
         {
-            //arrange 
+            //arrange
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
 
             //act
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddDescriptor_Should_AddDescriptorIfNotExists()
         {
-            //arrange 
+            //arrange
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
             var descriptor = new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
             Func<StringFilterFieldDescriptor> valueFactory = () => descriptor;
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddDescriptor_Should_ReturnDescriptorIfAlreadyExists()
         {
-            //arrange 
+            //arrange
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
             var descriptorShouldNotBeRemoved =
                 new StringFilterFieldDescriptor(_descriptorContext, _propertyInfo);
@@ -116,7 +116,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddDescriptor_Should_ReplaceDescriptorIfDifferentType()
         {
-            //arrange 
+            //arrange
             IList<FilterFieldDescriptorBase> list = new List<FilterFieldDescriptorBase>();
             var descriptorToRemove =
                 new IgnoredFilterFieldDescriptor(_descriptorContext, _propertyInfo);
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddOperation_Should_AddDescriptorIfNotExists()
         {
-            //arrange 
+            //arrange
             IList<FilterOperationDescriptorBase> list = new List<FilterOperationDescriptorBase>();
             BooleanFilterOperationDescriptor operation =
                 CreateOperation(FilterOperationKind.Equals);
@@ -194,7 +194,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddOperation_Should_ReturnDescriptorIfAlreadyExists()
         {
-            //arrange 
+            //arrange
             IList<FilterOperationDescriptorBase> list = new List<FilterOperationDescriptorBase>();
             BooleanFilterOperationDescriptor descriptorShouldNotBeRemoved =
                 CreateOperation(FilterOperationKind.Equals);
@@ -220,7 +220,7 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void GetOrAddOperation_Throws_ExceptionIfExistingDescriptorIsOfDifferentType()
         {
-            //arrange 
+            //arrange
             IList<FilterOperationDescriptorBase> list = new List<FilterOperationDescriptorBase>();
             BooleanFilterOperationDescriptor descriptorShouldNotBeRemoved =
                 CreateOperation(FilterOperationKind.Equals);
@@ -245,7 +245,10 @@ namespace HotChocolate.Types.Filters
         {
             var descirptor = new BooleanFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo);
-            var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
+
+            ExtendedTypeReference typeReference = _descriptorContext.TypeInspector.GetTypeRef(
+                typeof(Foo),
+                TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",
@@ -273,7 +276,9 @@ namespace HotChocolate.Types.Filters
         {
             var descirptor = new ComparableFilterFieldDescriptor(
                 _descriptorContext, _propertyInfo);
-            var typeReference = new ClrTypeReference(typeof(Foo), TypeContext.Input);
+            ExtendedTypeReference typeReference = _descriptorContext.TypeInspector.GetTypeRef(
+                typeof(Foo),
+                TypeContext.Input);
             var definition = new FilterOperationDefintion()
             {
                 Name = "Foo",

@@ -5,7 +5,6 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -23,16 +22,18 @@ namespace HotChocolate.Types.Filters
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
-                property, MemberKind.InputObjectField);
+                property,
+                MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
-                property, MemberKind.InputObjectField);
-            Definition.Type = context.Inspector.GetInputReturnType(property);
+                property,
+                MemberKind.InputObjectField);
+            Definition.Type = context.TypeInspector.GetReturnTypeRef(property);
             Definition.Filters.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
             _namingConvention = context.GetFilterNamingConvention();
         }
 
-        internal protected sealed override FilterFieldDefintion Definition { get; } =
+        protected internal sealed override FilterFieldDefintion Definition { get; protected set; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
@@ -41,18 +42,14 @@ namespace HotChocolate.Types.Filters
         protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
-            new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.In,
-                FilterOperationKind.NotIn
-            };
+            new HashSet<FilterOperationKind> {FilterOperationKind.In, FilterOperationKind.NotIn};
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.Property);
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
@@ -147,9 +144,9 @@ namespace HotChocolate.Types.Filters
 
         protected void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            Type extractedType = Context.TypeInspector.ExtractNamedType(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
+            if (Context.TypeInspector.IsSchemaType(extractedType)
                 && !typeof(IInputType).IsAssignableFrom(extractedType))
             {
                 // TODO : resource
@@ -158,7 +155,7 @@ namespace HotChocolate.Types.Filters
             }
 
             Definition.SetMoreSpecificType(
-                type,
+                Context.TypeInspector.GetType(extractedType),
                 TypeContext.Input);
         }
 
@@ -168,6 +165,7 @@ namespace HotChocolate.Types.Filters
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
+
             Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
         }
 
@@ -175,26 +173,28 @@ namespace HotChocolate.Types.Filters
         {
             ITypeReference reference = Definition.Type;
 
-            if (reference is IClrTypeReference clrRef)
+            if (reference is ExtendedTypeReference extendedRef)
             {
-                if (BaseTypes.IsSchemaType(clrRef.Type))
+                if (extendedRef.Type.IsSchemaType)
                 {
-                    return clrRef.WithType(
-                        typeof(ListType<>).MakeGenericType(clrRef.Type));
+                    var listType = Context.TypeInspector.GetType(
+                        typeof(ListType<>).MakeGenericType(extendedRef.Type.Source));
+                    return extendedRef.WithType(listType);
                 }
                 else
                 {
-                    return clrRef.WithType(
-                        typeof(List<>).MakeGenericType(clrRef.Type));
+                    var runtimeListType = Context.TypeInspector.GetType(
+                        typeof(List<>).MakeGenericType(extendedRef.Type.Source));
+                    return extendedRef.WithType(runtimeListType);
                 }
             }
 
-            if (reference is ISchemaTypeReference schemaRef)
+            if (reference is SchemaTypeReference schemaRef)
             {
                 return schemaRef.WithType(new ListType((IType)schemaRef.Type));
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef)
+            if (reference is SyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.WithType(new ListTypeNode(syntaxRef.Type));
             }
@@ -205,61 +205,32 @@ namespace HotChocolate.Types.Filters
         protected ITypeReference RewriteTypeToNullableType()
         {
             ITypeReference reference = Definition.Type;
-            return RewriteTypeToNullableType(reference);
+            return RewriteTypeToNullableType(reference, Context.TypeInspector);
         }
 
-        protected static ITypeReference RewriteTypeToNullableType(ITypeReference reference)
+        protected ITypeReference RewriteTypeToNullableType(
+            ITypeReference reference,
+            ITypeInspector typeInspector)
         {
-
-            if (reference is IClrTypeReference clrRef
-                && TypeInspector.Default.TryCreate(
-                    clrRef.Type,
-                    out Utilities.TypeInfo typeInfo))
+            if (reference is ExtendedTypeReference extendedTypeRef)
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
-                {
-                    if (clrRef.Type.IsGenericType
-                        && clrRef.Type.GetGenericTypeDefinition() ==
-                            typeof(NonNullType<>))
-                    {
-                        return clrRef.WithType(typeInfo.Components[1]);
-                    }
-                    return clrRef;
-                }
-                else
-                {
-                    Type type = clrRef.Type;
-                    if (type.IsGenericType &&
-                        System.Nullable.GetUnderlyingType(type) is Type nullableType)
-                    {
-                        type = nullableType;
-                    }
-                    if (type.IsValueType)
-                    {
-                        return clrRef.WithType(
-                            typeof(Nullable<>).MakeGenericType(type));
-                    }
-                    else if (type.IsGenericType
-                        && type.GetGenericTypeDefinition() ==
-                            typeof(NonNullType<>))
-                    {
-                        return clrRef.WithType(typeInfo.Components[1]);
-                    }
-                    return clrRef;
-                }
+                return extendedTypeRef.Type.IsNullable
+                    ? extendedTypeRef
+                    : extendedTypeRef.WithType(
+                        typeInspector.ChangeNullability(extendedTypeRef.Type, true));
             }
 
-            if (reference is ISchemaTypeReference schemaRef)
+            if (reference is SchemaTypeReference schemaRef)
             {
                 return schemaRef.Type is NonNullType nnt
-                    ? schemaRef.WithType(nnt)
+                    ? schemaRef.WithType(nnt.Type)
                     : schemaRef;
             }
 
-            if (reference is ISyntaxTypeReference syntaxRef)
+            if (reference is SyntaxTypeReference syntaxRef)
             {
                 return syntaxRef.Type is NonNullTypeNode nnt
-                    ? syntaxRef.WithType(nnt)
+                    ? syntaxRef.WithType(nnt.Type)
                     : syntaxRef;
             }
 
@@ -272,6 +243,7 @@ namespace HotChocolate.Types.Filters
             {
                 Definition.Name = _namingConvention.ArrayFilterPropertyName;
             }
+
             return _namingConvention.CreateFieldName(Definition, kind);
         }
 
@@ -282,6 +254,7 @@ namespace HotChocolate.Types.Filters
             {
                 return RewriteTypeListType();
             }
+
             return RewriteTypeToNullableType();
         }
 

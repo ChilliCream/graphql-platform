@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute("{ foos { bar baz} }");
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             executor.Execute("{ foos { bar  } }");
@@ -106,7 +106,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -142,7 +142,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -178,7 +178,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -214,7 +214,7 @@ namespace HotChocolate.Types.Selections
                         .UseSingleOrDefault()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult executionResult = executor.Execute("{ foos { fakeBar } }");
@@ -250,7 +250,7 @@ namespace HotChocolate.Types.Selections
                         .UseSorting()
                         .UseSelection())
                 .Create();
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(

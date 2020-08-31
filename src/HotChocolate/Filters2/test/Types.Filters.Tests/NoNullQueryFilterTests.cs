@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -52,10 +52,10 @@ namespace HotChocolate.Types.Filters
         {
             public IEnumerable<Foo> Foos { get; } = new[]
             {
-                new Foo { Bar = "aa", Baz = "bb" },
-                new Foo { Bar = "cc", Baz = "dd" },
-                new Foo { Bar = "ee", Baz = "ff" },
-                new Foo { Bar = "gg", Baz = "hh" },
+                new Foo {Bar = "aa", Baz = "bb"},
+                new Foo {Bar = "cc", Baz = "dd"},
+                new Foo {Bar = "ee", Baz = "ff"},
+                new Foo {Bar = "gg", Baz = "hh"},
             };
         }
 

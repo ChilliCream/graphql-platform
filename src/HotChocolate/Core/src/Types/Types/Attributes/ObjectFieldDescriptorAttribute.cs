@@ -13,7 +13,7 @@ namespace HotChocolate.Types
     public abstract class ObjectFieldDescriptorAttribute
         : DescriptorAttribute
     {
-        protected internal sealed override void TryConfigure(
+        protected sealed override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element)

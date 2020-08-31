@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Sorting
                 ?? throw new ArgumentNullException(nameof(operation));
         }
 
-        internal protected override SortOperationDefintion Definition { get; } =
+        protected internal override SortOperationDefintion Definition { get; protected set; } =
             new SortOperationDefintion();
 
         protected void Name(NameString value)

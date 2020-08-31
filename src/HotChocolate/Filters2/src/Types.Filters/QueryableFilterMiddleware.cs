@@ -12,16 +12,16 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly FilterMiddlewareContext _contextData;
 
         public QueryableFilterMiddleware(
             FieldDelegate next,
             FilterMiddlewareContext contextData,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _converter = converter ?? TypeConversion.Default;
+            _converter = converter ?? DefaultTypeConverter.Default;
             _contextData = contextData
                  ?? throw new ArgumentNullException(nameof(contextData));
         }
@@ -38,12 +38,6 @@ namespace HotChocolate.Types.Filters
             }
 
             IQueryable<T>? source = null;
-            PageableData<T>? p = null;
-            if (context.Result is PageableData<T> pd)
-            {
-                source = pd.Source;
-                p = pd;
-            }
 
             if (context.Result is IQueryable<T> q)
             {
@@ -65,9 +59,7 @@ namespace HotChocolate.Types.Filters
 
                 source = source.Where(visitorContext.CreateFilter<T>());
 
-                context.Result = p is null
-                    ? (object)source
-                    : new PageableData<T>(source, p.Properties);
+                context.Result = source;
             }
         }
     }

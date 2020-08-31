@@ -266,7 +266,7 @@ namespace HotChocolate.Types.Descriptors
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
-        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
+        ///     The system type from which the <see cref="ITypeInfo"/> shall be created.
         /// </param>
         /// <returns>
         /// The type info.

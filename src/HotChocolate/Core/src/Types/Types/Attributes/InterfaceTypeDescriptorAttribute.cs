@@ -13,7 +13,7 @@ namespace HotChocolate.Types
     public abstract class InterfaceTypeDescriptorAttribute
         : DescriptorAttribute
     {
-        internal protected sealed override void TryConfigure(
+        protected sealed override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element)

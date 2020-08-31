@@ -18,12 +18,12 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                null,
-                ExpressionFieldHandlers.All,
-                TypeConversion.Default,
-                true);
+                    fooType,
+                    typeof(Foo),
+                    null,
+                    ExpressionFieldHandlers.All,
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -41,12 +41,12 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType,
-                typeof(Foo),
-                ExpressionOperationHandlers.All,
-                null,
-                TypeConversion.Default,
-                true);
+                    fooType,
+                    typeof(Foo),
+                    ExpressionOperationHandlers.All,
+                    null,
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -64,7 +64,10 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType, typeof(Foo), null, true);
+                    fooType,
+                    typeof(Foo),
+                    null,
+                    true);
             };
 
             // act
@@ -82,7 +85,10 @@ namespace HotChocolate.Types.Filters
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                fooType, null, TypeConversion.Default, true);
+                    fooType,
+                    null,
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -93,12 +99,15 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void Create_Should_Throw_IfInputTypeIsNull()
         {
-            // arrange 
+            // arrange
 
             Action action = () =>
             {
                 new QueryableFilterVisitorContext(
-                null, typeof(Foo), TypeConversion.Default, true);
+                    null,
+                    typeof(Foo),
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -119,9 +128,10 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
-
     }
 }

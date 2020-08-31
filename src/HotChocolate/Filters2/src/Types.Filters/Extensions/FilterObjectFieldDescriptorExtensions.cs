@@ -1,6 +1,8 @@
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -66,34 +68,38 @@ namespace HotChocolate.Types
             Type? filterType,
             ITypeSystemMember? filterTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
+            string argumentPlaceholder =
+                "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((c, definition) =>
                 {
                     Type? argumentType = filterType;
 
                     if (argumentType == null)
                     {
-                        if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType,
-                            out TypeInfo typeInfo))
+                        if (definition.ResultType is null ||
+                            definition.ResultType == typeof(object) ||
+                            !c.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType, out ITypeInfo? typeInfo))
                         {
                             throw new ArgumentException(
                                 FilterResources.FilterObjectFieldDescriptor_InvalidType,
                                 nameof(descriptor));
                         }
 
-                        argumentType = typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
+                        argumentType = typeof(FilterInputType<>)
+                            .MakeGenericType(typeInfo.NamedType);
                     }
 
-                    ITypeReference argumentTypeReference =
-                        filterTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(argumentType, TypeContext.Input)
-                            : new SchemaTypeReference(filterTypeInstance);
+                    ITypeReference argumentTypeReference = filterTypeInstance is null
+                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                            argumentType,
+                            TypeContext.Input)
+                        : TypeReference.Create(filterTypeInstance);
 
                     if (argumentType == typeof(object))
                     {
@@ -107,7 +113,8 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(argumentType, TypeContext.Input)
+                        Name = argumentPlaceholder,
+                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input)
                     };
 
                     argumentDefinition.ConfigureArgumentName();
@@ -133,7 +140,7 @@ namespace HotChocolate.Types
         }
 
         private static void CompileMiddleware(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
@@ -154,9 +161,10 @@ namespace HotChocolate.Types
             Type filterType)
         {
             return descriptor.Argument(_whereArgumentNamePlaceholder, a =>
-                a.Extend().OnBeforeCreate(d =>
-                    d.ConfigureArgumentName().Type = new ClrTypeReference(
-                        filterType, TypeContext.Input)));
+                a.Extend()
+                    .OnBeforeCreate((c, d) =>
+                        d.ConfigureArgumentName().Type =
+                            c.TypeInspector.GetTypeRef(filterType, TypeContext.Input)));
         }
 
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(

@@ -253,7 +253,7 @@ namespace HotChocolate.Types.Descriptors
             foreach (var attribute in attributeProvider.GetCustomAttributes(true)
                 .OfType<DescriptorAttribute>())
             {
-                attribute.TryConfigure(context, descriptor, attributeProvider);
+                attribute.TryConfigureInternal(context, descriptor, attributeProvider);
             }
         }
 
