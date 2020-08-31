@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
+    <AssemblyName>HotChocolate.Data.Filters.SqlServer.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
-      <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

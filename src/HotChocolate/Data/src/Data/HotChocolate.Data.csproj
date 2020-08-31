@@ -4,7 +4,6 @@
     <PackageId>HotChocolate.Data</PackageId>
     <AssemblyName>HotChocolate.Data</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
-    <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
   </PropertyGroup>
 

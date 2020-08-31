@@ -6,6 +6,7 @@ using System.Text.Json;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -155,10 +156,14 @@ namespace HotChocolate.Data.Filters
             var type = new FooFilterType();
 
             //act
-            ArgumentException? error =
+            ArgumentException error =
                 Assert.Throws<ArgumentException>(() => CreateSchemaWith(type, convention));
 
+#if NETCOREAPP2_1
+            error.Message.MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
             error.Message.MatchSnapshot();
+#endif
         }
 
         [Fact]
@@ -214,7 +219,11 @@ namespace HotChocolate.Data.Filters
                 Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
             Assert.Single(error.Errors);
+#if NETCOREAPP2_1
+            error.Errors[0].Message.MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
             error.Errors[0].Message.MatchSnapshot();
+#endif
         }
 
         protected ISchema CreateSchemaWith(IFilterInputType type, FilterConvention convention)

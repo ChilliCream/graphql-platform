@@ -120,6 +120,17 @@ partial class Build : NukeBuild
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx"));
 
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettings(DotNetTestSettings settings) =>
+        TestBaseSettings(settings)
+            .SetNoBuild(true)
+            .EnableCollectCoverage()
+            .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetExcludeByFile("*.Generated.cs")
+            .CombineWith(TestProjects, (_, v) => _
+                .SetProjectFile(v)
+                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
+
     IEnumerable<DotNetTestSettings> CoverSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)
             .EnableCollectCoverage()
