@@ -35,12 +35,11 @@ namespace HotChocolate.Data.Filters.Expressions
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
                 .AddTypeInterceptor<FilterTypeInterceptor>()
-                .AddQueryType(
-                    c =>
-                        c.Name("Query")
-                            .Field("foo")
-                            .Type<StringType>()
-                            .Resolver("bar"))
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
                 .AddType(type);
 
             return builder.Create();
