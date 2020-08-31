@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay
 {
     internal sealed class NodeField
@@ -20,25 +22,21 @@ namespace HotChocolate.Types.Relay
         {
             var descriptor = ObjectFieldDescriptor.New(context, _node);
 
-            IIdSerializer _serializer = null;
+            IIdSerializer? serializer = null;
 
             descriptor
                 .Argument(_id, a => a.Type<NonNullType<IdType>>())
                 .Type<NodeType>()
-                .Resolver(async ctx =>
+                .Resolve(async ctx =>
                 {
                     IServiceProvider services = ctx.Service<IServiceProvider>();
 
-                    if (_serializer is null)
-                    {
-                        _serializer =
-                            services.GetService(typeof(IIdSerializer)) is IIdSerializer s
-                                ? s
-                                : new IdSerializer();
-                    }
+                    serializer ??= services.GetService(typeof(IIdSerializer)) is IIdSerializer s
+                        ? s
+                        : new IdSerializer();
 
                     var id = ctx.ArgumentValue<string>(_id);
-                    IdValue deserializedId = _serializer.Deserialize(id);
+                    IdValue deserializedId = serializer.Deserialize(id);
 
                     ctx.LocalContextData = ctx.LocalContextData
                         .SetItem(WellKnownContextData.Id, deserializedId.Value)
@@ -48,7 +46,7 @@ namespace HotChocolate.Types.Relay
                         out ObjectType type)
                         && type.ContextData.TryGetValue(
                             RelayConstants.NodeResolverFactory,
-                            out var o)
+                            out object? o)
                         && o is Func<IServiceProvider, INodeResolver> factory)
                     {
                         INodeResolver resolver = factory.Invoke(services);

@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.SourceType = sourceType;
             Definition.ResolverType = resolverType;
 
-            if (context.Naming.IsDeprecated(member, out string reason))
+            if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }

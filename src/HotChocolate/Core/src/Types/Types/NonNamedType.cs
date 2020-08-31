@@ -118,11 +118,11 @@ namespace HotChocolate.Types
 
         protected abstract IValueNode ParseValue(object value);
 
-        object ISerializableType.Serialize(object value)
+        object? ISerializableType.Serialize(object? value)
         {
             if (IsInputType)
             {
-                if (TrySerialize(value, out var serialized))
+                if (TrySerialize(value, out object? serialized))
                 {
                     return serialized;
                 }
@@ -137,14 +137,14 @@ namespace HotChocolate.Types
         }
 
         protected abstract bool TrySerialize(
-            object value,
-            out object serialized);
+            object? value,
+            out object? serialized);
 
-        object ISerializableType.Deserialize(object serialized)
+        object? ISerializableType.Deserialize(object? serialized)
         {
             if (IsInputType)
             {
-                if (TryDeserialize(serialized, out var value))
+                if (TryDeserialize(serialized, out object? value))
                 {
                     return value;
                 }
