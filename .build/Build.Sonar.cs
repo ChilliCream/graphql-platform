@@ -39,6 +39,10 @@ partial class Build : NukeBuild
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
 
+            DotNetRestore(c => c
+                .SetProjectFile(AllSolutionFile)
+                .SetWorkingDirectory(RootDirectory));
+
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
             DotNetBuild(SonarBuildAll);
             DotNetTest(CoverNoBuildSettings);
