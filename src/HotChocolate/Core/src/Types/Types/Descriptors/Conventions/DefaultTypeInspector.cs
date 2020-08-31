@@ -26,9 +26,6 @@ namespace HotChocolate.Types.Descriptors
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
 
-        public static DefaultTypeInspector Default { get; } =
-            new DefaultTypeInspector();
-
         /// <summary>
         /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
         /// </summary>

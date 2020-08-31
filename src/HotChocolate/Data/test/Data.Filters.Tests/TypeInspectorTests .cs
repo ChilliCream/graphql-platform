@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Tests
         public void FilterInputType_Should_BeASchemaType_When_Inferred()
         {
             // arrange
-            DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+            DefaultTypeInspector inspector = new DefaultTypeInspector();
 
             // act
             IExtendedType extendedType = inspector.GetType(typeof(FilterInputType<Foo>));
@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Tests
         public void FilterInputType_Should_BeASchemaType_When_NonGeneric()
         {
             // arrange
-            DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+            DefaultTypeInspector inspector = new DefaultTypeInspector();
 
             // act
             IExtendedType extendedType = inspector.GetType(typeof(NonGenericType));
@@ -37,7 +37,7 @@ namespace HotChocolate.Data.Tests
         public void FilterInputType_Should_BeASchemaType_When_Generic()
         {
             // arrange
-            DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+            DefaultTypeInspector inspector = new DefaultTypeInspector();
 
             // act
             IExtendedType extendedType = inspector.GetType(typeof(GenericType));
@@ -50,10 +50,10 @@ namespace HotChocolate.Data.Tests
         public void FilterInputType_Should_BeASchemaType_When_List()
         {
             // arrange
-            DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+            DefaultTypeInspector inspector = new DefaultTypeInspector();
 
             // act
-            IExtendedType extendedType = 
+            IExtendedType extendedType =
                 inspector.GetType(typeof(ListFilterInput<FilterInputType<Foo>>));
 
             // assert

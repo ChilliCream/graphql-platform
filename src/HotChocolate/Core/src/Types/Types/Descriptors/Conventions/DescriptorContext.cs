@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Descriptors
                 if (_inspector is null)
                 {
                     _inspector = this.GetConventionOrDefault<ITypeInspector>(
-                        DefaultTypeInspector.Default);
+                        new DefaultTypeInspector());
                 }
                 return _inspector;
             }
