@@ -41,7 +41,7 @@ partial class Build : NukeBuild
 
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
             DotNetBuild(SonarBuildAll);
-            DotNetTest(CoverSettings);
+            DotNetTest(CoverNoBuildSettings);
             SonarScannerEnd(SonarEndSettings);
         });
 
