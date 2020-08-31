@@ -20,11 +20,11 @@ pr:
 - master
 
 stages:
-  - stage: macos-10.15
-    displayName: 'macos-10.15'
+  - stage: macOS-latest
+    displayName: 'macOS-latest'
     dependsOn: [  ]
     pool:
-      vmImage: 'macos-10.15'
+      vmImage: 'macOS-latest'
     jobs:
       - job: Cover
         displayName: 'Cover'
