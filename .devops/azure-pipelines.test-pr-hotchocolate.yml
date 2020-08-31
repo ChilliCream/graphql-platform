@@ -30,6 +30,7 @@ stages:
       vmImage: 'ubuntu-latest'
     jobs:
       - job: Test
+        continueOnError: true
         displayName: 'Test'
         dependsOn: [ ]
         strategy:
