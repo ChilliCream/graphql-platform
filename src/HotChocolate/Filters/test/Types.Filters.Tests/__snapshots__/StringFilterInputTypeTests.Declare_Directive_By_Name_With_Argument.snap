@@ -1,4 +1,12 @@
-﻿input FooFilter {
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooFilter {
   AND: [FooFilter!]
   bar: String @bar(qux: "foo")
   OR: [FooFilter!]

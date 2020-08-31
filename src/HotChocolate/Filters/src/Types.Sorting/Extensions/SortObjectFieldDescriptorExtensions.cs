@@ -1,19 +1,17 @@
 using System;
-using System.Threading.Tasks;
+using System.Globalization;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {
-        public const string OrderByArgumentName = "order_by";
-        private static readonly Type _middlewareDefinition =
-            typeof(QueryableSortMiddleware<>);
+        private static readonly Type _middlewareDefinition = typeof(QueryableSortMiddleware<>);
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)
@@ -63,37 +61,53 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor,
-            Type sortType,
-            ITypeSystemMember sortTypeInstance = null)
+            Type? sortType,
+            ITypeSystemMember? sortTypeInstance = null)
         {
             FieldMiddleware placeholder = next => context => default;
+            string argumentPlaceholder =
+                "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((c,definition) =>
                 {
-                    Type argumentType = GetArgumentType(definition, sortType);
+                    Type argumentType = GetArgumentType(definition, sortType, c.TypeInspector);
 
-                    ITypeReference argumentTypeReference =
-                        sortTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(
-                                argumentType, TypeContext.Input)
-                            : new SchemaTypeReference(sortTypeInstance);
+                    ITypeReference argumentTypeReference = sortTypeInstance is null
+                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                            argumentType,
+                            TypeContext.Input)
+                        : TypeReference.Create(sortTypeInstance);
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Name = OrderByArgumentName,
-                        Type = new ClrTypeReference(
-                            argumentType, TypeContext.Input)
+                        Name = argumentPlaceholder,
+                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input)
                     };
+
+                    ILazyTypeConfiguration lazyArgumentConfiguration =
+                        LazyTypeConfigurationBuilder
+                            .New<ArgumentDefinition>()
+                            .Definition(argumentDefinition)
+                            .Configure((context, definition) =>
+                                {
+                                    ISortingNamingConvention convention =
+                                        context.DescriptorContext.GetSortingNamingConvention();
+                                    definition.Name = convention.ArgumentName;
+                                })
+                           .On(ApplyConfigurationOn.Completion)
+                           .Build();
+
+                    argumentDefinition.Configurations.Add(lazyArgumentConfiguration);
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, defintion) =>
+                            .Configure((context, definition) =>
                                 CompileMiddleware(
                                     context,
                                     definition,
@@ -110,24 +124,25 @@ namespace HotChocolate.Types
 
         private static Type GetArgumentType(
             ObjectFieldDefinition definition,
-            Type filterType)
+            Type? filterType,
+            ITypeInspector typeInspector)
         {
-            Type argumentType = filterType;
+            Type? argumentType = filterType;
 
-            if (filterType == null)
+            if (argumentType == null)
             {
-                if (!TypeInspector.Default.TryCreate(
-                    definition.ResultType, out TypeInfo typeInfo))
+                if (definition.ResultType is null ||
+                    definition.ResultType == typeof(object) ||
+                    !typeInspector.TryCreateTypeInfo(
+                        definition.ResultType, out ITypeInfo? typeInfo))
                 {
-                    // TODO : resources
                     throw new ArgumentException(
                         "Cannot handle the specified type.",
                         definition.ResultType.FullName);
                 }
 
-                argumentType =
-                    typeof(SortInputType<>).MakeGenericType(
-                        typeInfo.ClrType);
+                argumentType = typeof(SortInputType<>)
+                    .MakeGenericType(typeInfo.NamedType);
             }
 
             if (argumentType == typeof(object))
@@ -146,17 +161,22 @@ namespace HotChocolate.Types
         }
 
         private static void CompileMiddleware(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
         {
-            ISortInputType type =
-                context.GetType<ISortInputType>(argumentTypeReference);
-            Type middlewareType = _middlewareDefinition
-                .MakeGenericType(type.EntityType);
+            ISortingNamingConvention convention =
+                context.DescriptorContext.GetSortingNamingConvention();
+
+            ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition.MakeGenericType(type.EntityType);
+
             FieldMiddleware middleware =
-                FieldClassMiddlewareFactory.Create(middlewareType);
+                FieldClassMiddlewareFactory.Create(
+                    middlewareType,
+                    SortMiddlewareContext.Create(convention.ArgumentName));
+
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

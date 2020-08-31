@@ -1,694 +1,809 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
-
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorComparableTests
+    public class QueryableFilterVisitorContextComparableTests
+        : TypeTestBase
     {
         [Fact]
-        public async Task Create_ShortEqual_Expression()
+        public void Create_ShortEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort",
+                new ObjectFieldNode(
+                    "barShort",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 12 };
+            var a = new Foo {BarShort = 12};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 13 };
+            var b = new Foo {BarShort = 13};
             Assert.False(func(b));
         }
 
         [Fact]
-        public async Task Create_ShortNotEqual_Expression()
+        public void Create_ShortNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not",
+                new ObjectFieldNode(
+                    "barShort_not",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 13 };
+            var a = new Foo {BarShort = 13};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
         }
 
 
         [Fact]
-        public async Task Create_ShortGreaterThan_Expression()
+        public void Create_ShortGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_gt",
+                new ObjectFieldNode(
+                    "barShort_gt",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.True(func(c));
         }
 
         [Fact]
-        public async Task Create_ShortNotGreaterThan_Expression()
+        public void Create_ShortNotGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_gt",
+                new ObjectFieldNode(
+                    "barShort_not_gt",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.False(func(c));
         }
 
 
         [Fact]
-        public async Task Create_ShortGreaterThanOrEquals_Expression()
+        public void Create_ShortGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_gte",
+                new ObjectFieldNode(
+                    "barShort_gte",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.True(func(c));
         }
 
         [Fact]
-        public async Task Create_ShortNotGreaterThanOrEquals_Expression()
+        public void Create_ShortNotGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_gte",
+                new ObjectFieldNode(
+                    "barShort_not_gte",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.False(func(c));
         }
 
 
-
         [Fact]
-        public async Task Create_ShortLowerThan_Expression()
+        public void Create_ShortLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_lt",
+                new ObjectFieldNode(
+                    "barShort_lt",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.False(func(c));
         }
 
         [Fact]
-        public async Task Create_ShortNotLowerThan_Expression()
+        public void Create_ShortNotLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_lt",
+                new ObjectFieldNode(
+                    "barShort_not_lt",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.True(func(c));
         }
 
 
         [Fact]
-        public async Task Create_ShortLowerThanOrEquals_Expression()
+        public void Create_ShortLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_lte",
+                new ObjectFieldNode(
+                    "barShort_lte",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.False(func(c));
         }
 
         [Fact]
-        public async Task Create_ShortNotLowerThanOrEquals_Expression()
+        public void Create_ShortNotLowerThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_lte",
+                new ObjectFieldNode(
+                    "barShort_not_lte",
                     new IntValueNode(12)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 11 };
+            var a = new Foo {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new Foo { BarShort = 13 };
+            var c = new Foo {BarShort = 13};
             Assert.True(func(c));
         }
 
         [Fact]
-        public async Task Create_ShortIn_Expression()
+        public void Create_ShortIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_in",
-                new ListValueNode(new[]
-                {
-                    new IntValueNode(13),
-                    new IntValueNode(14)
-                }))
+                new ObjectFieldNode(
+                    "barShort_in",
+                    new ListValueNode(new[] {new IntValueNode(13), new IntValueNode(14)}))
             );
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 13 };
+            var a = new Foo {BarShort = 13};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 12 };
+            var b = new Foo {BarShort = 12};
             Assert.False(func(b));
         }
 
         [Fact]
-        public async Task Create_ShortNotIn_Expression()
+        public void Create_ShortNotIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_in",
-                new ListValueNode(new[] { new IntValueNode(13), new IntValueNode(14) }
-                ))
+                new ObjectFieldNode(
+                    "barShort_not_in",
+                    new ListValueNode(
+                        new[] {new IntValueNode(13), new IntValueNode(14)}
+                    ))
             );
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<Foo, bool> func = context.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { BarShort = 12 };
+            var a = new Foo {BarShort = 12};
             Assert.True(func(a));
 
-            var b = new Foo { BarShort = 13 };
+            var b = new Foo {BarShort = 13};
             Assert.False(func(b));
         }
 
         [Fact]
-        public async Task Create_NullableShortEqual_Expression()
+        public void Create_NullableShortEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort",
+                new ObjectFieldNode(
+                    "barShort",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 12 };
+            var a = new FooNullable {BarShort = 12};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 13 };
+            var b = new FooNullable {BarShort = 13};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = null };
+            var c = new FooNullable {BarShort = null};
             Assert.False(func(c));
         }
 
         [Fact]
-        public async Task Create_NullableShortNotEqual_Expression()
+        public void Create_NullableShortNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not",
+                new ObjectFieldNode(
+                    "barShort_not",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 13 };
+            var a = new FooNullable {BarShort = 13};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = null };
+            var c = new FooNullable {BarShort = null};
             Assert.True(func(c));
         }
 
 
         [Fact]
-        public async Task Create_NullableShortGreaterThan_Expression()
+        public void Create_NullableShortGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_gt",
+                new ObjectFieldNode(
+                    "barShort_gt",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.True(func(c));
 
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
             Assert.False(func(d));
         }
 
         [Fact]
-        public async Task Create_NullableShortNotGreaterThan_Expression()
+        public void Create_NullableShortNotGreaterThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_gt",
+                new ObjectFieldNode(
+                    "barShort_not_gt",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.False(func(c));
 
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
             Assert.True(func(d));
         }
 
 
         [Fact]
-        public async Task Create_NullableShortGreaterThanOrEquals_Expression()
+        public void Create_NullableShortGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_gte",
+                new ObjectFieldNode(
+                    "barShort_gte",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.True(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.True(func(c));
 
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
             Assert.False(func(d));
         }
 
         [Fact]
-        public async Task Create_NullableShortNotGreaterThanOrEquals_Expression()
+        public void Create_NullableShortNotGreaterThanOrEquals_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_gte",
+                new ObjectFieldNode(
+                    "barShort_not_gte",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.False(func(c));
 
-            var d = new FooNullable { BarShort = null };
-            Assert.True(func(d));
-        }
-
-
-
-        [Fact]
-        public async Task Create_NullableShortLowerThan_Expression()
-        {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_lt",
-                    new IntValueNode(12)));
-
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
-
-            // assert
-            var a = new FooNullable { BarShort = 11 };
-            Assert.True(func(a));
-
-            var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
-
-            var c = new FooNullable { BarShort = 13 };
-            Assert.False(func(c));
-
-            var d = new FooNullable { BarShort = null };
-            Assert.False(func(d));
-        }
-
-        [Fact]
-        public async Task Create_NullableShortNotLowerThan_Expression()
-        {
-            // arrange
-            var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_lt",
-                    new IntValueNode(12)));
-
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
-
-            // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
-
-            // assert
-            var a = new FooNullable { BarShort = 11 };
-            Assert.False(func(a));
-
-            var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
-
-            var c = new FooNullable { BarShort = 13 };
-            Assert.True(func(c));
-
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
             Assert.True(func(d));
         }
 
 
         [Fact]
-        public async Task Create_NullableShortLowerThanOrEquals_Expression()
+        public void Create_NullableShortLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_lte",
+                new ObjectFieldNode(
+                    "barShort_lt",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
-            Assert.True(func(b));
+            var b = new FooNullable {BarShort = 12};
+            Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.False(func(c));
 
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
             Assert.False(func(d));
         }
 
         [Fact]
-        public async Task Create_NullableShortNotLowerThanOrEquals_Expression()
+        public void Create_NullableShortNotLowerThan_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_lte",
+                new ObjectFieldNode(
+                    "barShort_not_lt",
                     new IntValueNode(12)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 11 };
+            var a = new FooNullable {BarShort = 11};
             Assert.False(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
-            Assert.False(func(b));
+            var b = new FooNullable {BarShort = 12};
+            Assert.True(func(b));
 
-            var c = new FooNullable { BarShort = 13 };
+            var c = new FooNullable {BarShort = 13};
             Assert.True(func(c));
 
-            var d = new FooNullable { BarShort = null };
+            var d = new FooNullable {BarShort = null};
+            Assert.True(func(d));
+        }
+
+
+        [Fact]
+        public void Create_NullableShortLowerThanOrEquals_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode(
+                    "barShort_lte",
+                    new IntValueNode(12)));
+
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
+
+            // act
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+
+            // assert
+            var a = new FooNullable {BarShort = 11};
+            Assert.True(func(a));
+
+            var b = new FooNullable {BarShort = 12};
+            Assert.True(func(b));
+
+            var c = new FooNullable {BarShort = 13};
+            Assert.False(func(c));
+
+            var d = new FooNullable {BarShort = null};
+            Assert.False(func(d));
+        }
+
+        [Fact]
+        public void Create_NullableShortNotLowerThanOrEquals_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode(
+                    "barShort_not_lte",
+                    new IntValueNode(12)));
+
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
+
+            // act
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
+
+            // assert
+            var a = new FooNullable {BarShort = 11};
+            Assert.False(func(a));
+
+            var b = new FooNullable {BarShort = 12};
+            Assert.False(func(b));
+
+            var c = new FooNullable {BarShort = 13};
+            Assert.True(func(c));
+
+            var d = new FooNullable {BarShort = null};
             Assert.True(func(d));
         }
 
         [Fact]
-        public async Task Create_NullableShortIn_Expression()
+        public void Create_NullableShortIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_in",
-                new ListValueNode(new[]
-                {
-                    new IntValueNode(13),
-                    new IntValueNode(14)
-                })));
+                new ObjectFieldNode(
+                    "barShort_in",
+                    new ListValueNode(new[] {new IntValueNode(13), new IntValueNode(14)}))
+            );
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 13 };
+            var a = new FooNullable {BarShort = 13};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 12 };
+            var b = new FooNullable {BarShort = 12};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = null };
+            var c = new FooNullable {BarShort = null};
             Assert.False(func(c));
         }
 
         [Fact]
-        public async Task Create_NullableShortNotIn_Expression()
+        public void Create_NullableShortNotIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("barShort_not_in",
-                new ListValueNode(new[] { 
-                    new IntValueNode(13), 
-                    new IntValueNode(14) })));
+                new ObjectFieldNode(
+                    "barShort_not_in",
+                    new ListValueNode(
+                        new[] {new IntValueNode(13), new IntValueNode(14)}
+                    ))
+            );
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
-            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
+            var context = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, context);
+            Func<FooNullable, bool> func = context.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { BarShort = 12 };
+            var a = new FooNullable {BarShort = 12};
             Assert.True(func(a));
 
-            var b = new FooNullable { BarShort = 13 };
+            var b = new FooNullable {BarShort = 13};
             Assert.False(func(b));
 
-            var c = new FooNullable { BarShort = null };
+            var c = new FooNullable {BarShort = null};
             Assert.True(func(c));
+        }
+
+        [Fact]
+        public void Overwrite_Comparable_Filter_Type_With_Attribute()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(new FilterInputType<EntityWithTypeAttribute>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Overwrite_Comparable_Filter_Type_With_Descriptor()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Entity>(
+                    d =>
+                        d.Filter(t => t.BarShort).Type<IntType>()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         public class Foo
@@ -729,6 +844,16 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Filter(x => x.BarShort);
             }
+        }
+
+        public class EntityWithTypeAttribute
+        {
+            [GraphQLType(typeof(IntType))] public short? BarShort { get; set; }
+        }
+
+        public class Entity
+        {
+            public short? BarShort { get; set; }
         }
     }
 }

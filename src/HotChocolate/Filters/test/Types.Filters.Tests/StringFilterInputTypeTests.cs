@@ -1,31 +1,30 @@
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types.Filters
 {
     public class StringFilterInputTypeTests
+        : TypeTestBase
     {
         [Fact]
-        public async Task Create_Implicit_Filters()
+        public void Create_Implicit_Filters()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(new FilterInputType<Foo>());
+            var schema = CreateSchema(new FilterInputType<Foo>());
 
             // assert
             schema.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task Create_Explicit_Filters()
+        public void Create_Explicit_Filters()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
                         .BindFiltersExplicitly()
@@ -37,11 +36,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_Explicit_Filters_All_Operations()
+        public void Create_Explicit_Filters_All_Operations()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
                         .BindFiltersExplicitly()
@@ -60,13 +59,116 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
         [Fact]
-        public async Task Ignore_Field_Fields()
+        public void Bind_Filter_FilterDescirptor_OverrideFieldDescriptor()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            IStringFilterFieldDescriptor first = null;
+            IStringFilterFieldDescriptor second = null;
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    first = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly()
+                        .AllowEquals().Name("this_should_not_be_visible").And()
+                        .AllowNotEquals().Name("this_should_not_be_visible").And()
+                        .AllowIn().Name("this_should_not_be_visible").And()
+                        .AllowNotIn().Name("this_should_not_be_visible").And()
+                        .AllowContains().Name("this_should_not_be_visible").And()
+                        .AllowNotContains().Name("this_should_not_be_visible").And()
+                        .AllowStartsWith().Name("this_should_not_be_visible").And()
+                        .AllowNotStartsWith().Name("this_should_not_be_visible").And()
+                        .AllowEndsWith().Name("this_should_not_be_visible").And()
+                        .AllowNotEndsWith().Name("this_should_not_be_visible").And();
+                    second = descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .AllowEquals().Name("eq").And()
+                        .AllowNotEquals().Name("neq").And()
+                        .AllowIn().Name("in").And()
+                        .AllowNotIn().Name("nin").And()
+                        .AllowContains().Name("c").And()
+                        .AllowNotContains().Name("nc").And()
+                        .AllowStartsWith().Name("sw").And()
+                        .AllowNotStartsWith().Name("nsw").And()
+                        .AllowEndsWith().Name("ew").And()
+                        .AllowNotEndsWith().Name("new").And();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+            Assert.Equal(first, second);
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_Override()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersImplicitly();
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstAddThenIgnore()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                    descriptor.Ignore(x => x.Bar);
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_FilterDescirptor_FirstIgnoreThenAdd()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor.Ignore(x => x.Bar);
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindFiltersExplicitly().AllowNotEquals();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_Field_Fields()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Ignore(f => f.Bar)));
 
@@ -75,11 +177,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Ignore_Field_2()
+        public void Ignore_Field_2()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
                     .Ignore()));
@@ -89,11 +191,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Rename_Specific_Filter()
+        public void Rename_Specific_Filter()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
                         .AllowEquals()
@@ -104,22 +206,22 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Define_Filters_By_Configure_Override()
+        public void Define_Filters_By_Configure_Override()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(new FooFilterType());
+            var schema = CreateSchema(new FooFilterType());
 
             // assert
             schema.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public async Task Declare_Name_Explicitly()
+        public void Declare_Name_Explicitly()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(new FilterInputType<Foo>(descriptor =>
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.Bar)
                     .BindFiltersExplicitly()
@@ -132,11 +234,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Declare_Description_Explicitly()
+        public void Declare_Description_Explicitly()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(new FilterInputType<Foo>(descriptor =>
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.Bar)
                     .BindFiltersExplicitly()
@@ -149,11 +251,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Declare_Directive_By_Name()
+        public void Declare_Directive_By_Name()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
@@ -170,11 +272,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Declare_Directive_By_Name_With_Argument()
+        public void Declare_Directive_By_Name_With_Argument()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
@@ -195,11 +297,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Declare_Directive_With_Clr_Type()
+        public void Declare_Directive_With_Clr_Type()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
@@ -215,11 +317,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Declare_Directive_With_Clr_Instance()
+        public void Declare_Directive_With_Clr_Instance()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(builder =>
+            var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
@@ -235,11 +337,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Bind_Filter_Implicitly()
+        public void Bind_Filter_Implicitly()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(
+            var schema = CreateSchema(
                 new FilterInputType<Foo>(descriptor =>
                 {
                     descriptor

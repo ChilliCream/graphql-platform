@@ -1,4 +1,12 @@
-﻿input StringFoo {
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input StringFoo {
   AND: [StringFoo!]
   bar: String
   OR: [StringFoo!]

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -54,7 +55,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowEquals()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Equals);
+                GetOrCreateOperation(FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
@@ -63,7 +64,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowNotEquals()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotEquals);
+                GetOrCreateOperation(FilterOperationKind.NotEquals);
             Filters.Add(field);
             return field;
         }
@@ -72,7 +73,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowContains()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Contains);
+                GetOrCreateOperation(FilterOperationKind.Contains);
             Filters.Add(field);
             return field;
         }
@@ -81,7 +82,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowNotContains()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotContains);
+                GetOrCreateOperation(FilterOperationKind.NotContains);
             Filters.Add(field);
             return field;
         }
@@ -90,7 +91,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowIn()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.In);
+                GetOrCreateOperation(FilterOperationKind.In);
             Filters.Add(field);
             return field;
         }
@@ -99,7 +100,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowNotIn()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.In);
+                GetOrCreateOperation(FilterOperationKind.In);
             Filters.Add(field);
             return field;
         }
@@ -108,7 +109,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowStartsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.StartsWith);
+                GetOrCreateOperation(FilterOperationKind.StartsWith);
             Filters.Add(field);
             return field;
         }
@@ -117,7 +118,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowNotStartsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotStartsWith);
+                GetOrCreateOperation(FilterOperationKind.NotStartsWith);
             Filters.Add(field);
             return field;
         }
@@ -126,7 +127,7 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.EndsWith);
+                GetOrCreateOperation(FilterOperationKind.EndsWith);
             Filters.Add(field);
             return field;
         }
@@ -135,21 +136,28 @@ namespace HotChocolate.Types.Filters
         public IStringFilterOperationDescriptor AllowNotEndsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotEndsWith);
+                GetOrCreateOperation(FilterOperationKind.NotEndsWith);
             Filters.Add(field);
             return field;
         }
 
         /// <inheritdoc/>
-        public IStringFilterFieldDescriptor Ignore()
+        public IStringFilterFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
+
+        private StringFilterOperationDescriptor GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
+        }
 
         private StringFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)

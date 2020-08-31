@@ -1,114 +1,128 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
-
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorBooleanTests
+    public class QueryableFilterVisitorContextBooleanTests
+        : TypeTestBase
     {
         [Fact]
-        public async Task Create_BooleanEqual_Expression()
+        public void Create_BooleanEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(true)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { Bar = true };
+            var a = new Foo {Bar = true};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = false };
+            var b = new Foo {Bar = false};
             Assert.False(func(b));
         }
 
         [Fact]
-        public async Task Create_BooleanNotEqual_Expression()
+        public void Create_BooleanNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(false)));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooType,
+                typeof(Foo),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { Bar = false };
+            var a = new Foo {Bar = false};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = true };
+            var b = new Foo {Bar = true};
             Assert.False(func(b));
         }
 
         [Fact]
-        public async Task Create_NullableBooleanEqual_Expression()
+        public void Create_NullableBooleanEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(true)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { Bar = true };
+            var a = new FooNullable {Bar = true};
             Assert.True(func(a));
 
-            var b = new FooNullable { Bar = false };
+            var b = new FooNullable {Bar = false};
             Assert.False(func(b));
 
-            var c = new FooNullable { Bar = null };
+            var c = new FooNullable {Bar = null};
             Assert.False(func(c));
         }
 
         [Fact]
-        public async Task Create_NullableBooleanNotEqual_Expression()
+        public void Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(false)));
 
-            var fooNullableType = await CreateTypeAsync(new FooNullableFilterType());
+            FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
-                fooNullableType, typeof(FooNullable), TypeConversion.Default);
-            value.Accept(filter);
+            var filter = new QueryableFilterVisitorContext(
+                fooNullableType,
+                typeof(FooNullable),
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filter);
             Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { Bar = false };
+            var a = new FooNullable {Bar = false};
             Assert.True(func(a));
 
-            var b = new FooNullable { Bar = true };
+            var b = new FooNullable {Bar = true};
             Assert.False(func(b));
 
-            var c = new FooNullable { Bar = null };
+            var c = new FooNullable {Bar = null};
             Assert.False(func(c));
         }
 
@@ -129,7 +143,9 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
 
@@ -140,7 +156,9 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<FooNullable> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
     }

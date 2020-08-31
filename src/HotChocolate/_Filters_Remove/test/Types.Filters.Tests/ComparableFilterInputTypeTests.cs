@@ -1,0 +1,311 @@
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using HotChocolate.Tests;
+using Snapshooter.Xunit;
+using Xunit;
+using static HotChocolate.Tests.TestHelper;
+
+namespace HotChocolate.Types.Filters
+{
+    public class ComparableFilterInputTypeTests
+    {
+        [Fact]
+        public async Task Create_Filter_Discover_Everything_Implicitly()
+        {
+            // arrange
+            // act
+            ISchema schema = await CreateSchemaAsync(new FooFilterTypeDefaults());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Create_Filter_Discover_Operators_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(new FooFilterType());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        /// <summary>
+        /// This test checks if the binding of all allow methods are correct
+        /// </summary>
+        [Fact]
+        public async Task Create_Filter_Declare_Operators_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(new FilterInputType<Foo>(descriptor =>
+            {
+                descriptor
+                    .BindFieldsExplicitly()
+                    .Filter(x => x.BarShort)
+                    .BindFiltersExplicitly()
+                    .AllowEquals()
+                    .And().AllowNotEquals()
+                    .And().AllowIn()
+                    .And().AllowNotIn()
+                    .And().AllowGreaterThan()
+                    .And().AllowNotGreaterThan()
+                    .And().AllowGreaterThanOrEquals()
+                    .And().AllowNotGreaterThanOrEquals()
+                    .And().AllowLowerThan()
+                    .And().AllowNotLowerThan()
+                    .And().AllowLowerThanOrEquals()
+                    .And().AllowNotLowerThanOrEquals();
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Name_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(new FilterInputType<Foo>(descriptor =>
+            {
+                descriptor.Filter(x => x.BarInt)
+                    .BindFiltersExplicitly()
+                    .AllowEquals()
+                    .Name("custom_equals");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Description_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(new FilterInputType<Foo>(descriptor =>
+            {
+                descriptor.Filter(x => x.BarInt)
+                    .BindFiltersExplicitly()
+                    .AllowEquals()
+                    .Description("custom_equals_description");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Directive_By_Name()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Directive("bar");
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Directive_By_Name_With_Argument()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Directive("bar",
+                            new ArgumentNode("qux",
+                                new StringValueNode("foo")));
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition)
+                    .Argument("qux")
+                    .Type<StringType>())));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Directive_With_Clr_Type()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Directive<Bar>();
+                }))
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Declare_Directive_With_Clr_Instance()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                        .Directive(new Bar());
+                }))
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Bind_Filter_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindFieldsExplicitly()
+                        .Filter(x => x.BarInt)
+                        .BindFiltersExplicitly()
+                        .BindFiltersImplicitly();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ignore_Field_Fields()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(
+                new FilterInputType<Foo>(d => d
+                    .Ignore(f => f.BarShort)));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Ignore_Field_2()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(
+                new FilterInputType<Foo>(d => d
+                    .Filter(f => f.BarShort)
+                    .Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Model_With_Nullable_Properties()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(
+                new FilterInputType<FooNullable>(
+                    d => d.Filter(f => f.BarShort)));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Infer_Nullable_Fields()
+        {
+            // arrange
+            // act
+            var schema = await CreateSchemaAsync(
+                new FilterInputType<FooNullable>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public enum FooBar
+        {
+            Foo,
+            Bar
+        }
+
+        public class Foo
+        {
+            public short BarShort { get; set; }
+            public int BarInt { get; set; }
+            public long BarLong { get; set; }
+            public float BarFloat { get; set; }
+            public double BarDouble { get; set; }
+            public decimal BarDecimal { get; set; }
+            public FooBar FooBar { get; set; }
+        }
+
+        public class FooNullable
+        {
+            public short? BarShort { get; set; }
+        }
+
+        public class Bar
+        {
+            public string Baz { get; set; }
+        }
+
+        public class FooFilterType
+            : FilterInputType<Foo>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.BindFieldsExplicitly();
+                descriptor.Filter(x => x.BarShort);
+                descriptor.Filter(x => x.BarInt);
+                descriptor.Filter(x => x.BarLong);
+                descriptor.Filter(x => x.BarFloat);
+                descriptor.Filter(x => x.BarDouble);
+                descriptor.Filter(x => x.BarDecimal);
+                descriptor.Filter(x => x.FooBar);
+            }
+        }
+
+        public class FooFilterTypeDefaults
+            : FilterInputType<Foo>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<Foo> descriptor)
+            {
+            }
+        }
+    }
+}

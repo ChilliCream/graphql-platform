@@ -1,9 +1,12 @@
 ﻿{
-  "data": {
+  "Data": {
     "items": [
       {
         "time": "2016-01-01T01:01:01.000Z"
       }
     ]
-  }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

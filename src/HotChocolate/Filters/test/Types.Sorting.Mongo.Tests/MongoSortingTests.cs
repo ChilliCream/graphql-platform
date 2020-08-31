@@ -1,13 +1,12 @@
-using System.Threading.Tasks;
-using HotChocolate.Execution;
-using HotChocolate.Tests;
-using HotChocolate.Types.Relay;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using Snapshooter.Xunit;
-using Squadron;
+using MongoDB.Bson;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
 using Xunit;
+using System.Threading.Tasks;
+using Snapshooter.Xunit;
+using HotChocolate.Types.Relay;
+using Squadron;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -25,26 +24,39 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public async Task GetItems_NoSorting_AllItems_Are_Returned_Unsorted()
         {
-            Snapshot.FullName();
-            await TestHelper.ExpectValid(
-                "{ items { foo } }",
-                configure: r => r
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
-                        IMongoCollection<Model> collection
-                            = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model {Foo = "abc", Bar = 1, Baz = true},
-                            new Model {Foo = "def", Bar = 2, Baz = false},
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                IMongoCollection<Model> collection
+                    = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Foo = "abc", Bar = 1, Baz = true },
+                    new Model { Foo = "def", Bar = 2, Baz = false },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IRequestExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items { foo } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -81,7 +93,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            SnapshotExtension.MatchSnapshot(result);
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -118,7 +130,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            SnapshotExtension.MatchSnapshot(result);
+            result.MatchSnapshot();
         }
 
 
@@ -156,7 +168,7 @@ namespace HotChocolate.Types.Sorting
 
             // assert
             Assert.Null(result.Errors);
-            SnapshotExtension.MatchSnapshot(result);
+            result.MatchSnapshot();
         }
 
         public class QueryType : ObjectType
