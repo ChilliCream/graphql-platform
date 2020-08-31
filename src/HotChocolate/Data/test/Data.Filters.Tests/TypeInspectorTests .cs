@@ -12,8 +12,10 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+
             // act
             IExtendedType extendedType = inspector.GetType(typeof(FilterInputType<Foo>));
+
             // assert
             Assert.True(extendedType.IsSchemaType);
         }
@@ -23,8 +25,10 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+
             // act
             IExtendedType extendedType = inspector.GetType(typeof(NonGenericType));
+
             // assert
             Assert.True(extendedType.IsSchemaType);
         }
@@ -34,8 +38,10 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+
             // act
             IExtendedType extendedType = inspector.GetType(typeof(GenericType));
+
             // assert
             Assert.True(extendedType.IsSchemaType);
         }
@@ -45,8 +51,11 @@ namespace HotChocolate.Data.Tests
         {
             // arrange
             DefaultTypeInspector inspector = DefaultTypeInspector.Default;
+
             // act
-            IExtendedType extendedType = inspector.GetType(typeof(ListFilterInput<FilterInputType<Foo>>));
+            IExtendedType extendedType = 
+                inspector.GetType(typeof(ListFilterInput<FilterInputType<Foo>>));
+
             // assert
             Assert.True(extendedType.IsSchemaType);
             IExtendedType? typeArgument = Assert.Single(extendedType.TypeArguments);
