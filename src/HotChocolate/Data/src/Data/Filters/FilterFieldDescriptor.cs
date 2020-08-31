@@ -32,18 +32,26 @@ namespace HotChocolate.Data.Filters
             Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
 
-            Definition.Name = convention.GetFieldName(context, member);
-            Definition.Description = convention.GetFieldDescription(context, member);
-            Definition.Type = convention.GetFieldType(context, member);
+            Definition.Name = convention.GetFieldName(member);
+            Definition.Description = convention.GetFieldDescription(member);
+            Definition.Type = convention.GetFieldType(member);
             Definition.Scope = scope;
         }
+
+        protected internal new FilterFieldDefinition Definition
+        {
+            get => base.Definition;
+            protected set => base.Definition = value;
+        }
+
+        internal InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
 
         protected override void OnCreateDefinition(
             FilterFieldDefinition definition)
         {
-            if (Definition.Property is { })
+            if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.Property);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.Member);
             }
 
             base.OnCreateDefinition(definition);
@@ -137,8 +145,6 @@ namespace HotChocolate.Data.Filters
             return this;
         }
 
-        public InputFieldDefinition CreateFieldDefinition() => CreateDefinition();
-
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
             string? scope,
@@ -147,8 +153,8 @@ namespace HotChocolate.Data.Filters
 
         public static FilterFieldDescriptor New(
             IDescriptorContext context,
-            string? scope,
-            NameString fieldName) =>
+            NameString fieldName,
+            string? scope) =>
             new FilterFieldDescriptor(context, scope, fieldName);
     }
 }

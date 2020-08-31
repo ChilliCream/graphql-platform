@@ -8,8 +8,10 @@ namespace HotChocolate.Types.Descriptors
         , INamedDependencyDescriptor
         where T : DefinitionBase
     {
-        public NamedDependencyDescriptor(TypeConfiguration<T> configuration)
-            : base(configuration)
+        public NamedDependencyDescriptor(
+            ITypeInspector typeInspector,
+            TypeConfiguration<T> configuration)
+            : base(typeInspector, configuration)
         {
         }
 

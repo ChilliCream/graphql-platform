@@ -62,6 +62,7 @@ stages:
               versionSpec: '11'
               jdkArchitectureOption: 'x64'
               jdkSourceOption: 'PreInstalled'
+              jdkDestinationDirectory: ./.java
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'test-results'

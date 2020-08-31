@@ -1,5 +1,8 @@
 using System;
 using System.Reflection;
+using HotChocolate.Properties;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {
@@ -59,13 +62,66 @@ namespace HotChocolate.Utilities
             MemberInfo member, string subscribeResolverName) =>
             new SchemaException(SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to find the subscribe resolver `{2}` defined on {0}.{1}. " + 
-                    "The subscribe resolver bust be a method that is public, non-static " + 
+                    "Unable to find the subscribe resolver `{2}` defined on {0}.{1}. " +
+                    "The subscribe resolver bust be a method that is public, non-static " +
                     "and on the same type as the resolver. (SubscribeAttribute)",
                     member.DeclaringType!.FullName,
                     member.Name,
                     subscribeResolverName)
                 .SetExtension("member", member)
+                .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.",
+                        convention.FullName ?? convention.Name)
+                    .Build());
+
+        public static SchemaException UsePagingAttribute_NodeTypeUnknown(
+            MemberInfo member) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("The UsePaging attribute needs a valid node schema type.")
+                    .SetCode("ATTR_USEPAGING_SCHEMATYPE_INVALID")
+                    .SetExtension(nameof(member), member)
+                    .Build());
+
+        public static SchemaException TypeRegistrar_CreateInstanceFailed(
+            Type namedSchemaType,
+            Exception exception) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create instance of type `{0}`.",
+                        namedSchemaType.FullName)
+                    .SetException(exception)
+                    .SetExtension(nameof(namedSchemaType), namedSchemaType)
+                    .Build());
+
+        public static SchemaException TypeCompletionContext_UnableToResolveType(
+            ITypeSystemObject type,
+            ITypeReference typeRef) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to resolve type reference `{0}`.",
+                        typeRef)
+                    .SetTypeSystemObject(type)
+                    .SetExtension(nameof(typeRef), typeRef)
+                    .Build());
+
+        public static SchemaException TypeInitializer_DuplicateTypeName(
+            ITypeSystemObject type,
+            ITypeSystemObject otherType) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.TypeInitializer_CompleteName_Duplicate,
+                    type.Name)
+                .SetTypeSystemObject(type)
+                .SetExtension(nameof(otherType), otherType)
                 .Build());
     }
 }

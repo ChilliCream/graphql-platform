@@ -16,8 +16,6 @@ namespace HotChocolate.Types
         private string? _scope;
         private string? _description;
 
-        protected TypeSystemObjectBase() { }
-
         /// <summary>
         /// Gets a scope name that was provided by an extension.
         /// </summary>
@@ -71,14 +69,14 @@ namespace HotChocolate.Types
 
         public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
-        internal protected bool IsCompleted =>
+        protected internal bool IsCompleted =>
             _status == TypeStatus.Completed;
 
-        internal protected bool IsNamed =>
+        protected bool IsNamed =>
             _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        internal protected bool IsInitialized =>
+        protected bool IsInitialized =>
             _status == TypeStatus.Initialized
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;

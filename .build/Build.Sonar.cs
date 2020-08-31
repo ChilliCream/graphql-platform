@@ -1,4 +1,5 @@
 using System.IO;
+using Colorful;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.Tooling;
@@ -15,13 +16,17 @@ partial class Build : NukeBuild
     [Parameter] readonly string SonarServer = "https://sonarcloud.io";
 
      Target SonarPr => _ => _
-        .DependsOn(Cover)
-        .Consumes(Cover)
         .Requires(() => GitHubRepository != null)
         .Requires(() => GitHubHeadRef != null)
         .Requires(() => GitHubBaseRef != null)
+        .Requires(() => GitHubRef != null)
         .Executes(() =>
         {
+            Console.WriteLine($"GitHubRepository: {GitHubRepository}");
+            Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
+            Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
+            Console.WriteLine($"GitHubRef: {GitHubRef}");
+
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
             {
@@ -34,8 +39,13 @@ partial class Build : NukeBuild
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
 
+            DotNetRestore(c => c
+                .SetProjectFile(AllSolutionFile)
+                .SetWorkingDirectory(RootDirectory));
+
             SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
             DotNetBuild(SonarBuildAll);
+            DotNetTest(CoverNoBuildSettings);
             SonarScannerEnd(SonarEndSettings);
         });
 

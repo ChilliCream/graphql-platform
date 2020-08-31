@@ -21,7 +21,7 @@ namespace HotChocolate.Language
                     parser => parser.ParseSelectionSet());
 
             public static IValueNode ParseValueLiteral(
-                string sourceText, 
+                string sourceText,
                 bool constant = true) =>
                 Parse<IValueNode>(
                     sourceText,

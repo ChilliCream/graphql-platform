@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EntityType = context.GetType<IOutputType>(
-                TypeReference.Create<T>());
+                context.TypeInspector.GetTypeRef(typeof(T)));
         }
     }
 }

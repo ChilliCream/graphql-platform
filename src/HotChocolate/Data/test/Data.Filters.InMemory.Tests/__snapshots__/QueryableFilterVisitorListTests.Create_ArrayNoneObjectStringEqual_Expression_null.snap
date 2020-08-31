@@ -1,0 +1,58 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "a"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "a"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      },
+      {
+        "fooNested": [
+          {
+            "bar": "c"
+          },
+          {
+            "bar": "d"
+          },
+          {
+            "bar": "b"
+          }
+        ]
+      }
+    ]
+  }
+}

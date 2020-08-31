@@ -6,9 +6,9 @@ namespace HotChocolate.Data.Filters
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
-            descriptor.Operation(Operations.Equals).Type<BooleanType>();
-            descriptor.Operation(Operations.NotEquals).Type<BooleanType>();
-            descriptor.UseAnd(false).UseOr(false);
+            descriptor.Operation(DefaultOperations.Equals).Type<BooleanType>();
+            descriptor.Operation(DefaultOperations.NotEquals).Type<BooleanType>();
+            descriptor.AllowAnd(false).AllowOr(false);
         }
     }
 }

@@ -679,8 +679,8 @@ namespace HotChocolate.Language
             }
 
             public bool TryGetDocument(
-                string documentId, 
-                [NotNullWhen(true)] out DocumentNode document) =>
+                string documentId,
+                out DocumentNode document) =>
                 _cache.TryGetValue(documentId, out document);
         }
     }

@@ -649,7 +649,7 @@ namespace HotChocolate.Execution
             await ExpectValid(
                 @"
                     mutation($review: ReviewInput!) {
-                        createReview(episode: NEWHOPE review: $review) {
+                        createReview(episode: NEW_HOPE review: $review) {
                             stars
                             commentary
                         }

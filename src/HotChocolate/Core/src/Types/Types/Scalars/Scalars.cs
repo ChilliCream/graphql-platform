@@ -1,92 +1,63 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HotChocolate.Types.Descriptors;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// This class provides helper methods to deal with scalar types.
+    /// </summary>
     public static class Scalars
     {
-        private static readonly Dictionary<Type, ClrTypeReference> _lookup =
-            new Dictionary<Type, ClrTypeReference>
+        private static readonly Dictionary<Type, Type> _lookup =
+            new Dictionary<Type, Type>
             {
-                { typeof(string), TypeReference.Create(
-                    typeof(StringType), TypeContext.None) },
-                { typeof(bool), TypeReference.Create(
-                    typeof(BooleanType), TypeContext.None) },
-                { typeof(byte), TypeReference.Create(
-                    typeof(ByteType), TypeContext.None) },
-                { typeof(short), TypeReference.Create(
-                    typeof(ShortType), TypeContext.None) },
-                { typeof(int), TypeReference.Create(
-                    typeof(IntType), TypeContext.None) },
-                { typeof(long), TypeReference.Create(
-                    typeof(LongType), TypeContext.None) },
+                { typeof(string), typeof(StringType) },
+                { typeof(bool), typeof(BooleanType) },
+                { typeof(byte), typeof(ByteType) },
+                { typeof(short), typeof(ShortType) },
+                { typeof(int), typeof(IntType) },
+                { typeof(long), typeof(LongType) },
 
-                { typeof(float), TypeReference.Create(
-                    typeof(FloatType), TypeContext.None) },
-                { typeof(double), TypeReference.Create(
-                    typeof(FloatType), TypeContext.None) },
-                { typeof(decimal), TypeReference.Create(
-                    typeof(DecimalType), TypeContext.None) },
+                { typeof(float), typeof(FloatType) },
+                { typeof(double), typeof(FloatType) },
+                { typeof(decimal), typeof(DecimalType) },
 
-                { typeof(Uri), TypeReference.Create(
-                    typeof(UrlType), TypeContext.None) },
-                { typeof(Guid), TypeReference.Create(
-                    typeof(UuidType), TypeContext.None) },
-                { typeof(DateTime), TypeReference.Create(
-                    typeof(DateTimeType), TypeContext.None) },
-                { typeof(DateTimeOffset), TypeReference.Create(
-                    typeof(DateTimeType), TypeContext.None) },
-                { typeof(MultiplierPathString), TypeReference.Create(
-                    typeof(MultiplierPathType), TypeContext.None) },
-                { typeof(byte[]), TypeReference.Create(
-                    typeof(ByteArrayType), TypeContext.None) },
-                { typeof(NameString), TypeReference.Create(
-                    typeof(NameType), TypeContext.None) },
-                { typeof(TimeSpan), TypeReference.Create(
-                    typeof(TimeSpanType), TypeContext.None) },
+                { typeof(Uri), typeof(UrlType) },
+                { typeof(Guid), typeof(UuidType) },
+                { typeof(DateTime), typeof(DateTimeType) },
+                { typeof(DateTimeOffset), typeof(DateTimeType) },
+                { typeof(MultiplierPathString), typeof(MultiplierPathType) },
+                { typeof(byte[]), typeof(ByteArrayType) },
+                { typeof(NameString), typeof(NameType) },
+                { typeof(TimeSpan), typeof(TimeSpanType) },
             };
 
-        private static readonly Dictionary<NameString, ClrTypeReference> _nameLookup =
-           new Dictionary<NameString, ClrTypeReference>
+        private static readonly Dictionary<NameString, Type> _nameLookup =
+           new Dictionary<NameString, Type>
            {
-                { ScalarNames.String, TypeReference.Create(
-                    typeof(StringType), TypeContext.None) },
-                { ScalarNames.ID, TypeReference.Create(
-                    typeof(IdType), TypeContext.None) },
-                { ScalarNames.Boolean, TypeReference.Create(
-                    typeof(BooleanType), TypeContext.None) },
-                { ScalarNames.Byte, TypeReference.Create(
-                    typeof(ByteType), TypeContext.None) },
-                { ScalarNames.Short, TypeReference.Create(
-                    typeof(ShortType), TypeContext.None) },
-                { ScalarNames.Int, TypeReference.Create(
-                    typeof(IntType), TypeContext.None) },
-                { ScalarNames.Long, TypeReference.Create(
-                    typeof(LongType), TypeContext.None) },
+                { ScalarNames.String, typeof(StringType) },
+                { ScalarNames.ID, typeof(IdType) },
+                { ScalarNames.Boolean, typeof(BooleanType) },
+                { ScalarNames.Byte, typeof(ByteType) },
+                { ScalarNames.Short, typeof(ShortType) },
+                { ScalarNames.Int, typeof(IntType) },
+                { ScalarNames.Long, typeof(LongType) },
 
-                { ScalarNames.Float, TypeReference.Create(
-                    typeof(FloatType), TypeContext.None) },
-                { ScalarNames.Decimal, TypeReference.Create(
-                    typeof(DecimalType), TypeContext.None) },
+                { ScalarNames.Float, typeof(FloatType) },
+                { ScalarNames.Decimal, typeof(DecimalType) },
 
-                { ScalarNames.Url, TypeReference.Create(
-                    typeof(UrlType), TypeContext.None) },
-                { ScalarNames.Uuid, TypeReference.Create(
-                    typeof(UuidType), TypeContext.None) },
-                { ScalarNames.DateTime, TypeReference.Create(
-                    typeof(DateTimeType), TypeContext.None) },
-                { ScalarNames.Date, TypeReference.Create(
-                    typeof(DateType), TypeContext.None) },
-                { ScalarNames.MultiplierPath, TypeReference.Create(
-                    typeof(MultiplierPathType), TypeContext.None) },
-                { ScalarNames.Name, TypeReference.Create(
-                    typeof(NameType), TypeContext.None) },
-                { ScalarNames.PaginationAmount, TypeReference.Create(
-                    typeof(PaginationAmountType), TypeContext.None) },
-                { ScalarNames.ByteArray, TypeReference.Create(
-                    typeof(ByteArrayType), TypeContext.None) },
+                { ScalarNames.Url, typeof(UrlType) },
+                { ScalarNames.Uuid, typeof(UuidType) },
+                { ScalarNames.DateTime, typeof(DateTimeType) },
+                { ScalarNames.Date, typeof(DateType) },
+                { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
+                { ScalarNames.Name, typeof(NameType) },
+                { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
+                { ScalarNames.ByteArray, typeof(ByteArrayType) },
            };
 
         private static readonly Dictionary<Type, ValueKind> _scalarKinds =
@@ -119,31 +90,45 @@ namespace HotChocolate.Types
 
         internal static bool TryGetScalar(
             Type clrType,
-            out ClrTypeReference schemaType)
-        {
-            if (clrType == null)
-            {
-                throw new ArgumentNullException(nameof(clrType));
-            }
-
-            return _lookup.TryGetValue(clrType, out schemaType);
-        }
+            [NotNullWhen(true)] out Type? schemaType) =>
+            _lookup.TryGetValue(
+                clrType ?? throw new ArgumentNullException(nameof(clrType)), 
+                out schemaType);
 
         internal static bool TryGetScalar(
             NameString typeName,
-            out ClrTypeReference schemaType)
-        {
-            return _nameLookup.TryGetValue(
-                typeName.EnsureNotEmpty(nameof(typeName)),
+            [NotNullWhen(true)] out Type? schemaType) =>
+            _nameLookup.TryGetValue(
+                typeName.EnsureNotEmpty(nameof(typeName)), 
                 out schemaType);
-        }
 
-        public static bool IsBuiltIn(NameString typeName)
-        {
-            return typeName.HasValue && _nameLookup.ContainsKey(typeName);
-        }
+        /// <summary>
+        /// Defines if the specified name represents a built-in scalar type.
+        /// </summary>
+        /// <param name="typeName">
+        /// A GraphQL type name.
+        /// </param>
+        /// <returns>
+        /// Returns <c>true</c> if the specified name represents a built-in scalar type; 
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsBuiltIn(NameString typeName) =>
+            typeName.HasValue && 
+            _nameLookup.ContainsKey(typeName);
 
-        public static bool TryGetKind(object value, out ValueKind kind)
+        /// <summary>
+        /// Tries to infer the GraphQL literal kind from a runtime value.
+        /// </summary>
+        /// <param name="value">
+        /// The runtime value.
+        /// </param>
+        /// <param name="kind">
+        /// The expected GraphQL literal kind.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the literal kind can be inferred.
+        /// </returns>
+        public static bool TryGetKind(object? value, out ValueKind kind)
         {
             if (value is null)
             {

@@ -2,7 +2,7 @@ query getHero {
   a: hero(episode: EMPIRE) {
     ...Hero
   }
-  b: hero(episode: NEWHOPE) {
+  b: hero(episode: NEW_HOPE) {
     ...Hero
   }
 }

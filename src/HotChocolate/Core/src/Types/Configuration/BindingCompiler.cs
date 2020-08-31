@@ -56,7 +56,7 @@ namespace HotChocolate.Configuration
 
             CompleteComplexTypeBindings(descriptorContext.Naming);
             CompleteResolverTypeBindings(
-                descriptorContext.Inspector,
+                descriptorContext.TypeInspector,
                 descriptorContext.Naming);
             CompleteResolverBindings(descriptorContext.Naming);
 

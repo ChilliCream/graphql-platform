@@ -218,7 +218,7 @@ For documentation about our _DataLoader_ implementation click [here](https://git
 
 ### Code Contributors
 
-This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+This project exists thanks to all the people who contribute. [[Contribute](https://github.com/ChilliCream/hotchocolate/blob/develop/CONTRIBUTION.md)].
 <a href="https://github.com/ChilliCream/hotchocolate/graphs/contributors"><img src="https://opencollective.com/chillicream/contributors.svg?width=890&button=false" /></a>
 
 ### Financial Contributors

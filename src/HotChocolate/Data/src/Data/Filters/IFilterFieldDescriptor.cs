@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Filters
 {

@@ -152,7 +152,7 @@ namespace HotChocolate.Configuration
                 _allMembers = SourceType == null
                     || _bindingBehavior == BindingBehavior.Explicit
                     ? new List<MemberInfo>()
-                    : _context.Inspector.GetMembers(SourceType).ToList();
+                    : _context.TypeInspector.GetMembers(SourceType).ToList();
             }
         }
     }

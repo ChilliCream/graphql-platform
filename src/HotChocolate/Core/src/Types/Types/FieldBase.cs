@@ -10,7 +10,6 @@ namespace HotChocolate.Types
 {
     public abstract class FieldBase<TType, TDefinition>
         : IField
-        , IHasDirectives
         , IHasRuntimeType
         where TType : IType
         where TDefinition : FieldDefinitionBase, IHasSyntaxNode

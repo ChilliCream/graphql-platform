@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -37,18 +36,15 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IInputType).IsAssignableFrom(extractedType))
+            if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
                 throw new ArgumentException(
                     TypeResources.ArgumentDescriptor_InputTypeViolation);
             }
 
-            Definition.SetMoreSpecificType(
-                type,
-                TypeContext.Input);
+            Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
         }
 
         public void Type<TInputType>(TInputType inputType)
@@ -105,7 +101,9 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.SetMoreSpecificType(value.GetType(), TypeContext.Input);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(value.GetType()),
+                    TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
             }
@@ -114,13 +112,13 @@ namespace HotChocolate.Types.Descriptors
         public void Directive<TDirective>(TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
         }
 
         public void Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
         }
 
         public void Directive(

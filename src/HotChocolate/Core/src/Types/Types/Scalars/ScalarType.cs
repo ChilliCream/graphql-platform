@@ -27,7 +27,13 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the
         /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
         /// </summary>
-        /// <param name="name">Name.</param>
+        /// <param name="name">
+        /// The unique type name.
+        /// </param>
+        /// <param name="bind">
+        /// Defines if this scalar binds implicitly to its runtime type or
+        /// if it has to be explicitly assigned to it.
+        /// </param>
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
         {
             Name = name.EnsureNotEmpty(nameof(name));
@@ -36,13 +42,15 @@ namespace HotChocolate.Types
             Directives = default!;
         }
 
-        ISyntaxNode? IHasSyntaxNode.SyntaxNode { get; }
-
         /// <summary>
         /// Gets the type kind.
         /// </summary>
         public TypeKind Kind { get; } = TypeKind.Scalar;
 
+        /// <summary>
+        /// Defines if this scalar binds implicitly to its runtime type or
+        /// if it has to be explicitly assigned to it.
+        /// </summary>
         public BindingBehavior Bind { get; }
 
         /// <summary>
@@ -54,7 +62,9 @@ namespace HotChocolate.Types
 
         public IDirectiveCollection Directives { get; private set; }
 
-        public ISyntaxNode? SyntaxNode => null;
+        public ScalarTypeDefinitionNode? SyntaxNode => null;
+
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         public bool IsAssignableFrom(INamedType type) => ReferenceEquals(type, this);
 
@@ -178,12 +188,12 @@ namespace HotChocolate.Types
         /// Returns the .net value representation.
         /// </returns>
         /// <exception cref="ScalarSerializationException">
-        /// The specified <paramref name="value" /> cannot be deserialized
+        /// The specified <paramref name="serialized" /> cannot be deserialized
         /// by this scalar.
         /// </exception>
         public virtual object? Deserialize(object? serialized)
         {
-            if (TryDeserialize(serialized, out object v))
+            if (TryDeserialize(serialized, out object? v))
             {
                 return v;
             }
@@ -209,9 +219,9 @@ namespace HotChocolate.Types
 
         internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
-            context.Interceptor.OnBeforeRegisterDependencies(context, null, _contextData);
+            context.TypeInterceptor.OnBeforeRegisterDependencies(context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
-            context.Interceptor.OnAfterRegisterDependencies(context, null, _contextData);
+            context.TypeInterceptor.OnAfterRegisterDependencies(context, null, _contextData);
             base.Initialize(context);
         }
 
@@ -223,10 +233,10 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ITypeCompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteName(context, null, _contextData);
+            context.TypeInterceptor.OnBeforeCompleteName(context, null, _contextData);
             OnCompleteName(context, _contextData);
             base.CompleteName(context);
-            context.Interceptor.OnAfterCompleteName(context, null, _contextData);
+            context.TypeInterceptor.OnAfterCompleteName(context, null, _contextData);
         }
 
         protected virtual void OnCompleteName(
@@ -237,10 +247,10 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ITypeCompletionContext context)
         {
-            context.Interceptor.OnBeforeCompleteType(context, null, _contextData);
+            context.TypeInterceptor.OnBeforeCompleteType(context, null, _contextData);
             OnCompleteType(context, _contextData);
             base.CompleteType(context);
-            context.Interceptor.OnAfterCompleteType(context, null, _contextData);
+            context.TypeInterceptor.OnAfterCompleteType(context, null, _contextData);
         }
 
         protected virtual void OnCompleteType(
@@ -258,7 +268,7 @@ namespace HotChocolate.Types
         {
             if (Scalars.TryGetKind(serialized, out ValueKind kind)
                 && kind == expectedKind
-                && _converter.TryConvert<object, T>(serialized, out T c))
+                && _converter.TryConvert(serialized, out T c))
             {
                 value = c;
                 return true;

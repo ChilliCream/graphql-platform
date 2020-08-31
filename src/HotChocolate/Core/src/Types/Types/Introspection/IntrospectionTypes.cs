@@ -18,33 +18,18 @@ namespace HotChocolate.Types.Introspection
                 "__TypeKind"
             };
 
-        internal static IReadOnlyList<ITypeReference> All { get; } =
+        internal static IReadOnlyList<ITypeReference> CreateReferences(
+            ITypeInspector typeInspector) =>
             new List<ITypeReference>
             {
-                TypeReference.Create(
-                    typeof(__Directive),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__DirectiveLocation),
-                    TypeContext.None),
-                TypeReference.Create(
-                    typeof(__EnumValue),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__Field),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__InputValue),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__Schema),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__Type),
-                    TypeContext.Output),
-                TypeReference.Create(
-                    typeof(__TypeKind),
-                    TypeContext.None),
+                typeInspector.GetTypeRef(typeof(__Directive)),
+                typeInspector.GetTypeRef(typeof(__DirectiveLocation)),
+                typeInspector.GetTypeRef(typeof(__EnumValue)),
+                typeInspector.GetTypeRef(typeof(__Field)),
+                typeInspector.GetTypeRef(typeof(__InputValue)),
+                typeInspector.GetTypeRef(typeof(__Schema)),
+                typeInspector.GetTypeRef(typeof(__Type)),
+                typeInspector.GetTypeRef(typeof(__TypeKind))
             };
 
         public static bool IsIntrospectionType(NameString typeName)

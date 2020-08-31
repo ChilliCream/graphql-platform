@@ -1280,9 +1280,11 @@ namespace HotChocolate
         public void AddConvention_WithImplementation_Generic()
         {
             // arrange
+            var convention = TestConvention.New();
+
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddConvention<ITestConvention>(TestConvention.Default)
+                .AddConvention<ITestConvention>(convention)
                 .AddType<ConventionTestType>()
                 .AddQueryType(d => d
                     .Name("Query")
@@ -1292,18 +1294,20 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+            var retrieved = testType.Context.GetConventionOrDefault<ITestConvention>(
                 new TestConvention());
-            Assert.Equal(TestConvention.Default, convention);
+            Assert.Equal(convention, retrieved);
         }
 
         [Fact]
         public void AddConvention_WithImplementation()
         {
             // arrange
+            var convention = TestConvention.New();
+
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddConvention(typeof(ITestConvention), TestConvention.Default)
+                .AddConvention(typeof(ITestConvention), convention)
                 .AddType<ConventionTestType>()
                 .AddQueryType(d => d
                     .Name("Query")
@@ -1313,10 +1317,10 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+            var retrieved = testType.Context.GetConventionOrDefault<ITestConvention>(
                 new TestConvention2());
             Assert.NotNull(convention);
-            Assert.Equal(TestConvention.Default, convention);
+            Assert.Equal(convention, retrieved);
         }
 
         [Fact]
@@ -1609,15 +1613,15 @@ namespace HotChocolate
         {
 
         }
-        public class TestConvention2 : ITestConvention
+        public class TestConvention2 : Convention, ITestConvention
         {
         }
-        public class TestConvention : ITestConvention
+        public class TestConvention : Convention, ITestConvention
         {
+            public static TestConvention New () => new TestConvention();
+        }
 
-            public static TestConvention Default = new TestConvention();
-        }
-        public class TestConventionServiceDependency : ITestConvention
+        public class TestConventionServiceDependency : Convention, ITestConvention
         {
             public TestConventionServiceDependency(MyInterceptor dependency)
             {

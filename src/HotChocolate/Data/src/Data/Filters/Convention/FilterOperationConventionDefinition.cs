@@ -2,10 +2,10 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterOperationConventionDefinition
     {
+        public int Id { get; set; }
+
         public NameString Name { get; set; }
 
-        public NameString Description { get; set; }
-
-        public int Operation { get; set; }
+        public string? Description { get; set; }
     }
 }

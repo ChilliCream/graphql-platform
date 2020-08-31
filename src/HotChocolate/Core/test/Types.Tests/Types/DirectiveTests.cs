@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using Xunit;
 
@@ -7,6 +8,8 @@ namespace HotChocolate.Types
     public class DirectiveTests
         : TypeTestBase
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
         [Fact]
         public void ConvertCustomDirectiveToDirectiveNode()
         {
@@ -25,7 +28,9 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
             DirectiveNode directiveNode = directive.ToNode();
 
@@ -68,7 +73,9 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
             FooChild mappedObject = directive.ToObject<FooChild>();
 
@@ -94,9 +101,11 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
-            string barValue = directive.GetArgument<string>("bar");
+            var barValue = directive.GetArgument<string>("bar");
 
             // assert
             Assert.Equal("123", barValue);

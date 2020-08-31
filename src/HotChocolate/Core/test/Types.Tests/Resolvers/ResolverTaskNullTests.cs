@@ -45,27 +45,21 @@ namespace HotChocolate.Resolvers
                 descriptor.Field("case3")
                     .Argument("name", a => a.Type<StringType>())
                     .Type<StringType>()
-                    .Resolver(new FieldResolverDelegate(ctx =>
+                    .Resolve(ctx =>
                     {
                         var name = ctx.ArgumentValue<string>("name");
-                        if (name == null)
-                        {
-                            return new ValueTask<object>(default(object));
-                        }
-                        return new ValueTask<object>(name);
-                    }));
+                        return name == null
+                            ? new ValueTask<object>(default(object))
+                            : new ValueTask<object>(name);
+                    });
 
                 descriptor.Field("case4")
                     .Argument("name", a => a.Type<StringType>())
                     .Type<StringType>()
                     .Resolver(ctx =>
                     {
-                        string name = ctx.ArgumentValue<string>("name");
-                        if (name == null)
-                        {
-                            return null;
-                        }
-                        return Task.FromResult(name);
+                        var name = ctx.ArgumentValue<string>("name");
+                        return name == null ? null : Task.FromResult(name);
                     });
             }
         }

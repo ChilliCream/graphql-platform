@@ -76,7 +76,7 @@ namespace HotChocolate.Execution.Batching
                         @"
                         mutation firstReview {
                             createReview(
-                                episode: NEWHOPE
+                                episode: NEW_HOPE
                                 review: { commentary: ""foo"", stars: 4 })
                                     @export(as: ""r"") {
                                 commentary

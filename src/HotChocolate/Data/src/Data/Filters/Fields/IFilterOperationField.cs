@@ -5,6 +5,9 @@ namespace HotChocolate.Data.Filters
     public interface IFilterOperationField
         : IFilterField
     {
-        int Operation { get; }
+        /// <summary>
+        /// Gets the internal operation ID.
+        /// </summary>
+        int Id { get; }
     }
 }
