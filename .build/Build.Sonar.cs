@@ -23,9 +23,9 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             Console.WriteLine($"GitHubRepository: {GitHubRepository}");
-            Console.WriteLine($"GitHubRepository: {GitHubHeadRef}");
-            Console.WriteLine($"GitHubRepository: {GitHubBaseRef}");
-            Console.WriteLine($"GitHubRepository: {GitHubRef}");
+            Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
+            Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
+            Console.WriteLine($"GitHubRef: {GitHubRef}");
 
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
