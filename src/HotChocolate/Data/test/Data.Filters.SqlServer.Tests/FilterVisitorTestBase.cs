@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Filters
 
         protected SqlServerResource? Resource { get; set; }
 
-        public virtual void Init(SqlServerResource resource)
+        public void Init(SqlServerResource resource)
         {
             if (Resource is null)
             {
