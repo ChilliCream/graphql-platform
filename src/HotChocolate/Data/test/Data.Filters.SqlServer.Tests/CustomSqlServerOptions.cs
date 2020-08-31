@@ -7,7 +7,7 @@ namespace Data.Filters.SqlServer.Tests
         public override void Configure(ContainerResourceBuilder builder)
         {
             base.Configure(builder);
-            builder.WaitTimeout(60);
+            builder.WaitTimeout(120);
         }
     }
 }
