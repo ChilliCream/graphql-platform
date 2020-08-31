@@ -27,6 +27,31 @@ namespace HotChocolate.Configuration
             ITypeInterceptor interceptor,
             bool includeSystemTypes = true)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (typeRegistry is null)
+            {
+                throw new ArgumentNullException(nameof(typeRegistry));
+            }
+
+            if (typeLookup == null)
+            {
+                throw new ArgumentNullException(nameof(typeLookup));
+            }
+
+            if (initialTypes == null)
+            {
+                throw new ArgumentNullException(nameof(initialTypes));
+            }
+
+            if (interceptor == null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
             _typeRegistry = typeRegistry;
 
             if (includeSystemTypes)

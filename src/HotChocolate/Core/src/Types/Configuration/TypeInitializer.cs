@@ -71,6 +71,16 @@ namespace HotChocolate.Configuration
             Func<ISchema> schemaResolver,
             IReadOnlySchemaOptions options)
         {
+            if (schemaResolver == null)
+            {
+                throw new ArgumentNullException(nameof(schemaResolver));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             // first we are going to find and initialize all types that belong to our schema.
             var typeRegistrar = new TypeDiscoverer(
                 _context,
