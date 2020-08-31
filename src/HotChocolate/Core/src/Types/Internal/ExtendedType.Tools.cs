@@ -106,6 +106,21 @@ namespace HotChocolate.Internal
 
                 return Helper.ChangeNullability(type, nullable, cache);
             }
+
+            internal static bool?[] CollectNullability(IExtendedType type)
+            {
+                int length = 0;
+                Span<bool> buffer = stackalloc bool[32];
+                Helper.CollectNullability(type, buffer, ref length);
+                buffer = buffer.Slice(0, length);
+
+                var nullability = new bool?[buffer.Length];
+                for (int i = 0; i < nullability.Length; i++)
+                {
+                    nullability[i] = buffer[i];
+                }
+                return nullability;
+            }
         }
     }
 }

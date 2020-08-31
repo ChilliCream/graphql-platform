@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Filters
             }
 
             baseType = _arrayBaseType;
-            return _arrayBaseType != null;
+            return baseType is not null;
         }
 
         public bool IsSimpleArrayType() => TryGetSimpleFilterBaseType(out _);

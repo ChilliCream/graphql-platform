@@ -263,6 +263,17 @@ namespace HotChocolate.Types.Descriptors
             params bool?[] nullable);
 
         /// <summary>
+        /// Collects the nullability information from the given type.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <returns>
+        /// Returns the nullability from the type.
+        /// </returns>
+        bool?[] CollectNullability(IExtendedType type);
+
+        /// <summary>
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">

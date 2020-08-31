@@ -343,7 +343,7 @@ namespace HotChocolate.Internal
                     CompactNullability(nullability));
             }
 
-            private static void CollectNullability(
+            internal static void CollectNullability(
                 IExtendedType type,
                 Span<bool> nullability,
                 ref int position)
