@@ -196,7 +196,7 @@ namespace HotChocolate.Integration.TypeConverter
                 Type source,
                 Type target,
                 ChangeTypeProvider root,
-                [NotNullWhen(true)] out ChangeType converter)
+                out ChangeType converter)
             {
                 if (source == typeof(int) && target == typeof(string))
                 {

@@ -9,8 +9,6 @@ namespace HotChocolate.Types.Descriptors
     {
         string? Scope { get; }
 
-        bool[]? Nullable { get; }
-
         TypeContext Context { get; }
     }
 }

@@ -37,7 +37,7 @@ namespace HotChocolate.Types
             ArgumentDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
             Assert.Equal(typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -70,7 +70,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(StringType),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(StringType),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                 typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace HotChocolate.Types
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.Equal("args", description.Name);
             Assert.Equal(typeof(string),
-                Assert.IsType<ClrTypeReference>(description.Type).Type);
+                Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
         }
 
         [Fact]
@@ -160,7 +160,7 @@ namespace HotChocolate.Types
             // assert
             ArgumentDefinition description = descriptor.CreateDefinition();
             Assert.Equal(typeof(string),
-                Assert.IsType<ClrTypeReference>(description.Type).Type);
+                Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("string",
                 description.NativeDefaultValue);
         }

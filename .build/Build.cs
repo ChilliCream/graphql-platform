@@ -50,8 +50,7 @@ partial class Build : NukeBuild
         .Executes(() =>
         {
             DotNetBuildSonarSolution(AllSolutionFile);
-            DotNetRestore(c =>
-                c.SetProjectFile(AllSolutionFile));
+            DotNetRestore(c => c.SetProjectFile(AllSolutionFile));
         });
 
     Target Compile => _ => _

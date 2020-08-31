@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -11,17 +10,12 @@ namespace HotChocolate.Configuration
     /// <summary>
     /// The type system context is available during the type system initialization process.
     /// </summary>
-    public interface ITypeSystemObjectContext
+    public interface ITypeSystemObjectContext : IHasScope
     {
         /// <summary>
         /// The type system object that is being initialized.
         /// </summary>
         ITypeSystemObject Type { get; }
-
-        /// <summary>
-        /// Gets a scope name that was provided by an extension.
-        /// </summary>
-        string? Scope { get;}
 
         /// <summary>
         /// Defines if <see cref="Type" /> is a type like the object type or interface type.
@@ -50,9 +44,9 @@ namespace HotChocolate.Configuration
         IServiceProvider Services { get; }
 
         /// <summary>
-        /// The schema builder context data that can be used for extensions 
+        /// The schema builder context data that can be used for extensions
         /// to pass state along the initialization process.
-        /// This property can also be reached through <see cref="DescriptorContext.ContextData" />.
+        /// This property can also be reached through <see cref="IDescriptorContext.ContextData" />.
         /// </summary>
         IDictionary<string, object?> ContextData { get; }
 
@@ -62,10 +56,15 @@ namespace HotChocolate.Configuration
         IDescriptorContext DescriptorContext { get; }
 
         /// <summary>
-        /// The type initialization interceptor that allows to intercept 
+        /// The type initialization interceptor that allows to intercept
         /// objects that er being initialized.
         /// </summary>
-        ITypeInterceptor Interceptor { get; }
+        ITypeInterceptor TypeInterceptor { get; }
+
+        /// <summary>
+        /// Gets the type inspector.
+        /// </summary>
+        ITypeInspector TypeInspector { get; }
 
         /// <summary>
         /// Report a schema initialization error.
@@ -74,5 +73,15 @@ namespace HotChocolate.Configuration
         /// The error that occurred during initialization.
         /// </param>
         void ReportError(ISchemaError error);
+
+        /// <summary>
+        /// Tries to infer the possible type kind from a type reference.
+        /// </summary>
+        /// <param name="typeRef">
+        /// The type reference.
+        /// </param>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        bool TryPredictTypeKind(ITypeReference typeRef, out TypeKind kind);
     }
 }

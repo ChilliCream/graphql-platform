@@ -1,0 +1,21 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}

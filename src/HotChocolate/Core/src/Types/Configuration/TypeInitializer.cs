@@ -5,14 +5,13 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration.Validation;
-using HotChocolate.Language;
-using HotChocolate.Properties;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -20,110 +19,119 @@ namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {
-        private static readonly TypeInspector _typeInspector =
-            new TypeInspector();
-        private readonly List<TypeDiscoveryContext> _initContexts =
-            new List<TypeDiscoveryContext>();
-        private readonly Dictionary<RegisteredType, TypeCompletionContext> _completionContext =
-            new Dictionary<RegisteredType, TypeCompletionContext>();
-        private readonly Dictionary<NameString, ITypeReference> _named =
-            new Dictionary<NameString, ITypeReference>();
-        private readonly Dictionary<ITypeReference, ITypeReference> _dependencyLookup =
-            new Dictionary<ITypeReference, ITypeReference>();
         private readonly Dictionary<FieldReference, RegisteredResolver> _resolvers =
             new Dictionary<FieldReference, RegisteredResolver>();
         private readonly List<FieldMiddleware> _globalComps = new List<FieldMiddleware>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IServiceProvider _services;
-        private readonly IDescriptorContext _descriptorContext;
-        private readonly List<ITypeReference> _initialTypes;
-        private readonly List<Type> _externalResolverTypes;
-        private readonly IDictionary<string, object?> _contextData;
+        private readonly IDescriptorContext _context;
+        private readonly ITypeInspector _typeInspector;
+        private readonly IReadOnlyList<ITypeReference> _initialTypes;
+        private readonly IReadOnlyList<Type> _externalResolverTypes;
         private readonly ITypeInterceptor _interceptor;
-        private readonly IsOfTypeFallback _isOfType;
+        private readonly IsOfTypeFallback? _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
-        private DiscoveredTypes? _discoveredTypes = null;
+        private readonly TypeRegistry _typeRegistry;
+        private readonly TypeLookup _typeLookup;
+        private readonly TypeReferenceResolver _typeReferenceResolver;
 
         public TypeInitializer(
-            IServiceProvider services,
             IDescriptorContext descriptorContext,
-            IEnumerable<ITypeReference> initialTypes,
-            IEnumerable<Type> externalResolverTypes,
+            TypeRegistry typeRegistry,
+            IReadOnlyList<ITypeReference> initialTypes,
+            IReadOnlyList<Type> externalResolverTypes,
             ITypeInterceptor interceptor,
-            IsOfTypeFallback isOfType,
+            IsOfTypeFallback? isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
-            _services = services;
-            _descriptorContext = descriptorContext;
-            _contextData = _descriptorContext.ContextData;
-            _initialTypes = initialTypes.ToList();
-            _externalResolverTypes = externalResolverTypes.ToList();
-            _interceptor = interceptor;
+            _context = descriptorContext ??
+                throw new ArgumentNullException(nameof(descriptorContext));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
+            _initialTypes = initialTypes ??
+                throw new ArgumentNullException(nameof(initialTypes));
+            _externalResolverTypes = externalResolverTypes ??
+                throw new ArgumentNullException(nameof(externalResolverTypes));
+            _interceptor = interceptor ??
+                throw new ArgumentNullException(nameof(interceptor));
             _isOfType = isOfType;
-            _isQueryType = isQueryType;
-        }
+            _isQueryType = isQueryType ??
+                throw new ArgumentNullException(nameof(isQueryType));
 
-        public TypeInspector TypeInspector => _typeInspector;
+            _typeInspector = descriptorContext.TypeInspector;
+            _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
+            _typeReferenceResolver = new TypeReferenceResolver(
+                _typeInspector, _typeRegistry, _typeLookup);
+        }
 
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
 
-        public DiscoveredTypes? DiscoveredTypes => _discoveredTypes;
-
-        public IDictionary<ClrTypeReference, ITypeReference> ClrTypes { get; } =
-            new Dictionary<ClrTypeReference, ITypeReference>();
-
         public IDictionary<FieldReference, RegisteredResolver> Resolvers => _resolvers;
 
-        public bool TryGetType(NameString typeName, [NotNullWhen(true)] out IType? type)
-        {
-            if (_discoveredTypes is { }
-                && _named.TryGetValue(typeName, out ITypeReference? reference)
-                && _discoveredTypes.TryGetType(reference, out RegisteredType? registered)
-                && registered.Type is IType t)
-            {
-                type = t;
-                return true;
-            }
-
-            type = null;
-            return false;
-        }
-
-        public DiscoveredTypes Initialize(
+        public void Initialize(
             Func<ISchema> schemaResolver,
             IReadOnlySchemaOptions options)
         {
-            var typeRegistrar = new TypeDiscoverer(
-                new HashSet<ITypeReference>(_initialTypes),
-                ClrTypes,
-                _descriptorContext,
-                _interceptor,
-                _services);
-
-            _discoveredTypes = typeRegistrar.DiscoverTypes();
-
-            if (_discoveredTypes.Errors.Count == 0)
+            if (schemaResolver == null)
             {
-                if (_interceptor.TriggerAggregations)
-                {
-                    _interceptor.OnTypesInitialized(
-                        _discoveredTypes.Types.Select(t => t.DiscoveryContext).ToList());
-                }
-                RegisterResolvers(_discoveredTypes);
-                RegisterImplicitInterfaceDependencies(_discoveredTypes);
-                CompleteNames(_discoveredTypes, schemaResolver);
-                MergeTypeExtensions(_discoveredTypes);
-                RegisterExternalResolvers(_discoveredTypes);
-                CompileResolvers();
-                CompleteTypes(_discoveredTypes);
+                throw new ArgumentNullException(nameof(schemaResolver));
             }
 
-            _errors.AddRange(_discoveredTypes.Errors);
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
 
+            // first we are going to find and initialize all types that belong to our schema.
+            var typeRegistrar = new TypeDiscoverer(
+                _context,
+                _typeRegistry,
+                _typeLookup,
+                new HashSet<ITypeReference>(_initialTypes),
+                _interceptor);
+
+            if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
+            {
+                throw new SchemaException(errors);
+            }
+
+            // next lets tell the type interceptors what types we have initialized.
+            if (_interceptor.TriggerAggregations)
+            {
+                _interceptor.OnTypesInitialized(
+                    _typeRegistry.Types.Select(t => t.DiscoveryContext).ToList());
+            }
+
+            // before we can start completing type names we need to register the field resolvers.
+            RegisterResolvers();
+
+            // now that we have the resolvers sorted and know what types our schema will roughly
+            // consist of we are going to have a look if we can infer interface usage
+            // from .NET classes that implement .NET interfaces.
+            RegisterImplicitInterfaceDependencies();
+
+            // with all types (implicit and explicit) known we complete the type names.
+            CompleteNames(schemaResolver);
+
+            // with the type names all known we can now build pairs to bring together types and
+            // their type extensions.
+            MergeTypeExtensions();
+
+            // external resolvers are resolvers that are defined on the schema and are associated
+            // with the types after they have received a name and the extensions are removed.
+            RegisterExternalResolvers();
+
+            // with all resolvers in place we compile the once inferred from a C# member.
+            CompileResolvers();
+
+            // last we complete the types. Completing types means that we will assign all
+            // the fields resolving all missing parts and then making the types immutable.
+            CompleteTypes();
+
+            // if we do not have any errors we will validate the types for spec violations.
             if (_errors.Count == 0)
             {
                 _errors.AddRange(SchemaValidator.Validate(
-                    _discoveredTypes.Types.Select(t => t.Type),
+                    _typeRegistry.Types.Select(t => t.Type),
                     options));
             }
 
@@ -131,44 +139,12 @@ namespace HotChocolate.Configuration
             {
                 throw new SchemaException(_errors);
             }
-
-            return _discoveredTypes;
         }
 
-        public bool TryGetRegisteredType(
-            ITypeReference reference,
-            out RegisteredType? registeredType)
-        {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            if (_discoveredTypes is null)
-            {
-                registeredType = null;
-                return false;
-            }
-
-            if (_discoveredTypes.TryGetType(reference, out registeredType))
-            {
-                return true;
-            }
-
-            if (TryNormalizeReference(reference, out ITypeReference? nr)
-                && _discoveredTypes.TryGetType(nr!, out registeredType))
-            {
-                return true;
-            }
-
-            registeredType = null;
-            return false;
-        }
-
-        private void RegisterResolvers(DiscoveredTypes discoveredTypes)
+        private void RegisterResolvers()
         {
             foreach (TypeDiscoveryContext context in
-                discoveredTypes.Types.Select(t => t.DiscoveryContext))
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 foreach (FieldReference reference in context.Resolvers.Keys)
                 {
@@ -177,40 +153,118 @@ namespace HotChocolate.Configuration
                         _resolvers[reference] = context.Resolvers[reference];
                     }
                 }
-                _initContexts.Add(context);
             }
         }
 
-        private void MergeTypeExtensions(DiscoveredTypes discoveredTypes)
+        private void RegisterImplicitInterfaceDependencies()
         {
-            var extensions = discoveredTypes.Types
+            var withRuntimeType = _typeRegistry.Types
+                .Where(t => t.RuntimeType != typeof(object))
+                .Distinct()
+                .ToList();
+
+            var interfaceTypes = withRuntimeType
+                .Where(t => t.Type is InterfaceType)
+                .Distinct()
+                .ToList();
+
+            var objectTypes = withRuntimeType
+                .Where(t => t.Type is ObjectType)
+                .Distinct()
+                .ToList();
+
+            var dependencies = new List<TypeDependency>();
+
+            foreach (RegisteredType objectType in objectTypes)
+            {
+                foreach (RegisteredType interfaceType in interfaceTypes)
+                {
+                    if (interfaceType.RuntimeType.IsAssignableFrom(objectType.RuntimeType))
+                    {
+                        dependencies.Add(
+                            new TypeDependency(
+                                _typeInspector.GetTypeRef(
+                                    interfaceType.RuntimeType,
+                                    TypeContext.Output),
+                                TypeDependencyKind.Completed));
+                    }
+                }
+
+                if (dependencies.Count > 0)
+                {
+                    objectType.AddDependencies(dependencies);
+                    _typeRegistry.Register(objectType);
+                    dependencies.Clear();
+                }
+            }
+
+            _typeRegistry.RebuildIndexes();
+        }
+
+        private void CompleteNames(Func<ISchema> schemaResolver)
+        {
+            bool CompleteName(RegisteredType registeredType)
+            {
+                registeredType.SetCompletionContext(
+                    new TypeCompletionContext(
+                        registeredType.DiscoveryContext,
+                        _typeReferenceResolver,
+                        GlobalComponents,
+                        Resolvers,
+                        _isOfType,
+                        schemaResolver));
+
+                registeredType.Type.CompleteName(registeredType.CompletionContext);
+
+                if (registeredType.IsNamedType || registeredType.IsDirectiveType)
+                {
+                    _typeRegistry.Register(registeredType.Type.Name, registeredType);
+                }
+
+                return true;
+            }
+
+            if (ProcessTypes(TypeDependencyKind.Named, CompleteName))
+            {
+                if (_interceptor.TriggerAggregations)
+                {
+                    _interceptor.OnTypesCompletedName(
+                        _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
+                }
+            }
+
+            EnsureNoErrors();
+        }
+
+        private void MergeTypeExtensions()
+        {
+            var extensions = _typeRegistry.Types
                 .Where(t => t.IsExtension)
                 .ToList();
 
             if (extensions.Count > 0)
             {
-                var types = discoveredTypes.Types
+                var types = _typeRegistry.Types
                     .Where(t => t.IsNamedType)
                     .ToList();
 
                 foreach (IGrouping<NameString, RegisteredType> group in
                     extensions.GroupBy(t => t.Type.Name))
                 {
-                    RegisteredType type = types.FirstOrDefault(t =>
-                        t.Type.Name.Equals(group.Key));
+                    RegisteredType? type =
+                        types.FirstOrDefault(t => t.Type.Name.Equals(group.Key));
 
                     if (type != null && type.Type is INamedType targetType)
                     {
-                        MergeTypeExtension(discoveredTypes, group, type, targetType);
+                        MergeTypeExtension(group, type, targetType);
                     }
                 }
 
-                discoveredTypes.RebuildTypeSet();
+                _typeRegistry.RebuildIndexes();
             }
         }
 
         private void MergeTypeExtension(
-            DiscoveredTypes discoveredTypes,
             IEnumerable<RegisteredType> extensions,
             RegisteredType type,
             INamedType targetType)
@@ -224,7 +278,7 @@ namespace HotChocolate.Configuration
                         throw new SchemaException(SchemaErrorBuilder.New()
                             .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
-                                TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
+                                TypeInitializer_Merge_KindDoesNotMatch,
                                 targetType.Name))
                             .SetTypeSystemObject((ITypeSystemObject)targetType)
                             .Build());
@@ -238,16 +292,15 @@ namespace HotChocolate.Configuration
                     }
 
                     // merge
-                    TypeCompletionContext context = _completionContext[extension];
+                    TypeCompletionContext context = extension.CompletionContext;
                     context.Status = TypeStatus.Named;
                     m.Merge(context, targetType);
 
                     // update dependencies
-                    context = _completionContext[type];
-                    type = type.AddDependencies(extension.Dependencies);
-                    discoveredTypes.UpdateType(type);
-                    _completionContext[type] = context;
-                    CopyAlternateNames(_completionContext[extension], context);
+                    context = type.CompletionContext;
+                    type.AddDependencies(extension.Dependencies);
+                    _typeRegistry.Register(type);
+                    CopyAlternateNames(extension.CompletionContext, context);
                 }
             }
         }
@@ -262,7 +315,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void RegisterExternalResolvers(DiscoveredTypes discoveredTypes)
+        private void RegisterExternalResolvers()
         {
             if (_externalResolverTypes.Count == 0)
             {
@@ -270,7 +323,7 @@ namespace HotChocolate.Configuration
             }
 
             Dictionary<NameString, ObjectType> types =
-                discoveredTypes.Types.Select(t => t.Type)
+                _typeRegistry.Types.Select(t => t.Type)
                     .OfType<ObjectType>()
                     .ToDictionary(t => t.Name);
 
@@ -279,29 +332,30 @@ namespace HotChocolate.Configuration
                 GraphQLResolverOfAttribute? attribute =
                     type.GetCustomAttribute<GraphQLResolverOfAttribute>();
 
-                if (attribute?.TypeNames != null)
+                if (attribute?.TypeNames is not null)
                 {
                     foreach (string typeName in attribute.TypeNames)
                     {
                         if (types.TryGetValue(typeName, out ObjectType? objectType))
                         {
-                            AddResolvers(_descriptorContext, objectType, type);
+                            AddResolvers(_context, objectType, type);
                         }
                     }
                 }
 
-                if (attribute?.Types != null)
+                if (attribute?.Types is not null)
                 {
                     foreach (Type sourceType in attribute.Types
-                        .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
+                        .Where(t => !t.IsNonGenericSchemaType()))
                     {
+                        ObjectType? objectType = types.Values
+                            .FirstOrDefault(t =>
+                                t.GetType() == sourceType ||
+                                t.RuntimeType == sourceType);
 
-                        ObjectType objectType = types.Values
-                            .FirstOrDefault(t => t.GetType() == sourceType
-                                || t.RuntimeType == sourceType);
-                        if (objectType != null)
+                        if (objectType is not null)
                         {
-                            AddResolvers(_descriptorContext, objectType, type);
+                            AddResolvers(_context, objectType, type);
                         }
                     }
                 }
@@ -314,7 +368,7 @@ namespace HotChocolate.Configuration
             Type resolverType)
         {
             foreach (MemberInfo member in
-                context.Inspector.GetMembers(resolverType))
+                context.TypeInspector.GetMembers(resolverType))
             {
                 if (IsResolverRelevant(objectType.RuntimeType, member))
                 {
@@ -340,9 +394,9 @@ namespace HotChocolate.Configuration
 
             if (resolver is MethodInfo m)
             {
-                ParameterInfo parent = m.GetParameters()
+                ParameterInfo? parent = m.GetParameters()
                     .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                return parent == null
+                return parent is null
                     || parent.ParameterType.IsAssignableFrom(sourceType);
             }
 
@@ -351,7 +405,7 @@ namespace HotChocolate.Configuration
 
         private void CompileResolvers()
         {
-            foreach (var item in _resolvers.ToArray())
+            foreach (KeyValuePair<FieldReference, RegisteredResolver> item in _resolvers.ToArray())
             {
                 RegisteredResolver registered = item.Value;
                 if (registered.Field is FieldMember member)
@@ -371,159 +425,40 @@ namespace HotChocolate.Configuration
             }
         }
 
-
-
-        private void RegisterImplicitInterfaceDependencies(DiscoveredTypes discoveredTypes)
+        private void CompleteTypes()
         {
-            var withClrType = discoveredTypes.Types
-                .Where(t => t.RuntimeType != typeof(object))
-                .Distinct()
-                .ToList();
-
-            var interfaceTypes = withClrType
-                .Where(t => t.Type is InterfaceType)
-                .Distinct()
-                .ToList();
-
-            var objectTypes = withClrType
-                .Where(t => t.Type is ObjectType)
-                .Distinct()
-                .ToList();
-
-            var dependencies = new List<TypeDependency>();
-
-            foreach (RegisteredType objectType in objectTypes)
+            bool CompleteType(RegisteredType registeredType)
             {
-                foreach (RegisteredType interfaceType in interfaceTypes)
+                if (!registeredType.IsExtension)
                 {
-                    if (interfaceType.RuntimeType.IsAssignableFrom(
-                        objectType.RuntimeType))
-                    {
-                        dependencies.Add(new TypeDependency(
-                            TypeReference.Create(
-                                interfaceType.RuntimeType,
-                                TypeContext.Output),
-                            TypeDependencyKind.Completed));
-                    }
+                    TypeCompletionContext context = registeredType.CompletionContext;
+                    context.Status = TypeStatus.Named;
+                    context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                    registeredType.Type.CompleteType(context);
                 }
-
-                if (dependencies.Count > 0)
-                {
-                    dependencies.AddRange(objectType.Dependencies);
-                    discoveredTypes.UpdateType(objectType.WithDependencies(dependencies));
-                    dependencies = new List<TypeDependency>();
-                }
+                return true;
             }
 
-            discoveredTypes.RebuildTypeSet();
-        }
-
-        private void CompleteNames(DiscoveredTypes discoveredTypes, Func<ISchema> schemaResolver)
-        {
-            bool success = CompleteTypes(
-                discoveredTypes,
-                TypeDependencyKind.Named,
-                registeredType =>
-                {
-                    TypeDiscoveryContext initializationContext =
-                        _initContexts.First(t =>
-                            t.Type == registeredType.Type);
-
-                    var completionContext = new TypeCompletionContext(
-                        initializationContext, this,
-                        _isOfType, schemaResolver);
-
-                    _completionContext[registeredType] = completionContext;
-
-                    registeredType.Type.CompleteName(completionContext);
-
-                    if (registeredType.Type is INamedType
-                        || registeredType.Type is DirectiveType)
-                    {
-                        if (_named.ContainsKey(registeredType.Type.Name))
-                        {
-                            _errors.Add(SchemaErrorBuilder.New()
-                                .SetMessage(string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    TypeResources.TypeInitializer_CompleteName_Duplicate,
-                                    registeredType.Type.Name))
-                                .SetTypeSystemObject(registeredType.Type)
-                                .Build());
-                            return false;
-                        }
-                        _named[registeredType.Type.Name] =
-                            registeredType.References[0];
-                    }
-
-                    return true;
-                });
-
-            if (success)
-            {
-                UpdateDependencyLookup();
-
-                if (_interceptor.TriggerAggregations)
-                {
-                    _interceptor.OnTypesCompletedName(
-                        _completionContext.Values.Where(t => t is { }).ToList());
-                }
-            }
-
-            EnsureNoErrors();
-        }
-
-        private void UpdateDependencyLookup()
-        {
-            if (_discoveredTypes is { })
-            {
-                foreach (RegisteredType registeredType in _discoveredTypes.Types)
-                {
-                    TryNormalizeDependencies(
-                        registeredType,
-                        registeredType.Dependencies
-                            .Select(t => t.TypeReference),
-                        out _);
-                }
-            }
-        }
-
-        private void CompleteTypes(DiscoveredTypes discoveredTypes)
-        {
-            CompleteTypes(
-                discoveredTypes,
-                TypeDependencyKind.Completed,
-                registeredType =>
-                {
-                    if (!registeredType.IsExtension)
-                    {
-                        TypeCompletionContext context = _completionContext[registeredType];
-                        context.Status = TypeStatus.Named;
-                        context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
-                        registeredType.Type.CompleteType(context);
-                    }
-                    return true;
-                });
-
+            ProcessTypes(TypeDependencyKind.Completed, CompleteType);
             EnsureNoErrors();
 
             if (_interceptor.TriggerAggregations)
             {
                 _interceptor.OnTypesCompleted(
-                    _completionContext.Values.Where(t => t is { }).ToList());
+                    _typeRegistry.Types.Select(t => t.CompletionContext).ToList());
             }
         }
 
-        private bool CompleteTypes(
-            DiscoveredTypes discoveredTypes,
+        private bool ProcessTypes(
             TypeDependencyKind kind,
             Func<RegisteredType, bool> action)
         {
             var processed = new HashSet<ITypeReference>();
-            var batch = new List<RegisteredType>(GetInitialBatch(discoveredTypes, kind));
-            bool failed = false;
+            var batch = new List<RegisteredType>(GetInitialBatch(kind));
+            var failed = false;
 
             while (!failed
-                && processed.Count < discoveredTypes.TypeReferenceCount
+                && processed.Count < _typeRegistry.Count
                 && batch.Count > 0)
             {
                 foreach (RegisteredType registeredType in batch)
@@ -543,26 +478,34 @@ namespace HotChocolate.Configuration
                 if (!failed)
                 {
                     batch.Clear();
-                    batch.AddRange(GetNextBatch(discoveredTypes, processed, kind));
+                    batch.AddRange(GetNextBatch(processed, kind));
                 }
             }
 
-            if (!failed && processed.Count < discoveredTypes.TypeReferenceCount)
+            if (!failed && processed.Count < _typeRegistry.Count)
             {
-                foreach (RegisteredType type in discoveredTypes.Types
+                foreach (RegisteredType type in _typeRegistry.Types
                     .Where(t => !processed.Contains(t.References[0])))
                 {
                     string name = type.Type.Name.HasValue
                         ? type.Type.Name.Value
                         : type.References[0].ToString()!;
 
+                    ITypeReference[] references =
+                        type.Dependencies.Where(t => t.Kind == kind)
+                            .Select(t => t.TypeReference).ToArray();
+
+                    IReadOnlyList<ITypeReference> needed =
+                        TryNormalizeDependencies(references,
+                            out IReadOnlyList<ITypeReference>? normalized)
+                            ? normalized.Except(processed).ToArray()
+                            : references;
+
                     _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            TypeResources.TypeInitializer_CannotResolveDependency,
+                        .SetMessage(
+                            TypeInitializer_CannotResolveDependency,
                             name,
-                            string.Join(", ", type.Dependencies
-                                .Where(t => t.Kind == kind)
-                                .Select(t => t.TypeReference))))
+                            string.Join(", ", needed))
                         .SetTypeSystemObject(type.Type)
                         .Build());
                 }
@@ -574,19 +517,16 @@ namespace HotChocolate.Configuration
         }
 
         private IEnumerable<RegisteredType> GetInitialBatch(
-            DiscoveredTypes discoveredTypes,
             TypeDependencyKind kind)
         {
-            return discoveredTypes.Types
-                .Where(t => t.Dependencies.All(d => d.Kind != kind));
+            return _typeRegistry.Types.Where(t => t.Dependencies.All(d => d.Kind != kind));
         }
 
         private IEnumerable<RegisteredType> GetNextBatch(
-            DiscoveredTypes discoveredTypes,
             ISet<ITypeReference> processed,
             TypeDependencyKind kind)
         {
-            foreach (RegisteredType type in discoveredTypes.Types)
+            foreach (RegisteredType type in _typeRegistry.Types)
             {
                 if (!processed.Contains(type.References[0]))
                 {
@@ -594,9 +534,7 @@ namespace HotChocolate.Configuration
                         type.Dependencies.Where(t => t.Kind == kind)
                             .Select(t => t.TypeReference);
 
-                    if (TryNormalizeDependencies(
-                        type,
-                        references,
+                    if (TryNormalizeDependencies(references,
                         out IReadOnlyList<ITypeReference>? normalized)
                         && processed.IsSupersetOf(normalized))
                     {
@@ -607,7 +545,6 @@ namespace HotChocolate.Configuration
         }
 
         private bool TryNormalizeDependencies(
-            RegisteredType registeredType,
             IEnumerable<ITypeReference> dependencies,
             [NotNullWhen(true)] out IReadOnlyList<ITypeReference>? normalized)
         {
@@ -615,98 +552,30 @@ namespace HotChocolate.Configuration
 
             foreach (ITypeReference reference in dependencies)
             {
-                if (!TryNormalizeReference(reference, out ITypeReference? nr))
+                if (!_typeLookup.TryNormalizeReference(
+                    reference,
+                    out ITypeReference? nr))
                 {
                     normalized = null;
                     return false;
                 }
-                _dependencyLookup[reference] = nr!;
-                n.Add(nr!);
+
+                if (!n.Contains(nr))
+                {
+                    n.Add(nr);
+                }
             }
 
             normalized = n;
             return true;
         }
 
-        internal bool TryNormalizeReference(
-            ITypeReference typeReference,
-            out ITypeReference? normalized)
-        {
-            if (_dependencyLookup.TryGetValue(typeReference, out ITypeReference? nr))
-            {
-                normalized = nr;
-                return true;
-            }
-
-            switch (typeReference)
-            {
-                case ClrTypeReference r:
-                    if (TryNormalizeClrReference(r, out ITypeReference? cnr))
-                    {
-                        _dependencyLookup[typeReference] = cnr!;
-                        normalized = cnr;
-                        return true;
-                    }
-                    break;
-
-                case SchemaTypeReference r:
-                    var internalReference = TypeReference.Create(
-                        r.Type.GetType(), r.Context, scope: typeReference.Scope);
-                    _dependencyLookup[typeReference] = internalReference;
-                    normalized = internalReference;
-                    return true;
-
-                case SyntaxTypeReference r:
-                    if (_named.TryGetValue(r.Type.NamedType().Name.Value, out ITypeReference? snr))
-                    {
-                        _dependencyLookup[typeReference] = snr;
-                        normalized = snr;
-                        return true;
-                    }
-                    break;
-            }
-
-            normalized = null;
-            return false;
-        }
-
-        private bool TryNormalizeClrReference(
-            ClrTypeReference typeReference,
-            out ITypeReference? normalized)
-        {
-            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
-                && _typeInspector.TryCreate(typeReference.Type, out Utilities.TypeInfo? typeInfo))
-            {
-                if (IsTypeSystemObject(typeInfo.ClrType))
-                {
-                    normalized = typeReference.With(typeInfo.ClrType);
-                    return true;
-                }
-                else
-                {
-                    for (int i = 0; i < typeInfo.Components.Count; i++)
-                    {
-                        var n = typeReference.With(typeInfo.Components[i]);
-
-                        if ((ClrTypes.TryGetValue(n, out ITypeReference? r)
-                            || ClrTypes.TryGetValue(n.WithContext(), out r)))
-                        {
-                            normalized = r;
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            normalized = null;
-            return false;
-        }
-
         private void EnsureNoErrors()
         {
             var errors = new List<ISchemaError>(_errors);
 
-            foreach (TypeDiscoveryContext context in _initContexts)
+            foreach (TypeDiscoveryContext context in
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 errors.AddRange(context.Errors);
             }
@@ -716,8 +585,5 @@ namespace HotChocolate.Configuration
                 throw new SchemaException(errors);
             }
         }
-
-        private static bool IsTypeSystemObject(Type type) =>
-            typeof(TypeSystemObjectBase).IsAssignableFrom(type);
     }
 }

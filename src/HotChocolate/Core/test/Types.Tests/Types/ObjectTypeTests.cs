@@ -407,7 +407,7 @@ namespace HotChocolate.Types
         public void TwoInterfacesProvideFieldAWithDifferentArguments2()
         {
             // arrange
-            string source = @"
+            var source = @"
                 interface A {
                     a(a: String): String
                 }

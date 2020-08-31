@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using static HotChocolate.Types.Descriptors.SchemaTypeReference;
@@ -16,12 +17,10 @@ namespace HotChocolate.Types.Descriptors
     {
         protected TypeReference(
             TypeContext context,
-            string? scope,
-            bool[]? nullable)
+            string? scope)
         {
             Context = context;
             Scope = scope;
-            Nullable = nullable;
         }
 
         /// <summary>
@@ -35,11 +34,6 @@ namespace HotChocolate.Types.Descriptors
         /// <value></value>
         public string? Scope { get; }
 
-        /// <summary>
-        /// Gets nullability hints.
-        /// </summary>
-        public bool[]? Nullable { get; }
-
         protected bool IsEqual(ITypeReference other)
         {
             if (Context != other.Context
@@ -52,29 +46,6 @@ namespace HotChocolate.Types.Descriptors
             if (!Scope.EqualsOrdinal(other.Scope))
             {
                 return false;
-            }
-
-            if (Nullable is null)
-            {
-                return other.Nullable is null;
-            }
-
-            if (other.Nullable is null)
-            {
-                return false;
-            }
-
-            if (Nullable.Length != other.Nullable.Length)
-            {
-                return false;
-            }
-
-            for (var i = 0; i < Nullable.Length; i++)
-            {
-                if (Nullable[i] != other.Nullable[i])
-                {
-                    return false;
-                }
             }
 
             return true;
@@ -101,20 +72,11 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = 0;
+                var hash = 0;
 
                 if (Scope is { })
                 {
                     hash ^= Scope.GetHashCode() * 397;
-                }
-
-                if (Nullable is { })
-                {
-                    hash ^= 397;
-                    for (int i = 0; i < Nullable.Length; i++)
-                    {
-                        hash ^= Nullable[i].GetHashCode() * 397;
-                    }
                 }
 
                 return hash;
@@ -123,59 +85,45 @@ namespace HotChocolate.Types.Descriptors
 
         public static SchemaTypeReference Create(
             ITypeSystemMember type,
-            string? scope = null,
-            bool[]? nullable = null)
+            string? scope = null)
         {
             if (scope is null && type is IHasScope withScope && withScope.Scope is { })
             {
                 scope = withScope.Scope;
             }
-            return new SchemaTypeReference(type, scope: scope, nullable: nullable);
+            return new SchemaTypeReference(type, scope: scope);
         }
 
         public static SyntaxTypeReference Create(
             ITypeNode type,
             TypeContext context = TypeContext.None,
-            string? scope = null,
-            bool[]? nullable = null) =>
-            new SyntaxTypeReference(type, context, scope, nullable);
+            string? scope = null) =>
+            new SyntaxTypeReference(type, context, scope);
 
         public static SyntaxTypeReference Create(
             NameString typeName,
             TypeContext context = TypeContext.None,
-            string? scope = null,
-            bool[]? nullable = null) =>
-            new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope, nullable);
+            string? scope = null) =>
+            new SyntaxTypeReference(new NamedTypeNode(typeName), context, scope);
 
-        public static ClrTypeReference Create<T>(
+        public static ExtendedTypeReference Create(
+            IExtendedType type,
             TypeContext context = TypeContext.None,
-            string? scope = null,
-            bool[]? nullable = null) =>
-            Create(typeof(T), context, scope, nullable);
-
-        public static ClrTypeReference Create(
-            Type type,
-            TypeContext context = TypeContext.None,
-            string? scope = null,
-            bool[]? nullable = null)
+            string? scope = null)
         {
-
-            if (TypeInspector.Default.TryCreate(type, out TypeInfo typeInfo) &&
-                typeof(IType).IsAssignableFrom(typeInfo.ClrType))
+            if (type.IsSchemaType)
             {
-                return new ClrTypeReference(
+                return new ExtendedTypeReference(
                     type,
                     InferTypeContext(type),
-                    scope,
-                    nullable);
+                    scope);
             }
             else
             {
-                return new ClrTypeReference(
+                return new ExtendedTypeReference(
                     type,
                     context,
-                    scope,
-                    nullable);
+                    scope);
             }
         }
     }

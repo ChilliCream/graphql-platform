@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<UnionTypeDefinition>
         , IUnionTypeDescriptor
     {
-        protected internal UnionTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
-        protected internal UnionTypeDescriptor(
+        protected UnionTypeDescriptor(
             IDescriptorContext context,
             UnionTypeDefinition definition)
             : base(context)
@@ -35,14 +35,14 @@ namespace HotChocolate.Types.Descriptors
             Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override UnionTypeDefinition Definition { get; protected set; } =
+        protected internal override UnionTypeDefinition Definition { get; protected set; } =
             new UnionTypeDefinition();
 
         protected override void OnCreateDefinition(UnionTypeDefinition definition)
         {
             if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.RuntimeType);
@@ -73,8 +73,8 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType
         {
-            Definition.Types.Add(TypeReference.Create(
-                typeof(TObjectType), TypeContext.Output));
+            Definition.Types.Add(
+                Context.TypeInspector.GetTypeRef(typeof(TObjectType), TypeContext.Output));
             return this;
         }
 
@@ -85,8 +85,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(objectType));
             }
-            Definition.Types.Add(new SchemaTypeReference(
-                (ITypeSystemObject)objectType));
+            Definition.Types.Add(TypeReference.Create(objectType));
             return this;
         }
 
@@ -96,8 +95,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(objectType));
             }
-            Definition.Types.Add(new SyntaxTypeReference(
-                objectType, TypeContext.Output));
+            Definition.Types.Add(TypeReference.Create(objectType, TypeContext.Output));
             return this;
         }
 
@@ -112,14 +110,14 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IUnionTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -144,7 +142,7 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             Type schemaType)
         {
-            var descriptor = New(context, schemaType);
+            UnionTypeDescriptor descriptor = New(context, schemaType);
             descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }

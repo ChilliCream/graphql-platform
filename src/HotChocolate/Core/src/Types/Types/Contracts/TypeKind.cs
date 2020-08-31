@@ -24,6 +24,7 @@ namespace HotChocolate.Types
         /// Indicates this type is an enum. `enumValues` is a valid field.
         /// </summary>
         Enum = 8,
+
         Scalar = 16,
 
         /// <summary>
@@ -35,8 +36,7 @@ namespace HotChocolate.Types
         /// Indicates this type is a non-null. `ofType` is a valid field.
         /// </summary>
         NonNull = 64,
-
-
+        
         Directive = 128
     }
 }

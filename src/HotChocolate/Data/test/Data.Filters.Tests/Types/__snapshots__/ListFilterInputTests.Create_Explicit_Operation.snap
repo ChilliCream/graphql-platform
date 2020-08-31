@@ -1,0 +1,41 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterTypeFilterInput): String
+}
+
+input FooFilterTypeFilterInput {
+  and: [FooFilterTypeFilterInput!]
+  or: [FooFilterTypeFilterInput!]
+  string: ListFilterInputOfStringOperationInputFilterInput
+}
+
+input ListFilterInputOfStringOperationInputFilterInput {
+  all: StringOperationInputFilterInput
+  any: Boolean
+  none: StringOperationInputFilterInput
+  some: StringOperationInputFilterInput
+}
+
+input StringOperationInputFilterInput {
+  and: [StringOperationInputFilterInput!]
+  contains: String
+  endsWith: String
+  eq: String
+  in: [String]
+  ncontains: String
+  nendsWith: String
+  neq: String
+  nin: [String]
+  nstartsWith: String
+  or: [StringOperationInputFilterInput!]
+  startsWith: String
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

@@ -15,17 +15,16 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(FooType),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
                 null,
@@ -35,25 +34,25 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                TypeReference.Create(typeof(FooType), TypeContext.Output),
+            var exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Dictionary<string, string> fooType =
+            var fooType =
                 Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
                     t => t.Name.ToString(),
-                    t => TypeVisualizer.Visualize(t.Type));
+                    t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
-                TypeReference.Create(typeof(BarType), TypeContext.Output),
+            exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(BarType), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Dictionary<string, string> barType =
+            var barType =
                 Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
                     t => t.Name.ToString(),
-                    t => TypeVisualizer.Visualize(t.Type));
+                    t => t.Type.Print());
 
             new { fooType, barType }.MatchSnapshot();
         }
@@ -62,17 +61,16 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
                 null,
@@ -82,27 +80,25 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                TypeReference.Create(
-                    typeof(ObjectType<Foo>),
-                    TypeContext.Output),
+            var exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Dictionary<string, string> fooType =
+            var fooType =
                 Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type));
+                t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
-                TypeReference.Create(typeof(ObjectType<Bar>), TypeContext.Output),
+            exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Dictionary<string, string> barType =
+            var barType =
                 Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
                     t => t.Name.ToString(),
-                    t => TypeVisualizer.Visualize(t.Type));
+                    t => t.Type.Print());
 
             new { fooType, barType }.MatchSnapshot();
         }
@@ -111,56 +107,52 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
-                null,
+                null!,
                 t => t is ObjectType<Foo>);
 
             // act
-            Action action =
-                () => typeInitializer.Initialize(null, new SchemaOptions());
+            void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(TypeReference.Create(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
                 new AggregateTypeInitializationInterceptor(),
-                null,
+                null!,
                 t => t is ObjectType<Foo>);
 
             // act
-            Action action =
-                () => typeInitializer.Initialize(() => null, null);
+            void Action() => typeInitializer.Initialize(() => null, null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         public class FooType

@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<(Type, string), CreateConvention>();
 
             // act
             Action action = () => DescriptorContext.Create(
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var service = new EmptyServiceProvider();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<(Type, string), CreateConvention>();
 
             // act
             Action action = () => DescriptorContext.Create(
@@ -59,19 +59,18 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<(Type, string), CreateConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
                 naming);
 
             // act
-            DescriptorContext context =
-                DescriptorContext.Create(
-                    options, services, conventions, new Dictionary<string, object>());
+            var context = DescriptorContext.Create(
+                options, services, conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(naming, context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
             Assert.Equal(options, context.Options);
         }
 
@@ -82,18 +81,18 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<Type, IConvention>();
-            conventions.Add(typeof(INamingConventions), naming);
-            var services = new DictionaryServiceProvider();
+            var conventions = new Dictionary<(Type, string), CreateConvention>
+            {
+                { (typeof(INamingConventions), null), s => naming }
+            };
 
             // act
-            DescriptorContext context =
-                DescriptorContext.Create(
-                    options, services, conventions, new Dictionary<string, object>());
+            var context = DescriptorContext.Create(
+                options, new EmptyServiceProvider(), conventions, new Dictionary<string, object>());
 
             // assert
             Assert.Equal(naming, context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
             Assert.Equal(options, context.Options);
         }
 
@@ -103,18 +102,17 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
-            var conventions = new Dictionary<Type, IConvention>();
+            var conventions = new Dictionary<(Type, string), CreateConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(ITypeInspector),
                 inspector);
 
             // act
-            DescriptorContext context =
-                DescriptorContext.Create(
-                    options, services, conventions, new Dictionary<string, object>());
+            var context = DescriptorContext.Create(
+                options, services, conventions, new Dictionary<string, object>());
 
             // assert
-            Assert.Equal(inspector, context.Inspector);
+            Assert.Equal(inspector, context.TypeInspector);
             Assert.NotNull(context.Naming);
             Assert.Equal(options, context.Options);
         }
@@ -124,15 +122,15 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             // act
-            DescriptorContext context = DescriptorContext.Create();
+            var context = DescriptorContext.Create();
 
             // assert
             Assert.NotNull(context.Options);
             Assert.NotNull(context.Naming);
-            Assert.NotNull(context.Inspector);
+            Assert.NotNull(context.TypeInspector);
         }
 
-        private class Convention : IConvention
+        private class Convention : Descriptors.Convention
         {
             public static Convention Default { get; } = new Convention();
         }

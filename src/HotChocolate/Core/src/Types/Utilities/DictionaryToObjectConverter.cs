@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities
 {
@@ -71,10 +72,9 @@ namespace HotChocolate.Utilities
             IReadOnlyList<object> list,
             ConverterContext context)
         {
-            Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(context.ClrType);
+            Type elementType = ExtendedType.Tools.GetElementType(context.ClrType);
 
-            if (elementType != null)
+            if (elementType is not null)
             {
                 Type listType = typeof(List<>).MakeGenericType(elementType);
                 var temp = (IList)Activator.CreateInstance(listType);
@@ -96,8 +96,7 @@ namespace HotChocolate.Utilities
             object value,
             ConverterContext context)
         {
-            context.Object = _converter.Convert(
-                typeof(object), context.ClrType, value);
+            context.Object = _converter.Convert(typeof(object), context.ClrType, value);
         }
     }
 }

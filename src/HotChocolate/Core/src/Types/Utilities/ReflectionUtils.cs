@@ -142,16 +142,14 @@ namespace HotChocolate.Utilities
         private static string CreateGenericTypeName(Type type)
         {
             string name = type.Name.Substring(0, type.Name.Length - 2);
-            IEnumerable<string> arguments = type.GetGenericArguments()
-                .Select(GetTypeName);
-            return CreateTypeName(type,
-                $"{name}<{string.Join(", ", arguments)}>");
+            IEnumerable<string> arguments = type.GetGenericArguments().Select(GetTypeName);
+            return CreateTypeName(type, $"{name}<{string.Join(", ", arguments)}>");
         }
 
         private static string CreateTypeName(Type type, string typeName)
         {
             string ns = GetNamespace(type);
-            if (ns == null)
+            if (ns is null)
             {
                 return typeName;
             }
@@ -165,26 +163,6 @@ namespace HotChocolate.Utilities
                 return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
             }
             return type.Namespace;
-        }
-
-        public static ITypeReference GetOutputType(this MemberInfo member) =>
-            member.GetTypeReference(TypeContext.Output);
-
-        public static ITypeReference GetInputType(this MemberInfo member) =>
-            member.GetTypeReference(TypeContext.Input);
-
-        private static ITypeReference GetTypeReference(
-            this MemberInfo member,
-            TypeContext context)
-        {
-            Type type = GetReturnType(member);
-
-            if (type != null)
-            {
-                return TypeReference.Create(type, context);
-            }
-
-            return null;
         }
 
         public static Type GetReturnType(this MemberInfo member)

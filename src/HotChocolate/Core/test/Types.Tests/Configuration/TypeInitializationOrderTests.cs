@@ -40,9 +40,10 @@ namespace HotChocolate.Configuration
                     .Resolver(
                         new Word[] { new Word { Value = "Hello" }, new Word { Value = "World" } })
                     .Extend()
-                    .OnBeforeCreate(d =>
+                    .OnBeforeCreate((c,d) =>
                     {
-                        var reference = TypeReference.Create(typeof(Word), TypeContext.Output);
+                        ExtendedTypeReference reference =
+                            c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
                         ILazyTypeConfiguration lazyConfiguration =
                             LazyTypeConfigurationBuilder

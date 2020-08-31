@@ -1,10 +1,9 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 #nullable enable
 
@@ -24,14 +23,16 @@ namespace HotChocolate.Types
         {
             descriptor.Extend().OnBeforeCreate(d =>
             {
-                ITypeReference typeReference = context.Inspector.GetReturnType(
-                    member, TypeContext.Output);
+                ITypeReference typeReference =
+                    context.TypeInspector.GetReturnTypeRef(member, TypeContext.Output);
 
-                if (typeReference is ClrTypeReference clrTypeRef
-                    && !NamedTypeInfoFactory.Default.TryCreate(clrTypeRef.Type, out _))
+                if (typeReference is ExtendedTypeReference typeRef &&
+                    context.TypeInspector.TryCreateTypeInfo(typeRef.Type, out ITypeInfo? typeInfo) &&
+                    !typeInfo.IsSchemaType)
                 {
-                    Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));
-                    rewritten = GetInnerListType(rewritten);
+                    IExtendedType? rewritten = typeRef.Type.IsArrayOrList
+                        ? typeRef.Type.ElementType
+                        : null;
 
                     if (rewritten is null)
                     {
@@ -39,7 +40,7 @@ namespace HotChocolate.Types
                             SchemaErrorBuilder.New()
                                 .SetMessage(
                                     "The specified type `{0}` is not a valid subscription type.",
-                                    clrTypeRef.Type.ToString())
+                                    typeRef.Type.Source.ToString())
                                 .SetExtension("ClrMember", member)
                                 .SetExtension("ClrType", member.DeclaringType)
                                 .Build());

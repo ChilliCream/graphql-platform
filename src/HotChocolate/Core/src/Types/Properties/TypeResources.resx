@@ -605,4 +605,7 @@ Type: `{0}`</value>
   <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
     <value>Unable to create DataLoader `{0}`.</value>
   </data>
+  <data name="NonNamedType_IsInstanceOfType_NotAnInputType" xml:space="preserve">
+    <value>The specified type is not an input type.</value>
+  </data>
 </root>
