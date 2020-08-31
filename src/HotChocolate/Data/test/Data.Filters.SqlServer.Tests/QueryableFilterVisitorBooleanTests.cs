@@ -7,16 +7,21 @@ namespace HotChocolate.Data.Filters
 {
 
     public class QueryableFilterVisitorBooleanTests
-        : IClassFixture<SchemaCache>, IClassFixture<SqlServerResource>
+        : IClassFixture<SchemaCache>
+        , IClassFixture<SqlServerResource>
     {
-        private static readonly Foo[] _fooEntities = new[]{
+        private static readonly Foo[] _fooEntities =
+        {
             new Foo { Bar = true },
-            new Foo { Bar = false }};
+            new Foo { Bar = false }
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
+        private static readonly FooNullable[] _fooNullableEntities =
+        {
             new FooNullable { Bar = true },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = false }};
+            new FooNullable { Bar = false }
+        };
 
         private readonly SchemaCache _cache;
 
@@ -55,18 +60,18 @@ namespace HotChocolate.Data.Filters
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
             res1.MatchSqlSnapshot("true");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
@@ -83,21 +88,21 @@ namespace HotChocolate.Data.Filters
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
                 .Create());
 
             res1.MatchSqlSnapshot("true");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
                 .Create());
 
             res2.MatchSqlSnapshot("false");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
                 .Create());
@@ -109,26 +114,26 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
                 _fooNullableEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
                 .Create());
 
             res1.MatchSqlSnapshot("true");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
                 .Create());
 
             res2.MatchSqlSnapshot("false");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                 .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
                 .Create());
