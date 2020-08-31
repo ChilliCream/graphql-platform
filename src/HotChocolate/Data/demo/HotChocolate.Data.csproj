@@ -13,8 +13,6 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Playground\HotChocolate.AspNetCore.Playground.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore.Voyager\HotChocolate.AspNetCore.Voyager.csproj" />
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
-    </ItemGroup>
-
   </ItemGroup>
 
 </Project>
