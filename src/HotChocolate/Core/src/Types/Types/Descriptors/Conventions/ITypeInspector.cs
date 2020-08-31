@@ -1,7 +1,7 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using HotChocolate.Internal;
 
 #nullable enable
@@ -266,7 +266,7 @@ namespace HotChocolate.Types.Descriptors
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.
         /// </summary>
         /// <param name="type">
-        ///     The system type from which the <see cref="ITypeInfo"/> shall be created.
+        /// The system type from which the <see cref="ITypeInfo"/> shall be created.
         /// </param>
         /// <returns>
         /// The type info.

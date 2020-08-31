@@ -11,15 +11,15 @@ namespace HotChocolate.Types.Selections
     {
         private readonly FieldDelegate _next;
         private readonly SelectionMiddlewareContext _context;
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         public SelectionMiddleware(
             FieldDelegate next,
             SelectionMiddlewareContext context,
-            ITypeConversion converter)
+            ITypeConverter converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _converter = converter ?? TypeConversion.Default;
+            _converter = converter;
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)

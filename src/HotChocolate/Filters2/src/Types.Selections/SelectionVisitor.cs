@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Selections.Handlers;
@@ -13,13 +14,13 @@ namespace HotChocolate.Types.Selections
     public class SelectionVisitor
         : SelectionVisitorBase
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly SelectionMiddlewareContext _selectionMiddlewareContext;
         private readonly IReadOnlyList<IListHandler> _listHandler = ListHandlers.All;
 
         public SelectionVisitor(
             IResolverContext context,
-            ITypeConversion converter,
+            ITypeConverter converter,
             SelectionMiddlewareContext selectionMiddlewareContext)
             : base(context)
         {
@@ -30,7 +31,7 @@ namespace HotChocolate.Types.Selections
         protected Stack<SelectionClosure> Closures { get; } =
             new Stack<SelectionClosure>();
 
-        public void Accept(ObjectField field)
+        public void Accept(IObjectField field)
         {
             IOutputType type = field.Type;
             SelectionSetNode? selectionSet = Context.FieldSelection.SelectionSet;
@@ -99,7 +100,7 @@ namespace HotChocolate.Types.Selections
                     Expression.Property(
                         Closures.Peek().Instance.Peek(), propertyInfo);
 
-                if (selection is FieldSelection fieldSelection)
+                if (selection is IPreparedSelection fieldSelection)
                 {
                     var context = new SelectionVisitorContext(
                         Context,
@@ -157,7 +158,7 @@ namespace HotChocolate.Types.Selections
             {
                 var nextClosure =
                     new SelectionClosure(
-                        selection.Field.ClrType, "e" + Closures.Count);
+                        selection.Field.RuntimeType, "e" + Closures.Count);
 
                 nextClosure.Instance.Push(
                     Expression.Property(

@@ -20,7 +20,7 @@ namespace HotChocolate.Types
 
         public object Value { get; }
 
-        protected override void TryConfigure(
+        protected internal override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element)

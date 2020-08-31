@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -40,28 +41,27 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             Type? objectType)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((context, definition) =>
                 {
                     Type? selectionType = objectType;
 
                     if (selectionType == null)
                     {
-                        if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                        if (definition.ResultType is null ||
+                            !context.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType, out ITypeInfo? typeInfo))
                         {
-                            // TODO : resources
                             throw new ArgumentException(
                                 "Cannot handle the specified type.",
                                 nameof(descriptor));
                         }
 
-                        selectionType = typeInfo.ClrType;
+                        selectionType = typeInfo.NamedType;
                     }
 
                     ILazyTypeConfiguration lazyConfiguration =
@@ -86,7 +86,7 @@ namespace HotChocolate.Types
             Type type,
             ObjectFieldDefinition definition,
             FieldMiddleware placeholder,
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
             string filterConventionArgumentName =
                 context.DescriptorContext.GetFilterNamingConvention().ArgumentName;
