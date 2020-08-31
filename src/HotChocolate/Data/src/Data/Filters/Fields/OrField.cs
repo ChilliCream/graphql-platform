@@ -21,7 +21,6 @@ namespace HotChocolate.Data.Filters
 
         IFilterInputType IOrField.DeclaringType => DeclaringType;
 
-
         protected override void OnCompleteField(
             ITypeCompletionContext context,
             InputFieldDefinition definition)
