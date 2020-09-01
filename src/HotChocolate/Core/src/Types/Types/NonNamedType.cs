@@ -140,9 +140,9 @@ namespace HotChocolate.Types
                     return serialized;
                 }
 
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Serialize(
-                        this.Visualize()));
+                throw new SerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Serialize(this.Visualize()),
+                    this);
             }
 
             throw new InvalidOperationException(
@@ -162,9 +162,9 @@ namespace HotChocolate.Types
                     return runtimeValue;
                 }
 
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Deserialize(
-                        this.Print()));
+                throw new SerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Deserialize(this.Print()),
+                    this);
             }
 
             throw new InvalidOperationException(

@@ -62,9 +62,10 @@ namespace HotChocolate.Utilities.Serialization
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Name.Value}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -117,9 +118,10 @@ namespace HotChocolate.Utilities.Serialization
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Key}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -133,7 +135,7 @@ namespace HotChocolate.Utilities.Serialization
             {
                 if (dict.ContainsKey(field.Name))
                 {
-                    if(field.IsOptional && field.DefaultValue is null) 
+                    if(field.IsOptional && field.DefaultValue is null)
                     {
                         continue;
                     }
@@ -145,7 +147,7 @@ namespace HotChocolate.Utilities.Serialization
 
                 if (!field.IsOptional && !dict.ContainsKey(field.Name))
                 {
-                    
+
                     dict[field.Name] = ConvertValue(field, converter, value);
                 }
             }

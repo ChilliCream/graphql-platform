@@ -58,14 +58,36 @@ namespace HotChocolate.Types
                 return g;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, valueSyntax.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
         protected override StringValueNode ParseValue(Guid runtimeValue)
         {
             return new StringValueNode(runtimeValue.ToString(_format));
+        }
+
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is Guid g)
+            {
+                return ParseValue(g);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, resultValue.GetType()),
+                this);
         }
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)

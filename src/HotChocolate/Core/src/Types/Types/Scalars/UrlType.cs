@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public sealed class UrlType
@@ -44,9 +46,9 @@ namespace HotChocolate.Types
                 return uri;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, valueSyntax.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
         protected override StringValueNode ParseValue(Uri runtimeValue)
@@ -54,7 +56,29 @@ namespace HotChocolate.Types
             return new StringValueNode(runtimeValue.AbsoluteUri);
         }
 
-        public override bool TrySerialize(object runtimeValue, out object resultValue)
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is Uri uri)
+            {
+                return ParseValue(uri);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
             {
@@ -72,7 +96,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
             {

@@ -18,7 +18,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind => TypeKind.InputObject;
 
         /// <summary>
-        /// Gets the GraphQL syntax representation of this type 
+        /// Gets the GraphQL syntax representation of this type
         /// if it was provided during initialization.
         /// </summary>
         public InputObjectTypeDefinitionNode? SyntaxNode { get; private set; }
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         }
 
         /// <inheritdoc />
-        public virtual object? ParseLiteral(IValueNode valueSyntax)
+        public virtual object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
             if (valueSyntax is null)
             {
@@ -87,14 +87,8 @@ namespace HotChocolate.Types
             return _objectToValueConverter.Convert(this, runtimeValue);
         }
 
-        /// <inheritdoc />
-        public virtual IValueNode ParseResult(object? resultValue, bool initializeDefaults = true)
+        public IValueNode ParseResult(object? resultValue)
         {
-            if (resultValue is null)
-            {
-                return NullValueNode.Default;
-            }
-
             throw new NotImplementedException();
         }
 
@@ -104,8 +98,9 @@ namespace HotChocolate.Types
             {
                 return serialized;
             }
-            throw new InputObjectSerializationException(
-                "The specified value is not a valid input object.");
+            throw new SerializationException(
+                "The specified value is not a valid input object.",
+                this);
         }
 
         public virtual bool TrySerialize(object? runtimeValue, out object? resultValue)
@@ -142,8 +137,9 @@ namespace HotChocolate.Types
                 return deserialized;
             }
 
-            throw new InputObjectSerializationException(
-                "The specified value is not a serialized input object.");
+            throw new SerializationException(
+                "The specified value is not a serialized input object.",
+                this);
         }
 
         public virtual bool TryDeserialize(object? resultValue, out object? runtimeValue)

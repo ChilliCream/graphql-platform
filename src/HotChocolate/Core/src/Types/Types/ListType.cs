@@ -162,9 +162,9 @@ namespace HotChocolate.Types
             }
 
             // TODO : resources
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    this.Visualize(), runtimeValue.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(this.Print(), runtimeValue.GetType()),
+                this);
         }
 
         protected override IValueNode ParseResult(object? resultValue)
