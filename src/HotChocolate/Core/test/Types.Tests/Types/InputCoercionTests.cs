@@ -197,7 +197,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(list);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -242,7 +242,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         private void InputListIsInstanceOfInternal<TElement>(

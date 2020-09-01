@@ -217,7 +217,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(input));
         }
 
@@ -274,7 +274,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(input));
         }
 
@@ -299,7 +299,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseValue(input));
         }
 

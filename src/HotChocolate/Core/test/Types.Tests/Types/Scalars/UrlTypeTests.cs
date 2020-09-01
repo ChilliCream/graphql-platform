@@ -56,7 +56,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(input));
         }
 

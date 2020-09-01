@@ -161,7 +161,7 @@ namespace HotChocolate.Execution
                 return value is string s && s == "a";
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
             {
                 if (literal is null)
                 {
@@ -178,8 +178,7 @@ namespace HotChocolate.Execution
                     return "a";
                 }
 
-                throw new ScalarSerializationException(
-                    "StringValue is not a.");
+                throw new SerializationException("StringValue is not a.", this);
             }
 
             public override IValueNode ParseValue(object value)
@@ -194,9 +193,10 @@ namespace HotChocolate.Execution
                     return new StringValueNode("a");
                 }
 
-                throw new ScalarSerializationException(
-                    "String is not a.");
+                throw new SerializationException("String is not a.", this);
             }
+
+            public override IValueNode ParseResult(object resultValue) => ParseValue(resultValue);
 
             public override bool TrySerialize(
                 object runtimeValue, out object resultValue)

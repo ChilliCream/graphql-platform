@@ -7,7 +7,7 @@ namespace HotChocolate.Validation.Types
     public class InvalidScalar
         : ScalarType<string>
     {
-        public InvalidScalar() 
+        public InvalidScalar()
             : base("Invalid", BindingBehavior.Explicit)
         {
         }
@@ -17,12 +17,17 @@ namespace HotChocolate.Validation.Types
             return false;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
             throw new InvalidOperationException();
         }
 
         public override IValueNode ParseValue(object value)
+        {
+            throw new InvalidOperationException();
+        }
+
+        public override IValueNode ParseResult(object resultValue)
         {
             throw new InvalidOperationException();
         }
