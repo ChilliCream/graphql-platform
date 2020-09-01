@@ -131,10 +131,21 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (InputField field in type.Fields)
             {
+                if (dict.ContainsKey(field.Name))
+                {
+                    if(field.IsOptional && field.DefaultValue is null) 
+                    {
+                        continue;
+                    }
+
+                    IValueNode defaultValue = field.DefaultValue ?? NullValueNode.Default;
+                    object value = field.Type.ParseLiteral();
+
+                }
+
                 if (!field.IsOptional && !dict.ContainsKey(field.Name))
                 {
-                    object value = field.Type.ParseLiteral(
-                        field.DefaultValue ?? NullValueNode.Default);
+                    
                     dict[field.Name] = ConvertValue(field, converter, value);
                 }
             }

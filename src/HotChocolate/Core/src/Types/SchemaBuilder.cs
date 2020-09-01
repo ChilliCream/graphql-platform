@@ -66,7 +66,7 @@ namespace HotChocolate
 
         public ISchemaBuilder SetSchema(ISchema schema)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
@@ -106,7 +106,7 @@ namespace HotChocolate
 
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -117,7 +117,7 @@ namespace HotChocolate
 
         public ISchemaBuilder Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -128,7 +128,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
         {
-            if (loadSchemaDocument == null)
+            if (loadSchemaDocument is null)
             {
                 throw new ArgumentNullException(nameof(loadSchemaDocument));
             }
@@ -342,7 +342,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddResolver(FieldResolver fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -353,7 +353,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddBinding(IBindingInfo binding)
         {
-            if (binding == null)
+            if (binding is null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
@@ -384,7 +384,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddServices(IServiceProvider services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }

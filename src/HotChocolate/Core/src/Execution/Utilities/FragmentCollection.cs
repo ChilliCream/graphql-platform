@@ -20,7 +20,7 @@ namespace HotChocolate.Execution.Utilities
 
         public Fragment? GetFragment(string fragmentName)
         {
-            if (fragmentName == null)
+            if (fragmentName is null)
             {
                 throw new ArgumentNullException(nameof(fragmentName));
             }
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution.Utilities
 
         private Fragment CreateFragment(ObjectType parentType, InlineFragmentNode inlineFragment)
         {
-            INamedType type = inlineFragment.TypeCondition == null
+            INamedType type = inlineFragment.TypeCondition is null
                 ? parentType
                 : _schema.GetType<INamedType>(inlineFragment.TypeCondition.Name.Value);
 

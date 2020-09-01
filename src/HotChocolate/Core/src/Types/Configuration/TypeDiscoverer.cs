@@ -37,17 +37,17 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeRegistry));
             }
 
-            if (typeLookup == null)
+            if (typeLookup is null)
             {
                 throw new ArgumentNullException(nameof(typeLookup));
             }
 
-            if (initialTypes == null)
+            if (initialTypes is null)
             {
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
-            if (interceptor == null)
+            if (interceptor is null)
             {
                 throw new ArgumentNullException(nameof(interceptor));
             }

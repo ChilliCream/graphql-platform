@@ -12,12 +12,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IError, IError> errorFilter)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (errorFilter == null)
+            if (errorFilter is null)
             {
                 throw new ArgumentNullException(nameof(errorFilter));
             }
@@ -31,12 +31,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, IErrorFilter> factory)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where T : class, IErrorFilter
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -66,12 +66,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             Func<IError, IError> errorFilter)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (errorFilter == null)
+            if (errorFilter is null)
             {
                 throw new ArgumentNullException(nameof(errorFilter));
             }
@@ -84,12 +84,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             Func<IServiceProvider, IErrorFilter> factory)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
@@ -101,7 +101,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
             where T : class, IErrorFilter
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }

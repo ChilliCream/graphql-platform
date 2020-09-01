@@ -24,12 +24,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<ISchemaBuilder> configureSchema)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (configureSchema is null)
             {
                 throw new ArgumentNullException(nameof(configureSchema));
             }
@@ -50,12 +50,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (configureSchema is null)
             {
                 throw new ArgumentNullException(nameof(configureSchema));
             }
@@ -80,12 +80,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IServiceProvider, ISchemaBuilder> configureSchema)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (configureSchema is null)
             {
                 throw new ArgumentNullException(nameof(configureSchema));
             }
@@ -110,12 +110,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureSchema == null)
+            if (configureSchema is null)
             {
                 throw new ArgumentNullException(nameof(configureSchema));
             }
@@ -136,12 +136,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorOptions> modify)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (modify == null)
+            if (modify is null)
             {
                 throw new ArgumentNullException(nameof(modify));
             }
@@ -162,12 +162,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<RequestExecutorOptions, CancellationToken, ValueTask> modify)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (modify == null)
+            if (modify is null)
             {
                 throw new ArgumentNullException(nameof(modify));
             }
@@ -188,12 +188,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IServiceProvider, RequestExecutorOptions> modify)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (modify == null)
+            if (modify is null)
             {
                 throw new ArgumentNullException(nameof(modify));
             }
@@ -215,12 +215,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, RequestExecutorOptions, CancellationToken, ValueTask> modify)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (modify == null)
+            if (modify is null)
             {
                 throw new ArgumentNullException(nameof(modify));
             }
@@ -241,12 +241,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<RequestExecutorOptions> factory)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
@@ -266,12 +266,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, RequestExecutorOptions> factory)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
@@ -285,12 +285,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IServiceCollection> configureServices)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureServices == null)
+            if (configureServices is null)
             {
                 throw new ArgumentNullException(nameof(configureServices));
             }

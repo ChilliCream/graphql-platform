@@ -1,28 +1,29 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public class FieldCollection<T>
         : IFieldCollection<T>
-        where T : IField
+        where T : class, IField
     {
         private readonly Dictionary<NameString, T> _fieldsLookup;
         private readonly List<T> _fields;
 
         public FieldCollection(IEnumerable<T> fields)
         {
-            if (fields == null)
+            if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields.OrderBy(t => t.Name.Value, StringComparer.OrdinalIgnoreCase).ToList();
+            _fields = fields is List<T> list ? list : fields.ToList();
             _fieldsLookup = _fields.ToDictionary(t => t.Name);
-
-            IsEmpty = _fields.Count == 0;
         }
 
         public T this[string fieldName] => _fieldsLookup[fieldName];
@@ -31,20 +32,11 @@ namespace HotChocolate.Types
 
         public int Count => _fields.Count;
 
-        public bool IsEmpty { get; }
+        public bool ContainsField(NameString fieldName) =>
+            _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
 
-        public bool ContainsField(NameString fieldName)
-        {
-            return _fieldsLookup.ContainsKey(
-                fieldName.EnsureNotEmpty(nameof(fieldName)));
-        }
-
-        public bool TryGetField(NameString fieldName, out T field)
-        {
-            return _fieldsLookup.TryGetValue(
-                fieldName.EnsureNotEmpty(nameof(fieldName)),
-                out field);
-        }
+        public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field) =>
+            _fieldsLookup.TryGetValue(fieldName.EnsureNotEmpty(nameof(fieldName)), out field!);
 
         public IEnumerator<T> GetEnumerator()
         {

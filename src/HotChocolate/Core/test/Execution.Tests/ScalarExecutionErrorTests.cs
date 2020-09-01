@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
 
             public override bool IsInstanceOfType(IValueNode literal)
             {
-                if (literal == null)
+                if (literal is null)
                 {
                     throw new ArgumentNullException(nameof(literal));
                 }
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
 
             public override object ParseLiteral(IValueNode literal)
             {
-                if (literal == null)
+                if (literal is null)
                 {
                     throw new ArgumentNullException(nameof(literal));
                 }
@@ -184,7 +184,7 @@ namespace HotChocolate.Execution
 
             public override IValueNode ParseValue(object value)
             {
-                if (value == null)
+                if (value is null)
                 {
                     return NullValueNode.Default;
                 }
@@ -199,28 +199,28 @@ namespace HotChocolate.Execution
             }
 
             public override bool TrySerialize(
-                object value, out object serialized)
+                object runtimeValue, out object resultValue)
             {
-                if (value == null)
+                if (runtimeValue is null)
                 {
-                    serialized = null;
+                    resultValue = null;
                     return true;
                 }
 
-                if (value is string s && s == "a")
+                if (runtimeValue is string s && s == "a")
                 {
-                    serialized = new StringValueNode("a");
+                    resultValue = new StringValueNode("a");
                     return true;
                 }
 
-                serialized = null;
+                resultValue = null;
                 return false;
             }
 
             public override bool TryDeserialize(
                 object resultValue, out object runtimeValue)
             {
-                if (resultValue == null)
+                if (resultValue is null)
                 {
                     runtimeValue = null;
                     return true;

@@ -15,12 +15,12 @@ namespace HotChocolate.Types
 
         public EnumValue(EnumValueDefinition enumValueDefinition)
         {
-            if (enumValueDefinition == null)
+            if (enumValueDefinition is null)
             {
                 throw new ArgumentNullException(nameof(enumValueDefinition));
             }
 
-            if (enumValueDefinition.Value == null)
+            if (enumValueDefinition.Value is null)
             {
                 throw new ArgumentException(
                     TypeResources.EnumValue_ValueIsNull,

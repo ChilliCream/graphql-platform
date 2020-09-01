@@ -24,7 +24,7 @@ namespace HotChocolate.Utilities
             T defaultService)
         {
             object service = services?.GetService(typeof(T));
-            if (service == null)
+            if (service is null)
             {
                 return defaultService;
             }

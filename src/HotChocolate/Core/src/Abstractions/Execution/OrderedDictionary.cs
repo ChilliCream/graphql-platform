@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
 
         public OrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> values)
         {
-            if (values == null)
+            if (values is null)
             {
                 throw new System.ArgumentNullException(nameof(values));
             }
@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
 
         private OrderedDictionary(OrderedDictionary<TKey, TValue> source)
         {
-            if (source == null)
+            if (source is null)
             {
                 throw new System.ArgumentNullException(nameof(source));
             }

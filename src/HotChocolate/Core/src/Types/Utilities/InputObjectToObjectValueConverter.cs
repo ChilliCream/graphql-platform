@@ -20,12 +20,12 @@ namespace HotChocolate.Utilities
             InputObjectType type,
             object obj)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }

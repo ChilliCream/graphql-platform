@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Descriptors
         {
             try
             {
-                if (assembly == null)
+                if (assembly is null)
                 {
                     return null;
                 }

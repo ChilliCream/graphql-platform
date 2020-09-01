@@ -95,7 +95,7 @@ namespace HotChocolate.Types
                 T typeField = typeFields.FirstOrDefault(t =>
                     t.Name.Equals(extensionField.Name));
 
-                if (typeField == null)
+                if (typeField is null)
                 {
                     onBeforeAdd?.Invoke(extensionField);
                     typeFields.Add(extensionField);

@@ -45,7 +45,7 @@ namespace HotChocolate.Types
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -176,15 +176,15 @@ namespace HotChocolate.Types
         }
 
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object runtimeValue, out object resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            switch (value)
+            switch (runtimeValue)
             {
                 case string _:
                 case short _:
@@ -194,21 +194,21 @@ namespace HotChocolate.Types
                 case double _:
                 case decimal _:
                 case bool _:
-                    serialized = value;
+                    resultValue = runtimeValue;
                     return true;
 
                 default:
-                    Type type = value.GetType();
+                    Type type = runtimeValue.GetType();
 
                     if (type.IsValueType && _converter.TryConvert(
-                        type, typeof(string), value, out object converted)
+                        type, typeof(string), runtimeValue, out object converted)
                         && converted is string c)
                     {
-                        serialized = c;
+                        resultValue = c;
                         return true;
                     }
 
-                    serialized = _objectToDictConverter.Convert(value);
+                    resultValue = _objectToDictConverter.Convert(runtimeValue);
                     return true;
             }
         }

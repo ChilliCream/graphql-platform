@@ -71,12 +71,12 @@ namespace HotChocolate.Configuration
             Func<ISchema> schemaResolver,
             IReadOnlySchemaOptions options)
         {
-            if (schemaResolver == null)
+            if (schemaResolver is null)
             {
                 throw new ArgumentNullException(nameof(schemaResolver));
             }
 
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }

@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Descriptors
             Type argumentType)
             : this(context, argumentName)
         {
-            if (argumentType == null)
+            if (argumentType is null)
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }

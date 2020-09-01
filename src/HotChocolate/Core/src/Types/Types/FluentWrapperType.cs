@@ -1,6 +1,8 @@
 using System;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class FluentWrapperType
@@ -13,40 +15,28 @@ namespace HotChocolate.Types
 
         TypeKind IType.Kind => throw new NotSupportedException();
 
-        object ISerializableType.Deserialize(object resultValue)
-        {
+        object? ISerializableType.Serialize(object? runtimeValue) =>
             throw new NotSupportedException();
-        }
 
-        bool IInputType.IsInstanceOfType(IValueNode literal)
-        {
+        object? ISerializableType.Deserialize(object? resultValue) =>
             throw new NotSupportedException();
-        }
 
-        bool IInputType.IsInstanceOfType(object value)
-        {
+        bool ISerializableType.TryDeserialize(object? resultValue, out object? runtimeValue) =>
             throw new NotSupportedException();
-        }
 
-        object IInputType.ParseLiteral(IValueNode literal)
-        {
+        bool IParsableType.IsInstanceOfType(IValueNode literal) =>
             throw new NotSupportedException();
-        }
 
-        IValueNode IInputType.ParseValue(object value)
-        {
+        bool IParsableType.IsInstanceOfType(object? value) =>
             throw new NotSupportedException();
-        }
 
-        object ISerializableType.Serialize(object runtimeValue)
-        {
+        object IParsableType.ParseLiteral(IValueNode literal, bool withDefaults) =>
             throw new NotSupportedException();
-        }
 
-        bool ISerializableType.TryDeserialize(
-            object resultValue, out object runtimeValue)
-        {
+        IValueNode IParsableType.ParseValue(object? value) =>
             throw new NotSupportedException();
-        }
+
+        public IValueNode ParseResult(object? resultValue) =>
+            throw new NotSupportedException();
     }
 }

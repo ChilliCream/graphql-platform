@@ -1,52 +1,39 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
-using HotChocolate.Utilities.Serialization;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     /// <summary>
     /// Represents a GraphQL input object type
     /// </summary>
-    public class InputObjectType
+    public partial class InputObjectType
         : NamedTypeBase<InputObjectTypeDefinition>
         , IInputObjectType
     {
-        private readonly Action<IInputObjectTypeDescriptor> _configure;
-        private InputObjectToObjectValueConverter _objectToValueConverter;
-        private InputObjectToDictionaryConverter _objectToDictionary;
-        private Func<ObjectValueNode, object> _parseLiteral;
-        private Func<IReadOnlyDictionary<string, object>, object> _deserialize;
-
-        protected InputObjectType()
-        {
-            _configure = Configure;
-        }
-
-        public InputObjectType(Action<IInputObjectTypeDescriptor> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
-
         public override TypeKind Kind => TypeKind.InputObject;
 
-        public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
+        /// <summary>
+        /// Gets the GraphQL syntax representation of this type 
+        /// if it was provided during initialization.
+        /// </summary>
+        public InputObjectTypeDefinitionNode? SyntaxNode { get; private set; }
 
+        /// <summary>
+        /// Gets the fields of this type.
+        /// </summary>
         public FieldCollection<InputField> Fields { get; private set; }
 
         IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
 
+        /// <inheritdoc />
         public virtual bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -55,28 +42,8 @@ namespace HotChocolate.Types
                 || literal is NullValueNode;
         }
 
-        public virtual object ParseLiteral(IValueNode literal)
-        {
-            if (literal is null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is ObjectValueNode ov)
-            {
-                return _parseLiteral(ov);
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new InputObjectSerializationException(
-                TypeResources.InputObjectType_CannotParseLiteral);
-        }
-
-        public virtual bool IsInstanceOfType(object value)
+        /// <inheritdoc />
+        public virtual bool IsInstanceOfType(object? value)
         {
             if (value is null)
             {
@@ -86,19 +53,54 @@ namespace HotChocolate.Types
             return RuntimeType.IsInstanceOfType(value);
         }
 
-        public virtual IValueNode ParseValue(object value)
+        /// <inheritdoc />
+        public virtual object? ParseLiteral(IValueNode valueSyntax)
         {
-            if (value is null)
+            if (valueSyntax is null)
+            {
+                throw new ArgumentNullException(nameof(valueSyntax));
+            }
+
+            if (valueSyntax is ObjectValueNode objectValueSyntax)
+            {
+                return _parseLiteral(objectValueSyntax);
+            }
+
+            if (valueSyntax is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new SerializationException(
+                TypeResources.InputObjectType_CannotParseLiteral,
+                this);
+        }
+
+        /// <inheritdoc />
+        public virtual IValueNode ParseValue(object? runtimeValue)
+        {
+            if (runtimeValue is null)
             {
                 return NullValueNode.Default;
             }
 
-            return _objectToValueConverter.Convert(this, value);
+            return _objectToValueConverter.Convert(this, runtimeValue);
         }
 
-        public object Serialize(object runtimeValue)
+        /// <inheritdoc />
+        public virtual IValueNode ParseResult(object? resultValue, bool initializeDefaults = true)
         {
-            if (TrySerialize(runtimeValue, out object serialized))
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            throw new NotImplementedException();
+        }
+
+        public object? Serialize(object? runtimeValue)
+        {
+            if (TrySerialize(runtimeValue, out object? serialized))
             {
                 return serialized;
             }
@@ -106,36 +108,36 @@ namespace HotChocolate.Types
                 "The specified value is not a valid input object.");
         }
 
-        public virtual bool TrySerialize(object value, out object serialized)
+        public virtual bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             try
             {
-                if (value is null)
+                if (runtimeValue is null)
                 {
-                    serialized = null;
+                    resultValue = null;
                     return true;
                 }
 
-                if (value is IReadOnlyDictionary<string, object>
-                    || value is IDictionary<string, object>)
+                if (runtimeValue is IReadOnlyDictionary<string, object>
+                    || runtimeValue is IDictionary<string, object>)
                 {
-                    serialized = value;
+                    resultValue = runtimeValue;
                     return true;
                 }
 
-                serialized = _objectToDictionary.Convert(this, value);
+                resultValue = _objectToDictionary.Convert(this, runtimeValue);
                 return true;
             }
             catch
             {
-                serialized = null;
+                resultValue = null;
                 return false;
             }
         }
 
-        public object Deserialize(object resultValue)
+        public object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(resultValue, out object deserialized))
+            if (TryDeserialize(resultValue, out object? deserialized))
             {
                 return deserialized;
             }
@@ -144,7 +146,7 @@ namespace HotChocolate.Types
                 "The specified value is not a serialized input object.");
         }
 
-        public virtual bool TryDeserialize(object resultValue, out object runtimeValue)
+        public virtual bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             try
             {
@@ -173,81 +175,6 @@ namespace HotChocolate.Types
             {
                 runtimeValue = null;
                 return false;
-            }
-        }
-
-        protected override InputObjectTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor = InputObjectTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure(descriptor);
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
-        {
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(InputObjectType<>));
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            InputObjectTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            ITypeConverter converter = context.Services.GetTypeConverter();
-
-            _objectToValueConverter =
-                new InputObjectToObjectValueConverter(converter);
-            _objectToDictionary =
-                new InputObjectToDictionaryConverter(converter);
-
-            SyntaxNode = definition.SyntaxNode;
-
-            var fields = new List<InputField>();
-            OnCompleteFields(context, definition, fields);
-
-            Fields = new FieldCollection<InputField>(fields);
-            FieldInitHelper.CompleteFields(context, definition, Fields);
-
-            if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
-            {
-                _parseLiteral = ov => InputObjectParserHelper.Parse(this, ov, converter);
-                _deserialize = map => InputObjectParserHelper.Deserialize(this, map, converter);
-            }
-            else
-            {
-                ConstructorInfo constructor = InputObjectConstructorResolver.GetConstructor(
-                    this.RuntimeType,
-                    Fields.Select(t => t.Property));
-                InputObjectFactory factory = InputObjectFactoryCompiler.Compile(this, constructor);
-
-                _parseLiteral = ov => InputObjectParserHelper.Parse(
-                    this, ov, factory, converter);
-
-                _deserialize = map => InputObjectParserHelper.Deserialize(
-                    this, map, factory, converter);
-            }
-        }
-
-        protected virtual void OnCompleteFields(
-            ITypeCompletionContext context,
-            InputObjectTypeDefinition definition,
-            ICollection<InputField> fields)
-        {
-            foreach (InputFieldDefinition fieldDefinition in definition.Fields)
-            {
-                fields.Add(new InputField(fieldDefinition));
             }
         }
     }

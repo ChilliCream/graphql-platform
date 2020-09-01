@@ -117,12 +117,12 @@ namespace HotChocolate.Types
             IValueNode valueNode,
             Type targetType)
         {
-            if (argument == null)
+            if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            if (valueNode == null)
+            if (valueNode is null)
             {
                 throw new ArgumentNullException(nameof(valueNode));
             }

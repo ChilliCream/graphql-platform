@@ -46,43 +46,43 @@ namespace HotChocolate.Types
             _format = CreateFormatString(format);
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return Utf8Parser.TryParse(literal.AsSpan(), out Guid _, out int _, _format[0]);
+            return Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid _, out int _, _format[0]);
         }
 
-        protected override Guid ParseLiteral(StringValueNode literal)
+        protected override Guid ParseLiteral(StringValueNode valueSyntax)
         {
-            if (Utf8Parser.TryParse(literal.AsSpan(), out Guid g, out int _, _format[0]))
+            if (Utf8Parser.TryParse(valueSyntax.AsSpan(), out Guid g, out int _, _format[0]))
             {
                 return g;
             }
 
             throw new ScalarSerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+                    Name, valueSyntax.GetType()));
         }
 
-        protected override StringValueNode ParseValue(Guid value)
+        protected override StringValueNode ParseValue(Guid runtimeValue)
         {
-            return new StringValueNode(value.ToString(_format));
+            return new StringValueNode(runtimeValue.ToString(_format));
         }
 
-        public override bool TrySerialize(object? value, out object? serialized)
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is Guid uri)
+            if (runtimeValue is Guid uri)
             {
-                serialized = uri.ToString(_format);
+                resultValue = uri.ToString(_format);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 

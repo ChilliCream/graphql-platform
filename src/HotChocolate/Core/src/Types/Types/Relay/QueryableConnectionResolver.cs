@@ -22,12 +22,12 @@ namespace HotChocolate.Types.Relay
             IQueryable<T> source,
             PagingDetails pagingDetails)
         {
-            if (source == null)
+            if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (pagingDetails == null)
+            if (pagingDetails is null)
             {
                 throw new ArgumentNullException(nameof(pagingDetails));
             }
@@ -196,7 +196,7 @@ namespace HotChocolate.Types.Relay
         private static int? GetPositionFromCurser(
             IDictionary<string, object> properties)
         {
-            if (properties == null)
+            if (properties is null)
             {
                 return null;
             }
@@ -207,7 +207,7 @@ namespace HotChocolate.Types.Relay
         private static int? GetTotalCountFromCursor(
             IDictionary<string, object> properties)
         {
-            if (properties == null)
+            if (properties is null)
             {
                 return null;
             }
@@ -218,7 +218,7 @@ namespace HotChocolate.Types.Relay
         private static Dictionary<string, object> TryDeserializeCursor(
             string cursor)
         {
-            if (cursor == null)
+            if (cursor is null)
             {
                 return null;
             }

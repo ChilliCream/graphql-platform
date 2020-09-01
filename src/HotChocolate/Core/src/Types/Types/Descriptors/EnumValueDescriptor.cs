@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         protected EnumValueDescriptor(IDescriptorContext context, object value)
             : base(context)
         {
-            if (value == null)
+            if (value is null)
             {
                 throw new ArgumentNullException(nameof(value));
             }

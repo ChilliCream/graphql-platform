@@ -9,27 +9,10 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class EnumType
+    public partial class EnumType
         : NamedTypeBase<EnumTypeDefinition>
         , ILeafType
     {
-        private readonly Action<IEnumTypeDescriptor> _configure;
-        private readonly Dictionary<string, EnumValue> _nameToValues =
-            new Dictionary<string, EnumValue>();
-        private readonly Dictionary<object, EnumValue> _valueToValues =
-            new Dictionary<object, EnumValue>();
-
-        protected EnumType()
-        {
-            _configure = Configure;
-        }
-
-        public EnumType(Action<IEnumTypeDescriptor> configure)
-        {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
-        }
-
         public override TypeKind Kind => TypeKind.Enum;
 
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
@@ -60,11 +43,9 @@ namespace HotChocolate.Types
             return false;
         }
 
-        #region Serialization
-
         public bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -84,7 +65,7 @@ namespace HotChocolate.Types
 
         public object ParseLiteral(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -116,9 +97,14 @@ namespace HotChocolate.Types
             return RuntimeType.IsInstanceOfType(value);
         }
 
+        public object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        {
+            throw new NotImplementedException();
+        }
+
         public IValueNode ParseValue(object value)
         {
-            if (value == null)
+            if (value is null)
             {
                 return NullValueNode.Default;
             }
@@ -134,9 +120,14 @@ namespace HotChocolate.Types
                 nameof(value));
         }
 
+        public IValueNode ParseResult(object? resultValue)
+        {
+            throw new NotImplementedException();
+        }
+
         public object Serialize(object runtimeValue)
         {
-            if (runtimeValue == null)
+            if (runtimeValue is null)
             {
                 return null;
             }
@@ -196,59 +187,5 @@ namespace HotChocolate.Types
             return false;
         }
 
-        #endregion
-
-        #region Initialization
-
-        protected override EnumTypeDefinition CreateDefinition(
-            ITypeDiscoveryContext context)
-        {
-            var descriptor = EnumTypeDescriptor.FromSchemaType(
-                context.DescriptorContext,
-                GetType());
-            _configure(descriptor);
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            EnumTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(definition);
-            SetTypeIdentity(typeof(EnumType<>));
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            EnumTypeDefinition definition)
-        {
-            base.OnCompleteType(context, definition);
-
-            SyntaxNode = definition.SyntaxNode;
-
-            foreach (EnumValue enumValue in definition.Values
-                .Select(t => new EnumValue(t)))
-            {
-                _nameToValues[enumValue.Name] = enumValue;
-                _valueToValues[enumValue.Value] = enumValue;
-                enumValue.CompleteValue(context);
-            }
-
-            if (!Values.Any())
-            {
-                context.ReportError(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(TypeResources.EnumType_NoValues, Name)
-                        .SetCode(ErrorCodes.Schema.NoEnumValues)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-            }
-        }
-
-        #endregion
     }
 }

@@ -15,7 +15,7 @@ namespace HotChocolate
 
         public GraphQLResolverOfAttribute(Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

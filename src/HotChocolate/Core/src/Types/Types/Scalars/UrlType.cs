@@ -32,43 +32,43 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return TryParseUri(literal.Value, out _);
+            return TryParseUri(valueSyntax.Value, out _);
         }
 
-        protected override Uri ParseLiteral(StringValueNode literal)
+        protected override Uri ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryParseUri(literal.Value, out Uri uri))
+            if (TryParseUri(valueSyntax.Value, out Uri uri))
             {
                 return uri;
             }
 
             throw new ScalarSerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+                    Name, valueSyntax.GetType()));
         }
 
-        protected override StringValueNode ParseValue(Uri value)
+        protected override StringValueNode ParseValue(Uri runtimeValue)
         {
-            return new StringValueNode(value.AbsoluteUri);
+            return new StringValueNode(runtimeValue.AbsoluteUri);
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object runtimeValue, out object resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is Uri uri)
+            if (runtimeValue is Uri uri)
             {
-                serialized = uri.AbsoluteUri;
+                resultValue = uri.AbsoluteUri;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 

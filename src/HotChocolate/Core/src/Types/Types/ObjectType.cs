@@ -137,7 +137,7 @@ namespace HotChocolate.Types
 
         private void CompleteIsOfType(ITypeCompletionContext context)
         {
-            if (_isOfType == null)
+            if (_isOfType is null)
             {
                 if (context.IsOfType != null)
                 {
@@ -189,7 +189,7 @@ namespace HotChocolate.Types
             IResolverContext context,
             object result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }
@@ -200,7 +200,7 @@ namespace HotChocolate.Types
             IResolverContext context,
             object result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }

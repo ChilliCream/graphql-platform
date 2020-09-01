@@ -33,12 +33,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -52,12 +52,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, ValueTask<object?>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -71,12 +71,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -90,12 +90,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -111,12 +111,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -130,12 +130,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<ValueTask<object?>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -149,12 +149,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -168,12 +168,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -189,12 +189,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, CancellationToken, object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -208,12 +208,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, CancellationToken, TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -227,12 +227,12 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -248,7 +248,7 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             object? constantValue)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -262,7 +262,7 @@ namespace Microsoft.Extensions.DependencyInjection
             NameString fieldName,
             TResult constantValue)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

@@ -3,8 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 using ExtendedType = HotChocolate.Internal.ExtendedType;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -13,7 +14,7 @@ namespace HotChocolate.Types
         , INullableType
     {
         private readonly bool _isNestedList;
-        private readonly IInputType _namedType;
+        private readonly IInputType? _namedType;
 
         public ListType(IType elementType)
             : base(elementType)
@@ -38,9 +39,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            IInputType inputType = InnerInputType;
+            IInputType inputType = InnerInputType!;
 
-            if (_namedType.IsInstanceOfType(literal))
+            if (_namedType!.IsInstanceOfType(literal))
             {
                 return true;
             }
@@ -51,8 +52,8 @@ namespace HotChocolate.Types
                 {
                     foreach (IValueNode element in listValueLiteral.Items)
                     {
-                        if (element.Kind != SyntaxKind.ListValue
-                            || !InnerInputType.IsInstanceOfType(element))
+                        if (element.Kind != SyntaxKind.ListValue ||
+                            !inputType.IsInstanceOfType(element))
                         {
                             return false;
                         }
@@ -67,7 +68,7 @@ namespace HotChocolate.Types
                 {
                     foreach (IValueNode element in listValueLiteral.Items)
                     {
-                        if (!InnerInputType.IsInstanceOfType(element))
+                        if (!inputType.IsInstanceOfType(element))
                         {
                             return false;
                         }
@@ -79,16 +80,16 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected sealed override object ParseLiteral(IValueNode literal)
+        protected sealed override object? ParseLiteral(IValueNode literal, bool withDefaults)
         {
             if (literal is NullValueNode)
             {
                 return null;
             }
 
-            if (literal.Kind != SyntaxKind.ListValue && InnerInputType.IsInstanceOfType(literal))
+            if (literal.Kind != SyntaxKind.ListValue && InnerInputType!.IsInstanceOfType(literal))
             {
-                return CreateList(new ListValueNode(literal));
+                return CreateList(new ListValueNode(literal), withDefaults);
             }
 
             if (literal.Kind == SyntaxKind.ListValue)
@@ -97,12 +98,12 @@ namespace HotChocolate.Types
                 {
                     if (IsInstanceOfType(literal))
                     {
-                        return CreateList((ListValueNode)literal);
+                        return CreateList((ListValueNode)literal, withDefaults);
                     }
                 }
                 else
                 {
-                    return CreateList((ListValueNode)literal);
+                    return CreateList((ListValueNode)literal, withDefaults);
                 }
             }
 
@@ -111,19 +112,19 @@ namespace HotChocolate.Types
                 "The specified literal cannot be handled by this list type.");
         }
 
-        protected sealed override bool IsInstanceOfType(object value)
+        protected sealed override bool IsInstanceOfType(object? runtimeValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
                 return true;
             }
 
-            if (RuntimeType.IsInstanceOfType(value))
+            if (RuntimeType.IsInstanceOfType(runtimeValue))
             {
                 return true;
             }
 
-            Type elementType = ExtendedType.Tools.GetElementType(value.GetType());
+            Type? elementType = ExtendedType.Tools.GetElementType(runtimeValue.GetType());
 
             if (elementType is null)
             {
@@ -134,27 +135,27 @@ namespace HotChocolate.Types
 
             if (elementType == typeof(object))
             {
-                return value is IList l
+                return runtimeValue is IList l
                     && (l.Count == 0 || clrType == l[0]?.GetType());
             }
 
             return elementType == clrType;
         }
 
-        protected sealed override IValueNode ParseValue(object value)
+        protected sealed override IValueNode ParseValue(object? runtimeValue)
         {
-            if (value == null)
+            if (runtimeValue is null)
             {
                 return NullValueNode.Default;
             }
 
-            if (value is IList l)
+            if (runtimeValue is IList l)
             {
                 var items = new List<IValueNode>();
 
-                for (int i = 0; i < l.Count; i++)
+                for (var i = 0; i < l.Count; i++)
                 {
-                    items.Add(InnerInputType.ParseValue(l[i]));
+                    items.Add(InnerInputType!.ParseValue(l[i]));
                 }
 
                 return new ListValueNode(null, items);
@@ -163,37 +164,40 @@ namespace HotChocolate.Types
             // TODO : resources
             throw new ScalarSerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    this.Visualize(), value.GetType()));
+                    this.Visualize(), runtimeValue.GetType()));
         }
 
-        protected sealed override bool TrySerialize(
-            object value, out object serialized)
+        protected override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            throw new NotImplementedException();
+        }
+
+        protected sealed override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is IList l)
+            if (runtimeValue is IList l)
             {
-                var list = new List<object>();
+                var list = new List<object?>();
 
-                for (int i = 0; i < l.Count; i++)
+                for (var i = 0; i < l.Count; i++)
                 {
-                    list.Add(InnerInputType.Serialize(l[i]));
+                    list.Add(InnerInputType!.Serialize(l[i]));
                 }
 
-                serialized = list;
+                resultValue = list;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        protected sealed override bool TryDeserialize(
-            object resultValue, out object runtimeValue)
+        protected sealed override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
             {
@@ -203,11 +207,11 @@ namespace HotChocolate.Types
 
             if (resultValue is IList l)
             {
-                var list = (IList)Activator.CreateInstance(RuntimeType);
+                var list = (IList)Activator.CreateInstance(RuntimeType)!;
 
-                for (int i = 0; i < l.Count; i++)
+                for (var i = 0; i < l.Count; i++)
                 {
-                    if (InnerInputType.TryDeserialize(l[i], out var v))
+                    if (InnerInputType!.TryDeserialize(l[i], out var v))
                     {
                         list.Add(v);
                     }
@@ -226,15 +230,13 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private object CreateList(ListValueNode listLiteral)
+        private object CreateList(ListValueNode listLiteral, bool withDefaults)
         {
-            var list = (IList)Activator.CreateInstance(RuntimeType);
+            var list = (IList)Activator.CreateInstance(RuntimeType)!;
 
             for (var i = 0; i < listLiteral.Items.Count; i++)
             {
-                object element = InnerInputType.ParseLiteral(
-                    listLiteral.Items[i]);
-                list.Add(element);
+                list.Add(InnerInputType!.ParseLiteral(listLiteral.Items[i],withDefaults));
             }
 
             return list;

@@ -1,5 +1,7 @@
 #nullable enable
 
+using HotChocolate.Language;
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -7,7 +9,11 @@ namespace HotChocolate.Types
     /// </summary>
     public interface IInputObjectType
         : INamedInputType
+        , IHasDirectives
     {
+        /// <summary>
+        /// Gets the field that this type exposes.
+        /// </summary>
         IFieldCollection<IInputField> Fields { get; }
     }
 }

@@ -45,7 +45,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (type.IsListType())
             {
-                Type elementType = type.ElementType().ToClrType();
+                Type elementType = type.ElementType().ToRuntimeType();
 
                 if (returnType != elementType)
                 {

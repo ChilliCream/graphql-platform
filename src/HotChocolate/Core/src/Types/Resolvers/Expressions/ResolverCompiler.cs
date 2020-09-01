@@ -29,7 +29,7 @@ namespace HotChocolate.Resolvers.Expressions
         protected ResolverCompiler(
             IEnumerable<IResolverParameterCompiler> compilers)
         {
-            if (compilers == null)
+            if (compilers is null)
             {
                 throw new ArgumentNullException(nameof(compilers));
             }
@@ -54,7 +54,7 @@ namespace HotChocolate.Resolvers.Expressions
                     _compilers.FirstOrDefault(t =>
                         t.CanHandle(parameter, sourceType));
 
-                if (parameterCompiler == null)
+                if (parameterCompiler is null)
                 {
                     throw new InvalidOperationException(
                         TypeResources.ResolverCompiler_UnknownParameterType);

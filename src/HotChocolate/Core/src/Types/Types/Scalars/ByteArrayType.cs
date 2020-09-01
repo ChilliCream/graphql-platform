@@ -14,31 +14,31 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override byte[] ParseLiteral(StringValueNode literal)
+        protected override byte[] ParseLiteral(StringValueNode valueSyntax)
         {
-            return Convert.FromBase64String(literal.Value);
+            return Convert.FromBase64String(valueSyntax.Value);
         }
 
-        protected override StringValueNode ParseValue(byte[] value)
+        protected override StringValueNode ParseValue(byte[] runtimeValue)
         {
-            return new StringValueNode(Convert.ToBase64String(value));
+            return new StringValueNode(Convert.ToBase64String(runtimeValue));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object runtimeValue, out object resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is byte[] b)
+            if (runtimeValue is byte[] b)
             {
-                serialized = Convert.ToBase64String(b);
+                resultValue = Convert.ToBase64String(b);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 

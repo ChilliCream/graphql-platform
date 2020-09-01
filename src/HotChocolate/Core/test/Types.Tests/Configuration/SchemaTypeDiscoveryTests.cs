@@ -248,7 +248,7 @@ namespace HotChocolate.Discovery
             }
 
             public override bool TrySerialize(
-                object value, out object serialized)
+                object runtimeValue, out object resultValue)
             {
                 throw new NotSupportedException();
             }

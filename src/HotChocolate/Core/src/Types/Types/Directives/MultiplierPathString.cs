@@ -248,7 +248,7 @@ namespace HotChocolate.Types
 
         public static bool IsValidPath(string name)
         {
-            if (name == null || name.Length == 0)
+            if (name is null || name.Length == 0)
             {
                 return false;
             }
@@ -275,7 +275,7 @@ namespace HotChocolate.Types
 
         public static bool IsValidPath(ReadOnlySpan<byte> name)
         {
-            if (name == null || name.Length == 0)
+            if (name is null || name.Length == 0)
             {
                 return false;
             }

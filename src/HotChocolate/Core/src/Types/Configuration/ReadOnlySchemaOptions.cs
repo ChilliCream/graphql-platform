@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
     {
         public ReadOnlySchemaOptions(IReadOnlySchemaOptions options)
         {
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }

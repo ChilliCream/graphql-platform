@@ -1,6 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -36,47 +38,71 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return NameUtils.IsValidGraphQLName(literal.AsSpan());
+            return NameUtils.IsValidGraphQLName(valueSyntax.AsSpan());
         }
 
-        protected override NameString ParseLiteral(StringValueNode literal)
+        protected override NameString ParseLiteral(StringValueNode valueSyntax)
         {
-            if (IsInstanceOfType(literal))
+            if (IsInstanceOfType(valueSyntax))
             {
-                return new NameString(literal.Value);
+                return new NameString(valueSyntax.Value);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(NameString value)
+        protected override StringValueNode ParseValue(NameString runtimeValue)
         {
-            return new StringValueNode(value.Value);
+            return new StringValueNode(runtimeValue.Value);
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is NameString n)
+            {
+                return n.HasValue
+                    ? (IValueNode)new StringValueNode(n.Value)
+                    : NullValueNode.Default;
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is NameString name)
+            if (runtimeValue is NameString name)
             {
-                serialized = name.Value;
+                resultValue = name.Value;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
             {

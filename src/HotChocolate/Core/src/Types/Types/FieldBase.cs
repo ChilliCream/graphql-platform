@@ -19,7 +19,7 @@ namespace HotChocolate.Types
 
         protected FieldBase(TDefinition definition)
         {
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }

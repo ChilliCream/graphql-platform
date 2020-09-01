@@ -89,7 +89,7 @@ namespace HotChocolate.Configuration
             ITypeReference reference,
             TypeDependencyKind kind)
         {
-            if (reference == null)
+            if (reference is null)
             {
                 throw new ArgumentNullException(nameof(reference));
             }
@@ -111,7 +111,7 @@ namespace HotChocolate.Configuration
             IEnumerable<ITypeReference> references,
             TypeDependencyKind kind)
         {
-            if (references == null)
+            if (references is null)
             {
                 throw new ArgumentNullException(nameof(references));
             }
@@ -130,7 +130,7 @@ namespace HotChocolate.Configuration
 
         public void RegisterDependency(IDirectiveReference reference)
         {
-            if (reference == null)
+            if (reference is null)
             {
                 throw new ArgumentNullException(nameof(reference));
             }
@@ -141,7 +141,7 @@ namespace HotChocolate.Configuration
         public void RegisterDependencyRange(
             IEnumerable<IDirectiveReference> references)
         {
-            if (references == null)
+            if (references is null)
             {
                 throw new ArgumentNullException(nameof(references));
             }
@@ -155,12 +155,12 @@ namespace HotChocolate.Configuration
             Type sourceType,
             Type resolverType)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (sourceType == null)
+            if (sourceType is null)
             {
                 throw new ArgumentNullException(nameof(sourceType));
             }
@@ -169,14 +169,14 @@ namespace HotChocolate.Configuration
 
             var fieldMember = new FieldMember(InternalName, fieldName, member);
 
-            Resolvers[fieldMember.ToFieldReference()] = resolverType == null
+            Resolvers[fieldMember.ToFieldReference()] = resolverType is null
                 ? new RegisteredResolver(sourceType, fieldMember)
                 : new RegisteredResolver(resolverType, sourceType, fieldMember);
         }
 
         public void ReportError(ISchemaError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }

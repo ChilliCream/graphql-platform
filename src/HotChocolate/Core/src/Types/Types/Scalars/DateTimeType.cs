@@ -28,38 +28,38 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override DateTimeOffset ParseLiteral(StringValueNode literal)
+        protected override DateTimeOffset ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(literal.Value, out DateTimeOffset? value))
+            if (TryDeserializeFromString(valueSyntax.Value, out DateTimeOffset? value))
             {
                 return value.Value;
             }
 
             throw new ScalarSerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+                    Name, valueSyntax.GetType()));
         }
 
-        protected override StringValueNode ParseValue(DateTimeOffset value)
+        protected override StringValueNode ParseValue(DateTimeOffset runtimeValue)
         {
-            return new StringValueNode(Serialize(value));
+            return new StringValueNode(Serialize(runtimeValue));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object runtimeValue, out object resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is DateTimeOffset dt)
+            if (runtimeValue is DateTimeOffset dt)
             {
-                serialized = Serialize(dt);
+                resultValue = Serialize(dt);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
