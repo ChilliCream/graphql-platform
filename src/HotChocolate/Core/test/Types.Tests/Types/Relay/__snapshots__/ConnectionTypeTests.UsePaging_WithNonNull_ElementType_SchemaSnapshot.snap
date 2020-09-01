@@ -4,28 +4,28 @@
 
 "Information about pagination in a connection."
 type PageInfo {
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type Query {
-  s(after: String before: String first: PaginationAmount last: PaginationAmount): StringConnection
+  s(first: PaginationAmount after: String last: PaginationAmount before: String): StringConnection
 }
 
 "A connection to a list of items."
 type StringConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
   "A list of edges."
   edges: [StringEdge!]
   "A flattened list of the nodes."
   nodes: [String!]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
   totalCount: Int!
 }
 

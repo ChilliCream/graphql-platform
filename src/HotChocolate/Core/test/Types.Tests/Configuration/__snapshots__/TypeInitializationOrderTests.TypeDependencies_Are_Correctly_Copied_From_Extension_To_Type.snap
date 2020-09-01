@@ -3,8 +3,8 @@
 }
 
 type Query {
-  greeting: String
   words: [Word]
+  greeting: String
 }
 
 type Word {
