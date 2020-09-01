@@ -435,7 +435,7 @@ namespace HotChocolate.Execution.Utilities
                         ParseLiteral(argument.Type, value),
                         value);
                 }
-                catch (ScalarSerializationException ex)
+                catch (SerializationException ex)
                 {
                     if (argumentValue is { })
                     {

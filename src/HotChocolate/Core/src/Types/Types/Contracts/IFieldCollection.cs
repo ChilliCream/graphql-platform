@@ -13,6 +13,8 @@ namespace HotChocolate.Types
 
         T this[int index] { get; }
 
+        int IndexOfField(NameString fieldName);
+
         bool ContainsField(NameString fieldName);
     }
 

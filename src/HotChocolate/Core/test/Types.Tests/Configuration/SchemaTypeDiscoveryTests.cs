@@ -221,12 +221,17 @@ namespace HotChocolate.Discovery
                 throw new NotSupportedException();
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
             {
                 throw new NotSupportedException();
             }
 
             public override IValueNode ParseValue(object value)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override IValueNode ParseResult(object resultValue)
             {
                 throw new NotSupportedException();
             }

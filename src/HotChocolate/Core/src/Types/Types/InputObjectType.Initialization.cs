@@ -88,17 +88,17 @@ namespace HotChocolate.Types
 
             if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
-                _parseLiteral = ov => InputObjectParserHelper.Parse(this, ov, converter);
-                _deserialize = map => InputObjectParserHelper.Deserialize(this, map, converter);
+                _parseLiteral = ov => InputObjectParserHelper.ParseLiteralToDictionary(this, ov, converter);
+                _deserialize = map => InputObjectParserHelper.DeserializeToDictionary(this, map, converter);
             }
             else
             {
-                ConstructorInfo? constructor = InputObjectConstructorResolver.GetConstructor(
+                ConstructorInfo constructor = InputObjectConstructorResolver.GetConstructor(
                     RuntimeType,
-                    Fields.Select(t => t.Property!));
-                InputObjectFactory factory = InputObjectFactoryCompiler.Compile(this, constructor);
+                    Fields.Select(t => t.Property))!;
+                InputObjectFactory factory = InputObjectCompiler.CompileFactory(this, constructor);
 
-                _parseLiteral = ov => InputObjectParserHelper.Parse(
+                _parseLiteral = ov => InputObjectParserHelper.ParseLiteral(
                     this, ov, factory, converter);
 
                 _deserialize = map => InputObjectParserHelper.Deserialize(

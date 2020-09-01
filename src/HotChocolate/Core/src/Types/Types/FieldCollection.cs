@@ -12,7 +12,8 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : class, IField
     {
-        private readonly Dictionary<NameString, T> _fieldsLookup;
+        private readonly Dictionary<NameString, (int Index, T Field)> _fieldsLookup =
+            new Dictionary<NameString, (int Index, T Field)>();
         private readonly List<T> _fields;
 
         public FieldCollection(IEnumerable<T> fields)
@@ -23,20 +24,43 @@ namespace HotChocolate.Types
             }
 
             _fields = fields is List<T> list ? list : fields.ToList();
-            _fieldsLookup = _fields.ToDictionary(t => t.Name);
+
+            for (int i = 0; i < _fields.Count; i++)
+            {
+                T field = _fields[i];
+                _fieldsLookup.Add(field.Name, (i, field));
+            }
         }
 
-        public T this[string fieldName] => _fieldsLookup[fieldName];
+        public T this[string fieldName] => _fieldsLookup[fieldName].Field;
 
         public T this[int index] => _fields[index];
 
         public int Count => _fields.Count;
 
+        public int IndexOfField(NameString fieldName)
+        {
+            return _fieldsLookup.TryGetValue(fieldName, out (int Index, T Field) item)
+                ? item.Index
+                : -1;
+        }
+
         public bool ContainsField(NameString fieldName) =>
             _fieldsLookup.ContainsKey(fieldName.EnsureNotEmpty(nameof(fieldName)));
 
-        public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field) =>
-            _fieldsLookup.TryGetValue(fieldName.EnsureNotEmpty(nameof(fieldName)), out field!);
+        public bool TryGetField(NameString fieldName, [NotNullWhen(true)] out T? field)
+        {
+            if (_fieldsLookup.TryGetValue(
+                fieldName.EnsureNotEmpty(nameof(fieldName)),
+                out (int Index, T Field) item))
+            {
+                field = item.Field;
+                return true;
+            }
+
+            field = default;
+            return false;
+        }
 
         public IEnumerator<T> GetEnumerator()
         {

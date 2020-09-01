@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Utilities
         public static IError ArgumentValueIsInvalid(
             ArgumentNode argument,
             string responseName,
-            ScalarSerializationException exception)
+            SerializationException exception)
         {
             return ErrorBuilder.New()
                 .SetMessage(exception.Message)
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Utilities
 
         public static IError ArgumentDefaultValueIsInvalid(
             string responseName,
-            ScalarSerializationException exception)
+            SerializationException exception)
         {
             return ErrorBuilder.New()
                 .SetMessage(exception.Message)
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Utilities
         }
 
         public static IError InvalidLeafValue(
-            ScalarSerializationException exception,
+            SerializationException exception,
             FieldNode field,
             Path path)
         {

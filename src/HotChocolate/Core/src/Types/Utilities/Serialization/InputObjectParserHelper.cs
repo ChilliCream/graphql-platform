@@ -13,7 +13,7 @@ namespace HotChocolate.Utilities.Serialization
                 new DictionaryPoolPolicy(),
                 32);
 
-        public static object Parse(
+        public static object ParseLiteral(
             InputObjectType type,
             ObjectValueNode value,
             InputObjectFactory factory,
@@ -33,7 +33,7 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static object Parse(
+        public static object ParseLiteralToDictionary(
             InputObjectType type,
             ObjectValueNode value,
             ITypeConverter converter)
@@ -52,7 +52,7 @@ namespace HotChocolate.Utilities.Serialization
             IDictionary<string, object> target,
             ITypeConverter converter)
         {
-            for (int i = 0; i < source.Fields.Count; i++)
+            for (var i = 0; i < source.Fields.Count; i++)
             {
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
@@ -90,7 +90,7 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static Dictionary<string, object> Deserialize(
+        public static Dictionary<string, object> DeserializeToDictionary(
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
             ITypeConverter converter)
@@ -135,20 +135,19 @@ namespace HotChocolate.Utilities.Serialization
             {
                 if (dict.ContainsKey(field.Name))
                 {
-                    if(field.IsOptional && field.DefaultValue is null)
+                    if (field.IsOptional)
                     {
                         continue;
                     }
 
-                    IValueNode defaultValue = field.DefaultValue ?? NullValueNode.Default;
-                    object value = field.Type.ParseLiteral();
+                    IValueNode valueSyntax = field.DefaultValue ?? NullValueNode.Default;
 
-                }
-
-                if (!field.IsOptional && !dict.ContainsKey(field.Name))
-                {
-
-                    dict[field.Name] = ConvertValue(field, converter, value);
+                    dict.Add(
+                        field.Name,
+                        ConvertValue(
+                            field,
+                            converter,
+                            field.Type.ParseLiteral(valueSyntax, false)));
                 }
             }
         }
