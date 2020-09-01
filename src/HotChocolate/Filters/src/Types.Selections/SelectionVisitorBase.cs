@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Selections
                     }
                 }
             }
-            else if (selectionSet == null)
+            else if (selectionSet is null)
             {
                 throw new QueryException(
                     ErrorBuilder.New()
@@ -179,13 +179,13 @@ namespace HotChocolate.Types.Selections
                 {
                     IFieldSelection? currentSelection = GetPagingFieldOrDefault(selection);
 
-                    if (currentSelection != null)
+                    if (currentSelection is not null)
                     {
                         nullableResult = MergeSelection(nullableResult.Item2, currentSelection);
                     }
                 }
             }
-            if (nullableResult.Item1 != null && nullableResult.Item2 != null)
+            if (nullableResult.Item1 is not null && nullableResult.Item2 is not null)
             {
                 result = (nullableResult.Item1, nullableResult.Item2);
                 return true;
@@ -218,7 +218,7 @@ namespace HotChocolate.Types.Selections
             SelectionSetNode? selectionSet,
             IFieldSelection selection)
         {
-            if (selectionSet == null)
+            if (selectionSet is null)
             {
                 selectionSet = selection.Selection.SelectionSet;
             }

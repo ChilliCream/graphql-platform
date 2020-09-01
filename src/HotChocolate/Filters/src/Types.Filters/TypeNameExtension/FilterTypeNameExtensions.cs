@@ -10,12 +10,12 @@ namespace HotChocolate.Types.Filters
           this IFilterInputTypeDescriptor<T> descriptor,
           Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }

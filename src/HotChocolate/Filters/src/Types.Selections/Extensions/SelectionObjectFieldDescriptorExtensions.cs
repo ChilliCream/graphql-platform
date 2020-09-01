@@ -50,7 +50,7 @@ namespace HotChocolate.Types
                 {
                     Type? selectionType = objectType;
 
-                    if (selectionType == null)
+                    if (selectionType is null)
                     {
                         if (definition.ResultType is null ||
                             !context.TypeInspector.TryCreateTypeInfo(

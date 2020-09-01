@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Selections
     {
         public SelectionClosure(Type clrType, string parameterName)
         {
-            if (parameterName == null)
+            if (parameterName is null)
             {
                 throw new ArgumentNullException(nameof(parameterName));
             }

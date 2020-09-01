@@ -13,15 +13,15 @@ namespace HotChocolate.Types.Filters.Extensions
             PropertyInfo propertyInfo,
             Func<T> valueFactory) where T : FilterFieldDescriptorBase
         {
-            if (fields == null)
+            if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
-            if (propertyInfo == null)
+            if (propertyInfo is null)
             {
                 throw new ArgumentNullException(nameof(propertyInfo));
             }
-            if (valueFactory == null)
+            if (valueFactory is null)
             {
                 throw new ArgumentNullException(nameof(valueFactory));
             }
@@ -51,11 +51,11 @@ namespace HotChocolate.Types.Filters.Extensions
             FilterOperationKind operationKind,
             Func<T> valueFactory) where T : FilterOperationDescriptorBase
         {
-            if (fields == null)
+            if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
-            if (valueFactory == null)
+            if (valueFactory is null)
             {
                 throw new ArgumentNullException(nameof(valueFactory));
             }

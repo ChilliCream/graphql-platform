@@ -129,7 +129,7 @@ namespace HotChocolate.Types
         {
             Type? argumentType = filterType;
 
-            if (argumentType == null)
+            if (argumentType is null)
             {
                 if (definition.ResultType is null ||
                     definition.ResultType == typeof(object) ||

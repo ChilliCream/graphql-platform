@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Sorting
                 source = e.AsQueryable();
             }
 
-            if (source != null &&
+            if (source is not null &&
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
                 iot is ISortInputType fit &&
                 fit.EntityType is { })

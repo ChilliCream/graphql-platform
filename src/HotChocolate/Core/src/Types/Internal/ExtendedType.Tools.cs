@@ -121,6 +121,31 @@ namespace HotChocolate.Internal
                 }
                 return nullability;
             }
+
+            internal static bool CollectNullability(
+                IExtendedType type,
+                Span<bool?> nullability,
+                out int written)
+            {
+                int length = 0;
+                Span<bool> buffer = stackalloc bool[32];
+                Helper.CollectNullability(type, buffer, ref length);
+                buffer = buffer.Slice(0, length);
+
+                if (nullability.Length < buffer.Length)
+                {
+                    written = 0;
+                    return false;
+                }
+
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    nullability[i] = buffer[i];
+                }
+
+                written = buffer.Length;
+                return false;
+            }
         }
     }
 }

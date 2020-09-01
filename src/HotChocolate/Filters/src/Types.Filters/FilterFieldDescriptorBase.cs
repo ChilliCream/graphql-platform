@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Filters
         protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
 
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
-            new HashSet<FilterOperationKind> {FilterOperationKind.In, FilterOperationKind.NotIn};
+            new HashSet<FilterOperationKind> { FilterOperationKind.In, FilterOperationKind.NotIn };
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
@@ -127,7 +127,7 @@ namespace HotChocolate.Types.Filters
         protected void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
-            if (inputType == null)
+            if (inputType is null)
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
@@ -161,7 +161,7 @@ namespace HotChocolate.Types.Filters
 
         protected void Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
+            if (typeNode is null)
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
@@ -175,16 +175,22 @@ namespace HotChocolate.Types.Filters
 
             if (reference is ExtendedTypeReference extendedRef)
             {
+                Span<bool?> buffer = stackalloc bool?[32];
+                Context.TypeInspector.CollectNullability(
+                    extendedRef.Type, buffer.Slice(1), out int written);
+
                 if (extendedRef.Type.IsSchemaType)
                 {
                     var listType = Context.TypeInspector.GetType(
-                        typeof(ListType<>).MakeGenericType(extendedRef.Type.Source));
+                        typeof(ListType<>).MakeGenericType(extendedRef.Type.Source),
+                        buffer.Slice(0, written + 1));
                     return extendedRef.WithType(listType);
                 }
                 else
                 {
                     var runtimeListType = Context.TypeInspector.GetType(
-                        typeof(List<>).MakeGenericType(extendedRef.Type.Source));
+                        typeof(List<>).MakeGenericType(extendedRef.Type.Source),
+                        buffer.Slice(0, written + 1));
                     return extendedRef.WithType(runtimeListType);
                 }
             }

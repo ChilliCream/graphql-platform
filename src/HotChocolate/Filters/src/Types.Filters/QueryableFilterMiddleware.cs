@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Filters
                 source = e.AsQueryable();
             }
 
-            if (source != null &&
+            if (source is not null &&
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
                 iot is IFilterInputType fit)
             {
