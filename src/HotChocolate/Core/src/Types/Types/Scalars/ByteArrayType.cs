@@ -1,5 +1,8 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -24,7 +27,29 @@ namespace HotChocolate.Types
             return new StringValueNode(Convert.ToBase64String(runtimeValue));
         }
 
-        public override bool TrySerialize(object runtimeValue, out object resultValue)
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is byte[] b)
+            {
+                return ParseValue(b);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
             {
@@ -42,7 +67,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
             {

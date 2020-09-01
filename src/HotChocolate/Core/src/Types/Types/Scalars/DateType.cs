@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -34,9 +37,9 @@ namespace HotChocolate.Types
                 return value.Value;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, valueSyntax.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
         protected override StringValueNode ParseValue(DateTime runtimeValue)
@@ -44,7 +47,34 @@ namespace HotChocolate.Types
             return new StringValueNode(Serialize(runtimeValue));
         }
 
-        public override bool TrySerialize(object runtimeValue, out object resultValue)
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is DateTimeOffset d)
+            {
+                return ParseValue(d);
+            }
+
+            if (resultValue is DateTime dt)
+            {
+                return ParseValue(new DateTimeOffset(dt.ToUniversalTime(), TimeSpan.Zero));
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
             {
@@ -62,7 +92,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object resultValue, out object runtimeValue)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)
             {
@@ -99,7 +129,9 @@ namespace HotChocolate.Types
                 CultureInfo.InvariantCulture);
         }
 
-        private static bool TryDeserializeFromString(string serialized, out DateTime? value)
+        private static bool TryDeserializeFromString(
+            string? serialized,
+            [NotNullWhen(true)]out DateTime? value)
         {
             if (DateTime.TryParse(
                serialized,

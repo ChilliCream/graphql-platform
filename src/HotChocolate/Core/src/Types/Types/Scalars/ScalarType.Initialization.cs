@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
@@ -78,7 +77,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             IDictionary<string, object?> contextData)
         {
-            _converter = context.Services.GetRequiredService<ITypeConverter>();
+            _converter = context.Services.GetTypeConverter();
             Directives = DirectiveCollection.CreateAndComplete(
                 context, this, Array.Empty<DirectiveDefinition>());
         }
