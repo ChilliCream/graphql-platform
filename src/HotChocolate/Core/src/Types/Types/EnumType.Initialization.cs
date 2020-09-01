@@ -2,20 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public partial class EnumType
     {
-        private readonly Action<IEnumTypeDescriptor> _configure;
-        private readonly Dictionary<string, EnumValue> _nameToValues =
-            new Dictionary<string, EnumValue>();
-        private readonly Dictionary<object, EnumValue> _valueToValues =
+        private readonly Dictionary<NameString, EnumValue> _enumValues =
+            new Dictionary<NameString, EnumValue>();
+        private readonly Dictionary<object, EnumValue> _valueLookup =
             new Dictionary<object, EnumValue>();
+        private Action<IEnumTypeDescriptor>? _configure;
+        private INamingConventions _naming = default!;
 
         protected EnumType()
         {
@@ -42,10 +44,10 @@ namespace HotChocolate.Types
             var descriptor = EnumTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
-
 
         protected override void OnRegisterDependencies(
             ITypeDiscoveryContext context,
@@ -62,14 +64,14 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
+            _naming = context.DescriptorContext.Naming;
             SyntaxNode = definition.SyntaxNode;
 
-            foreach (EnumValue enumValue in definition.Values
-                .Select(t => new EnumValue(t)))
+            foreach (EnumValueDefinition enumValueDefinition in definition.Values)
             {
-                _nameToValues[enumValue.Name] = enumValue;
-                _valueToValues[enumValue.Value] = enumValue;
-                enumValue.CompleteValue(context);
+                var enumValue = new EnumValue(context, enumValueDefinition);
+                _enumValues[enumValue.Name] = enumValue;
+                _valueLookup[enumValue.Value] = enumValue;
             }
 
             if (!Values.Any())
