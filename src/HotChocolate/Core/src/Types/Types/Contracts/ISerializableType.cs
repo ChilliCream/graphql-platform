@@ -1,23 +1,26 @@
-﻿#nullable enable
+﻿using HotChocolate.Language;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
     public interface ISerializableType : IType
     {
-        /// <summary>
-        /// Serializes an instance of this type to
-        /// the specified serialization type.
-        /// </summary>
-        object? Serialize(object? value);
+        object? Serialize(object? runtimeValue);
 
-        /// <summary>
-        /// Deserializes a serialized instance of this type.
-        /// </summary>
-        object? Deserialize(object? serialized);
+        object? Deserialize(object? resultValue);
 
-        /// <summary>
-        /// Tries to deserialize a serialized instance of this type.
-        /// </summary>
-        bool TryDeserialize(object? serialized, out object? value);
+        bool TryDeserialize(object? resultValue, out object? runtimeValue);
+    }
+
+    public interface IParsableType : IType
+    {
+        bool IsInstanceOfType(IValueNode valueSyntax);
+
+        bool IsInstanceOfType(object? runtimeValue);
+
+        object? ParseLiteral(IValueNode valueSyntax);
+
+        IValueNode? ParseValue(object runtimeValue);
     }
 }

@@ -42,27 +42,27 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s)
+            if (resultValue is string s)
             {
-                value = Convert.FromBase64String(s);
+                runtimeValue = Convert.FromBase64String(s);
                 return true;
             }
 
-            if (serialized is byte[] b)
+            if (resultValue is byte[] b)
             {
-                value = b;
+                runtimeValue = b;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

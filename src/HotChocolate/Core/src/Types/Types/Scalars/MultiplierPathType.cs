@@ -76,27 +76,27 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s)
+            if (resultValue is string s)
             {
-                value = new MultiplierPathString(s);
+                runtimeValue = new MultiplierPathString(s);
                 return true;
             }
 
-            if (serialized is MultiplierPathString p)
+            if (resultValue is MultiplierPathString p)
             {
-                value = p;
+                runtimeValue = p;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

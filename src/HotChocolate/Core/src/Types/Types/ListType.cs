@@ -51,7 +51,7 @@ namespace HotChocolate.Types
                 {
                     foreach (IValueNode element in listValueLiteral.Items)
                     {
-                        if (element.Kind != NodeKind.ListValue
+                        if (element.Kind != SyntaxKind.ListValue
                             || !InnerInputType.IsInstanceOfType(element))
                         {
                             return false;
@@ -86,12 +86,12 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            if (literal.Kind != NodeKind.ListValue && InnerInputType.IsInstanceOfType(literal))
+            if (literal.Kind != SyntaxKind.ListValue && InnerInputType.IsInstanceOfType(literal))
             {
                 return CreateList(new ListValueNode(literal));
             }
 
-            if (literal.Kind == NodeKind.ListValue)
+            if (literal.Kind == SyntaxKind.ListValue)
             {
                 if (_isNestedList)
                 {
@@ -193,15 +193,15 @@ namespace HotChocolate.Types
         }
 
         protected sealed override bool TryDeserialize(
-            object serialized, out object value)
+            object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is IList l)
+            if (resultValue is IList l)
             {
                 var list = (IList)Activator.CreateInstance(RuntimeType);
 
@@ -213,16 +213,16 @@ namespace HotChocolate.Types
                     }
                     else
                     {
-                        value = null;
+                        runtimeValue = null;
                         return false;
                     }
                 }
 
-                value = list;
+                runtimeValue = list;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 

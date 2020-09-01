@@ -139,19 +139,19 @@ namespace HotChocolate.Types
         /// <summary>
         /// Serializes the .net value representation.
         /// </summary>
-        /// <param name="value">
+        /// <param name="runtimeValue">
         /// The .net value representation.
         /// </param>
         /// <returns>
         /// Returns the serialized value.
         /// </returns>
         /// <exception cref="ScalarSerializationException">
-        /// The specified <paramref name="value" /> cannot be serialized
+        /// The specified <paramref name="runtimeValue" /> cannot be serialized
         /// by this scalar.
         /// </exception>
-        public virtual object? Serialize(object? value)
+        public virtual object? Serialize(object? runtimeValue)
         {
-            if (TrySerialize(value, out object? s))
+            if (TrySerialize(runtimeValue, out object? s))
             {
                 return s;
             }
@@ -159,8 +159,8 @@ namespace HotChocolate.Types
             throw new ScalarSerializationException(
                 ErrorBuilder.New()
                     .SetMessage(TypeResourceHelper.Scalar_Cannot_Serialize(Name))
-                    .SetExtension("actualValue", value?.ToString() ?? "null")
-                    .SetExtension("actualType", value?.GetType().FullName ?? "null")
+                    .SetExtension("actualValue", runtimeValue?.ToString() ?? "null")
+                    .SetExtension("actualType", runtimeValue?.GetType().FullName ?? "null")
                     .Build());
         }
 
@@ -181,19 +181,19 @@ namespace HotChocolate.Types
         /// <summary>
         /// Deserializes the serialized value to it`s .net value representation.
         /// </summary>
-        /// <param name="serialized">
+        /// <param name="resultValue">
         /// The serialized value representation.
         /// </param>
         /// <returns>
         /// Returns the .net value representation.
         /// </returns>
         /// <exception cref="ScalarSerializationException">
-        /// The specified <paramref name="serialized" /> cannot be deserialized
+        /// The specified <paramref name="resultValue" /> cannot be deserialized
         /// by this scalar.
         /// </exception>
-        public virtual object? Deserialize(object? serialized)
+        public virtual object? Deserialize(object? resultValue)
         {
-            if (TryDeserialize(serialized, out object? v))
+            if (TryDeserialize(resultValue, out object? v))
             {
                 return v;
             }
@@ -206,16 +206,16 @@ namespace HotChocolate.Types
         /// <summary>
         /// Tries to deserializes the value from the output format to the .net value representation.
         /// </summary>
-        /// <param name="serialized">
+        /// <param name="resultValue">
         /// The serialized value.
         /// </param>
-        /// <param name="value">
+        /// <param name="runtimeValue">
         /// The .net value representation.
         /// </param>
         /// <returns>
         /// <c>true</c> if the serialized value was correctly deserialized; otherwise, <c>false</c>.
         /// </returns>
-        public abstract bool TryDeserialize(object? serialized, out object? value);
+        public abstract bool TryDeserialize(object? resultValue, out object? runtimeValue);
 
         internal sealed override void Initialize(ITypeDiscoveryContext context)
         {

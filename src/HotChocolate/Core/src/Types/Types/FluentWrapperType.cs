@@ -13,7 +13,7 @@ namespace HotChocolate.Types
 
         TypeKind IType.Kind => throw new NotSupportedException();
 
-        object ISerializableType.Deserialize(object serialized)
+        object ISerializableType.Deserialize(object resultValue)
         {
             throw new NotSupportedException();
         }
@@ -38,13 +38,13 @@ namespace HotChocolate.Types
             throw new NotSupportedException();
         }
 
-        object ISerializableType.Serialize(object value)
+        object ISerializableType.Serialize(object runtimeValue)
         {
             throw new NotSupportedException();
         }
 
         bool ISerializableType.TryDeserialize(
-            object serialized, out object value)
+            object resultValue, out object runtimeValue)
         {
             throw new NotSupportedException();
         }

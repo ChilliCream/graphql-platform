@@ -117,27 +117,27 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string)
+            if (resultValue is string)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ValueKind.Integer, out string c))
+            if (TryConvertSerialized(resultValue, ValueKind.Integer, out string c))
             {
-                value = c;
+                runtimeValue = c;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

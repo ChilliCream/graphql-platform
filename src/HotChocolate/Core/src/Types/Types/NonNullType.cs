@@ -80,14 +80,14 @@ namespace HotChocolate.Types
         }
 
         protected sealed override bool TryDeserialize(
-            object serialized, out object value)
+            object resultValue, out object runtimeValue)
         {
-            if (serialized != null)
+            if (resultValue != null)
             {
-                return InnerInputType.TryDeserialize(serialized, out value);
+                return InnerInputType.TryDeserialize(resultValue, out runtimeValue);
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

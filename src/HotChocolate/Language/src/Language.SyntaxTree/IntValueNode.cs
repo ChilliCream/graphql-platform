@@ -90,7 +90,7 @@ namespace HotChocolate.Language
             Location = location;
         }
 
-        public NodeKind Kind { get; } = NodeKind.IntValue;
+        public SyntaxKind Kind { get; } = SyntaxKind.IntValue;
 
         public Location? Location { get; }
 

@@ -26,7 +26,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(locations));
         }
 
-        public NodeKind Kind { get; } = NodeKind.DirectiveDefinition;
+        public SyntaxKind Kind { get; } = SyntaxKind.DirectiveDefinition;
 
         public Location? Location { get; }
 

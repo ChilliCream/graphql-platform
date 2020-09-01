@@ -96,9 +96,9 @@ namespace HotChocolate.Types
             return _objectToValueConverter.Convert(this, value);
         }
 
-        public object Serialize(object value)
+        public object Serialize(object runtimeValue)
         {
-            if (TrySerialize(value, out object serialized))
+            if (TrySerialize(runtimeValue, out object serialized))
             {
                 return serialized;
             }
@@ -133,9 +133,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public object Deserialize(object serialized)
+        public object Deserialize(object resultValue)
         {
-            if (TryDeserialize(serialized, out object deserialized))
+            if (TryDeserialize(resultValue, out object deserialized))
             {
                 return deserialized;
             }
@@ -144,34 +144,34 @@ namespace HotChocolate.Types
                 "The specified value is not a serialized input object.");
         }
 
-        public virtual bool TryDeserialize(object serialized, out object value)
+        public virtual bool TryDeserialize(object resultValue, out object runtimeValue)
         {
             try
             {
-                if (serialized is null)
+                if (resultValue is null)
                 {
-                    value = null;
+                    runtimeValue = null;
                     return true;
                 }
 
-                if (serialized is IReadOnlyDictionary<string, object> dict)
+                if (resultValue is IReadOnlyDictionary<string, object> dict)
                 {
-                    value = _deserialize(dict);
+                    runtimeValue = _deserialize(dict);
                     return true;
                 }
 
-                if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(serialized))
+                if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(resultValue))
                 {
-                    value = serialized;
+                    runtimeValue = resultValue;
                     return true;
                 }
 
-                value = null;
+                runtimeValue = null;
                 return false;
             }
             catch
             {
-                value = null;
+                runtimeValue = null;
                 return false;
             }
         }

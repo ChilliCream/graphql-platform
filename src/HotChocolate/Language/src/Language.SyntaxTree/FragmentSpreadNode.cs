@@ -14,7 +14,7 @@ namespace HotChocolate.Language
             : base(location, name, directives)
         { }
 
-        public override NodeKind Kind { get; } = NodeKind.FragmentSpread;
+        public override SyntaxKind Kind { get; } = SyntaxKind.FragmentSpread;
 
         public override IEnumerable<ISyntaxNode> GetNodes()
         {

@@ -62,33 +62,33 @@ namespace HotChocolate.Types
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s && TryDeserializeFromString(s, out DateTime? d))
+            if (resultValue is string s && TryDeserializeFromString(s, out DateTime? d))
             {
-                value = d;
+                runtimeValue = d;
                 return true;
             }
 
-            if (serialized is DateTimeOffset dt)
+            if (resultValue is DateTimeOffset dt)
             {
-                value = dt.UtcDateTime;
+                runtimeValue = dt.UtcDateTime;
                 return true;
             }
 
-            if (serialized is DateTime)
+            if (resultValue is DateTime)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 

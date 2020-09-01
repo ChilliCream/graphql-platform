@@ -231,18 +231,18 @@ namespace HotChocolate.Discovery
                 throw new NotSupportedException();
             }
 
-            public override object Serialize(object value)
+            public override object Serialize(object runtimeValue)
             {
                 throw new NotSupportedException();
             }
 
-            public override object Deserialize(object value)
+            public override object Deserialize(object resultValue)
             {
                 throw new NotSupportedException();
             }
 
             public override bool TryDeserialize(
-                object serialized, out object value)
+                object resultValue, out object runtimeValue)
             {
                 throw new NotSupportedException();
             }

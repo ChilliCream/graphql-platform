@@ -134,15 +134,15 @@ namespace HotChocolate.Types
                 nameof(value));
         }
 
-        public object Serialize(object value)
+        public object Serialize(object runtimeValue)
         {
-            if (value == null)
+            if (runtimeValue == null)
             {
                 return null;
             }
 
-            if (RuntimeType.IsInstanceOfType(value)
-                && _valueToValues.TryGetValue(value, out EnumValue enumValue))
+            if (RuntimeType.IsInstanceOfType(runtimeValue)
+                && _valueToValues.TryGetValue(runtimeValue, out EnumValue enumValue))
             {
                 return enumValue.Name;
             }
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
             // schema first unbound enum type
             if (RuntimeType == typeof(object)
                 && _nameToValues.TryGetValue(
-                    value.ToString().ToUpperInvariant(),
+                    runtimeValue.ToString().ToUpperInvariant(),
                     out enumValue))
             {
                 return enumValue.Name;
@@ -160,9 +160,9 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
-        public object Deserialize(object serialized)
+        public object Deserialize(object resultValue)
         {
-            if (TryDeserialize(serialized, out object v))
+            if (TryDeserialize(resultValue, out object v))
             {
                 return v;
             }
@@ -171,28 +171,28 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
         }
 
-        public bool TryDeserialize(object serialized, out object value)
+        public bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string name
+            if (resultValue is string name
                 && _nameToValues.TryGetValue(name, out EnumValue enumValue))
             {
-                value = enumValue.Value;
+                runtimeValue = enumValue.Value;
                 return true;
             }
 
-            if (_valueToValues.TryGetValue(serialized, out enumValue))
+            if (_valueToValues.TryGetValue(resultValue, out enumValue))
             {
-                value = enumValue.Value;
+                runtimeValue = enumValue.Value;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 

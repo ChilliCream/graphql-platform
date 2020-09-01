@@ -118,11 +118,11 @@ namespace HotChocolate.Types
 
         protected abstract IValueNode ParseValue(object value);
 
-        object? ISerializableType.Serialize(object? value)
+        object? ISerializableType.Serialize(object? runtimeValue)
         {
             if (IsInputType)
             {
-                if (TrySerialize(value, out object? serialized))
+                if (TrySerialize(runtimeValue, out object? serialized))
                 {
                     return serialized;
                 }
@@ -140,11 +140,11 @@ namespace HotChocolate.Types
             object? value,
             out object? serialized);
 
-        object? ISerializableType.Deserialize(object? serialized)
+        object? ISerializableType.Deserialize(object? resultValue)
         {
             if (IsInputType)
             {
-                if (TryDeserialize(serialized, out object? value))
+                if (TryDeserialize(resultValue, out object? value))
                 {
                     return value;
                 }
@@ -159,17 +159,17 @@ namespace HotChocolate.Types
         }
 
         bool ISerializableType.TryDeserialize(
-            object? serialized, out object? value)
+            object? resultValue, out object? runtimeValue)
         {
             if (IsInputType)
             {
-                return TryDeserialize(serialized, out value);
+                return TryDeserialize(resultValue, out runtimeValue);
             }
 
             throw new InvalidOperationException(
                 TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract bool TryDeserialize(object? serialized, out object? value);
+        protected abstract bool TryDeserialize(object? resultValue, out object? runtimeValue);
     }
 }

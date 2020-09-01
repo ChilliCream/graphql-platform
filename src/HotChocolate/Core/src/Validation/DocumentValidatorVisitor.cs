@@ -30,7 +30,7 @@ namespace HotChocolate.Validation
             ISyntaxNode? parent,
             IDocumentValidatorContext context)
         {
-            if (node.Kind == NodeKind.OperationDefinition)
+            if (node.Kind == SyntaxKind.OperationDefinition)
             {
                 context.VisitedFragments.Clear();
             }
@@ -44,7 +44,7 @@ namespace HotChocolate.Validation
         {
             for (int i = 0; i < node.Definitions.Count; i++)
             {
-                if (node.Definitions[i].Kind != NodeKind.FragmentDefinition &&
+                if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition &&
                     Visit(node.Definitions[i], node, context).IsBreak())
                 {
                     return Break;

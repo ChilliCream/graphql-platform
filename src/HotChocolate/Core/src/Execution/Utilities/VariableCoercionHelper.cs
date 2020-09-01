@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Utilities
                 if (!values.TryGetValue(variableName, out object? value) &&
                     variableDefinition.DefaultValue is { } defaultValue)
                 {
-                    value = defaultValue.Kind == NodeKind.NullValue ? null : defaultValue;
+                    value = defaultValue.Kind == SyntaxKind.NullValue ? null : defaultValue;
                 }
 
                 if (value is null || value is NullValueNode)

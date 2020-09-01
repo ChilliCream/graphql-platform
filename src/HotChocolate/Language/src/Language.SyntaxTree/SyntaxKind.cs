@@ -1,6 +1,6 @@
 namespace HotChocolate.Language
 {
-    public enum NodeKind
+    public enum SyntaxKind
     {
         Name,
         Document,

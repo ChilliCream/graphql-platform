@@ -213,9 +213,9 @@ namespace HotChocolate.Types
             }
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object resultValue, out object runtimeValue)
         {
-            value = serialized;
+            runtimeValue = resultValue;
             return true;
         }
     }

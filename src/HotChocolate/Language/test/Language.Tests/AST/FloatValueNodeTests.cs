@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
-            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Equal(SyntaxKind.FloatValue, floatValueNode.Kind);
             Assert.Null(floatValueNode.Location);
         }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
-            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Equal(SyntaxKind.FloatValue, floatValueNode.Kind);
             Assert.Equal(location, floatValueNode.Location);
         }
 

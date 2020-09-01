@@ -218,21 +218,21 @@ namespace HotChocolate.Execution
             }
 
             public override bool TryDeserialize(
-                object serialized, out object value)
+                object resultValue, out object runtimeValue)
             {
-                if (serialized == null)
+                if (resultValue == null)
                 {
-                    value = null;
+                    runtimeValue = null;
                     return true;
                 }
 
-                if (serialized is string s && s == "a")
+                if (resultValue is string s && s == "a")
                 {
-                    value = "a";
+                    runtimeValue = "a";
                     return true;
                 }
 
-                value = null;
+                runtimeValue = null;
                 return false;
             }
         }

@@ -49,15 +49,15 @@ namespace HotChocolate.Validation.Rules
         {
             switch (node.Kind)
             {
-                case NodeKind.Field:
-                case NodeKind.SelectionSet:
-                case NodeKind.InlineFragment:
-                case NodeKind.FragmentSpread:
-                case NodeKind.FragmentDefinition:
-                case NodeKind.Directive:
-                case NodeKind.VariableDefinition:
-                case NodeKind.OperationDefinition:
-                case NodeKind.Document:
+                case SyntaxKind.Field:
+                case SyntaxKind.SelectionSet:
+                case SyntaxKind.InlineFragment:
+                case SyntaxKind.FragmentSpread:
+                case SyntaxKind.FragmentDefinition:
+                case SyntaxKind.Directive:
+                case SyntaxKind.VariableDefinition:
+                case SyntaxKind.OperationDefinition:
+                case SyntaxKind.Document:
                     return base.Enter(node, context);
 
                 default:
@@ -160,27 +160,27 @@ namespace HotChocolate.Validation.Rules
         {
             switch (node.Kind)
             {
-                case NodeKind.Field:
+                case SyntaxKind.Field:
                     location = DirectiveLoc.Field;
                     return true;
 
-                case NodeKind.FragmentDefinition:
+                case SyntaxKind.FragmentDefinition:
                     location = DirectiveLoc.FragmentDefinition;
                     return true;
 
-                case NodeKind.FragmentSpread:
+                case SyntaxKind.FragmentSpread:
                     location = DirectiveLoc.FragmentSpread;
                     return true;
 
-                case NodeKind.InlineFragment:
+                case SyntaxKind.InlineFragment:
                     location = DirectiveLoc.InlineFragment;
                     return true;
 
-                case NodeKind.VariableDefinition:
+                case SyntaxKind.VariableDefinition:
                     location = DirectiveLoc.VariableDefinition;
                     return true;
 
-                case NodeKind.OperationDefinition:
+                case SyntaxKind.OperationDefinition:
                     switch (((OperationDefinitionNode)node).Operation)
                     {
                         case OperationType.Query:
