@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Selections
                 }
             }
             else if (selection.Field.Type.IsListType() ||
-              selection.Field.Type.ToClrType() == typeof(IConnection) ||
+              selection.Field.Type.ToRuntimeType() == typeof(IConnection) ||
               (selection.Field.Member is PropertyInfo propertyInfo &&
                 ExtendedType.Tools.GetElementType(propertyInfo.PropertyType) is not null))
             {
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Selections
         {
             (IOutputType?, SelectionSetNode?) nullableResult = (null, null);
 
-            if (outputType.ToClrType() == typeof(IConnection) &&
+            if (outputType.ToRuntimeType() == typeof(IConnection) &&
                outputType.NamedType() is ObjectType type)
             {
                 foreach (IFieldSelection selection in Context.GetSelections(type, selectionSet))
