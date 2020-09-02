@@ -8,16 +8,16 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  c: String
-  eq: String
-  ew: String
-  nc: String
-  neq: String
-  new: String
-  nin: [String]
-  nsw: String
   OR: [FooFilter!]
+  eq: String
+  neq: String
+  nin: [String]
+  c: String
+  nc: String
   sw: String
+  nsw: String
+  ew: String
+  new: String
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

@@ -8,8 +8,8 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  barShort_not: Short
   OR: [FooFilter!]
+  barShort_not: Short
 }
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."

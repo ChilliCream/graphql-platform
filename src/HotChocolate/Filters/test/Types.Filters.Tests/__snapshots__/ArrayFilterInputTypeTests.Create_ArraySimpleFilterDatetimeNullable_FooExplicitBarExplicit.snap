@@ -8,14 +8,14 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
   OR: [FooSimpleFilter!]
+  barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
 }
 
 input ISingleFilterOfDateTimeFilter {
   AND: [ISingleFilterOfDateTimeFilter!]
-  element: DateTime
   OR: [ISingleFilterOfDateTimeFilter!]
+  element: DateTime
 }
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
