@@ -58,10 +58,10 @@ namespace HotChocolate.AspNetCore.Utilities
                         {
                             // TODO : resources
                             throw new GraphQLRequestException(
-                                    ErrorBuilder.New()
-                                        .SetMessage("The GraphQL request is empty.")
-                                        .SetCode(ErrorCodes.Server.RequestInvalid)
-                                        .Build());
+                                ErrorBuilder.New()
+                                    .SetMessage("The GraphQL request is empty.")
+                                    .SetCode(ErrorCodes.Server.RequestInvalid)
+                                    .Build());
                         }
 
                         return isGraphQLQuery
@@ -74,10 +74,10 @@ namespace HotChocolate.AspNetCore.Utilities
                         {
                             // TODO : resources
                             throw new GraphQLRequestException(
-                                    ErrorBuilder.New()
-                                        .SetMessage("Max GraphQL request size reached.")
-                                        .SetCode(ErrorCodes.Server.MaxRequestSize)
-                                        .Build());
+                                ErrorBuilder.New()
+                                    .SetMessage("Max GraphQL request size reached.")
+                                    .SetCode(ErrorCodes.Server.MaxRequestSize)
+                                    .Build());
                         }
                     },
                     cancellationToken);

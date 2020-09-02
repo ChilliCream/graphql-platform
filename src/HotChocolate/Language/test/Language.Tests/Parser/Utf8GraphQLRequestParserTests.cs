@@ -37,7 +37,7 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryName);
+                    Assert.Null(r.QueryId);
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
@@ -69,7 +69,7 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryName);
+                    Assert.Null(r.QueryId);
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
@@ -97,7 +97,7 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Null(r.OperationName);
-                    Assert.Null(r.QueryName);
+                    Assert.Null(r.QueryId);
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
@@ -134,7 +134,7 @@ namespace HotChocolate.Language
 
             IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
 
-            cache.TryAddDocument(first[0].QueryName, first[0].Query);
+            cache.TryAddDocument(first[0].QueryId, first[0].Query);
 
             // act
             requestParser = new Utf8GraphQLRequestParser(
@@ -154,7 +154,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal(expectedHash, r.QueryName);
+                    Assert.Equal(expectedHash, r.QueryId);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
@@ -198,7 +198,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal(expectedHash, r.QueryName);
+                    Assert.Equal(expectedHash, r.QueryId);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
@@ -242,7 +242,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal("FooBar", r.QueryName);
+                    Assert.Equal("FooBar", r.QueryId);
                     Assert.Equal(expectedHash, r.QueryHash);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
@@ -311,7 +311,7 @@ namespace HotChocolate.Language
             Assert.Collection(batch,
                 r =>
                 {
-                    Assert.Equal("ABC", r.QueryName);
+                    Assert.Equal("ABC", r.QueryId);
                     Assert.Equal("DEF", r.OperationName);
 
                     r.Variables.MatchSnapshot(
@@ -456,7 +456,7 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Equal("MyQuery", r.OperationName);
-                    Assert.Equal("hashOfQuery", r.QueryName);
+                    Assert.Equal("hashOfQuery", r.QueryId);
                     Assert.Null(r.Variables);
                     Assert.True(r.Extensions.ContainsKey("persistedQuery"));
                     Assert.Null(r.Query);
@@ -486,7 +486,7 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Null(r.OperationName);
-                    Assert.Equal("hashOfQuery", r.QueryName);
+                    Assert.Equal("hashOfQuery", r.QueryId);
                     Assert.Empty(r.Variables);
                     Assert.True(r.Extensions.ContainsKey("persistedQuery"));
                     Assert.Null(r.Query);
