@@ -5,14 +5,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.StarWars;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
-using HotChocolate.Language;
 using Snapshooter.Xunit;
 
 namespace HotChocolate.AspNetCore.Utilities

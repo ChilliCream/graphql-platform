@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -8,7 +7,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
 using HotChocolate.Types.Filters.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {

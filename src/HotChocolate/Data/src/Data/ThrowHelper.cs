@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
-using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data
 {

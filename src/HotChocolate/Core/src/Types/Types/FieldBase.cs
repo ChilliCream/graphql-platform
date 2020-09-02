@@ -10,7 +10,6 @@ namespace HotChocolate.Types
 {
     public abstract class FieldBase<TType, TDefinition>
         : IField
-        , IHasRuntimeType
         where TType : IType
         where TDefinition : FieldDefinitionBase, IHasSyntaxNode
     {
@@ -19,12 +18,7 @@ namespace HotChocolate.Types
 
         protected FieldBase(TDefinition definition)
         {
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            _definition = definition;
+            _definition = definition ?? throw new ArgumentNullException(nameof(definition));
             _syntaxNode = definition.SyntaxNode;
 
             Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));

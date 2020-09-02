@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 #nullable enable
 

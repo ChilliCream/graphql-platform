@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;

@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
     public interface IStringFilterFieldDescriptor
@@ -11,7 +9,7 @@ namespace HotChocolate.Types.Filters
         /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
-        /// <param name="behavior">
+        /// <param name="bindingBehavior">
         /// The binding behavior.
         ///
         /// Implicit:
@@ -88,7 +86,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
+        /// <param name="ignore">If set to true the field is ignored</param>
         IStringFilterFieldDescriptor Ignore(bool ignore = true);
     }
 }

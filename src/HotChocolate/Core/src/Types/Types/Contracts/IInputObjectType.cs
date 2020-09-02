@@ -1,7 +1,5 @@
 #nullable enable
 
-using HotChocolate.Language;
-
 namespace HotChocolate.Types
 {
     /// <summary>

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters

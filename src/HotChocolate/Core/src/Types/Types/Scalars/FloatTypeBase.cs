@@ -58,6 +58,16 @@ namespace HotChocolate.Types
             return IsInstanceOfType(ParseLiteral(valueSyntax));
         }
 
+        protected virtual bool IsInstanceOfType(TRuntimeType value)
+        {
+            if (value.CompareTo(MinValue) == -1 || value.CompareTo(MaxValue) == 1)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
             if (valueSyntax is null)
@@ -90,16 +100,6 @@ namespace HotChocolate.Types
         }
 
         protected abstract TRuntimeType ParseLiteral(IFloatValueLiteral valueSyntax);
-
-        protected virtual bool IsInstanceOfType(TRuntimeType value)
-        {
-            if (value.CompareTo(MinValue) == -1 || value.CompareTo(MaxValue) == 1)
-            {
-                return false;
-            }
-
-            return true;
-        }
 
         public override IValueNode ParseValue(object? runtimeValue)
         {

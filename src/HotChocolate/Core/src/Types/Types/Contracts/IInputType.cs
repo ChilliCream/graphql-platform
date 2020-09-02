@@ -1,6 +1,4 @@
-﻿using HotChocolate.Language;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public interface IInputType
         : ISerializableType

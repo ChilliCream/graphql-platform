@@ -13,52 +13,52 @@ namespace HotChocolate.Types.Filters
             switch (kind)
             {
                 case FilterOperationKind.Equals:
-                    return GetNameForDefintion(definition);
+                    return GetNameForDefinition(definition);
                 case FilterOperationKind.NotEquals:
-                    return GetNameForDefintion(definition) + "_Not";
+                    return GetNameForDefinition(definition) + "_Not";
 
                 case FilterOperationKind.Contains:
-                    return GetNameForDefintion(definition) + "_Contains";
+                    return GetNameForDefinition(definition) + "_Contains";
                 case FilterOperationKind.NotContains:
-                    return GetNameForDefintion(definition) + "_Not_Contains";
+                    return GetNameForDefinition(definition) + "_Not_Contains";
 
                 case FilterOperationKind.In:
-                    return GetNameForDefintion(definition) + "_In";
+                    return GetNameForDefinition(definition) + "_In";
                 case FilterOperationKind.NotIn:
-                    return GetNameForDefintion(definition) + "_Not_In";
+                    return GetNameForDefinition(definition) + "_Not_In";
 
                 case FilterOperationKind.StartsWith:
-                    return GetNameForDefintion(definition) + "_StartsWith";
+                    return GetNameForDefinition(definition) + "_StartsWith";
                 case FilterOperationKind.NotStartsWith:
-                    return GetNameForDefintion(definition) + "_Not_StartsWith";
+                    return GetNameForDefinition(definition) + "_Not_StartsWith";
 
                 case FilterOperationKind.EndsWith:
-                    return GetNameForDefintion(definition) + "_EndsWith";
+                    return GetNameForDefinition(definition) + "_EndsWith";
                 case FilterOperationKind.NotEndsWith:
-                    return GetNameForDefintion(definition) + "_Not_EndsWith";
+                    return GetNameForDefinition(definition) + "_Not_EndsWith";
 
                 case FilterOperationKind.GreaterThan:
-                    return GetNameForDefintion(definition) + "_Gt";
+                    return GetNameForDefinition(definition) + "_Gt";
                 case FilterOperationKind.NotGreaterThan:
-                    return GetNameForDefintion(definition) + "_Not_Gt";
+                    return GetNameForDefinition(definition) + "_Not_Gt";
 
                 case FilterOperationKind.GreaterThanOrEquals:
-                    return GetNameForDefintion(definition) + "_Gte";
+                    return GetNameForDefinition(definition) + "_Gte";
                 case FilterOperationKind.NotGreaterThanOrEquals:
-                    return GetNameForDefintion(definition) + "_Not_Gte";
+                    return GetNameForDefinition(definition) + "_Not_Gte";
 
                 case FilterOperationKind.LowerThan:
-                    return GetNameForDefintion(definition) + "_Lt";
+                    return GetNameForDefinition(definition) + "_Lt";
                 case FilterOperationKind.NotLowerThan:
-                    return GetNameForDefintion(definition) + "_Not_Lt";
+                    return GetNameForDefinition(definition) + "_Not_Lt";
 
                 case FilterOperationKind.LowerThanOrEquals:
-                    return GetNameForDefintion(definition) + "_Lte";
+                    return GetNameForDefinition(definition) + "_Lte";
                 case FilterOperationKind.NotLowerThanOrEquals:
-                    return GetNameForDefintion(definition) + "_Not_Lte";
+                    return GetNameForDefinition(definition) + "_Not_Lte";
 
                 case FilterOperationKind.Object:
-                    return GetNameForDefintion(definition);
+                    return GetNameForDefinition(definition);
 
                 case FilterOperationKind.ArraySome:
                     return definition.Name + "_Some";
@@ -74,15 +74,9 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        private string GetNameForDefintion(FilterFieldDefintion definition)
-        {
-            var name = definition.Name.Value;
-            if (name.Length > 1)
-            {
-                return name.Substring(0, 1).ToUpperInvariant() +
-                    name.Substring(1);
-            }
-            return name.ToUpperInvariant();
-        }
+        private static string GetNameForDefinition(FilterFieldDefintion definition) =>
+            definition.Name.Value is { Length: > 1 } name
+                ? name.Substring(0, 1).ToUpperInvariant() + name.Substring(1)
+                : definition.Name.Value.ToUpperInvariant();
     }
 }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 #nullable enable

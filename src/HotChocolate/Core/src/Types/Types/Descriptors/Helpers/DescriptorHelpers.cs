@@ -1,8 +1,6 @@
-﻿using System;
-using HotChocolate.Internal;
+﻿using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {

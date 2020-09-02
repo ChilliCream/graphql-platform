@@ -1,7 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-
-#nullable enable
+﻿#nullable enable
 
 namespace HotChocolate.Types
 {

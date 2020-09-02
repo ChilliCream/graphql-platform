@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {

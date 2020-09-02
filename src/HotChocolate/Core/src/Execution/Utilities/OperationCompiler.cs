@@ -437,18 +437,16 @@ namespace HotChocolate.Execution.Utilities
                 }
                 catch (SerializationException ex)
                 {
-                    if (argumentValue is { })
+                    if (argumentValue is not null)
                     {
                         return new PreparedArgument(
                             argument,
                             ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                     }
-                    else
-                    {
-                        return new PreparedArgument(
-                            argument,
-                            ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
-                    }
+
+                    return new PreparedArgument(
+                        argument,
+                        ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
                 }
             }
 

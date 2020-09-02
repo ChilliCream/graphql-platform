@@ -1,11 +1,6 @@
 using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using HotChocolate.Types.Relay.Descriptors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate
 {

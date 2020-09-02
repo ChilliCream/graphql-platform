@@ -290,15 +290,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (type.IsListType())
+            if (type is ListType l)
             {
-                switch (type)
-                {
-                    case ListType l:
-                        return l.ElementType;
-                    case NonNullType n when n.Type is ListType nl:
-                        return nl.ElementType;
-                }
+                return l.ElementType;
+            }
+
+            if (type is NonNullType n && n.Type is ListType nl)
+            {
+                return nl.ElementType;
             }
 
             throw new ArgumentException(

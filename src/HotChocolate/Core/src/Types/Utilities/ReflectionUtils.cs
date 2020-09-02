@@ -6,8 +6,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {

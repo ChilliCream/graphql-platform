@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -181,18 +182,16 @@ namespace HotChocolate.Types.Filters
 
                 if (extendedRef.Type.IsSchemaType)
                 {
-                    var listType = Context.TypeInspector.GetType(
+                    IExtendedType listType = Context.TypeInspector.GetType(
                         typeof(ListType<>).MakeGenericType(extendedRef.Type.Source),
                         buffer.Slice(0, written + 1));
                     return extendedRef.WithType(listType);
                 }
-                else
-                {
-                    var runtimeListType = Context.TypeInspector.GetType(
-                        typeof(List<>).MakeGenericType(extendedRef.Type.Source),
-                        buffer.Slice(0, written + 1));
-                    return extendedRef.WithType(runtimeListType);
-                }
+
+                IExtendedType runtimeListType = Context.TypeInspector.GetType(
+                    typeof(List<>).MakeGenericType(extendedRef.Type.Source),
+                    buffer.Slice(0, written + 1));
+                return extendedRef.WithType(runtimeListType);
             }
 
             if (reference is SchemaTypeReference schemaRef)
@@ -214,7 +213,7 @@ namespace HotChocolate.Types.Filters
             return RewriteTypeToNullableType(reference, Context.TypeInspector);
         }
 
-        protected ITypeReference RewriteTypeToNullableType(
+        protected static ITypeReference RewriteTypeToNullableType(
             ITypeReference reference,
             ITypeInspector typeInspector)
         {

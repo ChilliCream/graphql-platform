@@ -5,7 +5,6 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {

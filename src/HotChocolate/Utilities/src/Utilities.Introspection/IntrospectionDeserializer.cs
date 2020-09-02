@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Utilities.Introspection.Properties;
 

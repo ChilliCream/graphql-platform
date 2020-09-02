@@ -1,6 +1,4 @@
 using System;
-using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Sorting

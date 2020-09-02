@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;

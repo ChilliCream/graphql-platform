@@ -337,7 +337,7 @@ namespace HotChocolate
 
 
         private static EnumValueDefinitionNode SerializeEnumValue(
-            EnumValue enumValue,
+            IEnumValue enumValue,
             ReferencedTypes referenced)
         {
             var directives = enumValue.Directives

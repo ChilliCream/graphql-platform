@@ -25,17 +25,18 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 object parserValue = type.ParseLiteral(value);
 
-                switch (operation.Kind)
+                if (operation.Kind == FilterOperationKind.Equals)
                 {
-                    case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(
-                            property, parserValue);
-                        return true;
+                    expression = FilterExpressionBuilder.Equals(
+                        property, parserValue);
+                    return true;
+                }
 
-                    case FilterOperationKind.NotEquals:
-                        expression = FilterExpressionBuilder.NotEquals(
-                            property, parserValue);
-                        return true;
+                if (operation.Kind == FilterOperationKind.NotEquals)
+                {
+                    expression = FilterExpressionBuilder.NotEquals(
+                        property, parserValue);
+                    return true;
                 }
             }
 
