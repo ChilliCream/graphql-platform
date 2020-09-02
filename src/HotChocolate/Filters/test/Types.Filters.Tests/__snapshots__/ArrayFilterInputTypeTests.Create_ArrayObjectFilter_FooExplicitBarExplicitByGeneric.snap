@@ -14,8 +14,8 @@ input BarFilter {
 
 input FooFilter {
   AND: [FooFilter!]
-  barNested_some: BarFilter
   OR: [FooFilter!]
+  barNested_some: BarFilter
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

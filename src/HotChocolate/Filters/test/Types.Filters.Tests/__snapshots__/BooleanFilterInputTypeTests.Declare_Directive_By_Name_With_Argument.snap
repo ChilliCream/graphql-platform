@@ -8,10 +8,10 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
+  OR: [FooFilter!]
   bar: Boolean @bar(qux: "foo")
   barNullable: Boolean
   barNullable_not: Boolean
-  OR: [FooFilter!]
 }
 
 directive @bar(qux: String) on INPUT_FIELD_DEFINITION

@@ -50,10 +50,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeSystemObject));
             }
 
-            RegisteredType registeredType = InitializeType(
-                typeSystemObject,
-                scope,
-                isInferred);
+            RegisteredType registeredType = InitializeType(typeSystemObject, scope, isInferred);
 
             if (registeredType.References.Count > 0)
             {
@@ -192,13 +189,14 @@ namespace HotChocolate.Configuration
                         scope: scope));
                 }
 
-                if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
-                    && hasTypeIdentity.TypeIdentity is { })
+                if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
+                    hasTypeIdentity.TypeIdentity is not null)
                 {
-                    ExtendedTypeReference reference = _context.TypeInspector.GetTypeRef(
-                        hasTypeIdentity.TypeIdentity,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope: scope);
+                    ExtendedTypeReference reference =
+                        _context.TypeInspector.GetTypeRef(
+                            hasTypeIdentity.TypeIdentity,
+                            SchemaTypeReference.InferTypeContext(typeSystemObject),
+                            scope: scope);
 
                     if (!references.Contains(reference))
                     {

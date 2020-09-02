@@ -98,7 +98,7 @@ namespace HotChocolate.Resolvers
 
         public FieldReference ToFieldReference()
         {
-            if (_fieldReference == null)
+            if (_fieldReference is null)
             {
                 _fieldReference = new FieldReference(TypeName, FieldName);
             }

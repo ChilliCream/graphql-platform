@@ -9,7 +9,7 @@ namespace HotChocolate
         public static ISchemaConfiguration UseGlobalObjectIdentifier(
             this ISchemaConfiguration configuration)
         {
-            if (configuration == null)
+            if (configuration is null)
             {
                 throw new ArgumentNullException(nameof(configuration));
             }

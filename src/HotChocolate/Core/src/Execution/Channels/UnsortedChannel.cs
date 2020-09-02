@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Channels
                 if (_runContinuationsAsynchronously)
                 {
                     Debug.Assert(_blockedReaders.IsEmpty, "There's data available, so there shouldn't be any blocked readers.");
-                    Debug.Assert(_waitingReadersTail == null, "There's data available, so there shouldn't be any waiting readers.");
+                    Debug.Assert(_waitingReadersTail is null, "There's data available, so there shouldn't be any waiting readers.");
                 }
                 Debug.Assert(!_completion.Task.IsCompleted, "We still have data available, so shouldn't be completed.");
             }

@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         protected SchemaTypeDescriptor(IDescriptorContext context, Type type)
             : base(context)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

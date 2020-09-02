@@ -16,6 +16,12 @@ namespace HotChocolate.Configuration
         public bool UseXmlDocumentation { get; set; } = true;
 
         /// <summary>
+        /// Defines if fields shall be sorted by name.
+        /// Default: <c>false</c>
+        /// </summary>
+        public bool SortFieldsByName { get; set; }
+
+        /// <summary>
         /// Defines if types shall be removed from the schema that are
         /// unreachable from the root types.
         /// </summary>

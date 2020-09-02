@@ -14,7 +14,7 @@ namespace HotChocolate
         public static INodeDescriptor AsNode(
             this IObjectTypeDescriptor descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -24,7 +24,7 @@ namespace HotChocolate
         public static INodeDescriptor<T> AsNode<T>(
             this IObjectTypeDescriptor<T> descriptor)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }

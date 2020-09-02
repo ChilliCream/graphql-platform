@@ -25,7 +25,7 @@ namespace HotChocolate
 
         private ErrorBuilder(IError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
@@ -133,7 +133,7 @@ namespace HotChocolate
 
         public IErrorBuilder RemoveExtension(string key)
         {
-            if (_extensions == null)
+            if (_extensions is null)
             {
                 return this;
             }
@@ -198,7 +198,7 @@ namespace HotChocolate
 
         public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object> dict)
         {
-            if (dict == null)
+            if (dict is null)
             {
                 throw new ArgumentNullException(nameof(dict));
             }

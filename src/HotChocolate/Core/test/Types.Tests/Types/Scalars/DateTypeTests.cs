@@ -48,7 +48,7 @@ namespace HotChocolate.Types
             Action a = () => dateType.Serialize("foo");
 
             // assert
-            Assert.Throws<ScalarSerializationException>(a);
+            Assert.Throws<SerializationException>(a);
         }
 
         [Fact]

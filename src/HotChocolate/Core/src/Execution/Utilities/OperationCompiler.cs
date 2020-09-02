@@ -228,7 +228,7 @@ namespace HotChocolate.Execution.Utilities
             bool internalSelection)
         {
             NameString fieldName = selection.Name.Value;
-            NameString responseName = selection.Alias == null
+            NameString responseName = selection.Alias is null
                 ? selection.Name.Value
                 : selection.Alias.Value;
 
@@ -327,7 +327,7 @@ namespace HotChocolate.Execution.Utilities
             IValueNode? skip = selection.Directives.SkipValue();
             IValueNode? include = selection.Directives.IncludeValue();
 
-            if (skip == null && include == null)
+            if (skip is null && include is null)
             {
                 return visibility;
             }
@@ -435,7 +435,7 @@ namespace HotChocolate.Execution.Utilities
                         ParseLiteral(argument.Type, value),
                         value);
                 }
-                catch (ScalarSerializationException ex)
+                catch (SerializationException ex)
                 {
                     if (argumentValue is { })
                     {

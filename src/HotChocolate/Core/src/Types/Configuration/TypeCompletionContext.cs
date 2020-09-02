@@ -185,7 +185,7 @@ namespace HotChocolate.Configuration
 
         public void ReportError(ISchemaError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }

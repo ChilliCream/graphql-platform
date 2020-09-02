@@ -118,7 +118,7 @@ namespace HotChocolate.Execution.Batching
                     .Resolver<List<string>>(c =>
                     {
                         var list = c.ArgumentValue<List<string>>("bar");
-                        if (list == null)
+                        if (list is null)
                         {
                             return new List<string>
                             {
@@ -180,7 +180,7 @@ namespace HotChocolate.Execution.Batching
                 .AddResolver("Query", "foo", c =>
                 {
                     var list = c.ArgumentValue<List<object>>("f");
-                    if (list == null)
+                    if (list is null)
                     {
                         return new List<object>
                         {
@@ -254,9 +254,9 @@ namespace HotChocolate.Execution.Batching
                     .Field("foo")
                     .Argument("bar", a => a.Type<ListType<StringType>>())
                     .Type<ListType<StringType>>()
-                    .Resolver<List<string>>(c =>
+                    .Resolver(c =>
                     {
-                        var list = c.ArgumentValue<List<string>>("bar");
+                        List<string> list = c.ArgumentValue<List<string>>("bar");
                         list.Add("789");
                         return list;
                     }))

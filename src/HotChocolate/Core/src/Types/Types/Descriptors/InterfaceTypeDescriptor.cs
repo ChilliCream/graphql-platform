@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
             Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Descriptors
             TInterface type)
             where TInterface : InterfaceType
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -131,7 +131,7 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceTypeDescriptor Interface(
             NamedTypeNode namedType)
         {
-            if (namedType == null)
+            if (namedType is null)
             {
                 throw new ArgumentNullException(nameof(namedType));
             }

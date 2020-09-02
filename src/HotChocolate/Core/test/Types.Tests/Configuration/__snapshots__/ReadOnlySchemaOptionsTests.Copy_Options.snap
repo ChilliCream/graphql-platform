@@ -4,6 +4,7 @@
   "SubscriptionTypeName": "C",
   "StrictValidation": false,
   "UseXmlDocumentation": false,
+  "SortFieldsByName": true,
   "RemoveUnreachableTypes": false,
   "DefaultBindingBehavior": "Explicit",
   "FieldMiddleware": "AllFields"

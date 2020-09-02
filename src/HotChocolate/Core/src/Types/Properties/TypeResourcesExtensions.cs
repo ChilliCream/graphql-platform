@@ -45,7 +45,7 @@ namespace HotChocolate.Properties
                     nameof(typeName));
             }
 
-            if (literalType == null)
+            if (literalType is null)
             {
                 throw new ArgumentNullException(nameof(literalType));
             }
@@ -67,7 +67,29 @@ namespace HotChocolate.Properties
                     nameof(typeName));
             }
 
-            if (valueType == null)
+            if (valueType is null)
+            {
+                throw new ArgumentNullException(nameof(valueType));
+            }
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                TypeResources.Scalar_Cannot_ParseValue,
+                typeName,
+                valueType.FullName);
+        }
+
+        public static string Scalar_Cannot_ParseResult(
+            string typeName, Type valueType)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                throw new ArgumentException(
+                    TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
+                    nameof(typeName));
+            }
+
+            if (valueType is null)
             {
                 throw new ArgumentNullException(nameof(valueType));
             }

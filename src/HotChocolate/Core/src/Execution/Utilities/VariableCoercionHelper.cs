@@ -66,9 +66,9 @@ namespace HotChocolate.Execution.Utilities
         private static VariableValue CoerceVariableValue(
             VariableDefinitionNode variableDefinition,
             IInputType variableType,
-            object value)
+            object resultValue)
         {
-            if (value is IValueNode valueLiteral)
+            if (resultValue is IValueNode valueLiteral)
             {
                 try
                 {
@@ -82,14 +82,16 @@ namespace HotChocolate.Execution.Utilities
                     throw ThrowHelper.VariableValueInvalidType(variableDefinition, ex);
                 }
             }
-            else
+
+            if (variableType.TryDeserialize(resultValue, out object? deserialized))
             {
-                if (variableType.TryDeserialize(value, out object? deserialized))
-                {
-                    return new VariableValue(variableType, deserialized, null);
-                }
-                throw ThrowHelper.VariableValueInvalidType(variableDefinition);
+                return new VariableValue(
+                    variableType,
+                    deserialized,
+                    variableType.ParseResult(resultValue));
             }
+
+            throw ThrowHelper.VariableValueInvalidType(variableDefinition);
         }
 
         private static IInputType AssertInputType(

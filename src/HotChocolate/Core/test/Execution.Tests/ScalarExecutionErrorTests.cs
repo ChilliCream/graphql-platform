@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
 
             public override bool IsInstanceOfType(IValueNode literal)
             {
-                if (literal == null)
+                if (literal is null)
                 {
                     throw new ArgumentNullException(nameof(literal));
                 }
@@ -161,9 +161,9 @@ namespace HotChocolate.Execution
                 return value is string s && s == "a";
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
             {
-                if (literal == null)
+                if (literal is null)
                 {
                     throw new ArgumentNullException(nameof(literal));
                 }
@@ -178,13 +178,12 @@ namespace HotChocolate.Execution
                     return "a";
                 }
 
-                throw new ScalarSerializationException(
-                    "StringValue is not a.");
+                throw new SerializationException("StringValue is not a.", this);
             }
 
             public override IValueNode ParseValue(object value)
             {
-                if (value == null)
+                if (value is null)
                 {
                     return NullValueNode.Default;
                 }
@@ -194,33 +193,34 @@ namespace HotChocolate.Execution
                     return new StringValueNode("a");
                 }
 
-                throw new ScalarSerializationException(
-                    "String is not a.");
+                throw new SerializationException("String is not a.", this);
             }
 
+            public override IValueNode ParseResult(object resultValue) => ParseValue(resultValue);
+
             public override bool TrySerialize(
-                object value, out object serialized)
+                object runtimeValue, out object resultValue)
             {
-                if (value == null)
+                if (runtimeValue is null)
                 {
-                    serialized = null;
+                    resultValue = null;
                     return true;
                 }
 
-                if (value is string s && s == "a")
+                if (runtimeValue is string s && s == "a")
                 {
-                    serialized = new StringValueNode("a");
+                    resultValue = new StringValueNode("a");
                     return true;
                 }
 
-                serialized = null;
+                resultValue = null;
                 return false;
             }
 
             public override bool TryDeserialize(
                 object resultValue, out object runtimeValue)
             {
-                if (resultValue == null)
+                if (resultValue is null)
                 {
                     runtimeValue = null;
                     return true;

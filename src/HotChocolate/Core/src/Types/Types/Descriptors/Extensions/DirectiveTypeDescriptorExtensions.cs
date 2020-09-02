@@ -10,12 +10,12 @@ namespace HotChocolate.Types
             this IDirectiveTypeDescriptor<T> descriptor,
             Expression<Func<T, object>> property)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (property == null)
+            if (property is null)
             {
                 throw new ArgumentNullException(nameof(property));
             }

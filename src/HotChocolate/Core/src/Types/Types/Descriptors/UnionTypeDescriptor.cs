@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Descriptors
         public IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
             where TObjectType : ObjectType
         {
-            if (objectType == null)
+            if (objectType is null)
             {
                 throw new ArgumentNullException(nameof(objectType));
             }
@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IUnionTypeDescriptor Type(NamedTypeNode objectType)
         {
-            if (objectType == null)
+            if (objectType is null)
             {
                 throw new ArgumentNullException(nameof(objectType));
             }

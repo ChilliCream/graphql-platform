@@ -20,7 +20,7 @@ namespace HotChocolate.Utilities
 
         public object Convert(object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }

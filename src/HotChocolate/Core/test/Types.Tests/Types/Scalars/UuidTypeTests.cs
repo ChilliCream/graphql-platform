@@ -106,7 +106,7 @@ namespace HotChocolate.Types
             Action action = () => uuidType.Serialize(value);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -195,7 +195,7 @@ namespace HotChocolate.Types
             Action action = () => uuidType.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -268,7 +268,7 @@ namespace HotChocolate.Types
             Action action = () => uuidType.ParseValue(value);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]

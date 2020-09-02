@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
 using Xunit;
 

@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Selections
         {
             if (_arguments.TryGetValue(key, out PreparedArgument? argument) &&
                 argument.ValueLiteral is { } &&
-                argument.ValueLiteral.Kind != NodeKind.NullValue)
+                argument.ValueLiteral.Kind != SyntaxKind.NullValue)
             {
                 value = argument.ValueLiteral;
                 return true;

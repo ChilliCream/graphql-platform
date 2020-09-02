@@ -136,13 +136,14 @@ namespace HotChocolate.Types
                     !typeInspector.TryCreateTypeInfo(
                         definition.ResultType, out ITypeInfo? typeInfo))
                 {
-                    throw new ArgumentException(
-                        "Cannot handle the specified type.",
-                        definition.ResultType.FullName);
+                    throw new SchemaException(
+                        SchemaErrorBuilder.New()
+                            .SetMessage("Cannot handle the specified type.")
+                            .SetExtension("fieldName", definition.Name)
+                            .Build());
                 }
 
-                argumentType = typeof(SortInputType<>)
-                    .MakeGenericType(typeInfo.NamedType);
+                argumentType = typeof(SortInputType<>).MakeGenericType(typeInfo.NamedType);
             }
 
             if (argumentType == typeof(object))

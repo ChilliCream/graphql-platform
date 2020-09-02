@@ -16,7 +16,7 @@ namespace HotChocolate.Utilities
         public static MemberInfo ExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
         {
-            if (memberExpression == null)
+            if (memberExpression is null)
             {
                 throw new ArgumentNullException(nameof(memberExpression));
             }
@@ -29,7 +29,7 @@ namespace HotChocolate.Utilities
         {
             MemberInfo member = ExtractMember(typeof(T), expression);
 
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentException(
                     string.Format(
@@ -129,7 +129,7 @@ namespace HotChocolate.Utilities
 
         public static string GetTypeName(this Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

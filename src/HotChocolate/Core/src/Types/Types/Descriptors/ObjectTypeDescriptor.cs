@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Descriptors
         protected ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
@@ -144,7 +144,7 @@ namespace HotChocolate.Types.Descriptors
                 case MethodInfo m:
                     ParameterInfo parent = m.GetParameters()
                         .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
-                    return parent == null || parent.ParameterType.IsAssignableFrom(sourceType);
+                    return parent is null || parent.ParameterType.IsAssignableFrom(sourceType);
 
                 default:
                     return false;
@@ -188,7 +188,7 @@ namespace HotChocolate.Types.Descriptors
             TInterface type)
             where TInterface : InterfaceType
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -201,7 +201,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectTypeDescriptor Interface(
             NamedTypeNode namedType)
         {
-            if (namedType == null)
+            if (namedType is null)
             {
                 throw new ArgumentNullException(nameof(namedType));
             }
@@ -260,7 +260,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
             Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }

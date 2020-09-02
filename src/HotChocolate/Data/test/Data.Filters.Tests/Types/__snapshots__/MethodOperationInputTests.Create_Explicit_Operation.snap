@@ -7,8 +7,8 @@ type Bar {
 }
 
 type Foo {
-  complexMethod: Bar!
   simpleMethod: Boolean!
+  complexMethod: Bar!
 }
 
 type QueryExplicit {
@@ -28,24 +28,24 @@ input BooleanOperationInputFilterInput {
 
 input StringOperationInputFilterInput {
   and: [StringOperationInputFilterInput!]
-  contains: String
-  endsWith: String
-  eq: String
-  in: [String]
-  ncontains: String
-  nendsWith: String
-  neq: String
-  nin: [String]
-  nstartsWith: String
   or: [StringOperationInputFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
   startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
 }
 
 input Test {
   and: [Test!]
   or: [Test!]
-  TestComplexMethod: BarFilterInput
   TestSimpleMethod: BooleanOperationInputFilterInput
+  TestComplexMethod: BarFilterInput
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

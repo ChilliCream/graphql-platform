@@ -79,7 +79,7 @@ namespace HotChocolate.Internal
                 IExtendedType type,
                 ReadOnlySpan<bool?> nullabilityChange)
             {
-                if (type == null)
+                if (type is null)
                 {
                     throw new ArgumentNullException(nameof(type));
                 }

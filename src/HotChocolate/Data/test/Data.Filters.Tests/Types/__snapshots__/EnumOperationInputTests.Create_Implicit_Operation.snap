@@ -8,23 +8,23 @@ type Query {
 
 input EnumOperationInputOfFooBarFilterInput {
   eq: FooBar
-  in: [FooBar!]
   neq: FooBar
+  in: [FooBar!]
   nin: [FooBar!]
 }
 
 input EnumOperationInputOfNullableOfFooBarFilterInput {
   eq: FooBar
-  in: [FooBar]
   neq: FooBar
+  in: [FooBar]
   nin: [FooBar]
 }
 
 input FooFilterInput {
   and: [FooFilterInput!]
+  or: [FooFilterInput!]
   fooBar: EnumOperationInputOfFooBarFilterInput
   fooBarNullable: EnumOperationInputOfNullableOfFooBarFilterInput
-  or: [FooFilterInput!]
 }
 
 enum FooBar {

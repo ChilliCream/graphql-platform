@@ -89,7 +89,7 @@ namespace HotChocolate.Types.Descriptors
             ICollection<ArgumentDefinition> arguments,
             MemberInfo? member)
         {
-            if (arguments == null)
+            if (arguments is null)
             {
                 throw new ArgumentNullException(nameof(arguments));
             }

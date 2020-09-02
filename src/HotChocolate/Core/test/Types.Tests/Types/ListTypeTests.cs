@@ -520,7 +520,7 @@ namespace HotChocolate.Types
             Action action = () => listType.ParseValue(1);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
     }
 }

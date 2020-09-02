@@ -174,7 +174,7 @@ namespace HotChocolate.Types
             Action action = () => type.Serialize(null);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace HotChocolate.Types
             Action action = () => type.Deserialize(null);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]

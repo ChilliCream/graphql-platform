@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Selections
             SelectionSetNode? selectionSet = Context.FieldSelection.SelectionSet;
             (type, selectionSet) = UnwrapPaging(type, selectionSet);
             IType elementType = type.IsListType() ? type.ElementType() : type;
-            Closures.Push(new SelectionClosure(elementType.ToClrType(), "e"));
+            Closures.Push(new SelectionClosure(elementType.ToRuntimeType(), "e"));
             VisitSelections(type, selectionSet);
         }
 
@@ -142,8 +142,8 @@ namespace HotChocolate.Types.Selections
                     UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
 
                 Type clrType = type.IsListType() ?
-                    type.ElementType().ToClrType() :
-                    type.ToClrType();
+                    type.ElementType().ToRuntimeType() :
+                    type.ToRuntimeType();
 
                 Closures.Push(new SelectionClosure(clrType, "e" + Closures.Count));
 

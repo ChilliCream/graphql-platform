@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            if (typeReference == null || type.IsSchemaType)
+            if (typeReference is null || type.IsSchemaType)
             {
                 return true;
             }
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return typeNode != null
-                && (typeReference == null
+                && (typeReference is null
                     || typeReference is SyntaxTypeReference);
         }
     }

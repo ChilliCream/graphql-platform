@@ -23,8 +23,8 @@ namespace HotChocolate.Types
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
 
-        internal ObjectField(ObjectFieldDefinition definition)
-            : base(definition)
+        internal ObjectField(ObjectFieldDefinition definition, bool sortArgumentsByName = false)
+            : base(definition, sortArgumentsByName)
         {
             Member = definition.Member ?? definition.ResolverMember;
             Middleware = _empty;
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver!;
 
-            if (!isIntrospectionField || Resolver == null)
+            if (!isIntrospectionField || Resolver is null)
             {
                 // gets resolvers that were provided via type extensions,
                 // explicit resolver results or are provided through the
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
                 Resolver,
                 skipMiddleware);
 
-            if (Resolver == null && Middleware == null)
+            if (Resolver is null && Middleware is null)
             {
                 if (_executableDirectives.Count > 0)
                 {
@@ -164,7 +164,7 @@ namespace HotChocolate.Types
         {
             // if there is no external compiled resolver then we will pick
             // the internal resolver delegate.
-            if (externalCompiledResolver == null)
+            if (externalCompiledResolver is null)
             {
                 return currentResolver;
             }
@@ -172,7 +172,7 @@ namespace HotChocolate.Types
             // if the internal resolver is null or if the external compiled
             // resolver represents an explicit overwrite of the type resolver
             // then we will pick the external compiled resolver.
-            if (currentResolver == null
+            if (currentResolver is null
                 || externalCompiledResolver.TypeName.Equals(typeName))
             {
                 return externalCompiledResolver.Resolver;

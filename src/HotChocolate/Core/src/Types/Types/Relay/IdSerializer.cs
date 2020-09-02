@@ -177,7 +177,7 @@ namespace HotChocolate.Types.Relay
 
         public IdValue Deserialize(string serializedId)
         {
-            if (serializedId == null)
+            if (serializedId is null)
             {
                 throw new ArgumentNullException(nameof(serializedId));
             }
@@ -261,7 +261,7 @@ namespace HotChocolate.Types.Relay
 
         public static bool IsPossibleBase64String(string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 throw new ArgumentNullException(nameof(s));
             }

@@ -9,23 +9,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities.Serialization
 {
-    internal delegate object InputObjectFactory(
-        IReadOnlyDictionary<string, object> fields,
-        ITypeConverter converter);
-
-    internal static class InputObjectFactoryCompiler
+    internal static class InputObjectCompiler
     {
         private static readonly MethodInfo _createOptionalValue =
-            typeof(InputObjectFactoryCompiler).GetMethod(
-                "CreateOptionalValue",
+            typeof(InputObjectCompiler).GetMethod(
+                nameof(CreateOptionalValue),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
         private static readonly MethodInfo _createValue =
-            typeof(InputObjectFactoryCompiler).GetMethod(
-                "CreateValue",
+            typeof(InputObjectCompiler).GetMethod(
+                nameof(CreateValue),
                 BindingFlags.Static | BindingFlags.NonPublic)!;
 
-        public static InputObjectFactory Compile(
+        public static InputObjectFactory CompileFactory(
             InputObjectType inputType,
             ConstructorInfo? constructor)
         {
@@ -50,7 +46,7 @@ namespace HotChocolate.Utilities.Serialization
             expressions.Add(Expression.Convert(variable, typeof(object)));
 
             Expression body = Expression.Block(
-                new ParameterExpression[] { variable },
+                new[] { variable },
                 expressions);
 
             return Expression.Lambda<InputObjectFactory>(body, data, converter).Compile();
@@ -127,7 +123,7 @@ namespace HotChocolate.Utilities.Serialization
             foreach (InputField field in fields.Values)
             {
                 Expression value = GetFieldValue(field, data, converter);
-                yield return Expression.Call(instance, field.Property!.GetSetMethod(true), value);
+                yield return Expression.Call(instance, field.Property!.GetSetMethod(true)!, value);
             }
         }
 
@@ -142,7 +138,6 @@ namespace HotChocolate.Utilities.Serialization
             if (fieldType.IsGenericType
                 && fieldType.GetGenericTypeDefinition() == typeof(Optional<>))
             {
-
                 MethodInfo createValue = _createOptionalValue.MakeGenericMethod(
                     fieldType.GetGenericArguments());
                 return Expression.Call(createValue, data, name, converter);

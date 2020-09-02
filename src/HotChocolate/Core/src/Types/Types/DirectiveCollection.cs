@@ -22,7 +22,7 @@ namespace HotChocolate.Types
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
-            if (directiveDefinitions == null)
+            if (directiveDefinitions is null)
             {
                 throw new ArgumentNullException(nameof(directiveDefinitions));
             }
@@ -40,7 +40,7 @@ namespace HotChocolate.Types
 
         internal void CompleteCollection(ITypeCompletionContext context)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
