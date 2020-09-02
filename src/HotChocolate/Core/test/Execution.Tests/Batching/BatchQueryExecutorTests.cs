@@ -254,9 +254,9 @@ namespace HotChocolate.Execution.Batching
                     .Field("foo")
                     .Argument("bar", a => a.Type<ListType<StringType>>())
                     .Type<ListType<StringType>>()
-                    .Resolver<List<string>>(c =>
+                    .Resolver(c =>
                     {
-                        var list = c.ArgumentValue<List<string>>("bar");
+                        List<string> list = c.ArgumentValue<List<string>>("bar");
                         list.Add("789");
                         return list;
                     }))

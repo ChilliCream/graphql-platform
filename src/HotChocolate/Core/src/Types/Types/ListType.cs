@@ -80,36 +80,37 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected sealed override object? ParseLiteral(IValueNode literal, bool withDefaults)
+        protected sealed override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults)
         {
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return null;
             }
 
-            if (literal.Kind != SyntaxKind.ListValue && InnerInputType!.IsInstanceOfType(literal))
+            if (valueSyntax.Kind != SyntaxKind.ListValue && 
+                InnerInputType!.IsInstanceOfType(valueSyntax))
             {
-                return CreateList(new ListValueNode(literal), withDefaults);
+                return CreateList(new ListValueNode(valueSyntax), withDefaults);
             }
 
-            if (literal.Kind == SyntaxKind.ListValue)
+            if (valueSyntax.Kind == SyntaxKind.ListValue)
             {
                 if (_isNestedList)
                 {
-                    if (IsInstanceOfType(literal))
+                    if (IsInstanceOfType(valueSyntax))
                     {
-                        return CreateList((ListValueNode)literal, withDefaults);
+                        return CreateList((ListValueNode)valueSyntax, withDefaults);
                     }
                 }
                 else
                 {
-                    return CreateList((ListValueNode)literal, withDefaults);
+                    return CreateList((ListValueNode)valueSyntax, withDefaults);
                 }
             }
 
-            // TODO : resources
-            throw new ArgumentException(
-                "The specified literal cannot be handled by this list type.");
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(this.Print(), valueSyntax.GetType()),
+                this);
         }
 
         protected sealed override bool IsInstanceOfType(object? runtimeValue)
@@ -160,8 +161,7 @@ namespace HotChocolate.Types
 
                 return new ListValueNode(null, items);
             }
-
-            // TODO : resources
+            
             throw new SerializationException(
                 TypeResourceHelper.Scalar_Cannot_ParseValue(this.Print(), runtimeValue.GetType()),
                 this);
@@ -169,7 +169,26 @@ namespace HotChocolate.Types
 
         protected override IValueNode ParseResult(object? resultValue)
         {
-            throw new NotImplementedException();
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is IList l)
+            {
+                var items = new List<IValueNode>();
+
+                for (var i = 0; i < l.Count; i++)
+                {
+                    items.Add(InnerInputType!.ParseResult(l[i]));
+                }
+
+                return new ListValueNode(items);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(this.Print(), resultValue.GetType()),
+                this);
         }
 
         protected sealed override bool TrySerialize(object? runtimeValue, out object? resultValue)

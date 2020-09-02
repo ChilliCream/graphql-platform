@@ -77,7 +77,7 @@ namespace HotChocolate.Types
                     nameof(resultValue));
             }
 
-            return InnerInputType!.ParseValue(resultValue);
+            return InnerInputType!.ParseResult(resultValue);
         }
 
         protected sealed override bool TrySerialize(object? runtimeValue, out object? resultValue)

@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"{ foo }");
 
             // act
-            Action a = () => Rule.Validate(null, query);
+            Action a = () => Rule.Validate(null!, query);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

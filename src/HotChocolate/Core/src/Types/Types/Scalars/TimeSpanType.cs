@@ -54,12 +54,9 @@ namespace HotChocolate.Types
 
         protected override StringValueNode ParseValue(TimeSpan runtimeValue)
         {
-            if (_format == TimeSpanFormat.Iso8601)
-            {
-                return new StringValueNode(XmlConvert.ToString(runtimeValue));
-            }
-
-            return new StringValueNode(runtimeValue.ToString("c"));
+            return _format == TimeSpanFormat.Iso8601
+                ? new StringValueNode(XmlConvert.ToString(runtimeValue))
+                : new StringValueNode(runtimeValue.ToString("c"));
         }
 
         public override IValueNode ParseResult(object? resultValue)

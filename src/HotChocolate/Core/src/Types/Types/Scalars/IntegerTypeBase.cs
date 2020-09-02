@@ -92,7 +92,7 @@ namespace HotChocolate.Types
 
             if (resultValue is TRuntimeType casted && IsInstanceOfType(casted))
             {
-                return ParseResult(casted);
+                return ParseValue(casted);
             }
 
             if (TryConvertSerialized(resultValue, ValueKind.Integer, out TRuntimeType c)

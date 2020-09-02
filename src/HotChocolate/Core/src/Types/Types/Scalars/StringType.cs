@@ -52,9 +52,7 @@ namespace HotChocolate.Types
             return new StringValueNode(runtimeValue);
         }
 
-        public override IValueNode ParseResult(object? resultValue)
-        {
-            throw new System.NotImplementedException();
-        }
+        public override IValueNode ParseResult(object? resultValue) =>
+            ParseValue(resultValue);
     }
 }
