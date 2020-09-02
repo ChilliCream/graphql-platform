@@ -16,16 +16,18 @@ namespace HotChocolate.Types
             new Dictionary<NameString, (int Index, T Field)>();
         private readonly List<T> _fields;
 
-        public FieldCollection(IEnumerable<T> fields)
+        public FieldCollection(IEnumerable<T> fields, bool sortByName = false)
         {
             if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields is List<T> list ? list : fields.ToList();
+            _fields = sortByName
+                ? fields.OrderBy(t => t.Name).ToList()
+                : fields is List<T> list ? list : fields.ToList();
 
-            for (int i = 0; i < _fields.Count; i++)
+            for (var i = 0; i < _fields.Count; i++)
             {
                 T field = _fields[i];
                 _fieldsLookup.Add(field.Name, (i, field));
@@ -73,6 +75,6 @@ namespace HotChocolate.Types
         }
 
         public static FieldCollection<T> Empty { get; } =
-            new FieldCollection<T>(Enumerable.Empty<T>());
+            new FieldCollection<T>(Enumerable.Empty<T>(), false);
     }
 }

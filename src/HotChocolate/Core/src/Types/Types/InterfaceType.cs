@@ -119,8 +119,10 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
+            var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
             Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t)));
+                definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
+                sortFieldsByName);
 
             CompleteAbstractTypeResolver(
                 context,

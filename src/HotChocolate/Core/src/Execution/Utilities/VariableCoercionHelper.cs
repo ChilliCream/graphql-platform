@@ -85,8 +85,12 @@ namespace HotChocolate.Execution.Utilities
 
             if (variableType.TryDeserialize(resultValue, out object? deserialized))
             {
-                return new VariableValue(variableType, deserialized, null);
+                return new VariableValue(
+                    variableType,
+                    deserialized,
+                    variableType.ParseResult(resultValue));
             }
+
             throw ThrowHelper.VariableValueInvalidType(variableDefinition);
         }
 

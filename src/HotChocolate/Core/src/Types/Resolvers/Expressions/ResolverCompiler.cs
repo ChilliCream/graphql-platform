@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
@@ -13,13 +12,7 @@ namespace HotChocolate.Resolvers.Expressions
 {
     internal class ResolverCompiler
     {
-        private static readonly MethodInfo _parent =
-            typeof(IResolverContext).GetMethod("Parent")!;
-        private static readonly MethodInfo _resolver =
-            typeof(IResolverContext).GetMethod("Resolver")!;
-
         private readonly IResolverParameterCompiler[] _compilers;
-        private readonly ParameterExpression _context;
 
         protected ResolverCompiler()
             : this(ParameterCompilerFactory.Create())
@@ -35,14 +28,16 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             _compilers = compilers.ToArray();
-            _context = Expression.Parameter(typeof(IResolverContext));
+            Context = Expression.Parameter(typeof(IResolverContext));
         }
 
-        protected ParameterExpression Context => _context;
+        protected ParameterExpression Context { get; }
 
-        protected static MethodInfo Parent => _parent;
+        protected static MethodInfo Parent { get; } =
+            typeof(IResolverContext).GetMethod(nameof(Parent))!;
 
-        protected static MethodInfo Resolver => _resolver;
+        protected static MethodInfo Resolver { get; } =
+            typeof(IResolverContext).GetMethod(nameof(Resolver))!;
 
         protected IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,
@@ -50,7 +45,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             foreach (ParameterInfo parameter in parameters)
             {
-                IResolverParameterCompiler parameterCompiler =
+                IResolverParameterCompiler? parameterCompiler =
                     _compilers.FirstOrDefault(t =>
                         t.CanHandle(parameter, sourceType));
 
@@ -61,7 +56,7 @@ namespace HotChocolate.Resolvers.Expressions
                 }
 
                 yield return parameterCompiler.Compile(
-                    _context, parameter, sourceType);
+                    Context, parameter, sourceType);
             }
         }
 

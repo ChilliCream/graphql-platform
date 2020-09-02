@@ -86,7 +86,7 @@ namespace HotChocolate.Configuration
                 _context,
                 _typeRegistry,
                 _typeLookup,
-                new HashSet<ITypeReference>(_initialTypes),
+                _initialTypes,
                 _interceptor);
 
             if (typeRegistrar.DiscoverTypes() is { Count: > 0 } errors)
@@ -197,8 +197,6 @@ namespace HotChocolate.Configuration
                     dependencies.Clear();
                 }
             }
-
-            _typeRegistry.RebuildIndexes();
         }
 
         private void CompleteNames(Func<ISchema> schemaResolver)
@@ -246,39 +244,37 @@ namespace HotChocolate.Configuration
                     .Where(t => t.IsNamedType)
                     .ToList();
 
-                foreach (IGrouping<NameString, RegisteredType> group in
-                    extensions.GroupBy(t => t.Type.Name))
+                foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
                 {
-                    RegisteredType? type =
-                        types.FirstOrDefault(t => t.Type.Name.Equals(group.Key));
-
-                    if (type != null && type.Type is INamedType targetType)
+                    RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
+                    if(type is not null && type.Type is INamedType namedType) 
                     {
-                        MergeTypeExtension(group, type, targetType);
+                        MergeTypeExtension(
+                            extensions.Where(t => t.Type.Name.Equals(typeName)), 
+                            type, 
+                            namedType);
                     }
                 }
-
-                _typeRegistry.RebuildIndexes();
             }
         }
 
         private void MergeTypeExtension(
             IEnumerable<RegisteredType> extensions,
-            RegisteredType type,
-            INamedType targetType)
+            RegisteredType registeredType,
+            INamedType namedType)
         {
             foreach (RegisteredType extension in extensions)
             {
                 if (extension.Type is INamedTypeExtensionMerger m)
                 {
-                    if (m.Kind != targetType.Kind)
+                    if (m.Kind != namedType.Kind)
                     {
                         throw new SchemaException(SchemaErrorBuilder.New()
                             .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
                                 TypeInitializer_Merge_KindDoesNotMatch,
-                                targetType.Name))
-                            .SetTypeSystemObject((ITypeSystemObject)targetType)
+                                namedType.Name))
+                            .SetTypeSystemObject((ITypeSystemObject)namedType)
                             .Build());
                     }
 
@@ -286,18 +282,18 @@ namespace HotChocolate.Configuration
                     foreach (FieldReference reference in initContext.Resolvers.Keys)
                     {
                         _resolvers[reference]
-                            = initContext.Resolvers[reference].WithSourceType(type.RuntimeType);
+                            = initContext.Resolvers[reference].WithSourceType(registeredType.RuntimeType);
                     }
 
                     // merge
                     TypeCompletionContext context = extension.CompletionContext;
                     context.Status = TypeStatus.Named;
-                    m.Merge(context, targetType);
+                    m.Merge(context, namedType);
 
                     // update dependencies
-                    context = type.CompletionContext;
-                    type.AddDependencies(extension.Dependencies);
-                    _typeRegistry.Register(type);
+                    context = registeredType.CompletionContext;
+                    registeredType.AddDependencies(extension.Dependencies);
+                    _typeRegistry.Register(registeredType);
                     CopyAlternateNames(extension.CompletionContext, context);
                 }
             }

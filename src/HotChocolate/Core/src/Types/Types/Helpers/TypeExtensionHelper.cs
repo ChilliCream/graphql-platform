@@ -92,8 +92,8 @@ namespace HotChocolate.Types
         {
             foreach (T extensionField in extensionFields)
             {
-                T typeField = typeFields.FirstOrDefault(t =>
-                    t.Name.Equals(extensionField.Name));
+                T typeField = typeFields.FirstOrDefault(
+                    t => t.Name.Equals(extensionField.Name));
 
                 if (typeField is null)
                 {

@@ -1,8 +1,10 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -19,16 +21,21 @@ namespace HotChocolate.Types
 
         public EnumType(Action<IEnumTypeDescriptor<T>> configure)
         {
-            _configure = configure
-                ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        public IReadOnlyCollection<IEnumValue<T>> Values =>
-            (IReadOnlyCollection<IEnumValue<T>>)base.Values;
-
-        public bool TryGetRuntimeValue(NameString name, out T runtimeValue)
+        /// <inheritdoc />
+        public bool TryGetRuntimeValue(NameString name, [NotNullWhen(true)]out T runtimeValue)
         {
-            throw new NotImplementedException();
+            if (base.TryGetRuntimeValue(name, out object? rv) &&
+                rv is T casted)
+            {
+                runtimeValue = casted;
+                return true;
+            }
+
+            runtimeValue = default!;
+            return false;
         }
 
         protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)

@@ -17,6 +17,7 @@ namespace HotChocolate.Configuration
             MutationTypeName = options.MutationTypeName ?? "Mutation";
             SubscriptionTypeName = options.SubscriptionTypeName ?? "Subscription";
             StrictValidation = options.StrictValidation;
+            SortFieldsByName = options.SortFieldsByName;
             UseXmlDocumentation = options.UseXmlDocumentation;
             RemoveUnreachableTypes = options.RemoveUnreachableTypes;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
@@ -32,6 +33,8 @@ namespace HotChocolate.Configuration
         public bool StrictValidation { get; }
 
         public bool UseXmlDocumentation { get; }
+
+        public bool SortFieldsByName { get; }
 
         public bool RemoveUnreachableTypes { get; }
 

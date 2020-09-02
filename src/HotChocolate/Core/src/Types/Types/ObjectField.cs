@@ -23,8 +23,8 @@ namespace HotChocolate.Types
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
 
-        internal ObjectField(ObjectFieldDefinition definition)
-            : base(definition)
+        internal ObjectField(ObjectFieldDefinition definition, bool sortArgumentsByName = false)
+            : base(definition, sortArgumentsByName)
         {
             Member = definition.Member ?? definition.ResolverMember;
             Middleware = _empty;

@@ -3,13 +3,12 @@
 }
 
 type Query {
-  abc(def: InputWithDefaultInput): String
+  greeting: String
+  words: [Word]
 }
 
-input InputWithDefaultInput {
-  withStringDefault: String = "abc"
-  withNullDefault: String
-  withoutDefault: String
+type Word {
+  value: String
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

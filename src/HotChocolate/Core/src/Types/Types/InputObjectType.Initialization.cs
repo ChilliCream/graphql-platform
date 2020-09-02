@@ -9,6 +9,9 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Serialization;
+using static HotChocolate.Utilities.Serialization.InputObjectParserHelper;
+using static HotChocolate.Utilities.Serialization.InputObjectConstructorResolver;
+using static HotChocolate.Utilities.Serialization.InputObjectCompiler;
 
 #nullable enable
 
@@ -19,11 +22,11 @@ namespace HotChocolate.Types
     /// </summary>
     public partial class InputObjectType
     {
-        private readonly Action<IInputObjectTypeDescriptor> _configure;
-        private InputObjectToObjectValueConverter _objectToValueConverter;
-        private InputObjectToDictionaryConverter _objectToDictionary;
-        private Func<ObjectValueNode, object> _parseLiteral;
-        private Func<IReadOnlyDictionary<string, object>, object> _deserialize;
+        private Action<IInputObjectTypeDescriptor>? _configure;
+        private InputObjectToObjectValueConverter _objectToValueConverter = default!;
+        private InputObjectToDictionaryConverter _objectToDictionary = default!;
+        private Func<ObjectValueNode, object> _parseLiteral = default!;
+        private Func<IReadOnlyDictionary<string, object>, object> _deserialize = default!;
 
         protected InputObjectType()
         {
@@ -52,7 +55,8 @@ namespace HotChocolate.Types
             var descriptor = InputObjectTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
                 GetType());
-            _configure(descriptor);
+            _configure!(descriptor);
+            _configure = null;
             return descriptor.CreateDefinition();
         }
 
@@ -73,36 +77,34 @@ namespace HotChocolate.Types
 
             ITypeConverter converter = context.Services.GetTypeConverter();
 
-            _objectToValueConverter =
-                new InputObjectToObjectValueConverter(converter);
-            _objectToDictionary =
-                new InputObjectToDictionaryConverter(converter);
+            _objectToValueConverter = new InputObjectToObjectValueConverter(converter);
+            _objectToDictionary = new InputObjectToDictionaryConverter(converter);
 
             SyntaxNode = definition.SyntaxNode;
 
             var fields = new List<InputField>();
             OnCompleteFields(context, definition, fields);
 
-            Fields = new FieldCollection<InputField>(fields);
+            Fields = new FieldCollection<InputField>(
+                fields,
+                context.DescriptorContext.Options.SortFieldsByName);
             FieldInitHelper.CompleteFields(context, definition, Fields);
 
             if (RuntimeType == typeof(object) || Fields.Any(t => t.Property is null))
             {
-                _parseLiteral = ov => InputObjectParserHelper.ParseLiteralToDictionary(this, ov, converter);
-                _deserialize = map => InputObjectParserHelper.DeserializeToDictionary(this, map, converter);
+                _parseLiteral = ov => ParseLiteralToDictionary(this, ov, converter);
+                _deserialize = map => DeserializeToDictionary(this, map, converter);
             }
             else
             {
-                ConstructorInfo constructor = InputObjectConstructorResolver.GetConstructor(
-                    RuntimeType,
-                    Fields.Select(t => t.Property))!;
-                InputObjectFactory factory = InputObjectCompiler.CompileFactory(this, constructor);
+                IEnumerable<PropertyInfo> properties = Fields.Select(t => t.Property!);
+                ConstructorInfo? constructor = GetConstructor(RuntimeType, properties);
+                InputObjectFactory factory = CompileFactory(this, constructor);
 
-                _parseLiteral = ov => InputObjectParserHelper.ParseLiteral(
-                    this, ov, factory, converter);
-
-                _deserialize = map => InputObjectParserHelper.Deserialize(
-                    this, map, factory, converter);
+                _parseLiteral =
+                    ov => InputObjectParserHelper.ParseLiteral(this, ov, factory, converter);
+                _deserialize =
+                    map => InputObjectParserHelper.Deserialize(this, map, factory, converter);
             }
         }
 

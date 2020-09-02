@@ -162,11 +162,5 @@ namespace HotChocolate.Configuration
 
             _nameRefs[typeName] = registeredType.References[0];
         }
-
-        public void RebuildIndexes()
-        {
-            _types.Clear();
-            _types.AddRange(_typeRegister.Values.Distinct());
-        }
     }
 }

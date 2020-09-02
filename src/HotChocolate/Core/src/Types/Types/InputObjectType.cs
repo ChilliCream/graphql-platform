@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Gets the fields of this type.
         /// </summary>
-        public FieldCollection<InputField> Fields { get; private set; }
+        public FieldCollection<InputField> Fields { get; private set; } = default!;
 
         IFieldCollection<IInputField> IInputObjectType.Fields => Fields;
 
@@ -89,7 +89,36 @@ namespace HotChocolate.Types
 
         public IValueNode ParseResult(object? resultValue)
         {
-            throw new NotImplementedException();
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is IReadOnlyDictionary<string, object> dict)
+            {
+                var list = new List<ObjectFieldNode>();
+
+                foreach (InputField field in Fields)
+                {
+                    if(dict.TryGetValue(field.Name.Value, out object? value))
+                    {
+                        list.Add(new ObjectFieldNode(
+                            field.Name.Value, 
+                            field.Type.ParseResult(value)));
+                    }
+                }
+
+                return new ObjectValueNode(list);
+            }
+
+            if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(resultValue))
+            {
+                return ParseValue(resultValue);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
         }
 
         public object? Serialize(object? runtimeValue)
@@ -98,6 +127,7 @@ namespace HotChocolate.Types
             {
                 return serialized;
             }
+
             throw new SerializationException(
                 "The specified value is not a valid input object.",
                 this);
@@ -113,8 +143,8 @@ namespace HotChocolate.Types
                     return true;
                 }
 
-                if (runtimeValue is IReadOnlyDictionary<string, object>
-                    || runtimeValue is IDictionary<string, object>)
+                if (runtimeValue is IReadOnlyDictionary<string, object> ||
+                    runtimeValue is IDictionary<string, object>)
                 {
                     resultValue = runtimeValue;
                     return true;

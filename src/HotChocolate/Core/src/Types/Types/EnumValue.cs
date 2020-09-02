@@ -9,50 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public interface IEnumValue<T> : IEnumValue
-    {
-        new T Value { get; }
-    }
-
-    public interface IEnumValue
-        : IHasDirectives
-        , IHasContextData
-    {
-        EnumValueDefinitionNode? SyntaxNode { get; }
-
-        /// <summary>
-        /// The GraphQL name of this enum value.
-        /// </summary>
-        NameString Name { get; }
-
-        string? Description { get; }
-
-        bool IsDeprecated { get; }
-
-        string? DeprecationReason { get; }
-
-        /// <summary>
-        /// Gets the runtime value.
-        /// </summary>
-        object Value { get; }
-    }
-
-    public sealed class EnumValue<T>
-        : EnumValue
-        , IEnumValue<T>
-    {
-        public EnumValue(
-            ITypeCompletionContext completionContext,
-            EnumValueDefinition enumValueDefinition)
-            : base(completionContext, enumValueDefinition)
-        {
-            Value = (T)enumValueDefinition.Value!;
-        }
-
-        public new T Value { get; }
-    }
-
-    public class EnumValue : IEnumValue
+    public sealed class EnumValue : IEnumValue
     {
         private readonly DirectiveCollection _directives;
 
@@ -60,6 +17,11 @@ namespace HotChocolate.Types
             ITypeCompletionContext completionContext,
             EnumValueDefinition enumValueDefinition)
         {
+            if (completionContext == null)
+            {
+                throw new ArgumentNullException(nameof(completionContext));
+            }
+
             if (enumValueDefinition is null)
             {
                 throw new ArgumentNullException(nameof(enumValueDefinition));

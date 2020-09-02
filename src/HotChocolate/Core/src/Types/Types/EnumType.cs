@@ -9,26 +9,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public interface IEnumType<T> : IEnumType
-    {
-        new IReadOnlyCollection<IEnumValue<T>> Values { get; }
-
-        bool TryGetRuntimeValue(
-            NameString name,
-            [NotNullWhen(true)]out T runtimeValue);
-    }
-
-    public interface IEnumType : ILeafType
-    {
-        new EnumTypeDefinitionNode? SyntaxNode { get; }
-
-        IReadOnlyCollection<IEnumValue> Values { get; }
-
-        bool TryGetRuntimeValue(
-            NameString name,
-            [NotNullWhen(true)]out object? runtimeValue);
-    }
-
     public partial class EnumType
         : NamedTypeBase<EnumTypeDefinition>
         , IEnumType
