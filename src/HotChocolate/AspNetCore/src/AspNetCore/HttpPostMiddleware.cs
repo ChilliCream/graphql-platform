@@ -70,7 +70,7 @@ namespace HotChocolate.AspNetCore
             IErrorHandler errorHandler = requestExecutor.Services.GetRequiredService<IErrorHandler>();
 
             HttpStatusCode? statusCode = null;
-            IExecutionResult? result = null;
+            IExecutionResult? result;
 
             try
             {
@@ -78,43 +78,68 @@ namespace HotChocolate.AspNetCore
                 IReadOnlyList<GraphQLRequest> requests = await ReadRequestAsync(
                     contentType, context.Request.Body, context.RequestAborted);
 
-                if (requests.Count == 0)
+                switch (requests.Count)
                 {
-                    statusCode = HttpStatusCode.BadRequest;
-                    IError error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
-                    result = QueryResultBuilder.CreateError(error);
-                }
-                else if (requests.Count == 1)
-                {
-                    string operationNames = context.Request.Query[_batchOperations];
-
-                    if (operationNames is null)
+                    // if the HTTP request body contains no GraphQL request structure the
+                    // whole request is invalid and we will create a GraphQL error response.
+                    case 0:
                     {
-                        result = await ExecuteSingleAsync(
-                            context, requestExecutor, requests[0]);
-                    }
-                    else if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
-                    {
-                        result = await ExecuteOperationBatchAsync(
-                            context, requestExecutor, requests[0], ops);
-                    }
-                    else
-                    {
-                        IError error = errorHandler.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
+                        IError error = errorHandler.Handle(ErrorHelper.RequestHasNoElements());
                         result = QueryResultBuilder.CreateError(error);
+                        break;
                     }
-                }
-                else
-                {
+                    // if the HTTP request body contains a single GraphQL request and we do have
+                    // the batch operations query parameter specified we need to execute an
+                    // operation batch.
+                    //
+                    // An operation batch consists of a single GraphQL request document that
+                    // contains multiple operations. The batch operation query parameter
+                    // defines the order in which the operations shall be executed.
+                    case 1 when context.Request.Query.ContainsKey(_batchOperations):
+                    {
+                        string operationNames = context.Request.Query[_batchOperations];
 
+                        if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
+                        {
+                            result = await ExecuteOperationBatchAsync(
+                                context, requestExecutor, requests[0], ops);
+                        }
+                        else
+                        {
+                            IError error = errorHandler.Handle(ErrorHelper.InvalidRequest());
+                            statusCode = HttpStatusCode.BadRequest;
+                            result = QueryResultBuilder.CreateError(error);
+                        }
+                        break;
+                    }
+                    // if the HTTP request body contains a single GraphQL request and
+                    // no batch query parameter is specified we need to execute a single
+                    // GraphQL request.
+                    //
+                    // Most GraphQL requests will be of this type where we want to execute
+                    // a single GraphQL query or mutation.
+                    case 1:
+                    {
+                        result = await ExecuteSingleAsync(context, requestExecutor, requests[0]);
+                        break;
+                    }
+
+                    // if the HTTP request body contains more than one GraphQL request than
+                    // we need to execute a request batch where we need to execute multiple
+                    // fully specified GraphQL requests at once.
+                    default:
+                        result = await ExecuteBatchAsync(context, requestExecutor, requests);
+                        break;
                 }
             }
             catch (GraphQLRequestException ex)
             {
+                // A GraphQL request exception is thrown if the HTTP request body couldn't be
+                // parsed. In this case we will return HTTP status code 400 and return a
+                // GraphQL error result.
                 statusCode = HttpStatusCode.BadRequest;
-                IEnumerable<IError> errors = errorHandler.Handle(ex.Errors);
-                result = QueryResultBuilder.CreateError(errors);
+                result = QueryResultBuilder.CreateError(errorHandler.Handle(ex.Errors));
             }
             catch (Exception ex)
             {
@@ -123,6 +148,8 @@ namespace HotChocolate.AspNetCore
                 result = QueryResultBuilder.CreateError(error);
             }
 
+            // in any case we will have a valid GraphQL result at this point that can be written
+            // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
             await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
         }
@@ -179,20 +206,22 @@ namespace HotChocolate.AspNetCore
         private async Task<IBatchQueryResult> ExecuteBatchAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
-            IReadOnlyList<GraphQLRequest> batch)
+            IReadOnlyList<GraphQLRequest> requests)
         {
-            IReadOnlyList<IReadOnlyQueryRequest> requestBatch =
-                await BuildBatchRequestAsync(
-                        httpHelper.Context,
-                        httpHelper.Services,
-                        batch)
-                    .ConfigureAwait(false);
+            var requestBatch = new IReadOnlyQueryRequest[requests.Count];
 
-            httpHelper.StatusCode = OK;
-            httpHelper.StreamSerializer = _streamSerializer;
-            httpHelper.Result = await _batchExecutor
-                .ExecuteAsync(requestBatch, httpHelper.Context.RequestAborted)
-                .ConfigureAwait(false);
+            for (var i = 0; i < requests.Count; i++)
+            {
+                QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[0]);
+
+                await _requestInterceptor.OnCreateAsync(
+                    context, requestExecutor, requestBuilder, context.RequestAborted);
+
+                requestBatch[i] = requestBuilder.Create();
+            }
+
+            return await requestExecutor.ExecuteBatchAsync(
+                requestBatch, cancellationToken: context.RequestAborted);
         }
 
         private async ValueTask<IRequestExecutor> GetExecutorAsync(
@@ -209,8 +238,7 @@ namespace HotChocolate.AspNetCore
                     if (_executor is null)
                     {
                         executor = await _executorResolver.GetRequestExecutorAsync(
-                            _schemaName, cancellationToken)
-                            .ConfigureAwait(false);
+                            _schemaName, cancellationToken);
                         _executor = executor;
                     }
                     else

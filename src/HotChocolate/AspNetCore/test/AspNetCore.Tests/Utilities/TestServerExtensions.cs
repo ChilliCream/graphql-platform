@@ -1,0 +1,108 @@
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+
+namespace HotChocolate.AspNetCore.Utilities
+{
+    public static class TestServerExtensions
+    {
+        public static async Task<ClientQueryResult> PostAsync(
+            this TestServer testServer,
+            ClientQueryRequest request,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendPostRequestAsync(
+                    testServer,
+                    JsonConvert.SerializeObject(request),
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
+
+        public static async Task<ClientQueryResult> PostAsync(
+            this TestServer testServer,
+            string requestJson,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendPostRequestAsync(
+                    testServer,
+                    requestJson,
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
+
+
+        public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
+            this TestServer testServer, TObject requestBody, string path = "/graphql")
+        {
+            return SendPostRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(requestBody),
+                path);
+        }
+
+        public static Task<HttpResponseMessage> SendPostRequestAsync(
+            this TestServer testServer, string requestBody, string path = null)
+        {
+            return SendPostRequestAsync(
+                testServer, requestBody,
+                "application/json", path);
+        }
+
+        public static Task<HttpResponseMessage> SendPostRequestAsync(
+            this TestServer testServer, string requestBody,
+            string contentType, string path)
+        {
+            return testServer.CreateClient()
+                .PostAsync(CreateUrl(path),
+                    new StringContent(requestBody,
+                        Encoding.UTF8, contentType));
+        }
+
+        public static Task<HttpResponseMessage> SendGetRequestAsync(
+            this TestServer testServer, string query, string path = null)
+        {
+            var normalizedQuery = query
+                .Replace("\r", string.Empty)
+                .Replace("\n", string.Empty);
+
+            return testServer.CreateClient()
+                .GetAsync($"{CreateUrl(path)}?query={normalizedQuery}");
+        }
+
+        public static string CreateUrl(string path)
+        {
+            var url = "http://localhost:5000";
+            if (path != null)
+            {
+                url += "/" + path.TrimStart('/');
+            }
+            return url;
+        }
+    }
+}

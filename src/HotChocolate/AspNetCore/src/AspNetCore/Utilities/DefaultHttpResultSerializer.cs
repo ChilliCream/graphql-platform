@@ -20,7 +20,10 @@ namespace HotChocolate.AspNetCore.Utilities
             if (result is IQueryResult q)
             {
                 return q.Data is null
-                    ? HttpStatusCode.InternalServerError
+                    ? q.ContextData is not null &&
+                      q.ContextData.ContainsKey(ContextDataKeys.ValidationErrors)
+                        ? HttpStatusCode.BadRequest
+                        : HttpStatusCode.InternalServerError
                     : HttpStatusCode.OK;
             }
             return HttpStatusCode.OK;
