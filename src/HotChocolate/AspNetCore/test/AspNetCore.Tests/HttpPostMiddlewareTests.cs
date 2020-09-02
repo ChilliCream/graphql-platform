@@ -503,5 +503,101 @@ namespace HotChocolate.AspNetCore
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            IReadOnlyList<ClientQueryResult> result =
+                await server.PostOperationAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                    },
+                    "getHero",
+                    createOperationParameter: s => "batchOperations=" + s);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            IReadOnlyList<ClientQueryResult> result =
+                await server.PostOperationAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                    },
+                    "getHero, getHuman",
+                    createOperationParameter: s => "batchOperations=[" + s);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            IReadOnlyList<ClientQueryResult> result =
+                await server.PostOperationAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }
+
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                    },
+                    "getHero, getHuman",
+                    createOperationParameter: s => "batchOperations=" + s);
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }

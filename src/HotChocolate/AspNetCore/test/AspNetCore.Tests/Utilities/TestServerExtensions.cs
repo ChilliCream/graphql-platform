@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -66,13 +67,15 @@ namespace HotChocolate.AspNetCore.Utilities
             this TestServer testServer,
             ClientQueryRequest request,
             string operationNames,
-            string path = "/graphql")
+            string path = "/graphql",
+            Func<string, string> createOperationParameter = null)
         {
+            createOperationParameter ??= s => "batchOperations=[" + s + "]";
             HttpResponseMessage response =
                 await SendPostRequestAsync(
                     testServer,
                     JsonConvert.SerializeObject(request),
-                    path + "?batchOperations=[" + operationNames + "]");
+                    path + "?" + createOperationParameter(operationNames));
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
@@ -80,16 +83,27 @@ namespace HotChocolate.AspNetCore.Utilities
             }
 
             var json = await response.Content.ReadAsStringAsync();
-            List<ClientQueryResult> result =
-                JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
 
-            foreach (ClientQueryResult item in result)
+            try
             {
-                item.StatusCode = response.StatusCode;
-                item.ContentType = response.Content.Headers.ContentType.ToString();
-            }
+                List<ClientQueryResult> result =
+                    JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
 
-            return result;
+                foreach (ClientQueryResult item in result)
+                {
+                    item.StatusCode = response.StatusCode;
+                    item.ContentType = response.Content.Headers.ContentType.ToString();
+                }
+
+                return result;
+            }
+            catch
+            {
+                ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+                result.StatusCode = response.StatusCode;
+                result.ContentType = response.Content.Headers.ContentType.ToString();
+                return new [] { result };
+            }
         }
 
         public static async Task<ClientQueryResult> PostAsync(
