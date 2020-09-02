@@ -9,7 +9,7 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where T : ITypeInitializationInterceptor
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

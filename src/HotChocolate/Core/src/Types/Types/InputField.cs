@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         {
             get
             {
-                return Property == null
+                return Property is null
                     ? base.RuntimeType
                     : Property.PropertyType;
             }
@@ -56,12 +56,12 @@ namespace HotChocolate.Types
 
         public void SetValue(object obj, object? value)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            var success = Property == null
+            var success = Property is null
                 ? TrySetValueOnUnknownType(obj, value)
                 : TrySetValueOnKnownType(obj, value);
 
@@ -82,11 +82,10 @@ namespace HotChocolate.Types
 
             ILookup<string, PropertyInfo> properties =
                 ReflectionUtils.CreatePropertyLookup(obj.GetType());
-            PropertyInfo property = properties[Name].FirstOrDefault();
 
-            if (property != null)
+            if (properties[Name].FirstOrDefault() is { } p)
             {
-                property.SetValue(obj, value);
+                p.SetValue(obj, value);
                 return true;
             }
 
@@ -101,12 +100,12 @@ namespace HotChocolate.Types
 
         public object? GetValue(object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            bool success = Property == null
+            bool success = Property is null
                 ? TryGetValueOnUnknownType(obj, out object? value)
                 : TryGetValueOnKnownType(obj, out value);
 
@@ -115,12 +114,12 @@ namespace HotChocolate.Types
 
         public bool TryGetValue(object obj, out object? value)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            return Property == null
+            return Property is null
                 ? TryGetValueOnUnknownType(obj, out value)
                 : TryGetValueOnKnownType(obj, out value);
         }
@@ -134,11 +133,10 @@ namespace HotChocolate.Types
 
             ILookup<string, PropertyInfo> properties =
                 ReflectionUtils.CreatePropertyLookup(obj.GetType());
-            PropertyInfo property = properties[Name].FirstOrDefault();
 
-            if (property != null)
+            if (properties[Name].FirstOrDefault() is { } p)
             {
-                value = property.GetValue(obj);
+                value = p.GetValue(obj);
                 return true;
             }
 

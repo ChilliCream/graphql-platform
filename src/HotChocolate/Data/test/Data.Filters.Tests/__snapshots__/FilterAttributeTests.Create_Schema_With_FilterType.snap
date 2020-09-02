@@ -14,55 +14,55 @@ type Query1 {
 
 input ComparableOperationInputOfInt64FilterInput {
   eq: Long
-  gt: Long
-  gte: Long
-  in: [Long!]
-  lt: Long
-  lte: Long
   neq: Long
-  ngt: Long
-  ngte: Long
+  in: [Long!]
   nin: [Long!]
+  gt: Long
+  ngt: Long
+  gte: Long
+  ngte: Long
+  lt: Long
   nlt: Long
+  lte: Long
   nlte: Long
 }
 
 input ComparableOperationInputOfNullableOfInt32FilterInput {
   eq: Int
-  gt: Int
-  gte: Int
-  in: [Int]
-  lt: Int
-  lte: Int
   neq: Int
-  ngt: Int
-  ngte: Int
+  in: [Int]
   nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
   nlt: Int
+  lte: Int
   nlte: Int
 }
 
 input FooFilterInput {
   and: [FooFilterInput!]
+  or: [FooFilterInput!]
   bar: StringOperationInputFilterInput
   baz: ComparableOperationInputOfInt64FilterInput
-  or: [FooFilterInput!]
   qux: ComparableOperationInputOfNullableOfInt32FilterInput
 }
 
 input StringOperationInputFilterInput {
   and: [StringOperationInputFilterInput!]
-  contains: String
-  endsWith: String
-  eq: String
-  in: [String]
-  ncontains: String
-  nendsWith: String
-  neq: String
-  nin: [String]
-  nstartsWith: String
   or: [StringOperationInputFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
   startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
 }
 
 "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."

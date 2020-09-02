@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         /// Gets or sets the sort type which specifies the sort object structure.
         /// </summary>
         /// <value>The sort type</value>
-        public Type SortType { get; set; }
+        public Type? SortType { get; set; }
 
         public override void OnConfigure(
             IDescriptorContext context,

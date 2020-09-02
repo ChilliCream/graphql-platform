@@ -115,7 +115,7 @@ namespace HotChocolate
         /// </returns>
         public IReadOnlyList<ObjectType> GetPossibleTypes(INamedType abstractType)
         {
-            if (abstractType == null)
+            if (abstractType is null)
             {
                 throw new ArgumentNullException(nameof(abstractType));
             }

@@ -25,12 +25,12 @@ namespace HotChocolate.Utilities.Serialization
         {
             ConstructorInfo[] constructors = type.GetConstructors(
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            ConstructorInfo defaultConstructor = constructors.FirstOrDefault(t =>
-                t.GetParameters().Length == 0);
+            ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
+                t => t.GetParameters().Length == 0);
 
             if (properties.Values.All(t => t.CanWrite))
             {
-                if (defaultConstructor is { })
+                if (defaultConstructor is not null)
                 {
                     return defaultConstructor;
                 }

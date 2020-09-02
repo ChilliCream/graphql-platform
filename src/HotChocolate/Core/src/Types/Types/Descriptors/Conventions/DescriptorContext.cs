@@ -130,17 +130,17 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
             IDictionary<string, object?> contextData)
         {
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (conventions == null)
+            if (conventions is null)
             {
                 throw new ArgumentNullException(nameof(conventions));
             }

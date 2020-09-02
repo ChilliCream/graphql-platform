@@ -11,12 +11,12 @@ namespace HotChocolate.Execution
             this IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
 
-            if (request == null)
+            if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -30,7 +30,7 @@ namespace HotChocolate.Execution
             this IRequestExecutor executor,
             string query)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -52,7 +52,7 @@ namespace HotChocolate.Execution
             string query,
             CancellationToken cancellationToken)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution
                     nameof(query));
             }
 
-            if (variableValues == null)
+            if (variableValues is null)
             {
                 throw new ArgumentNullException(nameof(variableValues));
             }
@@ -105,7 +105,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues,
             CancellationToken cancellationToken)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -117,7 +117,7 @@ namespace HotChocolate.Execution
                     nameof(query));
             }
 
-            if (variableValues == null)
+            if (variableValues is null)
             {
                 throw new ArgumentNullException(nameof(variableValues));
             }
@@ -134,12 +134,12 @@ namespace HotChocolate.Execution
             this IRequestExecutor executor,
             IReadOnlyQueryRequest request)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
 
-            if (request == null)
+            if (request is null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -155,7 +155,7 @@ namespace HotChocolate.Execution
             this IRequestExecutor executor,
             string query)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -178,7 +178,7 @@ namespace HotChocolate.Execution
             string query,
             IReadOnlyDictionary<string, object> variableValues)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
                     nameof(query));
             }
 
-            if (variableValues == null)
+            if (variableValues is null)
             {
                 throw new ArgumentNullException(nameof(variableValues));
             }
@@ -207,12 +207,12 @@ namespace HotChocolate.Execution
             Action<IQueryRequestBuilder> buildRequest,
             CancellationToken cancellationToken)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
 
-            if (buildRequest == null)
+            if (buildRequest is null)
             {
                 throw new ArgumentNullException(nameof(buildRequest));
             }
@@ -229,12 +229,12 @@ namespace HotChocolate.Execution
             this IRequestExecutor executor,
             Action<IQueryRequestBuilder> buildRequest)
         {
-            if (executor == null)
+            if (executor is null)
             {
                 throw new ArgumentNullException(nameof(executor));
             }
 
-            if (buildRequest == null)
+            if (buildRequest is null)
             {
                 throw new ArgumentNullException(nameof(buildRequest));
             }

@@ -26,18 +26,18 @@ namespace HotChocolate.Types.Descriptors
 
         void ILazyTypeConfiguration.Configure(ITypeCompletionContext context)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (Definition == null)
+            if (Definition is null)
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeConfiguration_DefinitionIsNull);
             }
 
-            if (Configure == null)
+            if (Configure is null)
             {
                 throw new InvalidOperationException(
                     TypeResources.TypeConfiguration_ConfigureIsNull);

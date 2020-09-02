@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using HotChocolate.Data.Filters.Expressions;
 
 namespace HotChocolate.Data.Filters

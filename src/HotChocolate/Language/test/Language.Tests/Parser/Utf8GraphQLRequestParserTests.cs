@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
-using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Language
 {

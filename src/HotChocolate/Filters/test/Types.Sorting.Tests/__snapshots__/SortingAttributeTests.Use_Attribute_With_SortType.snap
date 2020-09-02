@@ -3,8 +3,8 @@
 }
 
 type Model {
-  bar: Int!
   foo: String
+  bar: Int!
 }
 
 type Query2 {

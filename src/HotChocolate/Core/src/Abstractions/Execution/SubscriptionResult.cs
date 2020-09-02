@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -14,8 +15,8 @@ namespace HotChocolate.Execution
         private readonly IReadOnlyDictionary<string, object?>? _extensions;
         private readonly IReadOnlyDictionary<string, object?>? _contextData;
         private readonly IAsyncDisposable? _session;
-        private bool _isRead = false;
-        private bool _disposed = false;
+        private bool _isRead;
+        private bool _disposed;
 
         public SubscriptionResult(
             Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
@@ -72,16 +73,14 @@ namespace HotChocolate.Execution
         {
             if (_resultStreamFactory is null)
             {
-                // todo : throw helper
                 throw new InvalidOperationException(
-                    "This result has errors and cannot read from the response stream.");
+                    AbstractionResources.SubscriptionResult_ResultHasErrors);
             }
 
             if (_isRead)
             {
-                // todo : throw helper
                 throw new InvalidOperationException(
-                    "You can only read a response stream once.");
+                    AbstractionResources.SubscriptionResult_ReadOnlyOnce);
             }
 
             if (_disposed)
@@ -110,7 +109,7 @@ namespace HotChocolate.Execution
             private readonly IAsyncDisposable? _aa;
             private readonly Action? _ab;
             private readonly IAsyncDisposable _b;
-            private bool _disposed = false;
+            private bool _disposed;
 
             public CombinedDispose(IAsyncDisposable a, IAsyncDisposable b)
             {

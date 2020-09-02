@@ -180,7 +180,7 @@ namespace HotChocolate.Types
         private void CompleteResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            if (resolveAbstractType == null)
+            if (resolveAbstractType is null)
             {
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.

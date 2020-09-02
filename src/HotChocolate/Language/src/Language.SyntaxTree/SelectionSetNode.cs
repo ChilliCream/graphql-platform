@@ -21,7 +21,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(selections));
         }
 
-        public NodeKind Kind { get; } = NodeKind.SelectionSet;
+        public SyntaxKind Kind { get; } = SyntaxKind.SelectionSet;
 
         public Location? Location { get; }
 

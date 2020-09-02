@@ -187,7 +187,7 @@ namespace HotChocolate.Execution.Utilities
         {
             switch (selection.Kind)
             {
-                case NodeKind.Field:
+                case SyntaxKind.Field:
                     ResolveFieldSelection(
                         typeContext,
                         (FieldNode)selection,
@@ -197,7 +197,7 @@ namespace HotChocolate.Execution.Utilities
                         internalSelection);
                     break;
 
-                case NodeKind.InlineFragment:
+                case SyntaxKind.InlineFragment:
                     ResolveInlineFragment(
                         typeContext,
                         (InlineFragmentNode)selection,
@@ -207,7 +207,7 @@ namespace HotChocolate.Execution.Utilities
                         internalSelection);
                     break;
 
-                case NodeKind.FragmentSpread:
+                case SyntaxKind.FragmentSpread:
                     ResolveFragmentSpread(
                         typeContext,
                         (FragmentSpreadNode)selection,
@@ -228,7 +228,7 @@ namespace HotChocolate.Execution.Utilities
             bool internalSelection)
         {
             NameString fieldName = selection.Name.Value;
-            NameString responseName = selection.Alias == null
+            NameString responseName = selection.Alias is null
                 ? selection.Name.Value
                 : selection.Alias.Value;
 
@@ -327,7 +327,7 @@ namespace HotChocolate.Execution.Utilities
             IValueNode? skip = selection.Directives.SkipValue();
             IValueNode? include = selection.Directives.IncludeValue();
 
-            if (skip == null && include == null)
+            if (skip is null && include is null)
             {
                 return visibility;
             }
@@ -435,20 +435,18 @@ namespace HotChocolate.Execution.Utilities
                         ParseLiteral(argument.Type, value),
                         value);
                 }
-                catch (ScalarSerializationException ex)
+                catch (SerializationException ex)
                 {
-                    if (argumentValue is { })
+                    if (argumentValue is not null)
                     {
                         return new PreparedArgument(
                             argument,
                             ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                     }
-                    else
-                    {
-                        return new PreparedArgument(
-                            argument,
-                            ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
-                    }
+
+                    return new PreparedArgument(
+                        argument,
+                        ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
                 }
             }
 
@@ -465,11 +463,11 @@ namespace HotChocolate.Execution.Utilities
         {
             switch (valueLiteral.Kind)
             {
-                case NodeKind.Variable:
-                case NodeKind.ObjectValue:
+                case SyntaxKind.Variable:
+                case SyntaxKind.ObjectValue:
                     return false;
 
-                case NodeKind.ListValue:
+                case SyntaxKind.ListValue:
                     ListValueNode list = (ListValueNode)valueLiteral;
                     for (var i = 0; i < list.Items.Count; i++)
                     {

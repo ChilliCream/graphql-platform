@@ -69,7 +69,7 @@ namespace HotChocolate
         internal void CompleteSchema(
             SchemaTypesDefinition schemaTypesDefinition)
         {
-            if (schemaTypesDefinition == null)
+            if (schemaTypesDefinition is null)
             {
                 throw new ArgumentNullException(nameof(schemaTypesDefinition));
             }

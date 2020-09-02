@@ -1,7 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
-using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;

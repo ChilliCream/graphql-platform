@@ -19,7 +19,7 @@ namespace HotChocolate.Language
             var argument = new ArgumentNode(location, name, value);
 
             // assert
-            Assert.Equal(NodeKind.Argument, argument.Kind);
+            Assert.Equal(SyntaxKind.Argument, argument.Kind);
             Assert.Equal(location, argument.Location);
             Assert.Equal(name, argument.Name);
             Assert.Equal(value, argument.Value);
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
             var argument = new ArgumentNode(name, value);
 
             // assert
-            Assert.Equal(NodeKind.Argument, argument.Kind);
+            Assert.Equal(SyntaxKind.Argument, argument.Kind);
             Assert.Null(argument.Location);
             Assert.Equal(name, argument.Name);
             Assert.Equal(value, argument.Value);
@@ -53,7 +53,7 @@ namespace HotChocolate.Language
             var argument = new ArgumentNode(name, value);
 
             // assert
-            Assert.Equal(NodeKind.Argument, argument.Kind);
+            Assert.Equal(SyntaxKind.Argument, argument.Kind);
             Assert.Null(argument.Location);
             Assert.Equal(name, argument.Name.Value);
             Assert.Equal(value, argument.Value);

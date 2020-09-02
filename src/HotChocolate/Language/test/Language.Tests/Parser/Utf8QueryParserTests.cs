@@ -26,7 +26,7 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
                     Assert.Null(operationDefinition.Name);
                     Assert.Equal(OperationType.Query, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.VariableDefinitions);
@@ -80,7 +80,7 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
                     Assert.Equal("a", operationDefinition.Name.Value);
                     Assert.Equal(expectedOperation, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.Directives);
@@ -138,7 +138,7 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
                     Assert.Equal("a", operationDefinition.Name.Value);
                     Assert.Equal(OperationType.Query, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.VariableDefinitions);

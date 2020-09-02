@@ -557,6 +557,49 @@ namespace HotChocolate.Types.Descriptors
             Assert.Throws<ArgumentNullException>(Action);
         }
 
+        [Fact]
+        public void CollectNullability_Nullable_StringType()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType extendedType = typeInspector.GetType(typeof(StringType));
+
+            // act
+            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+
+            // assert
+            Assert.Collection(nullability, item => Assert.True(item));
+        }
+
+        [Fact]
+        public void CollectNullability_NonNull_StringType()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType extendedType = typeInspector.GetType(typeof(NonNullType<StringType>));
+
+            // act
+            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+
+            // assert
+            Assert.Collection(nullability, item => Assert.False(item));
+        }
+
+         [Fact]
+        public void CollectNullability_List_NonNull_StringType()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType extendedType = typeInspector.GetType(
+                typeof(ListType<NonNullType<StringType>>));
+
+            // act
+            bool?[] nullability = typeInspector.CollectNullability(extendedType);
+
+            // assert
+            Assert.Collection(nullability, item => Assert.True(item), item => Assert.False(item));
+        }
+
         public class ObjectPropWithTypeAttribute
         {
             public object ShouldNotBeFound { get; }
@@ -627,7 +670,7 @@ namespace HotChocolate.Types.Descriptors
             public Task<object> ShouldBeFound() => null;
         }
 
-         public class ValueTaskObjectMethodWithTypeAttribute
+        public class ValueTaskObjectMethodWithTypeAttribute
         {
             public ValueTask<object> ShouldNotBeFound() => default;
 
@@ -655,7 +698,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        #nullable enable
+#nullable enable
 
         public class Foo
         {
@@ -664,7 +707,7 @@ namespace HotChocolate.Types.Descriptors
             public List<string> Baz(string s) => throw new NotImplementedException();
         }
 
-        #nullable restore
+#nullable restore
 
         public enum BarEnum
         {

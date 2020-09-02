@@ -40,14 +40,19 @@ namespace HotChocolate.Configuration
             new
             {
                 registered = typeRegistry.Types
-                    .Select(t => t.Type)
-                    .OfType<IHasRuntimeType>()
-                    .ToDictionary(
-                        t => t.GetType().GetTypeName(),
-                        t => t.RuntimeType.GetTypeName()),
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr 
+                            ? hr.RuntimeType.GetTypeName() 
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
+
                 runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
+
             }.MatchSnapshot();
         }
 
@@ -78,14 +83,19 @@ namespace HotChocolate.Configuration
             new
             {
                 registered = typeRegistry.Types
-                    .Select(t => t.Type)
-                    .OfType<IHasRuntimeType>()
-                    .ToDictionary(
-                        t => t.GetType().GetTypeName(),
-                        t => t.RuntimeType.GetTypeName()),
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr 
+                            ? hr.RuntimeType.GetTypeName() 
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
+
                 runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
+
             }.MatchSnapshot();
         }
 
@@ -116,14 +126,19 @@ namespace HotChocolate.Configuration
             new
             {
                 registered = typeRegistry.Types
-                    .Select(t => t.Type)
-                    .OfType<IHasRuntimeType>()
-                    .ToDictionary(
-                        t => t.GetType().GetTypeName(),
-                        t => t.RuntimeType.GetTypeName()),
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr 
+                            ? hr.RuntimeType.GetTypeName() 
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
+
                 runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
+
             }.MatchSnapshot();
         }
 
@@ -155,14 +170,19 @@ namespace HotChocolate.Configuration
             new
             {
                 registered = typeRegistry.Types
-                    .Select(t => t.Type)
-                    .OfType<IHasRuntimeType>()
-                    .ToDictionary(
-                        t => t.GetType().GetTypeName(),
-                        t => t.RuntimeType.GetTypeName()),
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr 
+                            ? hr.RuntimeType.GetTypeName() 
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
+
                 runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
                     t => t.Key.ToString(),
                     t => t.Value.ToString())
+
             }.MatchSnapshot();
         }
 

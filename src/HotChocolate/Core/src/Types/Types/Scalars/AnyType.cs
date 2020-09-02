@@ -6,6 +6,8 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public sealed class AnyType
@@ -36,7 +38,7 @@ namespace HotChocolate.Types
 
         protected override void OnCompleteType(
             ITypeCompletionContext context,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object?> contextData)
         {
             _converter = context.Services.GetTypeConverter();
             _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
@@ -45,7 +47,7 @@ namespace HotChocolate.Types
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -66,7 +68,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
         {
             switch (literal)
             {
@@ -92,22 +94,23 @@ namespace HotChocolate.Types
                     return null;
 
                 default:
-                    throw new ScalarSerializationException(
-                        TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                            Name, literal.GetType()));
+                    throw new SerializationException(
+                        TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
+                        this);
             }
         }
 
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? value)
         {
             if (value is null)
             {
                 return NullValueNode.Default;
             }
+
             return ParseValue(value, new HashSet<object>());
         }
 
-        private IValueNode ParseValue(object value, ISet<object> set)
+        private IValueNode ParseValue(object? value, ISet<object> set)
         {
             if (value is null)
             {
@@ -171,20 +174,23 @@ namespace HotChocolate.Types
             }
 
             // TODO : resources
-            throw new ScalarSerializationException(
-                "Cycle in object graph detected.");
+            throw new SerializationException(
+                "Cycle in object graph detected.",
+                this);
         }
 
+        public override IValueNode ParseResult(object? resultValue) =>
+            ParseValue(resultValue);
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            switch (value)
+            switch (runtimeValue)
             {
                 case string _:
                 case short _:
@@ -194,28 +200,28 @@ namespace HotChocolate.Types
                 case double _:
                 case decimal _:
                 case bool _:
-                    serialized = value;
+                    resultValue = runtimeValue;
                     return true;
 
                 default:
-                    Type type = value.GetType();
+                    Type type = runtimeValue.GetType();
 
                     if (type.IsValueType && _converter.TryConvert(
-                        type, typeof(string), value, out object converted)
+                        type, typeof(string), runtimeValue, out object converted)
                         && converted is string c)
                     {
-                        serialized = c;
+                        resultValue = c;
                         return true;
                     }
 
-                    serialized = _objectToDictConverter.Convert(value);
+                    resultValue = _objectToDictConverter.Convert(runtimeValue);
                     return true;
             }
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            value = serialized;
+            runtimeValue = resultValue;
             return true;
         }
     }

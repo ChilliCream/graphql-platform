@@ -10,12 +10,13 @@ namespace HotChocolate.Types
         , IOutputField
         where TDefinition : OutputFieldDefinitionBase
     {
-        internal OutputFieldBase(TDefinition definition)
+        internal OutputFieldBase(TDefinition definition, bool sortArgumentsByName)
             : base(definition)
         {
             SyntaxNode = definition.SyntaxNode;
             Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(t => new Argument(t)));
+                definition.Arguments.Select(t => new Argument(t)),
+                sortArgumentsByName);
             IsDeprecated = !string.IsNullOrEmpty(
                 definition.DeprecationReason);
             DeprecationReason = definition.DeprecationReason;

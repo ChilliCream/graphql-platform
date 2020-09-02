@@ -13,7 +13,7 @@ namespace HotChocolate.Utilities.Serialization
                 new DictionaryPoolPolicy(),
                 32);
 
-        public static object Parse(
+        public static object ParseLiteral(
             InputObjectType type,
             ObjectValueNode value,
             InputObjectFactory factory,
@@ -33,7 +33,7 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static object Parse(
+        public static object ParseLiteralToDictionary(
             InputObjectType type,
             ObjectValueNode value,
             ITypeConverter converter)
@@ -52,7 +52,7 @@ namespace HotChocolate.Utilities.Serialization
             IDictionary<string, object> target,
             ITypeConverter converter)
         {
-            for (int i = 0; i < source.Fields.Count; i++)
+            for (var i = 0; i < source.Fields.Count; i++)
             {
                 ObjectFieldNode fieldValue = source.Fields[i];
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
@@ -62,9 +62,10 @@ namespace HotChocolate.Utilities.Serialization
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Name.Value}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -89,7 +90,7 @@ namespace HotChocolate.Utilities.Serialization
             }
         }
 
-        public static Dictionary<string, object> Deserialize(
+        public static Dictionary<string, object> DeserializeToDictionary(
             InputObjectType type,
             IReadOnlyDictionary<string, object> value,
             ITypeConverter converter)
@@ -117,9 +118,10 @@ namespace HotChocolate.Utilities.Serialization
                 }
                 else
                 {
-                    throw new InputObjectSerializationException(
+                    throw new SerializationException(
                         $"The field `{fieldValue.Key}` does not exist on " +
-                        $"the type `{type.Name}`.");
+                        $"the type `{type.Name}`.",
+                        type);
                 }
             }
         }
@@ -131,11 +133,21 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (InputField field in type.Fields)
             {
-                if (!field.IsOptional && !dict.ContainsKey(field.Name))
+                if (!dict.ContainsKey(field.Name))
                 {
-                    object value = field.Type.ParseLiteral(
-                        field.DefaultValue ?? NullValueNode.Default);
-                    dict[field.Name] = ConvertValue(field, converter, value);
+                    if (field.IsOptional)
+                    {
+                        continue;
+                    }
+
+                    IValueNode valueSyntax = field.DefaultValue ?? NullValueNode.Default;
+
+                    dict.Add(
+                        field.Name,
+                        ConvertValue(
+                            field,
+                            converter,
+                            field.Type.ParseLiteral(valueSyntax, false)));
                 }
             }
         }

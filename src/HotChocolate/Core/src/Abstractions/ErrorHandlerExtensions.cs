@@ -9,12 +9,12 @@ namespace HotChocolate
             this IErrorHandler errorHandler,
             IEnumerable<IError> errors)
         {
-            if (errorHandler == null)
+            if (errorHandler is null)
             {
                 throw new ArgumentNullException(nameof(errorHandler));
             }
 
-            if (errors == null)
+            if (errors is null)
             {
                 throw new ArgumentNullException(nameof(errors));
             }

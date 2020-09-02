@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
         public NodeDescriptor(IObjectTypeDescriptor typeDescriptor)
         {
-            if (typeDescriptor == null)
+            if (typeDescriptor is null)
             {
                 throw new ArgumentNullException(nameof(typeDescriptor));
             }

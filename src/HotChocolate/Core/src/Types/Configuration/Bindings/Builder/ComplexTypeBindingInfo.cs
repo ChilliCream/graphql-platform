@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (Type == null)
+            if (Type is null)
             {
                 return false;
             }

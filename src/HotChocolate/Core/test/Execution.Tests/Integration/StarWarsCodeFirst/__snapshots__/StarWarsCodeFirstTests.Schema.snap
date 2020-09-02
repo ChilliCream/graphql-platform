@@ -5,21 +5,21 @@
 }
 
 interface Character {
-  appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
-  height(unit: Unit): Float
   id: ID!
   name: String
+  friends(first: PaginationAmount after: String last: PaginationAmount before: String): CharacterConnection
+  appearsIn: [Episode]
+  height(unit: Unit): Float
 }
 
 "A connection to a list of items."
 type CharacterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
   "A list of edges."
   edges: [CharacterEdge!]
   "A flattened list of the nodes."
   nodes: [Character]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
   totalCount: Int!
 }
 
@@ -32,22 +32,22 @@ type CharacterEdge {
 }
 
 type Droid implements Character {
-  appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
-  height(unit: Unit): Float
   id: ID!
+  appearsIn: [Episode]
+  friends(first: PaginationAmount after: String last: PaginationAmount before: String): CharacterConnection
+  height(unit: Unit): Float
   name: String
   primaryFunction: String
 }
 
 type Human implements Character {
-  appearsIn: [Episode]
-  friends(after: String before: String first: PaginationAmount last: PaginationAmount): CharacterConnection
-  height(unit: Unit): Float
-  homePlanet: String
   id: ID!
-  name: String
+  appearsIn: [Episode]
+  friends(first: PaginationAmount after: String last: PaginationAmount before: String): CharacterConnection
   otherHuman: Human
+  height(unit: Unit): Float
+  name: String
+  homePlanet: String
 }
 
 type Mutation {
@@ -56,34 +56,34 @@ type Mutation {
 
 "Information about pagination in a connection."
 type PageInfo {
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type Query {
-  character(characterIds: [String]): [Character!]!
-  droid(id: String): Droid
   hero(episode: Episode! = NEW_HOPE): Character
   heroes(episodes: [Episode!]): [Character!]
-  human(id: String): Human
+  character(characterIds: [String]): [Character!]!
   search(text: String): [SearchResult]
+  human(id: String): Human
+  droid(id: String): Droid
 }
 
 type Review {
-  commentary: String
   stars: Int!
+  commentary: String
 }
 
 type Starship {
   id: String
-  length: Float!
   name: String
+  length: Float!
 }
 
 type Subscription {
@@ -93,8 +93,8 @@ type Subscription {
 union SearchResult = Starship | Human | Droid
 
 input ReviewInput {
-  commentary: String
   stars: Int!
+  commentary: String
 }
 
 enum Episode {

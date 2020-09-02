@@ -116,7 +116,7 @@ namespace HotChocolate.Execution.Channels
 
             return
                 !IsCompleted ? ValueTaskSourceStatus.Pending :
-                _error == null ? ValueTaskSourceStatus.Succeeded :
+                _error is null ? ValueTaskSourceStatus.Succeeded :
                 _error.SourceException is OperationCanceledException ? ValueTaskSourceStatus.Canceled :
                 ValueTaskSourceStatus.Faulted;
         }
@@ -230,14 +230,14 @@ namespace HotChocolate.Execution.Channels
             _continuationState = state;
 
             // Capture the execution context if necessary.
-            Debug.Assert(_executionContext == null);
+            Debug.Assert(_executionContext is null);
             if ((flags & ValueTaskSourceOnCompletedFlags.FlowExecutionContext) != 0)
             {
                 _executionContext = System.Threading.ExecutionContext.Capture();
             }
 
             // Capture the scheduling context if necessary.
-            Debug.Assert(_schedulingContext == null);
+            Debug.Assert(_schedulingContext is null);
             SynchronizationContext? sc = null;
             TaskScheduler? ts = null;
             if ((flags & ValueTaskSourceOnCompletedFlags.UseSchedulingContext) != 0)
@@ -279,7 +279,7 @@ namespace HotChocolate.Execution.Channels
                 // Queue the continuation.  We always queue here, even if !RunContinuationsAsynchronously, in order
                 // to avoid stack diving; this path happens in the rare race when we're setting up to await and the
                 // object is completed after the awaiter.IsCompleted but before the awaiter.OnCompleted.
-                if (_schedulingContext == null)
+                if (_schedulingContext is null)
                 {
                     QueueUserWorkItem(continuation, state);
                 }
@@ -376,7 +376,7 @@ namespace HotChocolate.Execution.Channels
                 Debug.Assert(_continuation != s_completedSentinel, $"The continuation was the completion sentinel.");
                 Debug.Assert(_continuation != s_availableSentinel, $"The continuation was the available sentinel.");
 
-                if (_schedulingContext == null)
+                if (_schedulingContext is null)
                 {
                     // There's no captured scheduling context.  If we're forced to run continuations asynchronously, queue it.
                     // Otherwise fall through to invoke it synchronously.
@@ -419,7 +419,7 @@ namespace HotChocolate.Execution.Channels
 
         private void SetCompletionAndInvokeContinuation()
         {
-            if (_executionContext == null)
+            if (_executionContext is null)
             {
                 Action<object?> c = _continuation!;
                 _continuation = s_completedSentinel;

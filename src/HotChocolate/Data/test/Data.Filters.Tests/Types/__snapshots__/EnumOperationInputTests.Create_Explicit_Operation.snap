@@ -8,15 +8,15 @@ type Query {
 
 input EnumOperationInputOfFooBarFilterInput {
   eq: FooBar
-  in: [FooBar!]
   neq: FooBar
+  in: [FooBar!]
   nin: [FooBar!]
 }
 
 input FooFilterTypeFilterInput {
   and: [FooFilterTypeFilterInput!]
-  comparable: EnumOperationInputOfFooBarFilterInput
   or: [FooFilterTypeFilterInput!]
+  comparable: EnumOperationInputOfFooBarFilterInput
 }
 
 enum FooBar {

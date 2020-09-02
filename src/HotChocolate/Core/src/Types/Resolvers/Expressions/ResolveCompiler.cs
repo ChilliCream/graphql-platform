@@ -51,7 +51,7 @@ namespace HotChocolate.Resolvers.Expressions
             MemberInfo member,
             Type sourceType)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }

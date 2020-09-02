@@ -162,4 +162,10 @@
   <data name="Location_Column_Is_1_Based" xml:space="preserve">
     <value>column is a 1-base index and cannot be less than one.</value>
   </data>
+  <data name="SubscriptionResult_ResultHasErrors" xml:space="preserve">
+    <value>This result has errors and cannot read from the response stream.</value>
+  </data>
+  <data name="SubscriptionResult_ReadOnlyOnce" xml:space="preserve">
+    <value>You can only read a response stream once.</value>
+  </data>
 </root>

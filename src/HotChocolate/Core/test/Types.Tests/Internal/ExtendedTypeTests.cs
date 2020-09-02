@@ -75,6 +75,7 @@ namespace HotChocolate.Internal
             ExtendedType extendedType = ExtendedType.FromType(typeof(ListType<StringType>), _cache);
 
             // assert
+            Assert.True(extendedType.IsSchemaType);
             Assert.True(extendedType.IsGeneric);
             Assert.Collection(extendedType.TypeArguments.Select(t => t.Type),
                 t => Assert.Equal(typeof(StringType), t));
@@ -90,8 +91,61 @@ namespace HotChocolate.Internal
                 _cache);
 
             // assert
+            Assert.True(extendedType.IsSchemaType);
             Assert.True(extendedType.IsGeneric);
             Assert.False(extendedType.IsNullable);
+        }
+
+        [Fact]
+        public void From_IntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(IntType),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.False(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNullable);
+        }
+
+        [Fact]
+        public void From_InputObjectOfIntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(InputObjectType<IntType>),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.True(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNamedType);
+            Assert.True(extendedType.IsNullable);
+
+            IExtendedType argument = extendedType.TypeArguments[0];
+            Assert.True(argument.IsSchemaType);
+            Assert.False(argument.IsGeneric);
+            Assert.True(extendedType.IsNamedType);
+            Assert.True(argument.IsNullable);
+        }
+
+        [Fact]
+        public void From_NativeTypeIntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(NativeType<IntType>),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.False(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNullable);
         }
 
         [Fact]
@@ -248,12 +302,12 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
         [InlineData(typeof(string[]), "[String]", "String")]
         [InlineData(
-            typeof(Task<IAsyncEnumerable<string>>), 
-            "IAsyncEnumerable<String>", 
+            typeof(Task<IAsyncEnumerable<string>>),
+            "IAsyncEnumerable<String>",
             "String")]
         [InlineData(
-            typeof(ValueTask<IAsyncEnumerable<string>>), 
-            "IAsyncEnumerable<String>", 
+            typeof(ValueTask<IAsyncEnumerable<string>>),
+            "IAsyncEnumerable<String>",
             "String")]
         [Theory]
         public void SupportedListTypes(Type type, string listTypeName, string elementTypeName)

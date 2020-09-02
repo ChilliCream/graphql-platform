@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions

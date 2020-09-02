@@ -1,6 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -40,14 +42,17 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override string ParseLiteral(StringValueNode literal)
+        protected override string ParseLiteral(StringValueNode valueSyntax)
         {
-            return literal.Value;
+            return valueSyntax.Value;
         }
 
-        protected override StringValueNode ParseValue(string value)
+        protected override StringValueNode ParseValue(string runtimeValue)
         {
-            return new StringValueNode(value);
+            return new StringValueNode(runtimeValue);
         }
+
+        public override IValueNode ParseResult(object? resultValue) =>
+            ParseValue(resultValue);
     }
 }

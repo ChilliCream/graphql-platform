@@ -1,7 +1,7 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using HotChocolate.Internal;
 
 #nullable enable
@@ -156,6 +156,21 @@ namespace HotChocolate.Types.Descriptors
         IExtendedType GetType(Type type, params bool?[] nullable);
 
         /// <summary>
+        /// Gets the extended type representation for the provided <paramref name="type"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="nullable">
+        /// Defines an array that specifies how to apply nullability information
+        /// to the type components.
+        /// </param>
+        /// <returns>
+        /// Returns the extended type representation for the provided <paramref name="type"/>.
+        /// </returns>
+        IExtendedType GetType(Type type, ReadOnlySpan<bool?> nullable);
+
+        /// <summary>
         /// Extracts the values of an enum type.
         /// </summary>
         /// <param name="enumType">
@@ -258,9 +273,49 @@ namespace HotChocolate.Types.Descriptors
         /// <returns>
         /// Returns a new type that conforms to the new nullability pattern.
         /// </returns>
-        IExtendedType ChangeNullability(
-            IExtendedType type,
-            params bool?[] nullable);
+        IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable);
+
+        /// <summary>
+        /// Rewrites a types nullability.
+        /// </summary>
+        /// <param name="type">
+        /// The original type.
+        /// </param>
+        /// <param name="nullable">
+        /// The new nullability pattern.
+        /// </param>
+        /// <returns>
+        /// Returns a new type that conforms to the new nullability pattern.
+        /// </returns>
+        IExtendedType ChangeNullability(IExtendedType type, ReadOnlySpan<bool?> nullable);
+
+        /// <summary>
+        /// Collects the nullability information from the given type.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <returns>
+        /// Returns the nullability from the type.
+        /// </returns>
+        bool?[] CollectNullability(IExtendedType type);
+
+        /// <summary>
+        /// Collects the nullability information from the given type.
+        /// </summary>
+        /// <param name="type">
+        /// The type.
+        /// </param>
+        /// <param name="buffer">
+        /// The buffer to which the nullability status is written to.
+        /// </param>
+        /// <param name="written">
+        /// Specifies how many nullability information was written to the buffer.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if the buffer had sufficient space.
+        /// </returns>
+        bool CollectNullability(IExtendedType type, Span<bool?> buffer, out int written);
 
         /// <summary>
         /// Create a <see cref="ITypeInfo"/> from the given <paramref name="type"/>.

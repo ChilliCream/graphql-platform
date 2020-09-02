@@ -184,6 +184,21 @@ namespace HotChocolate.Types.Descriptors
         }
 
         /// <inheritdoc />
+        public IExtendedType GetType(Type type, ReadOnlySpan<bool?> nullable)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ExtendedType extendedType = ExtendedType.FromType(type, _typeCache);
+
+            return nullable is { Length: > 0 }
+                ? ExtendedType.Tools.ChangeNullability(extendedType, nullable, _typeCache)
+                : extendedType;
+        }
+
+        /// <inheritdoc />
         public virtual IEnumerable<object> GetEnumValues(Type enumType)
         {
             if (enumType is null)
@@ -276,6 +291,7 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public virtual bool TryGetDefaultValue(PropertyInfo property, out object? defaultValue)
         {
             if (property.IsDefined(typeof(CompDefaultValueAttribute)))
@@ -288,14 +304,15 @@ namespace HotChocolate.Types.Descriptors
             return false;
         }
 
+        /// <inheritdoc />
         public IExtendedType ChangeNullability(IExtendedType type, params bool?[] nullable)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (nullable == null)
+            if (nullable is null)
             {
                 throw new ArgumentNullException(nameof(nullable));
             }
@@ -316,12 +333,12 @@ namespace HotChocolate.Types.Descriptors
 
         private IExtendedType ChangeNullabilityInternal(IExtendedType type, params bool[] nullable)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (nullable == null)
+            if (nullable is null)
             {
                 throw new ArgumentNullException(nameof(nullable));
             }
@@ -347,20 +364,69 @@ namespace HotChocolate.Types.Descriptors
             return ExtendedType.Tools.ChangeNullability(type, n, _typeCache);
         }
 
+        /// <inheritdoc />
+        public IExtendedType ChangeNullability(IExtendedType type, ReadOnlySpan<bool?> nullable)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (nullable.Length > 32)
+            {
+                throw new ArgumentException(
+                    "Types with more than 32 components are not supported.");
+            }
+
+            if (nullable.Length == 0)
+            {
+                return type;
+            }
+
+            return ExtendedType.Tools.ChangeNullability(type, nullable, _typeCache);
+        }
+
+        /// <inheritdoc />
+        public bool?[] CollectNullability(IExtendedType type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return ExtendedType.Tools.CollectNullability(type);
+        }
+
+        /// <inheritdoc />
+        public bool CollectNullability(IExtendedType type, Span<bool?> buffer, out int written)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return ExtendedType.Tools.CollectNullability(type, buffer, out written);
+        }
+
+        /// <inheritdoc />
         public ITypeInfo CreateTypeInfo(Type type) =>
             TypeInfo.Create(GetType(type), _typeCache);
 
+        /// <inheritdoc />
         public ITypeInfo CreateTypeInfo(IExtendedType type) =>
             TypeInfo.Create(type, _typeCache);
 
+        /// <inheritdoc />
         public ITypeFactory CreateTypeFactory(IExtendedType type) =>
             TypeInfo.Create(type, _typeCache);
 
+        /// <inheritdoc />
         public bool TryCreateTypeInfo(
             Type type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo) =>
             TryCreateTypeInfo(GetType(type), out typeInfo);
 
+        /// <inheritdoc />
         public bool TryCreateTypeInfo(
             IExtendedType type,
             [NotNullWhen(true)] out ITypeInfo? typeInfo)

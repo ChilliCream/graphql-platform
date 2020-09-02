@@ -5,22 +5,22 @@
 }
 
 type MyMutation {
-  writeFixedMessage(message: String!): String!
-  writeMessage(message: String! userId: String!): String!
-  writeOnExplicit(message: String!): String!
-  writeOnInferTopic(message: String!): String!
+  writeMessage(userId: String! message: String!): String!
   writeSysMessage(message: String!): String!
+  writeFixedMessage(message: String!): String!
+  writeOnInferTopic(message: String!): String!
+  writeOnExplicit(message: String!): String!
 }
 
 type MySubscription {
+  onMessage(userId: String!): String!
+  onSysMessage: String!
+  onFixedMessage: String!
+  onInferTopic: String!
   onExplicit: String!
   onExplicitNonGeneric: String!
   onExplicitNonGenericSync: String!
   onExplicitSync: String!
-  onFixedMessage: String!
-  onInferTopic: String!
-  onMessage(userId: String!): String!
-  onSysMessage: String!
 }
 
 type Query {

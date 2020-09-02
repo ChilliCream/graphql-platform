@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -58,7 +59,7 @@ namespace HotChocolate.Configuration
                 if (_completionContext is null)
                 {
                     throw new InvalidOperationException(
-                        "The completion context has not been initialized.");
+                        TypeResources.RegisteredType_CompletionContext_Not_Initialized);
                 }
 
                 return _completionContext;
@@ -73,16 +74,14 @@ namespace HotChocolate.Configuration
 
         public bool IsDirectiveType { get; }
 
-        public void AddReferences(
-            IReadOnlyList<ITypeReference> references)
+        public void AddReferences(IEnumerable<ITypeReference> references)
         {
             var merged = References.ToList();
             merged.AddRange(references);
             _references = merged;
         }
 
-        public void AddDependencies(
-            IReadOnlyList<TypeDependency> dependencies)
+        public void AddDependencies(IEnumerable<TypeDependency> dependencies)
         {
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
@@ -94,10 +93,15 @@ namespace HotChocolate.Configuration
             if (_completionContext is not null)
             {
                 throw new InvalidOperationException(
-                    "The completion context can only be set once.");
+                    TypeResources.RegisteredType_CompletionContext_Already_Set);
             }
 
             _completionContext = completionContext;
+        }
+
+        public override string? ToString()
+        {
+            return Type.ToString();
         }
     }
 }

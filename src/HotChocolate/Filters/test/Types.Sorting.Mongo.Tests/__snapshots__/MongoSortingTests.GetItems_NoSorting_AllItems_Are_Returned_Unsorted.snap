@@ -1,5 +1,5 @@
 ﻿{
-  "data": {
+  "Data": {
     "items": [
       {
         "foo": "abc"
@@ -8,5 +8,8 @@
         "foo": "def"
       }
     ]
-  }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
 }

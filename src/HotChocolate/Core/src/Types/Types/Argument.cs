@@ -28,7 +28,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ArgumentDefinition definition)
         {
-            if (definition.Type == null)
+            if (definition.Type is null)
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(

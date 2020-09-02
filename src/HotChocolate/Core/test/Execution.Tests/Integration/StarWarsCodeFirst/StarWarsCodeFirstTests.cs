@@ -20,12 +20,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IRequestExecutor executor = await CreateExecutorAsync();
 
             // act
-            string schema = executor.Schema.Print();
+            var schema = executor.Schema.Print();
 
             // assert
             schema.MatchSnapshot();
         }
-        
+
         [Fact]
         public async Task GetHeroName()
         {
