@@ -360,7 +360,7 @@ namespace HotChocolate.Execution
             var builder = QueryRequestBuilder.New();
 
             builder
-                .SetQueryName(request.QueryName)
+                .SetQueryName(request.QueryId)
                 .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)

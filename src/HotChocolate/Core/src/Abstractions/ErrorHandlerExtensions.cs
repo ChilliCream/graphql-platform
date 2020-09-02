@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate
 {
     public static class ErrorHandlerExtensions
     {
-        public static IEnumerable<IError> Handle(
+        public static IReadOnlyList<IError> Handle(
             this IErrorHandler errorHandler,
             IEnumerable<IError> errors)
         {
@@ -19,7 +20,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(errors));
             }
 
-            return HandleEnumerator(errorHandler, errors);
+            return HandleEnumerator(errorHandler, errors).ToList();
         }
 
         private static IEnumerable<IError> HandleEnumerator(

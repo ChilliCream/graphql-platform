@@ -2,7 +2,9 @@
   "ContentType": "application/json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "__typename": "Query"
+    "human": {
+      "name": "Luke Skywalker"
+    }
   },
   "Errors": null,
   "Extensions": null

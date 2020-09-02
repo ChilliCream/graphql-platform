@@ -2,7 +2,9 @@
   "ContentType": "application/json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "__typename": "Query"
+    "HERO": {
+      "name": "R2-D2"
+    }
   },
   "Errors": null,
   "Extensions": null

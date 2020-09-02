@@ -2,7 +2,10 @@
   "ContentType": "application/json; charset=utf-8",
   "StatusCode": "OK",
   "Data": {
-    "__typename": "Query"
+    "createReview": {
+      "stars": 5,
+      "commentary": "This is a great movie!"
+    }
   },
   "Errors": null,
   "Extensions": null

@@ -2,14 +2,12 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Serialization;
 
-namespace HotChocolate.Execution.Batching
+namespace HotChocolate.Execution.Serialization
 {
     public sealed class JsonArrayResponseStreamSerializer
         : IResponseStreamSerializer
     {
-        private const string _contentType = "application/json";
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
@@ -17,26 +15,16 @@ namespace HotChocolate.Execution.Batching
         private readonly JsonQueryResultSerializer _serializer =
             new JsonQueryResultSerializer();
 
-        public string ContentType => _contentType;
-
-        public Task SerializeAsync(
-            IResponseStream responseStream,
-            Stream outputStream) =>
-            SerializeAsync(
-                responseStream,
-                outputStream,
-                CancellationToken.None);
-
         public async Task SerializeAsync(
             IResponseStream responseStream,
             Stream outputStream,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
-            bool delimiter = false;
+            var delimiter = false;
 
             await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1).ConfigureAwait(false);
 
-            await foreach (IReadOnlyQueryResult result in responseStream.ReadResultsAsync()
+            await foreach (IQueryResult result in responseStream.ReadResultsAsync()
                 .WithCancellation(cancellationToken))
             {
                 await WriteNextResultAsync(
@@ -49,7 +37,7 @@ namespace HotChocolate.Execution.Batching
         }
 
         private async Task WriteNextResultAsync(
-            IReadOnlyQueryResult result,
+            IQueryResult result,
             Stream outputStream,
             bool delimiter,
             CancellationToken cancellationToken)
