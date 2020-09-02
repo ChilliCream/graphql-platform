@@ -315,7 +315,6 @@ namespace HotChocolate.Types.Filters
         public async Task DateType_GreaterThan_Filter()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
             IServiceProvider services = new ServiceCollection()
                 .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
