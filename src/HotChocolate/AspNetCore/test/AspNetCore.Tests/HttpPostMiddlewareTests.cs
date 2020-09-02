@@ -438,5 +438,39 @@ namespace HotChocolate.AspNetCore
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task BatchRequest_GetHero_And_GetHuman()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            IReadOnlyList<ClientQueryResult> result =
+                await server.PostAsync(new List<ClientQueryRequest>
+                {
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                        query getHero {
+                            hero(episode: EMPIRE) {
+                                id @export
+                            }
+                        }"
+                    },
+                    new ClientQueryRequest
+                    {
+                        Query = @"
+                        query getHuman {
+                            human(id: $id) {
+                                name
+                            }
+                        }"
+                    }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }

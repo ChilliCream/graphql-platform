@@ -28,6 +28,7 @@ namespace HotChocolate.AspNetCore.Utilities
                     .AddRouting()
                     .AddGraphQLServer()
                         .AddStarWarsTypes()
+                        .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions(),
                 app =>

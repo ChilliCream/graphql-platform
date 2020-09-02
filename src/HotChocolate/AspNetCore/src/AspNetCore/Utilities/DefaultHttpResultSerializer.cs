@@ -10,7 +10,9 @@ namespace HotChocolate.AspNetCore.Utilities
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
         private readonly JsonQueryResultSerializer _queryResultSerializer =
-            new JsonQueryResultSerializer(false);
+            new JsonQueryResultSerializer();
+        private readonly JsonArrayResponseStreamSerializer _responseStreamSerializer =
+            new JsonArrayResponseStreamSerializer();
 
         public string GetContentType(IExecutionResult result) =>
             "application/json; charset=utf-8";
@@ -38,6 +40,13 @@ namespace HotChocolate.AspNetCore.Utilities
             {
                 await _queryResultSerializer.SerializeAsync(
                     q, stream, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            if (result is IResponseStream r)
+            {
+                await _responseStreamSerializer.SerializeAsync(
+                    r, stream, cancellationToken)
                     .ConfigureAwait(false);
             }
         }
