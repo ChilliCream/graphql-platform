@@ -15,14 +15,14 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override int ParseLiteral(IntValueNode literal)
+        protected override int ParseLiteral(IntValueNode valueSyntax)
         {
-            return literal.ToInt32();
+            return valueSyntax.ToInt32();
         }
 
-        protected override IntValueNode ParseValue(int value)
+        protected override IntValueNode ParseValue(int runtimeValue)
         {
-            return new IntValueNode(value);
+            return new IntValueNode(runtimeValue);
         }
     }
 }

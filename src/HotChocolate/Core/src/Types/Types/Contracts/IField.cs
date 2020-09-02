@@ -9,6 +9,7 @@ namespace HotChocolate.Types
         , IHasDescription
         , IHasDirectives
         , IHasSyntaxNode
+        , IHasRuntimeType
     {
         /// <summary>
         /// The type of which declares this field.

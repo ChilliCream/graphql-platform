@@ -75,7 +75,7 @@ namespace HotChocolate.Types
             IResolverContext context,
             object resolverResult)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -119,8 +119,10 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             SyntaxNode = definition.SyntaxNode;
+            var sortFieldsByName = context.DescriptorContext.Options.SortFieldsByName;
             Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t)));
+                definition.Fields.Select(t => new InterfaceField(t, sortFieldsByName)),
+                sortFieldsByName);
 
             CompleteAbstractTypeResolver(
                 context,
@@ -136,7 +138,7 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             ResolveAbstractType? resolveAbstractType)
         {
-            if (resolveAbstractType == null)
+            if (resolveAbstractType is null)
             {
                 Func<ISchema> schemaResolver = context.GetSchemaResolver();
 
@@ -145,7 +147,7 @@ namespace HotChocolate.Types
                 IReadOnlyCollection<ObjectType>? types = null;
                 _resolveAbstractType = (c, r) =>
                 {
-                    if (types == null)
+                    if (types is null)
                     {
                         ISchema schema = schemaResolver.Invoke();
                         types = schema.GetPossibleTypes(this);

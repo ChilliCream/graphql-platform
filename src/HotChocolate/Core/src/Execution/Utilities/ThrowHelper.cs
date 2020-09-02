@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -49,20 +48,9 @@ namespace HotChocolate.Execution.Utilities
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
                 .AddLocation(variableDefinition);
 
-            switch (exception)
+            if (exception is not null)
             {
-                case ScalarSerializationException ex:
-                    errorBuilder.SetExtension("scalarError", ex.Message);
-                    break;
-                case InputObjectSerializationException ex:
-                    errorBuilder.SetExtension("inputObjectError", ex.Message);
-                    break;
-                default:
-                    if (exception is { })
-                    {
-                        errorBuilder.SetException(exception);
-                    }
-                    break;
+                errorBuilder.SetException(exception);
             }
 
             return new GraphQLException(errorBuilder.Build());

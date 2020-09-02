@@ -295,7 +295,7 @@ namespace HotChocolate
                 SchemaTypesDefinition definition =
                     CreateSchemaDefinition(builder, context, typeRegistry);
 
-                if (definition.QueryType == null && builder._options.StrictValidation)
+                if (definition.QueryType is null && builder._options.StrictValidation)
                 {
                     throw new SchemaException(
                         SchemaErrorBuilder.New()

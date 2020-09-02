@@ -38,7 +38,7 @@ namespace HotChocolate.Configuration.Bindings
         public IComplexTypeBindingBuilder AddField(
             Action<IComplexTypeFieldBindingBuilder> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -60,7 +60,7 @@ namespace HotChocolate.Configuration.Bindings
         public IComplexTypeBindingBuilder AddField(
             IComplexTypeFieldBindingBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -90,7 +90,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (_bindingInfo.Type == null)
+            if (_bindingInfo.Type is null)
             {
                 return false;
             }

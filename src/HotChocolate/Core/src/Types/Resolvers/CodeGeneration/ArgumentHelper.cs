@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
         {
-            if (parameter == null)
+            if (parameter is null)
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
@@ -48,7 +48,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (sourceType == null)
+            if (sourceType is null)
             {
                 argumentKind = default(ArgumentKind);
                 return false;

@@ -1386,12 +1386,13 @@ namespace HotChocolate.Types
                 .AddObjectType(t => t
                     .Name("abc")
                     .Field("def")
-                    .Resolver((object)"ghi"))
+                    .Resolve((object)"ghi"))
                 .Create();
 
             // assert
             Assert.Throws<SchemaException>(action)
-                .Errors.MatchSnapshot(o => o.IgnoreField("[0].Extensions"));
+                .Errors.Select(t => new { t.Message, t.Code })
+                .MatchSnapshot();
         }
 
         [Fact]

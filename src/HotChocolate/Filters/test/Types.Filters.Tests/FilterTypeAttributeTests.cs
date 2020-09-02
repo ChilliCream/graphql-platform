@@ -6,6 +6,7 @@ using Xunit;
 namespace HotChocolate.Types.Filters
 {
     public class FilterTypeAttributeTests
+        : TypeTestBase
     {
         [Fact]
         public void GenericTypeDescriptorAttribute_Changes_Name()
@@ -35,8 +36,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                    .Fields
-                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.StringField));
+                        .Fields
+                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.StringField));
         }
 
         [Fact]
@@ -51,8 +52,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                    .Fields
-                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.ComparableField));
+                        .Fields
+                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.ComparableField));
         }
 
         [Fact]
@@ -67,8 +68,8 @@ namespace HotChocolate.Types.Filters
             // assert
             Assert.NotNull(
                 schema.GetType<FilterInputType<FooFields>>("FooFieldsFilter")
-                    .Fields
-                    .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.BooleanField));
+                        .Fields
+                        .FirstOrDefault(x => x.Name == FilterFieldAttributeTest.BooleanField));
         }
 
         [GenericTypeFilterAttribute]
@@ -93,7 +94,7 @@ namespace HotChocolate.Types.Filters
         {
             public static string TypeName { get; } = "ThisIsATest";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)
@@ -112,7 +113,7 @@ namespace HotChocolate.Types.Filters
             public static string ComparableField { get; } = "ComparableField";
             public static string BooleanField { get; } = "BooleanField";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)
@@ -120,23 +121,17 @@ namespace HotChocolate.Types.Filters
                 if (d is IComparableFilterFieldDescriptor fieldComparableDescriptor)
                 {
                     fieldComparableDescriptor
-                        .BindFiltersExplicitly()
-                        .AllowEquals()
-                        .Name(ComparableField);
+                        .BindFiltersExplicitly().AllowEquals().Name(ComparableField);
                 }
                 if (d is IBooleanFilterFieldDescriptor fieldBooleanDescriptor)
                 {
                     fieldBooleanDescriptor
-                        .BindFiltersExplicitly()
-                        .AllowEquals()
-                        .Name(BooleanField);
+                        .BindFiltersExplicitly().AllowEquals().Name(BooleanField);
                 }
                 if (d is IStringFilterFieldDescriptor fieldStringDescriptor)
                 {
                     fieldStringDescriptor
-                        .BindFiltersExplicitly()
-                        .AllowEquals()
-                        .Name(StringField);
+                        .BindFiltersExplicitly().AllowEquals().Name(StringField);
                 }
             }
         }

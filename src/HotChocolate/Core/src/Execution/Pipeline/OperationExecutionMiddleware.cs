@@ -4,7 +4,6 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Pipeline

@@ -11,7 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddInMemorySubscriptions(
             this IServiceCollection services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddInMemorySubscriptions(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

@@ -61,14 +61,19 @@ partial class Build : NukeBuild
             {
                 DotNetBuildSonarSolution(AllSolutionFile);
             }
-
-            DotNetTest(TestSettings);
-
-            TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
-                DevOpsPipeLine?.PublishTestResults(
-                    type: AzurePipelinesTestResultsType.VSTest,
-                    title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
-                    files: new string[] { x }));
+            
+            try 
+            {
+                DotNetTest(TestSettings);
+            }
+            finally 
+            {
+                TestResultDirectory.GlobFiles("*.trx").ForEach(x =>
+                    DevOpsPipeLine?.PublishTestResults(
+                        type: AzurePipelinesTestResultsType.VSTest,
+                        title: $"{Path.GetFileNameWithoutExtension(x)} ({DevOpsPipeLine.StageDisplayName})",
+                        files: new string[] { x }));
+            }
         });
 
     Target Cover => _ => _.DependsOn(Restore)

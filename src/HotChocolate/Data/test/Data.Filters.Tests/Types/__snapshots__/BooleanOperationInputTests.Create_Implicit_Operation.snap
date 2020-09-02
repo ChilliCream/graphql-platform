@@ -13,9 +13,9 @@ input BooleanOperationInputFilterInput {
 
 input FooFilterInput {
   and: [FooFilterInput!]
+  or: [FooFilterInput!]
   boolean: BooleanOperationInputFilterInput
   booleanNullable: BooleanOperationInputFilterInput
-  or: [FooFilterInput!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

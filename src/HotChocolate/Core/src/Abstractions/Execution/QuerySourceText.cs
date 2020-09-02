@@ -40,7 +40,7 @@ namespace HotChocolate.Execution
 
         public ReadOnlySpan<byte> AsSpan()
         {
-            if (_source == null)
+            if (_source is null)
             {
                 _source = Encoding.UTF8.GetBytes(Text);
             }

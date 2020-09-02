@@ -134,5 +134,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("Location_Column_Is_1_Based", resourceCulture);
             }
         }
+        
+        internal static string SubscriptionResult_ResultHasErrors {
+            get {
+                return ResourceManager.GetString("SubscriptionResult_ResultHasErrors", resourceCulture);
+            }
+        }
+        
+        internal static string SubscriptionResult_ReadOnlyOnce {
+            get {
+                return ResourceManager.GetString("SubscriptionResult_ReadOnlyOnce", resourceCulture);
+            }
+        }
     }
 }

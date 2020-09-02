@@ -3,8 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Filters
 {
     public interface IBooleanFilterOperationDescriptor
-        : IDescriptor<FilterOperationDefintion>
-        , IFluent
+        : IBooleanFilterOperationDescriptorBase
     {
         /// <summary>
         /// Define filter operations for another field.
@@ -17,7 +16,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">
         ///  The operation name.
         /// </param>
-        IBooleanFilterOperationDescriptor Name(NameString value);
+        new IBooleanFilterOperationDescriptor Name(NameString value);
 
         /// <summary>
         /// Specify the description of the filter operation.
@@ -25,7 +24,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">
         ///  The operation description.
         /// </param>
-        IBooleanFilterOperationDescriptor Description(string value);
+        new IBooleanFilterOperationDescriptor Description(string value);
 
         /// <summary>
         /// Annotate the operation filter field with a directive.
@@ -36,7 +35,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        IBooleanFilterOperationDescriptor Directive<T>(T directiveInstance)
+        new IBooleanFilterOperationDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        IBooleanFilterOperationDescriptor Directive<T>()
+        new IBooleanFilterOperationDescriptor Directive<T>()
             where T : class, new();
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="arguments">
         /// The argument values of the directive.
         /// </param>
-        IBooleanFilterOperationDescriptor Directive(
+        new IBooleanFilterOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }

@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ILazyTypeConfiguration Build()
         {
-            if (_configure == null)
+            if (_configure is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
                     "before you can build.");
             }
 
-            if (_definition == null)
+            if (_definition is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(

@@ -198,12 +198,12 @@ namespace HotChocolate.Execution.Batching
                 {
                     if (type.NamedType() is IComplexOutputType complexType)
                     {
-                        Type clrType = complexType.ToClrType();
+                        Type clrType = complexType.ToRuntimeType();
                         InputObjectType inputType =
                             _schema.Types.OfType<InputObjectType>()
                                 .First(t => t.RuntimeType == clrType);
 
-                        if (inputType == null)
+                        if (inputType is null)
                         {
                             throw CollectVariablesVisitor_NoCompatibleType(node, path);
                         }

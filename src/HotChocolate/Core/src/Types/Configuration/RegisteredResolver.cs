@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
 
         public RegisteredResolver WithField(IFieldReference field)
         {
-            if (field == null)
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
@@ -47,7 +47,7 @@ namespace HotChocolate.Configuration
 
         public RegisteredResolver WithSourceType(Type sourceType)
         {
-            if (sourceType == null)
+            if (sourceType is null)
             {
                 throw new ArgumentNullException(nameof(sourceType));
             }

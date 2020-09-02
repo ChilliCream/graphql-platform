@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using Moq;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -142,9 +144,9 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
             Assert.Equal(Foo.Bar1, value);
-            Assert.True(type.TryGetValue("BAR2", out value));
+            Assert.True(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Equal(Foo.Bar2, value);
         }
 
@@ -165,9 +167,9 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
             Assert.Equal(Foo.Bar1, value);
-            Assert.False(type.TryGetValue("BAR2", out value));
+            Assert.False(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Null(value);
         }
 
@@ -188,9 +190,9 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.NotNull(type);
-            Assert.True(type.TryGetValue("BAR1", out object value));
+            Assert.True(type.TryGetRuntimeValue("BAR1", out object value));
             Assert.Equal(Foo.Bar1, value);
-            Assert.False(type.TryGetValue("BAR2", out value));
+            Assert.False(type.TryGetRuntimeValue("BAR2", out value));
             Assert.Null(value);
         }
 
@@ -450,8 +452,21 @@ namespace HotChocolate.Types
         public void EnumValue_DefinitionIsNull_ArgumentNullException()
         {
             // arrange
+            var completionContext = new Mock<ITypeCompletionContext>();
+
             // act
-            Action action = () => new EnumValue(null);
+            Action action = () => new EnumValue(completionContext.Object, null!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void EnumValue_ContextIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new EnumValue(null!, new EnumValueDefinition());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -461,11 +476,13 @@ namespace HotChocolate.Types
         public void EnumValue_DefinitionValueIsNull_ArgumentNullException()
         {
             // arrange
+            var completionContext = new Mock<ITypeCompletionContext>();
+
             // act
-            Action action = () => new EnumValue(new EnumValueDefinition());
+            void Action () => new EnumValue(completionContext.Object, new EnumValueDefinition());
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<ArgumentException>(Action);
         }
 
         [Fact]
@@ -477,7 +494,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver<string>("bar"))
+                    .Resolver("bar"))
                 .AddType<FooObsolete>()
                 .Create();
 
@@ -494,7 +511,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("foo")
                     .Type<StringType>()
-                    .Resolver<string>("bar"))
+                    .Resolver("bar"))
                 .AddType<FooDeprecated>()
                 .Create();
 

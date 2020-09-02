@@ -62,7 +62,7 @@ namespace HotChocolate.Language
             _memory = value;
         }
 
-        public NodeKind Kind { get; } = NodeKind.EnumValue;
+        public SyntaxKind Kind { get; } = SyntaxKind.EnumValue;
 
         public Location? Location { get; }
 

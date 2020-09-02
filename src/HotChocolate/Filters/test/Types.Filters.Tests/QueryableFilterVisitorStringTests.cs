@@ -1,31 +1,31 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorStringTests
+        : TypeTestBase
     {
         [Fact]
-        public async Task Create_StringEqual_Expression()
+        public void Create_StringEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -36,22 +36,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringNotEqual_Expression()
+        public void Create_StringNotEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_not",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -62,7 +63,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringIn_Expression()
+        public void Create_StringIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
@@ -73,15 +74,16 @@ namespace HotChocolate.Types.Filters
                         new StringValueNode("c")
                     })));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -92,22 +94,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringIn_SingleValue_Expression()
+        public void Create_StringIn_SingleValue_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_in",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -118,7 +121,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringNotIn_Expression()
+        public void Create_StringNotIn_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
@@ -129,15 +132,16 @@ namespace HotChocolate.Types.Filters
                         new StringValueNode("c")
                     })));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -148,22 +152,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringContains_Expression()
+        public void Create_StringContains_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_contains",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "testatest" };
@@ -174,22 +179,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringNoContains_Expression()
+        public void Create_StringNoContains_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_not_contains",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "testatest" };
@@ -200,22 +206,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringStartsWith_Expression()
+        public void Create_StringStartsWith_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_starts_with",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -226,22 +233,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringNotStartsWith_Expression()
+        public void Create_StringNotStartsWith_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_not_starts_with",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -252,22 +260,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringEndsWith_Expression()
+        public void Create_StringEndsWith_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_ends_with",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };
@@ -278,22 +287,23 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_StringNotEndsWith_Expression()
+        public void Create_StringNotEndsWith_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_not_ends_with",
                     new StringValueNode("a")));
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(
+            var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default);
-            value.Accept(filter);
-            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+                DefaultTypeConverter.Default,
+                true);
+            QueryableFilterVisitor.Default.Visit(value, filterContext);
+            Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
 
             // assert
             var a = new Foo { Bar = "ab" };

@@ -95,12 +95,12 @@ namespace HotChocolate.Types
                 _isOfType = definition.IsOfType;
                 SyntaxNode = definition.SyntaxNode;
 
+                var sortByName = context.DescriptorContext.Options.SortFieldsByName;
                 var fields = new List<ObjectField>();
                 AddIntrospectionFields(context, fields);
                 AddRelayNodeField(context, fields);
-                fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
-
-                Fields = new FieldCollection<ObjectField>(fields);
+                fields.AddRange(definition.Fields.Select(t => new ObjectField(t, sortByName)));
+                Fields = new FieldCollection<ObjectField>(fields, sortByName);
 
                 CompleteInterfacesHelper.Complete(
                     context, definition, RuntimeType, _interfaces, this, SyntaxNode);
@@ -137,7 +137,7 @@ namespace HotChocolate.Types
 
         private void CompleteIsOfType(ITypeCompletionContext context)
         {
-            if (_isOfType == null)
+            if (_isOfType is null)
             {
                 if (context.IsOfType != null)
                 {
@@ -189,7 +189,7 @@ namespace HotChocolate.Types
             IResolverContext context,
             object result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }
@@ -200,7 +200,7 @@ namespace HotChocolate.Types
             IResolverContext context,
             object result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }

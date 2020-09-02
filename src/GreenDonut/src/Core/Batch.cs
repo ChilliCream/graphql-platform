@@ -10,9 +10,9 @@ namespace GreenDonut
         where TKey : notnull
     {
         private readonly object _sync = new object();
-        private bool _hasDispatched = false;
-        private Dictionary<TKey, TaskCompletionSource<TValue>> _items =
+        private readonly Dictionary<TKey, TaskCompletionSource<TValue>> _items =
             new Dictionary<TKey, TaskCompletionSource<TValue>>();
+        private bool _hasDispatched;
 
         public IReadOnlyList<TKey> Keys => _items.Keys.ToArray();
 

@@ -1,5 +1,4 @@
-﻿using HotChocolate.Execution;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 using HotChocolate.Types;
 
 #nullable enable

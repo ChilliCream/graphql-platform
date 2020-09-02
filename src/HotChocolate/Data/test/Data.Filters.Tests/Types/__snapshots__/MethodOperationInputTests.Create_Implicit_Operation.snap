@@ -7,8 +7,8 @@ type Bar {
 }
 
 type Foo {
-  complexMethod: Bar!
   simpleMethod: Boolean!
+  complexMethod: Bar!
 }
 
 type Query {

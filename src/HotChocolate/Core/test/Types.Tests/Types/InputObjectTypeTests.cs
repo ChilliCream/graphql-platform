@@ -838,7 +838,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(new StringValueNode("foo"));
 
             // assert
-            Assert.Throws<InputObjectSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]

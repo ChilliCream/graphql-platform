@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Moq;
@@ -14,9 +13,8 @@ namespace HotChocolate.Types.Sorting
         public void UseSorting_WithoutParams_ShouldRegisterPlaceholderMiddleware()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
-                ObjectFieldDescriptor.New(Context, "field");
-            FieldMiddleware placeholder = next => context => default;
+            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(Context, "field");
+            descriptor.Resolve("abc");
 
             // act
             descriptor.UseSorting();

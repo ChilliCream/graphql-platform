@@ -1,7 +1,15 @@
-﻿input FooFilter {
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooFilter {
   AND: [FooFilter!]
-  bar: String @bar
   OR: [FooFilter!]
+  bar: String @bar
 }
 
 directive @bar on INPUT_FIELD_DEFINITION

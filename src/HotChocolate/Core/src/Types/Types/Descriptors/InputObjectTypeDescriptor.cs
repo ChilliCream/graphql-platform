@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Descriptors
             Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }

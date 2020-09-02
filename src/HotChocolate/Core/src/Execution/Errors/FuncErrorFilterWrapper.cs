@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Errors
 
         public IError OnError(IError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }

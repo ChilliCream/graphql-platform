@@ -20,7 +20,7 @@
       ],
       "Extensions": null,
       "Exception": {
-        "ClassName": "HotChocolate.Types.ScalarSerializationException",
+        "ClassName": "HotChocolate.Types.SerializationException",
         "Message": "Foo cannot serialize the given value.",
         "Data": null,
         "InnerException": null,

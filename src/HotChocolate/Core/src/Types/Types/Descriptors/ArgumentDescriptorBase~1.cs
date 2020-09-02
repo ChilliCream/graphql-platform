@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Descriptors
         public void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
-            if (inputType == null)
+            if (inputType is null)
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
@@ -67,7 +67,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(ITypeReference typeReference)
         {
-            if (typeReference == null)
+            if (typeReference is null)
             {
                 throw new ArgumentNullException(nameof(typeReference));
             }
@@ -78,7 +78,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
+            if (typeNode is null)
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void DefaultValue(object value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Definition.DefaultValue = NullValueNode.Default;
                 Definition.NativeDefaultValue = null;

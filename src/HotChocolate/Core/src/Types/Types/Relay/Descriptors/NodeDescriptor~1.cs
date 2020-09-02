@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
         public NodeDescriptor(IObjectTypeDescriptor<TNode> typeDescriptor)
         {
-            if (typeDescriptor == null)
+            if (typeDescriptor is null)
             {
                 throw new ArgumentNullException(nameof(typeDescriptor));
             }

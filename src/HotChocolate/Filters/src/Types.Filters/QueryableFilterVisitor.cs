@@ -1,169 +1,109 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Language;
-using HotChocolate.Types.Filters.Expressions;
-using HotChocolate.Utilities;
+using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitor
-        : FilterVisitorBase
+        : FilterVisitorBase<QueryableFilterVisitorContext>
     {
-        private const string _parameterName = "t";
-        private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
-        private readonly ParameterExpression _parameter;
-        private readonly ITypeConversion _converter;
-
-        public QueryableFilterVisitor(
-            InputObjectType initialType,
-            Type source,
-            ITypeConversion converter)
-            : this(initialType, source, converter, ExpressionOperationHandlers.All)
+        protected QueryableFilterVisitor()
         {
+
         }
-
-        public QueryableFilterVisitor(
-            InputObjectType initialType,
-            Type source,
-            ITypeConversion converter,
-            IEnumerable<IExpressionOperationHandler> operationHandlers)
-            : base(initialType)
-        {
-            if (initialType is null)
-            {
-                throw new ArgumentNullException(nameof(initialType));
-            }
-            if (source is null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-            if (operationHandlers is null)
-            {
-                throw new ArgumentNullException(nameof(operationHandlers));
-            }
-            if (converter is null)
-            {
-                throw new ArgumentNullException(nameof(converter));
-            }
-
-            _opHandlers = operationHandlers.ToArray();
-
-            _parameter = Expression.Parameter(source, _parameterName);
-            _converter = converter;
-
-            Level.Push(new Queue<Expression>());
-            Instance.Push(_parameter);
-        }
-
-        public Expression<Func<TSource, bool>> CreateFilter<TSource>()
-        {
-            return Expression.Lambda<Func<TSource, bool>>(
-                Level.Peek().Peek(),
-                _parameter);
-        }
-
-        public Expression CreateFilter()
-        {
-            return Expression.Lambda(Level.Peek().Peek(), _parameter);
-        }
-
-        protected Stack<Queue<Expression>> Level { get; } =
-            new Stack<Queue<Expression>>();
-
-        protected Stack<Expression> Instance { get; } =
-            new Stack<Expression>();
 
         #region Object Value
 
-        public override VisitorAction Enter(
+        protected override ISyntaxVisitorAction Enter(
             ObjectValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            Level.Push(new Queue<Expression>());
-            return VisitorAction.Continue;
+            context.PushLevel(new Queue<Expression>());
+            return Continue;
         }
 
-        public override VisitorAction Leave(
+        protected override ISyntaxVisitorAction Leave(
             ObjectValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            Queue<Expression> operations = Level.Pop();
+            Queue<Expression> operations = context.PopLevel();
 
             if (TryCombineOperations(
                 operations,
                 (a, b) => Expression.AndAlso(a, b),
-                out Expression combined))
+                out Expression? combined))
             {
-                Level.Peek().Enqueue(combined);
+                context.GetLevel().Enqueue(combined);
             }
 
-            return VisitorAction.Continue;
+            return Continue;
         }
 
         #endregion
 
         #region Object Field
 
-        public override VisitorAction Enter(
+        protected override ISyntaxVisitorAction Enter(
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            base.Enter(node, parent, path, ancestors);
+            base.Enter(node, context);
 
-            if (Operations.Peek() is FilterOperationField field)
+            if (context.Operations.Peek() is FilterOperationField field)
             {
-                // TODO : needed only if we allow objects
-                // Instance.Push(Expression.Property(
-                //     Instance.Peek(),
-                //     field.Operation.Property));
-
-                for (int i = _opHandlers.Count - 1; i >= 0; i--)
+                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
                 {
-                    if (_opHandlers[i].TryHandle(
+                    if (context.FieldHandlers[i].Enter(
+                        field,
+                        node,
+                        context,
+                        out ISyntaxVisitorAction action))
+                    {
+                        return action;
+                    }
+                }
+                for (var i = context.OperationHandlers.Count - 1; i >= 0; i--)
+                {
+                    if (context.OperationHandlers[i].TryHandle(
                         field.Operation,
                         field.Type,
                         node.Value,
-                        Instance.Peek(),
-                        _converter,
-                        out Expression expression))
+                        context,
+                        out Expression? expression))
                     {
-                        Level.Peek().Enqueue(expression);
+                        context.GetLevel().Enqueue(expression);
                         break;
                     }
                 }
-
-                return VisitorAction.Skip;
+                return SkipAndLeave;
             }
-            return VisitorAction.Continue;
+            return Continue;
         }
 
-        public override VisitorAction Leave(
+        protected override ISyntaxVisitorAction Leave(
             ObjectFieldNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            // TODO : needed only if we allow objects
-            // if (Operations.Peek() is FilterOperationField)
-            // {
-            //     Instance.Pop();
-            // }
-            return base.Leave(node, parent, path, ancestors);
+            if (context.Operations.Peek() is FilterOperationField field)
+            {
+                for (var i = context.FieldHandlers.Count - 1; i >= 0; i--)
+                {
+                    context.FieldHandlers[i].Leave(
+                        field,
+                        node,
+                        context);
+                }
+            }
+            return base.Leave(node, context);
         }
-
 
         private bool TryCombineOperations(
             Queue<Expression> operations,
             Func<Expression, Expression, Expression> combine,
-            out Expression combined)
+            [NotNullWhen(true)] out Expression? combined)
         {
             if (operations.Count != 0)
             {
@@ -185,41 +125,40 @@ namespace HotChocolate.Types.Filters
 
         #region List
 
-        public override VisitorAction Enter(
+        protected override ISyntaxVisitorAction Enter(
             ListValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            Level.Push(new Queue<Expression>());
-            return VisitorAction.Continue;
+            context.PushLevel(new Queue<Expression>());
+            return Continue;
         }
 
-        public override VisitorAction Leave(
+        protected override ISyntaxVisitorAction Leave(
             ListValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+            QueryableFilterVisitorContext context)
         {
-            var combine = Operations.Peek() is OrField
-                ? new Func<Expression, Expression, Expression>(
-                    (a, b) => Expression.OrElse(a, b))
-                : new Func<Expression, Expression, Expression>(
-                    (a, b) => Expression.AndAlso(a, b));
+            Func<Expression, Expression, Expression> combine =
+                context.Operations.Peek() is OrField
+                    ? new Func<Expression, Expression, Expression>(
+                        (a, b) => Expression.OrElse(a, b))
+                    : new Func<Expression, Expression, Expression>(
+                        (a, b) => Expression.AndAlso(a, b));
 
-            Queue<Expression> operations = Level.Pop();
+            Queue<Expression> operations = context.PopLevel();
 
             if (TryCombineOperations(
                 operations,
                 combine,
-                out Expression combined))
+                out Expression? combined))
             {
-                Level.Peek().Enqueue(combined);
+                context.GetLevel().Enqueue(combined);
             }
 
-            return VisitorAction.Continue;
+            return Continue;
         }
 
         #endregion
+
+        public static QueryableFilterVisitor Default = new QueryableFilterVisitor();
     }
 }

@@ -257,7 +257,7 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public virtual bool IsDeprecated(object value, out string? reason)
         {
-            if (value == null)
+            if (value is null)
             {
                 throw new ArgumentNullException(nameof(value));
             }

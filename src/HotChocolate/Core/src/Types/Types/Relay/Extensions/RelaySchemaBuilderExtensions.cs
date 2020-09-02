@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Relay;
 
 namespace HotChocolate
@@ -18,7 +17,7 @@ namespace HotChocolate
         public static ISchemaBuilder UseGlobalObjectIdentifier(
             this ISchemaBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Utilities.ThrowHelper;
 
@@ -18,15 +17,15 @@ namespace HotChocolate.Execution.Utilities
             }
 
             if (skip != null &&
-                skip.Kind != NodeKind.Variable &&
-                skip.Kind != NodeKind.BooleanValue)
+                skip.Kind != SyntaxKind.Variable &&
+                skip.Kind != SyntaxKind.BooleanValue)
             {
                 throw new ArgumentException("skip must be a variable or a boolean value");
             }
 
             if (include != null &&
-                include.Kind != NodeKind.Variable &&
-                include.Kind != NodeKind.BooleanValue)
+                include.Kind != SyntaxKind.Variable &&
+                include.Kind != SyntaxKind.BooleanValue)
             {
                 throw new ArgumentException("skip must be a variable or a boolean value");
             }

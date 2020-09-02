@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
             for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode definitionNode = document.Definitions[i];
-                if (definitionNode.Kind == NodeKind.FragmentDefinition)
+                if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
                 {
                     var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
                     context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;

@@ -1,7 +1,17 @@
-﻿input FooFilter {
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooFilter {
   AND: [FooFilter!]
-  bar: Boolean @bar(qux: "foo")
   OR: [FooFilter!]
+  bar: Boolean @bar(qux: "foo")
+  barNullable: Boolean
+  barNullable_not: Boolean
 }
 
 directive @bar(qux: String) on INPUT_FIELD_DEFINITION

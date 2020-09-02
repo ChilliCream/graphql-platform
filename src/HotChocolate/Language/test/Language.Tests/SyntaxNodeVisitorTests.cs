@@ -161,10 +161,10 @@ namespace HotChocolate.Language
             : SyntaxNodeVisitor
         {
             public Foo()
-                : base(new Dictionary<NodeKind, VisitorAction>
+                : base(new Dictionary<SyntaxKind, VisitorAction>
                 {
-                    { NodeKind.ObjectValue, VisitorAction.Continue },
-                    { NodeKind.ObjectField, VisitorAction.Continue }
+                    { SyntaxKind.ObjectValue, VisitorAction.Continue },
+                    { SyntaxKind.ObjectField, VisitorAction.Continue }
                 })
             {
             }

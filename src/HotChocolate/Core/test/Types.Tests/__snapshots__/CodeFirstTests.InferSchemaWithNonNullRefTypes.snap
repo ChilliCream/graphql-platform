@@ -15,10 +15,10 @@ type Greetings {
 }
 
 type Query {
+  sayHello(name: String!): String!
   greetings(greetings: GreetingsInput!): Greetings!
   pet: IPet!
   petOrNull: IPet
-  sayHello(name: String!): String!
 }
 
 input GreetingsInput {
