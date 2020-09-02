@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore.Utilities
@@ -59,7 +58,37 @@ namespace HotChocolate.AspNetCore.Utilities
                 item.StatusCode = response.StatusCode;
                 item.ContentType = response.Content.Headers.ContentType.ToString();
             }
-            
+
+            return result;
+        }
+
+        public static async Task<IReadOnlyList<ClientQueryResult>> PostOperationAsync(
+            this TestServer testServer,
+            ClientQueryRequest request,
+            string operationNames,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendPostRequestAsync(
+                    testServer,
+                    JsonConvert.SerializeObject(request),
+                    path + "?batchOperations=[" + operationNames + "]");
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new[] { new ClientQueryResult { StatusCode = HttpStatusCode.NotFound } };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            List<ClientQueryResult> result =
+                JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
+
+            foreach (ClientQueryResult item in result)
+            {
+                item.StatusCode = response.StatusCode;
+                item.ContentType = response.Content.Headers.ContentType.ToString();
+            }
+
             return result;
         }
 
