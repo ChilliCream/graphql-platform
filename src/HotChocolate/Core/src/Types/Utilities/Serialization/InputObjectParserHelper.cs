@@ -133,7 +133,7 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (InputField field in type.Fields)
             {
-                if (dict.ContainsKey(field.Name))
+                if (!dict.ContainsKey(field.Name))
                 {
                     if (field.IsOptional)
                     {

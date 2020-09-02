@@ -98,5 +98,10 @@ namespace HotChocolate.Configuration
 
             _completionContext = completionContext;
         }
+
+        public override string? ToString()
+        {
+            return Type.ToString();
+        }
     }
 }

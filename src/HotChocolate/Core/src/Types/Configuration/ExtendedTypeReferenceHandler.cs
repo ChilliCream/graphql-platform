@@ -41,7 +41,7 @@ namespace HotChocolate.Configuration
                             typeRegistrar.Register(
                                 typeRegistrar.CreateInstance(namedType),
                                 typeReference.Scope,
-                                extendedType.IsSchemaType);
+                                ExtendedType.Tools.IsGenericBaseType(namedType));
                         }
                     }
                     else
