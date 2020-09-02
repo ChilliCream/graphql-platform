@@ -110,9 +110,9 @@ namespace HotChocolate.Types
                 return NullValueNode.Default;
             }
 
-            if (_valueLookup.TryGetValue(runtimeValue, out EnumValue? name))
+            if (_valueLookup.TryGetValue(runtimeValue, out EnumValue? enumValue))
             {
-                return new EnumValueNode(name);
+                return new EnumValueNode(enumValue.Name);
             }
 
             throw new SerializationException(
