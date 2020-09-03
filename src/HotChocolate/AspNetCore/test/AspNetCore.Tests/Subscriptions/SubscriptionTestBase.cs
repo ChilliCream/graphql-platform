@@ -11,17 +11,14 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class SubscriptionTestBase : IClassFixture<TestServerFactory>
+    public class SubscriptionTestBase : ServerTestBase
     {
-        public SubscriptionTestBase(TestServerFactory serverFactory)
+        public SubscriptionTestBase(TestServerFactory serverFactory) 
+            : base(serverFactory) 
         {
-            ServerFactory = serverFactory;
         }
 
-        protected TestServerFactory ServerFactory { get; }
-
         protected Uri SubscriptionUri { get; } = new Uri("ws://localhost:5000/graphql");
-
 
         protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
             WebSocket webSocket, string type, TimeSpan timeout)
@@ -42,9 +39,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         return message;
                     }
 
-                    if (message != null
-                        && !MessageTypes.Connection.KeepAlive.Equals(
-                            message["type"]))
+                    if (message != null && 
+                        !MessageTypes.Connection.KeepAlive.Equals(message["type"]))
                     {
                         throw new InvalidOperationException(
                             $"Unexpected message type: {message["type"]}");
@@ -83,12 +79,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             TestServer testServer)
         {
             WebSocketClient client = testServer.CreateWebSocketClient();
-
-            client.ConfigureRequest = r =>
-            {
-                r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
-            };
-
+            client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
             return client;
         }
     }

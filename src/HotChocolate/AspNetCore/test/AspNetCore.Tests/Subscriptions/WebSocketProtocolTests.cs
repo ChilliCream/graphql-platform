@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -30,8 +29,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     // arrange
                     WebSocketClient client = CreateWebSocketClient(testServer);
-                    WebSocket webSocket = await client
-                        .ConnectAsync(SubscriptionUri, CancellationToken.None);
+                    WebSocket webSocket = 
+                        await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
 
                     // act
                     await webSocket.SendConnectionInitializeAsync();
@@ -125,7 +124,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     WebSocket webSocket = await ConnectToServerAsync(client);
 
                     var document = Utf8GraphQLParser.Parse(
-                        "subscription { onReview(episode: NEWHOPE) { stars } }");
+                        "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
                     var request = new GraphQLRequest(document);
 
@@ -138,15 +137,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
-                    mutation {
-                        createReview(episode:NEWHOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }
-                "
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: ""foo""
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }"
                     });
 
                     IReadOnlyDictionary<string, object> message =
@@ -173,7 +171,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     WebSocket webSocket = await ConnectToServerAsync(client);
 
                     var document = Utf8GraphQLParser.Parse(
-                        "subscription { onReview(episode: NEWHOPE) { stars } }");
+                        "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
                     var request = new GraphQLRequest(document);
 
@@ -184,15 +182,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
-                    mutation {
-                        createReview(episode:NEWHOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }
-                "
+                            mutation {
+                                createReview(episode:NEW_HOPE review: {
+                                    commentary: ""foo""
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }"
                     });
 
                     IReadOnlyDictionary<string, object> message =
@@ -207,15 +204,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
-                    mutation {
-                        createReview(episode:NEWHOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }
-                "
+                            mutation {
+                                createReview(episode:NEW_HOPE review: {
+                                    commentary: ""foo""
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }"
                     });
 
                     message = await WaitForMessage(

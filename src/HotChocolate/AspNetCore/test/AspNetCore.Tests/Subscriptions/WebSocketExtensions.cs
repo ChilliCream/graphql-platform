@@ -110,9 +110,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     { "query", query },
                 };
 
-                if (dataStart.Payload.QueryName != null)
+                if (dataStart.Payload.QueryId != null)
                 {
-                    payload["namedQuery"] = dataStart.Payload.QueryName;
+                    payload["namedQuery"] = dataStart.Payload.QueryId;
                 }
 
                 if (dataStart.Payload.OperationName != null)
