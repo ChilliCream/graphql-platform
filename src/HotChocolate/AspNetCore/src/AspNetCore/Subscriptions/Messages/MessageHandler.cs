@@ -1,12 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public abstract class MessageHandler<T>
-        : IMessageHandler
+    public abstract class MessageHandler<T> : IMessageHandler
         where T : OperationMessage
     {
         public bool CanHandle(OperationMessage message)
@@ -27,8 +25,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             }
             else
             {
-                throw new NotSupportedException(
-                    "The specifed message type is not supported.");
+                throw new NotSupportedException("The specified message type is not supported.");
             }
         }
 

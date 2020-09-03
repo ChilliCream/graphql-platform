@@ -1,18 +1,18 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Interceptors;
+using HotChocolate.AspNetCore.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
     public sealed class InitializeConnectionMessageHandler
         : MessageHandler<InitializeConnectionMessage>
     {
-        private readonly IConnectMessageInterceptor _connectMessageInterceptor;
+        private readonly ISocketSessionInterceptor _socketSessionInterceptor;
 
         public InitializeConnectionMessageHandler(
-            IConnectMessageInterceptor connectMessageInterceptor)
+            ISocketSessionInterceptor socketSessionInterceptor)
         {
-            _connectMessageInterceptor = connectMessageInterceptor;
+            _socketSessionInterceptor = socketSessionInterceptor;
         }
 
         protected override async Task HandleAsync(
@@ -21,44 +21,30 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             CancellationToken cancellationToken)
         {
             ConnectionStatus connectionStatus =
-                _connectMessageInterceptor == null
-                    ? ConnectionStatus.Accept()
-                    : await _connectMessageInterceptor.OnReceiveAsync(
-                        connection, message, cancellationToken)
-                        .ConfigureAwait(false);
+                await _socketSessionInterceptor.OnConnectAsync(
+                    connection, message, cancellationToken);
 
             if (connectionStatus.Accepted)
             {
-                await connection.SendAsync(
-                    AcceptConnectionMessage.Default.Serialize(),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                await connection.SendAsync(
-                    KeepConnectionAliveMessage.Default.Serialize(),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                await connection.SendAsync(AcceptConnectionMessage.Default, cancellationToken);
+                await connection.SendAsync(KeepConnectionAliveMessage.Default, cancellationToken);
             }
             else
             {
                 var rejectMessage = connectionStatus.Extensions == null
-                    ? new RejectConnectionMessage(
-                        connectionStatus.Message)
+                    ? new RejectConnectionMessage(connectionStatus.Message)
                     : new RejectConnectionMessage(
                         connectionStatus.Message,
                         connectionStatus.Extensions);
 
                 await connection.SendAsync(
                     rejectMessage.Serialize(),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken);
 
-                // TODO : resources
                 await connection.CloseAsync(
                     connectionStatus.Message,
                     SocketCloseStatus.PolicyViolation,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                    cancellationToken);
             }
         }
     }

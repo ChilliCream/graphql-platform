@@ -4,9 +4,9 @@ using HotChocolate.Execution;
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
     public sealed class DataResultMessage
-        : OperationMessage<IReadOnlyDictionary<string, object>>
+        : OperationMessage<IReadOnlyDictionary<string, object?>>
     {
-        public DataResultMessage(string id, IReadOnlyQueryResult payload)
+        public DataResultMessage(string id, IQueryResult payload)
             : base(
                 MessageTypes.Subscription.Data,
                 id,

@@ -1,4 +1,6 @@
 using System;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -36,11 +38,27 @@ namespace HotChocolate.AspNetCore.Extensions
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL(schemaName);
+                .AddGraphQL(schemaName)
+                .AddSubscriptionServices();
 
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
             builder.Services.AddGraphQLServer(schemaName);
+
+        private static IRequestExecutorBuilder AddSubscriptionServices(
+            this IRequestExecutorBuilder builder)
+        {
+            return builder.ConfigureSchemaServices(s =>
+            {
+                s.TryAddSingleton<IMessagePipeline, DefaultMessagePipeline>();
+                s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
+
+                s.AddSingleton<IMessageHandler, DataStartMessageHandler>();
+                s.AddSingleton<IMessageHandler, DataStopMessageHandler>();
+                s.AddSingleton<IMessageHandler, InitializeConnectionMessageHandler>();
+                s.AddSingleton<IMessageHandler, TerminateConnectionMessageHandler>();
+            });
+        }
     }
 }

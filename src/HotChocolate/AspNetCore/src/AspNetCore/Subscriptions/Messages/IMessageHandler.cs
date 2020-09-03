@@ -12,6 +12,4 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
 
         bool CanHandle(OperationMessage message);
     }
-
-
 }

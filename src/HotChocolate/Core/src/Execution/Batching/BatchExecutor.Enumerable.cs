@@ -96,7 +96,7 @@ namespace HotChocolate.Execution.Batching
                         .SetQuery(document)
                         .SetVariableValues(variableValues)
                         .AddExportedVariables(_exportedVariables)
-                        .SetQueryName(null) // TODO ... should we create a name here?
+                        .SetQueryId(null) // TODO ... should we create a name here?
                         .SetQueryHash(null)
                         .Create();
 

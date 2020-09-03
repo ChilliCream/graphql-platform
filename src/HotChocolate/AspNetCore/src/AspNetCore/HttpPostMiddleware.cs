@@ -16,18 +16,12 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore
 {
-    public class HttpPostMiddleware : IDisposable
+    public class HttpPostMiddleware : MiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private readonly HttpRequestDelegate _next;
-        private readonly IRequestExecutorResolver _executorResolver;
         private readonly IHttpResultSerializer _resultSerializer;
         private readonly IHttpRequestInterceptor _requestInterceptor;
         private readonly IRequestParser _requestParser;
-        private readonly NameString _schemaName;
-        private IRequestExecutor? _executor;
-        private bool _disposed;
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
@@ -36,14 +30,14 @@ namespace HotChocolate.AspNetCore
             IHttpRequestInterceptor requestInterceptor,
             IRequestParser requestParser,
             NameString schemaName)
-        {
-            _next = next;
-            _executorResolver = executorResolver;
-            _resultSerializer = resultSerializer;
-            _requestInterceptor = requestInterceptor;
-            _requestParser = requestParser;
-            _schemaName = schemaName;
-            executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
+            : base(next, executorResolver, schemaName)
+        {         
+            _resultSerializer = resultSerializer ?? 
+                throw new ArgumentNullException(nameof(resultSerializer));
+            _requestInterceptor = requestInterceptor ?? 
+                throw new ArgumentNullException(nameof(requestInterceptor));
+            _requestParser = requestParser ?? 
+                throw new ArgumentNullException(nameof(requestParser));
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -53,7 +47,7 @@ namespace HotChocolate.AspNetCore
             if (contentType == AllowedContentType.None)
             {
                 // the content type is unknown so we will invoke the next middleware.
-                await _next(context);
+                await NextAsync(context);
             }
             else
             {
@@ -224,37 +218,6 @@ namespace HotChocolate.AspNetCore
                 requestBatch, cancellationToken: context.RequestAborted);
         }
 
-        private async ValueTask<IRequestExecutor> GetExecutorAsync(
-            CancellationToken cancellationToken)
-        {
-            IRequestExecutor? executor = _executor;
-
-            if (executor is null)
-            {
-                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                try
-                {
-                    if (_executor is null)
-                    {
-                        executor = await _executorResolver.GetRequestExecutorAsync(
-                            _schemaName, cancellationToken);
-                        _executor = executor;
-                    }
-                    else
-                    {
-                        executor = _executor;
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-
-            return executor;
-        }
-
         private async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
             AllowedContentType contentType,
             Stream body,
@@ -316,31 +279,6 @@ namespace HotChocolate.AspNetCore
 
             operationNames = names;
             return true;
-        }
-
-        private void EvictRequestExecutor(object? sender, RequestExecutorEvictedEventArgs args)
-        {
-            if (!_disposed && args.Name.Equals(_schemaName))
-            {
-                _semaphore.Wait();
-                try
-                {
-                    _executor = null;
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _semaphore.Dispose();
-                _disposed = true;
-            }
-        }
+        }        
     }
 }

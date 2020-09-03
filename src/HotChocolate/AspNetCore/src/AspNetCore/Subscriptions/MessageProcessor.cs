@@ -36,28 +36,23 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             while (true)
             {
-                ReadResult result = await _reader
-                    .ReadAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                ReadOnlySequence<byte> buffer = result.Buffer;
                 SequencePosition? position = null;
+                ReadResult result = await _reader.ReadAsync(cancellationToken);
+                ReadOnlySequence<byte> buffer = result.Buffer;
 
                 do
                 {
                     position = buffer.PositionOf(Subscription._delimiter);
 
-                    if (position != null)
+                    if (position is not null)
                     {
                         await _pipeline.ProcessAsync(
-                                _connection,
-                                buffer.Slice(0, position.Value),
-                                cancellationToken)
-                            .ConfigureAwait(false);
+                            _connection,
+                            buffer.Slice(0, position.Value),
+                            cancellationToken);
 
                         // Skip the message which was read.
-                        buffer = buffer
-                            .Slice(buffer.GetPosition(1, position.Value));
+                        buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
                     }
                 }
                 while (position != null);

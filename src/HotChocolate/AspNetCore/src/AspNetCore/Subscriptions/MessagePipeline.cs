@@ -1,20 +1,21 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Language;
+using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal class MessagePipeline
-        : IMessagePipeline
+    internal sealed class DefaultMessagePipeline : IMessagePipeline
     {
         private readonly IMessageHandler[] _messageHandlers;
 
-        public MessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+        public DefaultMessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
         {
             if (messageHandlers is null)
             {
@@ -29,26 +30,24 @@ namespace HotChocolate.AspNetCore.Subscriptions
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)
         {
-            if (TryParseMessage(slice, out OperationMessage message))
+            if (TryParseMessage(slice, out OperationMessage? message))
             {
-                await HandleMessageAsync(connection, message, cancellationToken)
-                    .ConfigureAwait(false);
+                await HandleMessageAsync(connection, message, cancellationToken);
             }
             else
             {
                 await connection.SendAsync(
-                    KeepConnectionAliveMessage.Default.Serialize(),
-                    CancellationToken.None)
-                    .ConfigureAwait(false);
+                    KeepConnectionAliveMessage.Default,
+                    CancellationToken.None);
             }
         }
 
         private static bool TryParseMessage(
             ReadOnlySequence<byte> slice,
-            out OperationMessage message)
+            [NotNullWhen(true)] out OperationMessage? message)
         {
             ReadOnlySpan<byte> messageData;
-            byte[] buffer = null;
+            byte[]? buffer = null;
 
             if (slice.IsSingleSegment)
             {
@@ -57,26 +56,23 @@ namespace HotChocolate.AspNetCore.Subscriptions
             else
             {
                 buffer = ArrayPool<byte>.Shared.Rent(1024 * 4);
-                int buffered = 0;
+                var buffered = 0;
 
                 SequencePosition position = slice.Start;
-                ReadOnlyMemory<byte> memory;
-
-                while (slice.TryGet(ref position, out memory, true))
+                while (slice.TryGet(ref position, out ReadOnlyMemory<byte> memory))
                 {
                     ReadOnlySpan<byte> span = memory.Span;
                     var bytesRemaining = buffer.Length - buffered;
 
                     if (span.Length > bytesRemaining)
                     {
-                        var next = ArrayPool<byte>.Shared.Rent(
-                            buffer.Length * 2);
+                        byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                         Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                         ArrayPool<byte>.Shared.Return(buffer);
                         buffer = next;
                     }
 
-                    for (int i = 0; i < span.Length; i++)
+                    for (var i = 0; i < span.Length; i++)
                     {
                         buffer[buffered++] = span[i];
                     }
@@ -88,15 +84,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
-                if (messageData.Length == 0
-                    || (messageData.Length == 1 && messageData[0] == default))
+                if (messageData.Length == 0 || 
+                    (messageData.Length == 1 && messageData[0] == default))
                 {
                     message = null;
                     return false;
                 }
 
-                GraphQLSocketMessage parsedMessage =
-                    Utf8GraphQLRequestParser.ParseMessage(messageData);
+                GraphQLSocketMessage parsedMessage = ParseMessage(messageData);
                 return TryDeserializeMessage(parsedMessage, out message);
             }
             catch (SyntaxException)
@@ -106,7 +101,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
             finally
             {
-                if (buffer != null)
+                if (buffer is not null)
                 {
                     ArrayPool<byte>.Shared.Return(buffer);
                 }
@@ -115,7 +110,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static bool TryDeserializeMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage message)
+            [NotNullWhen(true)]out OperationMessage? message)
         {
             switch (parsedMessage.Type)
             {
@@ -143,26 +138,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private static InitializeConnectionMessage DeserializeInitConnMessage(
-            GraphQLSocketMessage parsedMessage)
-        {
-            if (parsedMessage.HasPayload)
-            {
-                object parsed = Utf8GraphQLRequestParser.ParseJson(
-                    parsedMessage.Payload);
-
-                if (parsed is IReadOnlyDictionary<string, object> payload)
-                {
-                    return new InitializeConnectionMessage(payload);
-                }
-            }
-            return new InitializeConnectionMessage(null);
-        }
+            GraphQLSocketMessage parsedMessage) =>
+            parsedMessage.Payload.Length > 0 &&
+                ParseJson(parsedMessage.Payload) is IReadOnlyDictionary<string, object?> payload
+                    ? new InitializeConnectionMessage(payload)
+                    : new InitializeConnectionMessage();
 
         private static bool TryDeserializeDataStartMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage message)
+            out OperationMessage? message)
         {
-            if (!parsedMessage.HasPayload)
+            if (parsedMessage.Payload.Length == 0 || parsedMessage.Id is null)
             {
                 message = null;
                 return false;
@@ -178,10 +164,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static DataStopMessage DeserializeDataStopMessage(
             GraphQLSocketMessage parsedMessage)
         {
-            if (parsedMessage.HasPayload)
+            if (parsedMessage.Payload.Length > 0 || parsedMessage.Id is null)
             {
-                throw new InvalidOperationException(
-                    "Invalid message structure.");
+                throw new InvalidOperationException("Invalid message structure.");
             }
 
             return new DataStopMessage(parsedMessage.Id);
@@ -195,23 +180,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
             for (int i = 0; i < _messageHandlers.Length; i++)
             {
                 IMessageHandler handler = _messageHandlers[i];
-
                 if (handler.CanHandle(message))
                 {
-                    await handler.HandleAsync(
-                            connection,
-                            message,
-                            cancellationToken)
-                        .ConfigureAwait(false);
+                    await handler.HandleAsync(connection, message, cancellationToken);
 
                     // the message is handled and we are done.
                     return;
                 }
             }
 
-            // TODO : resources
-            throw new NotSupportedException(
-                "The specified message type is not supported.");
+            throw new NotSupportedException("The specified message type is not supported.");
         }
     }
 }

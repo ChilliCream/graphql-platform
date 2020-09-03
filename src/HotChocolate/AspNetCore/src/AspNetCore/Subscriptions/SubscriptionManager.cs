@@ -6,8 +6,7 @@ using System.Linq;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class SubscriptionManager
-        : ISubscriptionManager
+    public class SubscriptionManager : ISubscriptionManager
     {
         private readonly ConcurrentDictionary<string, ISubscription> _subs =
             new ConcurrentDictionary<string, ISubscription>();
@@ -16,8 +15,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public SubscriptionManager(ISocketConnection connection)
         {
-            _connection = connection
-                ?? throw new ArgumentNullException(nameof(connection));
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
         public void Register(ISubscription subscription)
@@ -29,8 +27,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             if (_disposed)
             {
-                throw new ObjectDisposedException(
-                    nameof(SubscriptionManager));
+                throw new ObjectDisposedException(nameof(SubscriptionManager));
             }
 
             if (_subs.TryAdd(subscription.Id, subscription))
@@ -51,12 +48,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             if (_disposed)
             {
-                throw new ObjectDisposedException(
-                    nameof(SubscriptionManager));
+                throw new ObjectDisposedException(nameof(SubscriptionManager));
             }
 
-            if (_subs.TryRemove(subscriptionId,
-                out ISubscription subscription))
+            if (_subs.TryRemove(subscriptionId, out ISubscription? subscription))
             {
                 subscription.Dispose();
             }
@@ -74,15 +69,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 if (disposing && _subs.Count > 0)
                 {
-                    ISubscription[] subs = _subs.Values.ToArray();
+                    ISubscription?[] subs = _subs.Values.ToArray();
+                    _subs.Clear();
 
                     for (int i = 0; i < subs.Length; i++)
                     {
-                        subs[i].Dispose();
+                        subs[i]?.Dispose();
                         subs[i] = null;
                     }
-
-                    _subs.Clear();
                 }
                 _disposed = true;
             }

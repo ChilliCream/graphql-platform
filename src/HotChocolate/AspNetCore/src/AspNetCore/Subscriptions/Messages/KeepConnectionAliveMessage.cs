@@ -1,7 +1,6 @@
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public sealed class KeepConnectionAliveMessage
-        : OperationMessage
+    public sealed class KeepConnectionAliveMessage : OperationMessage
     {
         public KeepConnectionAliveMessage()
             : base(MessageTypes.Connection.KeepAlive)

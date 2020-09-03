@@ -40,14 +40,14 @@ namespace HotChocolate.AspNetCore.Utilities
             {
                 await _queryResultSerializer.SerializeAsync(
                     q, stream, cancellationToken)
-                    .ConfigureAwait(false);
+                    ;
             }
 
             if (result is IResponseStream r)
             {
                 await _responseStreamSerializer.SerializeAsync(
                     r, stream, cancellationToken)
-                    .ConfigureAwait(false);
+                    ;
             }
         }
     }

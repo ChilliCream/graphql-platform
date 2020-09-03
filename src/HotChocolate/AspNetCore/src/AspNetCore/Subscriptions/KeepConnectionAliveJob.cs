@@ -7,20 +7,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal sealed class KeepConnectionAliveJob
     {
-        private static readonly TimeSpan _defaultTimeout =
-            TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan _defaultTimeout = TimeSpan.FromSeconds(5);
         private readonly ISocketConnection _connection;
         private readonly TimeSpan _timeout;
 
-        public KeepConnectionAliveJob(
-            ISocketConnection connection)
+        public KeepConnectionAliveJob(ISocketConnection connection)
             : this(connection, _defaultTimeout)
         {
         }
 
-        public KeepConnectionAliveJob(
-            ISocketConnection connection,
-            TimeSpan timeout)
+        public KeepConnectionAliveJob(ISocketConnection connection, TimeSpan timeout)
         {
             _connection = connection;
             _timeout = timeout;
@@ -44,14 +40,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     && !cancellationToken.IsCancellationRequested)
                 {
                     await Task.Delay(_timeout, cancellationToken)
-                        .ConfigureAwait(false);
+                        ;
 
                     if (!_connection.Closed)
                     {
                         await _connection.SendAsync(
                             KeepConnectionAliveMessage.Default.Serialize(),
                             cancellationToken)
-                            .ConfigureAwait(false);
+                            ;
                     }
                 }
             }

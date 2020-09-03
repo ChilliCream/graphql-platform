@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
@@ -10,16 +9,17 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
     public sealed class DataStartMessageHandler
         : MessageHandler<DataStartMessage>
     {
-        private readonly IQueryExecutor _queryExecutor;
-        private readonly ISocketQueryRequestInterceptor[] _requestInterceptors;
+        private readonly IRequestExecutor _requestExecutor;
+        private readonly ISocketSessionInterceptor _socketSessionInterceptor;
 
         public DataStartMessageHandler(
-            IQueryExecutor queryExecutor,
-            IEnumerable<ISocketQueryRequestInterceptor> queryRequestInterceptors)
+            IRequestExecutor requestExecutor,
+            ISocketSessionInterceptor socketSessionInterceptor)
         {
-            _queryExecutor = queryExecutor
-                ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _requestInterceptors = queryRequestInterceptors?.ToArray();
+            _requestExecutor = requestExecutor
+                ?? throw new ArgumentNullException(nameof(requestExecutor));
+            _socketSessionInterceptor = socketSessionInterceptor
+                ?? throw new ArgumentNullException(nameof(socketSessionInterceptor));
         }
 
         protected override async Task HandleAsync(
@@ -30,72 +30,51 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             IQueryRequestBuilder requestBuilder =
                 QueryRequestBuilder.New()
                     .SetQuery(message.Payload.Query)
-                    .SetQueryName(message.Payload.QueryName)
+                    .SetQueryId(message.Payload.QueryId)
                     .SetOperation(message.Payload.OperationName)
                     .SetVariableValues(message.Payload.Variables)
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            if (_requestInterceptors != null)
-            {
-                for (var i = 0; i < _requestInterceptors.Length; i++)
-                {
-                    await _requestInterceptors[i].OnCreateAsync(
-                            connection,
-                            requestBuilder,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-                }
-            }
+            await _socketSessionInterceptor.OnRequestAsync(
+                connection, requestBuilder, cancellationToken);
 
-            IExecutionResult result =
-                await _queryExecutor.ExecuteAsync(
-                    requestBuilder.Create(),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+            IExecutionResult result = await _requestExecutor.ExecuteAsync(
+                requestBuilder.Create(), cancellationToken);
 
             switch (result)
             {
                 case IResponseStream responseStream:
-                    connection.Subscriptions.Register(
-                        new Subscription(
-                            connection,
-                            responseStream,
-                            message.Id));
+                    var subscription = new Subscription(connection, responseStream, message.Id);
+                    connection.Subscriptions.Register(subscription);
                     break;
 
-                case IReadOnlyQueryResult queryResult:
+                case IQueryResult queryResult:
                     using (queryResult)
-                    {
                         await HandleQueryResultAsync(
-                            connection,
-                            message,
-                            queryResult,
-                            cancellationToken)
-                            .ConfigureAwait(false);
-                    }
+                            connection, message, queryResult, cancellationToken);
                     break;
 
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException("The response type is not supported.");
             }
         }
 
         private static async Task HandleQueryResultAsync(
             ISocketConnection connection,
             DataStartMessage message,
-            IReadOnlyQueryResult queryResult,
+            IQueryResult queryResult,
             CancellationToken cancellationToken)
         {
             await connection.SendAsync(
                 new DataResultMessage(message.Id, queryResult).Serialize(),
                 cancellationToken)
-                .ConfigureAwait(false);
+                ;
 
             await connection.SendAsync(
                 new DataCompleteMessage(message.Id).Serialize(),
                 cancellationToken)
-                .ConfigureAwait(false);
+                ;
         }
     }
 }

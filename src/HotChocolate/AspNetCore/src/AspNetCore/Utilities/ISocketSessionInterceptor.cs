@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Utilities
 {
     public interface ISocketSessionInterceptor
     {
-        Task<ConnectionStatus> OnConnectAsync(
+        ValueTask<ConnectionStatus> OnConnectAsync(
             ISocketConnection connection,
             InitializeConnectionMessage message,
             CancellationToken cancellationToken);

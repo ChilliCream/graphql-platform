@@ -13,26 +13,26 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         private const string _protocol = "graphql-ws";
         private const int _maxMessageSize = 1024 * 4;
-        private WebSocket _webSocket;
+        private WebSocket? _webSocket;
         private bool _disposed;
 
-        public WebSocketConnection(HttpContext httpContext)
+        private WebSocketConnection(HttpContext httpContext)
         {
-            HttpContext = httpContext
-                ?? throw new ArgumentNullException(nameof(httpContext));
-
+            HttpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
             Subscriptions = new SubscriptionManager(this);
         }
 
-        public bool Closed =>
-            _webSocket == null
-            || _webSocket.CloseStatus.HasValue;
+        public bool Closed => _webSocket is null || _webSocket.CloseStatus.HasValue;
 
         public HttpContext HttpContext { get; }
 
         public ISubscriptionManager Subscriptions { get; }
 
+        public WebSocketManager WebSockets => HttpContext.WebSockets;
+
         public IServiceProvider RequestServices => HttpContext.RequestServices;
+
+        public CancellationToken RequestAborted => HttpContext.RequestAborted;
 
         public async Task<bool> TryOpenAsync()
         {
@@ -41,12 +41,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 throw new ObjectDisposedException(nameof(WebSocketConnection));
             }
 
-            _webSocket = await HttpContext.WebSockets
-                .AcceptWebSocketAsync(_protocol)
-                .ConfigureAwait(false);
+            _webSocket = await WebSockets.AcceptWebSocketAsync(_protocol);
 
-            if (HttpContext.WebSockets.WebSocketRequestedProtocols
-                .Contains(_webSocket.SubProtocol))
+            if (_webSocket.SubProtocol is not null &&
+                WebSockets.WebSocketRequestedProtocols.Contains(_webSocket.SubProtocol))
             {
                 return true;
             }
@@ -54,8 +52,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await _webSocket.CloseOutputAsync(
                 WebSocketCloseStatus.ProtocolError,
                 "Expected graphql-ws protocol.",
-                CancellationToken.None)
-                .ConfigureAwait(false);
+                CancellationToken.None);
             _webSocket.Dispose();
             _webSocket = null;
             return false;
@@ -65,7 +62,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             byte[] message,
             CancellationToken cancellationToken)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
             if (_disposed || webSocket == null)
             {
@@ -82,7 +79,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             PipeWriter writer,
             CancellationToken cancellationToken)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
             if (_disposed || webSocket == null)
             {
@@ -91,20 +88,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
-                WebSocketReceiveResult socketResult = null;
+                WebSocketReceiveResult? socketResult = null;
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    bool success = MemoryMarshal.TryGetArray(
-                        memory, out ArraySegment<byte> buffer);
+                    bool success = MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer);
+
                     if (success)
                     {
                         try
                         {
-                            socketResult = await webSocket
-                                .ReceiveAsync(buffer, cancellationToken)
-                                .ConfigureAwait(false);
-
+                            socketResult = await webSocket.ReceiveAsync(buffer, cancellationToken);
                             if (socketResult.Count == 0)
                             {
                                 break;
@@ -117,10 +111,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                             break;
                         }
 
-                        FlushResult result = await writer
-                            .FlushAsync(cancellationToken)
-                            .ConfigureAwait(false);
-
+                        FlushResult result = await writer.FlushAsync(cancellationToken);
                         if (result.IsCompleted)
                         {
                             break;
@@ -141,16 +132,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                if (_disposed || Closed)
+                WebSocket? webSocket = _webSocket;
+
+                if (_disposed || Closed || webSocket is null)
                 {
                     return;
                 }
 
-                await _webSocket.CloseOutputAsync(
-                        MapCloseStatus(closeStatus),
-                        message,
-                        cancellationToken)
-                    .ConfigureAwait(false);
+                await webSocket.CloseOutputAsync(
+                    MapCloseStatus(closeStatus),
+                    message,
+                    cancellationToken);
 
                 Dispose();
             }

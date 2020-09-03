@@ -2,8 +2,7 @@ using System;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public interface ISubscription
-        : IDisposable
+    public interface ISubscription : IDisposable
     {
         event EventHandler Completed;
 

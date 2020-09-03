@@ -1,7 +1,6 @@
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class OperationMessage<T>
-        : OperationMessage
+    public class OperationMessage<T> : OperationMessage
     {
         public OperationMessage(string type, T payload)
             : base(type)
