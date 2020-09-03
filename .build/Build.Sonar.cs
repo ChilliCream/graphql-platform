@@ -19,20 +19,13 @@ partial class Build : NukeBuild
         .Requires(() => GitHubRepository != null)
         .Requires(() => GitHubHeadRef != null)
         .Requires(() => GitHubBaseRef != null)
-        .Requires(() => GitHubRef != null)
+        .Requires(() => GitHubPRNumber != null)
         .Executes(() =>
         {
             Console.WriteLine($"GitHubRepository: {GitHubRepository}");
             Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
             Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
             Console.WriteLine($"GitHubPRNumber: {GitHubPRNumber}");
-
-            string[] gitHubRefParts = GitHubRef.Split('/');
-            if (gitHubRefParts.Length < 4)
-            {
-                Logger.Error("The GitHub_Ref variable has not the expected structure. {0}", GitHubRef);
-                return;
-            }
 
             if (!InvokedTargets.Contains(Cover))
             {
