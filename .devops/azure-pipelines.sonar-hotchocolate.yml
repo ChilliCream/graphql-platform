@@ -68,5 +68,9 @@ stages:
               artifactName: 'test-results'
               downloadPath: '$(Build.Repository.LocalPath)/output'
           - task: CmdLine@2
+            env:
+              HC_GITHUB_PR_NR: $(System.PullRequest.TargetBranch)
+              HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
+              HC_GITHUB_BASE_REF: $(System.PullRequest.PullRequestNumber)
             inputs:
               script: './build.cmd Sonar --skip'

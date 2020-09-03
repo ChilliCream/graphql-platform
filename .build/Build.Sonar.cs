@@ -25,7 +25,7 @@ partial class Build : NukeBuild
             Console.WriteLine($"GitHubRepository: {GitHubRepository}");
             Console.WriteLine($"GitHubHeadRef: {GitHubHeadRef}");
             Console.WriteLine($"GitHubBaseRef: {GitHubBaseRef}");
-            Console.WriteLine($"GitHubRef: {GitHubRef}");
+            Console.WriteLine($"GitHubPRNumber: {GitHubPRNumber}");
 
             string[] gitHubRefParts = GitHubRef.Split('/');
             if (gitHubRefParts.Length < 4)
@@ -43,7 +43,7 @@ partial class Build : NukeBuild
                 .SetProjectFile(AllSolutionFile)
                 .SetWorkingDirectory(RootDirectory));
 
-            SonarScannerBegin(c => SonarBeginPrSettings(c, gitHubRefParts[^2]));
+            SonarScannerBegin(SonarBeginPrSettings);
             DotNetBuild(SonarBuildAll);
             DotNetTest(CoverNoBuildSettings);
             SonarScannerEnd(SonarEndSettings);
@@ -65,13 +65,13 @@ partial class Build : NukeBuild
             SonarScannerEnd(SonarEndSettings);
         });
 
-    SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings, string gitHubPrNumber) =>
+    SonarScannerBeginSettings SonarBeginPrSettings(SonarScannerBeginSettings settings) =>
         SonarBeginBaseSettings(settings)
             .SetArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
                 .Add("/d:sonar.pullrequest.provider={0}", "github")
-                .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
-                .Add("/d:sonar.pullrequest.key={0}", gitHubPrNumber)
+                .Add("/d:sonar.pullrequest.github.repository={0}", "ChilliCream/hotchocolate")
+                .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
                 .Add("/d:sonar.cs.roslyn.ignoreIssues={0}", "true"));
