@@ -232,7 +232,7 @@ namespace HotChocolate.Execution.Utilities
                 ? selection.Name.Value
                 : selection.Alias.Value;
 
-            if (typeContext.Fields.TryGetField(fieldName, out ObjectField field))
+            if (typeContext.Fields.TryGetField(fieldName, out ObjectField? field))
             {
                 if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
                 {
@@ -432,7 +432,7 @@ namespace HotChocolate.Execution.Utilities
                         value.GetValueKind(),
                         true,
                         isDefaultValue,
-                        ParseLiteral(argument.Type, value),
+                        ParseLiteral(argument, value),
                         value);
                 }
                 catch (SerializationException ex)
@@ -482,12 +482,15 @@ namespace HotChocolate.Execution.Utilities
             return true;
         }
 
-        private static object ParseLiteral(IInputType argumentType, IValueNode value)
+        private static object? ParseLiteral(Argument argument, IValueNode value)
         {
-            IInputType type = (argumentType is NonNullType)
-                ? (IInputType)argumentType.InnerType()
-                : argumentType;
-            return type.ParseLiteral(value);
+            IInputType type = (argument.Type is NonNullType)
+                ? (IInputType)argument.Type.InnerType()
+                : argument.Type;
+            object? runtimeValue = type.ParseLiteral(value);
+            return argument.Formatter is not null
+                ? argument.Formatter.OnAfterDeserialize(runtimeValue)
+                : argument;
         }
 
         private FieldDelegate CreateFieldMiddleware(IObjectField field, FieldNode selection)

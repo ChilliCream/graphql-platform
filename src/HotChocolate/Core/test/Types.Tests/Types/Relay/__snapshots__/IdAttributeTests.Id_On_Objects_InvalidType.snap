@@ -1,0 +1,4 @@
+﻿{
+  "result": "{\n  \"errors\": [\n    {\n      \"message\": \"The IDs \\u0060U29tZQpnMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA=\\u0060 have an invalid format.\"\n    }\n  ],\n  \"data\": {\n    \"foo\": null\n  }\n}",
+  "someId": "U29tZQpnMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
+}

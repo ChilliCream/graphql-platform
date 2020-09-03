@@ -12,6 +12,8 @@ namespace HotChocolate.Types.Descriptors
     /// </summary>
     public interface IDescriptorContext
     {
+        event EventHandler<SchemaCompletedEventArgs> SchemaCompleted;
+
         /// <summary>
         /// Gets the schema options.
         /// </summary>

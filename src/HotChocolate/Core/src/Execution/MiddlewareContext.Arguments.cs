@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
 
-            return argument.IsImplicit 
+            return argument.IsImplicit
                 ? Optional<T>.Empty(CoerceArgumentValue<T>(argument))
                 : new Optional<T>(CoerceArgumentValue<T>(argument));
         }
@@ -87,11 +87,12 @@ namespace HotChocolate.Execution
         {
             object? value = argument.Value;
 
-            // if the argument is final and has an already coerced 
+            // if the argument is final and has an already coerced
             // runtime version we can skip over parsing it.
             if (!argument.IsFinal)
             {
                 value = argument.Type.ParseLiteral(argument.ValueLiteral!);
+                value = argument.Formatter is not null ? argument.Formatter.OnAfterDeserialize(value) : value;
             }
 
             if (value is null)
