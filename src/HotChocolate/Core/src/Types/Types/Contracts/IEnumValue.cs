@@ -6,7 +6,7 @@ namespace HotChocolate.Types
 {
     public interface IEnumValue
         : IHasDirectives
-        , IHasContextData
+        , IHasReadOnlyContextData
     {
         EnumValueDefinitionNode? SyntaxNode { get; }
 

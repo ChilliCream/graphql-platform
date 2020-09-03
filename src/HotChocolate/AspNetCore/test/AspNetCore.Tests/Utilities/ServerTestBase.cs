@@ -46,7 +46,7 @@ namespace HotChocolate.AspNetCore.Utilities
             HttpResponseMessage message)
         {
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-            string json = await message.Content.ReadAsStringAsync();
+            var json = await message.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<ClientQueryResult>(json);
         }
 
@@ -54,7 +54,7 @@ namespace HotChocolate.AspNetCore.Utilities
             HttpResponseMessage message)
         {
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-            string json = await message.Content.ReadAsStringAsync();
+            var json = await message.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
         }
     }
