@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class SocketConnectionMock
-        : ISocketConnection
+    public class SocketConnectionMock : ISocketConnection
     {
         public SocketConnectionMock()
         {
             Subscriptions = new SubscriptionManager(this);
         }
 
+        public HttpContext HttpContext { get; }
+
         public bool Closed { get; set; }
 
         public ISubscriptionManager Subscriptions { get; set; }
 
         public IServiceProvider RequestServices { get; set; }
+
+        public CancellationToken RequestAborted { get; }
 
         public List<byte[]> SentMessages { get; } = new List<byte[]>();
 

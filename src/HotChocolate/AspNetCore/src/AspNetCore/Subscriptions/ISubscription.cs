@@ -4,7 +4,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public interface ISubscription : IDisposable
     {
-        event EventHandler Completed;
+        event EventHandler? Completed;
 
         string Id { get; }
     }

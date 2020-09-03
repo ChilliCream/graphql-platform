@@ -10,10 +10,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             // act
-            Action action = () => new SubscriptionManager(null);
+            void Action() => new SubscriptionManager(null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]

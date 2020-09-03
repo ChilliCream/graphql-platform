@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var message = new TerminateConnectionMessage();
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.True(result);
@@ -25,10 +25,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var handler = new TerminateConnectionMessageHandler();
-            var message = KeepConnectionAliveMessage.Default;
+            KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.False(result);

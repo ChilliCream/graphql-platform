@@ -1,10 +1,8 @@
 using System;
-using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class SubscriptionMock
-        : ISubscription
+    public class SubscriptionMock : ISubscription
     {
         public string Id { get; set; } = "abc";
 
@@ -14,7 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public void Complete()
         {
-            Completed.Invoke(this, EventArgs.Empty);
+            Completed?.Invoke(this, EventArgs.Empty);
         }
 
         public void Dispose()

@@ -1,14 +1,12 @@
-using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Server;
 using HotChocolate.StarWars;
-using HotChocolate.Subscriptions;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
@@ -19,21 +17,20 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_DataStartMessage_True()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
+            var interceptor = new DefaultSocketSessionInterceptor();
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
-
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-
-            var handler = new DataStartMessageHandler(executor, null);
+            var handler = new DataStartMessageHandler(executor, interceptor);
 
             var message = new DataStartMessage(
                 "123",
                 new GraphQLRequest(query));
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.True(result);
@@ -43,16 +40,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_KeepAliveMessage_False()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
+            var interceptor = new DefaultSocketSessionInterceptor();
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
-
-            var handler = new DataStartMessageHandler(executor, null);
-            var message = KeepConnectionAliveMessage.Default;
+            var handler = new DataStartMessageHandler(executor, interceptor);
+            KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.False(result);
@@ -63,15 +60,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var connection = new SocketConnectionMock();
+            var interceptor = new DefaultSocketSessionInterceptor();
 
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
 
-            var handler = new DataStartMessageHandler(executor, null);
+            var handler = new DataStartMessageHandler(executor, interceptor);
 
             var message = new DataStartMessage(
                 "123",
@@ -109,28 +107,21 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var services = new ServiceCollection();
             services.AddStarWarsRepositories();
 
-            var interceptor = new Mock<ISocketQueryRequestInterceptor>();
-            interceptor.Setup(t => t.OnCreateAsync(
-                It.IsAny<ISocketConnection>(),
-                It.IsAny<IQueryRequestBuilder>(),
-                It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            var interceptor = new DefaultSocketSessionInterceptor();
 
             var connection = new SocketConnectionMock
             {
                 RequestServices = services.BuildServiceProvider()
             };
 
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
 
-            var handler = new DataStartMessageHandler(
-                executor,
-                new List<ISocketQueryRequestInterceptor> { interceptor.Object } );
+            var handler = new DataStartMessageHandler(executor, interceptor);
 
             var message = new DataStartMessage(
                 "123",
@@ -169,19 +160,21 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var connection = new SocketConnectionMock();
 
             var services = new ServiceCollection();
-            services.AddInMemorySubscriptionProvider();
+            services.AddInMemorySubscriptions();
             services.AddStarWarsRepositories();
 
-            IQueryExecutor executor = SchemaBuilder.New()
+            IRequestExecutor executor = SchemaBuilder.New()
                 .AddServices(services.BuildServiceProvider())
                 .AddStarWarsTypes()
                 .Create()
                 .MakeExecutable();
 
-            DocumentNode query = Utf8GraphQLParser.Parse(
-                "subscription { onReview(episode: NEWHOPE) { stars } }");
+            var interceptor = new DefaultSocketSessionInterceptor();
 
-            var handler = new DataStartMessageHandler(executor, null);
+            DocumentNode query = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEW_HOPE) { stars } }");
+
+            var handler = new DataStartMessageHandler(executor, interceptor);
 
             var message = new DataStartMessage(
                 "123",
@@ -197,13 +190,13 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             Assert.Empty(connection.SentMessages);
             Assert.NotEmpty(connection.Subscriptions);
 
-            IResponseStream stream =
+            var stream =
                 (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onReview(episode: NEWHOPE) { stars } }");
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
             await executor.ExecuteAsync(@"
                 mutation {
-                    createReview(episode:NEWHOPE review:
+                    createReview(episode:NEW_HOPE review:
                         {
                             commentary: ""foo""
                             stars: 5
@@ -213,10 +206,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 }");
 
             using var cts = new CancellationTokenSource(15000);
-            IAsyncEnumerator<IReadOnlyQueryResult> enumerator = stream.GetAsyncEnumerator(cts.Token);
+            ConfiguredCancelableAsyncEnumerable<IQueryResult>.Enumerator enumerator =
+                stream.ReadResultsAsync().WithCancellation(cts.Token).GetAsyncEnumerator();
             Assert.True(await enumerator.MoveNextAsync());
 
-            await Task.Delay(2000);
+            await Task.Delay(2000, cts.Token);
 
             Assert.Collection(connection.SentMessages,
                 t =>

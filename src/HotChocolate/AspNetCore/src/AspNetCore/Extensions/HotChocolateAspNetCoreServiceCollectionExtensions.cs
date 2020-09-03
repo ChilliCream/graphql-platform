@@ -2,6 +2,7 @@ using System;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.AspNetCore.Extensions
 {
-    public static class HotChocolateAspNetCoreServiceCollectionExtensions
+    public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQLServerCore(
             this IServiceCollection services,
@@ -22,7 +23,6 @@ namespace HotChocolate.AspNetCore.Extensions
 
             services.AddGraphQLCore();
             services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
-            services.TryAddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
             services.TryAddSingleton<IRequestParser>(
                 sp => new DefaultRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
@@ -39,26 +39,12 @@ namespace HotChocolate.AspNetCore.Extensions
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
                 .AddGraphQL(schemaName)
+                .AddHttpRequestInterceptor()
                 .AddSubscriptionServices();
 
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
             builder.Services.AddGraphQLServer(schemaName);
-
-        private static IRequestExecutorBuilder AddSubscriptionServices(
-            this IRequestExecutorBuilder builder)
-        {
-            return builder.ConfigureSchemaServices(s =>
-            {
-                s.TryAddSingleton<IMessagePipeline, DefaultMessagePipeline>();
-                s.TryAddSingleton<ISocketSessionInterceptor, DefaultSocketSessionInterceptor>();
-
-                s.AddSingleton<IMessageHandler, DataStartMessageHandler>();
-                s.AddSingleton<IMessageHandler, DataStopMessageHandler>();
-                s.AddSingleton<IMessageHandler, InitializeConnectionMessageHandler>();
-                s.AddSingleton<IMessageHandler, TerminateConnectionMessageHandler>();
-            });
-        }
     }
 }

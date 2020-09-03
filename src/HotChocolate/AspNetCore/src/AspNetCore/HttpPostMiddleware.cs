@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -20,23 +19,19 @@ namespace HotChocolate.AspNetCore
     {
         private const string _batchOperations = "batchOperations";
         private readonly IHttpResultSerializer _resultSerializer;
-        private readonly IHttpRequestInterceptor _requestInterceptor;
         private readonly IRequestParser _requestParser;
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            IHttpRequestInterceptor requestInterceptor,
             IRequestParser requestParser,
             NameString schemaName)
             : base(next, executorResolver, schemaName)
-        {         
-            _resultSerializer = resultSerializer ?? 
+        {
+            _resultSerializer = resultSerializer ??
                 throw new ArgumentNullException(nameof(resultSerializer));
-            _requestInterceptor = requestInterceptor ?? 
-                throw new ArgumentNullException(nameof(requestInterceptor));
-            _requestParser = requestParser ?? 
+            _requestParser = requestParser ??
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
@@ -61,7 +56,8 @@ namespace HotChocolate.AspNetCore
         {
             // first we need to get the request executor to be able to execute requests.
             IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
-            IErrorHandler errorHandler = requestExecutor.Services.GetRequiredService<IErrorHandler>();
+            IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
+            IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
 
             HttpStatusCode? statusCode = null;
             IExecutionResult? result;
@@ -97,7 +93,7 @@ namespace HotChocolate.AspNetCore
                         if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
                         {
                             result = await ExecuteOperationBatchAsync(
-                                context, requestExecutor, requests[0], ops);
+                                context, requestExecutor, requestInterceptor, requests[0], ops);
                         }
                         else
                         {
@@ -115,7 +111,8 @@ namespace HotChocolate.AspNetCore
                     // a single GraphQL query or mutation.
                     case 1:
                     {
-                        result = await ExecuteSingleAsync(context, requestExecutor, requests[0]);
+                        result = await ExecuteSingleAsync(
+                            context, requestExecutor, requestInterceptor, requests[0]);
                         break;
                     }
 
@@ -123,7 +120,8 @@ namespace HotChocolate.AspNetCore
                     // we need to execute a request batch where we need to execute multiple
                     // fully specified GraphQL requests at once.
                     default:
-                        result = await ExecuteBatchAsync(context, requestExecutor, requests);
+                        result = await ExecuteBatchAsync(
+                            context, requestExecutor, requestInterceptor, requests);
                         break;
                 }
             }
@@ -163,11 +161,12 @@ namespace HotChocolate.AspNetCore
         private async Task<IExecutionResult> ExecuteSingleAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             GraphQLRequest request)
         {
             QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
 
-            await _requestInterceptor.OnCreateAsync(
+            await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);
 
             return await requestExecutor.ExecuteAsync(
@@ -177,6 +176,7 @@ namespace HotChocolate.AspNetCore
         private async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             GraphQLRequest request,
             IReadOnlyList<string> operationNames)
         {
@@ -187,7 +187,7 @@ namespace HotChocolate.AspNetCore
                 QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
                 requestBuilder.SetOperation(operationNames[i]);
 
-                await _requestInterceptor.OnCreateAsync(
+                await requestInterceptor.OnCreateAsync(
                     context, requestExecutor, requestBuilder, context.RequestAborted);
 
                 requestBatch[i] = requestBuilder.Create();
@@ -200,6 +200,7 @@ namespace HotChocolate.AspNetCore
         private async Task<IBatchQueryResult> ExecuteBatchAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             IReadOnlyList<GraphQLRequest> requests)
         {
             var requestBatch = new IReadOnlyQueryRequest[requests.Count];
@@ -208,7 +209,7 @@ namespace HotChocolate.AspNetCore
             {
                 QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[0]);
 
-                await _requestInterceptor.OnCreateAsync(
+                await requestInterceptor.OnCreateAsync(
                     context, requestExecutor, requestBuilder, context.RequestAborted);
 
                 requestBatch[i] = requestBuilder.Create();
@@ -279,6 +280,6 @@ namespace HotChocolate.AspNetCore
 
             operationNames = names;
             return true;
-        }        
+        }
     }
 }
