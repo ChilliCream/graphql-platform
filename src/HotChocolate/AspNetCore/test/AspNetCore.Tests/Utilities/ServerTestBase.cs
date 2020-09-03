@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.StarWars;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;

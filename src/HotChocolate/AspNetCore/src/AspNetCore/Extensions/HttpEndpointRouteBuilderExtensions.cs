@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore.Extensions
 {
     public static class HttpEndpointRouteBuilderExtensions
     {

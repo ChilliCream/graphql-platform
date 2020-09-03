@@ -1,11 +1,11 @@
 using System;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.AspNetCore.Extensions
 {
     public static class HotChocolateAspNetCoreServiceCollectionExtensions
     {
