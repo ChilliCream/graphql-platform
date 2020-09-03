@@ -11,8 +11,6 @@ namespace HotChocolate.Language
             public string? Type { get; set; }
 
             public ReadOnlySpan<byte> Payload { get; set; }
-
-            public bool HasPayload { get; set; }
         }
     }
 }

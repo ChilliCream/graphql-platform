@@ -12,8 +12,7 @@ using Xunit;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    public class ServerTestBase
-        : IClassFixture<TestServerFactory>
+    public class ServerTestBase : IClassFixture<TestServerFactory>
     {
         public ServerTestBase(TestServerFactory serverFactory)
         {
@@ -22,9 +21,8 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected TestServerFactory ServerFactory { get; set; }
 
-        protected TestServer CreateStarWarsServer(string pattern = "/graphql")
-        {
-            return ServerFactory.Create(
+        protected TestServer CreateStarWarsServer(string pattern = "/graphql") => 
+            ServerFactory.Create(
                 services => services
                     .AddRouting()
                     .AddGraphQLServer()
@@ -32,31 +30,9 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
                         .AddInMemorySubscriptions(),
-                app =>
-                {
-                    app.UseRouting();
-
-                    app.UseEndpoints(endpoints =>
-                    {
-                        endpoints.MapGraphQL(pattern);
-                    });
-                });
-        }
-
-        protected async Task<ClientQueryResult> DeserializeAsync(
-            HttpResponseMessage message)
-        {
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-            var json = await message.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<ClientQueryResult>(json);
-        }
-
-        protected async Task<List<ClientQueryResult>> DeserializeBatchAsync(
-            HttpResponseMessage message)
-        {
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-            var json = await message.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
-        }
+                app => app
+                    .UseWebSockets()
+                    .UseRouting()
+                    .UseEndpoints(endpoints => endpoints.MapGraphQL(pattern)));
     }
 }
