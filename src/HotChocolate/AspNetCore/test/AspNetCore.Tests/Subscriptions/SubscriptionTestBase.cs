@@ -13,8 +13,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class SubscriptionTestBase : ServerTestBase
     {
-        public SubscriptionTestBase(TestServerFactory serverFactory) 
-            : base(serverFactory) 
+        public SubscriptionTestBase(TestServerFactory serverFactory)
+            : base(serverFactory)
         {
         }
 
@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         protected async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
             WebSocket webSocket, string type, TimeSpan timeout)
         {
-            Stopwatch timer = Stopwatch.StartNew();
+            var timer = Stopwatch.StartNew();
 
             try
             {
@@ -39,7 +39,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         return message;
                     }
 
-                    if (message != null && 
+                    if (message != null &&
                         !MessageTypes.Connection.KeepAlive.Equals(message["type"]))
                     {
                         throw new InvalidOperationException(
@@ -81,6 +81,38 @@ namespace HotChocolate.AspNetCore.Subscriptions
             WebSocketClient client = testServer.CreateWebSocketClient();
             client.ConfigureRequest = r => r.Headers.Add("Sec-WebSocket-Protocol", "graphql-ws");
             return client;
+        }
+
+        protected static async Task TryTest(Func<Task> action)
+        {
+            // we will try four times ....
+            var count = 0;
+            var wait = 50;
+
+            while (true)
+            {
+                if (count < 3)
+                {
+                    try
+                    {
+                        await action().ConfigureAwait(false);
+                        break;
+                    }
+                    catch
+                    {
+                        // try again
+                    }
+                }
+                else
+                {
+                    await action().ConfigureAwait(false);
+                    break;
+                }
+
+                await Task.Delay(wait).ConfigureAwait(false);
+                wait = wait * 2;
+                count++;
+            }
         }
     }
 }

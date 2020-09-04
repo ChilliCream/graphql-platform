@@ -84,7 +84,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
-                if (messageData.Length == 0 || 
+                if (messageData.Length == 0 ||
                     (messageData.Length == 1 && messageData[0] == default))
                 {
                     message = null;
@@ -146,7 +146,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static bool TryDeserializeDataStartMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage? message)
+            [NotNullWhen(true)]out OperationMessage? message)
         {
             if (parsedMessage.Payload.Length == 0 || parsedMessage.Id is null)
             {

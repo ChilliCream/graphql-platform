@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 await _connection.ReceiveAsync(_writer, cancellationToken);
                 await WriteMessageDelimiterAsync(cancellationToken);
             }
-            _writer.Complete();
+            await _writer.CompleteAsync();
         }
 
         private async Task WriteMessageDelimiterAsync(

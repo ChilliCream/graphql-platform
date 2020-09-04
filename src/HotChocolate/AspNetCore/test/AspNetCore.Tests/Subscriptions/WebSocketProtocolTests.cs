@@ -25,30 +25,28 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             return TryTest(async () =>
             {
-                using (TestServer testServer = CreateStarWarsServer())
-                {
-                    // arrange
-                    WebSocketClient client = CreateWebSocketClient(testServer);
-                    WebSocket webSocket = 
-                        await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket =
+                    await client.ConnectAsync(SubscriptionUri, CancellationToken.None);
 
-                    // act
-                    await webSocket.SendConnectionInitializeAsync();
+                // act
+                await webSocket.SendConnectionInitializeAsync();
 
-                    // assert
-                    IReadOnlyDictionary<string, object> message =
-                        await webSocket.ReceiveServerMessageAsync();
-                    Assert.NotNull(message);
-                    Assert.Equal(
-                        MessageTypes.Connection.Accept,
-                        message["type"]);
+                // assert
+                IReadOnlyDictionary<string, object> message =
+                    await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.Accept,
+                    message["type"]);
 
-                    message = await webSocket.ReceiveServerMessageAsync();
-                    Assert.NotNull(message);
-                    Assert.Equal(
-                        MessageTypes.Connection.KeepAlive,
-                        message["type"]);
-                }
+                message = await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(
+                    MessageTypes.Connection.KeepAlive,
+                    message["type"]);
             });
         }
 
@@ -57,24 +55,22 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             return TryTest(async () =>
             {
-                using (TestServer testServer = CreateStarWarsServer())
-                {
-                    // arrange
-                    WebSocketClient client = CreateWebSocketClient(testServer);
-                    WebSocket webSocket = await ConnectToServerAsync(client);
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
 
-                    // act
-                    await webSocket.SendTerminateConnectionAsync();
+                // act
+                await webSocket.SendTerminateConnectionAsync();
 
-                    // assert
-                    byte[] buffer = new byte[1024];
-                    await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                // assert
+                var buffer = new byte[1024];
+                await webSocket.ReceiveAsync(buffer, CancellationToken.None);
 
-                    Assert.True(webSocket.CloseStatus.HasValue);
-                    Assert.Equal(
-                        WebSocketCloseStatus.NormalClosure,
-                        webSocket.CloseStatus.Value);
-                }
+                Assert.True(webSocket.CloseStatus.HasValue);
+                Assert.Equal(
+                    WebSocketCloseStatus.NormalClosure,
+                    webSocket.CloseStatus.Value);
             });
         }
 
@@ -83,30 +79,28 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             return TryTest(async () =>
             {
-                using (TestServer testServer = CreateStarWarsServer())
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = testServer.CreateWebSocketClient();
+
+                client.ConfigureRequest = r =>
                 {
-                    // arrange
-                    WebSocketClient client = testServer.CreateWebSocketClient();
+                    r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+                };
 
-                    client.ConfigureRequest = r =>
-                    {
-                        r.Headers.Add("Sec-WebSocket-Protocol", "foo");
-                    };
+                // act
+                WebSocket socket = await client.ConnectAsync(
+                    SubscriptionUri,
+                    CancellationToken.None);
 
-                    // act
-                    WebSocket socket = await client.ConnectAsync(
-                        SubscriptionUri,
-                        CancellationToken.None);
+                var buffer = new byte[1024];
+                await socket.ReceiveAsync(buffer, CancellationToken.None);
 
-                    byte[] buffer = new byte[1024];
-                    await socket.ReceiveAsync(buffer, CancellationToken.None);
-
-                    // assert
-                    Assert.True(socket.CloseStatus.HasValue);
-                    Assert.Equal(
-                        WebSocketCloseStatus.ProtocolError,
-                        socket.CloseStatus.Value);
-                }
+                // assert
+                Assert.True(socket.CloseStatus.HasValue);
+                Assert.Equal(
+                    WebSocketCloseStatus.ProtocolError,
+                    socket.CloseStatus.Value);
             });
         }
 
@@ -117,26 +111,25 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             return TryTest(async () =>
             {
-                using (TestServer testServer = CreateStarWarsServer())
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+
+                DocumentNode document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                // assert
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
                 {
-                    // arrange
-                    WebSocketClient client = CreateWebSocketClient(testServer);
-                    WebSocket webSocket = await ConnectToServerAsync(client);
-
-                    var document = Utf8GraphQLParser.Parse(
-                        "subscription { onReview(episode: NEW_HOPE) { stars } }");
-
-                    var request = new GraphQLRequest(document);
-
-                    const string subscriptionId = "abc";
-
-                    // act
-                    await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
-
-                    // assert
-                    await testServer.SendPostRequestAsync(new ClientQueryRequest
-                    {
-                        Query = @"
+                    Query = @"
                             mutation {
                                 createReview(episode: NEW_HOPE review: {
                                     commentary: ""foo""
@@ -145,17 +138,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
                                     stars
                                 }
                             }"
-                    });
+                });
 
-                    IReadOnlyDictionary<string, object> message =
-                        await WaitForMessage(
-                            webSocket,
-                            MessageTypes.Subscription.Data,
-                            TimeSpan.FromSeconds(15));
+                IReadOnlyDictionary<string, object> message =
+                    await WaitForMessage(
+                        webSocket,
+                        MessageTypes.Subscription.Data,
+                        TimeSpan.FromSeconds(15));
 
-                    Assert.NotNull(message);
-                    Snapshot.Match(message, snapshotName);
-                }
+                Assert.NotNull(message);
+                Snapshot.Match(message, snapshotName);
             });
         }
 
@@ -164,24 +156,23 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             return TryTest(async () =>
             {
-                using (TestServer testServer = CreateStarWarsServer())
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+
+                DocumentNode document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
                 {
-                    // arrange
-                    WebSocketClient client = CreateWebSocketClient(testServer);
-                    WebSocket webSocket = await ConnectToServerAsync(client);
-
-                    var document = Utf8GraphQLParser.Parse(
-                        "subscription { onReview(episode: NEW_HOPE) { stars } }");
-
-                    var request = new GraphQLRequest(document);
-
-                    const string subscriptionId = "abc";
-
-                    await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
-
-                    await testServer.SendPostRequestAsync(new ClientQueryRequest
-                    {
-                        Query = @"
+                    Query = @"
                             mutation {
                                 createReview(episode:NEW_HOPE review: {
                                     commentary: ""foo""
@@ -190,20 +181,19 @@ namespace HotChocolate.AspNetCore.Subscriptions
                                     stars
                                 }
                             }"
-                    });
+                });
 
-                    IReadOnlyDictionary<string, object> message =
-                        await WaitForMessage(
-                            webSocket,
-                            MessageTypes.Subscription.Data,
-                            TimeSpan.FromSeconds(15));
+                await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(15));
 
-                    // act
-                    await webSocket.SendSubscriptionStopAsync(subscriptionId);
+                // act
+                await webSocket.SendSubscriptionStopAsync(subscriptionId);
 
-                    await testServer.SendPostRequestAsync(new ClientQueryRequest
-                    {
-                        Query = @"
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
+                {
+                    Query = @"
                             mutation {
                                 createReview(episode:NEW_HOPE review: {
                                     commentary: ""foo""
@@ -212,49 +202,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
                                     stars
                                 }
                             }"
-                    });
+                });
 
-                    message = await WaitForMessage(
-                        webSocket,
-                        MessageTypes.Subscription.Data,
-                        TimeSpan.FromSeconds(5));
+                IReadOnlyDictionary<string, object> message = await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(5));
 
-                    // assert
-                    Assert.Null(message);
-                }
+                // assert
+                Assert.Null(message);
             });
-        }
-
-        private static async Task TryTest(Func<Task> action)
-        {
-            // we will try four times ....
-            int count = 0;
-            int wait = 50;
-
-            while (true)
-            {
-                if (count < 3)
-                {
-                    try
-                    {
-                        await action().ConfigureAwait(false);
-                        break;
-                    }
-                    catch
-                    {
-                        // try again
-                    }
-                }
-                else
-                {
-                    await action().ConfigureAwait(false);
-                    break;
-                }
-
-                await Task.Delay(wait).ConfigureAwait(false);
-                wait = wait * 2;
-                count++;
-            }
         }
     }
 }

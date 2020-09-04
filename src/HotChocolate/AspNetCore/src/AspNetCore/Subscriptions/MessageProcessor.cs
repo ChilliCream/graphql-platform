@@ -36,7 +36,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             while (true)
             {
-                SequencePosition? position = null;
+                SequencePosition? position;
                 ReadResult result = await _reader.ReadAsync(cancellationToken);
                 ReadOnlySequence<byte> buffer = result.Buffer;
 

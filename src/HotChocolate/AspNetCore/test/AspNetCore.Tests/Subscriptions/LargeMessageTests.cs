@@ -20,30 +20,34 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         [Fact]
-        public async Task Send_Start_ReceiveDataOnMutation_Large_Message()
+        public Task Send_Start_ReceiveDataOnMutation_Large_Message()
         {
-            // arrange
-            using TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            Snapshot.FullName();
 
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                "subscription { onReview(episode: NEW_HOPE) { stars } }");
-
-            var request = new GraphQLRequest(document);
-
-            const string subscriptionId = "abc";
-
-            // act
-            await webSocket.SendSubscriptionStartAsync(
-                subscriptionId, request, true);
-
-            // assert
-            await webSocket.SendEmptyMessageAsync();
-
-            await testServer.SendPostRequestAsync(new ClientQueryRequest
+            return TryTest(async () =>
             {
-                Query = @"
+                // arrange
+                using TestServer testServer = CreateStarWarsServer();
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+
+                DocumentNode document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscriptionStartAsync(
+                    subscriptionId, request, true);
+
+                // assert
+                await webSocket.SendEmptyMessageAsync();
+
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
+                {
+                    Query = @"
                     mutation {
                         createReview(episode:NEW_HOPE review: {
                             commentary: ""foo""
@@ -53,16 +57,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         }
                     }
                 "
+                });
+
+                IReadOnlyDictionary<string, object> message =
+                    await WaitForMessage(
+                        webSocket,
+                        MessageTypes.Subscription.Data,
+                        TimeSpan.FromSeconds(15));
+
+                Assert.NotNull(message);
+                message.MatchSnapshot();
             });
-
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
-                    webSocket,
-                    MessageTypes.Subscription.Data,
-                    TimeSpan.FromSeconds(15));
-
-            Assert.NotNull(message);
-            message.MatchSnapshot();
         }
     }
 }
