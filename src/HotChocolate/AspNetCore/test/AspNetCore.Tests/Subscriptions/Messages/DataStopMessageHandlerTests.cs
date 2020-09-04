@@ -1,15 +1,9 @@
-using System.Linq;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using HotChocolate.StarWars;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Subscriptions;
-using Moq;
-using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -23,7 +17,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             var message = new DataStopMessage("123");
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.True(result);
@@ -33,16 +27,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_KeepAliveMessage_False()
         {
             // arrange
-            IQueryExecutor executor = SchemaBuilder.New()
-                .AddStarWarsTypes()
-                .Create()
-                .MakeExecutable();
-
             var handler = new DataStopMessageHandler();
-            var message = KeepConnectionAliveMessage.Default;
+            KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.False(result);
@@ -55,22 +44,19 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             // arrange
             var connection = new SocketConnectionMock();
 
-            var services = new ServiceCollection();
-            services.AddInMemorySubscriptionProvider();
-            services.AddStarWarsRepositories();
-
-            IQueryExecutor executor = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
                 .AddStarWarsTypes()
-                .Create()
-                .MakeExecutable();
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider()
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync();
 
-            DocumentNode query = Utf8GraphQLParser.Parse(
-                "subscription { onReview(episode: NEWHOPE) { stars } }");
-
-            IResponseStream stream =
+            var stream =
                 (IResponseStream)await executor.ExecuteAsync(
-                    "subscription { onReview(episode: NEWHOPE) { stars } }");
+                    "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
             var subscription = new Subscription(connection, stream, "123");
             connection.Subscriptions.Register(subscription);

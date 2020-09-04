@@ -16,16 +16,16 @@ namespace HotChocolate.AspNetCore.Utilities
             CancellationToken cancellationToken) =>
             new ValueTask<ConnectionStatus>(ConnectionStatus.Accept());
 
-        public ValueTask OnRequestAsync(
+        public virtual ValueTask OnRequestAsync(
             ISocketConnection connection,
             IQueryRequestBuilder requestBuilder,
             CancellationToken cancellationToken)
         {
             HttpContext context = connection.HttpContext;
             requestBuilder.TrySetServices(connection.RequestServices);
+            requestBuilder.TryAddProperty(nameof(CancellationToken), connection.RequestAborted);
             requestBuilder.TryAddProperty(nameof(HttpContext), context);
             requestBuilder.TryAddProperty(nameof(ClaimsPrincipal), context.User);
-            requestBuilder.TryAddProperty(nameof(CancellationToken), context.RequestAborted);
 
             if (connection.HttpContext.IsTracingEnabled())
             {
@@ -35,7 +35,7 @@ namespace HotChocolate.AspNetCore.Utilities
             return default;
         }
 
-        public ValueTask OnCloseAsync(
+        public virtual ValueTask OnCloseAsync(
             ISocketConnection connection,
             CancellationToken cancellationToken) =>
             default;

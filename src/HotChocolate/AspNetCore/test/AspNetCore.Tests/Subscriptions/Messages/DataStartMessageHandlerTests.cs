@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -59,21 +60,23 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Query_DataReceived_And_Completed()
         {
             // arrange
-            var connection = new SocketConnectionMock();
-            var interceptor = new DefaultSocketSessionInterceptor();
-
-            IRequestExecutor executor = SchemaBuilder.New()
+            IServiceProvider services = new ServiceCollection()
+                .AddGraphQL()
                 .AddStarWarsTypes()
-                .Create()
-                .MakeExecutable();
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
 
+            IRequestExecutor executor = await services
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync();
+
+            var interceptor = new SocketSessionInterceptorMock();
+            var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-
             var handler = new DataStartMessageHandler(executor, interceptor);
-
-            var message = new DataStartMessage(
-                "123",
-                new GraphQLRequest(query));
+            var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -104,33 +107,28 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Query_With_Inter_DataReceived_And_Completed()
         {
             // arrange
-            var services = new ServiceCollection();
-            services.AddStarWarsRepositories();
-
-            var interceptor = new DefaultSocketSessionInterceptor();
-
-            var connection = new SocketConnectionMock
-            {
-                RequestServices = services.BuildServiceProvider()
-            };
-
-            IRequestExecutor executor = SchemaBuilder.New()
+            IServiceProvider services = new ServiceCollection()
+                .AddGraphQL()
                 .AddStarWarsTypes()
-                .Create()
-                .MakeExecutable();
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
 
+            IRequestExecutor executor = await services
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync();
+
+            var interceptor = new SocketSessionInterceptorMock();
+            var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse("{ hero { name } }");
-
             var handler = new DataStartMessageHandler(executor, interceptor);
-
-            var message = new DataStartMessage(
-                "123",
-                new GraphQLRequest(query));
+            var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             var result = (IReadOnlyQueryResult)await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(query)
-                    .SetServices(services.BuildServiceProvider())
+                    .SetServices(services)
                     .Create());
 
             // act
@@ -157,28 +155,24 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_Subscription_DataReceived_And_Completed()
         {
             // arrange
-            var connection = new SocketConnectionMock();
-
-            var services = new ServiceCollection();
-            services.AddInMemorySubscriptions();
-            services.AddStarWarsRepositories();
-
-            IRequestExecutor executor = SchemaBuilder.New()
-                .AddServices(services.BuildServiceProvider())
+            IServiceProvider services = new ServiceCollection()
+                .AddGraphQL()
                 .AddStarWarsTypes()
-                .Create()
-                .MakeExecutable();
+                .AddStarWarsRepositories()
+                .AddInMemorySubscriptions()
+                .Services
+                .BuildServiceProvider();
 
-            var interceptor = new DefaultSocketSessionInterceptor();
+            IRequestExecutor executor = await services
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync();
 
+            var interceptor = new SocketSessionInterceptorMock();
+            var connection = new SocketConnectionMock { RequestServices = services };
             DocumentNode query = Utf8GraphQLParser.Parse(
                 "subscription { onReview(episode: NEW_HOPE) { stars } }");
-
             var handler = new DataStartMessageHandler(executor, interceptor);
-
-            var message = new DataStartMessage(
-                "123",
-                new GraphQLRequest(query));
+            var message = new DataStartMessage("123", new GraphQLRequest(query));
 
             // act
             await handler.HandleAsync(
