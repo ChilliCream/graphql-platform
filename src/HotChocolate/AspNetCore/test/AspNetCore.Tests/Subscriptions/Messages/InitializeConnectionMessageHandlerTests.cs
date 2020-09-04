@@ -71,7 +71,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_InitializeMessage_Rejected()
         {
             // arrange
-            var interceptor = new SocketSessionInterceptorMock();
+            var interceptor = new SocketSessionInterceptorMock(ConnectionStatus.Reject());
             var connection = new SocketConnectionMock();
             var handler = new InitializeConnectionMessageHandler(interceptor);
             var message = new InitializeConnectionMessage();
@@ -101,7 +101,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 "Foo",
                 new Dictionary<string, object> { { "bar", "baz" } });
 
-            var interceptor = new SocketSessionInterceptorMock();
+            var interceptor = new SocketSessionInterceptorMock(connectionStatus);
             var connection = new SocketConnectionMock();
             var handler = new InitializeConnectionMessageHandler(interceptor);
             var message = new InitializeConnectionMessage();
