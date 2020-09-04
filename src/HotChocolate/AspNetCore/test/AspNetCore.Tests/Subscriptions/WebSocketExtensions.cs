@@ -79,21 +79,19 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             var buffer = new byte[_maxMessageSize];
 
-            using (Stream stream = message.CreateMessageStream(largeMessage))
+            await using Stream stream = message.CreateMessageStream(largeMessage);
+            var read = 0;
+
+            do
             {
-                var read = 0;
+                read = stream.Read(buffer, 0, buffer.Length);
+                var segment = new ArraySegment<byte>(buffer, 0, read);
+                var isEndOfMessage = stream.Position == stream.Length;
 
-                do
-                {
-                    read = stream.Read(buffer, 0, buffer.Length);
-                    var segment = new ArraySegment<byte>(buffer, 0, read);
-                    var isEndOfMessage = stream.Position == stream.Length;
-
-                    await webSocket.SendAsync(
-                        segment, WebSocketMessageType.Text,
-                        isEndOfMessage, CancellationToken.None);
-                } while (read == _maxMessageSize);
-            }
+                await webSocket.SendAsync(
+                    segment, WebSocketMessageType.Text,
+                    isEndOfMessage, CancellationToken.None);
+            } while (read == _maxMessageSize);
         }
 
         private static Stream CreateMessageStream(
@@ -102,8 +100,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             if (message is DataStartMessage dataStart)
             {
-                string query = QuerySyntaxSerializer.Serialize(
-                    dataStart.Payload.Query);
+                var query = QuerySyntaxSerializer.Serialize(dataStart.Payload.Query!);
 
                 var payload = new Dictionary<string, object>
                 {
