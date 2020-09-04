@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
-                .SetQueryName("a")
+                .SetQueryId("a")
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
@@ -93,7 +93,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
-                .SetQueryName("a")
+                .SetQueryId("a")
                 .Create();
 
             DocumentNode document = Utf8GraphQLParser.Parse("{ a }");

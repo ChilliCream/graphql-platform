@@ -1,13 +1,16 @@
 using System;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using HotChocolate;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.AspNetCore.Extensions
 {
-    public static class HotChocolateAspNetCoreServiceCollectionExtensions
+    public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQLServerCore(
             this IServiceCollection services,
@@ -20,7 +23,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddGraphQLCore();
             services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
-            services.TryAddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>();
             services.TryAddSingleton<IRequestParser>(
                 sp => new DefaultRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
@@ -36,7 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL(schemaName);
+                .AddGraphQL(schemaName)
+                .AddHttpRequestInterceptor()
+                .AddSubscriptionServices();
 
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IRequestExecutorBuilder builder,

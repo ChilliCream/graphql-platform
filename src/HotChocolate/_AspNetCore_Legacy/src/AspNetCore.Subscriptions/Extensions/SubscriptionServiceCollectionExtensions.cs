@@ -32,8 +32,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             serviceCollection.AddSingleton<IConnectMessageInterceptor>(sp =>
                 new ConnectMessageInterceptor(
-                    sp.GetService<ISocketConnectionInterceptor<HttpContext>>())
-                    );
+                    sp.GetService<ISocketConnectionInterceptor<HttpContext>>()));
         }
 
         private static void AddMessageHandlers(

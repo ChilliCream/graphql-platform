@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 

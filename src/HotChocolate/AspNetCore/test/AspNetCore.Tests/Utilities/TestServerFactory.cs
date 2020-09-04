@@ -7,8 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    public class TestServerFactory
-        : IDisposable
+    public class TestServerFactory : IDisposable
     {
         private readonly List<TestServer> _instances = new List<TestServer>();
 

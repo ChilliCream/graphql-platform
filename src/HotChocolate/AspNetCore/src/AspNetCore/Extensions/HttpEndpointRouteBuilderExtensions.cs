@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetCore.Extensions
 {
     public static class HttpEndpointRouteBuilderExtensions
     {
@@ -26,6 +26,8 @@ namespace HotChocolate.AspNetCore
             IApplicationBuilder applicationBuilder =
                 endpointRouteBuilder.CreateApplicationBuilder();
 
+            applicationBuilder.UseMiddleware<WebSocketSubscriptionMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
             applicationBuilder.UseMiddleware<HttpPostMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
 

@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
                                 .ConfigureAwait(false);
 
                         executor = schemaServices
-                            .GetRequiredService<RequestExecutor>();
+                            .GetRequiredService<IRequestExecutor>();
 
                         schemaServices
                             .GetRequiredService<IDiagnosticEvents>()
@@ -152,7 +152,7 @@ namespace HotChocolate.Execution
                     sp,
                     sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
 
-            serviceCollection.AddSingleton(
+            serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
                     sp.GetRequiredService<ISchema>(),
                     _applicationServices,
