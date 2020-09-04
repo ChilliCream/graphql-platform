@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
                 .AddQueryType<Query1>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
                 .AddQueryType<QueryType>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert

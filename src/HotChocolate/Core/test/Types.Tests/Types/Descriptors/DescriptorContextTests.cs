@@ -17,7 +17,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             Action action = () => DescriptorContext.Create(
-                options, null, conventions, new Dictionary<string, object>());
+                options, null, conventions, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -32,7 +33,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             Action action = () => DescriptorContext.Create(
-                null, service, conventions, new Dictionary<string, object>());
+                null, service, conventions, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -47,7 +49,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             Action action = () => DescriptorContext.Create(
-                options, service, null, new Dictionary<string, object>());
+                options, service, null, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -66,7 +69,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, services, conventions, new Dictionary<string, object>());
+                options, services, conventions, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -88,7 +92,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, new EmptyServiceProvider(), conventions, new Dictionary<string, object>());
+                options, new EmptyServiceProvider(), conventions, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -109,7 +114,8 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, services, conventions, new Dictionary<string, object>());
+                options, services, conventions, new Dictionary<string, object>(),
+                new SchemaBuilder.LazySchema());
 
             // assert
             Assert.Equal(inspector, context.TypeInspector);

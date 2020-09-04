@@ -93,7 +93,7 @@ namespace HotChocolate.Execution.Utilities
                     if (selection.SelectionSet is null)
                     {
                         // composite fields always have to have a selection-set
-                        // otherwithe we need to throw.
+                        // otherwise we need to throw.
                         throw QueryCompiler_CompositeTypeSelectionSet(selection.Selection);
                     }
 
@@ -106,8 +106,8 @@ namespace HotChocolate.Execution.Utilities
                         // we prepare the field context and check if there are field specific
                         // optimizers that we might want to include.
                         fieldContext.Push(selection.Field);
-                        int initialCount = optimizers.Count;
-                        int registered = RegisterOptimizers(optimizers, selection.Field);
+                        var initialCount = optimizers.Count;
+                        var registered = RegisterOptimizers(optimizers, selection.Field);
 
                         Visit(
                             selection.SelectionSet,
@@ -232,7 +232,7 @@ namespace HotChocolate.Execution.Utilities
                 ? selection.Name.Value
                 : selection.Alias.Value;
 
-            if (typeContext.Fields.TryGetField(fieldName, out ObjectField field))
+            if (typeContext.Fields.TryGetField(fieldName, out ObjectField? field))
             {
                 if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
                 {
@@ -432,7 +432,7 @@ namespace HotChocolate.Execution.Utilities
                         value.GetValueKind(),
                         true,
                         isDefaultValue,
-                        ParseLiteral(argument.Type, value),
+                        ParseLiteral(argument, value),
                         value);
                 }
                 catch (SerializationException ex)
@@ -482,12 +482,17 @@ namespace HotChocolate.Execution.Utilities
             return true;
         }
 
-        private static object ParseLiteral(IInputType argumentType, IValueNode value)
+        private static object? ParseLiteral(Argument argument, IValueNode value)
         {
-            IInputType type = (argumentType is NonNullType)
-                ? (IInputType)argumentType.InnerType()
-                : argumentType;
-            return type.ParseLiteral(value);
+            IInputType type = (argument.Type is NonNullType)
+                ? (IInputType)argument.Type.InnerType()
+                : argument.Type;
+
+            object? runtimeValue = type.ParseLiteral(value);
+
+            return argument.Formatter is not null
+                ? argument.Formatter.OnAfterDeserialize(runtimeValue)
+                : runtimeValue;
         }
 
         private FieldDelegate CreateFieldMiddleware(IObjectField field, FieldNode selection)
@@ -583,7 +588,7 @@ namespace HotChocolate.Execution.Utilities
             IList<ISelectionSetOptimizer> optimizers,
             IObjectField field)
         {
-            int count = 0;
+            var count = 0;
 
             if (SelectionSetOptimizerHelper.TryGetOptimizers(
                 field.ContextData,
@@ -607,9 +612,9 @@ namespace HotChocolate.Execution.Utilities
             int initialCount,
             int registeredOptimizers)
         {
-            int last = initialCount - 1;
+            var last = initialCount - 1;
 
-            for (int i = last + registeredOptimizers; i > last; i--)
+            for (var i = last + registeredOptimizers; i > last; i--)
             {
                 optimizers.RemoveAt(i);
             }

@@ -39,6 +39,8 @@ namespace HotChocolate.Execution.Utilities
 
         public IInputType Type => Argument.Type;
 
+        public IInputValueFormatter? Formatter => Argument.Formatter;
+
         public ValueKind? Kind { get; }
 
         public bool IsFinal { get; }

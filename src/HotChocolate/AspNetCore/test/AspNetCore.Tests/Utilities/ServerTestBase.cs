@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.StarWars;
 using Xunit;
 
@@ -16,7 +15,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected TestServerFactory ServerFactory { get; set; }
 
-        protected TestServer CreateStarWarsServer(string pattern = "/graphql") => 
+        protected TestServer CreateStarWarsServer(string pattern = "/graphql") =>
             ServerFactory.Create(
                 services => services
                     .AddRouting()

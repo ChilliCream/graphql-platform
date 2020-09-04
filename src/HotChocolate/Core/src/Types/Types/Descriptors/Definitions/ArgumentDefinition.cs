@@ -13,5 +13,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public object? NativeDefaultValue { get; set; }
 
         public ParameterInfo? Parameter { get; set; }
+
+        public IInputValueFormatter? Formatter { get; set; }
     }
 }

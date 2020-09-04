@@ -214,11 +214,9 @@ namespace HotChocolate
                 convention,
                 s =>
                 {
-                    if (s.TryGetOrCreateService<IConvention>(
-                        concreteConvention,
-                        out IConvention convention))
+                    if (s.TryGetOrCreateService(concreteConvention, out IConvention? c))
                     {
-                        return convention;
+                        return c;
                     }
 
                     throw Convention_UnableToCreateConvention(concreteConvention);
@@ -244,7 +242,7 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             string? scope = null)
             where TConvention : IConvention
-            where TConcreteConvention : IConvention =>
+            where TConcreteConvention : class, TConvention =>
             builder.TryAddConvention(typeof(TConvention), typeof(TConcreteConvention), scope);
     }
 }
