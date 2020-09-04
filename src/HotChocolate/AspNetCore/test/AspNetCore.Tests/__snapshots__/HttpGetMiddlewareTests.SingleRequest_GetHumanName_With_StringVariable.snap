@@ -1,0 +1,11 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "human": {
+      "name": "Luke Skywalker"
+    }
+  },
+  "Errors": null,
+  "Extensions": null
+}

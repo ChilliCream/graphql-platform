@@ -32,6 +32,8 @@ namespace Microsoft.AspNetCore.Builder
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
             applicationBuilder.UseMiddleware<HttpPostMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
+            applicationBuilder.UseMiddleware<HttpGetMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
 
             return endpointRouteBuilder
                 .Map(pattern, applicationBuilder.Build())

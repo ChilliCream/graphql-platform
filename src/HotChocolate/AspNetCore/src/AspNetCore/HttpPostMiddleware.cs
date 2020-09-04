@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Utilities;
@@ -18,35 +16,40 @@ namespace HotChocolate.AspNetCore
     public class HttpPostMiddleware : MiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private readonly IHttpResultSerializer _resultSerializer;
-        private readonly IRequestParser _requestParser;
+        private readonly IHttpRequestParser _requestParser;
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            IRequestParser requestParser,
+            IHttpRequestParser requestParser,
             NameString schemaName)
-            : base(next, executorResolver, schemaName)
+            : base(next, executorResolver, resultSerializer, schemaName)
         {
-            _resultSerializer = resultSerializer ??
-                throw new ArgumentNullException(nameof(resultSerializer));
             _requestParser = requestParser ??
                 throw new ArgumentNullException(nameof(requestParser));
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            AllowedContentType contentType = ParseContentType(context.Request.ContentType);
-
-            if (contentType == AllowedContentType.None)
+            if (!HttpMethods.IsPost(context.Request.Method))
             {
-                // the content type is unknown so we will invoke the next middleware.
+                // if the request is not a post request we will just invoke the next
+                // middleware and do nothing:
                 await NextAsync(context);
             }
             else
             {
-                await HandleRequestAsync(context, contentType);
+                AllowedContentType contentType = ParseContentType(context.Request.ContentType);
+                if (contentType == AllowedContentType.None)
+                {
+                    // the content type is unknown so we will invoke the next middleware.
+                    await NextAsync(context);
+                }
+                else
+                {
+                    await HandleRequestAsync(context, contentType);
+                }
             }
         }
 
@@ -65,8 +68,9 @@ namespace HotChocolate.AspNetCore
             try
             {
                 // next we parse the GraphQL request.
-                IReadOnlyList<GraphQLRequest> requests = await ReadRequestAsync(
-                    contentType, context.Request.Body, context.RequestAborted);
+                IReadOnlyList<GraphQLRequest> requests =
+                        await _requestParser.ReadJsonRequestAsync(
+                            context.Request.Body, context.RequestAborted);
 
                 switch (requests.Count)
                 {
@@ -144,112 +148,6 @@ namespace HotChocolate.AspNetCore
             // to the HTTP response stream.
             Debug.Assert(result is not null, "No GraphQL result was created.");
             await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
-        }
-
-        private async ValueTask WriteResultAsync(
-            HttpResponse response,
-            IExecutionResult result,
-            HttpStatusCode? statusCode,
-            CancellationToken cancellationToken)
-        {
-            response.ContentType = _resultSerializer.GetContentType(result);
-            response.StatusCode = (int)(statusCode ?? _resultSerializer.GetStatusCode(result));
-
-            await _resultSerializer.SerializeAsync(result, response.Body, cancellationToken);
-        }
-
-        private async Task<IExecutionResult> ExecuteSingleAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IHttpRequestInterceptor requestInterceptor,
-            GraphQLRequest request)
-        {
-            QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
-
-            await requestInterceptor.OnCreateAsync(
-                context, requestExecutor, requestBuilder, context.RequestAborted);
-
-            return await requestExecutor.ExecuteAsync(
-                requestBuilder.Create(), context.RequestAborted);
-        }
-
-        private async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IHttpRequestInterceptor requestInterceptor,
-            GraphQLRequest request,
-            IReadOnlyList<string> operationNames)
-        {
-            var requestBatch = new IReadOnlyQueryRequest[operationNames.Count];
-
-            for (var i = 0; i < operationNames.Count; i++)
-            {
-                QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
-                requestBuilder.SetOperation(operationNames[i]);
-
-                await requestInterceptor.OnCreateAsync(
-                    context, requestExecutor, requestBuilder, context.RequestAborted);
-
-                requestBatch[i] = requestBuilder.Create();
-            }
-
-            return await requestExecutor.ExecuteBatchAsync(
-                requestBatch, cancellationToken: context.RequestAborted);
-        }
-
-        private async Task<IBatchQueryResult> ExecuteBatchAsync(
-            HttpContext context,
-            IRequestExecutor requestExecutor,
-            IHttpRequestInterceptor requestInterceptor,
-            IReadOnlyList<GraphQLRequest> requests)
-        {
-            var requestBatch = new IReadOnlyQueryRequest[requests.Count];
-
-            for (var i = 0; i < requests.Count; i++)
-            {
-                QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[0]);
-
-                await requestInterceptor.OnCreateAsync(
-                    context, requestExecutor, requestBuilder, context.RequestAborted);
-
-                requestBatch[i] = requestBuilder.Create();
-            }
-
-            return await requestExecutor.ExecuteBatchAsync(
-                requestBatch, cancellationToken: context.RequestAborted);
-        }
-
-        private async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
-            AllowedContentType contentType,
-            Stream body,
-            CancellationToken cancellationToken)
-        {
-            if (contentType == AllowedContentType.Json)
-            {
-                return await _requestParser.ReadJsonRequestAsync(body, cancellationToken);
-            }
-            throw new NotSupportedException();
-        }
-
-        private static AllowedContentType ParseContentType(string s)
-        {
-            ReadOnlySpan<char> span = s.AsSpan();
-
-            for (var i = 0; i < span.Length; i++)
-            {
-                if (span[i] == ';')
-                {
-                    span = span.Slice(0, i);
-                    break;
-                }
-            }
-
-            if (span.SequenceEqual(ContentType.JsonSpan()))
-            {
-                return AllowedContentType.Json;
-            }
-
-            return AllowedContentType.None;
         }
 
         private static bool TryParseOperations(

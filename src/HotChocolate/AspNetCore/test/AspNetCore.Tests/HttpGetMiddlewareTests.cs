@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.TestHost;
 using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.TestHost;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.AspNetCore
 {
-    public class HttpPostMiddlewareTests : ServerTestBase
+    public class HttpGetMiddlewareTests : ServerTestBase
     {
-        public HttpPostMiddlewareTests(TestServerFactory serverFactory)
+        public HttpGetMiddlewareTests(TestServerFactory serverFactory)
             : base(serverFactory)
         {
         }
@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore
             TestServer server = CreateStarWarsServer();
 
             // act
-            ClientQueryResult result = await server.PostAsync(
+            ClientQueryResult result = await server.GetAsync(
                 new ClientQueryRequest { Query = "{ __typename }" });
 
             // assert
@@ -36,9 +36,9 @@ namespace HotChocolate.AspNetCore
             TestServer server = CreateStarWarsServer("/foo");
 
             // act
-            ClientQueryResult result = await server.PostAsync(
-                    new ClientQueryRequest { Query = "{ __typename }" },
-                    "/foo");
+            ClientQueryResult result = await server.GetAsync(
+                new ClientQueryRequest { Query = "{ __typename }" },
+                "/foo");
 
             // assert
             result.MatchSnapshot();
@@ -52,7 +52,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -74,7 +74,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -96,7 +96,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     query ($episode: Episode!) {
@@ -122,7 +122,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     query h($id: String!) {
@@ -148,7 +148,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -185,7 +185,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -221,7 +221,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -256,7 +256,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation CreateReviewForEpisode(
@@ -295,7 +295,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     query a {
@@ -324,7 +324,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -350,7 +350,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result =
-                await server.PostAsync(new ClientQueryRequest
+                await server.GetAsync(new ClientQueryRequest
                 {
                     Query = @"
                     {
@@ -359,240 +359,6 @@ namespace HotChocolate.AspNetCore
                         }
                     }"
                 });
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task SingleRequest_Incomplete()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            ClientQueryResult result = await server.PostAsync("{ \"query\":    ");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [InlineData("{}")]
-        [InlineData("{ }")]
-        [InlineData("{\n}")]
-        [InlineData("{\r\n}")]
-        [Theory]
-        public async Task SingleRequest_Empty(string request)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            ClientQueryResult result = await server.PostAsync(request);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [InlineData("[]")]
-        [InlineData("[ ]")]
-        [InlineData("[\n]")]
-        [InlineData("[\r\n]")]
-        [Theory]
-        public async Task BatchRequest_Empty(string request)
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            ClientQueryResult result = await server.PostAsync(request);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task EmptyRequest()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            ClientQueryResult result = await server.PostAsync(string.Empty);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task Ensure_Middleware_Mapping()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer("/foo");
-
-            // act
-            ClientQueryResult result = await server.PostAsync(string.Empty);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task BatchRequest_GetHero_And_GetHuman()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostAsync(new List<ClientQueryRequest>
-                {
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }"
-                    },
-                    new ClientQueryRequest
-                    {
-                        Query = @"
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                    }
-                });
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task OperationBatchRequest_GetHero_And_GetHuman()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                    },
-                    "getHero, getHuman");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_1()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                    },
-                    "getHero",
-                    createOperationParameter: s => "batchOperations=" + s);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_2()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                    },
-                    "getHero, getHuman",
-                    createOperationParameter: s => "batchOperations=[" + s);
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public async Task OperationBatchRequest_Invalid_BatchingParameter_3()
-        {
-            // arrange
-            TestServer server = CreateStarWarsServer();
-
-            // act
-            IReadOnlyList<ClientQueryResult> result =
-                await server.PostOperationAsync(
-                    new ClientQueryRequest
-                    {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }
-
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
-                    },
-                    "getHero, getHuman",
-                    createOperationParameter: s => "batchOperations=" + s);
 
             // assert
             result.MatchSnapshot();
