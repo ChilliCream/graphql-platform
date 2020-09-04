@@ -303,10 +303,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorFactoryOptions> configure)
         {
-            builder.Services.Configure<RequestExecutorFactoryOptions>(
-                builder.Name,
-                options => configure(options));
-
+            builder.Services.Configure(builder.Name, configure);
             return builder;
         }
 

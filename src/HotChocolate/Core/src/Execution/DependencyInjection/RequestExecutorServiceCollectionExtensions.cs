@@ -56,8 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
-        /// <param name="name">
-        /// The logical name of the <see cref="IRequestExecutor"/> to configure.
+        /// <param name="schemaName">
+        /// The logical name of the <see cref="ISchema"/> to configure.
         /// </param>
         /// <returns>
         /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.
@@ -87,8 +87,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
-        /// <param name="name">
-        /// The logical name of the <see cref="IRequestExecutor"/> to configure.
+        /// <param name="schemaName">
+        /// The logical name of the <see cref="ISchema"/> to configure.
         /// </param>
         /// <returns>
         /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure the executor.

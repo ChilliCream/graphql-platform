@@ -1,9 +1,11 @@
 using System;
+using HotChocolate;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 
-namespace HotChocolate.AspNetCore.Extensions
+namespace Microsoft.AspNetCore.Builder
 {
     public static class HttpEndpointRouteBuilderExtensions
     {

@@ -58,7 +58,11 @@ namespace HotChocolate
 
         ISchemaBuilder AddTypeInterceptor(Type interceptor);
 
+        ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
+
         ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor);
+
+        ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
 
         ISchemaBuilder AddConvention(
             Type convention,
