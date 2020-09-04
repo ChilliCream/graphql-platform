@@ -63,7 +63,7 @@ partial class Build : NukeBuild
             .SetArgumentConfigurator(t => t
                 .Add("/o:{0}", "chillicream")
                 .Add("/d:sonar.pullrequest.provider={0}", "github")
-                .Add("/d:sonar.pullrequest.github.repository={0}", "ChilliCream/hotchocolate")
+                .Add("/d:sonar.pullrequest.github.repository={0}", GitHubRepository)
                 .Add("/d:sonar.pullrequest.key={0}", GitHubPRNumber)
                 .Add("/d:sonar.pullrequest.branch={0}", GitHubHeadRef)
                 .Add("/d:sonar.pullrequest.base={0}", GitHubBaseRef)
