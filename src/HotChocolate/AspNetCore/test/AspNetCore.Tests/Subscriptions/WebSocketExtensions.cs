@@ -80,7 +80,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             var buffer = new byte[_maxMessageSize];
 
             await using Stream stream = message.CreateMessageStream(largeMessage);
-            var read = 0;
+            int read;
 
             do
             {
@@ -126,7 +126,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     dataStart.Type, dataStart.Id, payload);
             }
 
-            string json = JsonConvert.SerializeObject(message, _settings);
+            var json = JsonConvert.SerializeObject(message, _settings);
             if (largeMessage)
             {
                 json += new string(' ', 1024 * 16);
@@ -138,23 +138,21 @@ namespace HotChocolate.AspNetCore.Subscriptions
             ReceiveServerMessageAsync(
                 this WebSocket webSocket)
         {
-            using (var stream = new MemoryStream())
+            await using var stream = new MemoryStream();
+            WebSocketReceiveResult result;
+            var buffer = new byte[_maxMessageSize];
+
+            do
             {
-                WebSocketReceiveResult result;
-                var buffer = new byte[_maxMessageSize];
-
-                do
-                {
-                    result = await webSocket.ReceiveAsync(
-                        new ArraySegment<byte>(buffer),
-                        CancellationToken.None);
-                    stream.Write(buffer, 0, result.Count);
-                }
-                while (!result.EndOfMessage);
-
-                return (IReadOnlyDictionary<string, object>)
-                    Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
+                result = await webSocket.ReceiveAsync(
+                    new ArraySegment<byte>(buffer),
+                    CancellationToken.None);
+                stream.Write(buffer, 0, result.Count);
             }
+            while (!result.EndOfMessage);
+
+            return (IReadOnlyDictionary<string, object>)
+                Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
         }
 
         private class HelperOperationMessage
