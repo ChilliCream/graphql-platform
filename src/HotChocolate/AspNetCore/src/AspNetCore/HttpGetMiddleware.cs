@@ -1,19 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Net;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using Microsoft.Extensions.Primitives;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore
 {
@@ -35,16 +28,15 @@ namespace HotChocolate.AspNetCore
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!HttpMethods.IsGet(context.Request.Method) ||
-                ParseContentType(context.Request.ContentType) == AllowedContentType.None)
+            if (HttpMethods.IsGet(context.Request.Method))
+            {
+                await HandleRequestAsync(context);
+            }
+            else
             {
                 // if the request is not a get request or if the content type is not correct
                 // we will just invoke the next middleware and do nothing.
                 await NextAsync(context);
-            }
-            else
-            {
-                await HandleRequestAsync(context);
             }
         }
 
@@ -62,7 +54,8 @@ namespace HotChocolate.AspNetCore
             {
                 // next we parse the GraphQL request.
                 GraphQLRequest request = _requestParser.ReadParamsRequest(context.Request.Query);
-                result = await ExecuteSingleAsync(context, requestExecutor, requestInterceptor, request);
+                result = await ExecuteSingleAsync(
+                    context, requestExecutor, requestInterceptor, request);
             }
             catch (GraphQLRequestException ex)
             {

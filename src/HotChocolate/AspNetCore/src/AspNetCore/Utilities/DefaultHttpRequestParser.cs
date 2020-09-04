@@ -17,6 +17,7 @@ namespace HotChocolate.AspNetCore.Utilities
         private const string _operationNameIdentifier = "operationName";
         private const string _queryIdentifier = "query";
         private const string _variablesIdentifier = "variables";
+        private const string _extensionsIdentifier = "extensions";
 
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
@@ -49,8 +50,8 @@ namespace HotChocolate.AspNetCore.Utilities
         {
             // next we deserialize the GET request with the query request builder ...
             string query = parameters[_queryIdentifier];
-            string queryId = parameters[_queryIdentifier];
-            string operationName = parameters[_queryIdentifier];
+            string queryId = parameters[_queryIdIdentifier];
+            string operationName = parameters[_operationNameIdentifier];
 
             if (string.IsNullOrEmpty(query) && string.IsNullOrEmpty(queryId))
             {
@@ -62,15 +63,24 @@ namespace HotChocolate.AspNetCore.Utilities
             {
                 DocumentNode document = Utf8GraphQLParser.Parse(query);
                 IReadOnlyDictionary<string, object?>? variables = null;
+                IReadOnlyDictionary<string, object?>? extensions = null;
 
                 // if we find variables we do need to parse them
-                if ((string)parameters[_variablesIdentifier] is { Length: > 0 } s &&
-                    ParseJson(s) is IReadOnlyDictionary<string, object?> v)
+                if ((string)parameters[_variablesIdentifier] is { Length: > 0 } sv &&
+                    ParseJson(sv) is IReadOnlyDictionary<string, object?> var)
                 {
-                    variables = v;
+                    variables = var;
                 }
 
-                return new GraphQLRequest(document, queryId, null, operationName, variables);
+                if ((string)parameters[_extensionsIdentifier] is { Length: > 0 } se &&
+                    ParseJson(se) is IReadOnlyDictionary<string, object?> ext)
+                {
+                    extensions = ext;
+                }
+
+                return new GraphQLRequest(
+                    document, queryId, null, operationName, 
+                    variables, extensions);
             }
             catch (SyntaxException ex)
             {

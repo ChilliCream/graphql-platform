@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Text;
-using HotChocolate.Language;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore.Utilities
@@ -37,7 +36,7 @@ namespace HotChocolate.AspNetCore.Utilities
                 {
                     query.Append("&");
                 }
-                query.Append($"query={Utf8GraphQLParser.Parse(Query).ToString(false)}");
+                query.Append($"query={Query.Replace("\r", "").Replace("\n", "")}");
             }
 
             if (OperationName is not null)
@@ -47,12 +46,12 @@ namespace HotChocolate.AspNetCore.Utilities
 
             if (Variables is not null)
             {
-                query.Append("&" + JsonConvert.SerializeObject(Variables));
+                query.Append("&variables=" + JsonConvert.SerializeObject(Variables));
             }
 
             if (Extensions is not null)
             {
-                query.Append("&" + JsonConvert.SerializeObject(Extensions));
+                query.Append("&extensions=" + JsonConvert.SerializeObject(Extensions));
             }
 
             return query.ToString();

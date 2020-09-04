@@ -37,8 +37,8 @@ namespace HotChocolate.AspNetCore
 
             // act
             ClientQueryResult result = await server.GetAsync(
-                    new ClientQueryRequest { Query = "{ __typename }" },
-                    "/foo");
+                new ClientQueryRequest { Query = "{ __typename }" },
+                "/foo");
 
             // assert
             result.MatchSnapshot();
