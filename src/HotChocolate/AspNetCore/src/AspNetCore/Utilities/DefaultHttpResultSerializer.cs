@@ -39,15 +39,13 @@ namespace HotChocolate.AspNetCore.Utilities
             if (result is IReadOnlyQueryResult q)
             {
                 await _queryResultSerializer.SerializeAsync(
-                    q, stream, cancellationToken)
-                    .ConfigureAwait(false);
+                    q, stream, cancellationToken);
             }
 
             if (result is IResponseStream r)
             {
                 await _responseStreamSerializer.SerializeAsync(
-                    r, stream, cancellationToken)
-                    .ConfigureAwait(false);
+                    r, stream, cancellationToken);
             }
         }
     }

@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -16,34 +15,24 @@ using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore
 {
-    public class HttpPostMiddleware : IDisposable
+    public class HttpPostMiddleware : MiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private readonly HttpRequestDelegate _next;
-        private readonly IRequestExecutorResolver _executorResolver;
         private readonly IHttpResultSerializer _resultSerializer;
-        private readonly IHttpRequestInterceptor _requestInterceptor;
         private readonly IRequestParser _requestParser;
-        private readonly NameString _schemaName;
-        private IRequestExecutor? _executor;
-        private bool _disposed;
 
         public HttpPostMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
-            IHttpRequestInterceptor requestInterceptor,
             IRequestParser requestParser,
             NameString schemaName)
+            : base(next, executorResolver, schemaName)
         {
-            _next = next;
-            _executorResolver = executorResolver;
-            _resultSerializer = resultSerializer;
-            _requestInterceptor = requestInterceptor;
-            _requestParser = requestParser;
-            _schemaName = schemaName;
-            executorResolver.RequestExecutorEvicted += EvictRequestExecutor;
+            _resultSerializer = resultSerializer ??
+                throw new ArgumentNullException(nameof(resultSerializer));
+            _requestParser = requestParser ??
+                throw new ArgumentNullException(nameof(requestParser));
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -53,7 +42,7 @@ namespace HotChocolate.AspNetCore
             if (contentType == AllowedContentType.None)
             {
                 // the content type is unknown so we will invoke the next middleware.
-                await _next(context);
+                await NextAsync(context);
             }
             else
             {
@@ -67,7 +56,8 @@ namespace HotChocolate.AspNetCore
         {
             // first we need to get the request executor to be able to execute requests.
             IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
-            IErrorHandler errorHandler = requestExecutor.Services.GetRequiredService<IErrorHandler>();
+            IHttpRequestInterceptor requestInterceptor = requestExecutor.GetRequestInterceptor();
+            IErrorHandler errorHandler = requestExecutor.GetErrorHandler();
 
             HttpStatusCode? statusCode = null;
             IExecutionResult? result;
@@ -103,7 +93,7 @@ namespace HotChocolate.AspNetCore
                         if (TryParseOperations(operationNames, out IReadOnlyList<string>? ops))
                         {
                             result = await ExecuteOperationBatchAsync(
-                                context, requestExecutor, requests[0], ops);
+                                context, requestExecutor, requestInterceptor, requests[0], ops);
                         }
                         else
                         {
@@ -121,7 +111,8 @@ namespace HotChocolate.AspNetCore
                     // a single GraphQL query or mutation.
                     case 1:
                     {
-                        result = await ExecuteSingleAsync(context, requestExecutor, requests[0]);
+                        result = await ExecuteSingleAsync(
+                            context, requestExecutor, requestInterceptor, requests[0]);
                         break;
                     }
 
@@ -129,7 +120,8 @@ namespace HotChocolate.AspNetCore
                     // we need to execute a request batch where we need to execute multiple
                     // fully specified GraphQL requests at once.
                     default:
-                        result = await ExecuteBatchAsync(context, requestExecutor, requests);
+                        result = await ExecuteBatchAsync(
+                            context, requestExecutor, requestInterceptor, requests);
                         break;
                 }
             }
@@ -169,11 +161,12 @@ namespace HotChocolate.AspNetCore
         private async Task<IExecutionResult> ExecuteSingleAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             GraphQLRequest request)
         {
             QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
 
-            await _requestInterceptor.OnCreateAsync(
+            await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);
 
             return await requestExecutor.ExecuteAsync(
@@ -183,6 +176,7 @@ namespace HotChocolate.AspNetCore
         private async Task<IBatchQueryResult> ExecuteOperationBatchAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             GraphQLRequest request,
             IReadOnlyList<string> operationNames)
         {
@@ -193,7 +187,7 @@ namespace HotChocolate.AspNetCore
                 QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
                 requestBuilder.SetOperation(operationNames[i]);
 
-                await _requestInterceptor.OnCreateAsync(
+                await requestInterceptor.OnCreateAsync(
                     context, requestExecutor, requestBuilder, context.RequestAborted);
 
                 requestBatch[i] = requestBuilder.Create();
@@ -206,6 +200,7 @@ namespace HotChocolate.AspNetCore
         private async Task<IBatchQueryResult> ExecuteBatchAsync(
             HttpContext context,
             IRequestExecutor requestExecutor,
+            IHttpRequestInterceptor requestInterceptor,
             IReadOnlyList<GraphQLRequest> requests)
         {
             var requestBatch = new IReadOnlyQueryRequest[requests.Count];
@@ -214,7 +209,7 @@ namespace HotChocolate.AspNetCore
             {
                 QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(requests[0]);
 
-                await _requestInterceptor.OnCreateAsync(
+                await requestInterceptor.OnCreateAsync(
                     context, requestExecutor, requestBuilder, context.RequestAborted);
 
                 requestBatch[i] = requestBuilder.Create();
@@ -222,37 +217,6 @@ namespace HotChocolate.AspNetCore
 
             return await requestExecutor.ExecuteBatchAsync(
                 requestBatch, cancellationToken: context.RequestAborted);
-        }
-
-        private async ValueTask<IRequestExecutor> GetExecutorAsync(
-            CancellationToken cancellationToken)
-        {
-            IRequestExecutor? executor = _executor;
-
-            if (executor is null)
-            {
-                await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-                try
-                {
-                    if (_executor is null)
-                    {
-                        executor = await _executorResolver.GetRequestExecutorAsync(
-                            _schemaName, cancellationToken);
-                        _executor = executor;
-                    }
-                    else
-                    {
-                        executor = _executor;
-                    }
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-
-            return executor;
         }
 
         private async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
@@ -316,31 +280,6 @@ namespace HotChocolate.AspNetCore
 
             operationNames = names;
             return true;
-        }
-
-        private void EvictRequestExecutor(object? sender, RequestExecutorEvictedEventArgs args)
-        {
-            if (!_disposed && args.Name.Equals(_schemaName))
-            {
-                _semaphore.Wait();
-                try
-                {
-                    _executor = null;
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _semaphore.Dispose();
-                _disposed = true;
-            }
         }
     }
 }

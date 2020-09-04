@@ -27,9 +27,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     new FuncErrorFilterWrapper(errorFilter)));
         }
 
-        public static IRequestExecutorBuilder AddErrorFilter(
+        public static IRequestExecutorBuilder AddErrorFilter<T>(
             this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, IErrorFilter> factory)
+            Func<IServiceProvider, T> factory)
+            where T : class, IErrorFilter
         {
             if (builder is null)
             {
@@ -41,9 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IErrorFilter>(
-                    sp => factory(sp.GetRequiredService<IApplicationServiceProvider>())));
+            return builder.ConfigureSchemaServices(s => s.AddSingleton(factory));
         }
 
         public static IRequestExecutorBuilder AddErrorFilter<T>(
@@ -56,10 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.Services.TryAddTransient<T>();
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IErrorFilter>(
-                    sp => sp.GetRequiredService<IApplicationServiceProvider>()
-                        .GetRequiredService<T>()));
+            return builder.ConfigureSchemaServices(s => s.AddSingleton<IErrorFilter, T>());
         }
 
         public static IServiceCollection AddErrorFilter(

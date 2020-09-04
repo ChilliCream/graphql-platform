@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryRequestBuilder SetQueryName(string queryName)
+        public IQueryRequestBuilder SetQueryId(string queryName)
         {
             _queryName = queryName;
             return this;
@@ -360,7 +360,7 @@ namespace HotChocolate.Execution
             var builder = QueryRequestBuilder.New();
 
             builder
-                .SetQueryName(request.QueryId)
+                .SetQueryId(request.QueryId)
                 .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)
