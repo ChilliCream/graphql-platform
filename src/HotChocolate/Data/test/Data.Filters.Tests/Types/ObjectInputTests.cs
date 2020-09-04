@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<FilterInputType<Bar>>()))
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Filters
                         .Argument("test", a => a.Type<ExplicitFilterType>()))
                 .TryAddConvention<IFilterConvention>(
                     (sp) => new FilterConvention(x => x.UseMock()))
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
