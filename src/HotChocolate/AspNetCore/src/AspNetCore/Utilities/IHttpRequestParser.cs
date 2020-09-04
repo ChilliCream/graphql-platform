@@ -3,17 +3,16 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    public interface IRequestParser
+    public interface IHttpRequestParser
     {
-        ValueTask<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
-            Stream stream, 
+        ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
+            Stream stream,
             CancellationToken cancellationToken);
 
-        ValueTask<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
-            Stream stream, 
-            CancellationToken cancellationToken);
+        GraphQLRequest ReadParamsRequest(IQueryCollection parameters);
     }
 }

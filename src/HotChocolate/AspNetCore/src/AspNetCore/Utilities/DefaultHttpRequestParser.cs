@@ -5,18 +5,25 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http;
+using static HotChocolate.Language.Utf8GraphQLRequestParser;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
-    internal class DefaultRequestParser : IRequestParser
+    internal class DefaultHttpRequestParser : IHttpRequestParser
     {
         private const int _minRequestSize = 256;
+        private const string _queryIdIdentifier = "id";
+        private const string _operationNameIdentifier = "operationName";
+        private const string _queryIdentifier = "query";
+        private const string _variablesIdentifier = "variables";
+
         private readonly IDocumentCache _documentCache;
         private readonly IDocumentHashProvider _documentHashProvider;
         private readonly ParserOptions _parserOptions;
         private readonly int _maxRequestSize;
 
-        public DefaultRequestParser(
+        public DefaultHttpRequestParser(
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider,
             int maxRequestSize,
@@ -38,10 +45,44 @@ namespace HotChocolate.AspNetCore.Utilities
             CancellationToken cancellationToken) =>
             ReadAsync(stream, false, cancellationToken);
 
-        public ValueTask<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
-            Stream stream,
-            CancellationToken cancellationToken) =>
-            ReadAsync(stream, true, cancellationToken);
+        public GraphQLRequest ReadParamsRequest(IQueryCollection parameters)
+        {
+            // next we deserialize the GET request with the query request builder ...
+            string query = parameters[_queryIdentifier];
+            string queryId = parameters[_queryIdentifier];
+            string operationName = parameters[_queryIdentifier];
+
+            if (string.IsNullOrEmpty(query) && string.IsNullOrEmpty(queryId))
+            {
+                throw new GraphQLRequestException(
+                    "Either the parameter {0} or {1} has to be set.");
+            }
+
+            try
+            {
+                DocumentNode document = Utf8GraphQLParser.Parse(query);
+                IReadOnlyDictionary<string, object?>? variables = null;
+
+                // if we find variables we do need to parse them
+                if ((string)parameters[_variablesIdentifier] is { Length: > 0 } s &&
+                    ParseJson(s) is IReadOnlyDictionary<string, object?> v)
+                {
+                    variables = v;
+                }
+
+                return new GraphQLRequest(document, queryId, null, operationName, variables);
+            }
+            catch (SyntaxException ex)
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // TODO : throw helper
+                throw new GraphQLRequestException(ex.Message);
+            }
+        }
 
         private async ValueTask<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,

@@ -25,7 +25,7 @@ namespace HotChocolate.AspNetCore.Extensions
 
             IApplicationBuilder applicationBuilder =
                 endpointRouteBuilder.CreateApplicationBuilder();
-
+            
             applicationBuilder.UseMiddleware<WebSocketSubscriptionMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
             applicationBuilder.UseMiddleware<HttpPostMiddleware>(
