@@ -2,11 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Extensions;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-
 
 namespace StarWars
 {
@@ -20,12 +17,15 @@ namespace StarWars
                 .AddGraphQLServer()
                     .AddStarWarsTypes()
                     .AddStarWarsRepositories()
-                .AddGraphQLServer("hello")
+                .AddGraphQLServer("hello_world")
                     .AddQueryType(d => d
                         .Name("Query")
                         .Field("hello")
-                        .Resolver("world"))
-                    .AddApolloTracing();
+                        .Resolve("world"))
+                    .AddApolloTracing()
+                .AddGraphQLServer("filtering")
+                    .AddQueryType<Query>()
+                    .AddFiltering();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,7 +41,8 @@ namespace StarWars
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGraphQL();
-                endpoints.MapGraphQL("/hello", schemaName: "hello");
+                endpoints.MapGraphQL("/hello", schemaName: "hello_world");
+                endpoints.MapGraphQL("/filtering", schemaName: "filtering");
             });
         }
     }

@@ -17,15 +17,9 @@ namespace HotChocolate.Types
         {
             try
             {
-                if (definition.NativeDefaultValue != null)
-                {
-                    return fieldType.ParseValue(
-                       definition.NativeDefaultValue);
-                }
-
-                return definition.DefaultValue is { }
-                    ? definition.DefaultValue
-                    : null;
+                return definition.NativeDefaultValue != null
+                    ? fieldType.ParseValue(definition.NativeDefaultValue)
+                    : definition.DefaultValue;
             }
             catch (Exception ex)
             {

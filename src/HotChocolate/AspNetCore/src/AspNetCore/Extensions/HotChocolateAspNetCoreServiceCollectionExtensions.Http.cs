@@ -8,7 +8,7 @@ using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.AspNetCore.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {

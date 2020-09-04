@@ -22,6 +22,7 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
+            Formatter = definition.Formatter;
 
             Type? propertyType = definition.Property?.PropertyType;
 
@@ -33,9 +34,16 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// The associated syntax node from the GraphQL SDL.
+        /// </summary>
         public InputValueDefinitionNode? SyntaxNode { get; }
 
+        /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
+
+        /// <inheritdoc />
+        public IInputValueFormatter? Formatter { get; }
 
         protected internal PropertyInfo? Property { get; }
 

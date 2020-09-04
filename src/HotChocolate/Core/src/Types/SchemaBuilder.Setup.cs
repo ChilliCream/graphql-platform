@@ -23,10 +23,8 @@ namespace HotChocolate
             public static Schema Create(SchemaBuilder builder)
             {
                 var lazySchema = new LazySchema();
-                DescriptorContext context = CreateContext(builder);
-
-                IBindingLookup bindingLookup =
-                    builder._bindingCompiler.Compile(context);
+                DescriptorContext context = CreateContext(builder, lazySchema);
+                IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
                 IReadOnlyList<ITypeReference> typeReferences =
                     CreateTypeReferences(builder, context, bindingLookup);
@@ -38,13 +36,15 @@ namespace HotChocolate
             }
 
             private static DescriptorContext CreateContext(
-                SchemaBuilder builder)
+                SchemaBuilder builder,
+                LazySchema lazySchema)
             {
                 DescriptorContext context = DescriptorContext.Create(
                     builder._options,
                     builder._services ?? new EmptyServiceProvider(),
                     builder._conventions,
-                    builder._contextData);
+                    builder._contextData,
+                    lazySchema);
 
                 foreach (Action<IDescriptorContext> action in builder._onBeforeCreate)
                 {

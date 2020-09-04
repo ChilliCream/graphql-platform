@@ -3,20 +3,6 @@ namespace HotChocolate.Types.Relay
     public interface IIdSerializer
     {
         /// <summary>
-        /// Creates a schema unique identifier from an ID and type name.
-        /// </summary>
-        /// <typeparam name="T">The id type.</typeparam>
-        /// <param name="typeName">The type name.</param>
-        /// <param name="id">The id.</param>
-        /// <returns>
-        /// Returns an ID string containing the type name and the ID.
-        /// </returns>
-        /// <exception cref="IdSerializationException">
-        /// Unable to create a schema unique ID string.
-        /// </exception>
-        string Serialize<T>(NameString typeName, T id);
-
-        /// <summary>
         /// Creates a schema unique identifier from a source schema name,
         /// an ID and type name.
         /// </summary>

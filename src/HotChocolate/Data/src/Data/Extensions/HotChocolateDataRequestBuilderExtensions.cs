@@ -1,30 +1,32 @@
 using System;
+using HotChocolate.Data.Filters;
+using HotChocolate.Execution.Configuration;
 
-namespace HotChocolate.Data.Filters
+namespace Microsoft.Extensions.DependencyInjection
 {
     /// <summary>
-    /// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+    /// Provides data extensions for the <see cref="IRequestExecutorBuilder"/>.
     /// </summary>
-    public static class SchemaBuilderExtensions
+    public static class HotChocolateDataRequestBuilderExtensions
     {
         /// <summary>
         /// Adds filtering support.
         /// </summary>
         /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
+        /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
         /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder) =>
-            AddFiltering(builder, x => x.AddDefaults());
+        public static IRequestExecutorBuilder AddFiltering(
+            this IRequestExecutorBuilder builder) =>
+            builder.ConfigureSchema(s => s.AddFiltering());
 
         /// <summary>
         /// Adds filtering support.
         /// </summary>
         /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
+        /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
         /// <param name="configure">
         /// Configures the convention.
@@ -33,21 +35,19 @@ namespace HotChocolate.Data.Filters
         /// The filter convention name.
         /// </param>
         /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder,
+        public static IRequestExecutorBuilder AddFiltering(
+            this IRequestExecutorBuilder builder,
             Action<IFilterConventionDescriptor> configure,
             string? name = null) =>
-            builder
-                .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
+            builder.ConfigureSchema(s => s.AddFiltering(configure, name));
 
         /// <summary>
         /// Adds filtering support.
         /// </summary>
         /// <param name="builder">
-        /// The <see cref="ISchemaBuilder"/>.
+        /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
         /// <param name="name">
         /// The filter convention name.
@@ -56,14 +56,12 @@ namespace HotChocolate.Data.Filters
         /// The concrete filter convention type.
         /// </typeparam>
         /// <returns>
-        /// Returns the <see cref="ISchemaBuilder"/>.
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering<TConvention>(
-            this ISchemaBuilder builder,
+        public static IRequestExecutorBuilder AddFiltering<TConvention>(
+            this IRequestExecutorBuilder builder,
             string? name = null)
             where TConvention : class, IFilterConvention =>
-            builder
-                .TryAddConvention<IFilterConvention, TConvention>(name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
+            builder.ConfigureSchema(s => s.AddFiltering<TConvention>(name));
     }
 }

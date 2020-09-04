@@ -18,7 +18,6 @@ namespace HotChocolate.Types.Relay
         private const byte _int = (byte)'i';
         private const byte _long = (byte)'l';
         private const byte _default = (byte)'d';
-        private const char _forwardSlash = '/';
         private const char _equals = '=';
         private const byte _schema = 0;
 
@@ -48,10 +47,10 @@ namespace HotChocolate.Types.Relay
 
             switch (id)
             {
-                case Guid g:
-                case short s:
-                case int i:
-                case long l:
+                case Guid:
+                case short:
+                case int:
+                case long:
                     break;
 
                 case string s:
@@ -63,17 +62,15 @@ namespace HotChocolate.Types.Relay
                     break;
             }
 
-            int bytesWritten;
-
-            var schemaSize = checked(_includeSchemaName
+            var schemaSize = _includeSchemaName
                 ? GetAllocationSize(schemaName.Value)
-                : 0);
+                : 0;
 
             var nameSize = GetAllocationSize(typeName.Value);
 
-            var idSize = checked(idString is null
+            var idSize = idString is null
                 ? GetAllocationSize(in id)
-                : GetAllocationSize(in idString));
+                : GetAllocationSize(in idString);
 
             var serializedSize = ((schemaSize + nameSize + idSize + 16) / 3) * 4;
 
@@ -101,6 +98,7 @@ namespace HotChocolate.Types.Relay
 
                 Span<byte> value = serialized.Slice(position + 1);
 
+                int bytesWritten;
                 switch (id)
                 {
                     case Guid g:
@@ -202,7 +200,7 @@ namespace HotChocolate.Types.Relay
                         TypeResources.IdSerializer_UnableToDecode);
                 }
 
-                var nextSeparator = -1;
+                int nextSeparator;
 
                 Span<byte> decoded = serialized.Slice(0, bytesWritten);
 
@@ -220,30 +218,28 @@ namespace HotChocolate.Types.Relay
                 NameString typeName = CreateString(decoded.Slice(0, nextSeparator));
                 decoded = decoded.Slice(nextSeparator + 1);
 
-                bool success;
                 object value;
 
                 switch (decoded[0])
                 {
                     case _guid:
-                        success = Utf8Parser.TryParse(decoded.Slice(1), out Guid g, out _, 'N');
+                        Utf8Parser.TryParse(decoded.Slice(1), out Guid g, out _, 'N');
                         value = g;
                         break;
                     case _short:
-                        success = Utf8Parser.TryParse(decoded.Slice(1), out short s, out _);
+                        Utf8Parser.TryParse(decoded.Slice(1), out short s, out _);
                         value = s;
                         break;
                     case _int:
-                        success = Utf8Parser.TryParse(decoded.Slice(1), out int i, out _);
+                        Utf8Parser.TryParse(decoded.Slice(1), out int i, out _);
                         value = i;
                         break;
                     case _long:
-                        success = Utf8Parser.TryParse(decoded.Slice(1), out long l, out _);
+                        Utf8Parser.TryParse(decoded.Slice(1), out long l, out _);
                         value = l;
                         break;
                     default:
                         value = CreateString(decoded.Slice(1));
-                        success = true;
                         break;
                 }
 
@@ -293,7 +289,7 @@ namespace HotChocolate.Types.Relay
 
         private static bool IsBase64Char(in char c)
         {
-            byte b = (byte)c;
+            var b = (byte)c;
             return (b.IsLetterOrUnderscore() && b != GraphQLConstants.Underscore)
                 || b.IsDigit()
                 || c == GraphQLConstants.Dollar
@@ -304,10 +300,10 @@ namespace HotChocolate.Types.Relay
         {
             return value switch
             {
-                Guid _ => 32,
-                short _ => 6,
-                int _ => 11,
-                long _ => 20,
+                Guid => 32,
+                short => 6,
+                int => 11,
+                long => 20,
                 string s => _utf8.GetByteCount(s),
                 _ => throw new NotSupportedException(),
             };
