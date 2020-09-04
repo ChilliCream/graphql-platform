@@ -1,12 +1,8 @@
 ﻿using System.Linq;
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
 using Xunit;
-using HotChocolate.AspNetCore.Subscriptions.Interceptors;
-using Moq;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -16,11 +12,12 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_InitializeMessage_True()
         {
             // arrange
-            var handler = new InitializeConnectionMessageHandler(null);
-            var message = new InitializeConnectionMessage(null);
+            var handler = new InitializeConnectionMessageHandler(
+                new SocketSessionInterceptorMock());
+            var message = new InitializeConnectionMessage();
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.True(result);
@@ -30,11 +27,12 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public void CanHandle_AcceptMessage_False()
         {
             // arrange
-            var handler = new InitializeConnectionMessageHandler(null);
-            var message = KeepConnectionAliveMessage.Default;
+            var handler = new InitializeConnectionMessageHandler(
+                new SocketSessionInterceptorMock());
+            KeepConnectionAliveMessage message = KeepConnectionAliveMessage.Default;
 
             // act
-            bool result = handler.CanHandle(message);
+            var result = handler.CanHandle(message);
 
             // assert
             Assert.False(result);
@@ -45,8 +43,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             // arrange
             var connection = new SocketConnectionMock();
-            var handler = new InitializeConnectionMessageHandler(null);
-            var message = new InitializeConnectionMessage(null);
+            var handler = new InitializeConnectionMessageHandler(
+                new SocketSessionInterceptorMock());
+            var message = new InitializeConnectionMessage();
 
             // act
             await handler.HandleAsync(
@@ -72,17 +71,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         public async Task Handle_InitializeMessage_Rejected()
         {
             // arrange
-            var interceptor = new Mock<IConnectMessageInterceptor>();
-            interceptor.Setup(t => t.OnReceiveAsync(
-                It.IsAny<ISocketConnection>(),
-                It.IsAny<InitializeConnectionMessage>(),
-                It.IsAny<CancellationToken>()))
-                .ReturnsAsync(ConnectionStatus.Reject());
-
+            var interceptor = new SocketSessionInterceptorMock();
             var connection = new SocketConnectionMock();
-            var handler = new InitializeConnectionMessageHandler(
-                interceptor.Object);
-            var message = new InitializeConnectionMessage(null);
+            var handler = new InitializeConnectionMessageHandler(interceptor);
+            var message = new InitializeConnectionMessage();
 
             // act
             await handler.HandleAsync(
@@ -109,17 +101,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 "Foo",
                 new Dictionary<string, object> { { "bar", "baz" } });
 
-            var interceptor = new Mock<IConnectMessageInterceptor>();
-            interceptor.Setup(t => t.OnReceiveAsync(
-                It.IsAny<ISocketConnection>(),
-                It.IsAny<InitializeConnectionMessage>(),
-                It.IsAny<CancellationToken>()))
-                .ReturnsAsync(connectionStatus);
-
+            var interceptor = new SocketSessionInterceptorMock();
             var connection = new SocketConnectionMock();
-            var handler = new InitializeConnectionMessageHandler(
-                interceptor.Object);
-            var message = new InitializeConnectionMessage(null);
+            var handler = new InitializeConnectionMessageHandler(interceptor);
+            var message = new InitializeConnectionMessage();
 
             // act
             await handler.HandleAsync(
