@@ -21,12 +21,20 @@ namespace HotChocolate.AspNetCore.Utilities
                     .AddRouting()
                     .AddGraphQLServer()
                         .AddStarWarsTypes()
+                        .AddTypeExtension<QueryExtension>()
                         .AddExportDirectiveType()
                         .AddStarWarsRepositories()
-                        .AddInMemorySubscriptions(),
+                        .AddInMemorySubscriptions()
+                    .AddGraphQLServer("evict")
+                        .AddQueryType(d => d.Name("Query"))
+                        .AddTypeExtension<QueryExtension>(),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL(pattern)));
+                    .UseEndpoints(endpoints => 
+                    {
+                        endpoints.MapGraphQL(pattern);
+                        endpoints.MapGraphQL("evict", "evict");
+                    }));
     }
 }
