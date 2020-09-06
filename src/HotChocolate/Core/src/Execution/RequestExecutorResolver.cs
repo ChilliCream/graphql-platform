@@ -22,8 +22,8 @@ namespace HotChocolate.Execution
         , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private readonly ConcurrentDictionary<string, IRequestExecutor> _executors =
-            new ConcurrentDictionary<string, IRequestExecutor>();
+        private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors =
+            new ConcurrentDictionary<string, RegisteredExecutor>();
         private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
         private readonly IServiceProvider _applicationServices;
         private bool _disposed;
@@ -47,24 +47,27 @@ namespace HotChocolate.Execution
         {
             schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-            if (!_executors.TryGetValue(schemaName, out IRequestExecutor? executor))
+            if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
             {
                 await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                 try
                 {
-                    if (!_executors.TryGetValue(schemaName, out executor))
+                    if (!_executors.TryGetValue(schemaName, out re))
                     {
                         IServiceProvider schemaServices =
                             await CreateSchemaServicesAsync(schemaName, cancellationToken)
                                 .ConfigureAwait(false);
 
-                        executor = schemaServices
-                            .GetRequiredService<IRequestExecutor>();
+                        re = new RegisteredExecutor
+                        (
+                            schemaServices.GetRequiredService<IRequestExecutor>(),
+                            schemaServices,
+                            schemaServices.GetRequiredService<IDiagnosticEvents>()
+                        );
 
-                        schemaServices
-                            .GetRequiredService<IDiagnosticEvents>()
-                            .ExecutorCreated(schemaName, executor);
+                        re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
+                        _executors.TryAdd(schemaName, re);
                     }
                 }
                 finally
@@ -73,22 +76,20 @@ namespace HotChocolate.Execution
                 }
             }
 
-            return executor;
+            return re.Executor;
         }
 
         public void EvictRequestExecutor(NameString schemaName = default)
         {
             schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-            if (_executors.TryRemove(schemaName, out IRequestExecutor? executor))
+            if (_executors.TryRemove(schemaName, out RegisteredExecutor? re))
             {
-                executor.Services
-                    .GetRequiredService<IDiagnosticEvents>()
-                    .ExecutorEvicted(schemaName, executor);
+                re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
 
                 RequestExecutorEvicted?.Invoke(
                     this,
-                    new RequestExecutorEvictedEventArgs(schemaName, executor));
+                    new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
             }
         }
 
@@ -279,6 +280,25 @@ namespace HotChocolate.Execution
                 _semaphore.Dispose();
                 _disposed = true;
             }
+        }
+
+        private class RegisteredExecutor
+        {
+            public RegisteredExecutor(
+                IRequestExecutor executor, 
+                IServiceProvider services, 
+                IDiagnosticEvents diagnosticEvents)
+            {
+                Executor = executor;
+                Services = services;
+                DiagnosticEvents = diagnosticEvents;
+            }
+
+            public IRequestExecutor Executor { get; }
+
+            public IServiceProvider Services { get; }
+
+            public IDiagnosticEvents DiagnosticEvents { get; }
         }
 
         private sealed class SetSchemaNameInterceptor : TypeInterceptor
