@@ -9,8 +9,8 @@ namespace HotChocolate.Validation
     public class TypeDocumentValidatorVisitor
        : DocumentValidatorVisitor
     {
-        internal static __TypeNameField TypeNameField { get; } =
-            new __TypeNameField(DescriptorContext.Create());
+        internal static ObjectField TypeNameField { get; } =
+            new ObjectField(IntrospectionFields.CreateTypeNameField(DescriptorContext.Create()));
 
         protected TypeDocumentValidatorVisitor(SyntaxVisitorOptions options = default)
             : base(options)

@@ -31,6 +31,9 @@ namespace HotChocolate.Types
 
         IFieldCollection<IInputField> IOutputField.Arguments => Arguments;
 
+        /// <summary>
+        /// Defines if this field as a introspection field.
+        /// </summary>
         public virtual bool IsIntrospectionField { get; } = false;
 
         public bool IsDeprecated { get; }

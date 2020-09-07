@@ -6,7 +6,6 @@ namespace HotChocolate.Types.Relay
 {
     public class IdMiddleware
     {
-        private static readonly string _idFieldName = new NameString("id");
         private readonly IIdSerializer _serializer;
         private readonly FieldDelegate _next;
 

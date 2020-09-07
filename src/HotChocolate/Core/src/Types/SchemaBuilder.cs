@@ -10,6 +10,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -34,7 +35,10 @@ namespace HotChocolate
             new Dictionary<(Type, string), CreateConvention>();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
             new Dictionary<Type, (CreateRef, CreateRef)>();
-        private readonly List<object> _interceptors = new List<object>();
+        private readonly List<object> _interceptors = new List<object>
+        {
+            typeof(IntrospectionTypeInterceptor)
+        };
         private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
             new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
@@ -443,7 +447,7 @@ namespace HotChocolate
             {
                 _interceptors.Add(interceptor);
             }
-            
+
             return this;
         }
 

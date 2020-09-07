@@ -9,6 +9,8 @@ namespace HotChocolate
         /// </summary>
         public static ISchemaBuilder EnableRelaySupport(
             this ISchemaBuilder schemaBuilder) =>
-            schemaBuilder.SetContextData(RelayConstants.IsRelaySupportEnabled, 1);
+            schemaBuilder
+                .SetContextData(RelayConstants.IsRelaySupportEnabled, 1)
+                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>();
     }
 }
