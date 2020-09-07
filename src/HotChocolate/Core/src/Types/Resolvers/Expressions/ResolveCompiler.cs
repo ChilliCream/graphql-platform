@@ -60,27 +60,17 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 IEnumerable<Expression> parameters = CreateParameters(
                     method.GetParameters(), sourceType);
-
                 MethodCallExpression resolverExpression =
                     Expression.Call(resolverInstance, method, parameters);
-
-                Expression handleResult = HandleResult(
-                    resolverExpression, method.ReturnType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             if (member is PropertyInfo property)
             {
-                MemberExpression propertyAccessor = Expression.Property(
-                    resolverInstance, property);
-
-                Expression handleResult = HandleResult(
-                    propertyAccessor, property.PropertyType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                MemberExpression propertyAccessor = Expression.Property(resolverInstance, property);
+                Expression handleResult = HandleResult(propertyAccessor, property.PropertyType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             throw new NotSupportedException();

@@ -15,8 +15,8 @@ namespace HotChocolate.Types
     {
         private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter =
             new ObjectValueToDictionaryConverter();
-        private ObjectToDictionaryConverter _objectToDictConverter;
-        private ITypeConverter _converter;
+        private ObjectToDictionaryConverter _objectToDictConverter = default!;
+        private ITypeConverter _converter = default!;
 
         public AnyType()
             : base(ScalarNames.Any, BindingBehavior.Explicit)
@@ -68,7 +68,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
+        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
         {
             switch (literal)
             {
@@ -140,7 +140,7 @@ namespace HotChocolate.Types
             Type type = value.GetType();
 
             if (type.IsValueType && _converter.TryConvert(
-                type, typeof(string), value, out object converted)
+                type, typeof(string), value, out object? converted)
                 && converted is string c)
             {
                 return new StringValueNode(c);
@@ -206,11 +206,11 @@ namespace HotChocolate.Types
                 default:
                     Type type = runtimeValue.GetType();
 
-                    if (type.IsValueType && _converter.TryConvert(
-                        type, typeof(string), runtimeValue, out object converted)
-                        && converted is string c)
+                    if (type.IsValueType && 
+                        _converter.TryConvert(type, typeof(string), runtimeValue, out object? c) && 
+                        c is string casted)
                     {
-                        resultValue = c;
+                        resultValue = casted;
                         return true;
                     }
 
