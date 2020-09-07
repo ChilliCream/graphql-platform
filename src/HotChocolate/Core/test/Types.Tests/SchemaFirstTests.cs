@@ -199,7 +199,6 @@ namespace HotChocolate
             result.ToJson().MatchSnapshot();
         }
 
-
         [Fact]
         public async Task SchemaBuilder_BindType_And_Resolver_Implicit()
         {
@@ -319,8 +318,6 @@ namespace HotChocolate
         {
             public string Hello1() => "World1";
         }
-        
-        
 
         public class QueryResolver
         {
