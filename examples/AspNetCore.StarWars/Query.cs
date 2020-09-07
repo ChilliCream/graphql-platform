@@ -54,7 +54,7 @@ namespace StarWars
                 if (character == null)
                 {
                     context.ReportError(
-                        "Could not resolve a charachter for the " +
+                        "Could not resolve a character for the " +
                         $"character-id {characterId}.");
                 }
                 else
