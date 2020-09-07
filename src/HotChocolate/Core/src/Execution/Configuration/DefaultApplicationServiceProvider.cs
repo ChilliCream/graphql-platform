@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Configuration
                 throw new ArgumentNullException(nameof(applicationServices));
         }
 
-        public object GetService(Type serviceType) =>
+        public object? GetService(Type serviceType) =>
             _applicationServices.GetService(serviceType);
     }
 }

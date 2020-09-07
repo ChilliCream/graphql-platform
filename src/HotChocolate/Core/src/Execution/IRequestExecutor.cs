@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
         /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
         /// </returns>
         Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
         /// Returns a stream of query results.
         /// </returns>
         Task<IBatchQueryResult> ExecuteBatchAsync(
-            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            IEnumerable<IQueryRequest> requestBatch,
             bool allowParallelExecution = false,
             CancellationToken cancellationToken = default);
     }

@@ -170,5 +170,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IBatchScheduler, T>();
             return services;
         }
+
+        public static IServiceCollection AddDefaultBatchDispatcher(
+            this IServiceCollection services)
+        {
+            services.RemoveAll<IBatchScheduler>();
+            services.TryAddDefaultBatchDispatcher();
+            return services;
+        }
     }
 }
