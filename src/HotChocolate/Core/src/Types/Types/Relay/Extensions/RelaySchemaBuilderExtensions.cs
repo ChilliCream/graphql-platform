@@ -11,6 +11,7 @@ namespace HotChocolate
             this ISchemaBuilder schemaBuilder) =>
             schemaBuilder
                 .SetContextData(RelayConstants.IsRelaySupportEnabled, 1)
-                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>();
+                .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
+                .AddType<NodeType>();
     }
 }
