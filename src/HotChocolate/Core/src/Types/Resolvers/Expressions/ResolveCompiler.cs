@@ -35,15 +35,34 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverInstance = Expression.Call(
                 Context, resolverMethod);
 
-            FieldResolverDelegate resolver = CreateResolver(
-                resolverInstance,
-                descriptor.Field.Member,
-                descriptor.SourceType);
+            if (descriptor.Field.Member is { })
+            {
+                FieldResolverDelegate resolver = CreateResolver(
+                    resolverInstance,
+                    descriptor.Field.Member,
+                    descriptor.SourceType);
 
-            return new FieldResolver(
-                descriptor.Field.TypeName,
-                descriptor.Field.FieldName,
-                resolver);
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver);
+            }
+            else if (descriptor.Field.Expression is LambdaExpression lambda)
+            {
+                Expression<FieldResolverDelegate> resolver =
+                    Expression.Lambda<FieldResolverDelegate>(
+                        HandleResult(
+                            Expression.Invoke(lambda, resolverInstance),
+                            lambda.ReturnType),
+                        Context);
+
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver.Compile());
+            }
+
+            throw new NotSupportedException();
         }
 
         private FieldResolverDelegate CreateResolver(
