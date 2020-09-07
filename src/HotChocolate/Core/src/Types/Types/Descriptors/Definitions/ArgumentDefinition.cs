@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Language;
 
 #nullable enable
@@ -14,6 +15,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public ParameterInfo? Parameter { get; set; }
 
-        public IInputValueFormatter? Formatter { get; set; }
+        public IList<IInputValueFormatter> Formatters { get; } =
+            new List<IInputValueFormatter>();
     }
 }

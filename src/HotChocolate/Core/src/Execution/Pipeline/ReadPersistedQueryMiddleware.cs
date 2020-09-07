@@ -26,7 +26,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            IReadOnlyQueryRequest request = context.Request;
+            IQueryRequest request = context.Request;
 
             if (context.Document is null &&
                 context.Request.Query is { })

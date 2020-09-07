@@ -252,5 +252,10 @@ namespace HotChocolate.Execution.Utilities
                     .SetMessage("A composite type always needs to specify a selection set.")
                     .AddLocation(selection)
                     .Build());
+
+        public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
+            throw new GraphQLException(
+                "Make sure that you have registered an IBatchDispatcher " +
+                "with your scoped request services.");
     }
 }

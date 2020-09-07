@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            IReadOnlyQueryRequest request = context.Request;
+            IQueryRequest request = context.Request;
             bool addToCache = true;
 
             if (context.Document is null)
