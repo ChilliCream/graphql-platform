@@ -62,8 +62,8 @@ stages:
               jdkDestinationDirectory: ./.java
           - task: CmdLine@2
             env:
-              HC_GITHUB_PR_NR: $(System.PullRequest.TargetBranch)
+              HC_GITHUB_PR_NR: $(System.PullRequest.PullRequestNumber)
               HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
-              HC_GITHUB_BASE_REF: $(System.PullRequest.PullRequestNumber)
+              HC_GITHUB_BASE_REF: $(System.PullRequest.TargetBranch)
             inputs:
               script: './build.cmd SonarPr --skip'
