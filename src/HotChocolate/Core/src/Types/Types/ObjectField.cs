@@ -31,6 +31,7 @@ namespace HotChocolate.Types
             Resolver = definition.Resolver!;
             SubscribeResolver = definition.SubscribeResolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
+            IsIntrospectionField = definition.IsIntrospectionField;
         }
 
         /// <summary>
@@ -65,6 +66,11 @@ namespace HotChocolate.Types
         /// This member can be <c>null</c>.
         /// </summary>
         public MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Defines if this field as a introspection field.
+        /// </summary>
+        public override bool IsIntrospectionField { get; }
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,

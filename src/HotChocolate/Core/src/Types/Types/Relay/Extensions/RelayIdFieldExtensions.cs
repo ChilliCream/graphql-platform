@@ -219,6 +219,11 @@ namespace HotChocolate.Types.Relay
                 new IdSerializer();
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
 
+            if (typeName.IsEmpty)
+            {
+                typeName = completionContext.Type.Name;
+            }
+
             definition.MiddlewareComponents[index] = next => async context =>
             {
                 await next(context).ConfigureAwait(false);

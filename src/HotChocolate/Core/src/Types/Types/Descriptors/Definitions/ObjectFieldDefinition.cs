@@ -26,5 +26,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IList<FieldMiddleware> MiddlewareComponents { get; } =
             new List<FieldMiddleware>();
+
+        internal bool IsIntrospectionField { get; set; }
     }
 }
