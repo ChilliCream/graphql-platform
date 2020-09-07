@@ -182,7 +182,7 @@ namespace HotChocolate.Types.Relay
                     .Build());
             }
 
-            definition.Formatter = CreateSerializer(completionContext, resultType, typeName);
+            definition.Formatters.Add(CreateSerializer(completionContext, resultType, typeName));
         }
 
         private static void AddSerializerToObjectField(

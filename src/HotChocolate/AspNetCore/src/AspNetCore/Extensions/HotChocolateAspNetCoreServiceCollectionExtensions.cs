@@ -46,7 +46,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         [Obsolete(
             "Use the new configuration API -> " + 
-            "services.AddGraphQLServer().AddQueryType<Query>().")]
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,
             ISchema schema) =>
@@ -54,7 +55,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         [Obsolete(
             "Use the new configuration API -> " + 
-            "services.AddGraphQLServer().AddQueryType<Query>().")]
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,
             ISchemaBuilder schema) =>
