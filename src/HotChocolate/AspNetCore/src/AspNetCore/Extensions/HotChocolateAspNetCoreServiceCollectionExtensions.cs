@@ -1,13 +1,9 @@
 using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -47,5 +43,21 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
             builder.Services.AddGraphQLServer(schemaName);
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().")]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchema schema) =>
+            throw new NotSupportedException();
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().")]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchemaBuilder schema) =>
+            throw new NotSupportedException();
     }
 }
