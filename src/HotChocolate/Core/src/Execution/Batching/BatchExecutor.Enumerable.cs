@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Batching
     {
         private class BatchExecutorEnumerable : IAsyncEnumerable<IQueryResult>
         {
-            private readonly IEnumerable<IReadOnlyQueryRequest> _requestBatch;
+            private readonly IEnumerable<IQueryRequest> _requestBatch;
             private readonly IRequestExecutor _requestExecutor;
             private readonly IErrorHandler _errorHandler;
             private readonly ITypeConverter _typeConverter;
@@ -26,11 +26,11 @@ namespace HotChocolate.Execution.Batching
             private readonly CollectVariablesVisitor _visitor;
             private readonly CollectVariablesVisitationMap _visitationMap =
                 new CollectVariablesVisitationMap();
-            private DocumentNode _previous;
-            private Dictionary<string, FragmentDefinitionNode> _fragments;
+            private DocumentNode? _previous;
+            private Dictionary<string, FragmentDefinitionNode>? _fragments;
 
             public BatchExecutorEnumerable(
-                IEnumerable<IReadOnlyQueryRequest> requestBatch,
+                IEnumerable<IQueryRequest> requestBatch,
                 IRequestExecutor requestExecutor,
                 IErrorHandler errorHandler,
                 ITypeConverter typeConverter)
@@ -128,7 +128,7 @@ namespace HotChocolate.Execution.Batching
 
                 foreach (var fragmentName in _visitor.TouchedFragments)
                 {
-                    definitions.Add(_fragments[fragmentName]);
+                    definitions.Add(_fragments![fragmentName]);
                 }
 
                 return new DocumentNode(definitions);

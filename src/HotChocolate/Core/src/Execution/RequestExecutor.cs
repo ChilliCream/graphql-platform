@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
         public IServiceProvider Services { get; }
 
         public async Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             CancellationToken cancellationToken = default)
         {
             if (request is null)
@@ -101,7 +101,7 @@ namespace HotChocolate.Execution
         }
 
         public Task<IBatchQueryResult> ExecuteBatchAsync(
-            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            IEnumerable<IQueryRequest> requestBatch,
             bool allowParallelExecution = false,
             CancellationToken cancellationToken = default)
         {

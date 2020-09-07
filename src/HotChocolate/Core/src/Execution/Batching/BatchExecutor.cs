@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Batching
         }
 
         public IAsyncEnumerable<IQueryResult> ExecuteAsync(
-            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            IEnumerable<IQueryRequest> requestBatch,
             CancellationToken cancellationToken = default)
         {
             return new BatchExecutorEnumerable(
