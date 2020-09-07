@@ -33,7 +33,8 @@ namespace HotChocolate.Types.Relay
                     _node);
 
                 IIdSerializer serializer =
-                    completionContext.Services.GetRequiredService<IIdSerializer>();
+                    completionContext.Services.GetService<IIdSerializer>() ??
+                        new IdSerializer();
 
                 descriptor
                     .Argument(_id, a => a.Type<NonNullType<IdType>>())
