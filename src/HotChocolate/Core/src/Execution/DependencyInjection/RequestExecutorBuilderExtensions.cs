@@ -16,9 +16,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ConfigureSchema(
             this IRequestExecutorBuilder builder,
             Action<ISchemaBuilder> configureSchema)
