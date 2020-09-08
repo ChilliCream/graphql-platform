@@ -135,9 +135,9 @@ namespace HotChocolate.Regressions
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
                 descriptor.Field("eat")
-                                    .Type<NonNullType<BooleanType>>()
-                                    .Argument("topping", arg => arg.Type(typeof(ToppingInput)))
-                                    .Resolver(ctx => _onEat(ctx.Argument<ToppingInput>("topping")));
+                    .Type<NonNullType<BooleanType>>()
+                    .Argument("topping", arg => arg.Type(typeof(ToppingInput)))
+                    .Resolver(ctx => _onEat(ctx.ArgumentValue<ToppingInput>("topping")));
             }
         }
 
