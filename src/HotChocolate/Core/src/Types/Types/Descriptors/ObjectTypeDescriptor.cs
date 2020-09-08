@@ -54,12 +54,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (Definition.FieldBindingType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.RuntimeType);
+                    Definition.FieldBindingType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();

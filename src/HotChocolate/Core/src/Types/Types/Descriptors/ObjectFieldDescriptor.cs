@@ -51,8 +51,8 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType;
-
+            Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+            
             if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
