@@ -19,10 +19,12 @@ namespace HotChocolate.Internal
                 if (type.IsGenericType
                     && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
+                    Type inner = type.GetGenericArguments()[0];
+                    
                     return new ExtendedType(
-                        type.GetGenericArguments()[0],
+                        inner,
                         ExtendedTypeKind.Runtime,
-                        typeArguments: GetGenericArguments(type, cache),
+                        typeArguments: GetGenericArguments(inner, cache),
                         source: type,
                         isNullable: true);
                 }

@@ -278,6 +278,34 @@ namespace HotChocolate.Internal
             Assert.Equal("[[String]]", typeInfo.CreateType(new StringType()).Print());
         }
 
+        [Fact]
+        public void OptionalNullableString()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.OptionalNullableString));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("String", typeInfo.CreateType(new StringType()).Print());
+        }
+
+        [Fact]
+        public void NullableOptionalNullableString()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.NullableOptionalNullableString));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("String", typeInfo.CreateType(new StringType()).Print());
+        }
+
         [InlineData(typeof(NativeType<Task<string>>), typeof(string))]
         [InlineData(typeof(NativeType<string>), typeof(string))]
         [InlineData(typeof(Task<string>), typeof(string))]
@@ -519,13 +547,14 @@ namespace HotChocolate.Internal
             public string[]? NullableArrayNonNullElement() => default;
 
             public List<List<string?>?>? NestedList() => default;
+
+            public Optional<string?> OptionalNullableString() => default;
+            
+            public Nullable<Optional<string?>> NullableOptionalNullableString() => default;
         }
 
 #nullable disable
 
-        public class Foo
-        {
-
-        }
+        public class Foo { }
     }
 }
