@@ -131,7 +131,7 @@ namespace HotChocolate.Data.Filters
         }
 
         /// <inheritdoc />
-        public IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property)
+        public IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
