@@ -27,8 +27,8 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context,
             [NotNullWhen(true)] out LambdaExpression? expression)
         {
-            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
-                scope is QueryableScope closure)
+            if (context.Scopes.Count > 0 &&
+                context.Scopes.Peek() is QueryableScope closure)
             {
                 expression = null;
 
@@ -49,8 +49,8 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context,
             [NotNullWhen(true)] out Expression<T>? expression)
         {
-            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
-                scope is QueryableScope closure)
+            if (context.Scopes.Count > 0 &&
+                context.Scopes.Peek() is QueryableScope closure)
             {
                 expression = null;
 
