@@ -8,6 +8,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Represents a field or directive argument.
+    /// </summary>
     public class Argument
         : FieldBase<IInputType, ArgumentDefinition>
         , IInputField
@@ -18,11 +21,31 @@ namespace HotChocolate.Types
         {
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
+
+            if (definition.Formatters.Count == 0)
+            {
+                Formatter = null;
+            }
+            else if (definition.Formatters.Count == 1)
+            {
+                Formatter = definition.Formatters[0];
+            }
+            else
+            {
+                Formatter = new AggregateInputValueFormatter(definition.Formatters);
+            }
         }
 
+        /// <summary>
+        /// The associated syntax node from the GraphQL SDL.
+        /// </summary>
         public InputValueDefinitionNode? SyntaxNode { get; }
 
+        /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
+
+        /// <inheritdoc />
+        public IInputValueFormatter? Formatter { get; }
 
         protected override void OnCompleteField(
             ITypeCompletionContext context,

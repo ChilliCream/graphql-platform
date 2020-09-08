@@ -8,6 +8,8 @@ namespace HotChocolate
     {
         public sealed class LazySchema
         {
+            public event EventHandler? Completed;
+
             private ISchema? _schema;
             private bool _isSet;
 
@@ -33,6 +35,7 @@ namespace HotChocolate
 
                     _schema = value ?? throw new ArgumentNullException(nameof(value));
                     _isSet = true;
+                    Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
         }

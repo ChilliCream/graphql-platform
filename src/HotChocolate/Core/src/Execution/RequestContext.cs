@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             ITypeConverter converter,
             IActivator activator,
             IDiagnosticEvents diagnosticEvents,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
             Schema = schema;
             Services = services;
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
 
         public IDiagnosticEvents DiagnosticEvents { get; }
 
-        public IReadOnlyQueryRequest Request { get; }
+        public IQueryRequest Request { get; }
 
         public IDictionary<string, object?> ContextData { get; }
 

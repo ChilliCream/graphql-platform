@@ -59,7 +59,7 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<T> GetAsyncEnumerator(
-                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+                CancellationToken cancellationToken = default)
             {
                 while (await _channel.Reader.WaitToReadAsync(cancellationToken))
                 {
@@ -84,7 +84,7 @@ namespace HotChocolate.Subscriptions.InMemory
             }
 
             public async IAsyncEnumerator<object> GetAsyncEnumerator(
-                [EnumeratorCancellation] CancellationToken cancellationToken = default)
+                CancellationToken cancellationToken = default)
             {
                 await foreach (TMessage message in _messages.WithCancellation(cancellationToken))
                 {

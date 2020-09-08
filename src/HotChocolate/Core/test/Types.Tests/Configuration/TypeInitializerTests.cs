@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is FooType);
 
@@ -71,7 +72,7 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -117,7 +118,7 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
                 t => t is ObjectType<Foo>);
 
@@ -143,7 +144,7 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
                 t => t is ObjectType<Foo>);
 

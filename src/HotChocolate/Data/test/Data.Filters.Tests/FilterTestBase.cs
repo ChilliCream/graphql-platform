@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Tests
         public ISchema CreateSchema(Action<ISchemaBuilder> configure)
         {
             ISchemaBuilder builder = SchemaBuilder.New()
-                .UseFiltering()
+                .AddFiltering()
                 .AddQueryType(c =>
                     c.Name("Query")
                         .Field("foo")

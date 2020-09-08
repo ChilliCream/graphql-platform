@@ -10,14 +10,19 @@ namespace HotChocolate.Data.Filters
         : IClassFixture<SchemaCache>
         , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
-        private static readonly Foo[] _fooEntities = new[]{
+        private static readonly Foo[] _fooEntities =
+        {
             new Foo { Bar = "testatest" },
-            new Foo { Bar = "testbtest" }};
+            new Foo { Bar = "testbtest" }
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
+        private static readonly FooNullable[] _fooNullableEntities =
+        {
             new FooNullable { Bar = "testatest" },
             new FooNullable { Bar = "testbtest" },
-            new FooNullable { Bar = null }};
+            new FooNullable { Bar = null }
+        };
+
         private readonly SchemaCache _cache;
 
         public QueryableFilterVisitorStringTests(

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 
@@ -129,6 +130,25 @@ namespace HotChocolate.AspNetCore.Utilities
             return result;
         }
 
+        public static async Task<ClientQueryResult> GetAsync(
+            this TestServer testServer,
+            ClientQueryRequest request,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendGetRequestAsync(testServer, request.ToString(), path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientQueryResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            return result;
+        }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
             this TestServer testServer, TObject requestBody, string path = "/graphql")
@@ -160,12 +180,8 @@ namespace HotChocolate.AspNetCore.Utilities
         public static Task<HttpResponseMessage> SendGetRequestAsync(
             this TestServer testServer, string query, string path = null)
         {
-            var normalizedQuery = query
-                .Replace("\r", string.Empty)
-                .Replace("\n", string.Empty);
-
             return testServer.CreateClient()
-                .GetAsync($"{CreateUrl(path)}?query={normalizedQuery}");
+                .GetAsync($"{CreateUrl(path)}?{query}");
         }
 
         public static string CreateUrl(string path)

@@ -10,6 +10,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -34,7 +35,10 @@ namespace HotChocolate
             new Dictionary<(Type, string), CreateConvention>();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
             new Dictionary<Type, (CreateRef, CreateRef)>();
-        private readonly List<object> _interceptors = new List<object>();
+        private readonly List<object> _interceptors = new List<object>
+        {
+            typeof(IntrospectionTypeInterceptor)
+        };
         private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
             new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
@@ -425,6 +429,28 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                    nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
         public ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor)
         {
             if (interceptor is null)
@@ -436,8 +462,22 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder OnBeforeCreate(
-            Action<IDescriptorContext> action)
+        public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
+        public ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action)
         {
             if (action is null)
             {

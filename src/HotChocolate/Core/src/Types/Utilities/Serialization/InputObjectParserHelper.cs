@@ -58,6 +58,7 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
                     object value = field.Type.ParseLiteral(fieldValue.Value);
+                    value = field.Formatter is not null ? field.Formatter.OnAfterDeserialize(value) : value;
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
@@ -114,6 +115,7 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
                     object value = field.Type.Deserialize(fieldValue.Value);
+                    value = field.Formatter is not null ? field.Formatter.OnAfterDeserialize(value) : value;
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else
@@ -133,21 +135,19 @@ namespace HotChocolate.Utilities.Serialization
         {
             foreach (InputField field in type.Fields)
             {
-                if (!dict.ContainsKey(field.Name))
+                if (field.DefaultValue is not null && !dict.ContainsKey(field.Name))
                 {
                     if (field.IsOptional)
                     {
                         continue;
                     }
 
-                    IValueNode valueSyntax = field.DefaultValue ?? NullValueNode.Default;
-
                     dict.Add(
                         field.Name,
                         ConvertValue(
                             field,
                             converter,
-                            field.Type.ParseLiteral(valueSyntax, false)));
+                            field.Type.ParseLiteral(field.DefaultValue, false)));
                 }
             }
         }

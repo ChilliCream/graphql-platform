@@ -7,8 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -96,10 +94,7 @@ namespace HotChocolate.Types
                 SyntaxNode = definition.SyntaxNode;
 
                 var sortByName = context.DescriptorContext.Options.SortFieldsByName;
-                var fields = new List<ObjectField>();
-                AddIntrospectionFields(context, fields);
-                AddRelayNodeField(context, fields);
-                fields.AddRange(definition.Fields.Select(t => new ObjectField(t, sortByName)));
+                var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
                 Fields = new FieldCollection<ObjectField>(fields, sortByName);
 
                 CompleteInterfacesHelper.Complete(
@@ -107,31 +102,6 @@ namespace HotChocolate.Types
 
                 CompleteIsOfType(context);
                 FieldInitHelper.CompleteFields(context, definition, Fields);
-            }
-        }
-
-        private void AddIntrospectionFields(
-            ITypeCompletionContext context,
-            ICollection<ObjectField> fields)
-        {
-            if (context.IsQueryType.HasValue && context.IsQueryType.Value)
-            {
-                fields.Add(new __SchemaField(context.DescriptorContext));
-                fields.Add(new __TypeField(context.DescriptorContext));
-            }
-
-            fields.Add(new __TypeNameField(context.DescriptorContext));
-        }
-
-        private void AddRelayNodeField(
-            ITypeCompletionContext context,
-            ICollection<ObjectField> fields)
-        {
-            if (context.IsQueryType.HasValue
-                && context.IsQueryType.Value
-                && context.ContextData.ContainsKey(RelayConstants.IsRelaySupportEnabled))
-            {
-                fields.Add(new NodeField(context.DescriptorContext));
             }
         }
 
@@ -187,7 +157,7 @@ namespace HotChocolate.Types
 
         private bool IsOfTypeWithClrType(
             IResolverContext context,
-            object result)
+            object? result)
         {
             if (result is null)
             {
@@ -198,7 +168,7 @@ namespace HotChocolate.Types
 
         private bool IsOfTypeWithName(
             IResolverContext context,
-            object result)
+            object? result)
         {
             if (result is null)
             {

@@ -111,6 +111,25 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
+        
+        [Fact]
+        public async Task SchemaBuilder_AddResolver()
+        {
+            // arrange
+            string sourceText = "type Query { hello: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "hello", () => "World")
+                .Create();
+
+            // assert
+            IRequestExecutor executor = schema.MakeExecutable();
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ hello }");
+            result.ToJson().MatchSnapshot();
+        }
 
         [Fact]
         public async Task SchemaBuilder_BindType_Configure()
@@ -179,7 +198,6 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
-
 
         [Fact]
         public async Task SchemaBuilder_BindType_And_Resolver_Implicit()

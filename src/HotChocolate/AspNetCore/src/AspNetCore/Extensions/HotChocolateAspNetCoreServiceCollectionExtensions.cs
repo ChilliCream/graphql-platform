@@ -1,14 +1,11 @@
 using System;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace HotChocolate.AspNetCore.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
@@ -23,8 +20,8 @@ namespace HotChocolate.AspNetCore.Extensions
 
             services.AddGraphQLCore();
             services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
-            services.TryAddSingleton<IRequestParser>(
-                sp => new DefaultRequestParser(
+            services.TryAddSingleton<IHttpRequestParser>(
+                sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
@@ -46,5 +43,23 @@ namespace HotChocolate.AspNetCore.Extensions
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
             builder.Services.AddGraphQLServer(schemaName);
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchema schema) =>
+            throw new NotSupportedException();
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchemaBuilder schema) =>
+            throw new NotSupportedException();
     }
 }

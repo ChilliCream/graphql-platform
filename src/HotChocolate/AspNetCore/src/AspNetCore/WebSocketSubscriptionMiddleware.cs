@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using RequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
@@ -9,14 +10,12 @@ namespace HotChocolate.AspNetCore
 {
     public class WebSocketSubscriptionMiddleware : MiddlewareBase
     {
-        private IMessagePipeline? _messagePipeline;
-        private bool _disposed;
-
         public WebSocketSubscriptionMiddleware(
             RequestDelegate next,
             IRequestExecutorResolver executorResolver,
+            IHttpResultSerializer resultSerializer,
             NameString schemaName)
-            : base(next, executorResolver, schemaName)
+            : base(next, executorResolver, resultSerializer, schemaName)
         {
         }
 

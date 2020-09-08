@@ -82,7 +82,7 @@ namespace HotChocolate.Execution.Batching
         {
             if (_type.Peek().NamedType() is IComplexOutputType complexType
                 && complexType.Fields.TryGetField(
-                    node.Name.Value, out IOutputField field))
+                    node.Name.Value, out IOutputField? field))
             {
                 _field.Push(field);
                 _type.Push(field.Type);
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution.Batching
         {
             if (_field.Peek().Arguments.TryGetField(
                 node.Name.Value,
-                out IInputField field))
+                out IInputField? field))
             {
                 _type.Push(field.Type);
                 _action.Push(VisitorAction.Continue);
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Batching
             if (_type.Peek().NamedType() is InputObjectType inputObject
                 && inputObject.Fields.TryGetField(
                     node.Name.Value,
-                    out IInputField field))
+                    out IInputField? field))
             {
                 _type.Push(field.Type);
                 _action.Push(VisitorAction.Continue);
@@ -251,7 +251,7 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (node.TypeCondition is { } && 
+            if (node.TypeCondition is not null && 
                 _schema.TryGetType(
                     node.TypeCondition.Name.Value,
                     out INamedType? type))
