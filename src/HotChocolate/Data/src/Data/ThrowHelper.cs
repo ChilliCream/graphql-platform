@@ -158,5 +158,12 @@ namespace HotChocolate.Data
                         "filter convention",
                         operation)
                     .Build());
+
+        public static SchemaException SortObjectFieldDescriptorExtensions_CannotInfer() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("The sort type cannot be inferred from `System.Object`.")
+                    .SetCode(ErrorCodes.Filtering.FilterObjectType)
+                    .Build());
     }
 }
