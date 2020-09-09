@@ -20,9 +20,9 @@ namespace HotChocolate.Data.Sorting
                 return false;
             }
 
-            if (x.Context != y.Context
-                && x.Context != TypeContext.None
-                && y.Context != TypeContext.None)
+            if (x.Context != y.Context &&
+                x.Context != TypeContext.None &&
+                y.Context != TypeContext.None)
             {
                 return false;
             }
