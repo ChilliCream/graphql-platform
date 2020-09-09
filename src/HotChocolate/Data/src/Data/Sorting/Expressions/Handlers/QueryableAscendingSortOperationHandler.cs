@@ -3,9 +3,9 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Sorting.Expressions
 {
-    public class QueryableDescendingSortOperation : QueryableOperationHandlerBase
+    public class QueryableAscendingSortOperationHandler : QueryableOperationHandlerBase
     {
-        public QueryableDescendingSortOperation() : base(DefaultSortOperations.Descending)
+        public QueryableAscendingSortOperationHandler() : base(DefaultSortOperations.Ascending)
         {
         }
 
@@ -15,12 +15,12 @@ namespace HotChocolate.Data.Sorting.Expressions
             ISortField field,
             ISortEnumValue? sortEnumValue)
         {
-            return DescendingSortOperation.From(fieldSelector);
+            return AscendingSortOperation.From(fieldSelector);
         }
 
-        private class DescendingSortOperation : QueryableSortOperation
+        private class AscendingSortOperation : QueryableSortOperation
         {
-            protected DescendingSortOperation(QueryableFieldSelector fieldSelector)
+            protected AscendingSortOperation(QueryableFieldSelector fieldSelector)
                 : base(fieldSelector)
             {
             }
@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Sorting.Expressions
             {
                 return Expression.Call(
                     expression.GetEnumerableKind(),
-                    nameof(Queryable.OrderByDescending),
+                    nameof(Queryable.OrderBy),
                     new[] {ParameterExpression.Type, Selector.Type},
                     expression,
                     Selector);
@@ -39,14 +39,14 @@ namespace HotChocolate.Data.Sorting.Expressions
             {
                 return Expression.Call(
                     expression.GetEnumerableKind(),
-                    nameof(Queryable.ThenByDescending),
+                    nameof(Queryable.ThenBy),
                     new[] {ParameterExpression.Type, Selector.Type},
                     expression,
                     Selector);
             }
 
-            public static DescendingSortOperation From(QueryableFieldSelector selector) =>
-                new DescendingSortOperation(selector);
+            public static AscendingSortOperation From(QueryableFieldSelector selector) =>
+                new AscendingSortOperation(selector);
         }
     }
 }

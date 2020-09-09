@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Sorting
 
         public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;
 
-        ISortInputType ISortField.DeclaringType => DeclaringType;
+        SortInputType ISortField.DeclaringType => DeclaringType;
 
         public MemberInfo? Member { get; }
 

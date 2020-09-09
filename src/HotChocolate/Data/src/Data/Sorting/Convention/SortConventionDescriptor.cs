@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Sorting
         }
 
         /// <inheritdoc />
-        public ISortConventionDescriptor BindRuntimeType<TRuntimeType, TSortType>()=>
+        public ISortConventionDescriptor BindRuntimeType<TRuntimeType, TSortType>() =>
             BindRuntimeType(typeof(TRuntimeType), typeof(TSortType));
 
         /// <inheritdoc />
@@ -119,9 +119,9 @@ namespace HotChocolate.Data.Sorting
             where TSortEnumType : SortEnumType
         {
             var typeReference = Context.TypeInspector.GetTypeRef(
-                    typeof(TSortEnumType),
-                    TypeContext.None,
-                    Definition.Scope),
+                typeof(TSortEnumType),
+                TypeContext.None,
+                Definition.Scope);
 
             if (!Definition.EnumConfigurations.TryGetValue(
                 typeReference,

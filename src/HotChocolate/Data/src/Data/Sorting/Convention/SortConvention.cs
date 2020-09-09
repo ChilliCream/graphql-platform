@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -18,8 +19,8 @@ namespace HotChocolate.Data.Sorting
     /// The sort convention provides defaults for inferring sorting fields.
     /// </summary>
     public class SortConvention
-        : Convention<SortConventionDefinition>
-        , ISortConvention
+        : Convention<SortConventionDefinition>,
+          ISortConvention
     {
         private const string _typePostFix = "SortInput";
 
@@ -27,11 +28,17 @@ namespace HotChocolate.Data.Sorting
         private INamingConventions _namingConventions = default!;
         private IReadOnlyDictionary<int, SortOperation> _operations = default!;
         private IDictionary<Type, Type> _bindings = default!;
-        private IDictionary<ITypeReference, List<ConfigureSortInputType>> _configs = default!;
+
+        private IDictionary<ITypeReference, List<ConfigureSortInputType>> _inputTypeConfigs =
+            default!;
+
+        private IDictionary<ITypeReference, List<ConfigureSortEnumType>> _enumTypeConfigs =
+            default!;
 
         private NameString _argumentName;
         private ISortProvider _provider = default!;
         private ITypeInspector _typeInspector = default!;
+        private Type? _defaultBinding;
 
         protected SortConvention()
         {
@@ -91,7 +98,9 @@ namespace HotChocolate.Data.Sorting
                 x => x.Id,
                 SortOperation.FromDefinition);
             _bindings = definition.Bindings;
-            _configs = definition.Configurations;
+            _defaultBinding = definition.DefaultBinding;
+            _inputTypeConfigs = definition.Configurations;
+            _enumTypeConfigs = definition.EnumConfigurations;
             _argumentName = definition.ArgumentName;
 
             if (_provider is ISortProviderConvention init)
@@ -128,7 +137,8 @@ namespace HotChocolate.Data.Sorting
             }
 
             if (TryCreateSortType(
-                    _typeInspector.GetReturnType(member, true), out Type? returnType))
+                _typeInspector.GetReturnType(member, true),
+                out Type? returnType))
             {
                 return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
             }
@@ -166,7 +176,7 @@ namespace HotChocolate.Data.Sorting
             ITypeReference typeReference,
             ISortInputTypeDescriptor descriptor)
         {
-            if (_configs.TryGetValue(
+            if (_inputTypeConfigs.TryGetValue(
                 typeReference,
                 out List<ConfigureSortInputType>? configurations))
             {
@@ -182,8 +192,47 @@ namespace HotChocolate.Data.Sorting
             }
         }
 
+        public void ApplyConfigurations(
+            ITypeReference typeReference,
+            ISortEnumTypeDescriptor descriptor)
+        {
+            if (_enumTypeConfigs.TryGetValue(
+                typeReference,
+                out List<ConfigureSortEnumType>? configurations))
+            {
+                foreach (ConfigureSortEnumType configure in configurations)
+                {
+                    configure(descriptor);
+                }
+
+                if (descriptor is SortEnumTypeDescriptor inputTypeDescriptor)
+                {
+                    inputTypeDescriptor.CreateDefinition();
+                }
+            }
+        }
+
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
+
+        public bool TryGetOperationHandler(
+            ITypeDiscoveryContext context,
+            EnumTypeDefinition typeDefinition,
+            SortEnumValueDefinition fieldDefinition,
+            [NotNullWhen(true)] out ISortOperationHandler? handler)
+        {
+            foreach (ISortOperationHandler sortFieldHandler in _provider.OperationHandlers)
+            {
+                if (sortFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+                {
+                    handler = sortFieldHandler;
+                    return true;
+                }
+            }
+
+            handler = null;
+            return false;
+        }
 
         public bool TryGetFieldHandler(
             ITypeDiscoveryContext context,
@@ -218,15 +267,15 @@ namespace HotChocolate.Data.Sorting
                 return false;
             }
 
-            if (runtimeType.Type.IsEnum)
-            {
-                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType.Source);
-                return true;
-            }
-
             if (runtimeType.Type.IsClass)
             {
                 type = typeof(SortInputType<>).MakeGenericType(runtimeType.Source);
+                return true;
+            }
+
+            if (_defaultBinding is {})
+            {
+                type = _defaultBinding;
                 return true;
             }
 
