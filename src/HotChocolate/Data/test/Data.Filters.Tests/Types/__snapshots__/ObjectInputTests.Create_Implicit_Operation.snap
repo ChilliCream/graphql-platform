@@ -13,7 +13,7 @@ input BarFilterInput {
   fooNullable: FooFilterInput
 }
 
-input ComparableOperationFilterFilterInputOfInt16FilterInput {
+input ComparableOperationFilterInputOfInt16FilterInput {
   eq: Short
   neq: Short
   in: [Short!]
@@ -31,7 +31,7 @@ input ComparableOperationFilterFilterInputOfInt16FilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  barShort: ComparableOperationFilterFilterInputOfInt16FilterInput
+  barShort: ComparableOperationFilterInputOfInt16FilterInput
 }
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."

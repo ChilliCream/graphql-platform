@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
-    public class EnumOperationFilterFilterInput<T> : FilterInputType, IEnumOperationFilterInput
+    public class EnumOperationFilterInput<T> : FilterInputType, IEnumOperationFilterInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

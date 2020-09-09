@@ -238,7 +238,7 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.Type.IsEnum)
             {
-                type = typeof(EnumOperationFilterFilterInput<>).MakeGenericType(runtimeType.Source);
+                type = typeof(EnumOperationFilterInput<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 

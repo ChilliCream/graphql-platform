@@ -6,14 +6,14 @@ type Query {
   foo(test: FooFilterInput): String
 }
 
-input EnumOperationFilterFilterInputOfFooBarFilterInput {
+input EnumOperationFilterInputOfFooBarFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar!]
   nin: [FooBar!]
 }
 
-input EnumOperationFilterFilterInputOfNullableOfFooBarFilterInput {
+input EnumOperationFilterInputOfNullableOfFooBarFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar]
@@ -23,8 +23,8 @@ input EnumOperationFilterFilterInputOfNullableOfFooBarFilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  fooBar: EnumOperationFilterFilterInputOfFooBarFilterInput
-  fooBarNullable: EnumOperationFilterFilterInputOfNullableOfFooBarFilterInput
+  fooBar: EnumOperationFilterInputOfFooBarFilterInput
+  fooBarNullable: EnumOperationFilterInputOfNullableOfFooBarFilterInput
 }
 
 enum FooBar {
