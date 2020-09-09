@@ -98,5 +98,77 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType", resourceCulture);
             }
         }
+        
+        internal static string SortField_SortField_TypeUnknown {
+            get {
+                return ResourceManager.GetString("SortField_SortField_TypeUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string SortConventionDescriptor_MustInheritFromSortInputOrEnumType {
+            get {
+                return ResourceManager.GetString("SortConventionDescriptor_MustInheritFromSortInputOrEnumType", resourceCulture);
+            }
+        }
+        
+        internal static string SortConventionDescriptor_MustImplementISortProvider {
+            get {
+                return ResourceManager.GetString("SortConventionDescriptor_MustImplementISortProvider", resourceCulture);
+            }
+        }
+        
+        internal static string SortConvention_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("SortConvention_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string SortProvider_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("SortProvider_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string SortConvention_UnknownType {
+            get {
+                return ResourceManager.GetString("SortConvention_UnknownType", resourceCulture);
+            }
+        }
+        
+        internal static string SortInputTypeDescriptor_Field_OnlyProperties {
+            get {
+                return ResourceManager.GetString("SortInputTypeDescriptor_Field_OnlyProperties", resourceCulture);
+            }
+        }
+        
+        internal static string SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType {
+            get {
+                return ResourceManager.GetString("SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType", resourceCulture);
+            }
+        }
+        
+        internal static string SortingVisitor_ListInput_AreNotSuported {
+            get {
+                return ResourceManager.GetString("SortingVisitor_ListInput_AreNotSuported", resourceCulture);
+            }
+        }
+        
+        internal static string SortingEnumType_Cannot_ParseLiteral {
+            get {
+                return ResourceManager.GetString("SortingEnumType_Cannot_ParseLiteral", resourceCulture);
+            }
+        }
+        
+        internal static string SortInvocation_Cannot_SortOnFields {
+            get {
+                return ResourceManager.GetString("SortInvocation_Cannot_SortOnFields", resourceCulture);
+            }
+        }
+        
+        internal static string QueryableSortHandler_InvalidSelector {
+            get {
+                return ResourceManager.GetString("QueryableSortHandler_InvalidSelector", resourceCulture);
+            }
+        }
     }
 }

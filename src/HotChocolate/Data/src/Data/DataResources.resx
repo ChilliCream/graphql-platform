@@ -45,4 +45,40 @@
   <data name="FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType" xml:space="preserve">
     <value>Cannot handle the specified filter type.</value>
   </data>
+  <data name="SortField_SortField_TypeUnknown" xml:space="preserve">
+    <value>Unable to resolve the field runtime type for `{0}.{1}`.</value>
+  </data>
+  <data name="SortConventionDescriptor_MustInheritFromSortInputOrEnumType" xml:space="preserve">
+    <value>The sorting type must inherit from `SortInputType` or `SortEnumType`.</value>
+  </data>
+  <data name="SortConventionDescriptor_MustImplementISortProvider" xml:space="preserve">
+    <value>A sorting provider has to implement `ISortProvider`.</value>
+  </data>
+  <data name="SortConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="SortProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="SortConvention_UnknownType" xml:space="preserve">
+    <value>The type {0} is unknown</value>
+  </data>
+  <data name="SortInputTypeDescriptor_Field_OnlyProperties" xml:space="preserve">
+    <value>Only properties are supported as fields.</value>
+  </data>
+  <data name="SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType" xml:space="preserve">
+    <value>Cannot handle the specified filter type.</value>
+  </data>
+  <data name="SortingVisitor_ListInput_AreNotSuported" xml:space="preserve">
+    <value>Lists are not supported by sorting!</value>
+  </data>
+  <data name="SortingEnumType_Cannot_ParseLiteral" xml:space="preserve">
+    <value>{0} cannot parse the given literal of type `{1}`.</value>
+  </data>
+  <data name="SortInvocation_Cannot_SortOnFields" xml:space="preserve">
+    <value>Sorting on fields with no operation is not supported</value>
+  </data>
+  <data name="QueryableSortHandler_InvalidSelector" xml:space="preserve">
+    <value>Sorting has encountered invalid selector</value>
+  </data>
 </root>
