@@ -1,7 +1,7 @@
 ﻿{
   "errors": [
     {
-      "message": "The provided value for filter \u0060eq\u0060 of type FooFilterInput is invalid. Null values are not supported.",
+      "message": "The provided value for filter \u0060eq\u0060 of type ComparableOperationInputOfInt16FilterInput is invalid. Null values are not supported.",
       "locations": [
         {
           "line": 1,
@@ -13,7 +13,7 @@
       ],
       "extensions": {
         "expectedType": "Short!",
-        "filterType": "FooFilterInput"
+        "filterType": "ComparableOperationInputOfInt16FilterInput"
       }
     }
   ],
