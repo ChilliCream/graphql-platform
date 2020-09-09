@@ -14,12 +14,12 @@ type QueryType {
 input Bar_FooFilterInput {
   and: [Bar_FooFilterInput!]
   or: [Bar_FooFilterInput!]
-  bar: Bar_StringOperationInputFilterInput
+  bar: Bar_StringOperationFilterInput
 }
 
-input Bar_StringOperationInputFilterInput {
-  and: [Bar_StringOperationInputFilterInput!]
-  or: [Bar_StringOperationInputFilterInput!]
+input Bar_StringOperationFilterInput {
+  and: [Bar_StringOperationFilterInput!]
+  or: [Bar_StringOperationFilterInput!]
   EQUALS: String
   neq: String
   contains: String
@@ -35,12 +35,12 @@ input Bar_StringOperationInputFilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  bar: StringOperationInputFilterInput
+  bar: StringOperationFilterInput
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String

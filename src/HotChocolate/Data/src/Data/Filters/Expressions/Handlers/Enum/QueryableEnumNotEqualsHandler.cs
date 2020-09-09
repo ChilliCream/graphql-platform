@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IEnumOperationInput &&
+            return context.Type is IEnumOperationFilterInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }

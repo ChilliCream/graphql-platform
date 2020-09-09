@@ -3,10 +3,10 @@
 }
 
 type Query {
-  foo(test: EnumOperationInputOfFooBarFilterInput): String
+  foo(test: EnumOperationFilterFilterInputOfFooBarFilterInput): String
 }
 
-input EnumOperationInputOfFooBarFilterInput {
+input EnumOperationFilterFilterInputOfFooBarFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar!]

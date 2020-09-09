@@ -6,7 +6,7 @@ type Query {
   foo(test: FooFilterInput): String
 }
 
-input ComparableOperationInputOfDecimalFilterInput {
+input ComparableOperationFilterFilterInputOfDecimalFilterInput {
   eq: Decimal
   neq: Decimal
   in: [Decimal!]
@@ -21,7 +21,7 @@ input ComparableOperationInputOfDecimalFilterInput {
   nlte: Decimal
 }
 
-input ComparableOperationInputOfDoubleFilterInput {
+input ComparableOperationFilterFilterInputOfDoubleFilterInput {
   eq: Float
   neq: Float
   in: [Float!]
@@ -36,7 +36,7 @@ input ComparableOperationInputOfDoubleFilterInput {
   nlte: Float
 }
 
-input ComparableOperationInputOfInt16FilterInput {
+input ComparableOperationFilterFilterInputOfInt16FilterInput {
   eq: Short
   neq: Short
   in: [Short!]
@@ -51,7 +51,7 @@ input ComparableOperationInputOfInt16FilterInput {
   nlte: Short
 }
 
-input ComparableOperationInputOfInt32FilterInput {
+input ComparableOperationFilterFilterInputOfInt32FilterInput {
   eq: Int
   neq: Int
   in: [Int!]
@@ -66,7 +66,7 @@ input ComparableOperationInputOfInt32FilterInput {
   nlte: Int
 }
 
-input ComparableOperationInputOfInt64FilterInput {
+input ComparableOperationFilterFilterInputOfInt64FilterInput {
   eq: Long
   neq: Long
   in: [Long!]
@@ -81,7 +81,7 @@ input ComparableOperationInputOfInt64FilterInput {
   nlte: Long
 }
 
-input ComparableOperationInputOfNullableOfDecimalFilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfDecimalFilterInput {
   eq: Decimal
   neq: Decimal
   in: [Decimal]
@@ -96,7 +96,7 @@ input ComparableOperationInputOfNullableOfDecimalFilterInput {
   nlte: Decimal
 }
 
-input ComparableOperationInputOfNullableOfDoubleFilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfDoubleFilterInput {
   eq: Float
   neq: Float
   in: [Float]
@@ -111,7 +111,7 @@ input ComparableOperationInputOfNullableOfDoubleFilterInput {
   nlte: Float
 }
 
-input ComparableOperationInputOfNullableOfInt16FilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfInt16FilterInput {
   eq: Short
   neq: Short
   in: [Short]
@@ -126,7 +126,7 @@ input ComparableOperationInputOfNullableOfInt16FilterInput {
   nlte: Short
 }
 
-input ComparableOperationInputOfNullableOfInt32FilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfInt32FilterInput {
   eq: Int
   neq: Int
   in: [Int]
@@ -141,7 +141,7 @@ input ComparableOperationInputOfNullableOfInt32FilterInput {
   nlte: Int
 }
 
-input ComparableOperationInputOfNullableOfInt64FilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfInt64FilterInput {
   eq: Long
   neq: Long
   in: [Long]
@@ -156,7 +156,7 @@ input ComparableOperationInputOfNullableOfInt64FilterInput {
   nlte: Long
 }
 
-input ComparableOperationInputOfNullableOfSingleFilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfSingleFilterInput {
   eq: Float
   neq: Float
   in: [Float]
@@ -171,7 +171,7 @@ input ComparableOperationInputOfNullableOfSingleFilterInput {
   nlte: Float
 }
 
-input ComparableOperationInputOfSingleFilterInput {
+input ComparableOperationFilterFilterInputOfSingleFilterInput {
   eq: Float
   neq: Float
   in: [Float!]
@@ -186,7 +186,7 @@ input ComparableOperationInputOfSingleFilterInput {
   nlte: Float
 }
 
-input EnumOperationInputOfFooBarFilterInput {
+input EnumOperationFilterFilterInputOfFooBarFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar!]
@@ -196,19 +196,19 @@ input EnumOperationInputOfFooBarFilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  barShort: ComparableOperationInputOfInt16FilterInput
-  barInt: ComparableOperationInputOfInt32FilterInput
-  barLong: ComparableOperationInputOfInt64FilterInput
-  barFloat: ComparableOperationInputOfSingleFilterInput
-  barDouble: ComparableOperationInputOfDoubleFilterInput
-  barDecimal: ComparableOperationInputOfDecimalFilterInput
-  barShortNullable: ComparableOperationInputOfNullableOfInt16FilterInput
-  barIntNullable: ComparableOperationInputOfNullableOfInt32FilterInput
-  barLongNullable: ComparableOperationInputOfNullableOfInt64FilterInput
-  barFloatNullable: ComparableOperationInputOfNullableOfSingleFilterInput
-  barDoubleNullable: ComparableOperationInputOfNullableOfDoubleFilterInput
-  barDecimalNullable: ComparableOperationInputOfNullableOfDecimalFilterInput
-  fooBar: EnumOperationInputOfFooBarFilterInput
+  barShort: ComparableOperationFilterFilterInputOfInt16FilterInput
+  barInt: ComparableOperationFilterFilterInputOfInt32FilterInput
+  barLong: ComparableOperationFilterFilterInputOfInt64FilterInput
+  barFloat: ComparableOperationFilterFilterInputOfSingleFilterInput
+  barDouble: ComparableOperationFilterFilterInputOfDoubleFilterInput
+  barDecimal: ComparableOperationFilterFilterInputOfDecimalFilterInput
+  barShortNullable: ComparableOperationFilterFilterInputOfNullableOfInt16FilterInput
+  barIntNullable: ComparableOperationFilterFilterInputOfNullableOfInt32FilterInput
+  barLongNullable: ComparableOperationFilterFilterInputOfNullableOfInt64FilterInput
+  barFloatNullable: ComparableOperationFilterFilterInputOfNullableOfSingleFilterInput
+  barDoubleNullable: ComparableOperationFilterFilterInputOfNullableOfDoubleFilterInput
+  barDecimalNullable: ComparableOperationFilterFilterInputOfNullableOfDecimalFilterInput
+  fooBar: EnumOperationFilterFilterInputOfFooBarFilterInput
 }
 
 enum FooBar {

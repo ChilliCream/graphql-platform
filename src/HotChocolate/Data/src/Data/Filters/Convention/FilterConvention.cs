@@ -104,8 +104,22 @@ namespace HotChocolate.Data.Filters
 
 
         /// <inheritdoc />
-        public virtual NameString GetTypeName(Type runtimeType) =>
-            _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
+        public virtual NameString GetTypeName(Type runtimeType)
+        {
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            string name = _namingConventions.GetTypeName(runtimeType);
+
+            if (!name.EndsWith(_typePostFix, StringComparison.Ordinal))
+            {
+                name += _typePostFix;
+            }
+
+            return name;
+        }
 
         /// <inheritdoc />
         public virtual string? GetTypeDescription(Type runtimeType) =>
@@ -224,7 +238,7 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.Type.IsEnum)
             {
-                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType.Source);
+                type = typeof(EnumOperationFilterFilterInput<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 

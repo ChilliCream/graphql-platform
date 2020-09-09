@@ -6,7 +6,7 @@ type Query {
   foo: String
 }
 
-input ComparableOperationInputOfNullableOfInt16FilterInput {
+input ComparableOperationFilterFilterInputOfNullableOfInt16FilterInput {
   eq: Short
   neq: Short
   in: [Short]
@@ -24,7 +24,7 @@ input ComparableOperationInputOfNullableOfInt16FilterInput {
 input EntityWithTypeAttributeFilterInput {
   and: [EntityWithTypeAttributeFilterInput!]
   or: [EntityWithTypeAttributeFilterInput!]
-  barEnum: ComparableOperationInputOfNullableOfInt16FilterInput
+  barEnum: ComparableOperationFilterFilterInputOfNullableOfInt16FilterInput
 }
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."

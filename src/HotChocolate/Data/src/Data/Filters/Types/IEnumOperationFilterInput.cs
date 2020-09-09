@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Data.Filters
 {
-    public interface IEnumOperationInput
+    public interface IEnumOperationFilterInput
     {
     }
 }
