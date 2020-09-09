@@ -57,7 +57,7 @@ namespace HotChocolate.Data.Sorting
                     if (discoveryContext.TryPredictTypeKind(
                             sortFieldDefinition.Type,
                             out TypeKind kind) &&
-                        kind != TypeKind.Scalar && kind != TypeKind.Enum)
+                        kind != TypeKind.Enum)
                     {
                         field.Type = field.Type.With(scope: discoveryContext.Scope);
                     }
