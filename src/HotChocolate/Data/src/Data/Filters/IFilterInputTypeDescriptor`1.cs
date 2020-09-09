@@ -90,7 +90,7 @@ namespace HotChocolate.Data.Filters
         /// <param  name="property">
         /// The property that shall be ignored.
         /// </param>
-        IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object>> property);
+        IFilterInputTypeDescriptor<T> Ignore(Expression<Func<T, object?>> property);
 
         /// <summary>
         /// Defines if OR-combinators are allowed for this filter.
