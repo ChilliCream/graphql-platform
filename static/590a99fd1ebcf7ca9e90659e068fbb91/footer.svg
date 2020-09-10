@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1400 400">
-  <defs>
-    <linearGradient id="f47520b1-b9db-4ae4-a8a7-da411df60666" x1="650" y1="0" x2="700" y2="300" gradientUnits="userSpaceOnUse">
-      <stop offset="0.10" stop-color="#efefef"/>
-      <stop offset="1" stop-color="#ccc"/>
-    </linearGradient>
-  </defs>
-  <polygon points="0 0 800 150 1400 50 1400 400 0 400 0 0" fill="url(#f47520b1-b9db-4ae4-a8a7-da411df60666)"/>
-</svg>
