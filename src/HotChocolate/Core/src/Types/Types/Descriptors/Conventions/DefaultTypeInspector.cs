@@ -26,10 +26,15 @@ namespace HotChocolate.Types.Descriptors
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
 
+        public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
+        {
+            IgnoreRequiredAttribute = ignoreRequiredAttribute;
+        }
+
         /// <summary>
         /// Infer type to be non-null if <see cref="RequiredAttribute"/> is found.
         /// </summary>
-        public bool RequiredAsNonNull { get; protected set; } = true;
+        public bool IgnoreRequiredAttribute { get; protected set; }
 
         /// <inheritdoc />
         public virtual IEnumerable<Type> GetResolverTypes(Type type)
@@ -457,7 +462,7 @@ namespace HotChocolate.Types.Descriptors
                     nullAttribute.Nullable);
             }
 
-            if (RequiredAsNonNull &&
+            if (!IgnoreRequiredAttribute &&
                 TryGetAttribute(attributeProvider, out RequiredAttribute? _))
             {
                 return ChangeNullability(type, false);

@@ -534,8 +534,6 @@ namespace HotChocolate.Types
         public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly()
         {
             // arrange
-            using var cts = new CancellationTokenSource(30000);
-
             // act
             IRequestExecutor executor = await CreateExecutorAsync(r => r
                 .AddInMemorySubscriptions()
@@ -548,11 +546,24 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly_2()
+        {
+            // arrange
+            // act
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddSubscriptionType(d => d.Name("Subscription"))
+                .AddTypeExtension<MySubscriptionExtension>());
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Subscribe_Attribute_With_Two_Topic_Attributes_Error()
         {
             // arrange
-            using var cts = new CancellationTokenSource(30000);
-
             // act
             Func<Task> error = async () => await CreateExecutorAsync(r => r
                 .AddInMemorySubscriptions()
@@ -936,6 +947,19 @@ namespace HotChocolate.Types
             [Topic]
             public string OnMessage(
                 [Topic] string userId,
+                [EventMessage] string message) =>
+                message;
+        }
+
+        [ExtendObjectType(Name = "Subscription")]
+        public class MySubscriptionExtension
+        {
+            public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                await eventReceiver.SubscribeAsync<string, string>("explicit");
+
+            [Subscribe(With = nameof(SubscribeToOnExplicit))]
+            public string OnExplicit(
                 [EventMessage] string message) =>
                 message;
         }

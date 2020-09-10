@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
@@ -66,6 +67,12 @@ namespace HotChocolate.Types
         /// This member can be <c>null</c>.
         /// </summary>
         public MemberInfo? Member { get; }
+
+        /// <summary>
+        /// Gets the associated resolver expression.
+        /// This expression can be <c>null</c>.
+        /// </summary>
+        public Expression? Expression { get; }
 
         /// <summary>
         /// Defines if this field as a introspection field.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
@@ -170,6 +171,31 @@ namespace HotChocolate.Configuration
             var fieldMember = new FieldMember(InternalName, fieldName, member);
 
             Resolvers[fieldMember.ToFieldReference()] = resolverType is null
+                ? new RegisteredResolver(sourceType, fieldMember)
+                : new RegisteredResolver(resolverType, sourceType, fieldMember);
+        }
+
+        public void RegisterResolver(
+            NameString fieldName,
+            Expression expression,
+            Type sourceType,
+            Type resolverType)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
+            }
+
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            fieldName.EnsureNotEmpty(nameof(fieldName));
+
+            var fieldMember = new FieldMember(InternalName, fieldName, expression);
+
+            Resolvers[fieldMember.ToFieldReference()] = resolverType == null
                 ? new RegisteredResolver(sourceType, fieldMember)
                 : new RegisteredResolver(resolverType, sourceType, fieldMember);
         }

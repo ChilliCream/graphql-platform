@@ -88,11 +88,18 @@ namespace HotChocolate.Internal
 
             private static IExtendedType RemoveNonEssentialParts(IExtendedType type)
             {
+                short i = 0;
                 IExtendedType current = type;
 
                 while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current))
                 {
                     current = type.TypeArguments[0];
+
+                    if (i++ > 64)
+                    {
+                        throw new InvalidOperationException(
+                            "Could not remove the non-essential parts of the type.");
+                    }
                 }
 
                 return current;

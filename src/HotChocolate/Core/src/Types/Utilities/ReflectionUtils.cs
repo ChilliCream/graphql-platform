@@ -11,6 +11,42 @@ namespace HotChocolate.Utilities
 {
     public static class ReflectionUtils
     {
+        public static MemberInfo TryExtractMember<T, TPropertyType>(
+            this Expression<Func<T, TPropertyType>> memberExpression)
+        {
+            if (memberExpression == null)
+            {
+                throw new ArgumentNullException(nameof(memberExpression));
+            }
+
+            return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression));
+        }
+
+        internal static MemberInfo TryExtractCallMember(
+            this Expression expression)
+        {
+            if (expression is LambdaExpression lambda)
+            {
+                if (lambda.Body is MethodCallExpression m)
+                {
+                    return m.Method;
+                }
+
+                if (lambda.Body is MemberExpression p)
+                {
+                    return p.Member;
+                }
+            }
+
+            return null;
+        }
+
+        private static MemberInfo TryExtractMemberInternal<T>(
+            Expression expression)
+        {
+            return ExtractMember(typeof(T), expression);
+        }
+
         public static MemberInfo ExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
         {

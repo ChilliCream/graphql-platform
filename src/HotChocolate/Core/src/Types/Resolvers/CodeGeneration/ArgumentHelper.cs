@@ -18,8 +18,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 
             ArgumentKind argumentKind;
-            if (TryCheckForResolverArguments(
-                    parameter, sourceType, out argumentKind)
+            if (TryCheckForResolverArguments(parameter, sourceType, out argumentKind)
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
@@ -139,7 +138,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 #pragma warning restore CS0612
 
-            if (IsService(parameter))
+            if (IsService(parameter)
+                || IsScopedService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
                 return true;
@@ -188,6 +188,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal static bool IsLocalState(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(LocalStateAttribute));
+        }
+
+        internal static bool IsScopedService(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ScopedServiceAttribute));
         }
 
         internal static bool IsService(ParameterInfo parameter)

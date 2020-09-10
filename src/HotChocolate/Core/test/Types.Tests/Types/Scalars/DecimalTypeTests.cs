@@ -319,6 +319,74 @@ namespace HotChocolate.Types
             Assert.Equal(TypeKind.Scalar, kind);
         }
 
+        [Fact]
+        public void ParseValue_HandlesMoreThan6Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.1234567m;
+            var output = "1234567.1234567";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToDefaultSignificantDigits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.891123456789m;
+            var output = "1234567.891123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_Handle12Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsLong()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
         private FloatValueNode CreateExponentialLiteral() =>
             new FloatValueNode(Encoding.UTF8.GetBytes("1.000000E+000"), FloatFormat.Exponential);
 

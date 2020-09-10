@@ -35,7 +35,15 @@ namespace HotChocolate.Types
             {
                 if (field.Resolver is null)
                 {
-                    if (field.ResolverMember is { })
+                    if (field.Expression is not null)
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Expression,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
+                    else if (field.ResolverMember is not null)
                     {
                         context.RegisterResolver(
                             field.Name,
@@ -43,7 +51,7 @@ namespace HotChocolate.Types
                             definition.RuntimeType,
                             field.ResolverType);
                     }
-                    else if (field.Member is { })
+                    else if (field.Member is not null)
                     {
                         context.RegisterResolver(
                             field.Name,
