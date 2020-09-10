@@ -1,13 +1,13 @@
 ﻿{
-  "bar": {
-    "baz": "Bar",
-    "number": 1
-  },
   "bars": [
     {
-      "baz": "Bar",
-      "number": 2
+      "number": 2,
+      "baz": "Bar"
     },
     null
-  ]
+  ],
+  "bar": {
+    "number": 1,
+    "baz": "Bar"
+  }
 }

@@ -82,7 +82,7 @@ namespace HotChocolate.Execution.Batching
         {
             if (_type.Peek().NamedType() is IComplexOutputType complexType
                 && complexType.Fields.TryGetField(
-                    node.Name.Value, out IOutputField field))
+                    node.Name.Value, out IOutputField? field))
             {
                 _field.Push(field);
                 _type.Push(field.Type);
@@ -116,7 +116,7 @@ namespace HotChocolate.Execution.Batching
         {
             if (_field.Peek().Arguments.TryGetField(
                 node.Name.Value,
-                out IInputField field))
+                out IInputField? field))
             {
                 _type.Push(field.Type);
                 _action.Push(VisitorAction.Continue);
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution.Batching
             if (_type.Peek().NamedType() is InputObjectType inputObject
                 && inputObject.Fields.TryGetField(
                     node.Name.Value,
-                    out IInputField field))
+                    out IInputField? field))
             {
                 _type.Push(field.Type);
                 _action.Push(VisitorAction.Continue);
@@ -198,12 +198,12 @@ namespace HotChocolate.Execution.Batching
                 {
                     if (type.NamedType() is IComplexOutputType complexType)
                     {
-                        Type clrType = complexType.ToClrType();
+                        Type clrType = complexType.ToRuntimeType();
                         InputObjectType inputType =
                             _schema.Types.OfType<InputObjectType>()
                                 .First(t => t.RuntimeType == clrType);
 
-                        if (inputType == null)
+                        if (inputType is null)
                         {
                             throw CollectVariablesVisitor_NoCompatibleType(node, path);
                         }
@@ -251,7 +251,7 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (node.TypeCondition is { } && 
+            if (node.TypeCondition is not null && 
                 _schema.TryGetType(
                     node.TypeCondition.Name.Value,
                     out INamedType? type))

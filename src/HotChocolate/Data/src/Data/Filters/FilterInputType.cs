@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -8,8 +9,9 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterInputType
         : InputObjectType
+        , IFilterInputType
     {
-        private readonly Action<IFilterInputTypeDescriptor> _configure;
+        private Action<IFilterInputTypeDescriptor>? _configure;
 
         public FilterInputType()
         {
@@ -22,21 +24,37 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        public IExtendedType EntityType { get; private set; } = default!;
+
         protected override InputObjectTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
         {
             var descriptor = FilterInputTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
-                context.Scope,
-                GetType());
+                GetType(),
+                context.Scope);
 
-            _configure(descriptor);
+            _configure!(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(
-            IFilterInputTypeDescriptor descriptor)
+        protected virtual void Configure(IFilterInputTypeDescriptor descriptor)
         {
+        }
+
+        protected override void OnCompleteType(
+            ITypeCompletionContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnCompleteType(context, definition);
+
+            if (definition is FilterInputTypeDefinition ft &&
+                ft.EntityType is { })
+            {
+                EntityType = context.TypeInspector.GetType(ft.EntityType);
+            }
         }
 
         protected override void OnCompleteFields(
@@ -46,11 +64,11 @@ namespace HotChocolate.Data.Filters
         {
             if (definition is FilterInputTypeDefinition { UseAnd: true } def)
             {
-                fields.Add(new AndField(context.DescriptorContext, def.Scope, this));
+                fields.Add(new AndField(context.DescriptorContext, def.Scope));
             }
             if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
             {
-                fields.Add(new OrField(context.DescriptorContext, defOr.Scope, this));
+                fields.Add(new OrField(context.DescriptorContext, defOr.Scope));
             }
 
             foreach (InputFieldDefinition fieldDefinition in definition.Fields)

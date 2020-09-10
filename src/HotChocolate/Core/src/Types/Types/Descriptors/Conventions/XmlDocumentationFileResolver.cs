@@ -2,8 +2,6 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
@@ -47,7 +45,7 @@ namespace HotChocolate.Types.Descriptors
         {
             try
             {
-                if (assembly == null)
+                if (assembly is null)
                 {
                     return null;
                 }

@@ -1,8 +1,5 @@
-using System;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
@@ -41,7 +38,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EntityType = context.GetType<IOutputType>(
-                TypeReference.Create<T>());
+                context.TypeInspector.GetTypeRef(typeof(T)));
         }
     }
 }

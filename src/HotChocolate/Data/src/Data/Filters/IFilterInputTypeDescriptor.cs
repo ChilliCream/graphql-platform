@@ -1,10 +1,12 @@
 using System;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
+    /// <summary>
+    /// The filter input descriptor allows to configure a <see cref="FilterInputType"/>.
+    /// </summary>
     public interface IFilterInputTypeDescriptor
         : IDescriptor<FilterInputTypeDefinition>
         , IFluent
@@ -26,80 +28,87 @@ namespace HotChocolate.Data.Filters
         /// </summary>
         /// <param name="value">The filter type description.</param>
         ///
-        IFilterInputTypeDescriptor Description(string value);
+        IFilterInputTypeDescriptor Description(string? value);
 
         /// <summary>
-        /// <para>Defines the filter binding behavior.</para>
-        /// <para>
-        /// The default binding behavior is set to
-        /// <see cref="BindingBehavior.Implicit"/>.
-        /// </para>
+        /// Defines a <see cref="FilterOperationField" /> field.
         /// </summary>
-        /// <param name="bindingBehavior">
-        /// The binding behavior.
-        ///
-        /// Implicit:
-        /// The filter type descriptor will try to infer the filters
-        /// from the specified <typeparamref name="T"/>.
-        ///
-        /// Explicit:
-        /// All filters have to be specified explicitly via one of the `Filter`
-        /// methods.
+        /// <param name="operationId">
+        /// The internal operation ID.
         /// </param>
-        IFilterInputTypeDescriptor BindFields(
-            BindingBehavior bindingBehavior);
+        IFilterOperationFieldDescriptor Operation(int operationId);
 
         /// <summary>
-        /// Defines that all filters have to be specified explicitly.
+        /// Defines a <see cref="FilterField" /> with the specified name.
         /// </summary>
-        IFilterInputTypeDescriptor BindFieldsExplicitly();
-
-        /// <summary>
-        /// The filter type will will add
-        /// filters for all compatible fields.
-        /// </summary>
-        IFilterInputTypeDescriptor BindFieldsImplicitly();
-
-
-        /// <summary>
-        /// Defines a <see cref="FilterOperationField"> field.
-        /// </summary>
-        /// <param name="operation">
-        /// The operation identifier for the operation
-        /// </param>
-        IFilterOperationFieldDescriptor Operation(int operation);
-
-        /// <summary>
-        /// Defines a <see cref="FilterField"> for the given property.
-        /// </summary>
-        /// <param name="property">
-        /// The property for which a field should be created
+        /// <param name="name">
+        /// The name of the field.
         /// </param>
         IFilterFieldDescriptor Field(NameString name);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// ram name="property">The property that hall be ignored.</param>
-        IFilterInputTypeDescriptor Ignore(NameString name);
+        /// <param name="operationId">
+        /// The internal operation ID.
+        /// </param>
+        IFilterInputTypeDescriptor Ignore(int operationId);
 
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// ram name="property">The property that hall be ignored.</param>
-        IFilterInputTypeDescriptor Ignore(int operation);
+        /// <param name="name">
+        /// The name of the field.
+        /// </param>
+        IFilterInputTypeDescriptor Ignore(NameString name);
 
-        IFilterInputTypeDescriptor UseOr(bool isUsed = true);
+        /// <summary>
+        /// Defines if OR-combinators are allowed for this filter.
+        /// </summary>
+        /// <param name="allow">
+        /// Specifies if OR-combinators are allowed or disallowed.
+        /// </param>
+        IFilterInputTypeDescriptor AllowOr(bool allow = true);
 
-        IFilterInputTypeDescriptor UseAnd(bool isUsed = true);
+        /// <summary>
+        /// Defines if AND-combinators are allowed for this filter.
+        /// </summary>
+        /// <param name="allow">
+        /// Specifies if AND-combinators are allowed or disallowed.
+        /// </param>
+        IFilterInputTypeDescriptor AllowAnd(bool allow = true);
 
+        /// <summary>
+        /// Adds a directive to this filter input type.
+        /// </summary>
+        /// <param name="directive">
+        /// The directive.
+        /// </param>
+        /// <typeparam name="TDirective">
+        /// The type of the directive.
+        /// </typeparam>
         IFilterInputTypeDescriptor Directive<TDirective>(
-            TDirective directiveInstance)
+            TDirective directive)
             where TDirective : class;
 
+        /// <summary>
+        /// Adds a directive to this filter input type.
+        /// </summary>
+        /// <typeparam name="TDirective">
+        /// The type of the directive.
+        /// </typeparam>
         IFilterInputTypeDescriptor Directive<TDirective>()
             where TDirective : class, new();
 
+        /// <summary>
+        /// Adds a directive to this filter input type.
+        /// </summary>
+        /// <param name="name">
+        /// The name of the directive.
+        /// </param>
+        /// <param name="arguments">
+        /// The directive argument values.
+        /// </param>
         IFilterInputTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);

@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
             ObjectPool<ResolverTask> resolverTaskPool,
             ResultPool resultPool)
         {
-            _executionContext = new ExecutionContext(resolverTaskPool);
+            _executionContext = new ExecutionContext(this, resolverTaskPool);
             _resultHelper = new ResultHelper(resultPool);
         }
 
@@ -28,7 +28,9 @@ namespace HotChocolate.Execution
             IVariableValueCollection variables)
         {
             _requestContext = requestContext;
-            _executionContext.Initialize(batchDispatcher, requestContext.RequestAborted);
+            _executionContext.Initialize(
+                batchDispatcher, 
+                requestContext.RequestAborted);
             Operation = operation;
             RootValue = rootValue;
             Variables = variables;

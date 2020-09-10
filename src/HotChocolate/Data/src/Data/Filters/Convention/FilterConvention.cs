@@ -1,19 +1,37 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
+using HotChocolate.Internal;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using System.Linq;
-using System.Collections.Generic;
 using HotChocolate.Utilities;
+using static HotChocolate.Data.DataResources;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConvention :
-        ConventionBase<FilterConventionDefinition>
+    /// <summary>
+    /// The filter convention provides defaults for inferring filters.
+    /// </summary>
+    public class FilterConvention
+        : Convention<FilterConventionDefinition>
         , IFilterConvention
     {
-        private readonly Action<IFilterConventionDescriptor> _configure;
+        private const string _typePostFix = "FilterInput";
+
+        private Action<IFilterConventionDescriptor>? _configure;
+        private INamingConventions _namingConventions = default!;
+        private IReadOnlyDictionary<int, FilterOperation> _operations = default!;
+        private IDictionary<Type, Type> _bindings = default!;
+        private IDictionary<ITypeReference, List<ConfigureFilterInputType>> _configs = default!;
+
+        private NameString _argumentName;
+        private IFilterProvider _provider = default!;
+        private ITypeInspector _typeInspector = default!;
 
         protected FilterConvention()
         {
@@ -26,146 +44,212 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public IReadOnlyDictionary<int, OperationConvention> Operations { get; private set; }
-
-        public IReadOnlyDictionary<Type, Type> Bindings { get; private set; }
-
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
         {
-            var descriptor = FilterConventionDescriptor.New(context);
+            if (_configure is null)
+            {
+                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+            }
+
+            var descriptor = FilterConventionDescriptor.New(
+                context.DescriptorContext,
+                context.Scope);
+
             _configure(descriptor);
+            _configure = null;
+
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(
-            IFilterConventionDescriptor descriptor)
+        protected virtual void Configure(IFilterConventionDescriptor descriptor)
         {
         }
 
         protected override void OnComplete(
             IConventionContext context,
-            FilterConventionDefinition? definition)
+            FilterConventionDefinition definition)
         {
-            Operations = definition
-                .Operations
-                .ToDictionary(x => x.Operation, x => new OperationConvention(x));
-            Bindings = definition.Bindings;
+            if (definition.Provider is null)
+            {
+                throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+            }
+
+            if (definition.ProviderInstance is null)
+            {
+                _provider =
+                    context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
+                    throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+            }
+            else
+            {
+                _provider = definition.ProviderInstance;
+            }
+
+            _namingConventions = context.DescriptorContext.Naming;
+            _operations = definition.Operations.ToDictionary(
+                x => x.Id,
+                FilterOperation.FromDefinition);
+            _bindings = definition.Bindings;
+            _configs = definition.Configurations;
+            _argumentName = definition.ArgumentName;
+
+            if (_provider is IFilterProviderConvention init)
+            {
+                init.Initialize(context);
+            }
+
+            _typeInspector = context.DescriptorContext.TypeInspector;
         }
 
-        public NameString GetFieldDescription(IDescriptorContext context, MemberInfo member) =>
-            context.Naming.GetMemberDescription(member, MemberKind.InputObjectField);
 
-        public NameString GetFieldName(IDescriptorContext context, MemberInfo member) =>
-            context.Naming.GetMemberName(member, MemberKind.InputObjectField);
+        /// <inheritdoc />
+        public virtual NameString GetTypeName(Type runtimeType)
+        {
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
 
-        public ITypeReference GetFieldType(IDescriptorContext context, MemberInfo member)
+            string name = _namingConventions.GetTypeName(runtimeType);
+
+            if (!name.EndsWith(_typePostFix, StringComparison.Ordinal))
+            {
+                name += _typePostFix;
+            }
+
+            return name;
+        }
+
+        /// <inheritdoc />
+        public virtual string? GetTypeDescription(Type runtimeType) =>
+            _namingConventions.GetTypeDescription(runtimeType, TypeKind.InputObject);
+
+        /// <inheritdoc />
+        public virtual NameString GetFieldName(MemberInfo member) =>
+            _namingConventions.GetMemberName(member, MemberKind.InputObjectField);
+
+        /// <inheritdoc />
+        public virtual string? GetFieldDescription(MemberInfo member) =>
+            _namingConventions.GetMemberDescription(member, MemberKind.InputObjectField);
+
+        /// <inheritdoc />
+        public virtual ExtendedTypeReference GetFieldType(MemberInfo member)
         {
             if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryGetTypeOfMember(member, out Type? reflectedType))
+            if (TryCreateFilterType(
+                    _typeInspector.GetReturnType(member, true), out Type? returnType))
             {
-                return new ClrTypeReference(reflectedType, TypeContext.Input, Scope);
+                return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
             }
 
-            throw ThrowHelper.FilterConvention_TypeOfMemberIsUnknown(member);
+            throw FilterConvention_TypeOfMemberIsUnknown(member);
         }
 
-        public NameString GetOperationDescription(IDescriptorContext context, int operation)
+        /// <inheritdoc />
+        public NameString GetOperationName(int operation)
         {
-            if (Operations.TryGetValue(operation, out OperationConvention? operationConvention))
-            {
-                return operationConvention.Description;
-            }
-            return null;
-        }
-
-        public NameString GetOperationName(IDescriptorContext context, int operation)
-        {
-            if (Operations.TryGetValue(operation, out OperationConvention? operationConvention))
+            if (_operations.TryGetValue(operation, out FilterOperation? operationConvention))
             {
                 return operationConvention.Name;
             }
-            throw ThrowHelper.FilterConvention_OperationNameNotFound(operation);
+
+            throw FilterConvention_OperationNameNotFound(operation);
         }
 
-        public NameString GetTypeDescription(IDescriptorContext context, Type entityType) =>
-            context.Naming.GetTypeDescription(entityType, TypeKind.InputObject);
-
-        public NameString GetTypeName(IDescriptorContext context, Type entityType) =>
-            context.Naming.GetTypeName(entityType, TypeKind.Object) + "Filter";
-
-        private bool TryGetTypeOfMember(
-            MemberInfo member,
-            [NotNullWhen(true)] out Type? type)
+        /// <inheritdoc />
+        public string? GetOperationDescription(int operationId)
         {
-            if (member is PropertyInfo p &&
-                TryGetTypeOfRuntimeType(p.PropertyType, out type))
+            if (_operations.TryGetValue(operationId, out FilterOperation? operationConvention))
             {
-                return true;
+                return operationConvention.Description;
             }
-            type = null;
-            return false;
+
+            return null;
         }
 
-        private bool TryGetTypeOfRuntimeType(
-            Type runtimeType,
-            [NotNullWhen(true)] out Type? type)
+        /// <inheritdoc />
+        public NameString GetArgumentName() => _argumentName;
+
+        /// <inheritdoc cref="IFilterConvention"/>
+        public void ApplyConfigurations(
+            ITypeReference typeReference,
+            IFilterInputTypeDescriptor descriptor)
         {
-            if (runtimeType.IsGenericType
-                && System.Nullable.GetUnderlyingType(runtimeType) is { } nullableType)
+            if (_configs.TryGetValue(
+                typeReference,
+                out List<ConfigureFilterInputType>? configurations))
             {
-                runtimeType = nullableType;
-            }
-
-            if (Bindings.TryGetValue(runtimeType, out type))
-            {
-                return true;
-            }
-
-            if (DotNetTypeInfoFactory.IsListType(runtimeType))
-            {
-                if (!TypeInspector.Default.TryCreate(runtimeType, out Utilities.TypeInfo typeInfo))
+                foreach (ConfigureFilterInputType configure in configurations)
                 {
-                    throw new ArgumentException(
-                        string.Format("The type {0} is unknown", runtimeType.Name),
-                        nameof(runtimeType));
+                    configure(descriptor);
                 }
 
-                if (TryGetTypeOfRuntimeType(typeInfo.ClrType, out Type? clrType))
+                if (descriptor is FilterInputTypeDescriptor inputTypeDescriptor)
                 {
-                    type = typeof(ListFilterInput<>).MakeGenericType(clrType);
+                    inputTypeDescriptor.CreateDefinition();
+                }
+            }
+        }
+
+        public FieldMiddleware CreateExecutor<TEntityType>() =>
+            _provider.CreateExecutor<TEntityType>(_argumentName);
+
+        public bool TryGetHandler(
+            ITypeDiscoveryContext context,
+            FilterInputTypeDefinition typeDefinition,
+            FilterFieldDefinition fieldDefinition,
+            [NotNullWhen(true)] out IFilterFieldHandler? handler)
+        {
+            foreach (IFilterFieldHandler filterFieldHandler in _provider.FieldHandlers)
+            {
+                if (filterFieldHandler.CanHandle(context, typeDefinition, fieldDefinition))
+                {
+                    handler = filterFieldHandler;
                     return true;
                 }
             }
 
-            if (runtimeType.IsEnum)
+            handler = null;
+            return false;
+        }
+
+        private bool TryCreateFilterType(
+            IExtendedType runtimeType,
+            [NotNullWhen(true)] out Type? type)
+        {
+            if (_bindings.TryGetValue(runtimeType.Source, out type))
             {
-                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType);
                 return true;
             }
 
-            if (runtimeType.IsClass)
+            if (runtimeType.IsArrayOrList)
             {
-                type = typeof(FilterInputType<>).MakeGenericType(runtimeType);
+                if (TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
+                {
+                    type = typeof(ListFilterInput<>).MakeGenericType(elementType);
+                    return true;
+                }
+            }
+
+            if (runtimeType.Type.IsEnum)
+            {
+                type = typeof(EnumOperationFilterInput<>).MakeGenericType(runtimeType.Source);
+                return true;
+            }
+
+            if (runtimeType.Type.IsClass)
+            {
+                type = typeof(FilterInputType<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 
             type = null;
             return false;
-        }
-
-        internal static readonly IFilterConvention Default = TemporaryInitializer();
-
-        //TODO: Replace with named conventions!
-        internal static IFilterConvention TemporaryInitializer()
-        {
-            var convention = new FilterConvention(x => x.UseDefault());
-            convention.Initialize(new ConventionContext(null, null));
-            return convention;
         }
     }
 }

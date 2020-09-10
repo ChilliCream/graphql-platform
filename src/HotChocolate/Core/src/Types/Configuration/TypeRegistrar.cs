@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -16,23 +18,26 @@ namespace HotChocolate.Configuration
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly HashSet<ITypeReference> _unresolved = new HashSet<ITypeReference>();
         private readonly HashSet<RegisteredType> _handled = new HashSet<RegisteredType>();
-        private readonly IDictionary<ITypeReference, RegisteredType> _registered;
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
-        private readonly IDescriptorContext _descriptorContext;
+        private readonly TypeRegistry _typeRegistry;
+        private readonly TypeLookup _typeLookup;
+        private readonly IDescriptorContext _context;
         private readonly ITypeInterceptor _interceptor;
 
         public TypeRegistrar(
-            IDictionary<ITypeReference, RegisteredType> registeredTypes,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
-            IDescriptorContext descriptorContext,
-            ITypeInterceptor interceptor,
-            IServiceProvider services)
+            IDescriptorContext context,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
+            ITypeInterceptor typeInterceptor)
         {
-            _registered = registeredTypes;
-            _clrTypeReferences = clrTypeReferences;
-            _descriptorContext = descriptorContext;
-            _interceptor = interceptor;
-            _serviceFactory.Services = services;
+            _context = context ??
+                throw new ArgumentNullException(nameof(context));
+            _typeRegistry = typeRegistry ??
+                throw new ArgumentNullException(nameof(typeRegistry));
+            _typeLookup = typeLookup ??
+                throw new ArgumentNullException(nameof(typeLookup));
+            _interceptor = typeInterceptor ??
+                throw new ArgumentNullException(nameof(typeInterceptor));
+            _serviceFactory.Services = context.Services;
         }
 
         public void Register(
@@ -40,34 +45,33 @@ namespace HotChocolate.Configuration
             string? scope,
             bool isInferred = false)
         {
-            RegisteredType registeredType = InitializeType(
-                typeSystemObject, 
-                scope,
-                isInferred);
+            if (typeSystemObject is null)
+            {
+                throw new ArgumentNullException(nameof(typeSystemObject));
+            }
+
+            RegisteredType registeredType = InitializeType(typeSystemObject, scope, isInferred);
 
             if (registeredType.References.Count > 0)
             {
                 ResolveReferences(registeredType);
 
-                if (typeSystemObject is IHasRuntimeType hasClrType
-                    && hasClrType.RuntimeType != typeof(object))
+                if (typeSystemObject is IHasRuntimeType hasRuntimeType
+                    && hasRuntimeType.RuntimeType != typeof(object))
                 {
-                    var clrRef = TypeReference.Create(
-                        hasClrType.RuntimeType,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope: scope);
+                    ExtendedTypeReference? runtimeTypeRef =
+                        _context.TypeInspector.GetTypeRef(
+                            hasRuntimeType.RuntimeType,
+                            SchemaTypeReference.InferTypeContext(typeSystemObject),
+                            scope: scope);
 
                     var explicitBind = typeSystemObject is ScalarType scalar
                         && scalar.Bind == BindingBehavior.Explicit;
 
                     if (!explicitBind)
                     {
-                        MarkResolved(clrRef);
-
-                        if (!_clrTypeReferences.ContainsKey(clrRef))
-                        {
-                            _clrTypeReferences.Add(clrRef, registeredType.References[0]);
-                        }
+                        MarkResolved(runtimeTypeRef);
+                        _typeRegistry.TryRegister(runtimeTypeRef, registeredType.References[0]);
                     }
                 }
             }
@@ -75,37 +79,42 @@ namespace HotChocolate.Configuration
 
         private void ResolveReferences(RegisteredType registeredType)
         {
+            _typeRegistry.Register(registeredType);
+
             foreach (ITypeReference typeReference in registeredType.References)
             {
-                _registered[typeReference] = registeredType;
                 MarkResolved(typeReference);
             }
-
         }
 
         public void MarkUnresolved(ITypeReference typeReference)
         {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
             _unresolved.Add(typeReference);
         }
 
         public void MarkResolved(ITypeReference typeReference)
         {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
             _unresolved.Remove(typeReference);
         }
 
         public bool IsResolved(ITypeReference typeReference)
         {
-            if (_registered.ContainsKey(typeReference))
+            if (typeReference is null)
             {
-                return true;
+                throw new ArgumentNullException(nameof(typeReference));
             }
 
-            if (typeReference is ClrTypeReference clrTypeReference)
-            {
-                return _clrTypeReferences.ContainsKey(clrTypeReference);
-            }
-
-            return false;
+            return _typeRegistry.IsRegistered(typeReference);
         }
 
         public TypeSystemObjectBase CreateInstance(Type namedSchemaType)
@@ -116,22 +125,11 @@ namespace HotChocolate.Configuration
             }
             catch (Exception ex)
             {
-                // todo : resources
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "Unable to create instance of type `{0}`.",
-                            namedSchemaType.FullName)
-                        .SetException(ex)
-                        .SetExtension(nameof(namedSchemaType), namedSchemaType)
-                        .Build());
+                throw TypeRegistrar_CreateInstanceFailed(namedSchemaType, ex);
             }
         }
 
-        public IReadOnlyCollection<ITypeReference> GetUnresolved()
-        {
-            return _unresolved.ToList();
-        }
+        public IReadOnlyCollection<ITypeReference> GetUnresolved() => _unresolved.ToList();
 
         public IReadOnlyCollection<ITypeReference> GetUnhandled()
         {
@@ -139,7 +137,7 @@ namespace HotChocolate.Configuration
             var unhandled = new List<ITypeReference>();
             var registered = new HashSet<ITypeReference>();
 
-            foreach (RegisteredType type in _registered.Values)
+            foreach (RegisteredType type in _typeRegistry.Types)
             {
                 if (_handled.Add(type))
                 {
@@ -166,10 +164,11 @@ namespace HotChocolate.Configuration
             {
                 var discoveryContext = new TypeDiscoveryContext(
                     typeSystemObject,
-                    scope,
-                    _serviceFactory.Services,
-                    _descriptorContext,
-                    _interceptor);
+                    _typeRegistry,
+                    _typeLookup,
+                    _context,
+                    _interceptor,
+                    scope);
 
                 typeSystemObject.Initialize(discoveryContext);
 
@@ -182,21 +181,22 @@ namespace HotChocolate.Configuration
                         scope: scope));
                 }
 
-                if (!BaseTypes.IsNonGenericBaseType(typeSystemObject.GetType()))
+                if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
                 {
-                    references.Add(TypeReference.Create(
+                    references.Add(_context.TypeInspector.GetTypeRef(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
                         scope: scope));
                 }
 
-                if (typeSystemObject is IHasTypeIdentity hasTypeIdentity
-                    && hasTypeIdentity.TypeIdentity is { })
+                if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
+                    hasTypeIdentity.TypeIdentity is not null)
                 {
-                    var reference = TypeReference.Create(
-                        hasTypeIdentity.TypeIdentity,
-                        SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope: scope);
+                    ExtendedTypeReference reference =
+                        _context.TypeInspector.GetTypeRef(
+                            hasTypeIdentity.TypeIdentity,
+                            SchemaTypeReference.InferTypeContext(typeSystemObject),
+                            scope: scope);
 
                     if (!references.Contains(reference))
                     {
@@ -205,10 +205,10 @@ namespace HotChocolate.Configuration
                 }
 
                 var registeredType = new RegisteredType(
-                    references,
                     typeSystemObject,
-                    discoveryContext,
+                    references,
                     CollectDependencies(discoveryContext),
+                    discoveryContext,
                     isInferred);
 
                 return registeredType;
@@ -227,7 +227,7 @@ namespace HotChocolate.Configuration
         private IReadOnlyList<TypeDependency> CollectDependencies(
             ITypeDiscoveryContext discoveryContext)
         {
-            if (discoveryContext.Interceptor.TryCreateScope(
+            if (discoveryContext.TypeInterceptor.TryCreateScope(
                 discoveryContext,
                 out IReadOnlyList<TypeDependency>? dependencies))
             {

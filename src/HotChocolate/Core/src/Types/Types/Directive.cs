@@ -161,7 +161,7 @@ namespace HotChocolate.Types
 
         private Dictionary<string, ArgumentNode> GetArguments()
         {
-            if (_arguments == null)
+            if (_arguments is null)
             {
                 _arguments = ToNode().Arguments.ToDictionary(t => t.Name.Value);
             }
@@ -183,7 +183,7 @@ namespace HotChocolate.Types
                             typeof(StreamingContext);
                 });
 
-            if (constructor == null)
+            if (constructor is null)
             {
                 directive = default;
                 return false;
@@ -206,17 +206,17 @@ namespace HotChocolate.Types
             DirectiveDefinition definition,
             object source)
         {
-            if (directiveType == null)
+            if (directiveType is null)
             {
                 throw new ArgumentNullException(nameof(directiveType));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            if (source == null)
+            if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
@@ -247,17 +247,17 @@ namespace HotChocolate.Types
             ISyntaxNode source,
             DirectiveNode directiveNode)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            if (source == null)
+            if (source is null)
             {
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (directiveNode == null)
+            if (directiveNode is null)
             {
                 throw new ArgumentNullException(nameof(directiveNode));
             }

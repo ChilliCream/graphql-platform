@@ -15,12 +15,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, object?> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -32,12 +32,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<object?>> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
             return descriptor.Resolve(async ctx =>
             {
                 Task<object?> resolverTask = resolver(ctx);
-                if (resolverTask == null)
+                if (resolverTask is null)
                 {
                     return default;
                 }
@@ -57,12 +57,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, TResult> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -78,12 +78,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, Task<TResult>> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
                 async ctx =>
                 {
                     Task<TResult> resolverTask = resolver(ctx);
-                    if (resolverTask == null)
+                    if (resolverTask is null)
                     {
                         return default;
                     }
@@ -107,12 +107,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<object?> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -124,12 +124,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<Task<object?>> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -141,12 +141,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<TResult> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -160,12 +160,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<Task<TResult>> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -174,7 +174,7 @@ namespace HotChocolate.Types
                 async ctx =>
                 {
                     Task<TResult> resolverTask = resolver();
-                    if (resolverTask == null)
+                    if (resolverTask is null)
                     {
                         return default;
                     }
@@ -189,12 +189,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, object?> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -207,12 +207,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, TResult> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -226,12 +226,12 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Func<IResolverContext, CancellationToken, Task<TResult>> resolver)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -240,7 +240,7 @@ namespace HotChocolate.Types
                  async ctx =>
                 {
                     Task<TResult> resolverTask = resolver(ctx, ctx.RequestAborted);
-                    if (resolverTask == null)
+                    if (resolverTask is null)
                     {
                         return default;
                     }
@@ -255,7 +255,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             object constantResult)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -268,7 +268,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             TResult constantResult)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }

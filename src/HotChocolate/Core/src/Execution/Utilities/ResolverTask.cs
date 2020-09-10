@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed partial class ResolverTask : ITask
+    internal sealed partial class ResolverTask : IExecutionTask
     {
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private ValueTask _task;

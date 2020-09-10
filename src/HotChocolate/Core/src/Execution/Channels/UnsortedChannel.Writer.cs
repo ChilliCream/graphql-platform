@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Channels
                         {
                             parent._items.Push(item);
                             waitingReadersTail = parent._waitingReadersTail;
-                            if (waitingReadersTail == null)
+                            if (waitingReadersTail is null)
                             {
                                 return true;
                             }
@@ -118,7 +118,7 @@ namespace HotChocolate.Execution.Channels
                 Exception? doneWriting = _parent._doneWriting;
                 return
                     cancellationToken.IsCancellationRequested ? new ValueTask<bool>(Task.FromCanceled<bool>(cancellationToken)) :
-                    doneWriting == null ? new ValueTask<bool>(true) : // Unsorted writing can always be done if we haven't completed
+                    doneWriting is null ? new ValueTask<bool>(true) : // Unsorted writing can always be done if we haven't completed
                     doneWriting != ChannelUtilities.s_doneWritingSentinel ? new ValueTask<bool>(Task.FromException<bool>(doneWriting)) :
                     default;
             }

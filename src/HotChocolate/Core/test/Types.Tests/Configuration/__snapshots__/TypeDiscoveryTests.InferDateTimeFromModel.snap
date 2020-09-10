@@ -3,21 +3,21 @@
 }
 
 type Model {
-  bar: Int!
-  baz: Boolean!
+  time: DateTime!
   date: Date!
   foo: String
-  time: DateTime!
+  bar: Int!
+  baz: Boolean!
 }
 
 "A connection to a list of items."
 type ModelConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
   "A list of edges."
   edges: [ModelEdge!]
   "A flattened list of the nodes."
   nodes: [Model]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
   totalCount: Int!
 }
 
@@ -31,19 +31,19 @@ type ModelEdge {
 
 "Information about pagination in a connection."
 type PageInfo {
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type Query {
   items: [Model]
-  paging(after: String before: String first: PaginationAmount last: PaginationAmount): ModelConnection
+  paging(first: PaginationAmount after: String last: PaginationAmount before: String): ModelConnection
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

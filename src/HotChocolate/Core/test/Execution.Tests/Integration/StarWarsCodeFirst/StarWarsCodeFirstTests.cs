@@ -14,6 +14,19 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
     public class StarWarsCodeFirstTests
     {
         [Fact]
+        public async Task Schema()
+        {
+            // arrange
+            IRequestExecutor executor = await CreateExecutorAsync();
+
+            // act
+            var schema = executor.Schema.Print();
+
+            // assert
+            schema.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task GetHeroName()
         {
             Snapshot.FullName();
@@ -426,7 +439,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                         name
                     }
                 }",
-                request: r => r.SetVariableValue("episode", "NEWHOPE"))
+                request: r => r.SetVariableValue("episode", "NEW_HOPE"))
                 .MatchSnapshotAsync();
         }
 
@@ -449,7 +462,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Snapshot.FullName();
             await ExpectValid(@"
                 query foo {
-                    hero(episode: NEWHOPE) {
+                    hero(episode: NEW_HOPE) {
                         __typename
                         id
                         name
@@ -505,14 +518,14 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             // act
             var subscriptionResult =
                 (ISubscriptionResult)await executor.ExecuteAsync(
-                    "subscription { onReview(episode: NEWHOPE) " +
+                    "subscription { onReview(episode: NEW_HOPE) " +
                     "{ stars } }");
 
             // assert
             IExecutionResult result =
                 await executor.ExecuteAsync(@"
                     mutation {
-                        createReview(episode: NEWHOPE,
+                        createReview(episode: NEW_HOPE,
                             review: { stars: 5 commentary: ""foo"" }) {
                             stars
                             commentary
@@ -546,7 +559,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             Snapshot.FullName();
             await ExpectError(@"
                 query ExecutionDepthShouldNotLeadToEmptyObjects {
-                    hero(episode: NEWHOPE) {
+                    hero(episode: NEW_HOPE) {
                         __typename
                         id
                         name

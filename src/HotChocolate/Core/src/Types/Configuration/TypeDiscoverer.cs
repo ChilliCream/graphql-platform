@@ -12,44 +12,72 @@ namespace HotChocolate.Configuration
 {
     internal sealed class TypeDiscoverer
     {
-        private readonly Dictionary<ITypeReference, RegisteredType> _registeredTypes =
-            new Dictionary<ITypeReference, RegisteredType>();
         private readonly List<ITypeReference> _unregistered = new List<ITypeReference>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly IDictionary<ClrTypeReference, ITypeReference> _clrTypeReferences;
+        private readonly TypeRegistry _typeRegistry;
         private readonly TypeRegistrar _typeRegistrar;
         private readonly ITypeRegistrarHandler[] _handlers;
+        private readonly ITypeInspector _typeInspector;
 
         public TypeDiscoverer(
-            ISet<ITypeReference> initialTypes,
-            IDictionary<ClrTypeReference, ITypeReference> clrTypeReferences,
-            IDescriptorContext descriptorContext,
+            IDescriptorContext context,
+            TypeRegistry typeRegistry,
+            TypeLookup typeLookup,
+            IEnumerable<ITypeReference> initialTypes,
             ITypeInterceptor interceptor,
-            IServiceProvider services)
+            bool includeSystemTypes = true)
         {
-            _unregistered.AddRange(IntrospectionTypes.All);
-            _unregistered.AddRange(Directives.All);
-            _unregistered.AddRange(clrTypeReferences.Values);
-            _unregistered.AddRange(initialTypes);
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-            _clrTypeReferences = clrTypeReferences;
+            if (typeRegistry is null)
+            {
+                throw new ArgumentNullException(nameof(typeRegistry));
+            }
 
-            _typeRegistrar = new TypeRegistrar(
-                _registeredTypes,
-                clrTypeReferences,
-                descriptorContext,
-                interceptor,
-                services);
+            if (typeLookup is null)
+            {
+                throw new ArgumentNullException(nameof(typeLookup));
+            }
+
+            if (initialTypes is null)
+            {
+                throw new ArgumentNullException(nameof(initialTypes));
+            }
+
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            _typeRegistry = typeRegistry;
+
+            if (includeSystemTypes)
+            {
+                _unregistered.AddRange(
+                    IntrospectionTypes.CreateReferences(context.TypeInspector));
+                _unregistered.AddRange(
+                    Directives.CreateReferences(context.TypeInspector));
+            }
+
+            _unregistered.AddRange(typeRegistry.GetTypeRefs());
+            _unregistered.AddRange(initialTypes.Distinct());
+
+            _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 
             _handlers = new ITypeRegistrarHandler[]
             {
                 new SchemaTypeReferenceHandler(),
-                new ClrTypeReferenceHandler(),
-                new SyntaxTypeReferenceHandler()
+                new ExtendedTypeReferenceHandler(context.TypeInspector),
+                new SyntaxTypeReferenceHandler(context.TypeInspector)
             };
+
+            _typeInspector = context.TypeInspector;
         }
 
-        public DiscoveredTypes DiscoverTypes()
+        public IReadOnlyList<ISchemaError> DiscoverTypes()
         {
             const int max = 1000;
             var tries = 0;
@@ -79,17 +107,14 @@ namespace HotChocolate.Configuration
 
             CollectErrors();
 
-            return new DiscoveredTypes(
-                _registeredTypes,
-                _clrTypeReferences,
-                _errors);
+            return _errors;
         }
 
         private void RegisterTypes()
         {
             while (_unregistered.Count > 0)
             {
-                for (int i = 0; i < _handlers.Length; i++)
+                for (var i = 0; i < _handlers.Length; i++)
                 {
                     _handlers[i].Register(_typeRegistrar, _unregistered);
                 }
@@ -103,22 +128,20 @@ namespace HotChocolate.Configuration
         {
             var inferred = false;
 
-            foreach (ClrTypeReference unresolvedType in
-                _typeRegistrar.GetUnresolved().OfType<ClrTypeReference>())
+            foreach (ExtendedTypeReference unresolvedType in
+                _typeRegistrar.GetUnresolved().OfType<ExtendedTypeReference>())
             {
-                if (Scalars.TryGetScalar(unresolvedType.Type, out ClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type? scalarType))
                 {
                     inferred = true;
 
-                    _unregistered.Add(schemaType);
+                    ExtendedTypeReference typeReference = _typeInspector.GetTypeRef(scalarType);
+                    _unregistered.Add(typeReference);
                     _typeRegistrar.MarkResolved(unresolvedType);
-
-                    if (!_clrTypeReferences.ContainsKey(unresolvedType))
-                    {
-                        _clrTypeReferences.Add(unresolvedType, schemaType);
-                    }
+                    _typeRegistry.TryRegister(unresolvedType, typeReference);
                 }
-                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType, out schemaType))
+                else if (SchemaTypeResolver.TryInferSchemaType(
+                    _typeInspector, unresolvedType, out ExtendedTypeReference schemaType))
                 {
                     inferred = true;
 
@@ -133,7 +156,7 @@ namespace HotChocolate.Configuration
         private void CollectErrors()
         {
             foreach (TypeDiscoveryContext context in
-                _registeredTypes.Values.Distinct().Select(t => t.DiscoveryContext))
+                _typeRegistry.Types.Select(t => t.DiscoveryContext))
             {
                 _errors.AddRange(context.Errors);
             }

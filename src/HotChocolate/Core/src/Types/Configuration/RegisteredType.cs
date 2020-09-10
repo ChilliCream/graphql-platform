@@ -1,6 +1,7 @@
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -12,28 +13,58 @@ namespace HotChocolate.Configuration
     internal sealed class RegisteredType
         : IHasRuntimeType
     {
+        private TypeCompletionContext? _completionContext;
+        private IReadOnlyList<ITypeReference> _references;
+        private IReadOnlyList<TypeDependency> _dependencies;
+
         public RegisteredType(
-            IReadOnlyList<ITypeReference> references,
             TypeSystemObjectBase type,
-            TypeDiscoveryContext discoveryContext,
+            IReadOnlyList<ITypeReference> references,
             IReadOnlyList<TypeDependency> dependencies,
+            TypeDiscoveryContext discoveryContext,
             bool isInferred)
         {
-            References = references;
             Type = type;
+            _references = references;
+            _dependencies = dependencies;
             DiscoveryContext = discoveryContext;
-            Dependencies = dependencies;
             IsInferred = isInferred;
             IsExtension = Type is INamedTypeExtensionMerger;
             IsNamedType = Type is INamedType;
             IsDirectiveType = Type is DirectiveType;
         }
 
-        public IReadOnlyList<ITypeReference> References { get; }
-
         public TypeSystemObjectBase Type { get; }
 
+        public Type RuntimeType
+        {
+            get
+            {
+                return Type is IHasRuntimeType hasClrType
+                    ? hasClrType.RuntimeType
+                    : typeof(object);
+            }
+        }
+
+        public IReadOnlyList<ITypeReference> References => _references;
+
+        public IReadOnlyList<TypeDependency> Dependencies => _dependencies;
+
         public TypeDiscoveryContext DiscoveryContext { get; }
+
+        public TypeCompletionContext CompletionContext
+        {
+            get
+            {
+                if (_completionContext is null)
+                {
+                    throw new InvalidOperationException(
+                        TypeResources.RegisteredType_CompletionContext_Not_Initialized);
+                }
+
+                return _completionContext;
+            }
+        }
 
         public bool IsInferred { get; }
 
@@ -43,43 +74,34 @@ namespace HotChocolate.Configuration
 
         public bool IsDirectiveType { get; }
 
-        public Type RuntimeType
+        public void AddReferences(IEnumerable<ITypeReference> references)
         {
-            get
-            {
-                if (Type is IHasRuntimeType hasClrType)
-                {
-                    return hasClrType.RuntimeType;
-                }
-                return typeof(object);
-            }
+            var merged = References.ToList();
+            merged.AddRange(references);
+            _references = merged;
         }
 
-        public IReadOnlyList<TypeDependency> Dependencies { get; }
-
-        public RegisteredType WithDependencies(
-            IReadOnlyList<TypeDependency> dependencies)
-        {
-            return new RegisteredType(
-                References,
-                Type,
-                DiscoveryContext,
-                dependencies,
-                IsInferred);
-        }
-
-        public RegisteredType AddDependencies(
-            IReadOnlyList<TypeDependency> dependencies)
+        public void AddDependencies(IEnumerable<TypeDependency> dependencies)
         {
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
+            _dependencies = merged;
+        }
 
-            return new RegisteredType(
-                References,
-                Type,
-                DiscoveryContext,
-                merged,
-                IsInferred);
+        public void SetCompletionContext(TypeCompletionContext completionContext)
+        {
+            if (_completionContext is not null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.RegisteredType_CompletionContext_Already_Set);
+            }
+
+            _completionContext = completionContext;
+        }
+
+        public override string? ToString()
+        {
+            return Type.ToString();
         }
     }
 }

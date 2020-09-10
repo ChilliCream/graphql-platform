@@ -1,7 +1,6 @@
-﻿using System;
+﻿using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -9,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
     {
         public static TDefinition SetMoreSpecificType<TDefinition>(
             this TDefinition definition,
-            Type type,
+            IExtendedType type,
             TypeContext context)
             where TDefinition : FieldDefinitionBase
         {
@@ -28,33 +27,27 @@ namespace HotChocolate.Types.Descriptors
         {
             if (IsTypeMoreSpecific(definition.Type, typeNode))
             {
-                definition.Type = new SyntaxTypeReference(typeNode, context);
+                definition.Type = TypeReference.Create(typeNode, context);
             }
             return definition;
         }
 
         private static bool IsTypeMoreSpecific(
             ITypeReference typeReference,
-            Type type)
+            IExtendedType type)
         {
             if (typeReference is SchemaTypeReference)
             {
                 return false;
             }
 
-            if (typeReference == null
-                || BaseTypes.IsSchemaType(type))
+            if (typeReference is null || type.IsSchemaType)
             {
                 return true;
             }
 
-            if (typeReference is ClrTypeReference clr
-                && !BaseTypes.IsSchemaType(clr.Type))
-            {
-                return true;
-            }
-
-            return false;
+            return typeReference is ExtendedTypeReference clr && 
+                !clr.Type.IsSchemaType;
         }
 
         private static bool IsTypeMoreSpecific(
@@ -67,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return typeNode != null
-                && (typeReference == null
+                && (typeReference is null
                     || typeReference is SyntaxTypeReference);
         }
     }

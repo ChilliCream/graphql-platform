@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
         public XmlDocumentationProvider(
             IXmlDocumentationFileResolver fileResolver)
         {
-            if (fileResolver == null)
+            if (fileResolver is null)
             {
                 throw new ArgumentNullException(nameof(fileResolver));
             }
@@ -152,7 +152,7 @@ namespace HotChocolate.Types.Descriptors
             foreach (var node in element.Nodes())
             {
                 var currentElement = node as XElement;
-                if (currentElement == null)
+                if (currentElement is null)
                 {
                     description.Append(node);
                     continue;
@@ -244,7 +244,7 @@ namespace HotChocolate.Types.Descriptors
                     var result = document.XPathSelectElements(name.Path);
 
                     var element = result.FirstOrDefault();
-                    if (element == null)
+                    if (element is null)
                     {
                         return null;
                     }
@@ -277,7 +277,7 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             XElement element)
         {
-            if (element == null)
+            if (element is null)
             {
                 return;
             }

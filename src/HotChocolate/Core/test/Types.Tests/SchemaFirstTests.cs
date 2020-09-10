@@ -111,6 +111,25 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ hello }");
             result.ToJson().MatchSnapshot();
         }
+        
+        [Fact]
+        public async Task SchemaBuilder_AddResolver()
+        {
+            // arrange
+            string sourceText = "type Query { hello: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "hello", () => "World")
+                .Create();
+
+            // assert
+            IRequestExecutor executor = schema.MakeExecutable();
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ hello }");
+            result.ToJson().MatchSnapshot();
+        }
 
         [Fact]
         public async Task SchemaBuilder_BindType_Configure()
@@ -180,7 +199,6 @@ namespace HotChocolate
             result.ToJson().MatchSnapshot();
         }
 
-
         [Fact]
         public async Task SchemaBuilder_BindType_And_Resolver_Implicit()
         {
@@ -204,7 +222,7 @@ namespace HotChocolate
         public void DirectiveArgumentsAreValidated()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     foo: String @a(b:1 e:true)
                 }
@@ -213,14 +231,15 @@ namespace HotChocolate
             ";
 
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .AddResolver("Query", "foo", "bar")
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddDocumentFromString(sourceText)
+                    .AddResolver("Query", "foo", "bar")
+                    .Create();
 
             // assert
             Assert.Collection(
-                Assert.Throws<SchemaException>(action).Errors,
+                Assert.Throws<SchemaException>((Action) Action).Errors,
                     error => Assert.Equal(
                         ErrorCodes.Schema.InvalidArgument,
                         error.Code),

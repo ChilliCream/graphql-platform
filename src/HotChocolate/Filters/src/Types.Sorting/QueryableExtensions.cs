@@ -1,19 +1,17 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
 {
     internal static class QueryableExtensions
     {
         internal static Expression CompileInitialSortOperation(
-            this Expression source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
+           this Expression source,
+           SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation, parameter);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type) ||
@@ -21,32 +19,30 @@ namespace HotChocolate.Types.Sorting
             {
                 type = typeof(Queryable);
             }
-
             if (operation.Kind == SortOperationKind.Desc)
             {
                 return Expression.Call(
                     type,
-                    "OrderByDescending",
-                    new[] { parameter.Type, operation.Property.PropertyType },
+                    nameof(Queryable.OrderByDescending),
+                    new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
             }
 
             return Expression.Call(
                 type,
-                "OrderBy",
-                new[] { parameter.Type, operation.Property.PropertyType },
+                nameof(Queryable.OrderBy),
+                new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
         }
 
         internal static Expression CompileSortOperation(
             this Expression source,
-            SortOperationInvocation operation,
-            ParameterExpression parameter)
+            SortOperationInvocation operation)
         {
             Expression lambda
-                = HandleProperty(operation, parameter);
+                = operation.CreateProperty();
 
             Type type = typeof(Enumerable);
             if (typeof(IOrderedQueryable).IsAssignableFrom(source.Type))
@@ -58,37 +54,27 @@ namespace HotChocolate.Types.Sorting
             {
                 return Expression.Call(
                     type,
-                    "ThenByDescending",
-                    new[] { parameter.Type, operation.Property.PropertyType },
+                    nameof(Queryable.ThenByDescending),
+                    new[] { operation.Parameter.Type, operation.ReturnType },
                     source,
                     lambda);
             }
 
             return Expression.Call(
                 type,
-                "ThenBy",
-                new[] { parameter.Type, operation.Property.PropertyType },
+                nameof(Queryable.ThenBy),
+                new[] { operation.Parameter.Type, operation.ReturnType },
                 source,
                 lambda);
         }
 
-        internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
-            SortOperationInvocation operation, ParameterExpression parameter)
+        internal static Expression CreateProperty(
+             this SortOperationInvocation operation)
         {
-            PropertyInfo propertyInfo = operation.Property;
-
-            MemberExpression property = Expression.Property(parameter, propertyInfo);
-            UnaryExpression propAsObject = Expression.Convert(property, typeof(object));
-            return Expression.Lambda<Func<TSource, object>>(propAsObject, parameter);
-        }
-
-        internal static Expression HandleProperty(
-            SortOperationInvocation operation, ParameterExpression parameter)
-        {
-            PropertyInfo propertyInfo = operation.Property;
-
-            MemberExpression property = Expression.Property(parameter, propertyInfo);
-            return Expression.Lambda(property, parameter);
+            return Expression.Lambda(
+                operation.ExpressionBody,
+                operation.Parameter
+           );
         }
     }
 }

@@ -105,7 +105,7 @@ namespace HotChocolate.Types
             Action action = () => byteArrayType.Serialize(value);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -210,7 +210,7 @@ namespace HotChocolate.Types
             Action action = () => byteArrayType.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -283,7 +283,7 @@ namespace HotChocolate.Types
             Action action = () => byteArrayType.ParseValue(value);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]

@@ -110,8 +110,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var descriptor =
-                DirectiveTypeDescriptor.New<CustomDirective>(Context);
+            var descriptor = DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // assert
             DirectiveTypeDefinition description =
@@ -143,44 +142,40 @@ namespace HotChocolate.Types
         public void DeclareArgumentAndSpecifyType()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New<CustomDirective>(Context);
+            var descriptor = DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
             descriptor.Argument(t => t.FieldA).Type<NonNullType<StringType>>();
 
             // assert
-            DirectiveTypeDefinition description =
-                descriptor.CreateDefinition();
+            DirectiveTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Arguments,
                 t => Assert.Equal(
                     typeof(NonNullType<StringType>),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type),
+                    Assert.IsType<ExtendedTypeReference>(t.Type).Type.Source),
                 t => Assert.Equal(
                     typeof(string),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type));
+                    Assert.IsType<ExtendedTypeReference>(t.Type).Type.Source));
         }
 
         [Fact]
         public void DeclareArgumentAndSpecifyClrType()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New<CustomDirective>(Context);
+            var descriptor = DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
             descriptor.Argument(t => t.FieldA).Type(typeof(NonNullType<StringType>));
 
             // assert
-            DirectiveTypeDefinition description =
-                descriptor.CreateDefinition();
+            DirectiveTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Arguments,
                 t => Assert.Equal(
                     typeof(NonNullType<StringType>),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type),
+                    Assert.IsType<ExtendedTypeReference>(t.Type).Type.Source),
                 t => Assert.Equal(
                     typeof(string),
-                    Assert.IsType<ClrTypeReference>(t.Type).Type));
+                    Assert.IsType<ExtendedTypeReference>(t.Type).Type.Source));
         }
 
         [Fact]
@@ -255,7 +250,9 @@ namespace HotChocolate.Types
         public class CustomDirective
         {
             public string FieldA { get; }
+
             public string FieldB { get; }
+            
             public string Foo() => throw new NotSupportedException();
         }
     }

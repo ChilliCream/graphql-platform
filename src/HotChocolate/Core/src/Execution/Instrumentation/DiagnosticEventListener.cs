@@ -38,6 +38,12 @@ namespace HotChocolate.Execution.Instrumentation
         {
         }
 
+        public virtual IActivityScope RunTask(IExecutionTask task) => EmptyScope;
+
+        public virtual void TaskError(IExecutionTask task, IError error)
+        {
+        }
+
         public virtual void AddedDocumentToCache(IRequestContext context)
         {
         }

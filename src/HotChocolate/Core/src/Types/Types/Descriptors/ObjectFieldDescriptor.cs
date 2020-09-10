@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -42,17 +43,17 @@ namespace HotChocolate.Types.Descriptors
             Type? resolverType)
             : base(context)
         {
-            Definition.Member = member ?? 
+            Definition.Member = member ??
                 throw new ArgumentNullException(nameof(member));
             Definition.Name = context.Naming.GetMemberName(
                 member, MemberKind.ObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.ObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType;
-
-            if (context.Naming.IsDeprecated(member, out string reason))
+            Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+            
+            if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
             }
@@ -66,6 +67,49 @@ namespace HotChocolate.Types.Descriptors
             else if (member is PropertyInfo p)
             {
                 Definition.ResultType = p.PropertyType;
+            }
+        }
+
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type? resolverType)
+            : base(context)
+        {
+            Definition.Expression = expression
+                ?? throw new ArgumentNullException(nameof(expression));
+            Definition.SourceType = sourceType;
+            Definition.ResolverType = resolverType;
+
+            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+
+            if (member is { })
+            {
+                Definition.Name = context.Naming.GetMemberName(
+                    member, MemberKind.ObjectField);
+                Definition.Description = context.Naming.GetMemberDescription(
+                    member, MemberKind.ObjectField);
+                Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+
+                if (context.Naming.IsDeprecated(member, out string? reason))
+                {
+                    Deprecated(reason);
+                }
+
+                if (member is MethodInfo m)
+                {
+                    Definition.ResultType = m.ReturnType;
+                }
+                else if (member is PropertyInfo p)
+                {
+                    Definition.ResultType = p.PropertyType;
+                }
+            }
+            else
+            {
+                Definition.Type = context.TypeInspector.GetOutputTypeRef(expression.ReturnType);
+                Definition.ResultType = expression.ReturnType;
             }
         }
 
@@ -86,7 +130,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -198,7 +242,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Resolve(
             FieldResolverDelegate fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -211,7 +255,7 @@ namespace HotChocolate.Types.Descriptors
             FieldResolverDelegate fieldResolver,
             Type resultType)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -220,7 +264,9 @@ namespace HotChocolate.Types.Descriptors
 
             if (resultType != null)
             {
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
 
                 if (resultType.IsGenericType)
                 {
@@ -230,7 +276,7 @@ namespace HotChocolate.Types.Descriptors
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
 
-                    if (!BaseTypes.IsSchemaType(clrResultType))
+                    if (!clrResultType.IsSchemaType())
                     {
                         Definition.ResultType = clrResultType;
                     }
@@ -243,7 +289,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor ResolveWith<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
@@ -253,7 +299,9 @@ namespace HotChocolate.Types.Descriptors
             {
                 Type resultType = member.GetReturnType();
 
-                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(resultType),
+                    TypeContext.Output);
 
                 Definition.ResolverType = typeof(TResolver);
                 Definition.ResolverMember = member;
@@ -270,7 +318,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor ResolveWith(
             MemberInfo propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
@@ -296,7 +344,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -344,6 +392,13 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type resolverType) =>
+            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
 
         public static ObjectFieldDescriptor From(
             IDescriptorContext context,

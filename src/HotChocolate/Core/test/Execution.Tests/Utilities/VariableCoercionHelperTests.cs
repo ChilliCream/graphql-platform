@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.StarWars.Models;
 using HotChocolate.StarWars.Types;
 using HotChocolate.Types;
-using Microsoft.Extensions.ObjectPool;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             Action action = () => helper.CoerceVariableValues(
-                null, variableDefinitions, variableValues, coercedValues);
+                null!, variableDefinitions, variableValues, coercedValues);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             Action action = () => helper.CoerceVariableValues(
-                schema, null, variableValues, coercedValues);
+                schema, null!, variableValues, coercedValues);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             Action action = () => helper.CoerceVariableValues(
-                schema, variableDefinitions, null, coercedValues);
+                schema, variableDefinitions, null!, coercedValues);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -107,7 +107,7 @@ namespace HotChocolate.Execution.Utilities
 
             // act
             Action action = () => helper.CoerceVariableValues(
-                schema, variableDefinitions, variableValues, null);
+                schema, variableDefinitions, variableValues, null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -222,7 +222,7 @@ namespace HotChocolate.Execution.Utilities
                     Assert.Equal("abc", t.Key);
                     Assert.Equal("String", Assert.IsType<StringType>(t.Value.Type).Name);
                     Assert.Equal("xyz", t.Value.Value);
-                    Assert.Null(t.Value.ValueLiteral);
+                    t.Value.ValueLiteral!.ToString().MatchSnapshot();
                 });
         }
 
@@ -378,7 +378,7 @@ namespace HotChocolate.Execution.Utilities
                     Assert.Equal("abc", t.Key);
                     Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
                     Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
-                    Assert.Null(t.Value.ValueLiteral);
+                    t.Value.ValueLiteral!.ToString().MatchSnapshot();
                 });
         }
 
@@ -400,7 +400,7 @@ namespace HotChocolate.Execution.Utilities
 
             var variableValues = new Dictionary<string, object>
             {
-                {"abc", new Review { Stars = 5 }}
+                { "abc", new Review { Stars = 5 } }
             };
 
             var coercedValues = new Dictionary<string, VariableValue>();
@@ -417,7 +417,7 @@ namespace HotChocolate.Execution.Utilities
                     Assert.Equal("abc", t.Key);
                     Assert.Equal("ReviewInput", Assert.IsType<ReviewInputType>(t.Value.Type).Name);
                     Assert.Equal(5, Assert.IsType<Review>(t.Value.Value).Stars);
-                    Assert.Null(t.Value.ValueLiteral);
+                    t.Value.ValueLiteral!.ToString().MatchSnapshot();
                 });
         }
 
@@ -517,7 +517,10 @@ namespace HotChocolate.Execution.Utilities
                 schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Throws<GraphQLException>(action).Errors.MatchSnapshot();
+            Assert.Throws<GraphQLException>(action)
+                .Errors.Select(t => t.RemoveException())
+                .ToList()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -604,7 +607,7 @@ namespace HotChocolate.Execution.Utilities
 
             var variableValues = new Dictionary<string, object>
             {
-                {"abc", new ObjectValueNode(new ObjectFieldNode("abc", "def"))}
+                { "abc", new ObjectValueNode(new ObjectFieldNode("abc", "def")) }
             };
 
             var coercedValues = new Dictionary<string, VariableValue>();
@@ -616,7 +619,10 @@ namespace HotChocolate.Execution.Utilities
                 schema, variableDefinitions, variableValues, coercedValues);
 
             // assert
-            Assert.Throws<GraphQLException>(action).Errors.MatchSnapshot();
+            Assert.Throws<GraphQLException>(action)
+                .Errors.Select(t => t.RemoveException())
+                .ToList()
+                .MatchSnapshot();
         }
     }
 }

@@ -9,12 +9,12 @@ namespace HotChocolate.Types
             this IObjectTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -27,12 +27,12 @@ namespace HotChocolate.Types
             this IObjectTypeDescriptor<T> descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -45,12 +45,12 @@ namespace HotChocolate.Types
             this IEnumTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -63,12 +63,12 @@ namespace HotChocolate.Types
             this IEnumTypeDescriptor<T> descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -81,12 +81,12 @@ namespace HotChocolate.Types
             this IInputObjectTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -99,12 +99,12 @@ namespace HotChocolate.Types
             this IInputObjectTypeDescriptor<T> descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -117,12 +117,12 @@ namespace HotChocolate.Types
             this IInterfaceTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -135,12 +135,12 @@ namespace HotChocolate.Types
             this IInterfaceTypeDescriptor<T> descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
@@ -153,12 +153,12 @@ namespace HotChocolate.Types
             this IUnionTypeDescriptor descriptor,
             Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }

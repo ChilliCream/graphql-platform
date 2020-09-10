@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace GreenDonut
 {
     public class DataLoader<TKey, TValue>
@@ -24,7 +26,7 @@ namespace GreenDonut
             _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
-        protected override Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected override ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {

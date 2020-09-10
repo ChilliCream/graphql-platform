@@ -12,7 +12,7 @@ namespace HotChocolate
     {
         public static string Serialize(ISchema schema)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
@@ -30,12 +30,12 @@ namespace HotChocolate
 
         public static void Serialize(ISchema schema, TextWriter textWriter)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            if (textWriter == null)
+            if (textWriter is null)
             {
                 throw new ArgumentNullException(nameof(textWriter));
             }
@@ -51,7 +51,7 @@ namespace HotChocolate
         public static DocumentNode SerializeSchema(
             ISchema schema)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
@@ -337,7 +337,7 @@ namespace HotChocolate
 
 
         private static EnumValueDefinitionNode SerializeEnumValue(
-            EnumValue enumValue,
+            IEnumValue enumValue,
             ReferencedTypes referenced)
         {
             var directives = enumValue.Directives

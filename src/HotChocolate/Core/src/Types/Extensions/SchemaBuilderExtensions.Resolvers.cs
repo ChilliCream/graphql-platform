@@ -15,7 +15,7 @@ namespace HotChocolate
             NameString fieldName,
             FieldResolverDelegate resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -32,12 +32,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -52,12 +52,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, ValueTask<object?>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -72,12 +72,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -92,12 +92,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -114,12 +114,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -134,12 +134,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<ValueTask<object?>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -153,12 +153,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -173,12 +173,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -198,12 +198,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, CancellationToken, object?> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -218,12 +218,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, CancellationToken, TResult> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -238,12 +238,12 @@ namespace HotChocolate
             NameString fieldName,
             Func<IResolverContext, CancellationToken, ValueTask<TResult>> resolver)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -263,7 +263,7 @@ namespace HotChocolate
             NameString fieldName,
             object? constantResult)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -278,7 +278,7 @@ namespace HotChocolate
             NameString fieldName,
             TResult constantResult)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

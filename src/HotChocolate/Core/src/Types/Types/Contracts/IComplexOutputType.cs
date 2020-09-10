@@ -16,13 +16,13 @@ namespace HotChocolate.Types
         IReadOnlyList<IInterfaceType> Interfaces { get; }
 
         /// <summary>
-        /// Gets the field that the type exposes.
+        /// Gets the field that this type exposes.
         /// </summary>
         IFieldCollection<IOutputField> Fields { get; }
 
         /// <summary>
         /// Defines if this type is implementing an interface
-        /// with the given <paramref name="typeName">.
+        /// with the given <paramref name="typeName" />.
         /// </summary>
         /// <param name="typeName">
         /// The interface type name.
@@ -31,9 +31,9 @@ namespace HotChocolate.Types
 
         /// <summary>
         /// Defines if this type is implementing the
-        /// the given <paramref name="interfaceType">.
+        /// the given <paramref name="interfaceType" />.
         /// </summary>
-        /// <param name="typeName">
+        /// <param name="interfaceType">
         /// The interface type.
         /// </param>
         bool IsImplementing(IInterfaceType interfaceType);

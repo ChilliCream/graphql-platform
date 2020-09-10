@@ -8,25 +8,25 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<SchemaTypeDefinition>
         , ISchemaTypeDescriptor
     {
-        protected internal SchemaTypeDescriptor(IDescriptorContext context, Type type)
+        protected SchemaTypeDescriptor(IDescriptorContext context, Type type)
             : base(context)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
             Definition.Name = context.Naming.GetTypeName(type);
         }
 
-        protected internal SchemaTypeDescriptor(
-            IDescriptorContext context, 
+        protected SchemaTypeDescriptor(
+            IDescriptorContext context,
             SchemaTypeDefinition definition)
             : base(context)
         {
             Definition = definition;
         }
 
-        internal protected override SchemaTypeDefinition Definition { get; protected set; } =
+        protected internal override SchemaTypeDefinition Definition { get; protected set; } =
             new SchemaTypeDefinition();
 
         public ISchemaTypeDescriptor Name(NameString value)
@@ -44,14 +44,14 @@ namespace HotChocolate.Types.Descriptors
         public ISchemaTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public ISchemaTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 

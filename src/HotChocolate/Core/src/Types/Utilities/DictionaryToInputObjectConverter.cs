@@ -18,12 +18,12 @@ namespace HotChocolate.Utilities
 
         public object Convert(object from, IInputType to)
         {
-            if (from == null)
+            if (from is null)
             {
                 throw new ArgumentNullException(nameof(from));
             }
 
-            if (to == null)
+            if (to is null)
             {
                 throw new ArgumentNullException(nameof(to));
             }
@@ -31,7 +31,7 @@ namespace HotChocolate.Utilities
             var context = new ConverterContext
             {
                 InputType = to,
-                ClrType = to.ToClrType()
+                ClrType = to.ToRuntimeType()
             };
 
             Visit(from, context);
@@ -83,14 +83,14 @@ namespace HotChocolate.Utilities
             if (context.InputType.IsListType())
             {
                 ListType listType = context.InputType.ListType();
-                Type tempType = listType.ToClrType();
+                Type tempType = listType.ToRuntimeType();
                 var temp = (IList)Activator.CreateInstance(tempType);
 
                 for (int i = 0; i < list.Count; i++)
                 {
                     var valueContext = new ConverterContext();
                     valueContext.InputType = (IInputType)listType.ElementType;
-                    valueContext.ClrType = listType.ElementType.ToClrType();
+                    valueContext.ClrType = listType.ElementType.ToRuntimeType();
 
                     Visit(list[i], valueContext);
 
@@ -111,7 +111,7 @@ namespace HotChocolate.Utilities
             object value,
             ConverterContext context)
         {
-            if (value == null)
+            if (value is null)
             {
                 context.Object = null;
             }

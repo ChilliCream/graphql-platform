@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -14,8 +15,8 @@ namespace HotChocolate.Execution
         private readonly IReadOnlyDictionary<string, object?>? _extensions;
         private readonly IReadOnlyDictionary<string, object?>? _contextData;
         private readonly IAsyncDisposable? _session;
-        private bool _isRead = false;
-        private bool _disposed = false;
+        private bool _isRead;
+        private bool _disposed;
 
         public SubscriptionResult(
             Func<IAsyncEnumerable<IQueryResult>>? resultStreamFactory,
@@ -36,6 +37,32 @@ namespace HotChocolate.Execution
             _session = session;
         }
 
+        public SubscriptionResult(
+            SubscriptionResult subscriptionResult,
+            IAsyncDisposable? session = null)
+        {
+            _resultStreamFactory = subscriptionResult._resultStreamFactory;
+            _errors = subscriptionResult._errors;
+            _extensions = subscriptionResult._extensions;
+            _contextData = subscriptionResult._contextData;
+            _session = session is null
+                ? (IAsyncDisposable)subscriptionResult
+                : new CombinedDispose(session, subscriptionResult);
+        }
+
+         public SubscriptionResult(
+            SubscriptionResult subscriptionResult,
+            IDisposable? session = null)
+        {
+            _resultStreamFactory = subscriptionResult._resultStreamFactory;
+            _errors = subscriptionResult._errors;
+            _extensions = subscriptionResult._extensions;
+            _contextData = subscriptionResult._contextData;
+            _session = session is null
+                ? (IAsyncDisposable)subscriptionResult
+                : new CombinedDispose(session.Dispose, subscriptionResult);
+        }
+
         public IReadOnlyList<IError>? Errors => _errors;
 
         public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
@@ -46,16 +73,14 @@ namespace HotChocolate.Execution
         {
             if (_resultStreamFactory is null)
             {
-                // todo : throw helper
                 throw new InvalidOperationException(
-                    "This result has errors and cannot read from the response stream.");
+                    AbstractionResources.SubscriptionResult_ResultHasErrors);
             }
 
             if (_isRead)
             {
-                // todo : throw helper
                 throw new InvalidOperationException(
-                    "You can only read a response stream once.");
+                    AbstractionResources.SubscriptionResult_ReadOnlyOnce);
             }
 
             if (_disposed)
@@ -79,5 +104,40 @@ namespace HotChocolate.Execution
             }
         }
 
+        private class CombinedDispose : IAsyncDisposable
+        {
+            private readonly IAsyncDisposable? _aa;
+            private readonly Action? _ab;
+            private readonly IAsyncDisposable _b;
+            private bool _disposed;
+
+            public CombinedDispose(IAsyncDisposable a, IAsyncDisposable b)
+            {
+                _aa = a;
+                _b = b;
+            }
+
+            public CombinedDispose(Action a, IAsyncDisposable b)
+            {
+                _ab = a;
+                _b = b;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                if (!_disposed)
+                {
+                    if (_aa is not null)
+                    {
+                        await _aa.DisposeAsync().ConfigureAwait(false);
+                    }
+
+                    _ab?.Invoke();
+
+                    await _b.DisposeAsync().ConfigureAwait(false);
+                    _disposed = true;
+                }
+            }
+        }
     }
 }

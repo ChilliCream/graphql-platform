@@ -21,7 +21,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(definitions));
         }
 
-        public NodeKind Kind { get; } = NodeKind.Document;
+        public SyntaxKind Kind { get; } = SyntaxKind.Document;
 
         public Location? Location { get; }
 

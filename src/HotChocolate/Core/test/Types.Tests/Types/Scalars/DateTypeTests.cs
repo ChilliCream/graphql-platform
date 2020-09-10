@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -48,7 +47,7 @@ namespace HotChocolate.Types
             Action a = () => dateType.Serialize("foo");
 
             // assert
-            Assert.Throws<ScalarSerializationException>(a);
+            Assert.Throws<SerializationException>(a);
         }
 
         [Fact]

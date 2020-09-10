@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Tests;
@@ -196,7 +195,7 @@ namespace HotChocolate.Integration.TypeConverter
                 Type source,
                 Type target,
                 ChangeTypeProvider root,
-                [NotNullWhen(true)] out ChangeType converter)
+                out ChangeType converter)
             {
                 if (source == typeof(int) && target == typeof(string))
                 {

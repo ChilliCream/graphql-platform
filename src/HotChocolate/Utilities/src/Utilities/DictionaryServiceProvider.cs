@@ -33,6 +33,16 @@ namespace HotChocolate.Utilities
             _services = services.ToDictionary(t => t.Key, t => t.Value);
         }
 
+        public DictionaryServiceProvider(params (Type, object)[] services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            _services = services.ToDictionary(t => t.Item1, t => t.Item2);
+        }
+
         public DictionaryServiceProvider(IEnumerable<KeyValuePair<Type, object>> services)
         {
             if (services == null)
@@ -49,7 +59,7 @@ namespace HotChocolate.Utilities
             {
                 return service;
             }
-            
+
             return null;
         }
     }

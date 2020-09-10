@@ -85,7 +85,7 @@ namespace HotChocolate.Validation
                 StarWars,
                 @"
                 query ExecutionDepthShouldNotLeadToEmptyObects {
-                    hero(episode: NEWHOPE) {
+                    hero(episode: NEW_HOPE) {
                         __typename
                         id
                         name

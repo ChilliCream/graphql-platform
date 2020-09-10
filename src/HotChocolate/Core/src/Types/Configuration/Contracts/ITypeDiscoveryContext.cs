@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -102,6 +103,19 @@ namespace HotChocolate.Configuration
         void RegisterResolver(
             NameString fieldName,
             MemberInfo member,
+            Type sourceType,
+            Type resolverType);
+
+        /// <summary>
+        /// Registers a resolver for compilation.
+        /// </summary>
+        /// <param name="fieldName">The field name to which the resolver belongs to.</param>
+        /// <param name="expression">The expression representing the resolver.</param>
+        /// <param name="sourceType">The source type.</param>
+        /// <param name="resolverType">The type that declares the resolver.</param>
+        void RegisterResolver(
+            NameString fieldName,
+            Expression expression,
             Type sourceType,
             Type resolverType);
     }

@@ -21,6 +21,7 @@ namespace HotChocolate.Configuration
             IDictionary<string, object> contextData)
         {
         }
+        
         public virtual void OnTypesInitialized(
             IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
         {

@@ -1,7 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;

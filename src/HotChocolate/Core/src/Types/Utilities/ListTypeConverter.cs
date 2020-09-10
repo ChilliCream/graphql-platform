@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections .Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using HotChocolate.Internal;
 
 #nullable enable
 
@@ -21,11 +22,11 @@ namespace HotChocolate.Utilities
             ChangeTypeProvider root,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            Type sourceElement = DotNetTypeInfoFactory.GetInnerListType(source);
-            Type targetElement = DotNetTypeInfoFactory.GetInnerListType(target);
+            Type? sourceElement = ExtendedType.Tools.GetElementType(source);
+            Type? targetElement = ExtendedType.Tools.GetElementType(target);
 
-            if (sourceElement != null
-                && targetElement != null
+            if (sourceElement is not null
+                && targetElement is not null
                 && root(sourceElement, targetElement, out ChangeType? elementConverter))
             {
                 if (target.IsArray)

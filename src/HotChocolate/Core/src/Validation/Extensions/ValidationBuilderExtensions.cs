@@ -30,12 +30,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IValidationBuilder builder,
             Action<ValidationOptionsModifiers> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -67,12 +67,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IValidationBuilder builder,
             Action<IServiceProvider, ValidationOptionsModifiers> configureClient)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configureClient == null)
+            if (configureClient is null)
             {
                 throw new ArgumentNullException(nameof(configureClient));
             }

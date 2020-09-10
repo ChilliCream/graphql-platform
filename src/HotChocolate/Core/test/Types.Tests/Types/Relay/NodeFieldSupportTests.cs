@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -44,8 +41,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Bar>(d => d
                     .AsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) =>
-                        Task.FromResult(new Bar { Id = id })))
+                    .NodeResolver((ctx, id) => Task.FromResult(new Bar { Id = id })))
                 .Use(next => async ctx =>
                 {
                     await next(ctx);

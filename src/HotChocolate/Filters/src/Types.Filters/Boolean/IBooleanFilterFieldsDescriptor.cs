@@ -1,5 +1,3 @@
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
     public interface IBooleanFilterFieldDescriptor
@@ -48,7 +46,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="property">The property that hall be ignored.</param>
-        IBooleanFilterFieldDescriptor Ignore();
+        /// <param name="ignore">If set to true the field is ignored</param>
+        IBooleanFilterFieldDescriptor Ignore(bool ignore = true);
     }
 }

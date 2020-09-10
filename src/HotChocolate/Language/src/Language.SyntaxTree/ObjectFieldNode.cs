@@ -46,7 +46,7 @@ namespace HotChocolate.Language
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public NodeKind Kind { get; } = NodeKind.ObjectField;
+        public SyntaxKind Kind { get; } = SyntaxKind.ObjectField;
 
         public Location? Location { get; }
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Relay
@@ -12,7 +11,7 @@ namespace HotChocolate.Types.Relay
         where T : class, IOutputType
     {
         public ConnectionType()
-            : base(descriptor => Configure(descriptor))
+            : base(Configure)
         {
         }
 
@@ -62,8 +61,8 @@ namespace HotChocolate.Types.Relay
             base.OnRegisterDependencies(context, definition);
 
             context.RegisterDependency(
-                TypeReference.Create<EdgeType<T>>(),
-                TypeDependencyKind.Default);
+                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)),
+            TypeDependencyKind.Default);
         }
 
         protected override void OnCompleteType(
@@ -73,7 +72,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EdgeType = context.GetType<EdgeType<T>>(
-                TypeReference.Create<EdgeType<T>>());
+                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)));
         }
     }
 }

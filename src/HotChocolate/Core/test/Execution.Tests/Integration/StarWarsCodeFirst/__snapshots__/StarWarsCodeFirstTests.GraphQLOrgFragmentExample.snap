@@ -3,7 +3,7 @@
     "leftComparison": {
       "name": "Luke Skywalker",
       "appearsIn": [
-        "NEWHOPE",
+        "NEW_HOPE",
         "EMPIRE",
         "JEDI"
       ],
@@ -27,7 +27,7 @@
     "rightComparison": {
       "name": "R2-D2",
       "appearsIn": [
-        "NEWHOPE",
+        "NEW_HOPE",
         "EMPIRE",
         "JEDI"
       ],

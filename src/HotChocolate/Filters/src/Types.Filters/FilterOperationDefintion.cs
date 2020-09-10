@@ -11,6 +11,6 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Gets or sets the operation description for this field.
         /// </summary>
-        public FilterOperation Operation { get; set; }
+        public FilterOperation? Operation { get; set; }
     }
 }

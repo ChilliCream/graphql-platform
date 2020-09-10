@@ -3,12 +3,11 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using System.Linq;
+using HotChocolate.DataLoader;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -95,6 +94,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<BatchScheduler>();
             services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
             services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
+            return services;
+        }
+
+        internal static IServiceCollection TryAddDefaultDataLoaderRegistry(
+            this IServiceCollection services)
+        {
+            services.TryAddScoped<IDataLoaderRegistry, DefaultDataLoaderRegistry>();
             return services;
         }
     }

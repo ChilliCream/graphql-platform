@@ -8,9 +8,11 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
+  OR: [FooFilter!]
   bar: Boolean
   bar_not: Boolean
-  OR: [FooFilter!]
+  barNullable: Boolean
+  barNullable_not: Boolean
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

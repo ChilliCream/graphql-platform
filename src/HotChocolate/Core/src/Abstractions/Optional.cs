@@ -146,7 +146,6 @@ namespace HotChocolate
         /// <summary>
         /// Implicitly gets the optional value.
         /// </summary>
-        /// <param name="name"></param>
         [return: MaybeNull]
         public static implicit operator T(Optional<T> optional) =>
             optional.Value;

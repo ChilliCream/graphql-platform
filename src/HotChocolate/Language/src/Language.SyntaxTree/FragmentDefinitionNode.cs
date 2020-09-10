@@ -26,7 +26,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
-        public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.FragmentDefinition;
 
         public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 

@@ -38,8 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IDiagnosticEventListener, T>());
+            builder.ConfigureSchemaServices(s => s.AddSingleton<IDiagnosticEventListener, T>());
             return builder;
         }
 
@@ -59,9 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IDiagnosticEventListener>(
-                    sp => diagnosticEventListener(
-                        sp.GetRequiredService<IApplicationServiceProvider>())));
+                s => s.AddSingleton<IDiagnosticEventListener>(sp => diagnosticEventListener(sp)));
         }
     }
 }

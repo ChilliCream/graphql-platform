@@ -7,26 +7,29 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    private static string[] _directories = new string[]
+    static readonly string[] _directories = new string[]
     {
         "GreenDonut",
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Language"),
         Path.Combine("HotChocolate", "PersistedQueries"),
-        Path.Combine("HotChocolate", "Utilities")
+        Path.Combine("HotChocolate", "Utilities"),
+        Path.Combine("HotChocolate", "Data"),
+        Path.Combine("HotChocolate", "Filters")
     };
 
     public static IEnumerable<string> GetAllProjects(string sourceDirectory)
     {
-        foreach (string directory in _directories)
+        foreach (var directory in _directories)
         {
-            string fullDirectory = Path.Combine(sourceDirectory, directory);
-            foreach (string file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
+            var fullDirectory = Path.Combine(sourceDirectory, directory);
+            foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
-                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase) 
+                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
-                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase))
+                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("HotChocolate.Types.Selection", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }

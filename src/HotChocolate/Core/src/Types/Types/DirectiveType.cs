@@ -14,8 +14,6 @@ namespace HotChocolate.Types
 {
     public class DirectiveType
         : TypeSystemObjectBase<DirectiveTypeDefinition>
-        , IHasName
-        , IHasDescription
         , IHasRuntimeType
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
@@ -28,7 +26,7 @@ namespace HotChocolate.Types
 
         public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
-            _configure = configure ?? 
+            _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
 
@@ -45,8 +43,6 @@ namespace HotChocolate.Types
         public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents { get; private set; }
 
         public bool IsExecutable { get; private set; }
-
-        #region Initialization
 
         protected override DirectiveTypeDefinition CreateDefinition(
             ITypeDiscoveryContext context)
@@ -80,8 +76,6 @@ namespace HotChocolate.Types
            ITypeDiscoveryContext context,
            DirectiveTypeDefinition definition)
         {
-            var dependencies = new List<ITypeReference>();
-
             context.RegisterDependencyRange(
                 definition.Arguments.Select(t => t.Type),
                 TypeDependencyKind.Completed);
@@ -99,7 +93,8 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(t => new Argument(t)));
+                definition.Arguments.Select(t => new Argument(t)),
+                context.DescriptorContext.Options.SortFieldsByName);
             IsExecutable = MiddlewareComponents.Count > 0;
 
             if (Locations.Count == 0)
@@ -118,31 +113,29 @@ namespace HotChocolate.Types
             FieldInitHelper.CompleteFields(context, definition, Arguments);
         }
 
-        #endregion
-
         internal object DeserializeArgument(
             Argument argument,
             IValueNode valueNode,
             Type targetType)
         {
-            if (argument == null)
+            if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            if (valueNode == null)
+            if (valueNode is null)
             {
                 throw new ArgumentNullException(nameof(valueNode));
             }
 
-            var obj = argument.Type.ParseLiteral(valueNode);
+            object obj = argument.Type.ParseLiteral(valueNode);
+
             if (targetType.IsInstanceOfType(obj))
             {
                 return obj;
             }
 
-            if (_converter.TryConvert(typeof(object), targetType,
-                obj, out var o))
+            if (_converter.TryConvert(typeof(object), targetType, obj, out object o))
             {
                 return o;
             }

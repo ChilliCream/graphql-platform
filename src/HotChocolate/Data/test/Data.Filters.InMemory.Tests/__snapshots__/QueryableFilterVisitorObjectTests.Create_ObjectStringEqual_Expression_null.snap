@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060eq\u0060 of type StringOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 41
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "expectedType": "String!",
+        "filterType": "StringOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}

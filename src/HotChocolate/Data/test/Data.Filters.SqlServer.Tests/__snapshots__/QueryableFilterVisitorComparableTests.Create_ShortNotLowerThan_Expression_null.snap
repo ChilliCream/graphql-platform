@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060nlt\u0060 of type ComparableOperationFilterInputOfInt16FilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 34
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "expectedType": "Short!",
+        "filterType": "ComparableOperationFilterInputOfInt16FilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}

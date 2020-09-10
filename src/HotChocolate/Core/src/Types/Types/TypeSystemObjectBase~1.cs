@@ -167,7 +167,7 @@ namespace HotChocolate.Types
         protected virtual void OnBeforeInitialize(
             ITypeDiscoveryContext context)
         {
-            context.Interceptor.OnBeforeInitialize(context);
+            context.TypeInterceptor.OnBeforeInitialize(context);
         }
 
         protected virtual void OnAfterInitialize(
@@ -175,7 +175,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnAfterInitialize(
+            context.TypeInterceptor.OnAfterInitialize(
                 context, definition, contextData);
         }
 
@@ -184,7 +184,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnBeforeRegisterDependencies(
+            context.TypeInterceptor.OnBeforeRegisterDependencies(
                 context, definition, contextData);
         }
 
@@ -193,7 +193,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnAfterRegisterDependencies(
+            context.TypeInterceptor.OnAfterRegisterDependencies(
                 context, definition, contextData);
         }
 
@@ -202,7 +202,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnBeforeCompleteName(
+            context.TypeInterceptor.OnBeforeCompleteName(
                 context, definition, contextData);
         }
 
@@ -211,7 +211,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnAfterCompleteName(
+            context.TypeInterceptor.OnAfterCompleteName(
                 context, definition, contextData);
         }
 
@@ -220,7 +220,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnBeforeCompleteType(
+            context.TypeInterceptor.OnBeforeCompleteType(
                 context, definition, contextData);
         }
 
@@ -229,7 +229,7 @@ namespace HotChocolate.Types
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            context.Interceptor.OnAfterCompleteType(
+            context.TypeInterceptor.OnAfterCompleteType(
                 context, definition, contextData);
         }
 

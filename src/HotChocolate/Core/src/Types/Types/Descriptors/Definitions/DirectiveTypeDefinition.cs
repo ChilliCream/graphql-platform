@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -26,7 +25,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             get => _clrType;
             set
             {
-                if (value == null)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }

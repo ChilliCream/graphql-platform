@@ -13,6 +13,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             where T : IResolverContext
         {
 #pragma warning disable CS0612
+            // this compile is obsolete
             yield return new GetCustomContextCompiler<T>();
 #pragma warning restore CS0612
 
@@ -33,6 +34,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             yield return new GetParentCompiler<T>();
             yield return new GetQueryCompiler<T>();
             yield return new GetSchemaCompiler<T>();
+            yield return new ScopedServiceCompiler<T>();
             yield return new GetServiceCompiler<T>();
             yield return new GetArgumentCompiler<T>();
         }

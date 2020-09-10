@@ -155,11 +155,11 @@ namespace HotChocolate.Execution.Utilities
         {
             switch (original.Kind)
             {
-                case NodeKind.Variable:
+                case SyntaxKind.Variable:
                     rewritten = Rewrite((VariableNode)original, variableValues);
                     return true;
 
-                case NodeKind.ObjectValue:
+                case SyntaxKind.ObjectValue:
                     rewritten = Rewrite((ObjectValueNode)original, variableValues);
                     if (ReferenceEquals(rewritten, original))
                     {
@@ -168,7 +168,7 @@ namespace HotChocolate.Execution.Utilities
                     }
                     return true;
 
-                case NodeKind.ListValue:
+                case SyntaxKind.ListValue:
                     rewritten = Rewrite((ListValueNode)original, variableValues);
                     if (ReferenceEquals(rewritten, original))
                     {

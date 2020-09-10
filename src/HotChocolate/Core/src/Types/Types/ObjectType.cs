@@ -7,8 +7,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
-using HotChocolate.Types.Relay;
 
 #nullable enable
 
@@ -95,12 +93,9 @@ namespace HotChocolate.Types
                 _isOfType = definition.IsOfType;
                 SyntaxNode = definition.SyntaxNode;
 
-                var fields = new List<ObjectField>();
-                AddIntrospectionFields(context, fields);
-                AddRelayNodeField(context, fields);
-                fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
-
-                Fields = new FieldCollection<ObjectField>(fields);
+                var sortByName = context.DescriptorContext.Options.SortFieldsByName;
+                var fields = definition.Fields.Select(t => new ObjectField(t, sortByName)).ToList();
+                Fields = new FieldCollection<ObjectField>(fields, sortByName);
 
                 CompleteInterfacesHelper.Complete(
                     context, definition, RuntimeType, _interfaces, this, SyntaxNode);
@@ -110,34 +105,9 @@ namespace HotChocolate.Types
             }
         }
 
-        private void AddIntrospectionFields(
-            ITypeCompletionContext context,
-            ICollection<ObjectField> fields)
-        {
-            if (context.IsQueryType.HasValue && context.IsQueryType.Value)
-            {
-                fields.Add(new __SchemaField(context.DescriptorContext));
-                fields.Add(new __TypeField(context.DescriptorContext));
-            }
-
-            fields.Add(new __TypeNameField(context.DescriptorContext));
-        }
-
-        private void AddRelayNodeField(
-            ITypeCompletionContext context,
-            ICollection<ObjectField> fields)
-        {
-            if (context.IsQueryType.HasValue
-                && context.IsQueryType.Value
-                && context.ContextData.ContainsKey(RelayConstants.IsRelaySupportEnabled))
-            {
-                fields.Add(new NodeField(context.DescriptorContext));
-            }
-        }
-
         private void CompleteIsOfType(ITypeCompletionContext context)
         {
-            if (_isOfType == null)
+            if (_isOfType is null)
             {
                 if (context.IsOfType != null)
                 {
@@ -187,9 +157,9 @@ namespace HotChocolate.Types
 
         private bool IsOfTypeWithClrType(
             IResolverContext context,
-            object result)
+            object? result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }
@@ -198,9 +168,9 @@ namespace HotChocolate.Types
 
         private bool IsOfTypeWithName(
             IResolverContext context,
-            object result)
+            object? result)
         {
-            if (result == null)
+            if (result is null)
             {
                 return true;
             }

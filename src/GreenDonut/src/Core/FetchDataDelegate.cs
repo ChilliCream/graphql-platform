@@ -17,7 +17,7 @@ namespace GreenDonut
     /// A list of results which are in the exact same order as the provided
     /// keys.
     /// </returns>
-    public delegate Task<IReadOnlyList<Result<TValue>>> FetchDataDelegate<TKey, TValue>(
+    public delegate ValueTask<IReadOnlyList<Result<TValue>>> FetchDataDelegate<TKey, TValue>(
         IReadOnlyList<TKey> keys,
         CancellationToken cancellationToken)
             where TKey : notnull;

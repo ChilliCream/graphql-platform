@@ -33,14 +33,14 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override decimal ParseLiteral(IFloatValueLiteral literal)
+        protected override decimal ParseLiteral(IFloatValueLiteral valueSyntax)
         {
-            return literal.ToDecimal();
+            return valueSyntax.ToDecimal();
         }
 
-        protected override FloatValueNode ParseValue(decimal value)
+        protected override FloatValueNode ParseValue(decimal runtimeValue)
         {
-            return new FloatValueNode(value);
+            return new FloatValueNode(runtimeValue);
         }
     }
 }

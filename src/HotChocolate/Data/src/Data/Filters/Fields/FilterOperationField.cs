@@ -8,9 +8,9 @@ namespace HotChocolate.Data.Filters
             FilterOperationFieldDefinition definition)
             : base(definition)
         {
-            Operation = definition.Operation;
+            Id = definition.Id;
         }
 
-        public int Operation { get; }
+        public int Id { get; }
     }
 }

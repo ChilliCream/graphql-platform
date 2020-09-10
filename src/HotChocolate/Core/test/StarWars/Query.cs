@@ -68,10 +68,10 @@ namespace HotChocolate.StarWars
             foreach (var characterId in characterIds)
             {
                 ICharacter character = _repository.GetCharacter(characterId);
-                if (character == null)
+                if (character is null)
                 {
                     context.ReportError(
-                        "Could not resolve a charachter for the " +
+                        "Could not resolve a character for the " +
                         $"character-id {characterId}.");
                 }
                 else

@@ -13,12 +13,12 @@ namespace HotChocolate.Types
             this ITypeDiscoveryContext context,
             ObjectTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -35,7 +35,15 @@ namespace HotChocolate.Types
             {
                 if (field.Resolver is null)
                 {
-                    if (field.ResolverMember is { })
+                    if (field.Expression is not null)
+                    {
+                        context.RegisterResolver(
+                            field.Name,
+                            field.Expression,
+                            definition.RuntimeType,
+                            field.ResolverType);
+                    }
+                    else if (field.ResolverMember is not null)
                     {
                         context.RegisterResolver(
                             field.Name,
@@ -43,7 +51,7 @@ namespace HotChocolate.Types
                             definition.RuntimeType,
                             field.ResolverType);
                     }
-                    else if (field.Member is { })
+                    else if (field.Member is not null)
                     {
                         context.RegisterResolver(
                             field.Name,
@@ -59,12 +67,12 @@ namespace HotChocolate.Types
             this ITypeDiscoveryContext context,
             InterfaceTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -82,12 +90,12 @@ namespace HotChocolate.Types
             this ITypeDiscoveryContext context,
             EnumTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -101,12 +109,12 @@ namespace HotChocolate.Types
             this ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }

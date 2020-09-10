@@ -61,7 +61,7 @@ namespace HotChocolate.Execution.Channels
         internal static void QueueWaiter(ref AsyncOperation<bool>? tail, AsyncOperation<bool> waiter)
         {
             AsyncOperation<bool>? c = tail;
-            if (c == null)
+            if (c is null)
             {
                 waiter.Next = waiter;
             }

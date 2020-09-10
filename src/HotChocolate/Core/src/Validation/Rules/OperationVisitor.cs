@@ -40,7 +40,7 @@ namespace HotChocolate.Validation.Rules
             for (int i = 0; i < node.Definitions.Count; i++)
             {
                 IDefinitionNode definition = node.Definitions[i];
-                if (definition.Kind == NodeKind.OperationDefinition)
+                if (definition.Kind == SyntaxKind.OperationDefinition)
                 {
                     opCount++;
 

@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Benchmarks
             return QueryRequestBuilder.New()
                 .SetQuery(document)
                 .SetQueryHash(hash)
-                .SetQueryName(hash)
+                .SetQueryId(hash)
                 .Create();
         }
 

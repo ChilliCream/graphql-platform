@@ -1,34 +1,33 @@
 using System;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class DirectiveDefinition
     {
         public DirectiveDefinition(DirectiveNode parsedDirective)
         {
-            ParsedDirective = parsedDirective
-                ?? throw new ArgumentNullException(nameof(parsedDirective));
-            Reference = new NameDirectiveReference(parsedDirective.Name.Value);
-            TypeReference = new SyntaxTypeReference(
-                new NamedTypeNode(parsedDirective.Name),
-                TypeContext.None);
-        }
-
-        public DirectiveDefinition(object customDirective)
-        {
-            CustomDirective = customDirective
-                ?? throw new ArgumentNullException(nameof(customDirective));
-            Reference = new ClrTypeDirectiveReference(
-                customDirective.GetType());
+            ParsedDirective = parsedDirective ??
+                throw new ArgumentNullException(nameof(parsedDirective));
             TypeReference = Descriptors.TypeReference.Create(
-                customDirective.GetType(),
-                TypeContext.None);
+                parsedDirective.Name.Value, TypeContext.None);
+            Reference = new NameDirectiveReference(parsedDirective.Name.Value);
         }
 
-        public DirectiveNode ParsedDirective { get; }
+        public DirectiveDefinition(object customDirective, ITypeReference typeReference)
+        {
+            CustomDirective = customDirective ??
+                throw new ArgumentNullException(nameof(customDirective));
+            TypeReference = typeReference ??
+                throw new ArgumentNullException(nameof(typeReference));
+            Reference = new ClrTypeDirectiveReference(customDirective.GetType());
+        }
 
-        public object CustomDirective { get; }
+        public DirectiveNode? ParsedDirective { get; }
+
+        public object? CustomDirective { get; }
 
         public IDirectiveReference Reference { get; }
 

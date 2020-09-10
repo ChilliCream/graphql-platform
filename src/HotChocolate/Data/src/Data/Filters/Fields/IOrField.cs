@@ -6,5 +6,6 @@ namespace HotChocolate.Data.Filters
         : IInputField
         , IHasRuntimeType
     {
+        new IFilterInputType DeclaringType { get; }
     }
 }

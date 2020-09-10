@@ -88,7 +88,7 @@ namespace HotChocolate.Types
                         type.Values.FirstOrDefault(t =>
                             enumValue.Value.Equals(t.Value));
 
-                    if (existingValue == null)
+                    if (existingValue is null)
                     {
                         type.Values.Add(enumValue);
                     }

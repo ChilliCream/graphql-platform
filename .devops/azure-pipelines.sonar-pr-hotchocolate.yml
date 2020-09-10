@@ -52,12 +52,18 @@ stages:
               script: './build.cmd ReportCoverage --skip'
       - job: SonarPr
         displayName: 'SonarPr'
-        dependsOn: [ Cover ]
+        dependsOn: [ ]
         steps:
-          - task: DownloadBuildArtifacts@0
+          - task: JavaToolInstaller@0
             inputs:
-              artifactName: 'test-results'
-              downloadPath: '$(Build.Repository.LocalPath)/output'
+              versionSpec: '11'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              jdkDestinationDirectory: ./.java
           - task: CmdLine@2
+            env:
+              HC_GITHUB_PR_NR: $(System.PullRequest.PullRequestNumber)
+              HC_GITHUB_HEAD_REF: $(System.PullRequest.SourceBranch)
+              HC_GITHUB_BASE_REF: $(System.PullRequest.TargetBranch)
             inputs:
               script: './build.cmd SonarPr --skip'

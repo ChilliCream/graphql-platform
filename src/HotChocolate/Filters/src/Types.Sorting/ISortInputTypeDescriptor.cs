@@ -65,9 +65,15 @@ namespace HotChocolate.Types.Sorting
         /// <param name="property">
         /// The property that is sortable.
         /// </param>
-        ISortFieldDescriptor Sortable(
+        ISortOperationDescriptor Sortable(
             Expression<Func<T, IComparable>> property);
 
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        ISortInputTypeDescriptor<T> Ignore(
+            Expression<Func<T, object>> property);
 
 
         ISortInputTypeDescriptor<T> Directive<TDirective>(
@@ -80,5 +86,14 @@ namespace HotChocolate.Types.Sorting
         ISortInputTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        /// <summary>
+        /// Defines that the selected property is sortable.
+        /// </summary>
+        /// <param name="property">
+        /// The property that is sortable.
+        /// </param>
+        ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(
+            Expression<Func<T, TObject>> property) where TObject : class;
     }
 }

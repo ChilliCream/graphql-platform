@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -24,10 +23,9 @@ namespace HotChocolate.Execution.Utilities
         public static IError ArgumentValueIsInvalid(
             ArgumentNode argument,
             string responseName,
-            ScalarSerializationException exception)
+            GraphQLException exception)
         {
-            return ErrorBuilder.New()
-                .SetMessage(exception.Message)
+            return ErrorBuilder.FromError(exception.Errors[0])
                 .AddLocation(argument)
                 .SetExtension("responseName", responseName)
                 .Build();
@@ -35,16 +33,15 @@ namespace HotChocolate.Execution.Utilities
 
         public static IError ArgumentDefaultValueIsInvalid(
             string responseName,
-            ScalarSerializationException exception)
+            GraphQLException exception)
         {
-            return ErrorBuilder.New()
-                .SetMessage(exception.Message)
+            return ErrorBuilder.FromError(exception.Errors[0])
                 .SetExtension("responseName", responseName)
                 .Build();
         }
 
         public static IError InvalidLeafValue(
-            ScalarSerializationException exception,
+            GraphQLException exception,
             FieldNode field,
             Path path)
         {

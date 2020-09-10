@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -24,13 +23,13 @@ namespace HotChocolate.Types.Descriptors
             Type argumentType)
             : this(context, argumentName)
         {
-            if (argumentType == null)
+            if (argumentType is null)
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
             Definition.Name = argumentName;
-            Definition.Type = argumentType.GetInputType();
+            Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
         }
 
         protected internal ArgumentDescriptor(
@@ -40,10 +39,10 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.Name = context.Naming.GetArgumentName(parameter);
             Definition.Description = context.Naming.GetArgumentDescription(parameter);
-            Definition.Type = context.Inspector.GetArgumentType(parameter);
+            Definition.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
             Definition.Parameter = parameter;
 
-            if (context.Inspector.TryGetDefaultValue(parameter, out object defaultValue))
+            if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
@@ -61,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Parameter is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Parameter);
