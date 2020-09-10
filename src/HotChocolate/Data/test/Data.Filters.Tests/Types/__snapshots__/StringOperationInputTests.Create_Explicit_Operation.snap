@@ -9,12 +9,12 @@ type Query {
 input FooFilterTypeFilterInput {
   and: [FooFilterTypeFilterInput!]
   or: [FooFilterTypeFilterInput!]
-  string: StringOperationInputFilterInput
+  string: StringOperationFilterInput
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String
