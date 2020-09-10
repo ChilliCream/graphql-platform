@@ -1,11 +1,6 @@
 using System;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -27,10 +22,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .RemoveAll<IHttpRequestInterceptor>()
                 .AddSingleton<IHttpRequestInterceptor, T>(factory));
 
-        public static IRequestExecutorBuilder AddHttpRequestInterceptor<T>(
+        public static IRequestExecutorBuilder AddHttpRequestInterceptor(
             this IRequestExecutorBuilder builder,
-            HttpRequestInterceptorDelegate interceptor)
-            where T : class, IHttpRequestInterceptor =>
+            HttpRequestInterceptorDelegate interceptor) =>
             AddHttpRequestInterceptor(
                 builder,
                 sp => new DelegateHttpRequestInterceptor(interceptor));
