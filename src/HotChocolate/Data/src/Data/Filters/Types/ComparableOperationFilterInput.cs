@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Data.Filters
 {
     public class ComparableOperationFilterInput<T>
-        : FilterInputType,
-          IComparableOperationFilterInput
+        : FilterInputType
+        , IComparableOperationFilterInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
