@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
-        public async Task Simple_IsAlive_Test()
+        public async Task Download_GraphQL_SDL()
         {
             // arrange
             TestServer server = CreateStarWarsServer();
