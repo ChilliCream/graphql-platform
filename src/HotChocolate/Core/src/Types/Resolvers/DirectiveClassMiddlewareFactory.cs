@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers
             });
 
         private static PropertyInfo _services =
-            typeof(IMiddlewareContext).GetProperty(nameof(IDirectiveContext.Services));
+            typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
         internal static DirectiveMiddleware Create<TMiddleware>()
             where TMiddleware : class

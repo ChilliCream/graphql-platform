@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected TestServerFactory ServerFactory { get; set; }
 
-        protected TestServer CreateStarWarsServer(string pattern = "/graphql") =>
+        protected virtual TestServer CreateStarWarsServer(string pattern = "/graphql") =>
             ServerFactory.Create(
                 services => services
                     .AddRouting()
