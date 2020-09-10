@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
                     p =>
                     {
                         ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
-                            Context, p, Definition.FieldBindingType);
+                            Context, p, Definition.RuntimeType, Definition.FieldBindingType);
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
                         {
                             SubscribeAttribute attribute = 
                                 member.GetCustomAttribute<SubscribeAttribute>();
-                            if(attribute.With is { }) 
+                            if(attribute.With is not null) 
                             {
                                 subscribeResolver.Add(attribute.With);
                             }

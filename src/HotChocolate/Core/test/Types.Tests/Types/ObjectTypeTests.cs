@@ -1553,7 +1553,7 @@ namespace HotChocolate.Types
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("test")
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         typeof(string)))
                 .Create();
@@ -1571,7 +1571,7 @@ namespace HotChocolate.Types
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("test")
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         typeof(NativeType<List<int>>)))
                 .Create();
@@ -1589,7 +1589,7 @@ namespace HotChocolate.Types
                 .AddQueryType(t => t
                     .Name("Query")
                     .Field("test")
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
@@ -1608,7 +1608,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         typeof(ListType<IntType>)))
                 .Create();
@@ -1627,7 +1627,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         typeof(int)))
                 .Create();
@@ -1646,7 +1646,7 @@ namespace HotChocolate.Types
                     .Name("Query")
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(
+                    .Resolve(
                         ctx => new ValueTask<object>("abc"),
                         null))
                 .Create();

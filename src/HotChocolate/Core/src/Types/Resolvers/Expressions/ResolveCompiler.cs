@@ -35,15 +35,34 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverInstance = Expression.Call(
                 Context, resolverMethod);
 
-            FieldResolverDelegate resolver = CreateResolver(
-                resolverInstance,
-                descriptor.Field.Member,
-                descriptor.SourceType);
+            if (descriptor.Field.Member is { })
+            {
+                FieldResolverDelegate resolver = CreateResolver(
+                    resolverInstance,
+                    descriptor.Field.Member,
+                    descriptor.SourceType);
 
-            return new FieldResolver(
-                descriptor.Field.TypeName,
-                descriptor.Field.FieldName,
-                resolver);
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver);
+            }
+            else if (descriptor.Field.Expression is LambdaExpression lambda)
+            {
+                Expression<FieldResolverDelegate> resolver =
+                    Expression.Lambda<FieldResolverDelegate>(
+                        HandleResult(
+                            Expression.Invoke(lambda, resolverInstance),
+                            lambda.ReturnType),
+                        Context);
+
+                return new FieldResolver(
+                    descriptor.Field.TypeName,
+                    descriptor.Field.FieldName,
+                    resolver.Compile());
+            }
+
+            throw new NotSupportedException();
         }
 
         private FieldResolverDelegate CreateResolver(
@@ -60,27 +79,17 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 IEnumerable<Expression> parameters = CreateParameters(
                     method.GetParameters(), sourceType);
-
                 MethodCallExpression resolverExpression =
                     Expression.Call(resolverInstance, method, parameters);
-
-                Expression handleResult = HandleResult(
-                    resolverExpression, method.ReturnType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             if (member is PropertyInfo property)
             {
-                MemberExpression propertyAccessor = Expression.Property(
-                    resolverInstance, property);
-
-                Expression handleResult = HandleResult(
-                    propertyAccessor, property.PropertyType);
-
-                return Expression.Lambda<FieldResolverDelegate>(
-                    handleResult, Context).Compile();
+                MemberExpression propertyAccessor = Expression.Property(resolverInstance, property);
+                Expression handleResult = HandleResult(propertyAccessor, property.PropertyType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             throw new NotSupportedException();

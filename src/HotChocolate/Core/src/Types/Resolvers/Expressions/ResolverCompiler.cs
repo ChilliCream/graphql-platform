@@ -28,7 +28,7 @@ namespace HotChocolate.Resolvers.Expressions
             }
 
             _compilers = compilers.ToArray();
-            Context = Expression.Parameter(typeof(IResolverContext));
+            Context = Expression.Parameter(typeof(IResolverContext), "context");
         }
 
         protected ParameterExpression Context { get; }

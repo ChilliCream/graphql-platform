@@ -12,7 +12,7 @@ type Query1 {
   foos(where: FooFilterInput): [Foo!]!
 }
 
-input ComparableOperationInputOfInt64FilterInput {
+input ComparableOperationFilterInputOfInt64FilterInput {
   eq: Long
   neq: Long
   in: [Long!]
@@ -27,7 +27,7 @@ input ComparableOperationInputOfInt64FilterInput {
   nlte: Long
 }
 
-input ComparableOperationInputOfNullableOfInt32FilterInput {
+input ComparableOperationFilterInputOfNullableOfInt32FilterInput {
   eq: Int
   neq: Int
   in: [Int]
@@ -45,14 +45,14 @@ input ComparableOperationInputOfNullableOfInt32FilterInput {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  bar: StringOperationInputFilterInput
-  baz: ComparableOperationInputOfInt64FilterInput
-  qux: ComparableOperationInputOfNullableOfInt32FilterInput
+  bar: StringOperationFilterInput
+  baz: ComparableOperationFilterInputOfInt64FilterInput
+  qux: ComparableOperationFilterInputOfNullableOfInt32FilterInput
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String

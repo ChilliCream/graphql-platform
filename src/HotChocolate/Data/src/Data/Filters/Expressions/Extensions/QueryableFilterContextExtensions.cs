@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Utilities;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Filters.Expressions
@@ -9,35 +11,33 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context)
         {
             var closure = new QueryableScope(
-                context.RuntimeTypes.Peek(), "_s" + context.Scopes.Count, false);
+                context.RuntimeTypes.Peek(),
+                "_s" + context.Scopes.Count,
+                false);
 
             context.Scopes.Push(closure);
 
-            context.GetLevel().Enqueue(
-                FilterExpressionBuilder.Equals(context.GetClosure().Parameter, null));
+            context.GetLevel()
+                .Enqueue(
+                    FilterExpressionBuilder.Equals(context.GetClosure().Parameter, null));
 
             return closure;
         }
 
         public static QueryableScope GetClosure(
-                this QueryableFilterContext context) =>
-                    (QueryableScope)context.GetScope();
+            this QueryableFilterContext context) =>
+            (QueryableScope)context.GetScope();
 
         public static bool TryCreateLambda(
             this QueryableFilterContext context,
             [NotNullWhen(true)] out LambdaExpression? expression)
         {
-            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
-                scope is QueryableScope closure)
+            if (context.Scopes.TryPeekElement(out FilterScope<Expression>? scope) &&
+                scope is QueryableScope closure &&
+                closure.Level.TryPeekElement(out Queue<Expression>? levels) &&
+                levels.TryPeekElement(out Expression? level))
             {
-                expression = null;
-
-                if (closure.Level.Peek().Count == 0)
-                {
-                    return false;
-                }
-
-                expression = Expression.Lambda(closure.Level.Peek().Peek(), closure.Parameter);
+                expression = Expression.Lambda(level, closure.Parameter);
                 return true;
             }
 
@@ -49,18 +49,12 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context,
             [NotNullWhen(true)] out Expression<T>? expression)
         {
-            if (context.Scopes.TryPeek(out FilterScope<Expression>? scope) &&
-                scope is QueryableScope closure)
+            if (context.Scopes.TryPeekElement(out FilterScope<Expression>? scope) &&
+                scope is QueryableScope closure &&
+                closure.Level.TryPeekElement(out Queue<Expression>? levels) &&
+                levels.TryPeekElement(out Expression? level))
             {
-                expression = null;
-
-                if (closure.Level.Peek().Count == 0)
-                {
-                    return false;
-                }
-
-                expression = Expression.Lambda<T>(closure.Level.Peek().Peek(), closure.Parameter);
-
+                expression = Expression.Lambda<T>(level, closure.Parameter);
                 return true;
             }
 
