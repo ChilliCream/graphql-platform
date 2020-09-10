@@ -19,7 +19,9 @@ namespace HotChocolate.Types
 
         public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
 
-        IReadOnlyCollection<IEnumValue> IEnumType.Values => Values;
+        protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
+
+        protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
         public bool TryGetRuntimeValue(
             NameString name,
@@ -64,12 +66,8 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public bool IsInstanceOfType(object? runtimeValue)
         {
-            if (runtimeValue is null)
-            {
-                return true;
-            }
-
-            return RuntimeType.IsInstanceOfType(runtimeValue);
+            return runtimeValue is null ||
+                RuntimeType.IsInstanceOfType(runtimeValue);
         }
 
         /// <inheritdoc />

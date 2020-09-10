@@ -15,16 +15,10 @@ namespace HotChocolate.Types
     {
         private readonly Dictionary<NameString, IEnumValue> _enumValues =
             new Dictionary<NameString, IEnumValue>();
-
         private readonly Dictionary<object, IEnumValue> _valueLookup =
             new Dictionary<object, IEnumValue>();
-
         private Action<IEnumTypeDescriptor>? _configure;
         private INamingConventions _naming = default!;
-
-        protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
-
-        protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
         protected EnumType()
         {
