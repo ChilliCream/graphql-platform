@@ -80,13 +80,13 @@ const Slideshow = styled(Carousel)`
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: #000;
+        background-color: #fff;
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: #f40010;
+          background-color: #fff;
           opacity: 1;
 
           &:hover {
@@ -95,7 +95,7 @@ const Slideshow = styled(Carousel)`
         }
 
         &:hover {
-          opacity: 0.6;
+          opacity: 0.85;
         }
       }
     }

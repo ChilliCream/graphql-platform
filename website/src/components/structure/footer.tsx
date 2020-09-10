@@ -94,13 +94,14 @@ const Container = styled.footer`
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
+  box-sizing: border-box;
   padding: 40px 20px 60px;
   width: 100%;
   min-height: 300px;
   background-color: #252d3c;
   color: #c6c6ce;
 
-  @media only screen and (min-width: 1250px) {
+  @media only screen and (min-width: 1440px) {
     padding: 40px 0 60px;
   }
 `;
