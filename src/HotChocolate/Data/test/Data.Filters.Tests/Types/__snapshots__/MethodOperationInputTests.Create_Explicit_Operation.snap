@@ -18,17 +18,17 @@ type QueryExplicit {
 input BarFilterInput {
   and: [BarFilterInput!]
   or: [BarFilterInput!]
-  stringOperation: StringOperationInputFilterInput
+  stringOperation: StringOperationFilterInput
 }
 
-input BooleanOperationInputFilterInput {
+input BooleanOperationFilterInput {
   eq: Boolean
   neq: Boolean
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String
@@ -44,7 +44,7 @@ input StringOperationInputFilterInput {
 input Test {
   and: [Test!]
   or: [Test!]
-  TestSimpleMethod: BooleanOperationInputFilterInput
+  TestSimpleMethod: BooleanOperationFilterInput
   TestComplexMethod: BarFilterInput
 }
 

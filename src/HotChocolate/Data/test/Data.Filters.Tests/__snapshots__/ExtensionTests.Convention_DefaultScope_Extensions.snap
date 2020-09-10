@@ -6,9 +6,9 @@ type Query {
   foo(test: TestFilterFilterInput): String
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String
@@ -25,7 +25,7 @@ input StringOperationInputFilterInput {
 input TestFilterFilterInput {
   and: [TestFilterFilterInput!]
   or: [TestFilterFilterInput!]
-  test: StringOperationInputFilterInput
+  test: StringOperationFilterInput
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

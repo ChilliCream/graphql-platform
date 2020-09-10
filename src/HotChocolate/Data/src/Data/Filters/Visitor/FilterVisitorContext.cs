@@ -18,15 +18,15 @@ namespace HotChocolate.Data.Filters
             }
 
             Types.Push(initialType);
-            Scopes = new StackableList<FilterScope<T>>();
+            Scopes = new Stack<FilterScope<T>>();
             Scopes.Push(filterScope ?? CreateScope());
         }
 
-        public IStackableList<FilterScope<T>> Scopes { get; }
+        public Stack<FilterScope<T>> Scopes { get; }
 
-        public IStackableList<IType> Types { get; } = new StackableList<IType>();
+        public Stack<IType> Types { get; } = new Stack<IType>();
 
-        public IStackableList<IInputField> Operations { get; } = new StackableList<IInputField>();
+        public Stack<IInputField> Operations { get; } = new Stack<IInputField>();
 
         public IList<IError> Errors { get; } = new List<IError>();
 
