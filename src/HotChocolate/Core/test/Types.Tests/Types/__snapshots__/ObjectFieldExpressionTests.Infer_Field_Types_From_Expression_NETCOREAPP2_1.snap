@@ -9,7 +9,6 @@ type Bar {
 
 type Query {
   text: String!
-  texts: [String!]!
   bars: [Bar!]!
   bar: Bar!
 }
