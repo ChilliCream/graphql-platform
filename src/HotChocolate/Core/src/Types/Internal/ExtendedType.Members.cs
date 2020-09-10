@@ -137,7 +137,9 @@ namespace HotChocolate.Internal
                 Type type,
                 ref int position)
             {
-                bool? state = GetNextState(flags, ref position);
+                bool? state = position == -1 || (type.IsValueType && !type.IsGenericType)
+                    ? null
+                    : GetNextState(flags, ref position);
 
                 if (type.IsValueType)
                 {
@@ -215,17 +217,47 @@ namespace HotChocolate.Internal
                 {
                     Type[] arguments = type.GetGenericArguments();
                     ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
+                    bool skipFlags = SkipFlags(arguments);
+                    int skipPos = -1;
 
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         extendedArguments[i] =
-                            CreateExtendedType(context, flags, arguments[i], ref position);
+                            skipFlags
+                                ? CreateExtendedType(context, flags, arguments[i], ref skipPos)
+                                : CreateExtendedType(context, flags, arguments[i], ref position);
                     }
 
                     return extendedArguments;
                 }
 
                 return Array.Empty<ExtendedType>();
+            }
+
+            private static bool SkipFlags(Type[] arguments)
+            {
+                bool skipFlags = true;
+
+                foreach (Type argument in arguments)
+                {
+                    if (!argument.IsValueType)
+                    {
+                        skipFlags = false;
+                    }
+                    else if (argument.IsGenericType)
+                    {
+                        if (argument.GetGenericTypeDefinition() != typeof(Nullable<>))
+                        {
+                            skipFlags = false;
+                        }
+                        else
+                        {
+                            skipFlags = SkipFlags(argument.GetGenericArguments());
+                        }
+                    }
+                }
+
+                return skipFlags;
             }
         }
     }
