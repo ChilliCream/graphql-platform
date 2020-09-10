@@ -12,7 +12,8 @@ namespace HotChocolate.Data.Sorting
             {
                 return propertyInfo.PropertyType;
             }
-            else if (field.Member is MethodInfo methodInfo)
+
+            if (field.Member is MethodInfo methodInfo)
             {
                 return methodInfo.ReturnType;
             }

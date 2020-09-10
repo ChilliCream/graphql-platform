@@ -54,8 +54,8 @@ namespace HotChocolate.Data.Sorting
                 if (field is SortFieldDefinition sortFieldDefinition)
                 {
                     if (discoveryContext.TryPredictTypeKind(
-                            sortFieldDefinition.Type,
-                            out TypeKind kind) &&
+                        sortFieldDefinition.Type,
+                        out TypeKind kind) &&
                         kind != TypeKind.Enum)
                     {
                         field.Type = field.Type.With(scope: discoveryContext.Scope);
@@ -129,9 +129,7 @@ namespace HotChocolate.Data.Sorting
                 (definition is SortEnumTypeDefinition ||
                     definition is SortInputTypeDefinition))
             {
-                definition.Name = completionContext.Scope +
-                    "_" +
-                    definition.Name;
+                definition.Name = completionContext.Scope + "_" + definition.Name;
             }
         }
 
@@ -140,11 +138,11 @@ namespace HotChocolate.Data.Sorting
             string? scope)
         {
             if (!_conventions.TryGetValue(
-                scope ?? "",
+                scope ?? string.Empty,
                 out ISortConvention? convention))
             {
                 convention = context.GetSortConvention(scope);
-                _conventions[scope ?? ""] = convention;
+                _conventions[scope ?? string.Empty] = convention;
             }
 
             return convention;

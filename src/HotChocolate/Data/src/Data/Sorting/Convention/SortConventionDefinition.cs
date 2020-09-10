@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Sorting
     {
         public string? Scope { get; set; }
 
-        public string ArgumentName { get; set; } = "where";
+        public string ArgumentName { get; set; } = "order";
 
         public Type? Provider { get; set; }
 

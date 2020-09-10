@@ -118,10 +118,11 @@ namespace HotChocolate.Data.Sorting
             ConfigureSortEnumType configure)
             where TSortEnumType : SortEnumType
         {
-            var typeReference = Context.TypeInspector.GetTypeRef(
-                typeof(TSortEnumType),
-                TypeContext.None,
-                Definition.Scope);
+            ExtendedTypeReference typeReference =
+                Context.TypeInspector.GetTypeRef(
+                    typeof(TSortEnumType),
+                    TypeContext.None,
+                    Definition.Scope);
 
             if (!Definition.EnumConfigurations.TryGetValue(
                 typeReference,

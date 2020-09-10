@@ -31,7 +31,6 @@ namespace HotChocolate.Data.Sorting
 
             // bind string as it is a class to avoid SortType<string>
             descriptor.BindRuntimeType<string, DefaultSortEnumType>();
-
             descriptor.DefaultBinding<DefaultSortEnumType>();
 
             return descriptor;
