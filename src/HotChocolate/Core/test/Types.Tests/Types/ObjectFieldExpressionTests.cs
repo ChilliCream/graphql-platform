@@ -21,7 +21,12 @@ namespace HotChocolate.Types
                 })
                 .Create()
                 .ToString()
+
+#if NETCOREAPP2_1
+                .MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
+#else
                 .MatchSnapshot();
+#endif
         }
 
         [Fact]
