@@ -139,8 +139,6 @@ namespace HotChocolate.Internal
             {
                 if (type.IsValueType)
                 {
-                    GetNextState(flags, ref position);
-
                     if (type.IsGenericType
                         && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
