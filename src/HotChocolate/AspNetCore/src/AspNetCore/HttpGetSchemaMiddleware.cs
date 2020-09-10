@@ -1,12 +1,8 @@
-
-using System;
-using System.Diagnostics;
-using System.Net;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 
 namespace HotChocolate.AspNetCore
@@ -25,7 +21,8 @@ namespace HotChocolate.AspNetCore
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (HttpMethods.IsGet(context.Request.Method))
+            if (HttpMethods.IsGet(context.Request.Method) &&
+                context.Request.Query.ContainsKey("SDL"))
             {
                 await HandleRequestAsync(context);
             }
@@ -41,7 +38,7 @@ namespace HotChocolate.AspNetCore
         {
             IRequestExecutor requestExecutor = await GetExecutorAsync(context.RequestAborted);
 
-            string fileName = 
+            string fileName =
                 requestExecutor.Schema.Name.IsEmpty ||
                 requestExecutor.Schema.Name.Equals(Schema.DefaultName)
                     ? "schema.graphql"
@@ -52,19 +49,14 @@ namespace HotChocolate.AspNetCore
                 "Content-Disposition",
                 new[] { $"attachment; filename=\"{fileName}\"" });
 
-            using (var memoryStream = new MemoryStream())
-            {
-                using (var streamWriter = new StreamWriter(memoryStream))
-                {
-                    SchemaSerializer.Serialize(
-                        _queryExecutor.Schema,
-                        streamWriter);
-                    await streamWriter.FlushAsync().ConfigureAwait(false);
+            await using var memoryStream = new MemoryStream();
+            await using var streamWriter = new StreamWriter(memoryStream);
 
-                    memoryStream.Seek(0, SeekOrigin.Begin);
-                    await memoryStream.CopyToAsync(context.Response.Body).ConfigureAwait(false);
-                }
-            }
+            SchemaSerializer.Serialize(requestExecutor.Schema, streamWriter);
+            await streamWriter.FlushAsync().ConfigureAwait(false);
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+            await memoryStream.CopyToAsync(context.Response.Body).ConfigureAwait(false);
         }
     }
 }
