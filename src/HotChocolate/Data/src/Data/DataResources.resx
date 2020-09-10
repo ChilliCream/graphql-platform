@@ -144,4 +144,19 @@
   <data name="SortProvider_UnableToCreateOperationHandler" xml:space="preserve">
     <value>Unable to create operation handler `{0}` for sort provider `{1}`.</value>
   </data>
+  <data name="SortEnumValue_ValueIsNull" xml:space="preserve">
+    <value>The inner value of enum value cannot be null or empty</value>
+  </data>
+  <data name="SortVisitor_InvalidField" xml:space="preserve">
+    <value>Sorting visitor encountered invalid field</value>
+  </data>
+  <data name="SortVisitor_InvalidType" xml:space="preserve">
+    <value>Sorting visitor encountered invalid type</value>
+  </data>
+  <data name="FilterVisitor_InvalidType" xml:space="preserve">
+    <value>Filter visitor encountered invalid type</value>
+  </data>
+  <data name="FilterVisitor_InvalidField" xml:space="preserve">
+    <value>Filter visitor encountered invalid field</value>
+  </data>
 </root>

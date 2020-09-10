@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Sorting
@@ -28,7 +29,7 @@ namespace HotChocolate.Data.Sorting
             if (enumValueDefinition.Value is null)
             {
                 throw new ArgumentException(
-                    "", // todo: Resources TypeResources.EnumValue_ValueIsNull,
+                    DataResources.SortEnumValue_ValueIsNull,
                     nameof(enumValueDefinition));
             }
 

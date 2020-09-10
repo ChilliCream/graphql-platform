@@ -296,5 +296,35 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("SortProvider_UnableToCreateOperationHandler", resourceCulture);
             }
         }
+        
+        internal static string SortEnumValue_ValueIsNull {
+            get {
+                return ResourceManager.GetString("SortEnumValue_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        internal static string SortVisitor_InvalidField {
+            get {
+                return ResourceManager.GetString("SortVisitor_InvalidField", resourceCulture);
+            }
+        }
+        
+        internal static string SortVisitor_InvalidType {
+            get {
+                return ResourceManager.GetString("SortVisitor_InvalidType", resourceCulture);
+            }
+        }
+        
+        internal static string FilterVisitor_InvalidType {
+            get {
+                return ResourceManager.GetString("FilterVisitor_InvalidType", resourceCulture);
+            }
+        }
+        
+        internal static string FilterVisitor_InvalidField {
+            get {
+                return ResourceManager.GetString("FilterVisitor_InvalidField", resourceCulture);
+            }
+        }
     }
 }

@@ -28,7 +28,8 @@ namespace HotChocolate.Data.Sorting
         {
             if (context.Types.Peek().NamedType() is InputObjectType inputType)
             {
-                if (inputType.Fields.TryGetField(node.Name.Value,
+                if (inputType.Fields.TryGetField(
+                    node.Name.Value,
                     out IInputField? field))
                 {
                     context.Fields.Push(field);
@@ -36,13 +37,13 @@ namespace HotChocolate.Data.Sorting
                     return Continue;
                 }
 
-                // TODO : resources - invalid field
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    DataResources.SortVisitor_InvalidField);
             }
             else
             {
-                // TODO : resources - invalid type
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    DataResources.SortVisitor_InvalidType);
             }
         }
     }
