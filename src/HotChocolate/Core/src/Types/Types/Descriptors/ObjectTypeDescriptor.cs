@@ -54,12 +54,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             ObjectTypeDefinition definition)
         {
-            if (Definition.RuntimeType is { })
+            if (Definition.FieldBindingType is not null)
             {
                 Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.RuntimeType);
+                    Definition.FieldBindingType);
             }
 
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
@@ -265,7 +265,8 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
 
-            MemberInfo member = propertyOrMethod.ExtractMember();
+            MemberInfo member = propertyOrMethod.TryExtractMember();
+
             if (member is PropertyInfo || member is MethodInfo)
             {
                 ObjectFieldDescriptor fieldDescriptor =
@@ -277,6 +278,14 @@ namespace HotChocolate.Types.Descriptors
 
                 fieldDescriptor = ObjectFieldDescriptor.New(
                     Context, member, Definition.RuntimeType, typeof(TResolver));
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            if (member is null)
+            {
+                var fieldDescriptor = ObjectFieldDescriptor.New(
+                    Context, propertyOrMethod, Definition.RuntimeType, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }

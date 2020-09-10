@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
@@ -17,6 +18,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public MemberInfo? Member { get; set; }
 
         public MemberInfo? ResolverMember { get; set; }
+
+        public Expression? Expression { get; set; }
 
         public Type? ResultType { get; set; }
 

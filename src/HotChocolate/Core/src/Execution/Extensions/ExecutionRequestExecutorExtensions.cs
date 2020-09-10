@@ -72,7 +72,7 @@ namespace HotChocolate.Execution
         public static Task<IExecutionResult> ExecuteAsync(
             this IRequestExecutor executor,
             string query,
-            IReadOnlyDictionary<string, object> variableValues)
+            IReadOnlyDictionary<string, object?> variableValues)
         {
             if (executor is null)
             {
@@ -102,7 +102,7 @@ namespace HotChocolate.Execution
         public static Task<IExecutionResult> ExecuteAsync(
             this IRequestExecutor executor,
             string query,
-            IReadOnlyDictionary<string, object> variableValues,
+            IReadOnlyDictionary<string, object?> variableValues,
             CancellationToken cancellationToken)
         {
             if (executor is null)
@@ -176,7 +176,7 @@ namespace HotChocolate.Execution
         public static IExecutionResult Execute(
             this IRequestExecutor executor,
             string query,
-            IReadOnlyDictionary<string, object> variableValues)
+            IReadOnlyDictionary<string, object?> variableValues)
         {
             if (executor is null)
             {
