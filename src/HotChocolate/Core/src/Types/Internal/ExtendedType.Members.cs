@@ -137,6 +137,8 @@ namespace HotChocolate.Internal
                 Type type,
                 ref int position)
             {
+                bool? state = GetNextState(flags, ref position);
+
                 if (type.IsValueType)
                 {
                     if (type.IsGenericType
@@ -159,8 +161,6 @@ namespace HotChocolate.Internal
                         source: type,
                         isNullable: false);
                 }
-
-                bool? state = GetNextState(flags, ref position);
 
                 if (type.IsArray)
                 {
