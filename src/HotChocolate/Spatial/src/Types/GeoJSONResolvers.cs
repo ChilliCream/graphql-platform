@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONResolvers
     {

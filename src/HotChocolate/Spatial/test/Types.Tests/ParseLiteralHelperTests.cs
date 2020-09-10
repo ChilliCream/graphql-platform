@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using Xunit;
 
-namespace HotChocolate.Spatial.Types.Tests
+namespace HotChocolate.Types.Spatial.Tests
 {
     public class ParseLiteralHelperTests
     {

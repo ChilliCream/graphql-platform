@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONLineStringInput : InputObjectType<LineString>
     {

@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONMultiPointInput : InputObjectType<MultiPoint>
     {
@@ -40,7 +38,8 @@ namespace HotChocolate.Spatial.Types
             }
 
             (int typeIndex, int coordinateIndex, int crsIndex) indices =
-                ParseLiteralHelper.GetFieldIndices(obj,
+                ParseLiteralHelper.GetFieldIndices(
+                    obj,
                     _typeFieldName,
                     _coordinatesFieldName,
                     _crsFieldName);

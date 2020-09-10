@@ -2,10 +2,9 @@ using System;
 using System.Collections;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
-using HotChocolate.Spatial.Types.Properties;
-using HotChocolate.Types;
+using HotChocolate.Types.Spatial.Properties;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONPositionScalar : ScalarType<Coordinate>
     {
@@ -196,11 +195,11 @@ namespace HotChocolate.Spatial.Types
 
             if (!double.IsNaN(coordinate.Z))
             {
-                serialized = new double[] { coordinate.X, coordinate.Y, coordinate.Z };
+                serialized = new double[] {coordinate.X, coordinate.Y, coordinate.Z};
                 return true;
             }
 
-            serialized = new double[] { coordinate.X, coordinate.Y };
+            serialized = new double[] {coordinate.X, coordinate.Y};
             return true;
         }
     }

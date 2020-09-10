@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public static class ParseLiteralHelper
     {

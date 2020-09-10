@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>HotChocolate.Spatial.Types</PackageId>
-    <AssemblyName>HotChocolate.Spatial.Types</AssemblyName>
-    <RootNamespace>HotChocolate.Spatial.Types</RootNamespace>
+    <PackageId>HotChocolate.Types.Spatial</PackageId>
+    <AssemblyName>HotChocolate.Types.Spatial</AssemblyName>
+    <RootNamespace>HotChocolate.Types.Spatial</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

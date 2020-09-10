@@ -1,4 +1,4 @@
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public enum GeoJSONGeometryType
     {

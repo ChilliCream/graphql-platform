@@ -1,9 +1,9 @@
 using System;
 using System.Globalization;
-using HotChocolate.Spatial.Types.Properties;
+using HotChocolate.Types.Spatial.Properties;
 using HotChocolate.Types;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public static class ThrowHelper
     {

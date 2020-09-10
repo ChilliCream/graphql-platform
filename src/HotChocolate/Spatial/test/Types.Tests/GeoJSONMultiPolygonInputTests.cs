@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Spatial.Types.Tests
+namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONMultiPolygonInputTests
     {

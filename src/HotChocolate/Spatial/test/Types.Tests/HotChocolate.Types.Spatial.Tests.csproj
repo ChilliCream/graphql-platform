@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Spatial.Types.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Types.Spatial.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Types\HotChocolate.Spatial.Types.csproj" />
+    <ProjectReference Include="..\..\src\Types\HotChocolate.Types.Spatial.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 

@@ -1,7 +1,6 @@
-﻿using HotChocolate.Types;
-using NetTopologySuite.Geometries;
+﻿using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Spatial.Types
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONPolygonType : ObjectType<Polygon>
     {

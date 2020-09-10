@@ -13,9 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4EE990B2-C
 		test\Directory.Build.props = test\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Spatial.Types", "src\Types\HotChocolate.Spatial.Types.csproj", "{D68A0AB9-871A-487B-8D12-1A7544D81B9E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Spatial", "src\Types\HotChocolate.Types.Spatial.csproj", "{D68A0AB9-871A-487B-8D12-1A7544D81B9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Spatial.Types.Tests", "test\Types.Tests\HotChocolate.Spatial.Types.Tests.csproj", "{90B143EF-CD51-4490-B4CB-58C5ABEB17D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types.Spatial.Tests", "test\Types.Tests\HotChocolate.Types.Spatial.Tests.csproj", "{90B143EF-CD51-4490-B4CB-58C5ABEB17D2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".referenced", ".referenced", "{882EC02D-5E1D-41F5-AD9F-AA06E31D133A}"
 EndProject
