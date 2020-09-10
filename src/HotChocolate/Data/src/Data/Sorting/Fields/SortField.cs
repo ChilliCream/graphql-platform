@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -7,14 +8,15 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting
 {
     public class SortField
-        : InputField
-        , ISortField
+        : InputField,
+          ISortField
     {
         internal SortField(SortFieldDefinition definition)
             : base(definition)
         {
             Member = definition.Member;
-            Handler = definition.Handler;
+            Handler = definition.Handler ??
+                throw new InvalidOperationException();
         }
 
         public new SortInputType DeclaringType => (SortInputType)base.DeclaringType;

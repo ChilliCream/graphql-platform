@@ -10,10 +10,14 @@ namespace HotChocolate.Data.Sorting
     {
         protected SortEnumValueDescriptor(
             IDescriptorContext context,
+            string? scope,
             int value)
-            : base(context, value)
+            : base(context, new SortEnumValueDefinition {Operation = value})
         {
-            Definition = new SortEnumValueDefinition {Operation = value};
+            ISortConvention convention = context.GetSortConvention(scope);
+            Definition.Name = convention.GetOperationName(value);
+            Definition.Description = convention.GetOperationDescription(value);
+            Definition.Value = Definition.Name.Value;
         }
 
         protected SortEnumValueDescriptor(
@@ -83,7 +87,8 @@ namespace HotChocolate.Data.Sorting
 
         public static SortEnumValueDescriptor New(
             IDescriptorContext context,
+            string? scope,
             int value) =>
-            new SortEnumValueDescriptor(context, value);
+            new SortEnumValueDescriptor(context, scope, value);
     }
 }

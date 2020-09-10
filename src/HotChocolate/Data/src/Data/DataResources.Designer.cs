@@ -170,5 +170,131 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("QueryableSortHandler_InvalidSelector", resourceCulture);
             }
         }
+        
+        internal static string FilterConvention_CouldNotConvertValue {
+            get {
+                return ResourceManager.GetString("FilterConvention_CouldNotConvertValue", resourceCulture);
+            }
+        }
+        
+        internal static string FilterObjectFieldDescriptorExtensions_CannotInfer {
+            get {
+                return ResourceManager.GetString("FilterObjectFieldDescriptorExtensions_CannotInfer", resourceCulture);
+            }
+        }
+        
+        internal static string FilterDescriptorContextExtensions_NoConvention {
+            get {
+                return ResourceManager.GetString("FilterDescriptorContextExtensions_NoConvention", resourceCulture);
+            }
+        }
+        
+        internal static string SortProvider_NoFieldHandlersConfigured {
+            get {
+                return ResourceManager.GetString("SortProvider_NoFieldHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string SortProvider_NoOperationHandlersConfigured {
+            get {
+                return ResourceManager.GetString("SortProvider_NoOperationHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string SortDescriptorContextExtensions_NoConvention {
+            get {
+                return ResourceManager.GetString("SortDescriptorContextExtensions_NoConvention", resourceCulture);
+            }
+        }
+        
+        internal static string SortInterceptor_NoFieldHandlerFoundForField {
+            get {
+                return ResourceManager.GetString("SortInterceptor_NoFieldHandlerFoundForField", resourceCulture);
+            }
+        }
+        
+        internal static string SortInterceptor_NoOperationHandlerFoundForValue {
+            get {
+                return ResourceManager.GetString("SortInterceptor_NoOperationHandlerFoundForValue", resourceCulture);
+            }
+        }
+        
+        internal static string SortConvention_NoProviderFound {
+            get {
+                return ResourceManager.GetString("SortConvention_NoProviderFound", resourceCulture);
+            }
+        }
+        
+        internal static string SortConvention_TypeOfMemberIsUnknown {
+            get {
+                return ResourceManager.GetString("SortConvention_TypeOfMemberIsUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_NoProviderFound {
+            get {
+                return ResourceManager.GetString("FilterConvention_NoProviderFound", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_TypeOfMemberIsUnknown {
+            get {
+                return ResourceManager.GetString("FilterConvention_TypeOfMemberIsUnknown", resourceCulture);
+            }
+        }
+        
+        internal static string SortConvention_OperationNameNotFound {
+            get {
+                return ResourceManager.GetString("SortConvention_OperationNameNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string SortObjectFieldDescriptorExtensions_CannotInfer {
+            get {
+                return ResourceManager.GetString("SortObjectFieldDescriptorExtensions_CannotInfer", resourceCulture);
+            }
+        }
+        
+        internal static string FilterConvention_OperationNameNotFound {
+            get {
+                return ResourceManager.GetString("FilterConvention_OperationNameNotFound", resourceCulture);
+            }
+        }
+        
+        internal static string FilterProvider_NoHandlersConfigured {
+            get {
+                return ResourceManager.GetString("FilterProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string FilterInterceptor_NoHandlerFoundForField {
+            get {
+                return ResourceManager.GetString("FilterInterceptor_NoHandlerFoundForField", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_CreateNonNullError {
+            get {
+                return ResourceManager.GetString("ErrorHelper_CreateNonNullError", resourceCulture);
+            }
+        }
+        
+        internal static string FilterProvider_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("FilterProvider_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string SortProvider_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("SortProvider_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string SortProvider_UnableToCreateOperationHandler {
+            get {
+                return ResourceManager.GetString("SortProvider_UnableToCreateOperationHandler", resourceCulture);
+            }
+        }
     }
 }

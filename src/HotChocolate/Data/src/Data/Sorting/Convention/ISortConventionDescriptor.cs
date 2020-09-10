@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Sorting
         /// <typeparam name="TSortEnumType">
         /// The sort type for which additional configuration shall be provided.
         /// </typeparam>
-        ISortConventionDescriptor Configure<TSortEnumType>(
+        ISortConventionDescriptor ConfigureEnum<TSortEnumType>(
             ConfigureSortEnumType configure)
             where TSortEnumType : SortEnumType;
 

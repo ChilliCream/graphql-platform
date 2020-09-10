@@ -10,7 +10,6 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Data.Sorting
 {
     public class SortEnumType
-
         : EnumType
     {
         private Action<ISortEnumTypeDescriptor>? _configure;
@@ -32,7 +31,8 @@ namespace HotChocolate.Data.Sorting
         {
             var descriptor = SortEnumTypeDescriptor.FromSchemaType(
                 context.DescriptorContext,
-                GetType());
+                GetType(),
+                context.Scope);
 
             _configure!(descriptor);
             _configure = null;
@@ -57,14 +57,6 @@ namespace HotChocolate.Data.Sorting
 
             enumValue = null;
             return false;
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            EnumTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            SetTypeIdentity(typeof(SortEnumType));
         }
 
         public ISortEnumValue? ParseSortLiteral(IValueNode valueSyntax)

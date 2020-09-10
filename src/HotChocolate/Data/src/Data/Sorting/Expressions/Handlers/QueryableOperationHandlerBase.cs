@@ -41,7 +41,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 return false;
             }
 
-            if (context.Operations.Peek() is QueryableFieldSelector fieldSelector)
+            if (context.Instance.Peek() is QueryableFieldSelector fieldSelector)
             {
                 context.Operations.Enqueue(
                     HandleOperation(

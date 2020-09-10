@@ -65,7 +65,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                 nextSelector = SortExpressionBuilder.IfNullThenDefault(
                     lastSelector,
                     nextSelector,
-                    Expression.Default(context.RuntimeTypes.Peek().Source));
+                    Expression.Default(field.RuntimeType.Source));
             }
 
             context.PushInstance(lastFieldSelector.WithSelector(nextSelector));

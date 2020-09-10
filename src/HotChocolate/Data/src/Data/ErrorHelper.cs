@@ -4,7 +4,6 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data
 {
@@ -19,8 +18,7 @@ namespace HotChocolate.Data
 
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The provided value for filter `{0}` of type {1} is invalid. " +
-                    "Null values are not supported.",
+                    DataResources.ErrorHelper_CreateNonNullError,
                     context.Operations.Peek().Name,
                     filterType.Visualize())
                 .AddLocation(value)
@@ -32,7 +30,7 @@ namespace HotChocolate.Data
         public static ISchemaError FilterField_RuntimeType_Unknown(FilterField field) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    FilterField_FilterField_TypeUnknown,
+                    DataResources.FilterField_FilterField_TypeUnknown,
                     field.DeclaringType.Name,
                     field.Name)
                 .SetTypeSystemObject(field.DeclaringType)
@@ -44,7 +42,7 @@ namespace HotChocolate.Data
             Type fieldHandler) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to create field handler `{0}` for filter provider `{1}`.",
+                    DataResources.FilterProvider_UnableToCreateFieldHandler,
                     fieldHandler.FullName ?? fieldHandler.Name,
                     filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
                 .SetExtension(nameof(filterProvider), filterProvider)
@@ -56,7 +54,7 @@ namespace HotChocolate.Data
             Type fieldHandler) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to create field handler `{0}` for sort provider `{1}`.",
+                    DataResources.SortProvider_UnableToCreateFieldHandler,
                     fieldHandler.FullName ?? fieldHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
@@ -68,7 +66,7 @@ namespace HotChocolate.Data
             Type operationHandler) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    "Unable to create operation handler `{0}` for sort provider `{1}`.",
+                    DataResources.SortProvider_UnableToCreateOperationHandler,
                     operationHandler.FullName ?? operationHandler.Name,
                     sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
                 .SetExtension(nameof(sortProvider), sortProvider)
@@ -78,7 +76,7 @@ namespace HotChocolate.Data
         public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
             ErrorBuilder.New()
                 .SetMessage(
-                    SortingVisitor_ListInput_AreNotSuported,
+                    DataResources.SortingVisitor_ListInput_AreNotSuported,
                     field.DeclaringType.Name,
                     field.Name)
                 .AddLocation(node)
@@ -94,8 +92,7 @@ namespace HotChocolate.Data
 
             return ErrorBuilder.New()
                 .SetMessage(
-                    "The provided value for sorting `{0}` of type {1} is invalid. " +
-                    "Null values are not supported.",
+                    DataResources.ErrorHelper_CreateNonNullError,
                     context.Fields.Peek().Name,
                     sortType.Visualize())
                 .AddLocation(value)

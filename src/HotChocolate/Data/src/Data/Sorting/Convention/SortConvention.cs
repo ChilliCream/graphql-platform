@@ -94,9 +94,19 @@ namespace HotChocolate.Data.Sorting
             }
 
             _namingConventions = context.DescriptorContext.Naming;
+
             _operations = definition.Operations.ToDictionary(
                 x => x.Id,
                 SortOperation.FromDefinition);
+
+            foreach (var operation in _operations.Values)
+            {
+                if (!operation.Name.HasValue)
+                {
+                    throw SortConvention_OperationIsNotNamed(this, operation);
+                }
+            }
+
             _bindings = definition.Bindings;
             _defaultBinding = definition.DefaultBinding;
             _inputTypeConfigs = definition.Configurations;

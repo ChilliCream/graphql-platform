@@ -114,7 +114,7 @@ namespace HotChocolate.Data.Sorting
                 });
 
         /// <inheritdoc />
-        public ISortConventionDescriptor Configure<TSortEnumType>(
+        public ISortConventionDescriptor ConfigureEnum<TSortEnumType>(
             ConfigureSortEnumType configure)
             where TSortEnumType : SortEnumType
         {

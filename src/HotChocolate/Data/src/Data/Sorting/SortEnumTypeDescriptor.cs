@@ -1,61 +1,90 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting
 {
     public class SortEnumTypeDescriptor
-        : EnumTypeDescriptor
-        , ISortEnumTypeDescriptor
+        : DescriptorBase<SortEnumTypeDefinition>,
+          ISortEnumTypeDescriptor
     {
-        protected SortEnumTypeDescriptor(IDescriptorContext context)
+        protected SortEnumTypeDescriptor(
+            IDescriptorContext context,
+            Type clrType,
+            string? scope)
             : base(context)
         {
-        }
-
-        protected SortEnumTypeDescriptor(IDescriptorContext context, Type clrType)
-            : base(context, clrType)
-        {
+            Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Enum);
+            Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Enum);
+            Definition.RuntimeType = typeof(object);
+            Definition.Values.BindingBehavior = context.Options.DefaultBindingBehavior;
+            Definition.Scope = scope;
         }
 
         protected SortEnumTypeDescriptor(
             IDescriptorContext context,
-            EnumTypeDefinition definition)
-            : base(context, definition)
+            SortEnumTypeDefinition definition)
+            : base(context)
         {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
-        protected internal new EnumTypeDefinition Definition
+        protected override SortEnumTypeDefinition Definition { get; set; } =
+            new SortEnumTypeDefinition();
+
+        protected ICollection<SortEnumValueDescriptor> Values { get; } =
+            new List<SortEnumValueDescriptor>();
+
+        protected override void OnCreateDefinition(
+            SortEnumTypeDefinition definition)
         {
-            get { return base.Definition; }
-            set { base.Definition = value; }
+            if (Definition.RuntimeType is { })
+            {
+                Context.TypeInspector.ApplyAttributes(
+                    Context,
+                    this,
+                    Definition.RuntimeType);
+            }
+
+            var values = Values.Select(t => t.CreateDefinition())
+                .OfType<SortEnumValueDefinition>()
+                .ToDictionary(t => t.Value);
+
+            definition.Values.Clear();
+
+            foreach (SortEnumValueDefinition value in values.Values)
+            {
+                definition.Values.Add(value);
+            }
+
+            base.OnCreateDefinition(definition);
         }
 
-
-        public new ISortEnumTypeDescriptor SyntaxNode(EnumTypeDefinitionNode enumTypeDefinition)
+        public ISortEnumTypeDescriptor SyntaxNode(
+            EnumTypeDefinitionNode enumTypeDefinition)
         {
-            base.SyntaxNode(enumTypeDefinition);
+            Definition.SyntaxNode = enumTypeDefinition;
             return this;
         }
 
-        public new ISortEnumTypeDescriptor Name(NameString value)
+        public ISortEnumTypeDescriptor Name(NameString value)
         {
-            base.Name(value);
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        public new ISortEnumTypeDescriptor Description(string value)
+        public ISortEnumTypeDescriptor Description(string value)
         {
-            base.Description(value);
+            Definition.Description = value;
             return this;
         }
 
         public ISortEnumValueDescriptor Operation(int operation)
         {
             SortEnumValueDescriptor? descriptor = Values
-                .OfType<SortEnumValueDescriptor>()
                 .FirstOrDefault(
                     t =>
                         t.Definition.Value is not null &&
@@ -66,48 +95,51 @@ namespace HotChocolate.Data.Sorting
                 return descriptor;
             }
 
-            descriptor = SortEnumValueDescriptor.New(Context, operation);
+            descriptor = SortEnumValueDescriptor.New(Context, Definition.Scope, operation);
             Values.Add(descriptor);
             return descriptor;
         }
 
-        public new ISortEnumTypeDescriptor Directive<T>(T directiveInstance) where T : class
+        public ISortEnumTypeDescriptor Directive<T>(T directiveInstance)
+            where T : class
         {
-            base.Directive(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
-        public new ISortEnumTypeDescriptor Directive<T>() where T : class, new()
+        public ISortEnumTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            base.Directive<T>();
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
-        public new ISortEnumTypeDescriptor Directive(
+        public ISortEnumTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            base.Directive(name, arguments);
+            Definition.AddDirective(name, arguments);
             return this;
         }
 
-        public static new SortEnumTypeDescriptor New(
+        public static SortEnumTypeDescriptor New(
             IDescriptorContext context,
-            Type clrType) =>
-            new SortEnumTypeDescriptor(context, clrType);
+            Type type,
+            string? scope) =>
+            new SortEnumTypeDescriptor(context, type, scope);
 
-        public static new SortEnumTypeDescriptor FromSchemaType(
+        public static SortEnumTypeDescriptor FromSchemaType(
             IDescriptorContext context,
-            Type schemaType)
+            Type schemaType,
+            string? scope)
         {
-            SortEnumTypeDescriptor descriptor = New(context, schemaType);
-            descriptor.Definition.RuntimeType = typeof(object);
+            SortEnumTypeDescriptor descriptor = New(context, schemaType, scope);
             return descriptor;
         }
 
-        public static new SortEnumTypeDescriptor From(
+        public static SortEnumTypeDescriptor From(
             IDescriptorContext context,
-            EnumTypeDefinition definition ) =>
+            SortEnumTypeDefinition definition) =>
             new SortEnumTypeDescriptor(context, definition);
     }
 }

@@ -81,4 +81,67 @@
   <data name="QueryableSortHandler_InvalidSelector" xml:space="preserve">
     <value>Sorting has encountered invalid selector</value>
   </data>
+  <data name="FilterConvention_CouldNotConvertValue" xml:space="preserve">
+    <value>Filtering could not convert value into desired format.</value>
+  </data>
+  <data name="FilterObjectFieldDescriptorExtensions_CannotInfer" xml:space="preserve">
+    <value>The filter type cannot be inferred from `System.Object`.</value>
+  </data>
+  <data name="FilterDescriptorContextExtensions_NoConvention" xml:space="preserve">
+    <value>No filter convention found for scope `{0}`.</value>
+  </data>
+  <data name="SortProvider_NoFieldHandlersConfigured" xml:space="preserve">
+    <value>The sort provider `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="SortProvider_NoOperationHandlersConfigured" xml:space="preserve">
+    <value>The sort provider `{0}` does not specify and operation handler.</value>
+  </data>
+  <data name="SortDescriptorContextExtensions_NoConvention" xml:space="preserve">
+    <value>No sorting convention found for scope `{0}`.</value>
+  </data>
+  <data name="SortInterceptor_NoFieldHandlerFoundForField" xml:space="preserve">
+    <value>For the field {0} of type {1} was no field handler found.</value>
+  </data>
+  <data name="SortInterceptor_NoOperationHandlerFoundForValue" xml:space="preserve">
+    <value>For the value {0} of type {1} was no operation handler found.</value>
+  </data>
+  <data name="SortConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the sorting convention `{0}`.</value>
+  </data>
+  <data name="SortConvention_TypeOfMemberIsUnknown" xml:space="preserve">
+    <value>The type of the member {0} of the declaring type {1} is unknown</value>
+  </data>
+  <data name="FilterConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the filter convention `{0}`.</value>
+  </data>
+  <data name="FilterConvention_TypeOfMemberIsUnknown" xml:space="preserve">
+    <value>The type of the member {0} of the declaring type {1} is unknown</value>
+  </data>
+  <data name="SortConvention_OperationNameNotFound" xml:space="preserve">
+    <value>Operation with identifier {0} has no name defined. Add a name to the sort convention</value>
+  </data>
+  <data name="SortObjectFieldDescriptorExtensions_CannotInfer" xml:space="preserve">
+    <value>The sort type cannot be inferred from `System.Object`.</value>
+  </data>
+  <data name="FilterConvention_OperationNameNotFound" xml:space="preserve">
+    <value>Operation with identifier {0} has no name defined. Add a name to the filter convention</value>
+  </data>
+  <data name="FilterProvider_NoHandlersConfigured" xml:space="preserve">
+    <value>The filter provider `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="FilterInterceptor_NoHandlerFoundForField" xml:space="preserve">
+    <value>For the field {0} of type {1} was no handler found.</value>
+  </data>
+  <data name="ErrorHelper_CreateNonNullError" xml:space="preserve">
+    <value>The provided value for filter `{0}` of type {1} is invalid. Null values are not supported.</value>
+  </data>
+  <data name="FilterProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for filter provider `{1}`.</value>
+  </data>
+  <data name="SortProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for sort provider `{1}`.</value>
+  </data>
+  <data name="SortProvider_UnableToCreateOperationHandler" xml:space="preserve">
+    <value>Unable to create operation handler `{0}` for sort provider `{1}`.</value>
+  </data>
 </root>

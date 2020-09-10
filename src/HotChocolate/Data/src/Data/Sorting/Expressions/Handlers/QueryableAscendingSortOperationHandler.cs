@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     nameof(Queryable.OrderBy),
                     new[] {ParameterExpression.Type, Selector.Type},
                     expression,
-                    Selector);
+                    Expression.Lambda(Selector, ParameterExpression));
             }
 
             public override Expression CompileThenBy(Expression expression)
@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     nameof(Queryable.ThenBy),
                     new[] {ParameterExpression.Type, Selector.Type},
                     expression,
-                    Selector);
+                    Expression.Lambda(Selector, ParameterExpression));
             }
 
             public static AscendingSortOperation From(QueryableFieldSelector selector) =>

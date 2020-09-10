@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Sorting
             if (context.Types.Peek().NamedType() is InputObjectType inputType)
             {
                 if (inputType.Fields.TryGetField(node.Name.Value,
-                    out IInputField field))
+                    out IInputField? field))
                 {
                     context.Fields.Push(field);
                     context.Types.Push(field.Type);

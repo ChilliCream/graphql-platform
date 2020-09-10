@@ -24,7 +24,7 @@ namespace HotChocolate.Data.Sorting
                 case SortInputTypeDefinition inputDefinition:
                     ConfigureSortInputType(discoveryContext, inputDefinition);
                     break;
-                case EnumTypeDefinition enumTypeDefinition:
+                case SortEnumTypeDefinition enumTypeDefinition:
                     ConfigureSortEnumType(discoveryContext, enumTypeDefinition);
                     break;
             }
@@ -81,13 +81,13 @@ namespace HotChocolate.Data.Sorting
 
         private void ConfigureSortEnumType(
             ITypeDiscoveryContext discoveryContext,
-            EnumTypeDefinition definition)
+            SortEnumTypeDefinition definition)
         {
             ISortConvention convention = GetConvention(
                 discoveryContext.DescriptorContext,
                 discoveryContext.Scope);
 
-            var descriptor = SortEnumTypeDescriptor.From(
+            ISortEnumTypeDescriptor descriptor = SortEnumTypeDescriptor.From(
                 discoveryContext.DescriptorContext,
                 definition);
 
@@ -124,10 +124,12 @@ namespace HotChocolate.Data.Sorting
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            if (definition is SortInputTypeDefinition def &&
-                def.Scope != null)
+            if (definition is {Name: {}} &&
+                definition is IHasScope {Scope: {}} &&
+                (definition is SortEnumTypeDefinition ||
+                    definition is SortInputTypeDefinition))
             {
-                definition.Name = completionContext?.Scope +
+                definition.Name = completionContext.Scope +
                     "_" +
                     definition.Name;
             }

@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Sorting
             ISortEnumValue? sortValue,
             EnumValueNode valueNode)
         {
-            if (sortValue.Handler is ISortOperationHandler<TContext, T> handler &&
+            if (sortValue?.Handler is ISortOperationHandler<TContext, T> handler &&
                 handler.TryHandleEnter(
                     context,
                     field,

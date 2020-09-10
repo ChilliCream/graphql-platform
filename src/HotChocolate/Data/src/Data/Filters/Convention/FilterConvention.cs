@@ -215,7 +215,8 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.IsArrayOrList)
             {
-                if (TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
+                if (runtimeType.ElementType is {} &&
+                    TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
                 {
                     type = typeof(ListFilterInput<>).MakeGenericType(elementType);
                     return true;

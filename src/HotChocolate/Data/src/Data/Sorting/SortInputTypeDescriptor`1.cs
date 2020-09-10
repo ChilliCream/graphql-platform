@@ -43,7 +43,8 @@ namespace HotChocolate.Data.Sorting
             IDictionary<NameString, SortFieldDefinition> fields,
             ISet<MemberInfo> handledProperties)
         {
-            if (Definition.Fields.IsImplicitBinding())
+            if (Definition.Fields.IsImplicitBinding() &&
+                Definition.EntityType is {})
             {
                 FieldDescriptorUtilities.AddImplicitFields(
                     this,
