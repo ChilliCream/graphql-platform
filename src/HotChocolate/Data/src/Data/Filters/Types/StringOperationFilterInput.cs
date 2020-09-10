@@ -2,7 +2,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters
 {
-    public class StringOperationInput : FilterInputType
+    public class StringOperationFilterInput : FilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {

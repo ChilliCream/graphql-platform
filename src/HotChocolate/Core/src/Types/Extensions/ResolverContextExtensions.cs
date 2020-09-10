@@ -234,6 +234,57 @@ namespace HotChocolate
             }
         }
 
+        public static void RemoveGlobalValue(
+            this IResolverContext context,
+            string name)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw String_NullOrEmpty(nameof(name));
+            }
+
+            context.ContextData.Remove(name);
+        }
+
+        public static void RemoveScopedValue(
+            this IResolverContext context,
+            string name)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw String_NullOrEmpty(nameof(name));
+            }
+
+            context.ScopedContextData = context.ScopedContextData.Remove(name);
+        }
+
+        public static void RemoveLocalValue(
+            this IResolverContext context,
+            string name)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (string.IsNullOrEmpty(name))
+            {
+                throw String_NullOrEmpty(nameof(name));
+            }
+
+            context.LocalContextData = context.LocalContextData.Remove(name);
+        }
+
         public static T GetEventMessage<T>(this IResolverContext context) 
         {
             if (context is null)

@@ -3,19 +3,19 @@
 }
 
 type Query {
-  foo(test: ListFilterInputOfStringOperationInputFilterInput): String
+  foo(test: ListFilterInputOfStringOperationFilterInput): String
 }
 
-input ListFilterInputOfStringOperationInputFilterInput {
-  all: StringOperationInputFilterInput
-  none: StringOperationInputFilterInput
-  some: StringOperationInputFilterInput
+input ListFilterInputOfStringOperationFilterInput {
+  all: StringOperationFilterInput
+  none: StringOperationFilterInput
+  some: StringOperationFilterInput
   any: Boolean
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String

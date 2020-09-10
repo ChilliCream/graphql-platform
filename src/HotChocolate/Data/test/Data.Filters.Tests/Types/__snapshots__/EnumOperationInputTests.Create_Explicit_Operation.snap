@@ -6,7 +6,7 @@ type Query {
   foo(test: FooFilterTypeFilterInput): String
 }
 
-input EnumOperationInputOfFooBarFilterInput {
+input EnumOperationFilterInputOfFooBarFilterInput {
   eq: FooBar
   neq: FooBar
   in: [FooBar!]
@@ -16,7 +16,7 @@ input EnumOperationInputOfFooBarFilterInput {
 input FooFilterTypeFilterInput {
   and: [FooFilterTypeFilterInput!]
   or: [FooFilterTypeFilterInput!]
-  comparable: EnumOperationInputOfFooBarFilterInput
+  comparable: EnumOperationFilterInputOfFooBarFilterInput
 }
 
 enum FooBar {
