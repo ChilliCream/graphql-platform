@@ -9,13 +9,13 @@ type Query {
 input FooFilterInput {
   and: [FooFilterInput!]
   or: [FooFilterInput!]
-  string: StringOperationInputFilterInput
-  stringNullable: StringOperationInputFilterInput
+  string: StringOperationFilterInput
+  stringNullable: StringOperationFilterInput
 }
 
-input StringOperationInputFilterInput {
-  and: [StringOperationInputFilterInput!]
-  or: [StringOperationInputFilterInput!]
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
   eq: String
   neq: String
   contains: String

@@ -2,7 +2,9 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
-    public class ComparableOperationInput<T> : FilterInputType, IComparableOperationInput
+    public class ComparableOperationFilterInput<T>
+        : FilterInputType
+        , IComparableOperationFilterInput
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
