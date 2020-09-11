@@ -178,7 +178,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barShort}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -187,7 +187,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barShort}}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         [Fact]
@@ -206,7 +206,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barShort}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -215,7 +215,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barShort}}}")
                     .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
         }
 
         [Fact]
@@ -233,7 +233,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barEnum}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -242,7 +242,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barEnum}}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         [Fact]
@@ -261,7 +261,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barEnum}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -270,7 +270,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barEnum}}}")
                     .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
         }
         [Fact]
         public async Task Create_ObjectString_OrderBy()
@@ -287,7 +287,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barString}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -296,7 +296,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barString}}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         [Fact]
@@ -315,7 +315,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barString}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -324,7 +324,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barString}}}")
                     .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
         }
         [Fact]
         public async Task Create_ObjectBool_OrderBy()
@@ -341,7 +341,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barBool}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -350,7 +350,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barBool}}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         [Fact]
@@ -369,7 +369,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barBool}}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -378,7 +378,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         "{ foo{ barBool}}}")
                     .Create());
 
-            res2.MatchSnapshot("13");
+            res2.MatchSqlSnapshot("13");
         }
 
         public class Foo

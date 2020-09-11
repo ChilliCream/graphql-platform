@@ -1,0 +1,3 @@
+﻿SELECT "d"."Id", "d"."BarDecimal", "d"."BarDouble", "d"."BarFloat", "d"."BarInt", "d"."BarLong", "d"."BarShort"
+FROM "Data" AS "d"
+ORDER BY "d"."BarShort"

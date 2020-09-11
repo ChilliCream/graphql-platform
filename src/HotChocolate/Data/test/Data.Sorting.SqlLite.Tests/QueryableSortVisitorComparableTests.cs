@@ -40,14 +40,14 @@ namespace HotChocolate.Data.Sorting
                     .SetQuery("{ root(order: { barShort: ASC}){ barShort}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barShort: DESC}){ barShort}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         [Fact]
@@ -64,14 +64,14 @@ namespace HotChocolate.Data.Sorting
                     .SetQuery("{ root(order: { barShort: ASC}){ barShort}}")
                     .Create());
 
-            res1.MatchSnapshot("ASC");
+            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barShort: DESC}){ barShort}}")
                     .Create());
 
-            res2.MatchSnapshot("DESC");
+            res2.MatchSqlSnapshot("DESC");
         }
 
         public class Foo
