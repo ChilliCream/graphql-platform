@@ -219,11 +219,7 @@ namespace HotChocolate.Data.Sorting
                 Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
             Assert.Single(error.Errors);
-#if NETCOREAPP2_1
-            error.Errors[0].Message.MatchSnapshot(new SnapshotNameExtension("NETCOREAPP2_1"));
-#else
             error.Errors[0].Message.MatchSnapshot();
-#endif
         }
 
         protected ISchema CreateSchemaWith(ISortInputType type, SortConvention convention)
