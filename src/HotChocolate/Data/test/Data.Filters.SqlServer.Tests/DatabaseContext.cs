@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Filters
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             var connectionString = _resource.CreateConnectionString("database_" + Guid.NewGuid());
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseSqlServer(connectionString + ";ConnectRetryCount=0");
         }
     }
 }
