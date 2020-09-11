@@ -15,7 +15,7 @@ namespace HotChocolate.Data.Filters
             {
                 result.MatchSnapshot(snapshotName);
                 if (result.ContextData is { } &&
-                    result.ContextData.TryGetValue("sql", out var queryResult))
+                    result.ContextData.TryGetValue("sql", out object? queryResult))
                 {
                     queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_sql"));
                 }

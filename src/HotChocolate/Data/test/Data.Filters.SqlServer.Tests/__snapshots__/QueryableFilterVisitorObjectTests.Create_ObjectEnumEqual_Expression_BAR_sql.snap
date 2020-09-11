@@ -1,4 +1,4 @@
-﻿SELECT [d].[Id], [d].[FooId]
-FROM [Data] AS [d]
-LEFT JOIN [Foo] AS [f] ON [d].[FooId] = [f].[Id]
-WHERE ([f].[BarEnum] = @__p_0) OR ([f].[BarEnum] IS NULL AND @__p_0 IS NULL)
+﻿SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE ("f"."BarEnum" = @__p_0) OR ("f"."BarEnum" IS NULL AND @__p_0 IS NULL)
