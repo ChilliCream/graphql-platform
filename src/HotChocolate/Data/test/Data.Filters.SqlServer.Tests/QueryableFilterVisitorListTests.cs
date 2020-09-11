@@ -7,7 +7,6 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorListTests
     {
         private static readonly Foo[] _fooEntities = new[]
@@ -61,12 +60,10 @@ namespace HotChocolate.Data.Filters
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorListTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        public QueryableFilterVisitorListTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(sqlServer);
+            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

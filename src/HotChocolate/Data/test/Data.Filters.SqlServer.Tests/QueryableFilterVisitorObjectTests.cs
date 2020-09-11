@@ -7,10 +7,9 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorObjectTests
     {
-        private static readonly Bar[] _barEntities = new[]
+        private static readonly Bar[] _barEntities =
         {
             new Bar
             {
@@ -54,7 +53,7 @@ namespace HotChocolate.Data.Filters.Expressions
             }
         };
 
-        private static readonly BarNullable[] _barNullableEntities = new[]
+        private static readonly BarNullable[] _barNullableEntities =
         {
             new BarNullable
             {
@@ -113,12 +112,10 @@ namespace HotChocolate.Data.Filters.Expressions
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorObjectTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        public QueryableFilterVisitorObjectTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(sqlServer);
+            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

@@ -6,7 +6,6 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorBooleanTests
     {
         private static readonly Foo[] _fooEntities = {new Foo {Bar = true}, new Foo {Bar = false}};
@@ -20,12 +19,10 @@ namespace HotChocolate.Data.Filters
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorBooleanTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        public QueryableFilterVisitorBooleanTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(sqlServer);
+            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

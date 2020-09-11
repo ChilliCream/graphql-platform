@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
 using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
-    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorStringTests
     {
         private static readonly Foo[] _fooEntities =
@@ -23,12 +23,10 @@ namespace HotChocolate.Data.Filters
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorStringTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        public QueryableFilterVisitorStringTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(sqlServer);
+            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

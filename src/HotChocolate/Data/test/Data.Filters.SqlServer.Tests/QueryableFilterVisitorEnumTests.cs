@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters.Expressions
     [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorEnumTests
     {
-        private static readonly Foo[] _fooEntities = new[]
+        private static readonly Foo[] _fooEntities =
         {
             new Foo {BarEnum = FooEnum.BAR},
             new Foo {BarEnum = FooEnum.BAZ},
@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Filters.Expressions
             new Foo {BarEnum = FooEnum.QUX}
         };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]
+        private static readonly FooNullable[] _fooNullableEntities =
         {
             new FooNullable {BarEnum = FooEnum.BAR},
             new FooNullable {BarEnum = FooEnum.BAZ},
@@ -28,12 +28,10 @@ namespace HotChocolate.Data.Filters.Expressions
 
         private readonly SchemaCache _cache;
 
-        public QueryableFilterVisitorEnumTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        public QueryableFilterVisitorEnumTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(sqlServer);
+            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

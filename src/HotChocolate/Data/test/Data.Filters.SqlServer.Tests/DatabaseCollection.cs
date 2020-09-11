@@ -14,4 +14,10 @@ namespace HotChocolate.Data
         // to be the place to apply [CollectionDefinition] and all the
         // ICollectionFixture<> interfaces.
     }
+
+    public class DatabaseHelper
+    {
+        public static SqlServerResource<CustomSqlServerOptions> Resource { get; } =
+            new SqlServerResource<CustomSqlServerOptions>();
+    }
 }
