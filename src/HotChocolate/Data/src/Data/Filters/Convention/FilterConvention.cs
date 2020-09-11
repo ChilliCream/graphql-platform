@@ -141,10 +141,9 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryCreateFilterType(
-                    _typeInspector.GetReturnType(member, true), out Type? returnType))
+            if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out Type? rt))
             {
-                return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
+                return _typeInspector.GetTypeRef(rt, TypeContext.Input, Scope);
             }
 
             throw FilterConvention_TypeOfMemberIsUnknown(member);
