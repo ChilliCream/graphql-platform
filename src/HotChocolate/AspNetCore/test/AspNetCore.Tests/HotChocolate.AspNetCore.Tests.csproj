@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
