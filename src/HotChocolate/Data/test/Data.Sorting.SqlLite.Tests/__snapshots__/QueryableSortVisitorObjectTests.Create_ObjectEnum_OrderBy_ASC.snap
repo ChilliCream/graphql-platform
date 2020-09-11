@@ -13,6 +13,16 @@
       },
       {
         "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAZ"
+        }
+      },
+      {
+        "foo": {
           "barEnum": "BAZ"
         }
       }

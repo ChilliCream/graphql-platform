@@ -8,7 +8,17 @@
       },
       {
         "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
           "barShort": 13
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
         }
       },
       {

@@ -13,6 +13,16 @@
       },
       {
         "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
           "barString": "testatest"
         }
       }

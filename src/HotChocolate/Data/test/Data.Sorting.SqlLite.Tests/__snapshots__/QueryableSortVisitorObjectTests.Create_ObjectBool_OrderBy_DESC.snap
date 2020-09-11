@@ -13,6 +13,16 @@
       },
       {
         "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
+          "barBool": true
+        }
+      },
+      {
+        "foo": {
           "barBool": false
         }
       }
