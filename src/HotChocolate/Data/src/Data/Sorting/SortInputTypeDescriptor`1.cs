@@ -54,11 +54,8 @@ namespace HotChocolate.Data.Sorting
                         .CreateDefinition(),
                     fields,
                     handledProperties,
-                    include: (members, member) => 
-                    {
-                        return member is PropertyInfo && 
-                            !Context.TypeInspector.GetReturnType(member).IsArrayOrList;
-                    });
+                    include: (members, member) => member is PropertyInfo &&
+                        !Context.TypeInspector.GetReturnType(member).IsArrayOrList);
             }
 
             base.OnCompleteFields(fields, handledProperties);
