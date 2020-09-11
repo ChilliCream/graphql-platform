@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "bar": "testbtest"
+      },
+      {
+        "bar": "testatest"
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}
