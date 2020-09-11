@@ -1205,7 +1205,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>The schema builder API is the most visible <strong>new</strong> API with version 9. It provides a simpler API that is easier to extend.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="91299039325489100000"
+              data-toaster-id="35124470779097793000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1217,7 +1217,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     .SetSchema(d => d.Description(&quot;This is my schema.&quot;))
     .AddServices(services)
     ...
-    .Create();`, `91299039325489100000`)"
+    .Create();`, `35124470779097793000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1242,7 +1242,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>With the new schema builder, we have opened up the type system so that it is now easily extendable. Things like our relay integration and the upcoming GraphQL filters are built upon these new APIs. It is now very easy to introduce generic schema types and translate those to GraphQL types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73125443078456100000"
+              data-toaster-id="44986809302777586000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1257,7 +1257,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
         descriptor.Name(dependency => dependency.Name + &quot;Edge&quot;)
             .DependsOn<TSchemaType>();
     }
-}`, `73125443078456100000`)"
+}`, `44986809302777586000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1280,7 +1280,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>Moreover, we have introduced metadata support to almost every corner of the GraphQL core. This means that you can pass in context data not only into the execution pipeline but also into types, fields, arguments, directives and even into the query result. This means we let you store custom context/state objects everywhere. This makes it very easy to customize the API without introducing new base types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43578460673868990000"
+              data-toaster-id="50110860659526900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1290,7 +1290,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
   .OnBeforeCreate(definition =>
   {
       definition.ContextData[&quot;Foo&quot;] = &quot;Bar&quot;;
-  });`, `43578460673868990000`)"
+  });`, `50110860659526900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1308,12 +1308,12 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>You can access the context data on a type object like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="28680117327768450000"
+              data-toaster-id="13496909380595868000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`schema.GetType<ObjectType>(&quot;Query&quot;).ContextData.ContainsKey(&quot;Foo&quot;);`, `28680117327768450000`)"
+              onClick="copyToClipboard(`schema.GetType<ObjectType>(&quot;Query&quot;).ContextData.ContainsKey(&quot;Foo&quot;);`, `13496909380595868000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1331,7 +1331,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>In order to enable general support for relay you can now opt-in like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31375556751665656000"
+              data-toaster-id="17344636406659576000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1339,7 +1339,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
     .EnableRelaySupport()
     ...
-    .Create();`, `31375556751665656000`)"
+    .Create();`, `17344636406659576000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1355,7 +1355,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>This will automatically add the node field to your query type and add the node resolver logic. You now just have to declare which type is a node type and you are done:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85268184702876830000"
+              data-toaster-id="69980022208928510000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1371,7 +1371,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
             .NodeResolver((ctx, id) =>
                 ctx.Service<Repository>().GetEntityAsync(id));
     }
-}`, `85268184702876830000`)"
+}`, `69980022208928510000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1648,7 +1648,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>GraphQL filters or as we called them before Prisma filters will allow you to configure filter objects that are executed on <code class="language-text">IQueryable</code> with just a view lines of code. This will make it very easy to expose databases through GraphQL.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="2573735106477159400"
+              data-toaster-id="53404976053539420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1660,7 +1660,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     {
         descriptor.Filter(t => t.Name).AllowGreaterThan() ...
     }
-}`, `2573735106477159400`)"
+}`, `53404976053539420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1695,7 +1695,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>With <code class="language-text">@defer</code> you will be able to defer the execution of parts of your query. In order to understand this let’s look at an example query:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80507434288818180000"
+              data-toaster-id="77204298889751940000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1709,7 +1709,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
       message
     }
   }
-}`, `80507434288818180000`)"
+}`, `77204298889751940000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1733,7 +1733,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>This is what <code class="language-text">@defer</code> is basically for. <code class="language-text">@defer</code> lets me tell the query engine that some data can be delivered later so that the query engine can prioritize on the other parts of the query.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10185287269360476000"
+              data-toaster-id="39643444513691300000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1747,7 +1747,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
       message
     }
   }
-}`, `10185287269360476000`)"
+}`, `39643444513691300000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1775,7 +1775,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
 <p>With batching you can do that without having to manage that flow on the client-side.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8701524245513781000"
+              data-toaster-id="93671099053650590000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1806,7 +1806,7 @@ data-styled.g130[id="sc-global-jjBFhf1"]{content:"sc-global-jjBFhf1,"}/*!sc*/
     \`,
     variables: { transaction: &quot;...&quot; },
   },
-];`, `8701524245513781000`)"
+];`, `93671099053650590000`)"
             >
               <div
                 class="gatsby-code-button"
