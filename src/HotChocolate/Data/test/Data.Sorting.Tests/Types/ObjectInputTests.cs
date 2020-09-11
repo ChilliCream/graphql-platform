@@ -1,4 +1,5 @@
-﻿using HotChocolate.Types;
+﻿using System.Collections.Generic;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -61,6 +62,8 @@ namespace HotChocolate.Data.Sorting
             public Foo Foo { get; set; } = default!;
 
             public Foo? FooNullable { get; set; }
+
+            public List<Foo> FooList { get; set; } = default!;
         }
 
         public class Foo
