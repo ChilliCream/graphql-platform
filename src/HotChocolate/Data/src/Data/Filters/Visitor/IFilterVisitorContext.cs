@@ -8,9 +8,9 @@ namespace HotChocolate.Data.Filters
     public interface IFilterVisitorContext
         : ISyntaxVisitorContext
     {
-        IStackableList<IType> Types { get; }
+        Stack<IType> Types { get; }
 
-        IStackableList<IInputField> Operations { get; }
+        Stack<IInputField> Operations { get; }
 
         IList<IError> Errors { get; }
     }

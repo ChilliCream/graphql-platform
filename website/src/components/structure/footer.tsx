@@ -27,15 +27,12 @@ export const Footer: FunctionComponent = () => {
           }
         }
       }
-      bg: file(relativePath: { eq: "footer.svg" }) {
-        publicURL
-      }
     }
   `);
   const { topnav, tools } = data.site!.siteMetadata!;
 
   return (
-    <Container url={data.bg!.publicURL!}>
+    <Container>
       <ContainerWrapper>
         <About>
           <Logo>
@@ -92,25 +89,20 @@ export const Footer: FunctionComponent = () => {
   );
 };
 
-const Container = styled.footer<{ url: string }>`
+const Container = styled.footer`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding: 200px 20px 60px;
+  box-sizing: border-box;
+  padding: 40px 20px 60px;
   width: 100%;
   min-height: 300px;
-  background-color: #fff;
-  background-image: url("${(props) => props.url}");
-  background-attachment: scroll;
-  background-position-x: 50%;
-  background-position-y: 0%;
-  background-repeat: no-repeat;
-  background-size: cover;
-  color: #666;
+  background-color: #252d3c;
+  color: #c6c6ce;
 
-  @media only screen and (min-width: 1250px) {
-    padding: 200px 0 60px;
+  @media only screen and (min-width: 1440px) {
+    padding: 40px 0 60px;
   }
 `;
 
@@ -119,14 +111,14 @@ const ContainerWrapper = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1400px;
 `;
 
 const About = styled.div`
   display: flex;
   flex: 5 1 auto;
   flex-direction: column;
-  padding: 0 10px;
+  padding: 0 20px;
 `;
 
 const Logo = styled.div`
@@ -139,13 +131,13 @@ const Logo = styled.div`
 
 const LogoIcon = styled(LogoIconSvg)`
   height: 40px;
-  fill: #666;
+  fill: #c6c6ce;
 `;
 
 const LogoText = styled(LogoTextSvg)`
   padding-left: 15px;
   height: 24px;
-  fill: #666;
+  fill: #c6c6ce;
 `;
 
 const Description = styled.p`
@@ -165,7 +157,7 @@ const ConnectLink = styled(Link)`
   margin: 5px 0;
   font-size: 0.833em;
   text-decoration: none;
-  color: #666;
+  color: #c6c6ce;
   transition: color 0.2s ease-in-out;
 
   > ${IconContainer} {
@@ -178,34 +170,34 @@ const ConnectLink = styled(Link)`
   }
 
   :hover {
-    color: #000;
+    color: #fff;
 
     > ${IconContainer} > svg {
-      fill: #000;
+      fill: #fff;
     }
   }
 `;
 
 const GithubIcon = styled(GithubIconSvg)`
   height: 26px;
-  fill: #666;
+  fill: #c6c6ce;
 `;
 
 const SlackIcon = styled(SlackIconSvg)`
   height: 22px;
-  fill: #666;
+  fill: #c6c6ce;
 `;
 
 const TwitterIcon = styled(TwitterIconSvg)`
   height: 22px;
-  fill: #666;
+  fill: #c6c6ce;
 `;
 
 const Links = styled.div`
   display: none;
   flex: 2 1 auto;
   flex-direction: column;
-  padding: 0 10px;
+  padding: 0 20px;
 
   @media only screen and (min-width: 768px) {
     display: flex;
@@ -224,12 +216,12 @@ const NavLink = styled(Link)`
   font-family: "Roboto", sans-serif;
   font-size: 0.833em;
   line-height: 1.5em;
-  color: #666;
+  color: #c6c6ce;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 
   :hover {
-    color: #000;
+    color: #fff;
   }
 `;
 
@@ -237,7 +229,7 @@ const Location = styled.div`
   display: none;
   flex: 3 1 auto;
   flex-direction: column;
-  padding: 0 10px;
+  padding: 0 20px;
   line-height: 1.5em;
 
   @media only screen and (min-width: 768px) {
@@ -249,10 +241,10 @@ const Title = styled.h3`
   margin: 15px 0 0;
   font-size: 1em;
   font-weight: bold;
-  color: #666;
+  color: #c6c6ce;
 `;
 
 const Copyright = styled.div`
   margin-top: 20px;
-  padding: 0 10px;
+  padding: 0 20px;
 `;

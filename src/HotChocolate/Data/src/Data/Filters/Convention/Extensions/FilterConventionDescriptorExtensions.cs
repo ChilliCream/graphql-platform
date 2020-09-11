@@ -53,27 +53,27 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor.BindRuntimeType<string, StringOperationInput>();
-            descriptor.BindRuntimeType<bool, BooleanOperationInput>();
-            descriptor.BindRuntimeType<byte, ComparableOperationInput<byte>>();
-            descriptor.BindRuntimeType<short, ComparableOperationInput<short>>();
-            descriptor.BindRuntimeType<int, ComparableOperationInput<int>>();
-            descriptor.BindRuntimeType<long, ComparableOperationInput<long>>();
-            descriptor.BindRuntimeType<float, ComparableOperationInput<float>>();
-            descriptor.BindRuntimeType<double, ComparableOperationInput<double>>();
-            descriptor.BindRuntimeType<decimal, ComparableOperationInput<decimal>>();
-            descriptor.BindRuntimeType<bool?, BooleanOperationInput>();
-            descriptor.BindRuntimeType<byte?, ComparableOperationInput<byte?>>();
-            descriptor.BindRuntimeType<short?, ComparableOperationInput<short?>>();
-            descriptor.BindRuntimeType<int?, ComparableOperationInput<int?>>();
-            descriptor.BindRuntimeType<long?, ComparableOperationInput<long?>>();
-            descriptor.BindRuntimeType<float?, ComparableOperationInput<float?>>();
-            descriptor.BindRuntimeType<double?, ComparableOperationInput<double?>>();
-            descriptor.BindRuntimeType<decimal?, ComparableOperationInput<decimal?>>();
-            descriptor.BindRuntimeType<Guid, ComparableOperationInput<Guid>>();
-            descriptor.BindRuntimeType<DateTime, ComparableOperationInput<DateTime>>();
-            descriptor.BindRuntimeType<DateTimeOffset, ComparableOperationInput<DateTimeOffset>>();
-            descriptor.BindRuntimeType<TimeSpan, ComparableOperationInput<TimeSpan>>();
+            descriptor.BindRuntimeType<string, StringOperationFilterInput>();
+            descriptor.BindRuntimeType<bool, BooleanOperationFilterInput>();
+            descriptor.BindRuntimeType<byte, ComparableOperationFilterInput<byte>>();
+            descriptor.BindRuntimeType<short, ComparableOperationFilterInput<short>>();
+            descriptor.BindRuntimeType<int, ComparableOperationFilterInput<int>>();
+            descriptor.BindRuntimeType<long, ComparableOperationFilterInput<long>>();
+            descriptor.BindRuntimeType<float, ComparableOperationFilterInput<float>>();
+            descriptor.BindRuntimeType<double, ComparableOperationFilterInput<double>>();
+            descriptor.BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>();
+            descriptor.BindRuntimeType<bool?, BooleanOperationFilterInput>();
+            descriptor.BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>();
+            descriptor.BindRuntimeType<short?, ComparableOperationFilterInput<short?>>();
+            descriptor.BindRuntimeType<int?, ComparableOperationFilterInput<int?>>();
+            descriptor.BindRuntimeType<long?, ComparableOperationFilterInput<long?>>();
+            descriptor.BindRuntimeType<float?, ComparableOperationFilterInput<float?>>();
+            descriptor.BindRuntimeType<double?, ComparableOperationFilterInput<double?>>();
+            descriptor.BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>();
+            descriptor.BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>();
+            descriptor.BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>();
+            descriptor.BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>();
+            descriptor.BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>();
 
             return descriptor;
         }

@@ -67,7 +67,7 @@ namespace HotChocolate.Data.Tests
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("test").Type<StringOperationInput>();
+                descriptor.Field("test").Type<StringOperationFilterInput>();
             }
         }
 

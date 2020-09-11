@@ -25,18 +25,20 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            IApplicationBuilder applicationBuilder =
+            IApplicationBuilder requestPipeline =
                 endpointRouteBuilder.CreateApplicationBuilder();
 
-            applicationBuilder.UseMiddleware<WebSocketSubscriptionMiddleware>(
+            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
-            applicationBuilder.UseMiddleware<HttpPostMiddleware>(
+            requestPipeline.UseMiddleware<HttpPostMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
-            applicationBuilder.UseMiddleware<HttpGetMiddleware>(
+            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            requestPipeline.UseMiddleware<HttpGetMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
 
             return endpointRouteBuilder
-                .Map(pattern, applicationBuilder.Build())
+                .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Pipeline");
         }
     }
