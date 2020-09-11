@@ -1,0 +1,44 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testdtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testctest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testctest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": {
+          "barString": "testatest"
+        }
+      },
+      {
+        "foo": null
+      }
+    ]
+  }
+}
