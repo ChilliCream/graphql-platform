@@ -6,7 +6,6 @@ using Xunit;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableFilterVisitorObjectTests
-        : IClassFixture<SchemaCache>
     {
         private static readonly Bar[] _barEntities =
         {
@@ -20,7 +19,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarString = "testatest",
                     ObjectArray = new List<Bar>
                     {
-                        new Bar {Foo = new Foo {BarShort = 12, BarString = "a"}}
+                        new Bar { Foo = new Foo { BarShort = 12, BarString = "a" } }
                     }
                 }
             },
@@ -34,7 +33,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     BarString = "testbtest",
                     ObjectArray = new List<Bar>
                     {
-                        new Bar {Foo = new Foo {BarShort = 14, BarString = "d"}}
+                        new Bar { Foo = new Foo { BarShort = 14, BarString = "d" } }
                     }
                 }
             },
@@ -109,12 +108,7 @@ namespace HotChocolate.Data.Filters.Expressions
             }
         };
 
-        private readonly SchemaCache _cache;
-
-        public QueryableFilterVisitorObjectTests(SchemaCache cache)
-        {
-            _cache = cache;
-        }
+        private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
         public async Task Create_ObjectShortEqual_Expression()
@@ -508,7 +502,8 @@ namespace HotChocolate.Data.Filters.Expressions
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { foo: { barString: { in: [ \"testatest\"  \"testbtest\" ]}}}) " +
+                        "{ root(where: { foo: { barString: { in: " + 
+                        "[ \"testatest\"  \"testbtest\" ]}}}) " +
                         "{ foo{ barString}}}")
                     .Create());
 

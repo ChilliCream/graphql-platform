@@ -5,26 +5,20 @@ using Xunit;
 namespace HotChocolate.Data.Filters
 {
     public class QueryableFilterVisitorStringTests
-        : IClassFixture<SchemaCache>
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo {Bar = "testatest"}, new Foo {Bar = "testbtest"}
+            new Foo { Bar = "testatest" }, new Foo { Bar = "testbtest" }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable {Bar = "testatest"},
-            new FooNullable {Bar = "testbtest"},
-            new FooNullable {Bar = null}
+            new FooNullable { Bar = "testatest" },
+            new FooNullable { Bar = "testbtest" },
+            new FooNullable { Bar = null }
         };
 
-        private readonly SchemaCache _cache;
-
-        public QueryableFilterVisitorStringTests(SchemaCache cache)
-        {
-            _cache = cache;
-        }
+        private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
         public async Task Create_StringEqual_Expression()

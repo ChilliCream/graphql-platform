@@ -3,9 +3,6 @@
     "root": [
       {
         "bar": "testbtest"
-      },
-      {
-        "bar": null
       }
     ]
   }
