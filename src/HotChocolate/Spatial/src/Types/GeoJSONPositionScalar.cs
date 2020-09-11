@@ -3,6 +3,7 @@ using System.Collections;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using HotChocolate.Types.Spatial.Properties;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -14,14 +15,14 @@ namespace HotChocolate.Types.Spatial
             Description = Resources.GeoJSONPositionScalar_Description;
         }
 
-        public override bool IsInstanceOfType(IValueNode literal)
+        public override bool IsInstanceOfType(IValueNode valueSyntax)
         {
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return true;
             }
 
-            if (literal is ListValueNode listValueNode)
+            if (valueSyntax is ListValueNode listValueNode)
             {
                 int numberOfItems = listValueNode.Items.Count;
 
@@ -48,23 +49,23 @@ namespace HotChocolate.Types.Spatial
             return false;
         }
 
-        public override object? ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
-            if (literal == null)
+            if (valueSyntax == null)
             {
-                throw ThrowHelper.NullPositionScalar();
+                throw PositionScalar_CoordinatesCannotBeNull(this);
             }
 
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return null;
             }
 
-            if (literal is ListValueNode list)
+            if (valueSyntax is ListValueNode list)
             {
                 if (list.Items.Count != 2 && list.Items.Count != 3)
                 {
-                    throw ThrowHelper.InvalidPositionScalar();
+                    throw PositionScalar_InvalidPositionObject(this);
                 }
 
                 if (list.Items[0] is IFloatValueLiteral x &&
@@ -81,24 +82,24 @@ namespace HotChocolate.Types.Spatial
                     }
                 }
 
-                throw ThrowHelper.InvalidPositionScalar();
+                throw PositionScalar_InvalidPositionObject(this);
             }
 
-            throw ThrowHelper.InvalidPositionScalar();
+            throw PositionScalar_InvalidPositionObject(this);
         }
 
         /// input value from the client
         public override IValueNode ParseValue(object? value)
         {
-            // parse Coordinate into literal
+            // parse Coordinate into valueSyntax
             if (value is null)
             {
-                return new NullValueNode(null);
+                return NullValueNode.Default;
             }
 
             if (!(value is Coordinate coordinate))
             {
-                throw ThrowHelper.InvalidType();
+                throw PositionScalar_CoordinatesCannotBeNull(this);
             }
 
             var xNode = new FloatValueNode(coordinate.X);
@@ -113,6 +114,8 @@ namespace HotChocolate.Types.Spatial
 
             return new ListValueNode(xNode, yNode);
         }
+
+        public override IValueNode ParseResult(object? resultValue) => ParseValue(resultValue);
 
         public override bool TryDeserialize(object? serialized, out object? value)
         {

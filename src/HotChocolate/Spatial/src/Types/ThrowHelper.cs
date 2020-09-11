@@ -1,55 +1,76 @@
 using System;
-using System.Globalization;
 using HotChocolate.Types.Spatial.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types.Spatial
 {
     public static class ThrowHelper
     {
-        public static Exception InvalidInputObjectStructure(GeoJSONGeometryType geometryType)
+        public static Exception InvalidStructure_CoordinatesOfWrongFormat(
+            IGeometryType type)
         {
-            var errorMessageTemplate =  string.Format(
-                CultureInfo.InvariantCulture,
-                Resources.ThrowHelper_InvalidInputObjectStructure_Base,
-                geometryType);
-
-            switch (geometryType)
+            var message = type.GeometryType switch
             {
-                case GeoJSONGeometryType.Point:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_Point);
-                case GeoJSONGeometryType.MultiPoint:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiPoint);
-                case GeoJSONGeometryType.LineString:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_LineString);
-                case GeoJSONGeometryType.MultiLineString:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiLineString);
-                case GeoJSONGeometryType.Polygon:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_Polygon);
-                case GeoJSONGeometryType.MultiPolygon:
-                    return new SerializationException(errorMessageTemplate +
-                        Resources.ThrowHelper_InvalidInputObjectStructure_MultiPolygon);
-                case GeoJSONGeometryType.GeometryCollection:
-                    return new NotImplementedException();
-                default:
-                    return new NotImplementedException();
-            }
+                GeoJSONGeometryType.Point => Resources.InvalidInputObjectStructure_Point,
+                GeoJSONGeometryType.MultiPoint => Resources.InvalidInputObjectStructure_MultiPoint,
+                GeoJSONGeometryType.LineString => Resources.InvalidInputObjectStructure_LineString,
+                GeoJSONGeometryType.MultiLineString => Resources
+                    .InvalidInputObjectStructure_MultiLineString,
+                GeoJSONGeometryType.Polygon => Resources.InvalidInputObjectStructure_Polygon,
+                GeoJSONGeometryType.MultiPolygon => Resources
+                    .InvalidInputObjectStructure_MultiPolygon,
+                _ => throw new NotImplementedException()
+            };
 
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        Resources.InvalidInputObjectStructure_CoordinatesOfWrongFormat +
+                        message,
+                        type.GeometryType)
+                    .Build(),
+                type);
         }
 
-        public static ScalarSerializationException InvalidPositionScalar() =>
-            new ScalarSerializationException(Resources.ThrowHelper_InvalidPositionScalar);
+        public static Exception InvalidStructure_IsOfWrongGeometryType(
+            GeoJSONGeometryType wrongType,
+            IGeometryType type)
+        {
+            return new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        Resources.InvalidInputObjectStructure_IsOfWrongGeometryType,
+                        wrongType,
+                        type.GeometryType)
+                    .Build(),
+                type);
+        }
 
-        public static ArgumentNullException NullPositionScalar() =>
-            new ArgumentNullException(Resources.ThrowHelper_InvalidPositionScalar);
+        public static SerializationException InvalidStructure_TypeIsMissing(IType type) =>
+            new SerializationException(
+                Resources.InvalidInputObjectStructure_TypeIsMissing,
+                type);
 
-        // TODO : move to resource
-        public static ArgumentException InvalidType() =>
-            new ArgumentException("The specified value has to be a Coordinate Type");
+        public static SerializationException InvalidStructure_CoordinatesIsMissing(IType type) =>
+            new SerializationException(
+                Resources.InvalidInputObjectStructure_CoordinatesIsMissing,
+                type);
+
+        public static SerializationException InvalidStructure_TypeCannotBeNull(IType type) =>
+            new SerializationException(
+                Resources.InvalidInputObjectStructure_TypeCannotBeNull,
+                type);
+
+        public static SerializationException InvalidStructure_CoordinatesCannotBeNull(
+            IType type) =>
+            new SerializationException(Resources.PositionScalar_CoordinatesCannotBeNull, type);
+
+        public static SerializationException PositionScalar_InvalidPositionObject(IType type) =>
+            new SerializationException(Resources.PositionScalar_InvalidPositionObject, type);
+
+        public static SerializationException PositionScalar_CoordinatesCannotBeNull(IType type) =>
+            new SerializationException(Resources.PositionScalar_CoordinatesCannotBeNull, type);
+
+        public static ArgumentException Resolver_Type_InvalidGeometryType() =>
+            new ArgumentException(Resources.Resolver_Type_InvalidGeometryType);
     }
 }

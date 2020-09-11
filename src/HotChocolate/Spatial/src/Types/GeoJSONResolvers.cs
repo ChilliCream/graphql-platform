@@ -1,6 +1,7 @@
-using System;
 using System.Collections.Generic;
+using HotChocolate.Types.Spatial.Properties;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -16,19 +17,16 @@ namespace HotChocolate.Types.Spatial
                 OgcGeometryType.MultiPoint => GeoJSONGeometryType.MultiPoint,
                 OgcGeometryType.MultiLineString => GeoJSONGeometryType.MultiLineString,
                 OgcGeometryType.MultiPolygon => GeoJSONGeometryType.MultiPolygon,
-                OgcGeometryType.GeometryCollection =>
-                    throw new NotImplementedException(
-                        "Geometry Collection is not supported yet"),
-                _ => throw new ArgumentException("Geometry type is not supported") // TODO : ThrowHelper
+                _ => throw Resolver_Type_InvalidGeometryType()
             };
         }
 
         public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
         {
-            var envelope = geometry.EnvelopeInternal;
+            Envelope envelope = geometry.EnvelopeInternal;
 
             // TODO: support Z
-            return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
+            return new[] {envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY};
         }
 
         public int GetCrs([Parent] Geometry geometry)

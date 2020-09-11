@@ -1,7 +1,7 @@
 ﻿{
   "Data": {
     "test": {
-      "type": "MULTIPOINT",
+      "type": "MULTI_POINT",
       "coordinates": [
         [
           10.0,

@@ -51,51 +51,141 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_Base {
+        internal static string InvalidInputObjectStructure_IsOfWrongGeometryType {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_Base", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_IsOfWrongGeometryType", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_Point {
+        internal static string InvalidInputObjectStructure_CoordinatesOfWrongFormat {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_Point", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_CoordinatesOfWrongFormat", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_MultiPoint {
+        internal static string InvalidInputObjectStructure_TypeIsMissing {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_MultiPoint", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_TypeIsMissing", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_LineString {
+        internal static string InvalidInputObjectStructure_CoordinatesIsMissing {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_LineString", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_CoordinatesIsMissing", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_MultiLineString {
+        internal static string InvalidInputObjectStructure_Point {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_MultiLineString", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_Point", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_Polygon {
+        internal static string InvalidInputObjectStructure_MultiPoint {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_Polygon", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_MultiPoint", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidInputObjectStructure_MultiPolygon {
+        internal static string InvalidInputObjectStructure_LineString {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidInputObjectStructure_MultiPolygon", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_LineString", resourceCulture);
             }
         }
         
-        internal static string ThrowHelper_InvalidPositionScalar {
+        internal static string InvalidInputObjectStructure_MultiLineString {
             get {
-                return ResourceManager.GetString("ThrowHelper_InvalidPositionScalar", resourceCulture);
+                return ResourceManager.GetString("InvalidInputObjectStructure_MultiLineString", resourceCulture);
+            }
+        }
+        
+        internal static string InvalidInputObjectStructure_Polygon {
+            get {
+                return ResourceManager.GetString("InvalidInputObjectStructure_Polygon", resourceCulture);
+            }
+        }
+        
+        internal static string InvalidInputObjectStructure_MultiPolygon {
+            get {
+                return ResourceManager.GetString("InvalidInputObjectStructure_MultiPolygon", resourceCulture);
+            }
+        }
+        
+        internal static string PositionScalar_InvalidPositionObject {
+            get {
+                return ResourceManager.GetString("PositionScalar_InvalidPositionObject", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Type_Description {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Type_Description", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Bbox_Description {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Bbox_Description", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Crs_Description {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Crs_Description", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_Point {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_Point", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_LineString {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_LineString", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_MultiPoint {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiPoint", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_MultiLineString {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiLineString", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_Polygon {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_Polygon", resourceCulture);
+            }
+        }
+        
+        internal static string GeoJSON_Field_Coordinates_Description_MultiPolygon {
+            get {
+                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiPolygon", resourceCulture);
+            }
+        }
+        
+        internal static string PositionScalar_CoordinatesCannotBeNull {
+            get {
+                return ResourceManager.GetString("PositionScalar_CoordinatesCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string InvalidInputObjectStructure_TypeCannotBeNull {
+            get {
+                return ResourceManager.GetString("InvalidInputObjectStructure_TypeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        internal static string Resolver_Type_InvalidGeometryType {
+            get {
+                return ResourceManager.GetString("Resolver_Type_InvalidGeometryType", resourceCulture);
             }
         }
     }

@@ -1,3 +1,6 @@
+using static HotChocolate.Types.Spatial.Properties.Resources;
+using static HotChocolate.Types.Spatial.WellKnownFields;
+
 namespace HotChocolate.Types.Spatial
 {
     public class GeoJSONInterface : InterfaceType
@@ -6,18 +9,17 @@ namespace HotChocolate.Types.Spatial
         {
             descriptor.Name(nameof(GeoJSONInterface));
 
-            // TODO: move to resource
-            descriptor.Field("type")
+            descriptor.Field(TypeFieldName)
                 .Type<NonNullType<EnumType<GeoJSONGeometryType>>>()
-                .Description("The geometry type of the GeoJSON object");
+                .Description(GeoJSON_Field_Type_Description);
 
-            descriptor.Field("bbox")
+            descriptor.Field(BboxFieldName)
                 .Type<ListType<FloatType>>()
-                .Description("The minimum bounding box around the geometry object");
+                .Description(GeoJSON_Field_Bbox_Description);
 
-            descriptor.Field("crs")
+            descriptor.Field(CrsFieldName)
                 .Type<IntType>()
-                .Description("The coordinate reference system integer identifier");
+                .Description(GeoJSON_Field_Crs_Description);
         }
     }
 }

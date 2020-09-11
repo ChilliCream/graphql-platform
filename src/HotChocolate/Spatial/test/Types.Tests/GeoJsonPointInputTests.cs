@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -10,17 +11,19 @@ namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONPointInputTests
     {
-        private readonly ListValueNode point = new ListValueNode(
+        private readonly ListValueNode _point = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10)
         );
 
         private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddQueryType(d => d
-            .Name("Query")
-            .Field("test")
-            .Argument("arg", a => a.Type<GeoJSONPointInput>())
-            .Resolver("ghi"))
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJSONPointInput>())
+                    .Resolver("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()
@@ -36,10 +39,10 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
-                    new ObjectFieldNode("coordinates", point)));
+                    new ObjectFieldNode("coordinates", _point)));
 
             // assert
             Assert.Equal(30, Assert.IsType<Point>(result).X);
@@ -52,17 +55,16 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
                     new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
-                    new ObjectFieldNode("coordinates", point),
+                    new ObjectFieldNode("coordinates", _point),
                     new ObjectFieldNode("crs", 26912)));
 
             // assert
             Assert.Equal(30, Assert.IsType<Point>(result).X);
             Assert.Equal(10, Assert.IsType<Point>(result).Y);
             Assert.Equal(26912, Assert.IsType<Point>(result).SRID);
-
         }
 
         [Fact]
@@ -70,7 +72,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            object result = type.ParseLiteral(NullValueNode.Default);
+            object? result = type.ParseLiteral(NullValueNode.Default);
 
             Assert.Null(result);
         }
@@ -80,7 +82,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
 
@@ -89,10 +91,11 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("missingType", new StringValueNode("ignored")),
-                    new ObjectFieldNode("coordinates", point))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored")),
+                        new ObjectFieldNode("coordinates", _point))));
         }
 
         [Fact]
@@ -100,10 +103,11 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<ScalarSerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
-                    new ObjectFieldNode("coordinates", new ListValueNode()))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                        new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
@@ -111,10 +115,11 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-               new ObjectValueNode(
-                   new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
-                   new ObjectFieldNode("coordinates", point))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
+                        new ObjectFieldNode("coordinates", _point))));
         }
 
         [Fact]
@@ -123,14 +128,15 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONPointInput>())
-                    .Resolver(ctx => ctx.Argument<Point>("arg").ToString()))
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJSONPointInput>())
+                        .Resolver(ctx => ctx.ArgumentValue<Point>("arg").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(

@@ -1,72 +1,47 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.WellKnownFields;
+using static HotChocolate.Types.Spatial.Properties.Resources;
 
 namespace HotChocolate.Types.Spatial
 {
-    public class GeoJSONMultiPolygonInput : InputObjectType<MultiPolygon>
+    public class GeoJSONMultiPolygonInput
+        : GeoJSONInputObjectType<MultiPolygon>
     {
-        private const string _typeFieldName = "type";
-        private const string _coordinatesFieldName = "coordinates";
-        private const string _crsFieldName = "crs";
-        private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.MultiPolygon;
-        private IInputField _typeField = default!;
-        private IInputField _coordinatesField = default!;
-        private IInputField _crsField = default!;
+        public override GeoJSONGeometryType GeometryType => GeoJSONGeometryType.MultiPolygon;
 
         protected override void Configure(IInputObjectTypeDescriptor<MultiPolygon> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
-            descriptor.Field(_typeFieldName)
-                .Type<EnumType<GeoJSONGeometryType>>();
-            descriptor.Field(_coordinatesFieldName)
-                .Type<ListType<ListType<GeoJSONPositionScalar>>>();
-            descriptor.Field(_crsFieldName)
-                .Type<IntType>();
+            descriptor.Field(TypeFieldName)
+                .Type<EnumType<GeoJSONGeometryType>>()
+                .Description(GeoJSON_Field_Type_Description);
+            descriptor.Field(CoordinatesFieldName)
+                .Type<ListType<ListType<GeoJSONPositionScalar>>>()
+                .Description(GeoJSON_Field_Coordinates_Description_MultiPolygon);
+            descriptor.Field(CrsFieldName)
+                .Type<IntType>()
+                .Description(GeoJSON_Field_Crs_Description);
+            ;
         }
 
-        public override object? ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return null;
             }
 
-            if (!(literal is ObjectValueNode obj) || obj.Fields.Count < 2)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
+            valueSyntax.EnsureObjectValueNode(out var obj);
 
-            (int typeIndex, int coordinateIndex, int crsIndex) indices =
-                ParseLiteralHelper.GetFieldIndices(
-                    obj,
-                    _typeFieldName,
-                    _coordinatesFieldName,
-                    _crsFieldName);
+            var indices = GetFieldIndices(obj);
 
-            if (indices.typeIndex == -1)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
+            ValidateGeometryKind(obj, indices.typeIndex);
 
-            var type = (GeoJSONGeometryType)
-                _typeField.Type.ParseLiteral(obj.Fields[indices.typeIndex].Value);
-
-            if (type != _geometryType || indices.coordinateIndex == -1)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
-
-            var parts = (List<List<Coordinate>>)
-                _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
-
-            if (parts.Count < 1)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
+            IList<List<Coordinate>> parts = ParseCoordinateParts(obj, indices.coordinateIndex, 1);
 
             var polygonCount = parts.Count;
             var geometries = new Polygon[polygonCount];
@@ -86,26 +61,13 @@ namespace HotChocolate.Types.Spatial
                 geometries[i] = new Polygon(ring);
             }
 
-            if (indices.crsIndex == -1)
+            if (TryParseCrs(obj, indices.crsIndex, out var srid))
             {
-                return new MultiPolygon(geometries);
+                GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
+                return factory.CreateMultiPolygon(geometries);
             }
 
-            var srid = (int)_crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
-
-            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
-
-            return factory.CreateMultiPolygon(geometries);
-        }
-
-        protected override void OnAfterCompleteType(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object?> contextData)
-        {
-            _coordinatesField = Fields[_coordinatesFieldName];
-            _typeField = Fields[_typeFieldName];
-            _crsField = Fields[_crsFieldName];
+            return new MultiPolygon(geometries);
         }
     }
 }

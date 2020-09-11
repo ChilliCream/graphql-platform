@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,7 +11,7 @@ namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONLineStringInputTests
     {
-        private readonly ListValueNode linestring = new ListValueNode(
+        private readonly ListValueNode _linestring = new ListValueNode(
             new ListValueNode(
                 new IntValueNode(30),
                 new IntValueNode(10)),
@@ -21,11 +23,13 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(40)));
 
         private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddQueryType(d => d
-            .Name("Query")
-            .Field("test")
-            .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
-            .Resolver("ghi"))
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
+                    .Resolver("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()
@@ -42,10 +46,10 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
-                    new ObjectFieldNode("coordinates", linestring)));
+                    new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                    new ObjectFieldNode("coordinates", _linestring)));
 
             // assert
             Assert.Equal(3, Assert.IsType<LineString>(result).NumPoints);
@@ -65,10 +69,10 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
-                    new ObjectFieldNode("coordinates", linestring),
+                    new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                    new ObjectFieldNode("coordinates", _linestring),
                     new ObjectFieldNode("crs", 26912)));
 
             // assert
@@ -89,7 +93,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            object result = type.ParseLiteral(NullValueNode.Default);
+            object? result = type.ParseLiteral(NullValueNode.Default);
 
             Assert.Null(result);
         }
@@ -100,7 +104,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
 
@@ -110,10 +114,11 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("coordinates", linestring),
-                    new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("coordinates", _linestring),
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
         }
 
         [Fact]
@@ -122,10 +127,13 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
-                    new ObjectFieldNode("coordinates", new ListValueNode()))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode(
+                            "type",
+                            new EnumValueNode("LINE_STRING")),
+                        new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
@@ -134,10 +142,11 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-               new ObjectValueNode(
-                   new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
-                   new ObjectFieldNode("coordinates", linestring))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("type", new EnumValueNode("POLYGON")),
+                        new ObjectFieldNode("coordinates", _linestring))));
         }
 
         [Fact]
@@ -146,18 +155,19 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
-                    .Resolver(ctx => ctx.Argument<LineString>("arg").ToString()))
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
+                        .Resolver(ctx => ctx.ArgumentValue<LineString>("arg").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: LINESTRING, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
+                "{ test(arg: { type: LINE_STRING, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
 
             // assert
             result.MatchSnapshot();
@@ -177,22 +187,23 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_With_Input_Crs()
         {
-            var schema = SchemaBuilder.New()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
-                    .Resolver("ghi"))
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJSONLineStringInput>())
+                        .Resolver("ghi"))
                 .Create();
 
-            var type = schema.GetType<InputObjectType>("LineStringInput");
+            InputObjectType type = schema.GetType<InputObjectType>("LineStringInput");
 
             var node = new ObjectValueNode(
-                new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.LineString)),
-                new ObjectFieldNode("coordinates", linestring),
+                new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                new ObjectFieldNode("coordinates", _linestring),
                 new ObjectFieldNode("crs", 26912));
 
-            object result = type.ParseLiteral(node);
+            object? result = type.ParseLiteral(node);
 
             Assert.Equal(26912, Assert.IsType<LineString>(result).SRID);
         }

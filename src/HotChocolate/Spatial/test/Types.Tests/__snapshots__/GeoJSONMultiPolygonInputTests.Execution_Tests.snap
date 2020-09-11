@@ -4,24 +4,28 @@
     {
       "Message": "The specified value type of field `coordinates` does not match the field type.",
       "Code": null,
-      "Path": [
-        "test"
-      ],
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "test"
+      },
       "Locations": [
         {
           "Line": 1,
-          "Column": 47
+          "Column": 48
         }
       ],
-      "Exception": null,
       "Extensions": {
         "fieldName": "coordinates",
         "fieldType": "[[Position]]",
         "locationType": "[[Position]]",
         "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-      }
+      },
+      "Exception": null
     }
   ],
   "Extensions": null,
-  "ContextData": null
+  "ContextData": {
+    "ValidationErrors": true
+  }
 }

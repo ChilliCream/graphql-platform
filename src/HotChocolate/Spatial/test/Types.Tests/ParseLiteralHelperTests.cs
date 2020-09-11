@@ -1,20 +1,20 @@
 using HotChocolate.Language;
+using NetTopologySuite.Geometries;
 using Xunit;
 
 namespace HotChocolate.Types.Spatial.Tests
 {
     public class ParseLiteralHelperTests
     {
-        private const string _typeFieldName = "type";
-        private const string _coordinatesFieldName = "coordinates";
-        private const string _crsFieldName = "crs";
+        private TestGeoJsonInputType mock = new TestGeoJsonInputType();
 
         [Fact]
         public void Helper_Finds_Fields_In_ObjectValueNode()
         {
-            var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
-                new ObjectFieldNode("type", 1),
-                new ObjectFieldNode("coordinates", 2)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
+            var indices = mock.GetFieldIndices(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", 1),
+                    new ObjectFieldNode("coordinates", 2)));
 
             Assert.Equal(0, indices.typeIndex);
             Assert.Equal(1, indices.coordinateIndex);
@@ -23,12 +23,13 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void Helper_Finds_Partial_Fields_In_ObjectValueNode()
         {
-            var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
-                new ObjectFieldNode("something", 1),
-                new ObjectFieldNode("other", 1),
-                new ObjectFieldNode("than", 1),
-                new ObjectFieldNode("it", 1),
-                new ObjectFieldNode("coordinates", 2)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
+            var indices = mock.GetFieldIndices(
+                new ObjectValueNode(
+                    new ObjectFieldNode("something", 1),
+                    new ObjectFieldNode("other", 1),
+                    new ObjectFieldNode("than", 1),
+                    new ObjectFieldNode("it", 1),
+                    new ObjectFieldNode("coordinates", 2)));
 
             Assert.Equal(-1, indices.typeIndex);
             Assert.Equal(4, indices.coordinateIndex);
@@ -37,37 +38,49 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void Helper_Finds_No_Fields_In_ObjectValueNode()
         {
-            var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
-                new ObjectFieldNode("something", 1),
-                new ObjectFieldNode("other", 1),
-                new ObjectFieldNode("than", 1)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
+            var indices = mock.GetFieldIndices(
+                new ObjectValueNode(
+                    new ObjectFieldNode("something", 1),
+                    new ObjectFieldNode("other", 1),
+                    new ObjectFieldNode("than", 1)));
 
             Assert.Equal(-1, indices.typeIndex);
             Assert.Equal(-1, indices.coordinateIndex);
         }
 
         [Fact]
-        public void Helper_Finds_Parital_Ignores_Case()
+        public void Helper_Finds_Partial_Ignores_Case()
         {
-            var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
-                new ObjectFieldNode("TyPe", 1),
-                new ObjectFieldNode("COORDINATES", 2)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
+            var indices = mock.GetFieldIndices(
+                new ObjectValueNode(
+                    new ObjectFieldNode("TyPe", 1),
+                    new ObjectFieldNode("COORDINATES", 2)));
 
             Assert.Equal(0, indices.typeIndex);
             Assert.Equal(1, indices.coordinateIndex);
         }
 
         [Fact]
-        public void Helper_Finds_Parital_Exits_Early()
+        public void Helper_Finds_Partial_Exits_Early()
         {
-            var indices = ParseLiteralHelper.GetFieldIndices(new ObjectValueNode(
-                new ObjectFieldNode("type", 1),
-                new ObjectFieldNode("coordinates", 2),
-                new ObjectFieldNode("crs", 26912),
-                new ObjectFieldNode("ignored", 3)), _typeFieldName, _coordinatesFieldName, _crsFieldName);
-
-            Assert.Equal(0, indices.typeIndex);
+            var indices = mock.GetFieldIndices(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", 1),
+                    new ObjectFieldNode("coordinates", 2),
+                    new ObjectFieldNode("crs", 26912)));
             Assert.Equal(1, indices.coordinateIndex);
+        }
+
+        private class TestGeoJsonInputType : GeoJSONInputObjectType<Point>
+        {
+            public override GeoJSONGeometryType GeometryType => GeoJSONGeometryType.Point;
+
+
+            public new (int typeIndex, int coordinateIndex, int crsIndex) GetFieldIndices(
+                ObjectValueNode obj)
+            {
+                return base.GetFieldIndices(obj);
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿{
   "Data": {
     "test": {
-      "type": "MULTIPOLYGON",
+      "type": "MULTI_POLYGON",
       "coordinates": [
         [
           30.0,

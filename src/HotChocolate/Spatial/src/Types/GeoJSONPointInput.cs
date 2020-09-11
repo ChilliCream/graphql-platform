@@ -1,85 +1,52 @@
-using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.WellKnownFields;
+using static HotChocolate.Types.Spatial.Properties.Resources;
 
 namespace HotChocolate.Types.Spatial
 {
-    public class GeoJSONPointInput : InputObjectType<Point>
+    public class GeoJSONPointInput : GeoJSONInputObjectType<Point>
     {
-        private const string _typeFieldName = "type";
-        private const string _coordinatesFieldName = "coordinates";
-        private const string _crsFieldName = "crs";
-        private const GeoJSONGeometryType _geometryType = GeoJSONGeometryType.Point;
-        private IInputField _typeField = default!;
-        private IInputField _coordinatesField = default!;
-        private IInputField _crsField = default!;
+        public override GeoJSONGeometryType GeometryType => GeoJSONGeometryType.Point;
 
         protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
         {
             descriptor.BindFieldsExplicitly();
 
-            descriptor.Field(_typeFieldName).Type<EnumType<GeoJSONGeometryType>>();
-            descriptor.Field(_coordinatesFieldName).Type<GeoJSONPositionScalar>();
-            descriptor.Field(_crsFieldName).Type<IntType>();
+            descriptor.Field(TypeFieldName)
+                .Type<EnumType<GeoJSONGeometryType>>()
+                .Description(GeoJSON_Field_Type_Description);
+            descriptor.Field(CoordinatesFieldName)
+                .Type<GeoJSONPositionScalar>()
+                .Description(GeoJSON_Field_Coordinates_Description_Point);
+            descriptor.Field(CrsFieldName)
+                .Type<IntType>()
+                .Description(GeoJSON_Field_Crs_Description);
         }
 
-        public override object? ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
-            if (literal is NullValueNode)
+            if (valueSyntax is NullValueNode)
             {
                 return null;
             }
 
-            if (!(literal is ObjectValueNode obj))
+            valueSyntax.EnsureObjectValueNode(out var obj);
+
+            var indices = GetFieldIndices(obj);
+
+            ValidateGeometryKind(obj, indices.typeIndex);
+
+            Coordinate coordinates = ParsePoint(obj, indices.coordinateIndex);
+
+            if (TryParseCrs(obj, indices.crsIndex, out var srid))
             {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
+                GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
+                return factory.CreatePoint(coordinates);
             }
 
-            (int typeIndex, int coordinateIndex, int crsIndex) indices =
-                ParseLiteralHelper.GetFieldIndices(
-                    obj,
-                    _typeFieldName,
-                    _coordinatesFieldName,
-                    _crsFieldName);
-
-            if (indices.typeIndex == -1)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
-
-            var type = (GeoJSONGeometryType)
-                _typeField.Type.ParseLiteral(obj.Fields[indices.typeIndex].Value);
-
-            if (type != _geometryType || indices.coordinateIndex == -1)
-            {
-                throw ThrowHelper.InvalidInputObjectStructure(_geometryType);
-            }
-
-            var coordinates = (Coordinate)
-                _coordinatesField.Type.ParseLiteral(obj.Fields[indices.coordinateIndex].Value);
-
-            if (indices.crsIndex == -1)
-            {
-                return new Point(coordinates);
-            }
-
-            var srid = (int)_crsField.Type.ParseLiteral(obj.Fields[indices.crsIndex].Value);
-
-            GeometryFactory factory = NtsGeometryServices.Instance.CreateGeometryFactory(srid);
-
-            return factory.CreatePoint(coordinates);
-        }
-
-        protected override void OnAfterCompleteType(
-            ICompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object?> contextData)
-        {
-            _coordinatesField = Fields[_coordinatesFieldName];
-            _typeField = Fields[_typeFieldName];
-            _crsField = Fields[_crsFieldName];
+            return new Point(coordinates);
         }
     }
 }

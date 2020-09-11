@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var coordinate = new ListValueNode(new IntValueNode(1), new FloatValueNode(1.2));
 
             // act
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             // assert
             Assert.True(result);
@@ -28,10 +28,12 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             var type = new GeoJSONPositionScalar();
             var coordinate = new ListValueNode(
-                new IntValueNode(1), new FloatValueNode(1.2), new FloatValueNode(3.2));
+                new IntValueNode(1),
+                new FloatValueNode(1.2),
+                new FloatValueNode(3.2));
 
             // act
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             // assert
             Assert.True(result);
@@ -42,10 +44,10 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             var type = new GeoJSONPositionScalar();
-            var coordinate = NullValueNode.Default;
+            NullValueNode coordinate = NullValueNode.Default;
 
             // act
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             // assert
             Assert.True(result);
@@ -59,7 +61,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var coordinate = new ListValueNode(new StringValueNode("1"), new FloatValueNode(1.2));
 
             // act
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             // assert
             Assert.False(result);
@@ -70,11 +72,13 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             var type = new GeoJSONPositionScalar();
-            var coordinate = new ListValueNode(new IntValueNode(1), new FloatValueNode(1.2),
+            var coordinate = new ListValueNode(
+                new IntValueNode(1),
+                new FloatValueNode(1.2),
                 new StringValueNode("2"));
 
             // act
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             // assert
             Assert.False(result);
@@ -122,45 +126,49 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(4)
             );
 
-            bool result = type.IsInstanceOfType(coordinate);
+            bool? result = type.IsInstanceOfType(coordinate);
 
             Assert.False(result);
         }
 
         [Fact]
-        public void ParseLiteral_Null_Throws() {
+        public void ParseLiteral_Null_Throws()
+        {
             var type = new GeoJSONPositionScalar();
-            IValueNode coordinate = null;
+            IValueNode? coordinate = null;
 
-            Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(coordinate));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate!));
         }
 
         [Fact]
-        public void ParseLiteral_NullType_Null() {
+        public void ParseLiteral_NullType_Null()
+        {
             var type = new GeoJSONPositionScalar();
-            var coordinate = NullValueNode.Default;
+            NullValueNode coordinate = NullValueNode.Default;
 
-            object result = type.ParseLiteral(coordinate);
+            object? result = type.ParseLiteral(coordinate);
 
             Assert.Null(result);
         }
 
         [Fact]
-        public void ParseLiteral_With_2Valid_Coordinates() {
+        public void ParseLiteral_With_2Valid_Coordinates()
+        {
             var type = new GeoJSONPositionScalar();
             var coordinate = new ListValueNode(
                 new FloatValueNode(1.0),
                 new IntValueNode(2)
             );
 
-            var result = type.ParseLiteral(coordinate);
+            object? result = type.ParseLiteral(coordinate);
 
             Assert.Equal(1.0, Assert.IsType<Coordinate>(result).X);
             Assert.Equal(2, Assert.IsType<Coordinate>(result).Y);
         }
 
         [Fact]
-        public void ParseLiteral_With_3Valid_Coordinates() {
+        public void ParseLiteral_With_3Valid_Coordinates()
+        {
             var type = new GeoJSONPositionScalar();
             var coordinate = new ListValueNode(
                 new FloatValueNode(1.0),
@@ -168,7 +176,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(100)
             );
 
-            var result = type.ParseLiteral(coordinate);
+            object? result = type.ParseLiteral(coordinate);
 
             Assert.Equal(1.0, Assert.IsType<CoordinateZ>(result).X);
             Assert.Equal(2.2, Assert.IsType<CoordinateZ>(result).Y);
@@ -184,7 +192,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new StringValueNode("2.2")
             );
 
-            Assert.Throws<ScalarSerializationException>(() => type.ParseLiteral(coordinate));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
         }
 
         [Fact]
@@ -197,7 +205,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new StringValueNode("2.2")
             );
 
-            Assert.Throws<ScalarSerializationException>(() => type.ParseLiteral(coordinate));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
         }
 
         [Fact]
@@ -206,7 +214,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var coordinate = new StringValueNode("2.2");
 
-            Assert.Throws<ScalarSerializationException>(() => type.ParseLiteral(coordinate));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(coordinate));
         }
 
         [Fact]
@@ -215,14 +223,14 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var item = "this is not a coordinate";
 
-            Assert.Throws<ArgumentException>(() => type.ParseValue(item));
+            Assert.Throws<SerializationException>(() => type.ParseValue(item));
         }
 
         [Fact]
         public void ParseValue_With_Null()
         {
             var type = new GeoJSONPositionScalar();
-            var result = type.ParseValue(null);
+            IValueNode result = type.ParseValue(null);
 
             Assert.Null(Assert.IsType<NullValueNode>(result).Value);
         }
@@ -233,10 +241,10 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var coordinate = new Coordinate(1.1, 2.2);
 
-            var result = type.ParseValue(coordinate);
+            IValueNode result = type.ParseValue(coordinate);
 
-            Assert.Equal("1.10", Assert.IsType<ListValueNode>(result).Items[0].Value);
-            Assert.Equal("2.20", Assert.IsType<ListValueNode>(result).Items[1].Value);
+            Assert.Equal("1.1", Assert.IsType<ListValueNode>(result).Items[0].Value);
+            Assert.Equal("2.2", Assert.IsType<ListValueNode>(result).Items[1].Value);
         }
 
         [Fact]
@@ -245,20 +253,20 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var coordinate = new CoordinateZ(1.1, 2.2, 3.3);
 
-            var result = type.ParseValue(coordinate);
+            IValueNode result = type.ParseValue(coordinate);
 
-            Assert.Equal("1.10", Assert.IsType<ListValueNode>(result).Items[0].Value);
-            Assert.Equal("2.20", Assert.IsType<ListValueNode>(result).Items[1].Value);
-            Assert.Equal("3.30", Assert.IsType<ListValueNode>(result).Items[2].Value);
+            Assert.Equal("1.1", Assert.IsType<ListValueNode>(result).Items[0].Value);
+            Assert.Equal("2.2", Assert.IsType<ListValueNode>(result).Items[1].Value);
+            Assert.Equal("3.3", Assert.IsType<ListValueNode>(result).Items[2].Value);
         }
 
         [Fact]
         public void TryDeserialize_With_Null()
         {
             var type = new GeoJSONPositionScalar();
-            object input = null;
+            object? input = null;
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.True(result);
             Assert.Null(value);
@@ -270,7 +278,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var input = "not null and not a list";
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -280,9 +288,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Too_Many_Elements()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { "1", "2", "3", "4"};
+            var input = new List<object> {"1", "2", "3", "4"};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -292,9 +300,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Too_Few_Elements()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1 };
+            var input = new List<object> {1};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -304,9 +312,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_Element_Type()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, "a" };
+            var input = new List<object> {1, "a"};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -316,9 +324,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_Element_Type2()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, DateTime.Now };
+            var input = new List<object> {1, DateTime.Now};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -328,9 +336,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_Element_Type3()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, double.PositiveInfinity };
+            var input = new List<object> {1, double.PositiveInfinity};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -340,9 +348,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_3rdElement_Type()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, 2, "a" };
+            var input = new List<object> {1, 2, "a"};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -352,9 +360,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_3rdElement_Type2()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, 2, 'a' };
+            var input = new List<object> {1, 2, 'a'};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -364,9 +372,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Invalid_3rdElement_Type3()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, 2, double.NegativeInfinity };
+            var input = new List<object> {1, 2, double.NegativeInfinity};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -376,9 +384,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Valid_2Elements()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, 2 };
+            var input = new List<object> {1, 2};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.True(result);
             Assert.Equal(1, Assert.IsType<Coordinate>(value).X);
@@ -389,9 +397,9 @@ namespace HotChocolate.Types.Spatial.Tests
         public void TryDeserialize_With_Valid_3Elements()
         {
             var type = new GeoJSONPositionScalar();
-            var input = new List<object>() { 1, 2, 0 };
+            var input = new List<object> {1, 2, 0};
 
-            var result = type.TryDeserialize(input, out var value);
+            var result = type.TryDeserialize(input, out object? value);
 
             Assert.True(result);
             Assert.Equal(1, Assert.IsType<CoordinateZ>(value).X);
@@ -405,7 +413,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var input = "not a coordinate";
 
-            var result = type.TrySerialize(input, out var value);
+            var result = type.TrySerialize(input, out object? value);
 
             Assert.False(result);
             Assert.Null(value);
@@ -417,11 +425,11 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var input = new Coordinate(1, 2);
 
-            var result = type.TrySerialize(input, out var value);
+            var result = type.TrySerialize(input, out object? value);
 
             Assert.True(result);
             Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-            Assert.Equal(new [] {1D, 2D}, Assert.IsType<double[]>(value));
+            Assert.Equal(new[] {1D, 2D}, Assert.IsType<double[]>(value));
         }
 
         [Fact]
@@ -430,11 +438,11 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var input = new CoordinateZ(1, 2, 100);
 
-            var result = type.TrySerialize(input, out var value);
+            var result = type.TrySerialize(input, out object? value);
 
             Assert.True(result);
             Assert.Equal(3, Assert.IsType<double[]>(value).Length);
-            Assert.Equal(new [] {1D, 2D, 100D}, Assert.IsType<double[]>(value));
+            Assert.Equal(new[] {1D, 2D, 100D}, Assert.IsType<double[]>(value));
         }
 
         [Fact]
@@ -443,11 +451,11 @@ namespace HotChocolate.Types.Spatial.Tests
             var type = new GeoJSONPositionScalar();
             var input = new CoordinateZ(1, 2, double.NaN);
 
-            var result = type.TrySerialize(input, out var value);
+            var result = type.TrySerialize(input, out object? value);
 
             Assert.True(result);
             Assert.Equal(2, Assert.IsType<double[]>(value).Length);
-            Assert.Equal(new [] {1D, 2D}, Assert.IsType<double[]>(value));
+            Assert.Equal(new[] {1D, 2D}, Assert.IsType<double[]>(value));
         }
     }
 }

@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,7 +11,7 @@ namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONMultiPolygonInputTests
     {
-        private readonly ListValueNode multiPolygon = new ListValueNode(
+        private readonly ListValueNode _multiPolygon = new ListValueNode(
             new ListValueNode(
                 new ListValueNode(
                     new IntValueNode(30),
@@ -41,11 +43,13 @@ namespace HotChocolate.Types.Spatial.Tests
                     new IntValueNode(5))));
 
         private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddQueryType(d => d
-            .Name("Query")
-            .Field("test")
-            .Argument("arg", a => a.Type<GeoJSONMultiPolygonInput>())
-            .Resolver("ghi"))
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJSONMultiPolygonInput>())
+                    .Resolver("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()
@@ -61,10 +65,12 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiPolygon)),
-                    new ObjectFieldNode("coordinates", multiPolygon)));
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode("MULTI_POLYGON")),
+                    new ObjectFieldNode("coordinates", _multiPolygon)));
 
             // assert
             Assert.Equal(2, Assert.IsType<MultiPolygon>(result).NumGeometries);
@@ -87,10 +93,12 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiPolygon)),
-                    new ObjectFieldNode("coordinates", multiPolygon),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode("MULTI_POLYGON")),
+                    new ObjectFieldNode("coordinates", _multiPolygon),
                     new ObjectFieldNode("crs", 26912)));
 
             // assert
@@ -107,7 +115,6 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.Equal(30, Assert.IsType<MultiPolygon>(result).Coordinates[3].X);
             Assert.Equal(20, Assert.IsType<MultiPolygon>(result).Coordinates[3].Y);
             Assert.Equal(26912, Assert.IsType<MultiPolygon>(result).SRID);
-
         }
 
         [Fact]
@@ -115,7 +122,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            object result = type.ParseLiteral(NullValueNode.Default);
+            object? result = type.ParseLiteral(NullValueNode.Default);
 
             Assert.Null(result);
         }
@@ -125,7 +132,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
 
@@ -134,10 +141,11 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("coordinates", multiPolygon),
-                    new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("coordinates", _multiPolygon),
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
         }
 
         [Fact]
@@ -145,10 +153,13 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.MultiPolygon)),
-                    new ObjectFieldNode("coordinates", new ListValueNode()))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode(
+                            "type",
+                            new EnumValueNode("MULTI_POLYGON")),
+                        new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
@@ -156,10 +167,11 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-               new ObjectValueNode(
-                   new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
-                   new ObjectFieldNode("coordinates", multiPolygon))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                        new ObjectFieldNode("coordinates", _multiPolygon))));
         }
 
         [Fact]
@@ -168,18 +180,19 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONMultiPolygonInput>())
-                    .Resolver(ctx => ctx.Argument<MultiPolygon>("arg").ToString()))
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJSONMultiPolygonInput>())
+                        .Resolver(ctx => ctx.ArgumentValue<MultiPolygon>("arg").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MULTIPOLYGON, coordinates:[ [" +
+                "{ test(arg: { type: MULTI_POLYGON, coordinates:[ [" +
                 "[[30, 20], [45, 40], [10, 40], [30, 20]] ], " +
                 "[ [[15, 5], [40, 10], [10, 20], [5, 10], [15, 5]] ] ] })}");
 

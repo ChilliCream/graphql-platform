@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,7 +11,7 @@ namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJSONMultiLineStringInputTests
     {
-        private readonly ListValueNode multiLinestring = new ListValueNode(
+        private readonly ListValueNode _multiLinestring = new ListValueNode(
             new ListValueNode(
                 new ListValueNode(
                     new IntValueNode(10),
@@ -36,11 +38,13 @@ namespace HotChocolate.Types.Spatial.Tests
             ));
 
         private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddQueryType(d => d
-            .Name("Query")
-            .Field("test")
-            .Argument("arg", a => a.Type<GeoJSONMultiLineStringInput>())
-            .Resolver("ghi"))
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJSONMultiLineStringInput>())
+                    .Resolver("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()
@@ -57,11 +61,12 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type",
-                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
-                    new ObjectFieldNode("coordinates", multiLinestring)));
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode("MULTI_LINE_STRING")),
+                    new ObjectFieldNode("coordinates", _multiLinestring)));
 
             // assert
             Assert.Equal(2, Assert.IsType<MultiLineString>(result).NumGeometries);
@@ -83,11 +88,12 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = CreateInputType();
 
             // act
-            object result = type.ParseLiteral(
+            object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type",
-                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
-                    new ObjectFieldNode("coordinates", multiLinestring),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode("MULTI_LINE_STRING")),
+                    new ObjectFieldNode("coordinates", _multiLinestring),
                     new ObjectFieldNode("crs", 26912)));
 
             // assert
@@ -110,7 +116,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            object result = type.ParseLiteral(NullValueNode.Default);
+            object? result = type.ParseLiteral(NullValueNode.Default);
 
             Assert.Null(result);
         }
@@ -121,7 +127,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(
+            Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
 
@@ -131,10 +137,11 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("coordinates", multiLinestring),
-                    new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("coordinates", _multiLinestring),
+                        new ObjectFieldNode("missingType", new StringValueNode("ignored")))));
         }
 
         [Fact]
@@ -143,11 +150,13 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-                new ObjectValueNode(
-                    new ObjectFieldNode("type",
-                        new EnumValueNode(GeoJSONGeometryType.MultiLineString)),
-                    new ObjectFieldNode("coordinates", new ListValueNode()))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode(
+                            "type",
+                            new EnumValueNode("MULTI_LINE_STRING")),
+                        new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
@@ -156,10 +165,11 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
-            Assert.Throws<SerializationException>(() => type.ParseLiteral(
-               new ObjectValueNode(
-                   new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
-                   new ObjectFieldNode("coordinates", multiLinestring))));
+            Assert.Throws<SerializationException>(
+                () => type.ParseLiteral(
+                    new ObjectValueNode(
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
+                        new ObjectFieldNode("coordinates", _multiLinestring))));
         }
 
         [Fact]
@@ -168,18 +178,19 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONMultiLineStringInput>())
-                    .Resolver(ctx => ctx.Argument<MultiLineString>("arg").ToString()))
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJSONMultiLineStringInput>())
+                        .Resolver(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MULTILINESTRING, coordinates: [ [" +
+                "{ test(arg: { type: MULTI_LINE_STRING, coordinates: [ [" +
                 "[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]] ] })}");
 
             // assert
