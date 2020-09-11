@@ -6,21 +6,16 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
+    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorBooleanTests
-        : IClassFixture<SchemaCache>
-        , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
-        private static readonly Foo[] _fooEntities = 
-        { 
-            new Foo { Bar = true }, 
-            new Foo { Bar = false } 
-        };
+        private static readonly Foo[] _fooEntities = {new Foo {Bar = true}, new Foo {Bar = false}};
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable { Bar = true },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = false }
+            new FooNullable {Bar = true},
+            new FooNullable {Bar = null},
+            new FooNullable {Bar = false}
         };
 
         private readonly SchemaCache _cache;
