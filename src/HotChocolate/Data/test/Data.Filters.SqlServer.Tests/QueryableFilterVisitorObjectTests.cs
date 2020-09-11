@@ -8,6 +8,7 @@ using Xunit;
 namespace HotChocolate.Data.Filters.Expressions
 {
     public class QueryableFilterVisitorObjectTests
+        : IClassFixture<SchemaCache>
     {
         private static readonly Bar[] _barEntities =
         {

@@ -6,8 +6,8 @@ using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    [Collection(nameof(DatabaseCollection))]
     public class QueryableFilterVisitorEnumTests
+        : IClassFixture<SchemaCache>
     {
         private static readonly Foo[] _fooEntities =
         {

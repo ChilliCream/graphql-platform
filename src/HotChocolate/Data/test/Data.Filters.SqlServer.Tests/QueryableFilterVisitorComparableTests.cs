@@ -7,6 +7,7 @@ using Xunit;
 namespace HotChocolate.Data.Filters
 {
     public class QueryableFilterVisitorComparableTests
+        : IClassFixture<SchemaCache>
     {
         private static readonly Foo[] _fooEntities =
         {
