@@ -19,11 +19,11 @@
     },
     {
       "type": "HotChocolate.Types.Introspection.__EnumValue",
-      "runtimeType": "HotChocolate.Types.EnumValue",
+      "runtimeType": "HotChocolate.Types.IEnumValue",
       "references": [
         "Output: HotChocolate.Types.Introspection.__EnumValue",
         "Output: __EnumValue",
-        "Output: ObjectType<EnumValue>"
+        "Output: ObjectType<IEnumValue>"
       ]
     },
     {
@@ -132,7 +132,7 @@
   ],
   "runtimeTypeRefs": {
     "None: DirectiveLocation!": "None: HotChocolate.Types.Introspection.__DirectiveLocation",
-    "Output: EnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
+    "Output: IEnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
     "Output: IOutputField": "Output: HotChocolate.Types.Introspection.__Field",
     "Output: IInputField": "Output: HotChocolate.Types.Introspection.__InputValue",
     "Output: ISchema": "Output: HotChocolate.Types.Introspection.__Schema",
