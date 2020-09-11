@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<ComparableOperationInput<int>>()))
+                        .Argument("test", a => a.Type<ComparableOperationFilterInput<int>>()))
                 .AddFiltering()
                 .Create();
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("comparable").Type<ComparableOperationInput<int>>();
+                descriptor.Field("comparable").Type<ComparableOperationFilterInput<int>>();
             }
         }
 

@@ -18,7 +18,7 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<StringOperationInput>()))
+                        .Argument("test", a => a.Type<StringOperationFilterInput>()))
                 .AddFiltering()
                 .Create();
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("string").Type<StringOperationInput>();
+                descriptor.Field("string").Type<StringOperationFilterInput>();
             }
         }
 

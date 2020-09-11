@@ -1,19 +1,14 @@
 import styled from "styled-components";
 
-export const Intro = styled.header<{ url: string }>`
+export const Intro = styled.header`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   padding: 25px 0;
   width: 100%;
-  min-height: 500px;
-  background-image: url("${(props) => props.url}");
-  background-attachment: scroll;
-  background-position-x: 50%;
-  background-position-y: 100%;
-  background-repeat: no-repeat;
-  background-size: cover;
+  background-color: #f40010;
+  background: linear-gradient(180deg, #f40010 70%, #ff892a 100%);
 
   @media only screen and (min-width: 992px) {
     padding: 60px 0;
