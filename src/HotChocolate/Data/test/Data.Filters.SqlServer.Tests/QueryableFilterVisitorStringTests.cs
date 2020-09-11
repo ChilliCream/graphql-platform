@@ -1,8 +1,5 @@
 using System.Threading.Tasks;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
@@ -27,7 +24,6 @@ namespace HotChocolate.Data.Filters
         public QueryableFilterVisitorStringTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

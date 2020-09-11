@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters.Expressions
@@ -116,7 +114,6 @@ namespace HotChocolate.Data.Filters.Expressions
         public QueryableFilterVisitorObjectTests(SchemaCache cache)
         {
             _cache = cache;
-            _cache.Init(DatabaseHelper.Resource);
         }
 
         [Fact]

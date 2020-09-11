@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
@@ -16,69 +14,77 @@ namespace HotChocolate.Data.Filters
             {
                 FooNested = new[]
                 {
-                    new FooNested {Bar = "a"},
-                    new FooNested {Bar = "a"},
-                    new FooNested {Bar = "a"}
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
                 }
             },
             new Foo
             {
                 FooNested = new[]
                 {
-                    new FooNested {Bar = "c"},
-                    new FooNested {Bar = "a"},
-                    new FooNested {Bar = "a"}
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "a" }
                 }
             },
             new Foo
             {
                 FooNested = new[]
                 {
-                    new FooNested {Bar = "a"},
-                    new FooNested {Bar = "d"},
-                    new FooNested {Bar = "b"}
+                    new FooNested { Bar = "a" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
                 }
             },
             new Foo
             {
                 FooNested = new[]
                 {
-                    new FooNested {Bar = "c"},
-                    new FooNested {Bar = "d"},
-                    new FooNested {Bar = "b"}
+                    new FooNested { Bar = "c" },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
                 }
             },
             new Foo
             {
                 FooNested = new[]
                 {
-                    new FooNested {Bar = null},
-                    new FooNested {Bar = "d"},
-                    new FooNested {Bar = "b"}
+                    new FooNested { Bar = null },
+                    new FooNested { Bar = "d" },
+                    new FooNested { Bar = "b" }
                 }
             }
         };
 
-        private readonly SchemaCache _cache;
-
-        public QueryableFilterVisitorListTests(SchemaCache cache)
-        {
-            _cache = cache;
-            _cache.Init(DatabaseHelper.Resource);
-        }
+        private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
         public async Task Create_ArraySomeObjectStringEqualWithNull_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
             IExecutionResult? res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        "{ root(where: { fooNested: { some: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
+                        @"{
+                            root(where: {
+                                fooNested: {
+                                    some: {
+                                        bar: {
+                                            eq: ""a""
+                                        }
+                                    }
+                                }
+                            }){
+                                fooNested {
+                                    bar
+                                }
+                            }
+                        }")
                     .Create());
 
             res1.MatchSqlSnapshot("a");
