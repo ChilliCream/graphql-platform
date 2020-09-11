@@ -13,7 +13,6 @@ namespace HotChocolate.Data.Sorting
         {
             descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
             descriptor.AddOperationHandler<QueryableDescendingSortOperationHandler>();
-
             descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
             return descriptor;
         }
