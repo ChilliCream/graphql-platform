@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -16,19 +18,19 @@ namespace HotChocolate.Types.Spatial
         {
             if (fieldIndex == -1)
             {
-                throw ThrowHelper.InvalidStructure_TypeIsMissing(this);
+                throw InvalidStructure_TypeIsMissing(this);
             }
 
             IValueNode typeValue = valueNode.Fields[fieldIndex].Value;
 
             if (!(_typeField.Type.ParseLiteral(typeValue) is GeoJSONGeometryType type))
             {
-                throw ThrowHelper.InvalidStructure_TypeCannotBeNull(this);
+                throw InvalidStructure_TypeCannotBeNull(this);
             }
 
             if (type != GeometryType)
             {
-                throw ThrowHelper.InvalidStructure_IsOfWrongGeometryType(type, this);
+                throw InvalidStructure_IsOfWrongGeometryType(type, this);
             }
 
             return type;
@@ -40,7 +42,7 @@ namespace HotChocolate.Types.Spatial
         {
             if (fieldIndex == -1)
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesIsMissing(this);
+                throw InvalidStructure_CoordinatesIsMissing(this);
             }
 
             IValueNode coordinatesValue = valueNode.Fields[fieldIndex].Value;
@@ -48,7 +50,7 @@ namespace HotChocolate.Types.Spatial
             if (!(_coordinatesField.Type.ParseLiteral(coordinatesValue) is Coordinate
                 coordinates))
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesCannotBeNull(this);
+                throw InvalidStructure_CoordinatesCannotBeNull(this);
             }
 
             return coordinates;
@@ -61,7 +63,7 @@ namespace HotChocolate.Types.Spatial
         {
             if (fieldIndex == -1)
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesIsMissing(this);
+                throw InvalidStructure_CoordinatesIsMissing(this);
             }
 
             IValueNode coordinatesValue = valueNode.Fields[fieldIndex].Value;
@@ -69,12 +71,12 @@ namespace HotChocolate.Types.Spatial
             if (!(_coordinatesField.Type.ParseLiteral(coordinatesValue) is IList<Coordinate>
                 coordinates))
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesCannotBeNull(this);
+                throw InvalidStructure_CoordinatesCannotBeNull(this);
             }
 
             if (coordinates.Count < coordinateCount)
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesOfWrongFormat(this);
+                throw InvalidStructure_CoordinatesOfWrongFormat(this);
             }
 
             return coordinates;
@@ -87,7 +89,7 @@ namespace HotChocolate.Types.Spatial
         {
             if (fieldIndex == -1)
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesIsMissing(this);
+                throw InvalidStructure_CoordinatesIsMissing(this);
             }
 
             IValueNode coordinatesValue = valueNode.Fields[fieldIndex].Value;
@@ -95,12 +97,12 @@ namespace HotChocolate.Types.Spatial
             if (!(_coordinatesField.Type.ParseLiteral(coordinatesValue) is List<List<Coordinate>>
                 coordinates))
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesCannotBeNull(this);
+                throw InvalidStructure_CoordinatesCannotBeNull(this);
             }
 
             if (coordinates.Count < partCount)
             {
-                throw ThrowHelper.InvalidStructure_CoordinatesOfWrongFormat(this);
+                throw InvalidStructure_CoordinatesOfWrongFormat(this);
             }
 
             return coordinates;
@@ -143,17 +145,17 @@ namespace HotChocolate.Types.Spatial
                 var fieldName = obj.Fields[i].Name.Value;
 
                 if (typeIndex < 0 &&
-                    WellKnownFields.TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
+                    TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     typeIndex = i;
                 }
                 else if (coordinateIndex < 0 &&
-                    WellKnownFields.CoordinatesFieldName.EqualsInvariantIgnoreCase(fieldName))
+                    CoordinatesFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     coordinateIndex = i;
                 }
                 else if (crsIndex < 0 &&
-                    WellKnownFields.CrsFieldName.EqualsInvariantIgnoreCase(fieldName))
+                    CrsFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     crsIndex = i;
                 }

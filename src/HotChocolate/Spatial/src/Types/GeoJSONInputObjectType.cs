@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -19,9 +20,9 @@ namespace HotChocolate.Types.Spatial
             DefinitionBase definition,
             IDictionary<string, object?> contextData)
         {
-            _coordinatesField = Fields[WellKnownFields.CoordinatesFieldName];
-            _typeField = Fields[WellKnownFields.TypeFieldName];
-            _crsField = Fields[WellKnownFields.CrsFieldName];
+            _coordinatesField = Fields[CoordinatesFieldName];
+            _typeField = Fields[TypeFieldName];
+            _crsField = Fields[CrsFieldName];
         }
     }
 }
