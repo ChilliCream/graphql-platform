@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-#nullable  enable
-
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class QueryableConnectionResolver<T> : IConnectionResolver<IQueryable<T>>
     {

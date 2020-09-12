@@ -1,7 +1,6 @@
-﻿namespace HotChocolate.Types.Relay
+﻿namespace HotChocolate.Types.Pagination
 {
-    public class PageInfoType
-        : ObjectType<IPageInfo>
+    public class PageInfoType : ObjectType<IPageInfo>
     {
         protected override void Configure(
             IObjectTypeDescriptor<IPageInfo> descriptor)

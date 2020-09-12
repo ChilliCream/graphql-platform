@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using static HotChocolate.Utilities.ThrowHelper;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class ConnectionMiddleware<TSource, TEntity>
     {

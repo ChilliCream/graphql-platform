@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public interface IConnectionResolver
     {

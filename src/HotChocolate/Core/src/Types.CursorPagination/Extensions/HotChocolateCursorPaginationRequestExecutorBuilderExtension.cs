@@ -1,7 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types.Relay;
+using HotChocolate.Types.Pagination;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     internal static class PaginationArguments
     {

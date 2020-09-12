@@ -1,6 +1,6 @@
 #nullable enable
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public readonly struct ConnectionArguments
     {

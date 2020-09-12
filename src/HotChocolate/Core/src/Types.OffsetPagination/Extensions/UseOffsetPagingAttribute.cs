@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using TypeInfo = HotChocolate.Utilities.TypeInfo;
 
-namespace HotChocolate.Types.OffsetPaging
+namespace HotChocolate.Types.Pagination
 {
     public class UseOffsetPagingAttribute : DescriptorAttribute
     {
@@ -16,7 +16,7 @@ namespace HotChocolate.Types.OffsetPaging
                 Type schemaType = GetSchemaType(context, m);
 
                 if (descriptor is IObjectFieldDescriptor objectFieldDescriptor)
-                    objectFieldDescriptor.UseObjectFieldOffsetPaging(schemaType);
+                    objectFieldDescriptor.UseOffsetPaging(schemaType);
                 else if (descriptor is IInterfaceFieldDescriptor interfaceFieldDescriptor)
                     interfaceFieldDescriptor.UseInterfaceFieldOffsetPaging(schemaType);
             }

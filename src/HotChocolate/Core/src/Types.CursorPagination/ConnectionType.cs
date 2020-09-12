@@ -3,7 +3,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class ConnectionType<T>
         : ObjectType<IConnection>
@@ -31,28 +31,29 @@ namespace HotChocolate.Types.Relay
 
         protected static void ApplyConfig(IObjectTypeDescriptor<IConnection> descriptor)
         {
-            descriptor.Name(dependency => dependency.Name + "Connection")
-                .DependsOn<T>();
+            descriptor
+                .Name(dependency => $"{dependency.Name}Connection")
+                .DependsOn<T>()
+                .Description("A connection to a list of items.")
+                .BindFields(BindingBehavior.Explicit);
 
-            descriptor.Description("A connection to a list of items.");
-
-            descriptor.BindFields(BindingBehavior.Explicit);
-
-            descriptor.Field(t => t.PageInfo)
+            descriptor
+                .Field(t => t.PageInfo)
                 .Name("pageInfo")
                 .Description("Information to aid in pagination.")
                 .Type<NonNullType<PageInfoType>>();
 
-            descriptor.Field(t => t.Edges)
+            descriptor
+                .Field(t => t.Edges)
                 .Name("edges")
                 .Description("A list of edges.")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
 
-            descriptor.Field("nodes")
+            descriptor
+                .Field("nodes")
                 .Description("A flattened list of the nodes.")
                 .Type<ListType<T>>()
-                .Resolver(ctx =>
-                    ctx.Parent<IConnection>().Edges.Select(t => t.Node));
+                .Resolver(ctx => ctx.Parent<IConnection>().Edges.Select(t => t.Node));
         }
 
         protected override void OnRegisterDependencies(

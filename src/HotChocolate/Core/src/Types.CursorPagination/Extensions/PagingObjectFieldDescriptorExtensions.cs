@@ -4,7 +4,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Relay;
+using HotChocolate.Types.Pagination;
 using static HotChocolate.Types.Properties.CursorResources;
 using static HotChocolate.Utilities.ThrowHelper;
 

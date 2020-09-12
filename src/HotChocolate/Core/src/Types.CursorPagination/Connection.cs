@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
-    public class Connection<T>
-        : IConnection
+    public class Connection<T> : IConnection
     {
         public Connection(
             IPageInfo pageInfo,

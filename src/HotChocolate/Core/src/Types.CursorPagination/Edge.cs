@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Types.Properties;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class Edge<T> : IEdge
     {

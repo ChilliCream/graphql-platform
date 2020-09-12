@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public interface IConnection
     {

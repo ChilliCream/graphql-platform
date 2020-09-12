@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Types.Relay;
+using HotChocolate.Types.Pagination;
 
 namespace HotChocolate
 {

@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class EdgeType<T>
         : ObjectType<IEdge>

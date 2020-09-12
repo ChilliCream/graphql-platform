@@ -6,7 +6,7 @@ using HotChocolate.Execution;
 
 #nullable enable
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public sealed class IndexEdge<T> : Edge<T>
     {

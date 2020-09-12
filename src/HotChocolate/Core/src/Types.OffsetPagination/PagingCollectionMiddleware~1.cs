@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.OffsetPaging
+namespace HotChocolate.Types.Pagination
 {
     public class PagingCollectionMiddleware<TClrType>
     {
@@ -39,7 +39,7 @@ namespace HotChocolate.Types.OffsetPaging
                 if (take != null)
                     slice = slice.Take(take.Value);
 
-                context.Result = new CollectionSlice<TClrType>(slice.ToList(), totalCount);
+                context.Result = new CollectionSegment<TClrType>(slice.ToList(), totalCount);
             }
         }
     }

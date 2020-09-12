@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Pagination
 {
-    public struct ConnectionSettings
+    public struct OffsetSettings
     {
         public int? DefaultPageSize { get; set; }
 
@@ -8,6 +8,6 @@ namespace HotChocolate.Types.Pagination
 
         public bool? WithTotalCount { get; set; }
 
-        internal static string GetKey() => typeof(ConnectionSettings).FullName;
+        internal static string GetKey() => typeof(OffsetSettings).FullName;
     }
 }

@@ -1,11 +1,9 @@
 using System;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
-    public class ConnectionCountType<T>
-        : ConnectionType<T>
-        where T : class, IOutputType
+    public class ConnectionCountType<T> : ConnectionType<T> where T : class, IOutputType
     {
         public ConnectionCountType()
         {
@@ -30,7 +28,7 @@ namespace HotChocolate.Types.Relay
 
             descriptor.Field("totalCount")
                 .Type<NonNullType<IntType>>()
-                .Resolver(ctx => GetTotalCount(ctx));
+                .Resolver(GetTotalCount);
         }
 
         private static long GetTotalCount(

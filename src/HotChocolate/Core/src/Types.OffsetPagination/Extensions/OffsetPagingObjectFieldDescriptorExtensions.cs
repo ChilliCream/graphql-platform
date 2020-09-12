@@ -3,28 +3,29 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.OffsetPaging
+namespace HotChocolate.Types
 {
     public static class OffsetPagingObjectFieldDescriptorExtensions
     {
-        internal static IObjectFieldDescriptor UseObjectFieldOffsetPaging(
-            this IObjectFieldDescriptor descriptor, 
+        public static IObjectFieldDescriptor UseOffsetPaging(
+            this IObjectFieldDescriptor descriptor,
             Type schemaType)
         {
-            FieldMiddleware placeholder = next => _ => Task.CompletedTask;
+            FieldMiddleware placeholder = next => _ => default;
             Type middlewareDefinition = typeof(PagingCollectionMiddleware<>);
             var clrTypeReference = new ClrTypeReference(schemaType, TypeContext.Output);
 
-            Type nonGenericType = typeof(CollectionSliceType<>).MakeGenericType(schemaType);
+            Type nonGenericType = typeof(CollectionSegmentType<>).MakeGenericType(schemaType);
 
-            descriptor.AddOffsetPagingArguments()
+            descriptor
+                .AddOffsetPagingArguments()
                 .Type(nonGenericType)
                 .Use(placeholder)
                 .Extend()
                 .OnBeforeCompletion((context, definition) =>
                 {
                     IOutputType type = context.GetType<IOutputType>(clrTypeReference);
-                    if (type.NamedType() is IHasClrType hasClrType)
+                    if (type.NamedType() is IHasRuntimeType hasClrType)
                     {
                         Type middlewareType = middlewareDefinition.MakeGenericType(hasClrType.ClrType);
                         FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
@@ -40,11 +41,11 @@ namespace HotChocolate.Types.OffsetPaging
         public static IObjectFieldDescriptor UseOffsetPaging<TType>(this IObjectFieldDescriptor descriptor)
         {
             if (typeof(IOutputType).IsAssignableFrom(typeof(TType)))
-                return UseObjectFieldOffsetPaging(descriptor, typeof(TType));
+                return UseOffsetPaging(descriptor, typeof(TType));
 
             descriptor
                 .AddOffsetPagingArguments()
-                .Type<ObjectType<CollectionSlice<TType>>>()
+                .Type<ObjectType<CollectionSegment<TType>>>()
                 .Use<PagingCollectionMiddleware<TType>>();
 
             return descriptor;
@@ -58,29 +59,31 @@ namespace HotChocolate.Types.OffsetPaging
 
             descriptor
                 .AddOffsetPagingArguments()
-                .Type<ObjectType<CollectionSlice<TType>>>();
+                .Type<ObjectType<CollectionSegment<TType>>>();
 
             return descriptor;
         }
 
         internal static IInterfaceFieldDescriptor UseInterfaceFieldOffsetPaging(this IInterfaceFieldDescriptor descriptor, Type type)
         {
-            Type nonGenericType = typeof(CollectionSliceType<>).MakeGenericType(type);
+            Type nonGenericType = typeof(CollectionSegmentType<>).MakeGenericType(type);
             return descriptor.AddOffsetPagingArguments().Type(nonGenericType);
         }
 
-        public static IObjectFieldDescriptor AddOffsetPagingArguments(this IObjectFieldDescriptor descriptor)
+        public static IObjectFieldDescriptor AddOffsetPagingArguments(
+            this IObjectFieldDescriptor descriptor)
         {
             return descriptor
-                .Argument("take", a => a.Type<PaginationAmountType>())
-                .Argument("skip", a => a.Type<PaginationAmountType>());
+                .Argument(PaginationArguments.Skip, a => a.Type<IntType>())
+                .Argument(PaginationArguments.Take, a => a.Type<IntType>());
         }
 
-        public static IInterfaceFieldDescriptor AddOffsetPagingArguments(this IInterfaceFieldDescriptor descriptor)
+        public static IInterfaceFieldDescriptor AddOffsetPagingArguments(
+            this IInterfaceFieldDescriptor descriptor)
         {
             return descriptor
-                .Argument("take", a => a.Type<PaginationAmountType>())
-                .Argument("skip", a => a.Type<PaginationAmountType>());
+                .Argument(PaginationArguments.Skip, a => a.Type<IntType>())
+                .Argument(PaginationArguments.Take, a => a.Type<IntType>());
         }
     }
 }
