@@ -1,7 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>HotChocolate.Types.OffsetPagination</PackageId>
+    <AssemblyName>HotChocolate.Types.OffsetPagination</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>Contains middleware and types for offset based pagination.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>  
 
 </Project>

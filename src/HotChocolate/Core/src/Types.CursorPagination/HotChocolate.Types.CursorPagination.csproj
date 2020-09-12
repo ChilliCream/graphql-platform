@@ -1,7 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>HotChocolate.Types.CursorPagination</PackageId>
+    <AssemblyName>HotChocolate.Types.CursorPagination</AssemblyName>
+    <RootNamespace>HotChocolate.Types</RootNamespace>
+    <Description>Contains middleware and types for cursor based pagination.</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>  
 
 </Project>
