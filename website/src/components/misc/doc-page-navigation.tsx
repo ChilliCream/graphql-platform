@@ -282,7 +282,7 @@ const ProductSwitcher = styled.div`
   flex-wrap: wrap;
   align-items: center;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     position: relative;
     flex-wrap: initial;
     overflow-y: initial;
@@ -315,7 +315,7 @@ const ProductSwitcherButton = styled.button`
     background-color: #ddd;
   }
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     margin-bottom: 20px;
     padding: 7px 5px;
     width: calc(100% - 28px);
@@ -330,7 +330,7 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   padding: 0 10px;
   background-color: #fff;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     position: fixed;
     z-index: 10;
     top: 130px;
@@ -355,7 +355,7 @@ const ProductBase = css`
   color: #666;
   cursor: pointer;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     flex: 0 0 calc(50% - 32px);
   }
 `;
@@ -389,7 +389,7 @@ const NavigationList = styled.ol<{ open: boolean }>`
   padding: 0 25px 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     display: flex;
     padding: 0 20px 20px;
   }

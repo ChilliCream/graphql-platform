@@ -65,7 +65,7 @@ const Container = styled.div`
   flex-direction: row;
   padding: 10px 20px;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     padding: 10px 50px;
   }
 `;

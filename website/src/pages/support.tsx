@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from "react";
 import {
-  Check,
+  CheckIcon,
   ContentContainer,
-  Envelope,
+  EnvelopeIcon,
   ImageContainer,
   List,
   ListItem,
@@ -50,11 +50,11 @@ const SupportPage: FunctionComponent = () => {
             </p>
             <List>
               <ListItem>
-                <Check />
+                <CheckIcon />
                 Private Slack Channel with ChilliCream experts for your team
               </ListItem>
               <ListItem>
-                <Check />
+                <CheckIcon />
                 Architecture, Code and Schema reviews
               </ListItem>
             </List>
@@ -74,12 +74,12 @@ const SupportPage: FunctionComponent = () => {
             </p>
             <List>
               <ListItem>
-                <Check />
+                <CheckIcon />
                 Learn from ChilliCream experts, what GraphQL is, what it can do
                 and how to use it
               </ListItem>
               <ListItem>
-                <Check />
+                <CheckIcon />
                 Private training sessions, customized to your needs and
                 requirements
               </ListItem>
@@ -98,7 +98,7 @@ const SupportPage: FunctionComponent = () => {
               Want to learn more? Get the right help for your team and reach out
               to us today. Write us an{" "}
               <a href="mailto:contact@chillicream.com">
-                <Envelope />
+                <EnvelopeIcon />
               </a>{" "}
               and we will come back to you shortly!
             </p>

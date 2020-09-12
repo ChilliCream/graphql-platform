@@ -1,9 +1,10 @@
 import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
+import { GetBananaCakepopImageQuery } from "../../../graphql-types";
 
 export const BananaCakepop: FunctionComponent = () => {
-  const data = useStaticQuery(graphql`
+  const data = useStaticQuery<GetBananaCakepopImageQuery>(graphql`
     query getBananaCakepopImage {
       placeholderImage: file(
         relativePath: { eq: "banana-cakepop.png" }
@@ -18,5 +19,5 @@ export const BananaCakepop: FunctionComponent = () => {
     }
   `);
 
-  return <Img fluid={data.placeholderImage.childImageSharp.fluid} />;
+  return <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />;
 };

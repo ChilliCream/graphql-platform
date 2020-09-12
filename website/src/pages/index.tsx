@@ -1,24 +1,40 @@
+import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
+import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakepop } from "../components/images/banana-cakepop";
 import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
-  Envelope,
+  EnvelopeIcon,
   ImageContainer,
   Section,
   SectionRow,
   SectionTitle,
+  SlackIcon,
 } from "../components/misc/marketing-elements";
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
 import ContactUsSvg from "../images/contact-us.svg";
+import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 
 const IndexPage: FunctionComponent = () => {
+  const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
+    query getIndexPageData {
+      site {
+        siteMetadata {
+          tools {
+            slack
+          }
+        }
+      }
+    }
+  `);
+
   return (
     <Layout>
       <SEO title="Home" />
@@ -47,7 +63,7 @@ const IndexPage: FunctionComponent = () => {
             <Link to="/docs/bananacakepop">
               <BananaCakepop />
               <SlideContent>
-                <SlideTitle>Banana Cakepop</SlideTitle>
+                <SlideTitle>Banana Cake Pop</SlideTitle>
                 <SlideDescription>
                   Our tool to explore schemas, execute operations and get deep
                   performance insights.
@@ -85,21 +101,16 @@ const IndexPage: FunctionComponent = () => {
       </Section>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <BananaCakepop />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>From our Blog</SectionTitle>
+          <ContentContainer noImage>
+            <SectionTitle centerAlways>From our Blog</SectionTitle>
           </ContentContainer>
         </SectionRow>
       </Section>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <BananaCakepop />
-          </ImageContainer>
-          <ContentContainer>
-            <SectionTitle>Companies who trust us</SectionTitle>
+          <ContentContainer noImage>
+            <SectionTitle centerAlways>Companies who trust us</SectionTitle>
+            <Logos>{false && <SwissLifeLogoSvg />}</Logos>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -109,14 +120,18 @@ const IndexPage: FunctionComponent = () => {
             <ContactUsSvg />
           </ImageContainer>
           <ContentContainer>
-            <SectionTitle>Get in Touch</SectionTitle>
+            <SectionTitle>What's your story?</SectionTitle>
             <p>
-              Want to learn more? Get the right help for your team and reach out
-              to us today. Write us an{" "}
+              We would be thrilled to hear your customer success story with Hot
+              Chocolate! Write us an{" "}
               <a href="mailto:contact@chillicream.com">
-                <Envelope />
+                <EnvelopeIcon />
               </a>{" "}
-              and we will come back to you shortly!
+              or chat with us on{" "}
+              <a href={data.site!.siteMetadata!.tools!.slack!}>
+                <SlackIcon />
+              </a>{" "}
+              to get in touch with us!
             </p>
           </ContentContainer>
         </SectionRow>
@@ -263,5 +278,26 @@ const SlideDescription = styled.p`
 
   @media only screen and (min-width: 768px) {
     display: initial;
+  }
+`;
+
+const Logos = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 40px 0 20px;
+
+  > svg {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100px;
+    max-height: 100px;
+    fill: #667;
+    transition: fill 0.2s ease-in-out;
+
+    &:hover {
+      fill: #333;
+    }
   }
 `;
