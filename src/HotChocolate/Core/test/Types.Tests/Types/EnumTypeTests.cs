@@ -267,14 +267,14 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
-            #if NETCOREAPP2_1
+#if NETCOREAPP2_1
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot(
                     new SnapshotNameExtension("NETCOREAPP2_1"));
-            #else
+#else
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot();
-            #endif
+#endif
         }
 
         [Fact]
@@ -290,14 +290,14 @@ namespace HotChocolate.Types
                     .Create();
 
             // assert
-            #if NETCOREAPP2_1
+#if NETCOREAPP2_1
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot(
                     new SnapshotNameExtension("NETCOREAPP2_1"));
-            #else
+#else
             Assert.Throws<SchemaException>(action)
                 .Errors.Single().Message.MatchSnapshot();
-            #endif
+#endif
         }
 
         [Fact]
@@ -479,7 +479,7 @@ namespace HotChocolate.Types
             var completionContext = new Mock<ITypeCompletionContext>();
 
             // act
-            void Action () => new EnumValue(completionContext.Object, new EnumValueDefinition());
+            void Action() => new EnumValue(completionContext.Object, new EnumValueDefinition());
 
             // assert
             Assert.Throws<ArgumentException>(Action);
@@ -529,6 +529,17 @@ namespace HotChocolate.Types
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Recognize_GraphQLNameAttribute_On_EnumType_And_EnumValue()
+        {
+            SchemaBuilder.New()
+               .AddEnumType<FooName>()
+               .ModifyOptions(o => o.StrictValidation = false)
+               .Create()
+               .ToString()
+               .MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -549,6 +560,14 @@ namespace HotChocolate.Types
         {
             Bar1,
             [GraphQLDeprecated("Baz.")]
+            Bar2
+        }
+
+        [GraphQLName("Foo")]
+        public enum FooName
+        {
+            Bar1,
+            [GraphQLName("BAR_2")]
             Bar2
         }
 

@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore.Utilities
                 app => app
                     .UseWebSockets()
                     .UseRouting()
-                    .UseEndpoints(endpoints => 
+                    .UseEndpoints(endpoints =>
                     {
                         endpoints.MapGraphQL(pattern);
                         endpoints.MapGraphQL("evict", "evict");

@@ -1,14 +1,10 @@
 using System.Threading.Tasks;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
     public class QueryableFilterVisitorComparableTests
-        : IClassFixture<SchemaCache>
-        , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
         private static readonly Foo[] _fooEntities =
         {
@@ -25,15 +21,7 @@ namespace HotChocolate.Data.Filters
             new FooNullable { BarShort = 13 }
         };
 
-        private readonly SchemaCache _cache;
-
-        public QueryableFilterVisitorComparableTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
-        {
-            _cache = cache;
-            _cache.Init(sqlServer);
-        }
+        private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
         public async Task Create_ShortEqual_Expression()

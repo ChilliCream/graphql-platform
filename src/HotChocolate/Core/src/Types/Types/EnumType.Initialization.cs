@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
@@ -12,10 +13,10 @@ namespace HotChocolate.Types
 {
     public partial class EnumType
     {
-        private readonly Dictionary<NameString, EnumValue> _enumValues =
-            new Dictionary<NameString, EnumValue>();
-        private readonly Dictionary<object, EnumValue> _valueLookup =
-            new Dictionary<object, EnumValue>();
+        private readonly Dictionary<NameString, IEnumValue> _enumValues =
+            new Dictionary<NameString, IEnumValue>();
+        private readonly Dictionary<object, IEnumValue> _valueLookup =
+            new Dictionary<object, IEnumValue>();
         private Action<IEnumTypeDescriptor>? _configure;
         private INamingConventions _naming = default!;
 
@@ -69,9 +70,11 @@ namespace HotChocolate.Types
 
             foreach (EnumValueDefinition enumValueDefinition in definition.Values)
             {
-                var enumValue = new EnumValue(context, enumValueDefinition);
-                _enumValues[enumValue.Name] = enumValue;
-                _valueLookup[enumValue.Value] = enumValue;
+                if (TryCreateEnumValue(context, enumValueDefinition, out IEnumValue? enumValue))
+                {
+                    _enumValues[enumValue.Name] = enumValue;
+                    _valueLookup[enumValue.Value] = enumValue;
+                }
             }
 
             if (!Values.Any())
@@ -84,6 +87,15 @@ namespace HotChocolate.Types
                         .AddSyntaxNode(SyntaxNode)
                         .Build());
             }
+        }
+
+        protected virtual bool TryCreateEnumValue(
+            ITypeCompletionContext context,
+            EnumValueDefinition definition,
+            [NotNullWhen(true)]out IEnumValue? enumValue)
+        {
+            enumValue = new EnumValue(context, definition);
+            return true;
         }
     }
 }
