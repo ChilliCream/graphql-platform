@@ -20,7 +20,7 @@ namespace HotChocolate.Data
                 .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
         /// <summary>
-        /// Registers the and adds the arguments for sorting
+        /// Registers the middleware and adds the arguments for sorting
         /// </summary>
         /// <param name="descriptor">The field descriptor where the arguments and middleware are
         /// applied to</param>
@@ -39,7 +39,7 @@ namespace HotChocolate.Data
         }
 
         /// <summary>
-        /// Registers the and adds the arguments for sorting
+        /// Registers the middleware and adds the arguments for sorting
         /// </summary>
         /// <param name="descriptor">The field descriptor where the arguments and middleware are
         /// applied to</param>
@@ -64,7 +64,7 @@ namespace HotChocolate.Data
         }
 
         /// <summary>
-        /// Registers the and adds the arguments for sorting
+        /// Registers the middleware and adds the arguments for sorting
         /// </summary>
         /// <param name="descriptor">The field descriptor where the arguments and middleware are
         /// applied to</param>
@@ -92,7 +92,7 @@ namespace HotChocolate.Data
         }
 
         /// <summary>
-        /// Registers the and adds the arguments for sorting
+        /// Registers the middleware and adds the arguments for sorting
         /// </summary>
         /// <param name="descriptor">The field descriptor where the arguments and middleware are
         /// applied to</param>

@@ -164,6 +164,7 @@ namespace HotChocolate.Data.Tests
 
             // assert
             schema.ToString().MatchSnapshot();
+                    IObjectFieldDescriptor f = default;
         }
 
         private class TestSort : SortInputType
