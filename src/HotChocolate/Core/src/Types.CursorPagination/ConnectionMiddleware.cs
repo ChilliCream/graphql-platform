@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Relay
 {
@@ -12,21 +13,40 @@ namespace HotChocolate.Types.Relay
         private readonly QueryableConnectionResolver<TEntity> _connectionResolver =
             new QueryableConnectionResolver<TEntity>();
         private readonly FieldDelegate _next;
+        private readonly int _defaultPageSize;
+        private readonly int _maxPageSize;
+        private readonly bool _withTotalCount;
 
-        public ConnectionMiddleware(FieldDelegate next)
+        public ConnectionMiddleware(FieldDelegate next, ConnectionSettings settings)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _defaultPageSize = settings.DefaultPageSize ?? 10;
+            _maxPageSize = settings.MaxPageSize ?? 50;
+            _withTotalCount = settings.WithTotalCount ?? false;
         }
 
         public async Task InvokeAsync(
             IMiddlewareContext context,
             IConnectionResolver<TSource>? connectionResolver)
         {
+            int? first = context.ArgumentValue<int?>(PaginationArguments.First);
+            int? last = context.ArgumentValue<int?>(PaginationArguments.Last);
+
+            if (first is null && last is null)
+            {
+                first = _defaultPageSize;
+            }
+
+            if (first > _maxPageSize || last > _maxPageSize)
+            {
+                throw ConnectionMiddleware_MaxPageSize();
+            }
+
             await _next(context).ConfigureAwait(false);
 
             var arguments = new ConnectionArguments(
-                context.ArgumentValue<int?>(PaginationArguments.First),
-                context.ArgumentValue<int?>(PaginationArguments.Last),
+                first,
+                last,
                 context.ArgumentValue<string>(PaginationArguments.After),
                 context.ArgumentValue<string>(PaginationArguments.Before));
 
@@ -36,7 +56,7 @@ namespace HotChocolate.Types.Relay
                     context,
                     source,
                     arguments,
-                    true, // where should we store this?
+                    _withTotalCount,
                     context.RequestAborted)
                     .ConfigureAwait(false);
             }

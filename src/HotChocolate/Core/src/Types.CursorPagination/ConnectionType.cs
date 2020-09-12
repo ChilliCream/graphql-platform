@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Relay
@@ -12,7 +11,6 @@ namespace HotChocolate.Types.Relay
         where T : class, IOutputType
     {
         public ConnectionType()
-            : base(descriptor => Configure(descriptor))
         {
         }
 
@@ -20,16 +18,18 @@ namespace HotChocolate.Types.Relay
             Action<IObjectTypeDescriptor<IConnection>> configure)
             : base(descriptor =>
             {
-                Configure(descriptor);
-                configure?.Invoke(descriptor);
+                ApplyConfig(descriptor);
+                configure(descriptor);
             })
         {
         }
 
-        public IEdgeType EdgeType { get; private set; }
+        public IEdgeType EdgeType { get; private set; } = default!;
 
-        protected new static void Configure(
-            IObjectTypeDescriptor<IConnection> descriptor)
+        protected override void Configure(IObjectTypeDescriptor<IConnection> descriptor) =>
+            ApplyConfig(descriptor);
+
+        protected static void ApplyConfig(IObjectTypeDescriptor<IConnection> descriptor)
         {
             descriptor.Name(dependency => dependency.Name + "Connection")
                 .DependsOn<T>();
@@ -62,7 +62,7 @@ namespace HotChocolate.Types.Relay
             base.OnRegisterDependencies(context, definition);
 
             context.RegisterDependency(
-                ClrTypeReference.FromSchemaType<EdgeType<T>>(),
+                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)),
                 TypeDependencyKind.Default);
         }
 
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EdgeType = context.GetType<EdgeType<T>>(
-                ClrTypeReference.FromSchemaType<EdgeType<T>>());
+                context.TypeInspector.GetTypeRef(typeof(EdgeType<T>)));
         }
     }
 }

@@ -21,4 +21,7 @@
   <data name="Edge_CursorNullOrEmpty" xml:space="preserve">
     <value>The cursor cannot be null or empty.</value>
   </data>
+  <data name="PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid" xml:space="preserve">
+    <value>The schema type must be a valid output type.</value>
+  </data>
 </root>

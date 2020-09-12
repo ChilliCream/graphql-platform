@@ -50,5 +50,11 @@ namespace HotChocolate.Types.Properties {
                 return ResourceManager.GetString("Edge_CursorNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid {
+            get {
+                return ResourceManager.GetString("PagingObjectFieldDescriptorExtensions_SchemaTypeNotValid", resourceCulture);
+            }
+        }
     }
 }

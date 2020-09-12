@@ -7,5 +7,7 @@ namespace HotChocolate.Types.Relay
         public int? MaxPageSize { get; set; }
 
         public bool? WithTotalCount { get; set; }
+
+        internal static string GetKey() => typeof(ConnectionSettings).FullName;
     }
 }
