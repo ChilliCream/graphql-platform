@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 #nullable enable
@@ -70,7 +69,7 @@ namespace HotChocolate.Configuration
         {
             VisitDirectives(type);
 
-            foreach (EnumValue value in type.Values)
+            foreach (IEnumValue value in type.Values)
             {
                 VisitDirectives(value);
             }

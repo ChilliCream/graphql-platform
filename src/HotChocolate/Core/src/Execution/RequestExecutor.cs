@@ -12,7 +12,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutor : IRequestExecutor
     {
-        private readonly IServiceProvider _services;
+        private readonly IServiceProvider _applicationServices;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _converter;
         private readonly IActivator _activator;
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
         {
             Schema = schema ??
                 throw new ArgumentNullException(nameof(schema));
-            _services = applicationServices ??
+            _applicationServices = applicationServices ??
                 throw new ArgumentNullException(nameof(applicationServices));
             Services = executorServices ??
                 throw new ArgumentNullException(nameof(executorServices));
@@ -54,7 +54,7 @@ namespace HotChocolate.Execution
         public IServiceProvider Services { get; }
 
         public async Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
             CancellationToken cancellationToken = default)
         {
             if (request is null)
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IServiceScope? scope = request.Services is null ? _services.CreateScope() : null;
+            IServiceScope? scope = request.Services is null ? _applicationServices.CreateScope() : null;
             IServiceProvider services = scope is null ? request.Services! : scope.ServiceProvider;
 
             try
@@ -86,7 +86,7 @@ namespace HotChocolate.Execution
                     throw new InvalidOperationException();
                 }
 
-                if(scope is not null && context.Result is SubscriptionResult result) 
+                if(scope is not null && context.Result is SubscriptionResult result)
                 {
                     context.Result = new SubscriptionResult(result, scope);
                     scope = null;
@@ -101,7 +101,7 @@ namespace HotChocolate.Execution
         }
 
         public Task<IBatchQueryResult> ExecuteBatchAsync(
-            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            IEnumerable<IQueryRequest> requestBatch,
             bool allowParallelExecution = false,
             CancellationToken cancellationToken = default)
         {

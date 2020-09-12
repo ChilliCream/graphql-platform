@@ -125,7 +125,22 @@ namespace HotChocolate.Configuration
 
             foreach (ITypeReference typeReference in registeredType.References)
             {
-                _typeRegister[typeReference] = registeredType;
+                if (_typeRegister.TryGetValue(typeReference, out RegisteredType? current) &&
+                    !ReferenceEquals(current, registeredType))
+                {
+                    if (current.IsInferred && !registeredType.IsInferred)
+                    {
+                        _typeRegister[typeReference] = registeredType;
+                        if (!_typeRegister.ContainsValue(current))
+                        {
+                            _types.Remove(current);
+                        }
+                    }
+                }
+                else
+                {
+                    _typeRegister[typeReference] = registeredType;
+                }
             }
 
             if (addToTypes)
@@ -143,12 +158,12 @@ namespace HotChocolate.Configuration
 
             typeName.EnsureNotEmpty(nameof(typeName));
 
-            if(registeredType.IsExtension)
+            if (registeredType.IsExtension)
             {
                 return;
             }
 
-            if(!registeredType.IsNamedType && !registeredType.IsDirectiveType)
+            if (!registeredType.IsNamedType && !registeredType.IsDirectiveType)
             {
                 return;
             }
@@ -161,12 +176,6 @@ namespace HotChocolate.Configuration
             }
 
             _nameRefs[typeName] = registeredType.References[0];
-        }
-
-        public void RebuildIndexes()
-        {
-            _types.Clear();
-            _types.AddRange(_typeRegister.Values.Distinct());
         }
     }
 }

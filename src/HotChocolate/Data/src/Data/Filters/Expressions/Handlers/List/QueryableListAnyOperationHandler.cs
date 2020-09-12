@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Configuration;
-using HotChocolate.Internal;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters.Expressions
@@ -26,7 +23,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IListFilterInputType &&
+            return context.Type is IListFilterInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == DefaultOperations.Any;
         }

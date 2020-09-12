@@ -16,7 +16,7 @@ namespace HotChocolate.Language
             Description = description;
         }
 
-        public override NodeKind Kind { get; } = NodeKind.EnumValueDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.EnumValueDefinition;
 
         public StringValueNode? Description { get; }
 

@@ -1,59 +1,51 @@
 using System.Threading.Tasks;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
-using Squadron;
 using Xunit;
 
 namespace HotChocolate.Data.Filters
 {
     public class QueryableFilterVisitorComparableTests
-        : IClassFixture<SchemaCache>
-        , IClassFixture<SqlServerResource<CustomSqlServerOptions>>
     {
         private static readonly Foo[] _fooEntities =
-            new[] {new Foo {BarShort = 12}, new Foo {BarShort = 14}, new Foo {BarShort = 13}};
-
-        private static readonly FooNullable[] _fooNullableEntities = new[]
         {
-            new FooNullable {BarShort = 12},
-            new FooNullable {BarShort = null},
-            new FooNullable {BarShort = 14},
-            new FooNullable {BarShort = 13}
+            new Foo { BarShort = 12 },
+            new Foo { BarShort = 14 },
+            new Foo { BarShort = 13 }
         };
 
-        private readonly SchemaCache _cache;
-
-        public QueryableFilterVisitorComparableTests(
-            SqlServerResource<CustomSqlServerOptions> sqlServer,
-            SchemaCache cache)
+        private static readonly FooNullable[] _fooNullableEntities =
         {
-            _cache = cache;
-            _cache.Init(sqlServer);
-        }
+            new FooNullable { BarShort = 12 },
+            new FooNullable { BarShort = null },
+            new FooNullable { BarShort = 14 },
+            new FooNullable { BarShort = 13 }
+        };
+
+        private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
         public async Task Create_ShortEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                     .Create());
 
             res2.MatchSqlSnapshot("13");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                     .Create());
@@ -64,25 +56,25 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotEqual_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { neq: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { neq: 13}}){ barShort}}")
                     .Create());
 
             res2.MatchSqlSnapshot("13");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { neq: null}}){ barShort}}")
                     .Create());
@@ -93,32 +85,32 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortGreaterThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { gt: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { gt: 13}}){ barShort}}")
                     .Create());
 
             res2.MatchSqlSnapshot("13");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { gt: 14}}){ barShort}}")
                     .Create());
 
             res3.MatchSqlSnapshot("14");
 
-            IExecutionResult? res4 = await tester.ExecuteAsync(
+            IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { gt: null}}){ barShort}}")
                     .Create());
@@ -129,18 +121,18 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotGreaterThan_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { ngt: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { ngt: 13}}){ barShort}}")
                     .Create());
@@ -154,7 +146,7 @@ namespace HotChocolate.Data.Filters
 
             res3.MatchSqlSnapshot("14");
 
-            IExecutionResult? res4 = await tester.ExecuteAsync(
+            IExecutionResult res4 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { ngt: null}}){ barShort}}")
                     .Create());
@@ -347,18 +339,18 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotLowerThanOrEquals_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { nlte: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { nlte: 13}}){ barShort}}")
                     .Create());
@@ -410,23 +402,23 @@ namespace HotChocolate.Data.Filters
         [Fact]
         public async Task Create_ShortNotIn_Expression()
         {
-            IRequestExecutor? tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
 
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { nin: [ 12, 13 ]}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12and13");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                     .Create());
 
             res2.MatchSqlSnapshot("13and14");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { nin: [ null, 14 ]}}){ barShort}}")
                     .Create());
@@ -438,26 +430,26 @@ namespace HotChocolate.Data.Filters
         public async Task Create_ShortNullableEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester =
+            IRequestExecutor tester =
                 _cache.CreateSchema<FooNullable, FooNullableFilterType>(_fooNullableEntities);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: 12}}){ barShort}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
 
-            IExecutionResult? res2 = await tester.ExecuteAsync(
+            IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: 13}}){ barShort}}")
                     .Create());
 
             res2.MatchSqlSnapshot("13");
 
-            IExecutionResult? res3 = await tester.ExecuteAsync(
+            IExecutionResult res3 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { barShort: { eq: null}}){ barShort}}")
                     .Create());

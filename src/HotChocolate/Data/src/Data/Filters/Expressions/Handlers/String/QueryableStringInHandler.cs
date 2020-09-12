@@ -1,8 +1,5 @@
-using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {

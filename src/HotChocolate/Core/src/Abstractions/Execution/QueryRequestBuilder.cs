@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryRequestBuilder SetQueryName(string queryName)
+        public IQueryRequestBuilder SetQueryId(string queryName)
         {
             _queryName = queryName;
             return this;
@@ -275,9 +275,9 @@ namespace HotChocolate.Execution
 
         private void InitializeVariables()
         {
-            if (_variableValues == null)
+            if (_variableValues is null)
             {
-                _variableValues = _readOnlyVariableValues == null
+                _variableValues = _readOnlyVariableValues is null
                     ? new Dictionary<string, object>()
                     : _readOnlyVariableValues.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -296,9 +296,9 @@ namespace HotChocolate.Execution
 
         private void InitializeProperties()
         {
-            if (_properties == null)
+            if (_properties is null)
             {
-                _properties = _readOnlyProperties == null
+                _properties = _readOnlyProperties is null
                     ? new Dictionary<string, object>()
                     : _readOnlyProperties.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -317,9 +317,9 @@ namespace HotChocolate.Execution
 
         private void InitializeExtensions()
         {
-            if (_extensions == null)
+            if (_extensions is null)
             {
-                _extensions = _readOnlyExtensions == null
+                _extensions = _readOnlyExtensions is null
                     ? new Dictionary<string, object>()
                     : _readOnlyExtensions.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -360,7 +360,7 @@ namespace HotChocolate.Execution
             var builder = QueryRequestBuilder.New();
 
             builder
-                .SetQueryName(request.QueryName)
+                .SetQueryId(request.QueryId)
                 .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)

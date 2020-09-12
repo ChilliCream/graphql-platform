@@ -37,7 +37,7 @@ namespace HotChocolate
         // TODO : resources
         private static string CreateErrorMessage(IReadOnlyList<ISchemaError> errors)
         {
-            if (errors == null || errors.Count == 0)
+            if (errors is null || errors.Count == 0)
             {
                 return "Unexpected schema exception occurred.";
             }

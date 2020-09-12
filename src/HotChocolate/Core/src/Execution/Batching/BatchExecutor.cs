@@ -1,13 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution.Utilities;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Batching
@@ -32,7 +25,7 @@ namespace HotChocolate.Execution.Batching
         }
 
         public IAsyncEnumerable<IQueryResult> ExecuteAsync(
-            IEnumerable<IReadOnlyQueryRequest> requestBatch,
+            IEnumerable<IQueryRequest> requestBatch,
             CancellationToken cancellationToken = default)
         {
             return new BatchExecutorEnumerable(

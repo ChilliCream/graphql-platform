@@ -154,7 +154,7 @@ namespace HotChocolate.Execution.Utilities
                 completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
-                for (int i = 0; i < array.Length; i++)
+                for (var i = 0; i < array.Length; i++)
                 {
                     if (TryComplete(
                         operationContext,
@@ -267,14 +267,14 @@ namespace HotChocolate.Execution.Utilities
            object result,
            out ResultList? completedResult)
         {
-            bool isElementList = elementType.IsListType();
+            var isElementList = elementType.IsListType();
 
             if (result is Array array)
             {
                 completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
-                for (int i = 0; i < array.Length; i++)
+                for (var i = 0; i < array.Length; i++)
                 {
                     if (TryComplete(
                         operationContext,
@@ -378,7 +378,7 @@ namespace HotChocolate.Execution.Utilities
             else
             {
                 middlewareContext.ReportError(
-                    ErrorHelper.ListValueIsNotSupported(
+                    ListValueIsNotSupported(
                         result.GetType(),
                         middlewareContext.FieldSelection,
                         path));
@@ -413,7 +413,7 @@ namespace HotChocolate.Execution.Utilities
                 completedResult = fieldType.Serialize(result);
                 return true;
             }
-            catch (ScalarSerializationException ex)
+            catch (SerializationException ex)
             {
                 middlewareContext.ReportError(
                     ErrorHelper.InvalidLeafValue(
@@ -463,7 +463,7 @@ namespace HotChocolate.Execution.Utilities
 
             middlewareContext.ReportError(
                 ValueCompletion_CouldNotResolveAbstractType(
-                    middlewareContext.FieldSelection, 
+                    middlewareContext.FieldSelection,
                     path));
             completedResult = null;
             return false;

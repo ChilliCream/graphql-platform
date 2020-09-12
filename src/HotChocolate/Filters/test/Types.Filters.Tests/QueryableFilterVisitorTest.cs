@@ -1,25 +1,29 @@
 using System;
-using System.Threading.Tasks;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
-
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorTests
+    public class QueryableFilterVisitorContextTests
+        : TypeTestBase
     {
         [Fact]
-        public async Task Create_Should_Throw_IfOperationHandlersIsNull()
+        public void Create_Should_Throw_IfOperationHandlersIsNull()
         {
             // arrange
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
-                fooType, typeof(Foo), TypeConversion.Default, null);
+                new QueryableFilterVisitorContext(
+                    fooType,
+                    typeof(Foo),
+                    null,
+                    ExpressionFieldHandlers.All,
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -28,16 +32,21 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_Should_Throw_IfTypeConversionIsNull()
+        public void Create_Should_Throw_IfFieldHandlersIsNull()
         {
             // arrange
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
-                fooType, typeof(Foo), null);
+                new QueryableFilterVisitorContext(
+                    fooType,
+                    typeof(Foo),
+                    ExpressionOperationHandlers.All,
+                    null,
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -46,16 +55,19 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_Should_Throw_IfTypeIsNull()
+        public void Create_Should_Throw_IfTypeConversionIsNull()
         {
             // arrange
 
-            var fooType = await CreateTypeAsync(new FooFilterType());
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
-                fooType, null, TypeConversion.Default);
+                new QueryableFilterVisitorContext(
+                    fooType,
+                    typeof(Foo),
+                    null,
+                    true);
             };
 
             // act
@@ -64,14 +76,38 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task Create_Should_Throw_IfInputTypeIsNull()
+        public void Create_Should_Throw_IfTypeIsNull()
         {
-            // arrange 
+            // arrange
+
+            FooFilterType fooType = CreateType(new FooFilterType());
 
             Action action = () =>
             {
-                new QueryableFilterVisitor(
-                null, typeof(Foo), TypeConversion.Default);
+                new QueryableFilterVisitorContext(
+                    fooType,
+                    null,
+                    DefaultTypeConverter.Default,
+                    true);
+            };
+
+            // act
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Create_Should_Throw_IfInputTypeIsNull()
+        {
+            // arrange
+
+            Action action = () =>
+            {
+                new QueryableFilterVisitorContext(
+                    null,
+                    typeof(Foo),
+                    DefaultTypeConverter.Default,
+                    true);
             };
 
             // act
@@ -92,9 +128,10 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
-
     }
 }

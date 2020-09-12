@@ -1,8 +1,6 @@
-﻿using System;
-using HotChocolate.Internal;
+﻿using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -43,7 +41,7 @@ namespace HotChocolate.Types.Descriptors
                 return false;
             }
 
-            if (typeReference == null || type.IsSchemaType)
+            if (typeReference is null || type.IsSchemaType)
             {
                 return true;
             }
@@ -62,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return typeNode != null
-                && (typeReference == null
+                && (typeReference is null
                     || typeReference is SyntaxTypeReference);
         }
     }

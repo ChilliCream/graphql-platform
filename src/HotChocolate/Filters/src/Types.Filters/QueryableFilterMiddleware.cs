@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
@@ -12,28 +11,32 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
+        private readonly FilterMiddlewareContext _contextData;
 
         public QueryableFilterMiddleware(
             FieldDelegate next,
-            ITypeConversion converter)
+            FilterMiddlewareContext contextData,
+            ITypeConverter converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
-            _converter = converter ?? TypeConversion.Default;
+            _converter = converter ?? DefaultTypeConverter.Default;
+            _contextData = contextData
+                 ?? throw new ArgumentNullException(nameof(contextData));
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
 
-            IValueNode filter = context.ArgumentLiteral<IValueNode>("where");
+            IValueNode filter = context.Argument<IValueNode>(_contextData.ArgumentName);
 
             if (filter is null || filter is NullValueNode)
             {
                 return;
             }
 
-            IQueryable<T> source = null;
+            IQueryable<T>? source = null;
 
             if (context.Result is IQueryable<T> q)
             {
@@ -44,17 +47,17 @@ namespace HotChocolate.Types.Filters
                 source = e.AsQueryable();
             }
 
-            if (source != null
-                && context.Field.Arguments["where"].Type is InputObjectType iot
-                && iot is IFilterInputType fit)
+            if (source is not null &&
+                context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
+                iot is IFilterInputType fit)
             {
-                var visitor = new QueryableFilterVisitor(
-                    iot,
-                    fit.EntityType,
-                    _converter);
-                filter.Accept(visitor);
 
-                source = source.Where(visitor.CreateFilter<T>());
+                var visitorContext = new QueryableFilterVisitorContext(
+                    iot, fit.EntityType, _converter, source is EnumerableQuery);
+                QueryableFilterVisitor.Default.Visit(filter, visitorContext);
+
+                source = source.Where(visitorContext.CreateFilter<T>());
+
                 context.Result = source;
             }
         }

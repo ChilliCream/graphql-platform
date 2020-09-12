@@ -19,16 +19,21 @@ namespace HotChocolate.Types.Descriptors
         private INamingConventions? _naming;
         private ITypeInspector? _inspector;
 
+        public event EventHandler<SchemaCompletedEventArgs>? SchemaCompleted;
+
         private DescriptorContext(
             IReadOnlySchemaOptions options,
             IReadOnlyDictionary<(Type, string?), CreateConvention> convFactories,
             IServiceProvider services,
-            IDictionary<string, object?> contextData)
+            IDictionary<string, object?> contextData,
+            SchemaBuilder.LazySchema schema)
         {
             Options = options;
             _convFactories = convFactories;
             _services = services;
             ContextData = contextData;
+            schema.Completed += (sender, args) =>
+                SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
         }
 
         public IServiceProvider Services => _services;
@@ -128,28 +133,25 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlySchemaOptions options,
             IServiceProvider services,
             IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
-            IDictionary<string, object?> contextData)
+            IDictionary<string, object?> contextData,
+            SchemaBuilder.LazySchema schema)
         {
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (conventions == null)
+            if (conventions is null)
             {
                 throw new ArgumentNullException(nameof(conventions));
             }
 
-            return new DescriptorContext(
-                options,
-                conventions,
-                services,
-                contextData);
+            return new DescriptorContext(options, conventions, services, contextData, schema);
         }
 
         internal static DescriptorContext Create()
@@ -158,7 +160,8 @@ namespace HotChocolate.Types.Descriptors
                 new SchemaOptions(),
                 new Dictionary<(Type, string?), CreateConvention>(),
                 new EmptyServiceProvider(),
-                new Dictionary<string, object?>());
+                new Dictionary<string, object?>(),
+                new SchemaBuilder.LazySchema());
         }
     }
 }

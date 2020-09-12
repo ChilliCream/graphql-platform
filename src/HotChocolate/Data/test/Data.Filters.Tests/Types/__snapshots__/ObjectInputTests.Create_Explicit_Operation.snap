@@ -8,36 +8,36 @@ type Query {
 
 input BarFilterInput {
   and: [BarFilterInput!]
+  or: [BarFilterInput!]
   foo: FooFilterInput
   fooNullable: FooFilterInput
-  or: [BarFilterInput!]
 }
 
-input ComparableOperationInputOfInt16FilterInput {
+input ComparableOperationFilterInputOfInt16FilterInput {
   eq: Short
-  gt: Short
-  gte: Short
-  in: [Short!]
-  lt: Short
-  lte: Short
   neq: Short
-  ngt: Short
-  ngte: Short
+  in: [Short!]
   nin: [Short!]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
   nlt: Short
+  lte: Short
   nlte: Short
 }
 
 input ExplicitFilterTypeFilterInput {
   and: [ExplicitFilterTypeFilterInput!]
-  comparable: BarFilterInput
   or: [ExplicitFilterTypeFilterInput!]
+  comparable: BarFilterInput
 }
 
 input FooFilterInput {
   and: [FooFilterInput!]
-  barShort: ComparableOperationInputOfInt16FilterInput
   or: [FooFilterInput!]
+  barShort: ComparableOperationFilterInputOfInt16FilterInput
 }
 
 "The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."

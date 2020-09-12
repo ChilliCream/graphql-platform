@@ -1,9 +1,11 @@
 using System;
+using HotChocolate;
+using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
 
-namespace HotChocolate.AspNetCore
+namespace Microsoft.AspNetCore.Builder
 {
     public static class HttpEndpointRouteBuilderExtensions
     {
@@ -23,14 +25,20 @@ namespace HotChocolate.AspNetCore
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            IApplicationBuilder applicationBuilder =
+            IApplicationBuilder requestPipeline =
                 endpointRouteBuilder.CreateApplicationBuilder();
 
-            applicationBuilder.UseMiddleware<HttpPostMiddleware>(
+            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            requestPipeline.UseMiddleware<HttpPostMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(
+                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            requestPipeline.UseMiddleware<HttpGetMiddleware>(
                 schemaName.HasValue ? schemaName : Schema.DefaultName);
 
             return endpointRouteBuilder
-                .Map(pattern, applicationBuilder.Build())
+                .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Pipeline");
         }
     }

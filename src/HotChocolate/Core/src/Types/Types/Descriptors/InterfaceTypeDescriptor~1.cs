@@ -114,7 +114,7 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }

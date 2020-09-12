@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using Xunit;
 
@@ -60,7 +61,21 @@ namespace HotChocolate.Resolvers
             var fieldName = TestUtils.CreateFieldName();
 
             // act
-            Action action = () => new FieldMember(typeName, fieldName, null);
+            Action action = () => new FieldMember(typeName, fieldName, default(MemberInfo));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void CreateExpressionNull()
+        {
+            // arrange
+            var typeName = TestUtils.CreateTypeName();
+            var fieldName = TestUtils.CreateFieldName();
+
+            // act
+            Action action = () => new FieldMember(typeName, fieldName, default(Expression));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

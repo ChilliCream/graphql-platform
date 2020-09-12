@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -15,7 +14,7 @@ namespace HotChocolate.Data.Filters
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query1>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -29,7 +28,7 @@ namespace HotChocolate.Data.Filters
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query2>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert

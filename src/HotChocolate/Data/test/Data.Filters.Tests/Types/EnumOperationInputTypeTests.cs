@@ -18,8 +18,8 @@ namespace HotChocolate.Data.Filters
                         .Field("foo")
                         .Type<StringType>()
                         .Resolver("foo")
-                        .Argument("test", a => a.Type<EnumOperationInput<FooBar>>()))
-                .UseFiltering()
+                        .Argument("test", a => a.Type<EnumOperationFilterInput<FooBar>>()))
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Filters
                         .Type<StringType>()
                         .Resolver("foo")
                         .Argument("test", a => a.Type<FilterInputType<Foo>>()))
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -61,7 +61,7 @@ namespace HotChocolate.Data.Filters
                         .Argument("test", a => a.Type<FooFilterType>()))
                 .TryAddConvention<IFilterConvention>(
                     (sp) => new FilterConvention(x => x.UseMock()))
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Filters
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {
-                descriptor.Field("comparable").Type<EnumOperationInput<FooBar>>();
+                descriptor.Field("comparable").Type<EnumOperationFilterInput<FooBar>>();
             }
         }
 

@@ -51,8 +51,8 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
             Definition.SourceType = sourceType;
-            Definition.ResolverType = resolverType;
-
+            Definition.ResolverType = resolverType == sourceType ? null : resolverType;
+            
             if (context.Naming.IsDeprecated(member, out var reason))
             {
                 Deprecated(reason);
@@ -67,6 +67,49 @@ namespace HotChocolate.Types.Descriptors
             else if (member is PropertyInfo p)
             {
                 Definition.ResultType = p.PropertyType;
+            }
+        }
+
+        protected ObjectFieldDescriptor(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type? resolverType)
+            : base(context)
+        {
+            Definition.Expression = expression
+                ?? throw new ArgumentNullException(nameof(expression));
+            Definition.SourceType = sourceType;
+            Definition.ResolverType = resolverType;
+
+            MemberInfo member = ReflectionUtils.TryExtractCallMember(expression);
+
+            if (member is { })
+            {
+                Definition.Name = context.Naming.GetMemberName(
+                    member, MemberKind.ObjectField);
+                Definition.Description = context.Naming.GetMemberDescription(
+                    member, MemberKind.ObjectField);
+                Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
+
+                if (context.Naming.IsDeprecated(member, out string? reason))
+                {
+                    Deprecated(reason);
+                }
+
+                if (member is MethodInfo m)
+                {
+                    Definition.ResultType = m.ReturnType;
+                }
+                else if (member is PropertyInfo p)
+                {
+                    Definition.ResultType = p.PropertyType;
+                }
+            }
+            else
+            {
+                Definition.Type = context.TypeInspector.GetOutputTypeRef(expression.ReturnType);
+                Definition.ResultType = expression.ReturnType;
             }
         }
 
@@ -349,6 +392,13 @@ namespace HotChocolate.Types.Descriptors
             Type sourceType,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, sourceType, resolverType);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            LambdaExpression expression,
+            Type sourceType,
+            Type resolverType) =>
+            new ObjectFieldDescriptor(context, expression, sourceType, resolverType);
 
         public static ObjectFieldDescriptor From(
             IDescriptorContext context,

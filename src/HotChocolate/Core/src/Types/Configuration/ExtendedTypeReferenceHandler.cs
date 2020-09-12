@@ -24,7 +24,8 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ExtendedTypeReference typeReference in typeReferences.OfType<ExtendedTypeReference>())
+            foreach (ExtendedTypeReference typeReference in
+                typeReferences.OfType<ExtendedTypeReference>())
             {
                 if (_typeInspector.TryCreateTypeInfo(typeReference.Type, out ITypeInfo? typeInfo) &&
                     !ExtendedType.Tools.IsNonGenericBaseType(typeInfo.NamedType))
@@ -40,7 +41,7 @@ namespace HotChocolate.Configuration
                             typeRegistrar.Register(
                                 typeRegistrar.CreateInstance(namedType),
                                 typeReference.Scope,
-                                extendedType.IsSchemaType);
+                                ExtendedType.Tools.IsGenericBaseType(namedType));
                         }
                     }
                     else
@@ -55,7 +56,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void TryMapToExistingRegistration(
+        private static void TryMapToExistingRegistration(
             ITypeRegistrar typeRegistrar,
             ITypeInfo typeInfo,
             TypeContext context,

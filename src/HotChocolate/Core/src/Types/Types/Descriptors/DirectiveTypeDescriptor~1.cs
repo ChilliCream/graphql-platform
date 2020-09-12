@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Descriptors
         public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
         {
-            if (property == null)
+            if (property is null)
             {
                 throw new ArgumentNullException(nameof(property));
             }

@@ -12,7 +12,7 @@ namespace HotChocolate.Configuration
     internal sealed class SyntaxTypeReferenceHandler
         : ITypeRegistrarHandler
     {
-        private ITypeInspector _typeInspector;
+        private readonly ITypeInspector _typeInspector;
 
         public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
         {
@@ -30,7 +30,8 @@ namespace HotChocolate.Configuration
                     typeReference.Type.NamedType().Name.Value,
                     out Type? scalarType))
                 {
-                    ExtendedTypeReference namedTypeReference = _typeInspector.GetTypeRef(scalarType);
+                    ExtendedTypeReference namedTypeReference =
+                        _typeInspector.GetTypeRef(scalarType);
 
                     if (!typeRegistrar.IsResolved(namedTypeReference))
                     {

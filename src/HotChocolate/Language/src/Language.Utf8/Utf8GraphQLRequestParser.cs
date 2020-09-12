@@ -88,8 +88,7 @@ namespace HotChocolate.Language
             (
                 message.Type,
                 message.Id,
-                message.Payload,
-                message.HasPayload
+                message.Payload
             );
         }
 
@@ -276,10 +275,11 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(Payload))
                     {
                         int start = _reader.Start;
-                        message.HasPayload = !IsNullToken();
+                        bool hasPayload = !IsNullToken();
                         int end = SkipValue();
-                        message.Payload = _reader.GraphQLData.Slice(
-                            start, end - start);
+                        message.Payload = hasPayload
+                            ? _reader.GraphQLData.Slice(start, end - start)
+                            : default;
                         return;
                     }
                     break;

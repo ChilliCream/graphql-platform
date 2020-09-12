@@ -26,7 +26,7 @@ namespace HotChocolate.Resolvers
                     .MakeExecutable();
 
             // act
-            var arg = argument == null ? "null" : $"\"{argument}\"";
+            var arg = argument is null ? "null" : $"\"{argument}\"";
             IExecutionResult result = await executor.ExecuteAsync(
                 $"{{ {field}(name: {arg}) }}");
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Resolvers
                     .Resolve(ctx =>
                     {
                         var name = ctx.ArgumentValue<string>("name");
-                        return name == null
+                        return name is null
                             ? new ValueTask<object>(default(object))
                             : new ValueTask<object>(name);
                     });
@@ -59,7 +59,7 @@ namespace HotChocolate.Resolvers
                     .Resolver(ctx =>
                     {
                         var name = ctx.ArgumentValue<string>("name");
-                        return name == null ? null : Task.FromResult(name);
+                        return name is null ? null : Task.FromResult(name);
                     });
             }
         }
@@ -68,7 +68,7 @@ namespace HotChocolate.Resolvers
         {
             public Task<string> Case1(string name)
             {
-                if (name == null)
+                if (name is null)
                 {
                     return null;
                 }
@@ -80,7 +80,7 @@ namespace HotChocolate.Resolvers
         {
             public Task<string> Case2(string name)
             {
-                if (name == null)
+                if (name is null)
                 {
                     return null;
                 }

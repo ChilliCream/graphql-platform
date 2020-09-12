@@ -93,7 +93,8 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             Locations = definition.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<Argument>(
-                definition.Arguments.Select(t => new Argument(t)));
+                definition.Arguments.Select(t => new Argument(t)),
+                context.DescriptorContext.Options.SortFieldsByName);
             IsExecutable = MiddlewareComponents.Count > 0;
 
             if (Locations.Count == 0)
@@ -117,12 +118,12 @@ namespace HotChocolate.Types
             IValueNode valueNode,
             Type targetType)
         {
-            if (argument == null)
+            if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            if (valueNode == null)
+            if (valueNode is null)
             {
                 throw new ArgumentNullException(nameof(valueNode));
             }

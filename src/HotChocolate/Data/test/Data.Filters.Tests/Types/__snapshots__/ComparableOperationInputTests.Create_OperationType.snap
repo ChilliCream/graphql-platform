@@ -3,21 +3,21 @@
 }
 
 type Query {
-  foo(test: ComparableOperationInputOfInt32FilterInput): String
+  foo(test: ComparableOperationFilterInputOfInt32FilterInput): String
 }
 
-input ComparableOperationInputOfInt32FilterInput {
+input ComparableOperationFilterInputOfInt32FilterInput {
   eq: Int
-  gt: Int
-  gte: Int
-  in: [Int!]
-  lt: Int
-  lte: Int
   neq: Int
-  ngt: Int
-  ngte: Int
+  in: [Int!]
   nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
   nlt: Int
+  lte: Int
   nlte: Int
 }
 

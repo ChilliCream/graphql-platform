@@ -25,7 +25,7 @@ namespace HotChocolate.Data.Filters.Expressions
             FilterInputTypeDefinition typeDefinition,
             FilterFieldDefinition fieldDefinition)
         {
-            return context.Type is IComparableOperationInput &&
+            return context.Type is IComparableOperationFilterInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id == Operation;
         }
@@ -45,7 +45,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             if (type.IsListType())
             {
-                Type elementType = type.ElementType().ToClrType();
+                Type elementType = type.ElementType().ToRuntimeType();
 
                 if (returnType != elementType)
                 {

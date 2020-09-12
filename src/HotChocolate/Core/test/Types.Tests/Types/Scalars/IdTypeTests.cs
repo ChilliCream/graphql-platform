@@ -169,7 +169,14 @@ namespace HotChocolate.Types
         public void Deserialize_Int()
         {
             // arrange
-            var type = new IdType();
+            IdType type = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("QueryRoot")
+                    .Field("abc")
+                    .Type<IdType>()
+                    .Resolve("abc"))
+                .Create()
+                .GetType<IdType>("ID");
             var serialized = 123456;
 
             // act
@@ -217,7 +224,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(input));
         }
 
@@ -274,7 +281,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(input));
         }
 
@@ -299,7 +306,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseValue(input));
         }
 

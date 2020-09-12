@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -24,7 +23,7 @@ namespace HotChocolate.Types.Descriptors
             Type argumentType)
             : this(context, argumentName)
         {
-            if (argumentType == null)
+            if (argumentType is null)
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }

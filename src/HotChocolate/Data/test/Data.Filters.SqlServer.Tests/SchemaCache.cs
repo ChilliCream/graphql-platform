@@ -4,17 +4,19 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Data.Filters
 {
-    public class SchemaCache : FilterVisitorTestBase, IDisposable
+    public class SchemaCache
+        : FilterVisitorTestBase
+        , IDisposable
     {
         private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
             new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();
 
-        public IRequestExecutor CreateSchema<T, TType>(T[] entites)
+        public IRequestExecutor CreateSchema<T, TType>(T[] entities)
             where T : class
             where TType : FilterInputType<T>
         {
-            (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entites);
-            return _cache.GetOrAdd(key, (k) => base.CreateSchema<T, TType>(entites));
+            (Type, Type, T[] entites) key = (typeof(T), typeof(TType), entities);
+            return _cache.GetOrAdd(key, (k) => base.CreateSchema<T, TType>(entities));
         }
 
         public void Dispose()

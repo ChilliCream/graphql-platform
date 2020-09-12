@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the initial query request.
         /// </summary>
-        IReadOnlyQueryRequest Request { get; }
+        IQueryRequest Request { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted

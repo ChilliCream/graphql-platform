@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         private IDisposable? _disposable;
 
         public IQueryResultBuilder SetData(
-            IReadOnlyDictionary<string, object?>? data, 
+            IReadOnlyDictionary<string, object?>? data,
             IDisposable? disposable = null)
         {
             _data = data;
@@ -166,10 +166,14 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IReadOnlyQueryResult CreateError(IError error) =>
-            new QueryResult(null, new List<IError> { error }, null, null);
+        public static IReadOnlyQueryResult CreateError(
+            IError error,
+            IReadOnlyDictionary<string, object?>? contextData = null) =>
+            new QueryResult(null, new List<IError> { error }, contextData: contextData);
 
-        public static IReadOnlyQueryResult CreateError(IEnumerable<IError> errors) =>
-            new QueryResult(null, new List<IError>(errors), null, null);
+        public static IReadOnlyQueryResult CreateError(
+            IReadOnlyList<IError> errors,
+            IReadOnlyDictionary<string, object?>? contextData = null) =>
+            new QueryResult(null, errors, contextData: contextData);
     }
 }

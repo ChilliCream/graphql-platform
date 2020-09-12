@@ -1,42 +1,39 @@
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterInputTypeTest
+        : TypeTestBase
     {
 
         [Fact]
-        public async Task FilterInputType_DynamicName()
+        public void FilterInputType_DynamicName()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
-                .AddType(new FilterInputType<Foo>(d => d
+            ISchema schema = CreateSchema(s => s.AddType(
+                new FilterInputType<Foo>(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn<StringType>()
                     .Filter(x => x.Bar)
                     .BindFiltersExplicitly()
                     .AllowEquals())));
 
-
             // assert
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
-        public async Task FilterInputType_DynamicName_NonGeneric()
+        public void FilterInputType_DynamicName_NonGeneric()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
-                .AddType(new FilterInputType<Foo>(d => d
+            ISchema schema = CreateSchema(s => s.AddType(
+                new FilterInputType<Foo>(d => d
                     .Name(dep => dep.Name + "Foo")
                     .DependsOn(typeof(StringType))
                     .Filter(x => x.Bar)
@@ -49,11 +46,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDirectives_NameArgs()
+        public void FilterInput_AddDirectives_NameArgs()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive("foo")
@@ -66,11 +63,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDirectives_NameArgs2()
+        public void FilterInput_AddDirectives_NameArgs2()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive(new NameString("foo"))
@@ -83,11 +80,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDirectives_DirectiveNode()
+        public void FilterInput_AddDirectives_DirectiveNode()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive(new DirectiveNode("foo"))
@@ -100,11 +97,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDirectives_DirectiveClassInstance()
+        public void FilterInput_AddDirectives_DirectiveClassInstance()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive(new FooDirective())
@@ -117,11 +114,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDirectives_DirectiveType()
+        public void FilterInput_AddDirectives_DirectiveType()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddDirectiveType<FooDirectiveType>()
                 .AddType(new FilterInputType<Foo>(d => d
                     .Directive<FooDirective>()
@@ -134,11 +131,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddDescription()
+        public void FilterInput_AddDescription()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddType(new FilterInputType<Foo>(d => d
                     .Description("Test")
                     .Filter(x => x.Bar)
@@ -150,11 +147,11 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public async Task FilterInput_AddName()
+        public void FilterInput_AddName()
         {
             // arrange
             // act
-            var schema = await CreateSchemaAsync(s => s
+            ISchema schema = CreateSchema(s => s
                 .AddType(new FilterInputType<Foo>(d => d
                     .Name("Test")
                     .Filter(x => x.Bar)
@@ -165,24 +162,69 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        private class FooDirectiveType
+        [Fact]
+        public void FilterAttribute_NonNullType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d
+                    .Name("Test")
+                    .Field(x => x.Books())
+                    .UseFiltering())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
             {
-                descriptor
-                    .Name("foo")
-                    .Location(DirectiveLocation.InputObject)
+                descriptor.Name("foo");
+                descriptor.Location(DirectiveLocation.InputObject)
                     .Location(DirectiveLocation.InputFieldDefinition);
             }
         }
 
-        private class FooDirective { }
+        public class FooDirective { }
 
-        private class Foo
+        public class Foo
         {
             public string Bar { get; set; }
+        }
+
+        public class Query
+        {
+            [GraphQLNonNullType(false, false)]
+            public IQueryable<Book> Books() => new List<Book>().AsQueryable();
+        }
+
+        public class Book
+        {
+            public int Id { get; set; }
+            
+            [GraphQLNonNullType]
+            public string Title { get; set; }
+            
+            public int Pages { get; set; }
+            
+            public int Chapters { get; set; }
+            
+            [GraphQLNonNullType]
+            public Author Author { get; set; }
+        }
+
+        public class Author
+        {
+            [GraphQLType(typeof(NonNullType<IdType>))]
+            public int Id { get; set; }
+            
+            [GraphQLNonNullType]
+            public string Name { get; set; }
         }
     }
 }

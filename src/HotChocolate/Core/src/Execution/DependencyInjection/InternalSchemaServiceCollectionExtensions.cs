@@ -8,7 +8,7 @@ using HotChocolate.Execution.Instrumentation;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    internal static class InternalSchemaServiceCollectionExtensions
+    public static class InternalSchemaServiceCollectionExtensions
     {
         internal static IServiceCollection TryAddOperationExecutors(
             this IServiceCollection services)
@@ -47,7 +47,10 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static T GetApplicationService<T>(this IServiceProvider services) =>
-            services.GetRequiredService<IApplicationServiceProvider>().GetRequiredService<T>();
+        public static T GetApplicationService<T>(this IServiceProvider services) =>
+            services.GetApplicationServices().GetRequiredService<T>();
+
+        public static IServiceProvider GetApplicationServices(this IServiceProvider services) =>
+            services.GetRequiredService<IApplicationServiceProvider>();
     }
 }

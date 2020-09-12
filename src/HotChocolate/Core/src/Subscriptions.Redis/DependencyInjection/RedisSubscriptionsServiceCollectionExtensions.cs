@@ -13,12 +13,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             Func<IServiceProvider, IConnectionMultiplexer> connection)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (connection == null)
+            if (connection is null)
             {
                 throw new ArgumentNullException(nameof(connection));
             }
@@ -38,12 +38,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, IConnectionMultiplexer> connection)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (connection == null)
+            if (connection is null)
             {
                 throw new ArgumentNullException(nameof(connection));
             }

@@ -29,20 +29,18 @@ namespace HotChocolate.Data.Filters
             if (context.Types.Peek().NamedType() is InputObjectType inputType)
             {
                 if (inputType.Fields.TryGetField(node.Name.Value,
-                    out IInputField field))
+                    out IInputField? field))
                 {
                     context.Operations.Push(field);
                     context.Types.Push(field.Type);
                     return Continue;
                 }
 
-                // TODO : resources - invalid field
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(DataResources.FilterVisitor_InvalidField);
             }
             else
             {
-                // TODO : resources - invalid type
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(DataResources.FilterVisitor_InvalidType);
             }
         }
     }

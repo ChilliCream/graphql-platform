@@ -1,5 +1,4 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -50,12 +49,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -67,12 +66,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -84,12 +83,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Type queryType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (queryType == null)
+            if (queryType is null)
             {
                 throw new ArgumentNullException(nameof(queryType));
             }
@@ -101,12 +100,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             ObjectType queryType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (queryType == null)
+            if (queryType is null)
             {
                 throw new ArgumentNullException(nameof(queryType));
             }
@@ -118,7 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TQuery : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -130,12 +129,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -147,12 +146,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -164,12 +163,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Type mutationType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (mutationType == null)
+            if (mutationType is null)
             {
                 throw new ArgumentNullException(nameof(mutationType));
             }
@@ -181,12 +180,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             ObjectType mutationType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (mutationType == null)
+            if (mutationType is null)
             {
                 throw new ArgumentNullException(nameof(mutationType));
             }
@@ -198,7 +197,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TMutation : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -210,12 +209,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -227,12 +226,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -244,12 +243,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Type subscriptionType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (subscriptionType == null)
+            if (subscriptionType is null)
             {
                 throw new ArgumentNullException(nameof(subscriptionType));
             }
@@ -261,12 +260,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             ObjectType subscriptionType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (subscriptionType == null)
+            if (subscriptionType is null)
             {
                 throw new ArgumentNullException(nameof(subscriptionType));
             }
@@ -278,7 +277,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TSubscription : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -290,12 +289,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -306,7 +305,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddObjectType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -318,12 +317,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -335,12 +334,12 @@ namespace Microsoft.Extensions.DependencyInjection
            this IRequestExecutorBuilder builder,
            Action<IUnionTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -351,7 +350,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddUnionType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -363,12 +362,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IUnionTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -380,12 +379,12 @@ namespace Microsoft.Extensions.DependencyInjection
            this IRequestExecutorBuilder builder,
            Action<IEnumTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -396,7 +395,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddEnumType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -408,12 +407,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IEnumTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -425,12 +424,12 @@ namespace Microsoft.Extensions.DependencyInjection
            this IRequestExecutorBuilder builder,
            Action<IInterfaceTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -441,7 +440,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddInterfaceType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -453,12 +452,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IInterfaceTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -470,12 +469,12 @@ namespace Microsoft.Extensions.DependencyInjection
            this IRequestExecutorBuilder builder,
            Action<IInputObjectTypeDescriptor> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -486,7 +485,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddInputObjectType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -498,12 +497,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Action<IInputObjectTypeDescriptor<T>> configure)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -548,7 +547,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddType<T>(
             this IRequestExecutorBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -560,12 +559,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             params INamedType[] types)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (types == null)
+            if (types is null)
             {
                 throw new ArgumentNullException(nameof(types));
             }
@@ -577,12 +576,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             params Type[] types)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (types == null)
+            if (types is null)
             {
                 throw new ArgumentNullException(nameof(types));
             }
@@ -594,12 +593,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Type directiveType)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (directiveType == null)
+            if (directiveType is null)
             {
                 throw new ArgumentNullException(nameof(directiveType));
             }
@@ -611,7 +610,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TDirective : DirectiveType
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -640,7 +639,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TSchema : ISchema
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -748,7 +747,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder)
             where TSchemaType : INamedType
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

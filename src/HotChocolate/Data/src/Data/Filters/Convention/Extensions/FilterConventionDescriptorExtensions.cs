@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace HotChocolate.Data.Filters
 {
@@ -54,27 +53,32 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor.BindRuntimeType<string, StringOperationInput>();
-            descriptor.BindRuntimeType<bool, BooleanOperationInput>();
-            descriptor.BindRuntimeType<byte, ComparableOperationInput<byte>>();
-            descriptor.BindRuntimeType<short, ComparableOperationInput<short>>();
-            descriptor.BindRuntimeType<int, ComparableOperationInput<int>>();
-            descriptor.BindRuntimeType<long, ComparableOperationInput<long>>();
-            descriptor.BindRuntimeType<float, ComparableOperationInput<float>>();
-            descriptor.BindRuntimeType<double, ComparableOperationInput<double>>();
-            descriptor.BindRuntimeType<decimal, ComparableOperationInput<decimal>>();
-            descriptor.BindRuntimeType<bool?, BooleanOperationInput>();
-            descriptor.BindRuntimeType<byte?, ComparableOperationInput<byte?>>();
-            descriptor.BindRuntimeType<short?, ComparableOperationInput<short?>>();
-            descriptor.BindRuntimeType<int?, ComparableOperationInput<int?>>();
-            descriptor.BindRuntimeType<long?, ComparableOperationInput<long?>>();
-            descriptor.BindRuntimeType<float?, ComparableOperationInput<float?>>();
-            descriptor.BindRuntimeType<double?, ComparableOperationInput<double?>>();
-            descriptor.BindRuntimeType<decimal?, ComparableOperationInput<decimal?>>();
-            descriptor.BindRuntimeType<Guid, ComparableOperationInput<Guid>>();
-            descriptor.BindRuntimeType<DateTime, ComparableOperationInput<DateTime>>();
-            descriptor.BindRuntimeType<DateTimeOffset, ComparableOperationInput<DateTimeOffset>>();
-            descriptor.BindRuntimeType<TimeSpan, ComparableOperationInput<TimeSpan>>();
+            descriptor
+                .BindRuntimeType<string, StringOperationFilterInput>()
+                .BindRuntimeType<bool, BooleanOperationFilterInput>()
+                .BindRuntimeType<byte, ComparableOperationFilterInput<byte>>()
+                .BindRuntimeType<short, ComparableOperationFilterInput<short>>()
+                .BindRuntimeType<int, ComparableOperationFilterInput<int>>()
+                .BindRuntimeType<long, ComparableOperationFilterInput<long>>()
+                .BindRuntimeType<float, ComparableOperationFilterInput<float>>()
+                .BindRuntimeType<double, ComparableOperationFilterInput<double>>()
+                .BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>()
+                .BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>()
+                .BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>()
+                .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>()
+                .BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInput>()
+                .BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>()
+                .BindRuntimeType<short?, ComparableOperationFilterInput<short?>>()
+                .BindRuntimeType<int?, ComparableOperationFilterInput<int?>>()
+                .BindRuntimeType<long?, ComparableOperationFilterInput<long?>>()
+                .BindRuntimeType<float?, ComparableOperationFilterInput<float?>>()
+                .BindRuntimeType<double?, ComparableOperationFilterInput<double?>>()
+                .BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>()
+                .BindRuntimeType<Guid?, ComparableOperationFilterInput<Guid?>>()
+                .BindRuntimeType<DateTime?, ComparableOperationFilterInput<DateTime?>>()
+                .BindRuntimeType<DateTimeOffset?, ComparableOperationFilterInput<DateTimeOffset?>>()
+                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInput<TimeSpan?>>();
 
             return descriptor;
         }

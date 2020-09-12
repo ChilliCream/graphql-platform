@@ -3,12 +3,10 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using System.Linq;
 using HotChocolate.DataLoader;
 
 namespace Microsoft.Extensions.DependencyInjection

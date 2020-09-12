@@ -1,9 +1,6 @@
 using System;
-using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Subscriptions;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {

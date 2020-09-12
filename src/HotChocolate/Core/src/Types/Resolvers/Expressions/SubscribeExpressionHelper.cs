@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskSourceStreamGeneric<T>(
             Task<ISourceStream<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskSourceStream(
             Task<ISourceStream> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -35,7 +35,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskAsyncEnumerable<T>(
             Task<IAsyncEnumerable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -47,7 +47,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskEnumerable<T>(
             Task<IEnumerable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -59,7 +59,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskQueryable<T>(
             Task<IQueryable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -71,7 +71,7 @@ namespace HotChocolate.Resolvers.Expressions
         public static async ValueTask<ISourceStream> AwaitTaskObservable<T>(
             Task<IObservable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }

@@ -12,12 +12,12 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             bool skipMiddleware)
         {
-            if (globalComponents == null)
+            if (globalComponents is null)
             {
                 throw new ArgumentNullException(nameof(globalComponents));
             }
 
-            if (fieldComponents == null)
+            if (fieldComponents is null)
             {
                 throw new ArgumentNullException(nameof(fieldComponents));
             }
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                 || (globalComponents.Count == 0
                     && fieldComponents.Count == 0))
             {
-                if (fieldResolver == null)
+                if (fieldResolver is null)
                 {
                     return null;
                 }

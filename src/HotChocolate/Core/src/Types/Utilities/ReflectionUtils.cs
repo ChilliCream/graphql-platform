@@ -6,17 +6,51 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {
     public static class ReflectionUtils
     {
-        public static MemberInfo ExtractMember<T, TPropertyType>(
+        public static MemberInfo TryExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
         {
             if (memberExpression == null)
+            {
+                throw new ArgumentNullException(nameof(memberExpression));
+            }
+
+            return TryExtractMemberInternal<T>(UnwrapFunc(memberExpression));
+        }
+
+        internal static MemberInfo TryExtractCallMember(
+            this Expression expression)
+        {
+            if (expression is LambdaExpression lambda)
+            {
+                if (lambda.Body is MethodCallExpression m)
+                {
+                    return m.Method;
+                }
+
+                if (lambda.Body is MemberExpression p)
+                {
+                    return p.Member;
+                }
+            }
+
+            return null;
+        }
+
+        private static MemberInfo TryExtractMemberInternal<T>(
+            Expression expression)
+        {
+            return ExtractMember(typeof(T), expression);
+        }
+
+        public static MemberInfo ExtractMember<T, TPropertyType>(
+            this Expression<Func<T, TPropertyType>> memberExpression)
+        {
+            if (memberExpression is null)
             {
                 throw new ArgumentNullException(nameof(memberExpression));
             }
@@ -29,7 +63,7 @@ namespace HotChocolate.Utilities
         {
             MemberInfo member = ExtractMember(typeof(T), expression);
 
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentException(
                     string.Format(
@@ -129,7 +163,7 @@ namespace HotChocolate.Utilities
 
         public static string GetTypeName(this Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }

@@ -11,7 +11,6 @@ using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
-using Snapshooter;
 
 namespace HotChocolate.Integration.DataLoader
 {

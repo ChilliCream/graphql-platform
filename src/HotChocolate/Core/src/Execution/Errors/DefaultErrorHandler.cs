@@ -17,12 +17,12 @@ namespace HotChocolate.Execution.Errors
             IEnumerable<IErrorFilter> errorFilters,
             IErrorHandlerOptionsAccessor options)
         {
-            if (errorFilters == null)
+            if (errorFilters is null)
             {
                 throw new ArgumentNullException(nameof(errorFilters));
             }
 
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Errors
 
         public IError Handle(IError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution.Errors
             {
                 current = filter.OnError(current);
 
-                if (current == null)
+                if (current is null)
                 {
                     throw new InvalidOperationException(
                         "Unexpected Execution Error");
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution.Errors
 
         public IErrorBuilder CreateUnexpectedError(Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }

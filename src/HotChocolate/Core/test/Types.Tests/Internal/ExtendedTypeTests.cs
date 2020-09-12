@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
@@ -75,6 +76,7 @@ namespace HotChocolate.Internal
             ExtendedType extendedType = ExtendedType.FromType(typeof(ListType<StringType>), _cache);
 
             // assert
+            Assert.True(extendedType.IsSchemaType);
             Assert.True(extendedType.IsGeneric);
             Assert.Collection(extendedType.TypeArguments.Select(t => t.Type),
                 t => Assert.Equal(typeof(StringType), t));
@@ -90,8 +92,61 @@ namespace HotChocolate.Internal
                 _cache);
 
             // assert
+            Assert.True(extendedType.IsSchemaType);
             Assert.True(extendedType.IsGeneric);
             Assert.False(extendedType.IsNullable);
+        }
+
+        [Fact]
+        public void From_IntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(IntType),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.False(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNullable);
+        }
+
+        [Fact]
+        public void From_InputObjectOfIntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(InputObjectType<IntType>),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.True(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNamedType);
+            Assert.True(extendedType.IsNullable);
+
+            IExtendedType argument = extendedType.TypeArguments[0];
+            Assert.True(argument.IsSchemaType);
+            Assert.False(argument.IsGeneric);
+            Assert.True(extendedType.IsNamedType);
+            Assert.True(argument.IsNullable);
+        }
+
+        [Fact]
+        public void From_NativeTypeIntType()
+        {
+            // arrange
+            // act
+            ExtendedType extendedType = ExtendedType.FromType(
+                typeof(NativeType<IntType>),
+                _cache);
+
+            // assert
+            Assert.True(extendedType.IsSchemaType);
+            Assert.False(extendedType.IsGeneric);
+            Assert.True(extendedType.IsNullable);
         }
 
         [Fact]
@@ -248,12 +303,12 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
         [InlineData(typeof(string[]), "[String]", "String")]
         [InlineData(
-            typeof(Task<IAsyncEnumerable<string>>), 
-            "IAsyncEnumerable<String>", 
+            typeof(Task<IAsyncEnumerable<string>>),
+            "IAsyncEnumerable<String>",
             "String")]
         [InlineData(
-            typeof(ValueTask<IAsyncEnumerable<string>>), 
-            "IAsyncEnumerable<String>", 
+            typeof(ValueTask<IAsyncEnumerable<string>>),
+            "IAsyncEnumerable<String>",
             "String")]
         [Theory]
         public void SupportedListTypes(Type type, string listTypeName, string elementTypeName)
@@ -289,6 +344,35 @@ namespace HotChocolate.Internal
             Assert.Same(list.ElementType, list.TypeArguments[0]);
         }
 
+        [Fact]
+        public void NullableOptionalNullableString() 
+        {
+            // arrange
+            MethodInfo member = 
+                typeof(Nullability).GetMethod(nameof(Nullability.NullableOptionalNullableString))!;
+
+            // act
+            ExtendedType type = ExtendedType.FromMember(member, _cache);
+
+            // assert
+            Assert.Equal("Optional<String>", type.ToString());
+        }
+
+        [Fact]
+        public void OptionalNullableOptionalNullableString() 
+        {
+            // arrange
+            MethodInfo member = 
+                typeof(Nullability)
+                    .GetMethod(nameof(Nullability.OptionalNullableOptionalNullableString))!;
+
+            // act
+            ExtendedType type = ExtendedType.FromMember(member, _cache);
+
+            // assert
+            Assert.Equal("Optional<Optional<String>>!", type.ToString());
+        }
+
         private class CustomStringList1
             : List<string>
         {
@@ -306,5 +390,18 @@ namespace HotChocolate.Internal
         {
             public TK Foo { get; set; }
         }
+
+#nullable enable
+
+        public class Nullability
+        { 
+            public Nullable<Optional<string?>> NullableOptionalNullableString() => 
+                throw new NotImplementedException();
+
+            public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() => 
+                throw new NotImplementedException();
+        }
+
+#nullable disable
     }
 }

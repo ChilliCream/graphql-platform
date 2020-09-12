@@ -15,7 +15,7 @@ namespace HotChocolate.Utilities
             this ITypeConverter typeConverter,
             TFrom source, out TTo converted)
         {
-            if (typeConverter == null)
+            if (typeConverter is null)
             {
                 throw new ArgumentNullException(nameof(typeConverter));
             }
@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
             this ITypeConverter typeConverter,
             object source)
         {
-            if (typeConverter == null)
+            if (typeConverter is null)
             {
                 throw new ArgumentNullException(nameof(typeConverter));
             }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -42,7 +43,7 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterOperationDescriptor AllowEquals()
         {
             BooleanFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Equals);
+                GetOrCreateOperation(FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
@@ -51,21 +52,29 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterOperationDescriptor AllowNotEquals()
         {
             BooleanFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotEquals);
+                GetOrCreateOperation(FilterOperationKind.NotEquals);
             Filters.Add(field);
             return field;
         }
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor Ignore()
+        public IBooleanFilterFieldDescriptor Ignore(bool ignore = true)
         {
-            Definition.Ignore = true;
+            Definition.Ignore = ignore;
             return this;
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();
+
+
+        private BooleanFilterOperationDescriptor GetOrCreateOperation(
+            FilterOperationKind operationKind)
+        {
+            return Filters.GetOrAddOperation(operationKind,
+                    () => CreateOperation(operationKind));
+        }
 
         private BooleanFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)

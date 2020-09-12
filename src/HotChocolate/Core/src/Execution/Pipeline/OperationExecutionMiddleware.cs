@@ -4,8 +4,8 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Utilities;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -44,8 +44,13 @@ namespace HotChocolate.Execution.Pipeline
 
         public async ValueTask InvokeAsync(
             IRequestContext context,
-            IBatchDispatcher batchDispatcher)
+            IBatchDispatcher? batchDispatcher)
         {
+            if (batchDispatcher is null)
+            {
+                throw OperationExecutionMiddleware_NoBatchDispatcher();
+            }
+
             if (context.Operation is { } && context.Variables is { })
             {
                 if (context.Operation.Definition.Operation == OperationType.Subscription)

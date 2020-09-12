@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         IReadOnlyList<IInterfaceType> Interfaces { get; }
 
         /// <summary>
-        /// Gets the field that the type exposes.
+        /// Gets the field that this type exposes.
         /// </summary>
         IFieldCollection<IOutputField> Fields { get; }
 

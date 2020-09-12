@@ -1,15 +1,13 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Tests;
+using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Snapshooter.Xunit;
 using Squadron;
 using Xunit;
-using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types.Filters
 {
@@ -26,174 +24,327 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public async Task GetItems_NoFilter_AllItems_Are_Returned()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ items { foo } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items { foo } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
         public async Task GetItems_EqualsFilter_FirstItems_Is_Returned()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ items(where: { foo: \"abc\" }) { foo } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { foo: \"abc\" }) { foo } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
-        public async Task DateTimeType_GreaterThan_Filter()
+        public async Task GetItems_ObjectEqualsFilter_FirstItems_Is_Returned()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ items(where: { time_gt: \"2001-01-01\" }) { time } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
-                    {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model
-                            {
-                                Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc)
-                            },
-                            new Model
-                            {
-                                Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc)
-                            },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
-        }
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-        [Fact]
-        public async Task DateType_GreaterThan_Filter()
-        {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ items(where: { date_gt: \"2001-01-01\" }) { date } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
+                        new Model
                         {
-                            new Model
+                            Nested = null
+                        },
+                        new Model
+                        {
+                            Nested = new Model
                             {
-                                Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date
-                            },
-                            new Model
+                                Nested = new Model
+                                {
+                                    Foo = "abc",
+                                    Bar = 1,
+                                    Baz = true
+                                }
+                            }
+                        },
+                        new Model
+                        {
+                            Nested = new Model
                             {
-                                Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date
-                            },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                                Nested= new Model
+                                {
+                                    Foo = "def",
+                                    Bar = 2,
+                                    Baz = false
+                                }
+                            }
+                        },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    "{ items(where: { nested:{ nested: { foo: \"abc\" " +
+                    "} } }) { nested { nested { foo } } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
         public async Task GetItems_With_Paging_EqualsFilter_FirstItems_Is_Returned()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { foo: \"abc\" }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ paging(where: { foo: \"abc\" }) { nodes { foo } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
         public async Task Boolean_Filter_Equals()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { baz: true }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ paging(where: { baz: true }) { nodes { foo } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         [Fact]
         public async Task Boolean_Filter_Not_Equals()
         {
-            Snapshot.FullName();
-            await ExpectValid(
-                "{ paging(where: { baz_not: false }) { nodes { foo } } }",
-                configure: c => c
-                    .AddQueryType<QueryType>()
-                    .Services
-                    .AddSingleton(sp =>
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        IMongoDatabase database = _mongoResource.CreateDatabase();
-                        IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                        collection.InsertMany(new[]
-                        {
-                            new Model { Foo = "abc", Bar = 1, Baz = true },
-                            new Model { Foo = "def", Bar = 2, Baz = false },
-                        });
-                        return collection;
-                    }))
-                .MatchSnapshotAsync();
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ paging(where: { baz_not: false }) { nodes { foo } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DateTimeType_GreaterThan_Filter()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Time = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
+                    new Model { Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
+                });
+                return collection;
+            })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { time_gt: \"2001-01-01\" }) { time } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DateType_GreaterThan_Filter()
+        {
+            // arrange
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                        new Model { Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .Services
+                .BuildServiceProvider();
+
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { date_gt: \"2001-01-01\" }) { date } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
         }
 
         public class QueryType : ObjectType
@@ -204,12 +355,14 @@ namespace HotChocolate.Types.Filters
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(c => c.Service<IMongoCollection<Model>>().AsQueryable());
+                    .Resolver(ctx =>
+                        ctx.Service<IMongoCollection<Model>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
                     .UseFiltering<FilterInputType<Model>>()
-                    .Resolver(c => c.Service<IMongoCollection<Model>>().AsQueryable());
+                    .Resolver(ctx =>
+                        ctx.Service<IMongoCollection<Model>>().AsQueryable());
             }
         }
 
@@ -233,10 +386,19 @@ namespace HotChocolate.Types.Filters
         public class Model
         {
             public ObjectId Id { get; set; }
+
             public string Foo { get; set; }
+
             public int Bar { get; set; }
+
             public bool Baz { get; set; }
+
+            public Model Nested { get; set; }
+
+            [GraphQLType(typeof(NonNullType<DateTimeType>))]
             public DateTime Time { get; set; }
+
+            [GraphQLType(typeof(NonNullType<DateType>))]
             public DateTime Date { get; set; }
         }
     }

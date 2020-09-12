@@ -21,8 +21,12 @@ namespace HotChocolate.Configuration
             TriggerAggregations = false;
         }
 
-        public AggregateTypeInitializationInterceptor(
-            IReadOnlyCollection<object> interceptors)
+        public AggregateTypeInitializationInterceptor(object interceptor)
+            : this(new[] { interceptor })
+        {
+        }
+
+        public AggregateTypeInitializationInterceptor(IReadOnlyCollection<object> interceptors)
         {
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();

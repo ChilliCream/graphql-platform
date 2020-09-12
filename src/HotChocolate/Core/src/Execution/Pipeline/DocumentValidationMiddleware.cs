@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
@@ -47,7 +48,12 @@ namespace HotChocolate.Execution.Pipeline
 
                 if (context.ValidationResult is { HasErrors: true } validationResult)
                 {
-                    context.Result = QueryResultBuilder.CreateError(validationResult.Errors);
+                    context.Result = QueryResultBuilder.CreateError(
+                        validationResult.Errors,
+                        new Dictionary<string, object?>
+                        {
+                            { ContextDataKeys.ValidationErrors, true }
+                        });
                     _diagnosticEvents.ValidationErrors(context, validationResult.Errors);
                 }
                 else

@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Descriptors
         protected void Type<TOutputType>(TOutputType outputType)
             where TOutputType : class, IOutputType
         {
-            if (outputType == null)
+            if (outputType is null)
             {
                 throw new ArgumentNullException(nameof(outputType));
             }
@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected void Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
+            if (typeNode is null)
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
@@ -102,7 +102,7 @@ namespace HotChocolate.Types.Descriptors
             NameString name,
             Action<IArgumentDescriptor> argument)
         {
-            if (argument == null)
+            if (argument is null)
             {
                 throw new ArgumentNullException(nameof(argument));
             }

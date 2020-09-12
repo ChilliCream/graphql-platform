@@ -1,14 +1,13 @@
 using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
-using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class HotChocolateAspNetCoreServiceCollectionExtensions
+    public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQLServerCore(
             this IServiceCollection services,
@@ -21,8 +20,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddGraphQLCore();
             services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
-            services.TryAddSingleton<IRequestParser>(
-                sp => new DefaultRequestParser(
+            services.TryAddSingleton<IHttpRequestParser>(
+                sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
                     maxAllowedRequestSize,
@@ -36,11 +35,31 @@ namespace Microsoft.Extensions.DependencyInjection
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             services
                 .AddGraphQLServerCore(maxAllowedRequestSize)
-                .AddGraphQL(schemaName);
+                .AddGraphQL(schemaName)
+                .AddHttpRequestInterceptor()
+                .AddSubscriptionServices();
 
         public static IRequestExecutorBuilder AddGraphQLServer(
             this IRequestExecutorBuilder builder,
             NameString schemaName = default) =>
             builder.Services.AddGraphQLServer(schemaName);
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchema schema) =>
+            throw new NotSupportedException();
+
+        [Obsolete(
+            "Use the new configuration API -> " + 
+            "services.AddGraphQLServer().AddQueryType<Query>().",
+            true)]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchemaBuilder schema) =>
+            throw new NotSupportedException();
     }
 }

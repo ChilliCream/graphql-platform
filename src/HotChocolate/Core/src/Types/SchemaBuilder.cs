@@ -10,6 +10,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -34,7 +35,10 @@ namespace HotChocolate
             new Dictionary<(Type, string), CreateConvention>();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
             new Dictionary<Type, (CreateRef, CreateRef)>();
-        private readonly List<object> _interceptors = new List<object>();
+        private readonly List<object> _interceptors = new List<object>
+        {
+            typeof(IntrospectionTypeInterceptor)
+        };
         private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
             new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
@@ -66,7 +70,7 @@ namespace HotChocolate
 
         public ISchemaBuilder SetSchema(ISchema schema)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
@@ -106,7 +110,7 @@ namespace HotChocolate
 
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -117,7 +121,7 @@ namespace HotChocolate
 
         public ISchemaBuilder Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -128,7 +132,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
         {
-            if (loadSchemaDocument == null)
+            if (loadSchemaDocument is null)
             {
                 throw new ArgumentNullException(nameof(loadSchemaDocument));
             }
@@ -342,7 +346,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddResolver(FieldResolver fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -353,7 +357,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddBinding(IBindingInfo binding)
         {
-            if (binding == null)
+            if (binding is null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
@@ -384,7 +388,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddServices(IServiceProvider services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
@@ -425,6 +429,28 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                    nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
         public ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor)
         {
             if (interceptor is null)
@@ -436,8 +462,22 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder OnBeforeCreate(
-            Action<IDescriptorContext> action)
+        public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
+        public ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action)
         {
             if (action is null)
             {

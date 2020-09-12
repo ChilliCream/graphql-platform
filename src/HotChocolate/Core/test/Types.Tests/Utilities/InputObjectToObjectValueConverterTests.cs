@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -32,8 +31,7 @@ namespace HotChocolate.Utilities
             };
 
             // act
-            var converter = new InputObjectToObjectValueConverter(
-                DefaultTypeConverter.Default);
+            var converter = new InputObjectToObjectValueConverter(DefaultTypeConverter.Default);
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert

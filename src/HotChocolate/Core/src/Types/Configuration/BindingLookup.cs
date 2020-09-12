@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
             IDescriptorContext context,
             IEnumerable<TypeBindingInfo> bindings)
         {
-            if (bindings == null)
+            if (bindings is null)
             {
                 throw new ArgumentNullException(nameof(bindings));
             }

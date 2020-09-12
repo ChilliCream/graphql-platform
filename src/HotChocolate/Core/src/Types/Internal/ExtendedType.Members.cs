@@ -88,15 +88,15 @@ namespace HotChocolate.Internal
                     Type itemType = Helper.GetInnerListType(extendedType.Type)!;
 
                     if (extendedType.TypeArguments.Count == 1)
-                    {    
+                    {
                         IExtendedType typeArgument = extendedType.TypeArguments[0];
                         if (itemType == typeArgument.Type || itemType == typeArgument.Source)
                         {
                             elementType = extendedArguments[0];
                         }
                     }
-                    
-                    if(elementType is null)
+
+                    if (elementType is null)
                     {
                         elementType = ExtendedType.FromType(itemType, cache);
                     }
@@ -137,21 +137,23 @@ namespace HotChocolate.Internal
                 Type type,
                 ref int position)
             {
+                bool? state = position == -1 || (type.IsValueType && !type.IsGenericType)
+                    ? null
+                    : GetNextState(flags, ref position);
+
                 if (type.IsValueType)
                 {
-                    if (type.IsGenericType)
+                    if (type.IsGenericType
+                        && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                     {
-                        if (type.IsGenericType
-                            && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                        {
-                            return new ExtendedType(
-                                type.GetGenericArguments()[0],
-                                ExtendedTypeKind.Extended,
-                                typeArguments:
-                                    GetGenericArguments(context, flags, type, ref position),
-                                source: type,
-                                isNullable: true);
-                        }
+                        Type inner = type.GetGenericArguments()[0];
+
+                        return new ExtendedType(
+                            inner,
+                            ExtendedTypeKind.Extended,
+                            typeArguments: GetGenericArguments(context, flags, inner, ref position),
+                            source: type,
+                            isNullable: true);
                     }
 
                     return new ExtendedType(
@@ -160,19 +162,6 @@ namespace HotChocolate.Internal
                         typeArguments: GetGenericArguments(context, flags, type, ref position),
                         source: type,
                         isNullable: false);
-                }
-
-                bool? state = context;
-                if (!flags.IsEmpty)
-                {
-                    if (flags.Length > position)
-                    {
-                        state = flags[position++];
-                    }
-                    else if (flags.Length == 1)
-                    {
-                        state = flags[0];
-                    }
                 }
 
                 if (type.IsArray)
@@ -199,6 +188,23 @@ namespace HotChocolate.Internal
                     typeArguments: GetGenericArguments(context, flags, type, ref position),
                     source: type,
                     isNullable: state ?? false);
+
+                bool? GetNextState(ReadOnlySpan<bool?> flags, ref int position)
+                {
+                    bool? state = context;
+                    if (!flags.IsEmpty)
+                    {
+                        if (flags.Length > position)
+                        {
+                            state = flags[position++];
+                        }
+                        else if (flags.Length == 1)
+                        {
+                            state = flags[0];
+                        }
+                    }
+                    return state;
+                }
             }
 
             private static IReadOnlyList<ExtendedType> GetGenericArguments(
@@ -211,17 +217,47 @@ namespace HotChocolate.Internal
                 {
                     Type[] arguments = type.GetGenericArguments();
                     ExtendedType[] extendedArguments = new ExtendedType[arguments.Length];
+                    bool skipFlags = SkipFlags(arguments);
+                    int skipPos = -1;
 
                     for (int i = 0; i < arguments.Length; i++)
                     {
                         extendedArguments[i] =
-                            CreateExtendedType(context, flags, arguments[i], ref position);
+                            skipFlags
+                                ? CreateExtendedType(context, flags, arguments[i], ref skipPos)
+                                : CreateExtendedType(context, flags, arguments[i], ref position);
                     }
 
                     return extendedArguments;
                 }
 
                 return Array.Empty<ExtendedType>();
+            }
+
+            private static bool SkipFlags(Type[] arguments)
+            {
+                bool skipFlags = true;
+
+                foreach (Type argument in arguments)
+                {
+                    if (!argument.IsValueType)
+                    {
+                        skipFlags = false;
+                    }
+                    else if (argument.IsGenericType)
+                    {
+                        if (argument.GetGenericTypeDefinition() != typeof(Nullable<>))
+                        {
+                            skipFlags = false;
+                        }
+                        else
+                        {
+                            skipFlags = SkipFlags(argument.GetGenericArguments());
+                        }
+                    }
+                }
+
+                return skipFlags;
             }
         }
     }

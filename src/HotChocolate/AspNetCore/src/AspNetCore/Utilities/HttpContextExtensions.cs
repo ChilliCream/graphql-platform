@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.AspNetCore.Subscriptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 

@@ -18,11 +18,11 @@ namespace HotChocolate.Types
         private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
-        internal DirectiveCollection(
+        public DirectiveCollection(
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
-            if (directiveDefinitions == null)
+            if (directiveDefinitions is null)
             {
                 throw new ArgumentNullException(nameof(directiveDefinitions));
             }
@@ -38,9 +38,9 @@ namespace HotChocolate.Types
 
         public bool Contains(NameString key) => _lookup.Contains(key);
 
-        internal void CompleteCollection(ITypeCompletionContext context)
+        public void CompleteCollection(ITypeCompletionContext context)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -78,7 +78,7 @@ namespace HotChocolate.Types
             {
                 context.ReportError(
                     DirectiveCollection_DirectiveIsUnique(
-                        directiveType, context.Type, 
+                        directiveType, context.Type,
                         definition.ParsedDirective, _source));
                 directive = null;
                 return false;
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
             {
                 context.ReportError(
                     DirectiveCollection_LocationNotAllowed(
-                        directiveType, _location, context.Type, 
+                        directiveType, _location, context.Type,
                         definition.ParsedDirective, _source));
                 directive = null;
                 return false;
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
                     {
                         context.ReportError(
                             DirectiveCollection_ArgumentValueTypeIsWrong(
-                                directive.Type, context.Type, directive.ToNode(), 
+                                directive.Type, context.Type, directive.ToNode(),
                                 _source, arg.Name));
                     }
                 }
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
                 {
                     context.ReportError(
                         DirectiveCollection_ArgumentDoesNotExist(
-                            directive.Type, context.Type, directive.ToNode(), 
+                            directive.Type, context.Type, directive.ToNode(),
                             _source, argument.Name.Value));
                 }
             }
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
                 {
                     context.ReportError(
                         DirectiveCollection_ArgumentNonNullViolation(
-                            directive.Type, context.Type, directive.ToNode(), 
+                            directive.Type, context.Type, directive.ToNode(),
                             _source, argument.Name));
                 }
             }

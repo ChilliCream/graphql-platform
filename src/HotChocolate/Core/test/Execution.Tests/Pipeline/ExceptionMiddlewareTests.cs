@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
-                .SetQueryName("a")
+                .SetQueryId("a")
                 .Create();
 
             var requestContext = new Mock<IRequestContext>();
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Pipeline
 
             var request = QueryRequestBuilder.New()
                 .SetQuery("{ a }")
-                .SetQueryName("a")
+                .SetQueryId("a")
                 .Create();
 
             var requestContext = new Mock<IRequestContext>();

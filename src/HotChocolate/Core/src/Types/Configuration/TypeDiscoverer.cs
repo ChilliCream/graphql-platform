@@ -23,7 +23,7 @@ namespace HotChocolate.Configuration
             IDescriptorContext context,
             TypeRegistry typeRegistry,
             TypeLookup typeLookup,
-            ISet<ITypeReference> initialTypes,
+            IEnumerable<ITypeReference> initialTypes,
             ITypeInterceptor interceptor,
             bool includeSystemTypes = true)
         {
@@ -37,17 +37,17 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(typeRegistry));
             }
 
-            if (typeLookup == null)
+            if (typeLookup is null)
             {
                 throw new ArgumentNullException(nameof(typeLookup));
             }
 
-            if (initialTypes == null)
+            if (initialTypes is null)
             {
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
-            if (interceptor == null)
+            if (interceptor is null)
             {
                 throw new ArgumentNullException(nameof(interceptor));
             }
@@ -63,7 +63,7 @@ namespace HotChocolate.Configuration
             }
 
             _unregistered.AddRange(typeRegistry.GetTypeRefs());
-            _unregistered.AddRange(initialTypes);
+            _unregistered.AddRange(initialTypes.Distinct());
 
             _typeRegistrar = new TypeRegistrar(context, typeRegistry, typeLookup, interceptor);
 

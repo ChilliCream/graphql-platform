@@ -45,7 +45,7 @@ namespace HotChocolate.Configuration.Bindings
         public IResolverTypeBindingBuilder AddField(
             Action<IResolverFieldBindingBuilder> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -67,7 +67,7 @@ namespace HotChocolate.Configuration.Bindings
         public IResolverTypeBindingBuilder AddField(
             IResolverFieldBindingBuilder builder)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -97,7 +97,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (_bindingInfo.ResolverType == null)
+            if (_bindingInfo.ResolverType is null)
             {
                 return false;
             }

@@ -1,46 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Data.Filters.SqlServer.Tests;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data.Filters
 {
     public class FilterVisitorTestBase
     {
-        private readonly object _sync = new object();
-
-        protected SqlServerResource<CustomSqlServerOptions>? Resource { get; set; }
-
-        public void Init(SqlServerResource<CustomSqlServerOptions> resource)
-        {
-            if (Resource is null)
-            {
-                lock (_sync)
-                {
-                    if (Resource is null)
-                    {
-                        Resource = resource;
-                    }
-                }
-            }
-        }
+        protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
 
         private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
             params TResult[] results)
             where TResult : class
         {
-            if (Resource is null)
+            if (FileName is null)
             {
                 throw new InvalidOperationException();
             }
 
-            var dbContext = new DatabaseContext<TResult>(Resource);
+            var dbContext = new DatabaseContext<TResult>(FileName);
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
             dbContext.AddRange(results);
@@ -70,7 +52,7 @@ namespace HotChocolate.Data.Filters
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .UseFiltering()
+                .AddFiltering()
                 .AddQueryType(
                     c => c
                         .Name("Query")

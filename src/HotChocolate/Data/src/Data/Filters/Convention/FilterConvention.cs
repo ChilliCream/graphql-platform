@@ -104,8 +104,22 @@ namespace HotChocolate.Data.Filters
 
 
         /// <inheritdoc />
-        public virtual NameString GetTypeName(Type runtimeType) =>
-            _namingConventions.GetTypeName(runtimeType, TypeKind.Object) + _typePostFix;
+        public virtual NameString GetTypeName(Type runtimeType)
+        {
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            string name = _namingConventions.GetTypeName(runtimeType);
+
+            if (!name.EndsWith(_typePostFix, StringComparison.Ordinal))
+            {
+                name += _typePostFix;
+            }
+
+            return name;
+        }
 
         /// <inheritdoc />
         public virtual string? GetTypeDescription(Type runtimeType) =>
@@ -127,10 +141,9 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(member));
             }
 
-            if (TryCreateFilterType(
-                    _typeInspector.GetReturnType(member, true), out Type? returnType))
+            if (TryCreateFilterType(_typeInspector.GetReturnType(member, true), out Type? rt))
             {
-                return _typeInspector.GetTypeRef(returnType, TypeContext.Input, Scope);
+                return _typeInspector.GetTypeRef(rt, TypeContext.Input, Scope);
             }
 
             throw FilterConvention_TypeOfMemberIsUnknown(member);
@@ -215,7 +228,8 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.IsArrayOrList)
             {
-                if (TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
+                if (runtimeType.ElementType is {} &&
+                    TryCreateFilterType(runtimeType.ElementType, out Type? elementType))
                 {
                     type = typeof(ListFilterInput<>).MakeGenericType(elementType);
                     return true;
@@ -224,7 +238,7 @@ namespace HotChocolate.Data.Filters
 
             if (runtimeType.Type.IsEnum)
             {
-                type = typeof(EnumOperationInput<>).MakeGenericType(runtimeType.Source);
+                type = typeof(EnumOperationFilterInput<>).MakeGenericType(runtimeType.Source);
                 return true;
             }
 

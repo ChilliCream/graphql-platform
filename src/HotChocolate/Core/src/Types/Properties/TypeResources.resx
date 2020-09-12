@@ -608,4 +608,10 @@ Type: `{0}`</value>
   <data name="NonNamedType_IsInstanceOfType_NotAnInputType" xml:space="preserve">
     <value>The specified type is not an input type.</value>
   </data>
+  <data name="RegisteredType_CompletionContext_Not_Initialized" xml:space="preserve">
+    <value>The completion context has not been initialized.</value>
+  </data>
+  <data name="RegisteredType_CompletionContext_Already_Set" xml:space="preserve">
+    <value>The completion context can only be set once.</value>
+  </data>
 </root>

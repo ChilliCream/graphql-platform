@@ -16,7 +16,7 @@ namespace HotChocolate
         public GraphQLException(IError error)
             : base(error?.Message)
         {
-            Errors = error == null
+            Errors = error is null
                 ? Array.Empty<IError>()
                 : new[] { error };
         }

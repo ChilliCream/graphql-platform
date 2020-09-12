@@ -12,12 +12,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             Func<IError, IError> errorFilter)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (errorFilter == null)
+            if (errorFilter is null)
             {
                 throw new ArgumentNullException(nameof(errorFilter));
             }
@@ -27,51 +27,47 @@ namespace Microsoft.Extensions.DependencyInjection
                     new FuncErrorFilterWrapper(errorFilter)));
         }
 
-        public static IRequestExecutorBuilder AddErrorFilter(
+        public static IRequestExecutorBuilder AddErrorFilter<T>(
             this IRequestExecutorBuilder builder,
-            Func<IServiceProvider, IErrorFilter> factory)
+            Func<IServiceProvider, T> factory)
+            where T : class, IErrorFilter
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IErrorFilter>(
-                    sp => factory(sp.GetRequiredService<IApplicationServiceProvider>())));
+            return builder.ConfigureSchemaServices(s => s.AddSingleton(factory));
         }
 
         public static IRequestExecutorBuilder AddErrorFilter<T>(
             this IRequestExecutorBuilder builder)
             where T : class, IErrorFilter
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
             builder.Services.TryAddTransient<T>();
-            return builder.ConfigureSchemaServices(
-                s => s.AddSingleton<IErrorFilter>(
-                    sp => sp.GetRequiredService<IApplicationServiceProvider>()
-                        .GetRequiredService<T>()));
+            return builder.ConfigureSchemaServices(s => s.AddSingleton<IErrorFilter, T>());
         }
 
         public static IServiceCollection AddErrorFilter(
             this IServiceCollection services,
             Func<IError, IError> errorFilter)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (errorFilter == null)
+            if (errorFilter is null)
             {
                 throw new ArgumentNullException(nameof(errorFilter));
             }
@@ -84,12 +80,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             Func<IServiceProvider, IErrorFilter> factory)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (factory == null)
+            if (factory is null)
             {
                 throw new ArgumentNullException(nameof(factory));
             }
@@ -101,7 +97,7 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
             where T : class, IErrorFilter
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }

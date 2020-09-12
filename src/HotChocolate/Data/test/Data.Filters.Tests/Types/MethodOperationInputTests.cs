@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryExplicit>()
                 .AddConvention<IFilterConvention>(convention)
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -39,7 +39,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query>()
                 .AddConvention<IFilterConvention>(convention)
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -63,7 +63,7 @@ namespace HotChocolate.Data.Filters
             protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Name("Test");
-                descriptor.Operation(155).Name("TestSimpleMethod").Type<BooleanOperationInput>();
+                descriptor.Operation(155).Name("TestSimpleMethod").Type<BooleanOperationFilterInput>();
                 descriptor.Operation(156).Name("TestComplexMethod").Type<FilterInputType<Bar>>();
             }
         }

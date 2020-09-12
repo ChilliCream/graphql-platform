@@ -12,7 +12,7 @@ namespace HotChocolate
 
         public SchemaTypes(SchemaTypesDefinition definition)
         {
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }

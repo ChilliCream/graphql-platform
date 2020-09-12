@@ -8,12 +8,12 @@ type Foo {
 
 "A connection to a list of items."
 type FooConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
   "A list of edges."
   edges: [FooEdge!]
   "A flattened list of the nodes."
   nodes: [Foo]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
   totalCount: Int!
 }
 
@@ -27,18 +27,18 @@ type FooEdge {
 
 "Information about pagination in a connection."
 type PageInfo {
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
 }
 
 type Query {
-  foos(after: String before: String first: PaginationAmount last: PaginationAmount): FooConnection
+  foos(first: PaginationAmount after: String last: PaginationAmount before: String): FooConnection
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

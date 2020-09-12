@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -18,7 +17,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
                 .AddQueryType<Query1>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -33,7 +32,7 @@ namespace HotChocolate.Data.Filters
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<IFilterConvention, BarFilterConvention>("Bar")
                 .AddQueryType<QueryType>()
-                .UseFiltering()
+                .AddFiltering()
                 .Create();
 
             // assert
@@ -68,7 +67,7 @@ namespace HotChocolate.Data.Filters
         }
 
 
-        public class TestOperationType : StringOperationInput
+        public class TestOperationFilterType : StringOperationFilterInput
         {
             protected override void Configure(IFilterInputTypeDescriptor descriptor)
             {

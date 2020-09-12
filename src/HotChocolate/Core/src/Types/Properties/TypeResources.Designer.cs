@@ -1016,5 +1016,17 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("NonNamedType_IsInstanceOfType_NotAnInputType", resourceCulture);
             }
         }
+        
+        internal static string RegisteredType_CompletionContext_Not_Initialized {
+            get {
+                return ResourceManager.GetString("RegisteredType_CompletionContext_Not_Initialized", resourceCulture);
+            }
+        }
+        
+        internal static string RegisteredType_CompletionContext_Already_Set {
+            get {
+                return ResourceManager.GetString("RegisteredType_CompletionContext_Already_Set", resourceCulture);
+            }
+        }
     }
 }

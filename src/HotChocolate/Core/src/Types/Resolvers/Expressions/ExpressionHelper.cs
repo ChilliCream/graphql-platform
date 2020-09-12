@@ -8,7 +8,7 @@ namespace HotChocolate.Resolvers.Expressions
     {
         public static async ValueTask<object> AwaitTaskHelper<T>(Task<T> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }

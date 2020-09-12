@@ -1,7 +1,7 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -90,7 +90,7 @@ namespace HotChocolate.Configuration
             ITypeReference reference,
             TypeDependencyKind kind)
         {
-            if (reference == null)
+            if (reference is null)
             {
                 throw new ArgumentNullException(nameof(reference));
             }
@@ -112,7 +112,7 @@ namespace HotChocolate.Configuration
             IEnumerable<ITypeReference> references,
             TypeDependencyKind kind)
         {
-            if (references == null)
+            if (references is null)
             {
                 throw new ArgumentNullException(nameof(references));
             }
@@ -131,7 +131,7 @@ namespace HotChocolate.Configuration
 
         public void RegisterDependency(IDirectiveReference reference)
         {
-            if (reference == null)
+            if (reference is null)
             {
                 throw new ArgumentNullException(nameof(reference));
             }
@@ -142,7 +142,7 @@ namespace HotChocolate.Configuration
         public void RegisterDependencyRange(
             IEnumerable<IDirectiveReference> references)
         {
-            if (references == null)
+            if (references is null)
             {
                 throw new ArgumentNullException(nameof(references));
             }
@@ -156,9 +156,34 @@ namespace HotChocolate.Configuration
             Type sourceType,
             Type resolverType)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
+            }
+
+            if (sourceType is null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            fieldName.EnsureNotEmpty(nameof(fieldName));
+
+            var fieldMember = new FieldMember(InternalName, fieldName, member);
+
+            Resolvers[fieldMember.ToFieldReference()] = resolverType is null
+                ? new RegisteredResolver(sourceType, fieldMember)
+                : new RegisteredResolver(resolverType, sourceType, fieldMember);
+        }
+
+        public void RegisterResolver(
+            NameString fieldName,
+            Expression expression,
+            Type sourceType,
+            Type resolverType)
+        {
+            if (expression == null)
+            {
+                throw new ArgumentNullException(nameof(expression));
             }
 
             if (sourceType == null)
@@ -168,7 +193,7 @@ namespace HotChocolate.Configuration
 
             fieldName.EnsureNotEmpty(nameof(fieldName));
 
-            var fieldMember = new FieldMember(InternalName, fieldName, member);
+            var fieldMember = new FieldMember(InternalName, fieldName, expression);
 
             Resolvers[fieldMember.ToFieldReference()] = resolverType == null
                 ? new RegisteredResolver(sourceType, fieldMember)
@@ -177,7 +202,7 @@ namespace HotChocolate.Configuration
 
         public void ReportError(ISchemaError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }

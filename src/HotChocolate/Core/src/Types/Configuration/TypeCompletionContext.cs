@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -98,11 +97,6 @@ namespace HotChocolate.Configuration
 
             if (!TryGetType(typeRef, out T type))
             {
-                if (typeRef is ExtendedTypeReference r)
-                {
-                    r.Type.Type.IsSchemaType();
-                }
-
                 throw TypeCompletionContext_UnableToResolveType(Type, typeRef);
             }
 
@@ -190,7 +184,7 @@ namespace HotChocolate.Configuration
 
         public void ReportError(ISchemaError error)
         {
-            if (error == null)
+            if (error is null)
             {
                 throw new ArgumentNullException(nameof(error));
             }

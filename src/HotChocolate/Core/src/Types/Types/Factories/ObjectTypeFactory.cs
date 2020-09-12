@@ -13,12 +13,12 @@ namespace HotChocolate.Types.Factories
             IBindingLookup bindingLookup,
             ObjectTypeDefinitionNode node)
         {
-            if (bindingLookup == null)
+            if (bindingLookup is null)
             {
                 throw new ArgumentNullException(nameof(bindingLookup));
             }
 
-            if (node == null)
+            if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
