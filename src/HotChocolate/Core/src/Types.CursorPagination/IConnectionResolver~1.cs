@@ -1,10 +1,10 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay
 {
-    public interface IConnectionResolver
+    public interface IConnectionResolver<in T> : IConnectionResolver
     {
         /// <summary>
         /// Resolves a connection for a pageable data source.
@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Relay
         /// </returns>
         ValueTask<IConnection> ResolveAsync(
             IMiddlewareContext context,
-            object source,
+            T source,
             ConnectionArguments arguments = default,
             bool withTotalCount = false,
             CancellationToken cancellationToken = default);

@@ -1,11 +1,14 @@
+using System;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
 {
     public class EdgeType<T>
         : ObjectType<IEdge>
-        , IEdgeType
+            , IEdgeType
         where T : class, IOutputType
     {
         public IOutputType EntityType { get; private set; }
@@ -38,7 +41,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EntityType = context.GetType<IOutputType>(
-                context.TypeInspector.GetTypeRef(typeof(T)));
+                ClrTypeReference.FromSchemaType<T>());
         }
     }
 }

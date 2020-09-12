@@ -9,6 +9,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions" />
+    <Folder Include="Properties" />
+    <Folder Include="Utilities" />
   </ItemGroup>  
 
 </Project>

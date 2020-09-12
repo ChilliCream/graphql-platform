@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    internal static class SchemaTypeResolver
+    public static class SchemaTypeResolver
     {
         private static readonly Type _keyValuePair = typeof(KeyValuePair<,>);
 
@@ -14,6 +14,16 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference unresolvedType,
             out ExtendedTypeReference schemaType)
         {
+            if (typeInspector is null)
+            {
+                throw new ArgumentNullException(nameof(typeInspector));
+            }
+
+            if (unresolvedType is null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedType));
+            }
+
             if (IsObjectTypeExtension(unresolvedType))
             {
                 schemaType = unresolvedType.With(
@@ -62,6 +72,11 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference unresolvedType,
             out TypeKind kind)
         {
+            if (unresolvedType == null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedType));
+            }
+            
             if (IsObjectTypeExtension(unresolvedType))
             {
                 kind = TypeKind.Object;
@@ -97,7 +112,7 @@ namespace HotChocolate.Configuration
                 kind = TypeKind.Enum;
                 return true;
             }
-            
+
             kind = default;
             return false;
         }

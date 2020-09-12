@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Relay
         where T : class, IOutputType
     {
         public ConnectionWithCountType()
-            : base(descriptor => Configure(descriptor))
+            : base(Configure)
         {
         }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Relay
             {
                 return connection.PageInfo.TotalCount.Value;
             }
-            
+
             throw new GraphQLException(
                 "The total count was not provided by the connection.");
         }

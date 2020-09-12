@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>HotChocolate.Types.CursorPagination</PackageId>
     <AssemblyName>HotChocolate.Types.CursorPagination</AssemblyName>
     <RootNamespace>HotChocolate.Types</RootNamespace>
@@ -9,6 +14,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CursorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CursorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CursorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CursorResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>  
 
 </Project>

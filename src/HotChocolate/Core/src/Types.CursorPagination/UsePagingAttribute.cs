@@ -33,17 +33,23 @@ namespace HotChocolate.Types.Relay
                 && m.GetParameters().Length == 1
                 && m.GetParameters()[0].ParameterType == typeof(IInterfaceFieldDescriptor));
 
-        public UsePagingAttribute(Type? schemaType = null)
+        public UsePagingAttribute(Type? type = null)
         {
-            SchemaType = schemaType;
+            Type = type;
         }
 
         /// <summary>
         /// The schema type representation of the entity.
         /// </summary>
-        public Type? SchemaType { get; set; }
+        [Obsolete("Use Type.")]
+        public Type? SchemaType { get => Type; set => Type = value; }
 
-        protected internal override void TryConfigure(
+        /// <summary>
+        /// The schema type representation of the entity.
+        /// </summary>
+        public Type? Type { get; private set; }
+
+        protected override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
             ICustomAttributeProvider element)
@@ -66,7 +72,7 @@ namespace HotChocolate.Types.Relay
             IDescriptorContext context,
             MemberInfo member)
         {
-            Type? type = SchemaType;
+            Type? type = Type;
             ITypeReference returnType = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (type is null

@@ -1,7 +1,6 @@
 ﻿namespace HotChocolate.Types.Relay
 {
-    public interface IConnectionType
-        : IComplexOutputType
+    public interface IConnectionType : IObjectType
     {
         IEdgeType EdgeType { get; }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Types.Relay
 {
@@ -8,18 +9,16 @@ namespace HotChocolate.Types.Relay
     {
         public Connection(
             IPageInfo pageInfo,
-            IReadOnlyCollection<Edge<T>> edges)
+            IReadOnlyList<Edge<T>> edges)
         {
-            PageInfo = pageInfo
-                ?? throw new ArgumentNullException(nameof(pageInfo));
-            Edges = edges
-                ?? throw new ArgumentNullException(nameof(edges));
+            PageInfo = pageInfo ?? throw new ArgumentNullException(nameof(pageInfo));
+            Edges = edges ?? throw new ArgumentNullException(nameof(edges));
         }
 
         public IPageInfo PageInfo { get; }
 
-        public IReadOnlyCollection<Edge<T>> Edges { get; }
+        public IReadOnlyList<Edge<T>> Edges { get; }
 
-        IReadOnlyCollection<IEdge> IConnection.Edges => Edges;
+        IReadOnlyList<IEdge> IConnection.Edges => Edges;
     }
 }
