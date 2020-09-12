@@ -1,0 +1,14 @@
+﻿{
+  "Data": {
+    "root": {
+      "nodes": [
+        {
+          "bar": true
+        }
+      ]
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null
+}
