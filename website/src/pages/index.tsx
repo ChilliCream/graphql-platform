@@ -1,14 +1,40 @@
+import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
+import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakepop } from "../components/images/banana-cakepop";
 import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
 import { Link } from "../components/misc/link";
+import {
+  ContentContainer,
+  EnvelopeIcon,
+  ImageContainer,
+  Section,
+  SectionRow,
+  SectionTitle,
+  SlackIcon,
+} from "../components/misc/marketing-elements";
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+import ContactUsSvg from "../images/contact-us.svg";
+import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
+
 const IndexPage: FunctionComponent = () => {
+  const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
+    query getIndexPageData {
+      site {
+        siteMetadata {
+          tools {
+            slack
+          }
+        }
+      }
+    }
+  `);
+
   return (
     <Layout>
       <SEO title="Home" />
@@ -18,6 +44,7 @@ const IndexPage: FunctionComponent = () => {
           autoPlay
           infiniteLoop
           swipeable
+          interval={15000}
           showStatus={false}
           showThumbs={false}
         >
@@ -33,17 +60,82 @@ const IndexPage: FunctionComponent = () => {
             </Link>
           </Slide>
           <Slide>
-            <BananaCakepop />
-            <SlideContent>
-              <SlideTitle>Banana Cakepop</SlideTitle>
-              <SlideDescription>
-                Our tool to explore schemas, execute operations and get deep
-                performance insights.
-              </SlideDescription>
-            </SlideContent>
+            <Link to="/docs/bananacakepop">
+              <BananaCakepop />
+              <SlideContent>
+                <SlideTitle>Banana Cake Pop</SlideTitle>
+                <SlideDescription>
+                  Our tool to explore schemas, execute operations and get deep
+                  performance insights.
+                </SlideDescription>
+              </SlideContent>
+            </Link>
           </Slide>
         </Slideshow>
       </Intro>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>
+              What is the ChilliCream GraphQL platform?
+            </SectionTitle>
+            <p>...</p>
+            <Link to="/platform">Learn more</Link>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>Get Started</SectionTitle>
+            <p>...</p>
+            <Link to="/docs/hotchocolate">Learn more</Link>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ContentContainer noImage>
+            <SectionTitle centerAlways>From our Blog</SectionTitle>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ContentContainer noImage>
+            <SectionTitle centerAlways>Companies who trust us</SectionTitle>
+            <Logos>{false && <SwissLifeLogoSvg />}</Logos>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer>
+            <ContactUsSvg />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>What's your story?</SectionTitle>
+            <p>
+              We would be thrilled to hear your customer success story with Hot
+              Chocolate! Write us an{" "}
+              <a href="mailto:contact@chillicream.com">
+                <EnvelopeIcon />
+              </a>{" "}
+              or chat with us on{" "}
+              <a href={data.site!.siteMetadata!.tools!.slack!}>
+                <SlackIcon />
+              </a>{" "}
+              to get in touch with us!
+            </p>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
     </Layout>
   );
 };
@@ -186,5 +278,26 @@ const SlideDescription = styled.p`
 
   @media only screen and (min-width: 768px) {
     display: initial;
+  }
+`;
+
+const Logos = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  padding: 40px 0 20px;
+
+  > svg {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100px;
+    max-height: 100px;
+    fill: #667;
+    transition: fill 0.2s ease-in-out;
+
+    &:hover {
+      fill: #333;
+    }
   }
 `;
