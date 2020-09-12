@@ -13,10 +13,10 @@ namespace HotChocolate.Data
             .Single(
                 m => m.Name.Equals(
                         nameof(FilterObjectFieldDescriptorExtensions.UseFiltering),
-                        StringComparison.Ordinal)
-                    && m.GetGenericArguments().Length == 1
-                    && m.GetParameters().Length == 2
-                    && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+                        StringComparison.Ordinal) &&
+                    m.GetGenericArguments().Length == 1 &&
+                    m.GetParameters().Length == 2 &&
+                    m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
         public UseFilteringAttribute(Type filterType)
         {
