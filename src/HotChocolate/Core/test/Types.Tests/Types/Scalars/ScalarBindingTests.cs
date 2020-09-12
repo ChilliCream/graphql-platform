@@ -64,12 +64,17 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
             {
                 throw new System.NotImplementedException();
             }
 
             public override IValueNode ParseValue(object value)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override IValueNode ParseResult(object resultValue)
             {
                 throw new System.NotImplementedException();
             }
@@ -87,12 +92,17 @@ namespace HotChocolate.Types
                 throw new System.NotImplementedException();
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
             {
                 throw new System.NotImplementedException();
             }
 
             public override IValueNode ParseValue(object value)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public override IValueNode ParseResult(object resultValue)
             {
                 throw new System.NotImplementedException();
             }

@@ -1,17 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.Utilities.Subscriptions;
 
 namespace HotChocolate.Resolvers.Expressions
 {
     internal static class SubscribeExpressionHelper
     {
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskAsyncEnumerable<T>(
+        public static async ValueTask<ISourceStream> AwaitTaskSourceStreamGeneric<T>(
+            Task<ISourceStream<T>> task)
+        {
+            if (task is null)
+            {
+                return null;
+            }
+
+            return await task;
+        }
+
+        public static async ValueTask<ISourceStream> AwaitTaskSourceStream(
+            Task<ISourceStream> task)
+        {
+            if (task is null)
+            {
+                return null;
+            }
+
+            return await task;
+        }
+
+        public static async ValueTask<ISourceStream> AwaitTaskAsyncEnumerable<T>(
             Task<IAsyncEnumerable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -20,10 +44,10 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskEnumerable<T>(
+        public static async ValueTask<ISourceStream> AwaitTaskEnumerable<T>(
             Task<IEnumerable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -32,10 +56,10 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskQueryable<T>(
+        public static async ValueTask<ISourceStream> AwaitTaskQueryable<T>(
             Task<IQueryable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -44,10 +68,10 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitTaskObservable<T>(
+        public static async ValueTask<ISourceStream> AwaitTaskObservable<T>(
             Task<IObservable<T>> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
@@ -56,64 +80,95 @@ namespace HotChocolate.Resolvers.Expressions
             return ConvertObservable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskAsyncEnumerable<T>(
+        public static async ValueTask<ISourceStream> AwaitValueTaskSourceStreamGeneric<T>(
+            ValueTask<ISourceStream<T>> task)
+        {
+            return await task;
+        }
+
+        public static async ValueTask<ISourceStream> AwaitValueTaskAsyncEnumerable<T>(
             ValueTask<IAsyncEnumerable<T>> task)
         {
             IAsyncEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskEnumerable<T>(
+        public static async ValueTask<ISourceStream> AwaitValueTaskEnumerable<T>(
             ValueTask<IEnumerable<T>> task)
         {
             IEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskQueryable<T>(
+        public static async ValueTask<ISourceStream> AwaitValueTaskQueryable<T>(
             ValueTask<IQueryable<T>> task)
         {
             IEnumerable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertEnumerable(enumerable);
         }
 
-        public static async ValueTask<IAsyncEnumerable<object>> AwaitValueTaskObservable<T>(
+        public static async ValueTask<ISourceStream> AwaitValueTaskObservable<T>(
             ValueTask<IObservable<T>> task)
         {
             IObservable<T> enumerable = await task.ConfigureAwait(false);
             return ConvertObservable(enumerable);
         }
 
-        public static ValueTask<IAsyncEnumerable<object>> WrapAsyncEnumerable<T>(
+        public static ValueTask<ISourceStream> WrapSourceStreamGeneric<T>(
+            ISourceStream<T> result) =>
+            new ValueTask<ISourceStream>(result);
+
+        public static ValueTask<ISourceStream> WrapSourceStream(
+            ISourceStream result) =>
+            new ValueTask<ISourceStream>(result);
+
+        public static ValueTask<ISourceStream> WrapAsyncEnumerable<T>(
             IAsyncEnumerable<T> result) =>
-            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<ISourceStream>(ConvertEnumerable(result));
 
-        public static ValueTask<IAsyncEnumerable<object>> WrapEnumerable<T>(
+        public static ValueTask<ISourceStream> WrapEnumerable<T>(
             IEnumerable<T> result) =>
-            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<ISourceStream>(ConvertEnumerable(result));
 
-        public static ValueTask<IAsyncEnumerable<object>> WrapQueryable<T>(
+        public static ValueTask<ISourceStream> WrapQueryable<T>(
             IQueryable<T> result) =>
-            new ValueTask<IAsyncEnumerable<object>>(ConvertEnumerable(result));
+            new ValueTask<ISourceStream>(ConvertEnumerable(result));
 
-        public static ValueTask<IAsyncEnumerable<object>> WrapObservable<T>(
+        public static ValueTask<ISourceStream> WrapObservable<T>(
             IObservable<T> result) =>
-            new ValueTask<IAsyncEnumerable<object>>(ConvertObservable(result));
+            new ValueTask<ISourceStream>(ConvertObservable(result));
 
-        private static IAsyncEnumerable<object> ConvertObservable<T>(
+        private static ISourceStream ConvertObservable<T>(
             IObservable<T> enumerable) =>
-            new ObservableSourceStreamAdapter<T>(enumerable);
+            new SourceStreamWrapper(new ObservableSourceStreamAdapter<T>(enumerable));
 
-        private static IAsyncEnumerable<object> ConvertEnumerable<T>(
+        private static ISourceStream ConvertEnumerable<T>(
             IEnumerable<T> enumerable) =>
-            new EnumerableSourceStreamAdapter<T>(enumerable);
+            new SourceStreamWrapper(new EnumerableSourceStreamAdapter<T>(enumerable));
 
-        private static async IAsyncEnumerable<object> ConvertEnumerable<T>(
+        private static ISourceStream ConvertEnumerable<T>(
             IAsyncEnumerable<T> enumerable)
         {
-            await foreach (T item in enumerable.ConfigureAwait(false))
+            return new SourceStreamWrapper(new Enumerate<T>(enumerable));
+        }
+
+        private class Enumerate<T> : IAsyncEnumerable<object>
+        {
+            private readonly IAsyncEnumerable<T> _enumerable;
+
+            public Enumerate(IAsyncEnumerable<T> enumerable)
             {
-                yield return item;
+                _enumerable = enumerable;
+            }
+
+            public async IAsyncEnumerator<object> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default)
+            {
+                await foreach (T item in _enumerable.WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    yield return item;
+                }
             }
         }
     }

@@ -57,19 +57,6 @@ namespace HotChocolate.Utilities
                 .Message.MatchSnapshot();
         }
 
-        [Fact]
-        public void CreateInstanceFactory_From_Class_With_Multiple_Constructors()
-        {
-            // arrange
-            // act
-            Action action = () => ActivatorHelper
-                .CompileFactory(typeof(Foo).GetTypeInfo());
-
-            // assert
-            Assert.Throws<InvalidOperationException>(action)
-                .Message.MatchSnapshot();
-        }
-
         public interface IFoo
         {
 

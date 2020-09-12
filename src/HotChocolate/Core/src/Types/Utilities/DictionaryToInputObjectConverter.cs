@@ -8,9 +8,9 @@ namespace HotChocolate.Utilities
     internal class DictionaryToInputObjectConverter
         : DictionaryVisitor<ConverterContext>
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public DictionaryToInputObjectConverter(ITypeConversion converter)
+        public DictionaryToInputObjectConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -18,12 +18,12 @@ namespace HotChocolate.Utilities
 
         public object Convert(object from, IInputType to)
         {
-            if (from == null)
+            if (from is null)
             {
                 throw new ArgumentNullException(nameof(from));
             }
 
-            if (to == null)
+            if (to is null)
             {
                 throw new ArgumentNullException(nameof(to));
             }
@@ -31,7 +31,7 @@ namespace HotChocolate.Utilities
             var context = new ConverterContext
             {
                 InputType = to,
-                ClrType = to.ToClrType()
+                ClrType = to.ToRuntimeType()
             };
 
             Visit(from, context);
@@ -40,14 +40,14 @@ namespace HotChocolate.Utilities
         }
 
         protected override void VisitObject(
-            IDictionary<string, object> dictionary,
+            IReadOnlyDictionary<string, object> dictionary,
             ConverterContext context)
         {
             if (context.InputType.NamedType() is InputObjectType type)
             {
-                Type clrType = type.ClrType == typeof(object)
+                Type clrType = type.RuntimeType == typeof(object)
                     ? typeof(Dictionary<string, object>)
-                    : type.ClrType;
+                    : type.RuntimeType;
 
                 context.Object = Activator.CreateInstance(clrType);
                 context.InputFields = type.Fields;
@@ -68,7 +68,7 @@ namespace HotChocolate.Utilities
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
-                valueContext.ClrType = inputField.ClrType;
+                valueContext.ClrType = inputField.RuntimeType;
 
                 Visit(field.Value, valueContext);
 
@@ -77,20 +77,20 @@ namespace HotChocolate.Utilities
         }
 
         protected override void VisitList(
-            IList<object> list,
+            IReadOnlyList<object> list,
             ConverterContext context)
         {
             if (context.InputType.IsListType())
             {
                 ListType listType = context.InputType.ListType();
-                Type tempType = listType.ToClrType();
+                Type tempType = listType.ToRuntimeType();
                 var temp = (IList)Activator.CreateInstance(tempType);
 
                 for (int i = 0; i < list.Count; i++)
                 {
                     var valueContext = new ConverterContext();
                     valueContext.InputType = (IInputType)listType.ElementType;
-                    valueContext.ClrType = listType.ElementType.ToClrType();
+                    valueContext.ClrType = listType.ElementType.ToRuntimeType();
 
                     Visit(list[i], valueContext);
 
@@ -111,11 +111,11 @@ namespace HotChocolate.Utilities
             object value,
             ConverterContext context)
         {
-            if (value == null)
+            if (value is null)
             {
                 context.Object = null;
             }
-            else if (context.InputType.ClrType.IsInstanceOfType(value))
+            else if (context.InputType.RuntimeType.IsInstanceOfType(value))
             {
                 context.Object = value;
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Threading;
 using HotChocolate.Language;
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
             Action a = () => dateTimeType.Serialize("foo");
 
             // assert
-            Assert.Throws<ScalarSerializationException>(a);
+            Assert.Throws<SerializationException>(a);
         }
 
         [Fact]

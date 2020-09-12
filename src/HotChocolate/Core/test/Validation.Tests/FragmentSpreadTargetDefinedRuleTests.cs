@@ -1,13 +1,15 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class FragmentSpreadTargetDefinedRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public FragmentSpreadTargetDefinedRuleTests()
-            : base(new FragmentSpreadTargetDefinedRule())
+            : base(builder => builder.AddFragmentRules())
         {
         }
 
@@ -15,7 +17,7 @@ namespace HotChocolate.Validation
         public void UndefinedFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -23,24 +25,25 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
+            Assert.Collection(context.Errors,
                 t => Assert.Equal(
                     "The specified fragment `undefinedFragment` " +
                     "does not exist.",
                     t.Message));
+            context.Errors.MatchSnapshot();
         }
 
         [Fact]
         public void DefinedFragment()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
+            IDocumentValidatorContext context = ValidationUtils.CreateContext();
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
@@ -53,12 +56,13 @@ namespace HotChocolate.Validation
                     barkVolume
                 }
             ");
+            context.Prepare(query);
 
             // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+            Rule.Validate(context, query);
 
             // assert
-            Assert.False(result.HasErrors);
+            Assert.Empty(context.Errors);
         }
     }
 }

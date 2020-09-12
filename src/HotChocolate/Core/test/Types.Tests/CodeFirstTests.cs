@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -15,6 +16,17 @@ namespace HotChocolate
         {
             SchemaBuilder.New()
                 .AddQueryType<Query>()
+                .AddType<Dog>()
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void InferSchemaWithNonNullRefTypesAndGenerics()
+        {
+            SchemaBuilder.New()
+                .AddQueryType<QueryWithGenerics>()
                 .AddType<Dog>()
                 .Create()
                 .ToString()
@@ -75,6 +87,29 @@ namespace HotChocolate
 
             public Task<IPet?> GetPetOrNull() =>
                 throw new NotImplementedException();
+        }
+
+        public class QueryWithGenerics
+        {
+            public Task<IPet?> GetPet(int id, CancellationToken cancellationToken) =>
+                throw new NotImplementedException();
+
+            // The arguments are needed to make the compiler apply attributes as expected 
+            // for this use case. It's not entirely clear what combination of arguments 
+            // for this and other fields on the class makes it behave this way
+            // We want the compiler to apply these attributes to the GetPets method
+            // [NullableContext(2)]
+            // [return: Nullable(1)]
+            public Task<GenericWrapper<IPet>> GetPets(
+                int? arg1, bool? arg2, bool? arg3, string? arg4,
+                GenericWrapper<string>? arg5, Greetings? arg6, 
+                CancellationToken cancellationToken) =>
+                throw new NotImplementedException();
+        }
+
+        public class GenericWrapper<T>
+        {
+            public T Value { get; set; }
         }
 
         public class Greetings

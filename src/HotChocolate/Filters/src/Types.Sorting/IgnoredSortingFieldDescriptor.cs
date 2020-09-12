@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context)
         {
             var operation = new SortOperation(property);
-            var typeReference = new ClrTypeReference(
+            var typeReference = context.TypeInspector.GetTypeRef(
                 typeof(SortOperationKindType),
                 TypeContext.Input);
             NameString name = context.Naming.GetMemberName(

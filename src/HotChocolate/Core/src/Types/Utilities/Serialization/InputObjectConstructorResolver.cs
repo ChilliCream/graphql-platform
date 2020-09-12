@@ -25,12 +25,12 @@ namespace HotChocolate.Utilities.Serialization
         {
             ConstructorInfo[] constructors = type.GetConstructors(
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            ConstructorInfo defaultConstructor = constructors.FirstOrDefault(t =>
-                t.GetParameters().Length == 0);
+            ConstructorInfo? defaultConstructor = constructors.FirstOrDefault(
+                t => t.GetParameters().Length == 0);
 
             if (properties.Values.All(t => t.CanWrite))
             {
-                if (defaultConstructor is { })
+                if (defaultConstructor is not null)
                 {
                     return defaultConstructor;
                 }
@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities.Serialization
                 $"No compatible constructor found for input type type `{type.FullName}`.\r\n" +
                 "Either you have to provide a public constructor with settable properties or " +
                 "a public constructor that allows to pass in values for read-only properties." +
-                $"There was now way to set the following properties: {string.Join(", ", required)}.");
+                $"There was no way to set the following properties: {string.Join(", ", required)}.");
         }
 
         private static bool IsCompatibleConstructor(

@@ -2,6 +2,7 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 
 #nullable enable
 
@@ -11,12 +12,15 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<TDefinition>
         , INamedType
         , IHasDirectives
-        , IHasClrType
+        , IHasRuntimeType
         , IHasTypeIdentity
-        where TDefinition : DefinitionBase, IHasDirectiveDefinition
+        where TDefinition : DefinitionBase, IHasDirectiveDefinition, IHasSyntaxNode
     {
         private IDirectiveCollection? _directives;
         private Type? _clrType;
+        private ISyntaxNode? _syntaxNode;
+
+        ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
 
         public abstract TypeKind Kind { get; }
 
@@ -32,7 +36,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {
@@ -46,14 +50,17 @@ namespace HotChocolate.Types
 
         public Type? TypeIdentity { get; private set; }
 
+        public virtual bool IsAssignableFrom(INamedType type) =>
+            ReferenceEquals(type, this);
+
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
 
-            _clrType = definition is IHasClrType clr && clr.ClrType != GetType()
-                ? clr.ClrType
+            _clrType = definition is IHasRuntimeType clr && clr.RuntimeType != GetType()
+                ? clr.RuntimeType
                 : typeof(object);
 
             context.RegisterDependencyRange(
@@ -61,13 +68,14 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             base.OnCompleteType(context, definition);
 
-            var directives = new DirectiveCollection(
-                this, definition.Directives);
+            _syntaxNode = definition.SyntaxNode;
+
+            var directives = new DirectiveCollection(this, definition.Directives);
             directives.CompleteCollection(context);
             _directives = directives;
         }
@@ -86,9 +94,9 @@ namespace HotChocolate.Types
                     nameof(typeDefinition));
             }
 
-            if (ClrType != typeof(object))
+            if (RuntimeType != typeof(object))
             {
-                TypeIdentity = typeDefinition.MakeGenericType(ClrType);
+                TypeIdentity = typeDefinition.MakeGenericType(RuntimeType);
             }
         }
     }

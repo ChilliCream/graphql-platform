@@ -13,7 +13,7 @@ namespace HotChocolate.Configuration.Bindings
         public IResolverBindingBuilder SetResolver(
             FieldResolverDelegate resolver)
         {
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }

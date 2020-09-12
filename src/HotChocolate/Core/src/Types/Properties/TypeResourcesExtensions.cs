@@ -45,7 +45,7 @@ namespace HotChocolate.Properties
                     nameof(typeName));
             }
 
-            if (literalType == null)
+            if (literalType is null)
             {
                 throw new ArgumentNullException(nameof(literalType));
             }
@@ -67,7 +67,7 @@ namespace HotChocolate.Properties
                     nameof(typeName));
             }
 
-            if (valueType == null)
+            if (valueType is null)
             {
                 throw new ArgumentNullException(nameof(valueType));
             }
@@ -79,27 +79,31 @@ namespace HotChocolate.Properties
                 valueType.FullName);
         }
 
-        public static string String_Argument_NullOrEmpty(string parameterName)
+        public static string Scalar_Cannot_ParseResult(
+            string typeName, Type valueType)
         {
-
-            if (string.IsNullOrEmpty(parameterName))
+            if (string.IsNullOrEmpty(typeName))
             {
-                throw new ArgumentException(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.String_Argument_NullOrEmpty,
-                    nameof(parameterName)),
-                    nameof(parameterName));
+                throw new ArgumentException(
+                    TypeResources.TypeResourceHelper_TypeNameEmptyOrNull,
+                    nameof(typeName));
+            }
+
+            if (valueType is null)
+            {
+                throw new ArgumentNullException(nameof(valueType));
             }
 
             return string.Format(
                 CultureInfo.InvariantCulture,
-                TypeResources.String_Argument_NullOrEmpty,
-                parameterName);
+                TypeResources.Scalar_Cannot_ParseValue,
+                typeName,
+                valueType.FullName);
         }
 
         public static string Type_Name_IsNotValid(string typeName)
         {
-            string name = typeName ?? "null";
+            var name = typeName ?? "null";
             return $"`{name}` is not a valid " +
                 "GraphQL type name.";
         }

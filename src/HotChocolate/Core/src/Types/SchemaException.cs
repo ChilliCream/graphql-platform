@@ -32,45 +32,27 @@ namespace HotChocolate
         {
         }
 
-        public IReadOnlyCollection<ISchemaError> Errors { get; }
+        public IReadOnlyList<ISchemaError> Errors { get; }
 
-        private static string CreateErrorMessage(
-            IReadOnlyCollection<ISchemaError> errors)
+        // TODO : resources
+        private static string CreateErrorMessage(IReadOnlyList<ISchemaError> errors)
         {
-            if (errors == null || errors.Count == 0)
+            if (errors is null || errors.Count == 0)
             {
-                // TODO : resources
                 return "Unexpected schema exception occurred.";
-            }
-
-            if (errors.Count == 1)
-            {
-                return CreateErrorMessage(errors.First());
             }
 
             var message = new StringBuilder();
 
-            // TODO : resources
-            message.AppendLine("Multiple schema errors occurred:");
-            foreach (ISchemaError error in errors)
+            message.AppendLine("For more details look at the `Errors` property.");
+            message.AppendLine();
+
+            for (int i = 0; i < errors.Count; i++)
             {
-                message.AppendLine(CreateErrorMessage(error));
+                message.AppendLine($"{i + 1}. {errors[i].Message}");
             }
 
             return message.ToString();
-        }
-
-        private static string CreateErrorMessage(ISchemaError error)
-        {
-            if (error.TypeSystemObject == null
-                || error.TypeSystemObject.Name.IsEmpty)
-            {
-                return error.Message;
-            }
-            else
-            {
-                return $"{error.Message} - Type: {error.TypeSystemObject.Name}";
-            }
         }
     }
 }

@@ -1,0 +1,18 @@
+﻿[
+  {
+    "Message": "The specified fragment `nameFragment` is not used within the current document.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "fragment": "nameFragment",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
+    },
+    "Exception": null
+  }
+]

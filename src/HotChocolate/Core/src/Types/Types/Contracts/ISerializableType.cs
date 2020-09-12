@@ -1,22 +1,38 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
-    public interface ISerializableType
-        : IType
+    /// <summary>
+    /// A serializable type can serialize its runtime value to the result value
+    /// format and deserialize the result value format back to its runtime value.
+    /// </summary>
+    public interface ISerializableType : IType
     {
         /// <summary>
-        /// Serializes an instance of this type to
-        /// the specified serialization type.
+        /// Serializes a runtime value of this type to the result value format.
         /// </summary>
-        object Serialize(object value);
+        /// <param name="runtimeValue">
+        /// A runtime value representation of this type.
+        /// </param>
+        /// <returns>
+        /// Returns a result value representation of this type.
+        /// </returns>
+        /// <exception cref="SerializationException">
+        /// Unable to serialize the given <paramref name="runtimeValue"/>.
+        /// </exception>
+        object? Serialize(object? runtimeValue);
 
         /// <summary>
-        /// Deserializes a serialized instance of this type.
+        /// Deserializes a result value of this type to the runtime value format.
         /// </summary>
-        object Deserialize(object serialized);
+        /// <param name="resultValue">
+        /// A result value representation of this type.
+        /// </param>
+        /// <returns>
+        /// Returns a runtime value representation of this type.
+        /// </returns>
+        object? Deserialize(object? resultValue);
 
-        /// <summary>
-        /// Tries to deserialize a serialized instance of this type.
-        /// </summary>
-        bool TryDeserialize(object serialized, out object value);
+        bool TryDeserialize(object? resultValue, out object? runtimeValue);
     }
 }

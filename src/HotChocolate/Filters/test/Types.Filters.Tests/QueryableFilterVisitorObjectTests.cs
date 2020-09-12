@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Foo, bool> func = filterContext.CreateFilter<Foo>().Compile();
@@ -98,7 +98,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
@@ -135,7 +135,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Recursive),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<Recursive, bool> func = filterContext.CreateFilter<Recursive>().Compile();
@@ -174,7 +174,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();
@@ -197,7 +197,7 @@ namespace HotChocolate.Types.Filters
         /**
          * As multiple hanlders for a single property can exists, it makes sense to test mutliple porperty filterContexting too
          * Just to see if the null checks are wrapped around the whole object and not just around the one of the expressions.
-         * With the current visitor implementation this cannot be the case. Anyway, as code lifes is good to check twice. 
+         * With the current visitor implementation this cannot be the case. Anyway, as code lifes is good to check twice.
          * */
         [Fact]
         public void Create_ObjectStringEqualNullWithMultipleFilters_Expression()
@@ -227,7 +227,7 @@ namespace HotChocolate.Types.Filters
             var filterContext = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(EvenDeeper),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filterContext);
             Func<EvenDeeper, bool> func = filterContext.CreateFilter<EvenDeeper>().Compile();

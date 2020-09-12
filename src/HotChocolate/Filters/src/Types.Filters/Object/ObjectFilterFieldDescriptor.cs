@@ -56,15 +56,15 @@ namespace HotChocolate.Types.Filters
                 operationKind,
                 Definition.Property);
 
+            ExtendedTypeReference typeRef = Context.TypeInspector.GetTypeRef(
+                typeof(FilterInputType<>).MakeGenericType(_type),
+                Definition.Type.Context);
+
             return ObjectFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(
-                    typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true),
+                typeRef,
                 operation);
         }
 

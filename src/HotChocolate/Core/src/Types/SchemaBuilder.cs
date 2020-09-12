@@ -8,48 +8,56 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
     public partial class SchemaBuilder
         : ISchemaBuilder
     {
+        private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
+
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
         private readonly List<FieldMiddleware> _globalComponents =
             new List<FieldMiddleware>();
         private readonly List<LoadSchemaDocument> _documents =
             new List<LoadSchemaDocument>();
-        private readonly List<ITypeReference> _types =
-            new List<ITypeReference>();
+        private readonly List<CreateRef> _types = new List<CreateRef>();
         private readonly List<Type> _resolverTypes = new List<Type>();
-        private readonly Dictionary<OperationType, ITypeReference> _operations =
-            new Dictionary<OperationType, ITypeReference>();
+        private readonly Dictionary<OperationType, CreateRef> _operations =
+            new Dictionary<OperationType, CreateRef>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<Type, CreateConvention> _conventions =
-            new Dictionary<Type, CreateConvention>();
-        private readonly Dictionary<IClrTypeReference, ITypeReference> _clrTypes =
-            new Dictionary<IClrTypeReference, ITypeReference>();
-        private readonly List<Type> _interceptors = new List<Type>();
+        private readonly Dictionary<(Type, string), CreateConvention> _conventions =
+            new Dictionary<(Type, string), CreateConvention>();
+        private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
+            new Dictionary<Type, (CreateRef, CreateRef)>();
+        private readonly List<object> _interceptors = new List<object>
+        {
+            typeof(IntrospectionTypeInterceptor)
+        };
+        private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
+            new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
-        private ITypeReference _schema;
+        private CreateRef _schema;
 
         public ISchemaBuilder SetSchema(Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
             if (typeof(Schema).IsAssignableFrom(type))
             {
-                _schema = new ClrTypeReference(type, TypeContext.None);
+                _schema = ti => ti.GetTypeRef(type);
             }
             else
             {
@@ -62,14 +70,14 @@ namespace HotChocolate
 
         public ISchemaBuilder SetSchema(ISchema schema)
         {
-            if (schema == null)
+            if (schema is null)
             {
                 throw new ArgumentNullException(nameof(schema));
             }
 
             if (schema is TypeSystemObjectBase)
             {
-                _schema = new SchemaTypeReference(schema);
+                _schema = ti => new SchemaTypeReference(schema);
             }
             else
             {
@@ -87,7 +95,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            _schema = new SchemaTypeReference(new Schema(configure));
+            _schema = ti => new SchemaTypeReference(new Schema(configure));
             return this;
         }
 
@@ -102,7 +110,7 @@ namespace HotChocolate
 
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -113,7 +121,7 @@ namespace HotChocolate
 
         public ISchemaBuilder Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -124,7 +132,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument)
         {
-            if (loadSchemaDocument == null)
+            if (loadSchemaDocument is null)
             {
                 throw new ArgumentNullException(nameof(loadSchemaDocument));
             }
@@ -135,7 +143,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddType(Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -146,16 +154,16 @@ namespace HotChocolate
             }
             else
             {
-                _types.Add(new ClrTypeReference(
-                    type,
-                    SchemaTypeReference.InferTypeContext(type)));
+                _types.Add(ti => ti.GetTypeRef(type));
             }
 
             return this;
         }
 
-
-        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
+        public ISchemaBuilder TryAddConvention(
+            Type convention,
+            CreateConvention factory,
+            string scope = null)
         {
             if (convention is null)
             {
@@ -167,34 +175,53 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            _conventions[convention] = factory;
+            if (!_conventions.ContainsKey((convention, scope)))
+            {
+                AddConvention(convention, factory, scope);
+            }
+
             return this;
         }
 
-        public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
+        public ISchemaBuilder AddConvention(
+            Type convention,
+            CreateConvention factory,
+            string scope = null)
         {
-            if (clrType == null)
+            if (convention is null)
             {
-                throw new ArgumentNullException(nameof(clrType));
+                throw new ArgumentNullException(nameof(convention));
             }
 
-            if (schemaType == null)
+            _conventions[(convention, scope)] = factory ??
+                throw new ArgumentNullException(nameof(factory));
+
+            return this;
+        }
+
+        public ISchemaBuilder BindClrType(Type runtimeType, Type schemaType)
+        {
+            if (runtimeType is null)
+            {
+                throw new ArgumentNullException(nameof(runtimeType));
+            }
+
+            if (schemaType is null)
             {
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (!BaseTypes.IsSchemaType(schemaType))
+            if (!schemaType.IsSchemaType())
             {
-                // TODO : resources
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_MustBeSchemaType,
                     nameof(schemaType));
             }
 
-            TypeContext context =
-                SchemaTypeReference.InferTypeContext(schemaType);
-            _clrTypes[new ClrTypeReference(clrType, context)] =
-                new ClrTypeReference(schemaType, context);
+            TypeContext context = SchemaTypeReference.InferTypeContext(schemaType);
+            _clrTypes[runtimeType] =
+                (ti => ti.GetTypeRef(runtimeType, context),
+                ti => ti.GetTypeRef(schemaType, context));
 
             return this;
         }
@@ -206,16 +233,14 @@ namespace HotChocolate
 
             _resolverTypes.Add(type);
 
-            if (attribute.Types != null)
+            if (attribute?.Types != null)
             {
                 foreach (Type schemaType in attribute.Types)
                 {
-                    if (typeof(ObjectType).IsAssignableFrom(schemaType)
-                        && !BaseTypes.IsNonGenericBaseType(schemaType))
+                    if (typeof(ObjectType).IsAssignableFrom(schemaType) &&
+                        schemaType.IsSchemaType())
                     {
-                        _types.Add(new ClrTypeReference(
-                            schemaType,
-                            SchemaTypeReference.InferTypeContext(schemaType)));
+                        _types.Add(ti => ti.GetTypeRef(schemaType));
                     }
                 }
             }
@@ -223,34 +248,34 @@ namespace HotChocolate
 
         public ISchemaBuilder AddType(INamedType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(new SchemaTypeReference(type));
+            _types.Add(ti => TypeReference.Create(type));
             return this;
         }
 
         public ISchemaBuilder AddType(INamedTypeExtension type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(new SchemaTypeReference(type));
+            _types.Add(ti => TypeReference.Create(type));
             return this;
         }
 
         public ISchemaBuilder AddDirectiveType(DirectiveType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(new SchemaTypeReference(type));
+            _types.Add(ti => TypeReference.Create(type));
             return this;
         }
 
@@ -258,7 +283,7 @@ namespace HotChocolate
             Type type,
             OperationType operation)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -270,14 +295,14 @@ namespace HotChocolate
                     nameof(type));
             }
 
-            if (BaseTypes.IsNonGenericBaseType(type))
+            if (type.IsNonGenericSchemaType())
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_RootType_NonGenericType,
                     nameof(type));
             }
 
-            if (BaseTypes.IsSchemaType(type)
+            if (type.IsSchemaType()
                 && !typeof(ObjectType).IsAssignableFrom(type))
             {
                 throw new ArgumentException(
@@ -285,9 +310,15 @@ namespace HotChocolate
                     nameof(type));
             }
 
-            var reference = new ClrTypeReference(type, TypeContext.Output);
-            _operations.Add(operation, reference);
-            _types.Add(reference);
+            if (_operations.ContainsKey(operation))
+            {
+                throw new ArgumentException(
+                    string.Format("The root type `{0}` has already been registered.", operation),
+                    nameof(operation));
+            }
+
+            _operations.Add(operation, ti => ti.GetTypeRef(type, TypeContext.Output));
+            _types.Add(ti => ti.GetTypeRef(type, TypeContext.Output));
             return this;
         }
 
@@ -295,20 +326,27 @@ namespace HotChocolate
             ObjectType type,
             OperationType operation)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var reference = new SchemaTypeReference((ITypeSystemObject)type);
-            _operations.Add(operation, reference);
-            _types.Add(reference);
+            if (_operations.ContainsKey(operation))
+            {
+                throw new ArgumentException(
+                    string.Format("The root type `{0}` has already been registered.", operation),
+                    nameof(operation));
+            }
+
+            SchemaTypeReference reference = TypeReference.Create(type);
+            _operations.Add(operation, ti => reference);
+            _types.Add(ti => reference);
             return this;
         }
 
         public ISchemaBuilder AddResolver(FieldResolver fieldResolver)
         {
-            if (fieldResolver == null)
+            if (fieldResolver is null)
             {
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
@@ -319,7 +357,7 @@ namespace HotChocolate
 
         public ISchemaBuilder AddBinding(IBindingInfo binding)
         {
-            if (binding == null)
+            if (binding is null)
             {
                 throw new ArgumentNullException(nameof(binding));
             }
@@ -350,26 +388,13 @@ namespace HotChocolate
 
         public ISchemaBuilder AddServices(IServiceProvider services)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (_services == null)
-            {
-                _services = services;
-            }
-            else
-            {
-                _services = _services.Include(services);
-            }
+            _services = _services is null ? services : _services.Include(services);
 
-            return this;
-        }
-
-        public ISchemaBuilder AddContextData(string key, object value)
-        {
-            _contextData.Add(key, value);
             return this;
         }
 
@@ -379,15 +404,10 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder RemoveContextData(string key)
+        public ISchemaBuilder SetContextData(string key, Func<object, object> update)
         {
-            _contextData.Remove(key);
-            return this;
-        }
-
-        public ISchemaBuilder ClearContextData()
-        {
-            _contextData.Clear();
+            _contextData.TryGetValue(key, out object value);
+            _contextData[key] = update(value);
             return this;
         }
 
@@ -409,7 +429,65 @@ namespace HotChocolate
             return this;
         }
 
-        public static SchemaBuilder New() => new SchemaBuilder();
+        public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
 
+            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                    nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
+        public ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            _interceptors.Add(interceptor);
+            return this;
+        }
+
+        public ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (!_interceptors.Contains(interceptor))
+            {
+                _interceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
+        public ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action)
+        {
+            if (action is null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            _onBeforeCreate.Add(action);
+            return this;
+        }
+
+        public static SchemaBuilder New() => new SchemaBuilder();
     }
 }

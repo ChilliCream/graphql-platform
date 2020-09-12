@@ -1,18 +1,26 @@
 import { graphql } from "gatsby";
 import React, {
   FunctionComponent,
-  useState,
-  useEffect,
   MouseEvent,
   useCallback,
+  useEffect,
+  useState,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import { DocPageNavigationFragment } from "../../../graphql-types";
 import { State } from "../../state";
-import { toggleNavigationGroup } from "../../state/common";
+import {
+  closeTOC,
+  expandNavigationGroup,
+  toggleNavigationGroup,
+  toggleTOC,
+} from "../../state/common";
+import { BodyStyle, FixedContainer, Navigation } from "./doc-page-elements";
+import { DocPagePaneHeader } from "./doc-page-pane-header";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
+import { useStickyElement } from "./useStickyElement";
 
 import ArrowDownIconSvg from "../../images/arrow-down.svg";
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
@@ -20,56 +28,88 @@ import ProductSwitcherIconSvg from "../../images/th-large.svg";
 
 interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
+  selectedPath: string;
   selectedProduct: string;
 }
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
   data,
+  selectedPath,
   selectedProduct,
 }) => {
+  const { containerRef, elementRef } = useStickyElement<
+    HTMLElement,
+    HTMLDivElement
+  >(1050);
   const expandedPaths = useSelector<State, string[]>(
     (state) => state.common.expandedPaths
   );
+  const showTOC = useSelector<State, boolean>((state) => state.common.showTOC);
   const dispatch = useDispatch();
   const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
-  const currentProduct =
+  const activeProduct =
     data.config?.products &&
     data.config.products.find((product) => product?.path === selectedProduct);
 
   const handleClickDialog = useCallback((event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
+    dispatch(closeTOC());
   }, []);
 
   const handleCloseClick = useCallback(() => {
     setProductSwitcherOpen(false);
   }, []);
 
+  const handleCloseTOC = useCallback(() => {
+    dispatch(toggleTOC());
+  }, []);
+
+  const handleClickNavigationItem = useCallback(() => {
+    dispatch(closeTOC());
+  }, []);
+
   const handleToggleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>, isOpen) => {
-      setProductSwitcherOpen(!isOpen);
       event.stopPropagation();
+      setProductSwitcherOpen(!isOpen);
     },
     []
   );
 
-  const handleToggleExpand = useCallback((path: string) => {
-    dispatch(toggleNavigationGroup({ path }));
-  }, []);
+  const handleToggleExpand = useCallback(
+    (event: MouseEvent<HTMLDivElement>, path: string) => {
+      event.stopPropagation();
+      dispatch(toggleNavigationGroup({ path }));
+    },
+    []
+  );
 
   const buildNavigationStructure = (items: Item[], basePath: string) => (
-    <NavigationList>
+    <NavigationList open={!productSwitcherOpen}>
       {items.map(({ path, title, items: subItems }) => {
         const itemPath =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
 
         return (
-          <NavigationItem key={itemPath}>
+          <NavigationItem
+            key={itemPath + (subItems ? "/parent" : "")}
+            className={
+              subItems
+                ? containsActiveItem(selectedPath, itemPath)
+                  ? "active"
+                  : ""
+                : isActive(selectedPath, itemPath)
+                ? "active"
+                : ""
+            }
+            onClick={handleClickNavigationItem}
+          >
             {subItems ? (
               <NavigationGroup
                 expanded={expandedPaths.indexOf(itemPath) !== -1}
               >
                 <NavigationGroupToggle
-                  onClick={() => handleToggleExpand(itemPath)}
+                  onClick={(e) => handleToggleExpand(e, itemPath)}
                 >
                   {title}
                   <IconContainer size={16}>
@@ -82,7 +122,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                 </NavigationGroupContent>
               </NavigationGroup>
             ) : (
-              <NavigationLink to={itemPath}>{title}</NavigationLink>
+              <NavigationLink to={itemPath + "/"}>{title}</NavigationLink>
             )}
           </NavigationItem>
         );
@@ -98,14 +138,51 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     };
   }, [handleCloseClick]);
 
+  useEffect(() => {
+    /*
+      Ensures that all groups along the selected path are expanded on page load.
+    */
+    if (activeProduct && activeProduct.items) {
+      const index =
+        selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
+      const parts = selectedPath
+        .substring(index)
+        .split("/")
+        .filter((part) => part.length > 0);
+
+      if (parts.length > 0) {
+        const rootFolder = activeProduct.items.find(
+          (item) => item!.path === parts[0] && item!.items
+        );
+
+        if (rootFolder) {
+          const path = selectedPath.substring(
+            0,
+            parts.length > 1
+              ? selectedPath.lastIndexOf(parts[parts.length - 1]) - 1
+              : selectedPath.length - 1
+          );
+
+          dispatch(expandNavigationGroup({ path }));
+        }
+      }
+    }
+  }, [activeProduct, selectedPath, selectedProduct]);
+
   return (
-    <Navigation>
-      <FixedContainer>
+    <Navigation ref={containerRef}>
+      <BodyStyle disableScrolling={showTOC} />
+      <FixedContainer ref={elementRef} className={showTOC ? "show" : ""}>
+        <DocPagePaneHeader
+          title="Table of contents"
+          showWhenScreenWidthIsSmallerThan={1050}
+          onClose={handleCloseTOC}
+        />
         <ProductSwitcher>
           <ProductSwitcherButton
             onClick={(e) => handleToggleClick(e, productSwitcherOpen)}
           >
-            {currentProduct?.title}
+            {activeProduct?.title}
             <IconContainer size={16}>
               <ProductSwitcherIconSvg />
             </IconContainer>
@@ -116,15 +193,21 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
           >
             {data.config?.products &&
               data.config.products.map((product) =>
-                product === currentProduct ? (
-                  <CurrentProduct onClick={handleCloseClick}>
+                product === activeProduct ? (
+                  <ActiveProduct
+                    key={product!.path!}
+                    onClick={handleCloseClick}
+                  >
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
                     </ProductDescription>
-                  </CurrentProduct>
+                  </ActiveProduct>
                 ) : (
-                  <ProductLink to={`/docs/${product!.path!}`}>
+                  <ProductLink
+                    key={product!.path!}
+                    to={`/docs/${product!.path!}/`}
+                  >
                     <ProductTitle>{product!.title!}</ProductTitle>
                     <ProductDescription>
                       {product!.description!}
@@ -134,9 +217,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
               )}
           </ProductSwitcherDialog>
         </ProductSwitcher>
-        {currentProduct?.items &&
+        {activeProduct?.items &&
           buildNavigationStructure(
-            currentProduct.items
+            activeProduct.items
               .filter((item) => !!item)
               .map<Item>((item) => ({
                 path: item!.path!,
@@ -150,12 +233,20 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                       }))
                   : undefined,
               })),
-            `/docs/${currentProduct.path!}`
+            `/docs/${activeProduct.path!}`
           )}
       </FixedContainer>
     </Navigation>
   );
 };
+
+function containsActiveItem(selectedPath: string, itemPath: string) {
+  return selectedPath.startsWith(itemPath);
+}
+
+function isActive(selectedPath: string, itemPath: string) {
+  return itemPath === selectedPath.substring(0, selectedPath.lastIndexOf("/"));
+}
 
 export const DocPageNavigationGraphQLFragment = graphql`
   fragment DocPageNavigation on Query {
@@ -186,37 +277,29 @@ interface Item {
   items?: Item[];
 }
 
-const Navigation = styled.nav`
-  display: none;
-  flex: 0 0 250px;
-  flex-direction: column;
-
-  * {
-    user-select: none;
-  }
+const ProductSwitcher = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
 
   @media only screen and (min-width: 1050px) {
-    display: flex;
+    position: relative;
+    flex-wrap: initial;
+    overflow-y: initial;
   }
 `;
-
-const FixedContainer = styled.div`
-  position: fixed;
-  padding: 25px 0 250px;
-  width: 250px;
-`;
-
-const ProductSwitcher = styled.div``;
 
 const ProductSwitcherButton = styled.button`
   display: flex;
+  flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
-  margin: 6px 14px 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  padding: 7px 5px;
+  margin: 6px 14px 10px;
+  padding: 7px 10px;
   width: calc(100% - 28px);
+  height: 38px;
   font-size: 0.833em;
   transition: background-color 0.2s ease-in-out;
 
@@ -231,42 +314,59 @@ const ProductSwitcherButton = styled.button`
   :hover {
     background-color: #ddd;
   }
+
+  @media only screen and (min-width: 1050px) {
+    margin-bottom: 20px;
+    padding: 7px 5px;
+    width: calc(100% - 28px);
+    height: initial;
+  }
 `;
 
 const ProductSwitcherDialog = styled.div<{ open: boolean }>`
-  position: fixed;
-  top: 130px;
-  z-index: 10;
-  display: ${(props) => (props.open ? "flex" : "none")};
-  flex-direction: row;
-  flex-wrap: wrap;
-  margin: 0 14px;
-  padding: 10px;
-  border-radius: 5px;
-  width: 700px;
+  display: ${({ open }) => (open ? "flex" : "none")};
+  flex: 1 1 100%;
+  flex-direction: column;
+  padding: 0 10px;
   background-color: #fff;
-  box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+
+  @media only screen and (min-width: 1050px) {
+    position: fixed;
+    z-index: 10;
+    top: 130px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 14px;
+    border-radius: 5px;
+    padding: 10px;
+    width: 700px;
+    height: initial;
+    box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.25);
+  }
 `;
 
-const CurrentProduct = styled.div`
-  flex: 0 0 calc(50% - 32px);
+const ProductBase = css`
+  flex: 0 0 auto;
   border: 1px solid #ccc;
   border-radius: 5px;
   margin: 5px;
   padding: 10px;
   font-size: 0.833em;
   color: #666;
+  cursor: pointer;
+
+  @media only screen and (min-width: 1050px) {
+    flex: 0 0 calc(50% - 32px);
+  }
+`;
+
+const ActiveProduct = styled.div`
+  ${ProductBase};
   background-color: #ddd;
 `;
 
 const ProductLink = styled(Link)`
-  flex: 0 0 calc(50% - 32px);
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  margin: 5px;
-  padding: 10px;
-  font-size: 0.833em;
-  color: #666;
+  ${ProductBase};
   transition: background-color 0.2s ease-in-out;
 
   :hover {
@@ -282,19 +382,17 @@ const ProductDescription = styled.p`
   margin-bottom: 0;
 `;
 
-const NavigationList = styled.ol`
-  display: flex;
+const NavigationList = styled.ol<{ open: boolean }>`
+  display: ${({ open }) => (open ? "flex" : "none")};
   flex-direction: column;
   margin: 0;
-  padding: 0 20px 20px;
-`;
-
-const NavigationItem = styled.li`
-  flex: 0 0 auto;
-  margin: 5px 0;
-  padding: 0;
-  min-height: 20px;
+  padding: 0 25px 20px;
   list-style-type: none;
+
+  @media only screen and (min-width: 1050px) {
+    display: flex;
+    padding: 0 20px 20px;
+  }
 `;
 
 const NavigationGroupToggle = styled.div`
@@ -307,7 +405,7 @@ const NavigationGroupToggle = styled.div`
 
 const NavigationGroupContent = styled.div`
   > ${NavigationList} {
-    padding: 5px 0;
+    padding: 5px 10px;
   }
 `;
 
@@ -317,19 +415,19 @@ const NavigationGroup = styled.div<{ expanded: boolean }>`
   cursor: pointer;
 
   > ${NavigationGroupContent} {
-    display: ${(props) => (props.expanded ? "initial" : "none")};
+    display: ${({ expanded }) => (expanded ? "initial" : "none")};
   }
 
   > ${NavigationGroupToggle} > ${IconContainer} {
     margin-left: auto;
 
     > .arrow-down {
-      display: ${(props) => (props.expanded ? "none" : "initial")};
+      display: ${({ expanded }) => (expanded ? "none" : "initial")};
       fill: #666;
     }
 
     > .arrow-up {
-      display: ${(props) => (props.expanded ? "initial" : "none")};
+      display: ${({ expanded }) => (expanded ? "initial" : "none")};
       fill: #666;
     }
   }
@@ -341,5 +439,19 @@ const NavigationLink = styled(Link)`
 
   :hover {
     color: #000;
+  }
+`;
+
+const NavigationItem = styled.li`
+  flex: 0 0 auto;
+  margin: 5px 0;
+  padding: 0;
+  min-height: 20px;
+  line-height: initial;
+
+  &.active {
+    > ${NavigationLink}, > ${NavigationGroup} > ${NavigationGroupToggle} {
+      font-weight: bold;
+    }
   }
 `;

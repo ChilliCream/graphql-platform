@@ -1,0 +1,1 @@
+﻿The combinator for the filter provider of scope Default has the wrong type. The operation should be of type Expression and the context of type QueryableFilterContext but was of type String and the context of type FilterVisitorContext`1 instead

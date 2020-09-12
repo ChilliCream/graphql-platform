@@ -1,0 +1,51 @@
+﻿[
+  {
+    "Message": "`field` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "field",
+      "type": "Query",
+      "responseName": "field",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The specified directive is not valid the current location.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 23
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The following variables were not declared: foo.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+    },
+    "Exception": null
+  }
+]

@@ -1,0 +1,22 @@
+﻿[
+  {
+    "Message": "There can be only one input field named `name`.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "findDog"
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 51
+      }
+    ],
+    "Extensions": {
+      "field": "name",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Field-Uniqueness"
+    },
+    "Exception": null
+  }
+]

@@ -13,11 +13,12 @@ namespace HotChocolate.Types
                 WellKnownDirectives.Deprecated
             };
 
-        internal static IReadOnlyList<ITypeReference> All { get; } =
+        internal static IReadOnlyList<ITypeReference> CreateReferences(
+            ITypeInspector typeInspector) =>
             new List<ITypeReference>
             {
-                new ClrTypeReference(typeof(SkipDirectiveType), TypeContext.None),
-                new ClrTypeReference(typeof(IncludeDirectiveType), TypeContext.None),
+                typeInspector.GetTypeRef(typeof(SkipDirectiveType), TypeContext.None),
+                typeInspector.GetTypeRef(typeof(IncludeDirectiveType), TypeContext.None),
             };
 
         public static bool IsBuiltIn(NameString typeName)

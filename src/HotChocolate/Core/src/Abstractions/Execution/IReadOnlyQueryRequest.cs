@@ -1,26 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#nullable enable
 
 namespace HotChocolate.Execution
 {
-    public interface IReadOnlyQueryRequest
+    public interface IReadOnlyQueryRequest : IQueryRequest
     {
-        IQuery Query { get; }
-
-        string QueryName { get; }
-
-        string QueryHash { get; }
-
-        string OperationName { get; }
-
-        IReadOnlyDictionary<string, object> VariableValues { get; }
-
-        object InitialValue { get; }
-
-        IReadOnlyDictionary<string, object> Properties { get; }
-
-        IReadOnlyDictionary<string, object> Extensions { get; }
-
-        IServiceProvider Services { get; }
     }
 }

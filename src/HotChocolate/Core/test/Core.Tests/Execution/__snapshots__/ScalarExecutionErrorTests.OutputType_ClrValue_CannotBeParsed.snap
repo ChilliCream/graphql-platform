@@ -6,30 +6,33 @@
     {
       "Message": "Foo cannot serialize the given value.",
       "Code": null,
-      "Path": [
-        "stringToFoo"
-      ],
+      "Path": {
+        "Parent": null,
+        "Name": "stringToFoo",
+        "Index": null,
+        "Depth": 0
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 3
         }
       ],
+      "Extensions": null,
       "Exception": {
-        "ClassName": "HotChocolate.Types.ScalarSerializationException",
+        "ClassName": "HotChocolate.Types.SerializationException",
         "Message": "Foo cannot serialize the given value.",
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Types.ScalarType.Serialize(Object value) in /Users/michael/local/hc/src/HotChocolate/Core/src/Types/Types/Scalars/ScalarType.cs:line 144\n   at HotChocolate.Execution.ValueCompletion.CompleteLeafType(ICompleteValueContext context, ILeafType leafType, Object result) in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/Utilities/ValueCompletion.cs:line 138",
+        "StackTraceString": "   at HotChocolate.Types.ScalarType.Serialize(Object value) in /Users/michael/local/hc/src/HotChocolate/Core/src/Types/Types/Scalars/ScalarType.cs:line 152\n   at HotChocolate.Execution.ValueCompletion.CompleteLeafType(ICompleteValueContext context, ILeafType leafType, Object result) in /Users/michael/local/hc/src/HotChocolate/Core/src/Core/Execution/Utilities/ValueCompletion.cs:line 138",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
         "HResult": -2146233088,
         "Source": "HotChocolate.Types",
         "WatsonBuckets": null
-      },
-      "Extensions": {}
+      }
     }
   ],
   "Extensions": null,

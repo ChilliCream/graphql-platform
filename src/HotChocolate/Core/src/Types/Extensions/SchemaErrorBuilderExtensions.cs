@@ -10,7 +10,7 @@ namespace HotChocolate
             string format,
             params object[] args)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -20,6 +20,19 @@ namespace HotChocolate
                 format,
                 args));
         }
-    }
 
+        public static ISchemaErrorBuilder SpecifiedBy(
+            this ISchemaErrorBuilder errorBuilder,
+            string section,
+            bool condition = true)
+        {
+            if (condition)
+            {
+                errorBuilder.SetExtension(
+                   "specifiedBy",
+                   "http://spec.graphql.org/June2018/#" + section);
+            }
+            return errorBuilder;
+        }
+    }
 }

@@ -24,24 +24,25 @@ namespace HotChocolate.Types.Filters.Expressions
                         context.GetInstance(), operation.Property);
                 }
 
-                var parsedValue = type.ParseLiteral(value);
+                object? parsedValue = type.ParseLiteral(value);
 
-                switch (operation.Kind)
+                if (operation.Kind == FilterOperationKind.In)
                 {
-                    case FilterOperationKind.In:
-                        expression = FilterExpressionBuilder.In(
+                    expression = FilterExpressionBuilder.In(
+                        property,
+                        operation.Property.PropertyType,
+                        parsedValue);
+                    return true;
+                }
+
+                if (operation.Kind == FilterOperationKind.NotIn)
+                {
+                    expression = FilterExpressionBuilder.Not(
+                        FilterExpressionBuilder.In(
                             property,
                             operation.Property.PropertyType,
-                            parsedValue);
-                        return true;
-
-                    case FilterOperationKind.NotIn:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.In(
-                                property,
-                                operation.Property.PropertyType,
-                                parsedValue));
-                        return true;
+                            parsedValue));
+                    return true;
                 }
             }
 

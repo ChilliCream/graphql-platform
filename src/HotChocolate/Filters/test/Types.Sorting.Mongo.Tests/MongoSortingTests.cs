@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using HotChocolate.Types.Relay;
 using Squadron;
+using System;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -25,27 +26,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_NoSorting_AllItems_Are_Returned_Unsorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection
-                    = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { foo } }")
@@ -63,26 +63,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { foo: DESC }) { foo } }")
@@ -100,26 +100,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_With_Paging__DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(order_by: { foo: DESC }) { nodes { foo } } }")
@@ -138,26 +138,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_OnRenamedField_DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { qux: DESC }) { bar } }")

@@ -1,0 +1,54 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "multipleReqs"
+    },
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 41
+      }
+    ],
+    "Extensions": {
+      "argument": "x",
+      "argumentValue": "\"two\"",
+      "locationType": "Int!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "multipleReqs"
+    },
+    "Locations": [
+      {
+        "Line": 4,
+        "Column": 51
+      }
+    ],
+    "Extensions": {
+      "argument": "y",
+      "argumentValue": "\"one\"",
+      "locationType": "Int!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null
+  }
+]

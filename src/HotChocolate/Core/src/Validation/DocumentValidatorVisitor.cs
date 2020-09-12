@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 
@@ -8,64 +6,74 @@ namespace HotChocolate.Validation
     public class DocumentValidatorVisitor
         : SyntaxWalker<IDocumentValidatorContext>
     {
-        protected DocumentValidatorVisitor()
-            : base(Continue)
+        protected DocumentValidatorVisitor(SyntaxVisitorOptions options = default)
+            : base(Continue, options)
         {
         }
 
         protected override IDocumentValidatorContext OnAfterEnter(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
-            IDocumentValidatorContext context)
+            IDocumentValidatorContext context,
+            ISyntaxVisitorAction action)
         {
-            context.Path.Push(node);
+            if (action.IsContinue())
+            {
+                context.Path.Push(node);
+            }
             return context;
         }
 
         protected override IDocumentValidatorContext OnBeforeLeave(
             ISyntaxNode node,
             ISyntaxNode? parent,
-            IReadOnlyList<ISyntaxNode> ancestors,
             IDocumentValidatorContext context)
         {
+            if (node.Kind == SyntaxKind.OperationDefinition)
+            {
+                context.VisitedFragments.Clear();
+            }
             context.Path.Pop();
             return context;
         }
 
-        protected override IEnumerable<ISyntaxNode> GetNodes(
-            ISyntaxNode node,
+        protected override ISyntaxVisitorAction VisitChildren(
+            DocumentNode node,
             IDocumentValidatorContext context)
         {
-            switch (node.Kind)
+            for (int i = 0; i < node.Definitions.Count; i++)
             {
-                case NodeKind.Document:
-                    return ((DocumentNode)node).Definitions.Where(t =>
-                        t.Kind != NodeKind.FragmentDefinition);
-
-                case NodeKind.FragmentSpread:
-                    return GetFragmentSpreadChildren((FragmentSpreadNode)node, context);
-
-                default:
-                    return node.GetNodes();
+                if (node.Definitions[i].Kind != SyntaxKind.FragmentDefinition &&
+                    Visit(node.Definitions[i], node, context).IsBreak())
+                {
+                    return Break;
+                }
             }
+
+            return DefaultAction;
         }
 
-        private static IEnumerable<ISyntaxNode> GetFragmentSpreadChildren(
-            FragmentSpreadNode fragmentSpread,
+        protected override ISyntaxVisitorAction VisitChildren(
+            FragmentSpreadNode node,
             IDocumentValidatorContext context)
         {
-            foreach (ISyntaxNode child in fragmentSpread.GetNodes())
+            if (base.VisitChildren(node, context).IsBreak())
             {
-                yield return child;
+                return Break;
             }
 
             if (context.Fragments.TryGetValue(
-                fragmentSpread.Name.Value,
-                out FragmentDefinitionNode? fragment))
+                node.Name.Value,
+                out FragmentDefinitionNode? fragment) &&
+                context.VisitedFragments.Add(fragment.Name.Value))
             {
-                yield return fragment;
+                if (Visit(fragment, node, context).IsBreak())
+                {
+                    return Break;
+                }
             }
+
+            return DefaultAction;
         }
     }
 }

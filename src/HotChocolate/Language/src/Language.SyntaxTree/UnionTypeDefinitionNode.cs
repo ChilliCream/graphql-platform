@@ -18,7 +18,7 @@ namespace HotChocolate.Language
             Description = description;
         }
 
-        public override NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.UnionTypeDefinition;
 
         public StringValueNode? Description { get; }
 

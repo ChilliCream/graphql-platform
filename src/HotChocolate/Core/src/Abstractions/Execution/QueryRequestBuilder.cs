@@ -46,7 +46,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IQueryRequestBuilder SetQueryName(string queryName)
+        public IQueryRequestBuilder SetQueryId(string queryName)
         {
             _queryName = queryName;
             return this;
@@ -253,13 +253,13 @@ namespace HotChocolate.Execution
             return new QueryRequest
             {
                 Query = _query,
-                QueryName = _queryName,
+                QueryId = _queryName,
                 QueryHash = _queryHash,
                 OperationName = _operationName,
                 InitialValue = _initialValue,
                 Services = _services,
                 VariableValues = GetVariableValues(),
-                Properties = GetProperties(),
+                ContextData = GetProperties(),
                 Extensions = GetExtensions()
             };
         }
@@ -275,9 +275,9 @@ namespace HotChocolate.Execution
 
         private void InitializeVariables()
         {
-            if (_variableValues == null)
+            if (_variableValues is null)
             {
-                _variableValues = _readOnlyVariableValues == null
+                _variableValues = _readOnlyVariableValues is null
                     ? new Dictionary<string, object>()
                     : _readOnlyVariableValues.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -296,9 +296,9 @@ namespace HotChocolate.Execution
 
         private void InitializeProperties()
         {
-            if (_properties == null)
+            if (_properties is null)
             {
-                _properties = _readOnlyProperties == null
+                _properties = _readOnlyProperties is null
                     ? new Dictionary<string, object>()
                     : _readOnlyProperties.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -317,9 +317,9 @@ namespace HotChocolate.Execution
 
         private void InitializeExtensions()
         {
-            if (_extensions == null)
+            if (_extensions is null)
             {
-                _extensions = _readOnlyExtensions == null
+                _extensions = _readOnlyExtensions is null
                     ? new Dictionary<string, object>()
                     : _readOnlyExtensions.ToDictionary(
                         t => t.Key, t => t.Value);
@@ -337,12 +337,12 @@ namespace HotChocolate.Execution
         {
             var builder = new QueryRequestBuilder();
             builder._query = request.Query;
-            builder._queryName = request.QueryName;
+            builder._queryName = request.QueryId;
             builder._queryHash = request.QueryHash;
             builder._operationName = request.OperationName;
             builder._readOnlyVariableValues = request.VariableValues;
             builder._initialValue = request.InitialValue;
-            builder._readOnlyProperties = request.Properties;
+            builder._readOnlyProperties = request.ContextData;
             builder._readOnlyExtensions = request.Extensions;
             builder._services = request.Services;
 
@@ -360,7 +360,7 @@ namespace HotChocolate.Execution
             var builder = QueryRequestBuilder.New();
 
             builder
-                .SetQueryName(request.QueryName)
+                .SetQueryId(request.QueryId)
                 .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -89,6 +90,84 @@ namespace HotChocolate.Types
                 t => Assert.False(t));
         }
 
+        /// <summary>
+        /// Expected Type:  [[Boolean]]
+        /// Provided Value: [[true], [true, false]]
+        /// Coerced Value:  [[true], [true, false]]
+        /// </summary>
+        [Fact]
+        public void Matrix_Can_Be_Coerced_From_Matrix()
+        {
+            // arrange
+            var type = (IInputType)new ListType(new ListType(new BooleanType()));
+            var value = new ListValueNode(
+                new ListValueNode(new BooleanValueNode(true)),
+                new ListValueNode(new BooleanValueNode(true), new BooleanValueNode(false)));
+
+            // act
+            object coercedValue = type.ParseLiteral(value);
+
+            // assert
+            coercedValue.MatchSnapshot();
+        }
+
+        /// <summary>
+        /// Expected Type:  [[Boolean]]
+        /// Provided Value: true
+        /// Coerced Value:  [[true]]
+        /// </summary>
+        [Fact]
+        public void Matrix_Can_Be_Coerced_From_Single_Value()
+        {
+            // arrange
+            var type = (IInputType)new ListType(new ListType(new BooleanType()));
+            var value = new BooleanValueNode(true);
+
+            // act
+            object coercedValue = type.ParseLiteral(value);
+
+            // assert
+            coercedValue.MatchSnapshot();
+        }
+
+        /// <summary>
+        /// Expected Type:  [[Boolean]]
+        /// Provided Value: null
+        /// Coerced Value:  null
+        /// </summary>
+        [Fact]
+        public void Matrix_Can_Be_Coerced_From_Null()
+        {
+            // arrange
+            var type = (IInputType)new ListType(new ListType(new BooleanType()));
+            var value = NullValueNode.Default;
+
+            // act
+            object coercedValue = type.ParseLiteral(value);
+
+            // assert
+            Assert.Null(coercedValue);
+        }
+
+        /// <summary>
+        /// Expected Type:  [[Boolean]]
+        /// Provided Value: [true]
+        /// Coerced Value:  Error: Incorrect item value
+        /// </summary>
+        [Fact]
+        public void Matrix_Cannot_Be_Coerced_From_List()
+        {
+            // arrange
+            var type = (IInputType)new ListType(new ListType(new BooleanType()));
+            var value = new ListValueNode(new BooleanValueNode(true));
+
+            // act
+            Action action = () => type.ParseLiteral(value);
+
+            // assert
+            Assert.Throws<SerializationException>(action);
+        }
+
         [Fact]
         public void ListCanBeCoercedFromListElementValue()
         {
@@ -111,15 +190,14 @@ namespace HotChocolate.Types
             // arrange
             var type = (IInputType)new ListType(new BooleanType());
             var list = new ListValueNode(
-                new IValueNode[] {
                     new BooleanValueNode(true),
-                    new StringValueNode("foo")});
+                    new StringValueNode("foo"));
 
             // act
             Action action = () => type.ParseLiteral(list);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -133,7 +211,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(element);
 
             // assert
-            Assert.Throws<ArgumentException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         private void InputIsCoercedCorrectly<TType, TLiteral, TExpected>(
@@ -164,7 +242,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(literal);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         private void InputListIsInstanceOfInternal<TElement>(

@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             // arrange
             var schema = Schema.Create(
                 "type Query { foo: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
                 { "abc", "123" }
             };
 
-            var requestContext = new Mock<IRequestContext>();
+            var requestContext = new Mock<IRawRequestContext>();
             requestContext.Setup(t => t.ContextData).Returns(contextData);
             requestContext.Setup(t => t.ServiceScope).Returns(serviceScope);
 
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             // arrange
             var schema = Schema.Create(
                 "type Query { foo: String }",
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 

@@ -23,7 +23,7 @@ namespace HotChocolate.Language
             SelectionSet = selectionSet;
         }
 
-        public override NodeKind Kind { get; } = NodeKind.Field;
+        public override SyntaxKind Kind { get; } = SyntaxKind.Field;
 
         public NameNode? Alias { get; }
 

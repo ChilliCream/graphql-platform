@@ -16,12 +16,12 @@ namespace HotChocolate.Types.Descriptors
             Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(
                 clrType, TypeKind.InputObject);
             Definition.Description = context.Naming.GetTypeDescription(
@@ -31,10 +31,18 @@ namespace HotChocolate.Types.Descriptors
         protected InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override InputObjectTypeDefinition Definition { get; } =
+        protected InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal override InputObjectTypeDefinition Definition { get; protected set; } =
             new InputObjectTypeDefinition();
 
         protected List<InputFieldDescriptor> Fields { get; } =
@@ -43,12 +51,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is not null)
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var fields = new Dictionary<NameString, InputFieldDefinition>();
@@ -96,7 +104,8 @@ namespace HotChocolate.Types.Descriptors
         {
             InputFieldDescriptor fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
-            if (fieldDescriptor is { })
+
+            if (fieldDescriptor is not null)
             {
                 return fieldDescriptor;
             }
@@ -111,14 +120,14 @@ namespace HotChocolate.Types.Descriptors
         public IInputObjectTypeDescriptor Directive<T>(T directive)
             where T : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directive, Context.TypeInspector);
             return this;
         }
 
         public IInputObjectTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -147,9 +156,19 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             Type schemaType)
         {
-            var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            InputObjectTypeDescriptor descriptor = New(context, schemaType);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static InputObjectTypeDescriptor From(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition) =>
+            new InputObjectTypeDescriptor(context, definition);
+
+        public static InputObjectTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            InputObjectTypeDefinition definition) =>
+            new InputObjectTypeDescriptor<T>(context, definition);
     }
 }

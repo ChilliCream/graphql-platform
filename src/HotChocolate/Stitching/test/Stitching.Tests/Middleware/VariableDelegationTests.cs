@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Xunit;
-using HotChocolate.AspNetCore;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
-using Moq;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter;
 using HotChocolate.AspNetCore.Tests.Utilities;
 
@@ -118,6 +115,53 @@ namespace HotChocolate.Stitching
                 new SnapshotNameExtension("schema"));
         }
 
+        [Fact]
+        public async Task ObjectFieldVariableIsCorrectlyPassed()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
 
+            var connections = new Dictionary<string, HttpClient>();
+            serviceCollection.AddSingleton(CreateRemoteSchemas(connections));
+
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchemaFromHttp("contract")
+                .AddSchemaFromHttp("customer"));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result = null;
+
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                    .SetQuery(@"
+                    mutation createCustomer($name: String!) {
+                        createCustomer(input: { name: $name })
+                        {
+                            customer {
+                                name
+                                kind
+                            }
+                        }
+                    }")
+                    .SetServices(scope.ServiceProvider)
+                    .SetVariableValue("name", "someName")
+                    .Create();
+
+                result = await executor.ExecuteAsync(request);
+                Console.WriteLine(result);
+            }
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension("result"));
+            executor.Schema.ToString().MatchSnapshot(
+                new SnapshotNameExtension("schema"));
+        }
     }
 }

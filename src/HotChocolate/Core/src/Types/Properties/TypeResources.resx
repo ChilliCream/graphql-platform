@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -128,9 +128,6 @@
   </data>
   <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
-  </data>
-  <data name="ClrTypeReference_OnlyTsosAreAllowed" xml:space="preserve">
-    <value>Only type system objects are allowed.</value>
   </data>
   <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
@@ -339,6 +336,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The field-type must be an output-type.</value>
   </data>
   <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
+    <value>The interface base class cannot be used as interface implementation declaration.</value>
+  </data>
+  <data name="InterfaceTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
     <value>The interface base class cannot be used as interface implementation declaration.</value>
   </data>
   <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
@@ -592,5 +592,26 @@ Type: `{0}`</value>
   </data>
   <data name="SchemaBuilder_Convention_NotSuppported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
+  </data>
+  <data name="TimeSpanType_Description" xml:space="preserve">
+    <value>The `TimeSpan` scalar represents an ISO-8601 compliant duration type.</value>
+  </data>
+  <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
+    <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType" xml:space="preserve">
+    <value>The DataLoader `{0}` needs to be register with the dependency injection provider.</value>
+  </data>
+  <data name="DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate" xml:space="preserve">
+    <value>Unable to create DataLoader `{0}`.</value>
+  </data>
+  <data name="NonNamedType_IsInstanceOfType_NotAnInputType" xml:space="preserve">
+    <value>The specified type is not an input type.</value>
+  </data>
+  <data name="RegisteredType_CompletionContext_Not_Initialized" xml:space="preserve">
+    <value>The completion context has not been initialized.</value>
+  </data>
+  <data name="RegisteredType_CompletionContext_Already_Set" xml:space="preserve">
+    <value>The completion context can only be set once.</value>
   </data>
 </root>

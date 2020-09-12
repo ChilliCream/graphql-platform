@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Filters.Expressions
         private static Expression NullableSafeConstantExpression(
             object value, Type type)
         {
-            return Nullable.GetUnderlyingType(type) == null
+            return Nullable.GetUnderlyingType(type) is null
                 ? (Expression)Expression.Constant(value)
                 : Expression.Convert(Expression.Constant(value), type);
         }

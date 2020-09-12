@@ -1,0 +1,52 @@
+﻿[
+  {
+    "Message": "The argument `unless` does not exist.",
+    "Code": null,
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "dog"
+      },
+      "Depth": 1,
+      "Name": "isHouseTrained"
+    },
+    "Locations": [
+      {
+        "Line": 9,
+        "Column": 65
+      }
+    ],
+    "Extensions": {
+      "directive": "include",
+      "argument": "unless",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The argument `if` is required.",
+    "Code": null,
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "dog"
+      },
+      "Depth": 1,
+      "Name": "isHouseTrained"
+    },
+    "Locations": [
+      {
+        "Line": 9,
+        "Column": 56
+      }
+    ],
+    "Extensions": {
+      "directive": "include",
+      "argument": "if",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    },
+    "Exception": null
+  }
+]

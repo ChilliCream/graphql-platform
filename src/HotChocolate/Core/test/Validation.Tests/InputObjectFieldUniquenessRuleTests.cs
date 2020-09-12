@@ -1,55 +1,150 @@
-﻿
-using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class InputObjectFieldUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public InputObjectFieldUniquenessRuleTests()
-            : base(new InputObjectFieldUniquenessRule())
+            : base(builder => builder.AddValueRules())
         {
         }
 
         [Fact]
         public void NoFieldAmbiguity()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     findDog(complex: { name: ""A"", owner: ""B"" })
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void NameFieldIsAmbiguous()
         {
             // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                 }
+            ",
+            error =>
+                Assert.Equal("There can be only one input field named `name`.", error.Message));
+        }
+
+        [Fact]
+        public void InputObjectWithField()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {requiredField: true, f: true })
+                    }
+                }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void SameInputObjectWithinTwoArgs()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        complexArgField(
+                            complexArg1: {requiredField: true, f: true }, 
+                            complexArg2: {requiredField: true, f: true })
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "Field `name` is ambiguous.",
-                    t.Message));
+        [Fact]
+        public void MultipleInputObjectFields()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            f1: ""value"",
+                            f2: ""value"",
+                            f3: ""value"" })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void AllowsForNestedInputObjectsWithSimilarFields()
+        {
+            ExpectValid(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true
+                            deep: {
+                                requiredField: true
+                                deep: {
+                                    requiredField: true
+                                    id: 1
+                                }
+                                id: 1
+                            }
+                            id: 1
+                        })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateInputObjectFields()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            f1: ""value"",
+                            f1: ""value"" })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateInputObjectFields()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            f1: ""value"",
+                            f1: ""value"",
+                            f1: ""value"" })
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NestedDuplicateInputObjectFields()
+        {
+            ExpectErrors(@"
+                {
+                    arguments {
+                        complexArgField(complexArg: {
+                            requiredField: true,
+                            deep: {
+                                requiredField:true
+                                f2: ""value"",
+                                f2: ""value"" }})
+                    }
+                }
+            ");
         }
     }
 }

@@ -16,7 +16,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public override NodeKind Kind { get; } = NodeKind.UnionTypeExtension;
+        public override SyntaxKind Kind { get; } = SyntaxKind.UnionTypeExtension;
 
         public override IEnumerable<ISyntaxNode> GetNodes()
         {

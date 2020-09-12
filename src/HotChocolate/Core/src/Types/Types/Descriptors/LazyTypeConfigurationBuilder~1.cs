@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private ApplyConfigurationOn _on = ApplyConfigurationOn.Naming;
         private TypeDependencyKind _completeKind = TypeDependencyKind.Named;
-        private Action<ICompletionContext, T> _configure;
+        private Action<ITypeCompletionContext, T> _configure;
         private T _definition;
         private readonly List<(ITypeReference r, bool c)> _dependencies =
             new List<(ITypeReference, bool)>();
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public LazyTypeConfigurationBuilder<T> Configure(
-            Action<ICompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             if (configure is null)
             {
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ILazyTypeConfiguration Build()
         {
-            if (_configure == null)
+            if (_configure is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
                     "before you can build.");
             }
 
-            if (_definition == null)
+            if (_definition is null)
             {
                 // TODO : Resources
                 throw new InvalidOperationException(

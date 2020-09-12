@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Selections
 
             public async ValueTask<bool> MoveNextAsync()
             {
-                if (_asyncCursor == null)
+                if (_asyncCursor is null)
                 {
                     _asyncCursor = await _asyncCursorSource
                         .ToCursorAsync(_cancellationToken)

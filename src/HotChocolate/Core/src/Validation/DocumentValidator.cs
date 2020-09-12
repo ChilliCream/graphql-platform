@@ -14,17 +14,12 @@ namespace HotChocolate.Validation
             DocumentValidatorContextPool contextPool,
             IEnumerable<IDocumentValidatorRule> rules)
         {
-            if (contextPool is null)
-            {
-                throw new ArgumentNullException(nameof(contextPool));
-            }
-
             if (rules is null)
             {
                 throw new ArgumentNullException(nameof(rules));
             }
 
-            _contextPool = contextPool;
+            _contextPool = contextPool ?? throw new ArgumentNullException(nameof(contextPool));
             _rules = rules.ToArray();
         }
 
@@ -46,16 +41,14 @@ namespace HotChocolate.Validation
             {
                 PrepareContext(schema, document, context);
 
-                for (int i = 0; i < _rules.Length; i++)
+                for (var i = 0; i < _rules.Length; i++)
                 {
                     _rules[i].Validate(context, document);
                 }
 
-                if (context.Errors.Count > 0)
-                {
-                    return new DocumentValidatorResult(context.Errors);
-                }
-                return DocumentValidatorResult.OK;
+                return context.Errors.Count > 0
+                    ? new DocumentValidatorResult(context.Errors)
+                    : DocumentValidatorResult.Ok;
             }
             finally
             {
@@ -70,10 +63,10 @@ namespace HotChocolate.Validation
         {
             context.Schema = schema;
 
-            for (int i = 0; i < document.Definitions.Count; i++)
+            for (var i = 0; i < document.Definitions.Count; i++)
             {
                 IDefinitionNode definitionNode = document.Definitions[i];
-                if (definitionNode.Kind == NodeKind.FragmentDefinition)
+                if (definitionNode.Kind == SyntaxKind.FragmentDefinition)
                 {
                     var fragmentDefinition = (FragmentDefinitionNode)definitionNode;
                     context.Fragments[fragmentDefinition.Name.Value] = fragmentDefinition;

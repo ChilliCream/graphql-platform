@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace HotChocolate.Language
@@ -110,7 +109,7 @@ namespace HotChocolate.Language
             while (trimmedData.Length > 0)
             {
                 line = GetNextLineReverse(in trimmedData, ref position);
-                if (line.Length == 0)
+                if (line.Length == 0 && position > 0)
                 {
                     trimmedData = trimmedData.Slice(0, position + 1);
                     position = trimmedData.Length - 1;

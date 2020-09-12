@@ -1,7 +1,7 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -13,17 +13,17 @@ namespace HotChocolate.Types.Descriptors
             Type dependency)
             where TDefinition : DefinitionBase
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }
 
-            if (dependency == null)
+            if (dependency is null)
             {
                 throw new ArgumentNullException(nameof(dependency));
             }
@@ -35,9 +35,8 @@ namespace HotChocolate.Types.Descriptors
                     nameof(dependency));
             }
 
-            if (!NamedTypeInfoFactory.Default.TryCreate(
-                dependency,
-                out TypeInfo typeInfo))
+
+            if (!dependency.IsSchemaType())
             {
                 throw new ArgumentException(
                     TypeResources.TypeNameHelper_InvalidTypeStructure,
@@ -48,9 +47,9 @@ namespace HotChocolate.Types.Descriptors
                 .Extend()
                 .OnBeforeNaming((ctx, definition) =>
                 {
-                    INamedType type = ctx.GetType<INamedType>(
-                        ClrTypeReference.FromSchemaType(typeInfo.ClrType));
-                    definition.Name = createName(type);
+                    IType type = ctx.GetType<IType>(
+                        ctx.DescriptorContext.TypeInspector.GetTypeRef(dependency));
+                    definition.Name = createName(type.NamedType());
                 })
                 .DependsOn(dependency, true);
         }

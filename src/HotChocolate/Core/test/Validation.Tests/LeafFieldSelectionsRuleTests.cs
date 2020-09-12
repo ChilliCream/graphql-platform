@@ -1,60 +1,42 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class LeafFieldSelectionsRuleTests
-           : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public LeafFieldSelectionsRuleTests()
-            : base(new LeafFieldSelectionsRule())
+            : base(builder => builder.AddFieldRules())
         {
         }
 
         [Fact]
         public void ScalarSelection()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     dog {
                         barkVolume
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void StringList()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 {
                     stringList
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ScalarSelectionsNotAllowedOnInt()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 {
                     dog {
                         barkVolume {
@@ -62,87 +44,163 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "`barkVolume` is a scalar field. Selections on scalars " +
-                    "or enums are never allowed, because they are the leaf " +
-                    "nodes of any GraphQL query."));
+            ",
+            t => Assert.Equal(
+                "`barkVolume` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
         }
 
         [Fact]
         public void DirectQueryOnObjectWithoutSubFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query directQueryOnObjectWithoutSubFields {
                     human
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "`human` is an object, interface or union type " +
-                    "field. Leaf selections on objects, interfaces, and " +
-                    "unions without subfields are disallowed."));
+            ",
+            t => Assert.Equal(
+                "`human` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
         }
 
         [Fact]
         public void DirectQueryOnInterfaceWithoutSubFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query directQueryOnInterfaceWithoutSubFields {
                     pet
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "`pet` is an object, interface or union type " +
-                    "field. Leaf selections on objects, interfaces, and " +
-                    "unions without subfields are disallowed."));
+            ",
+            t => Assert.Equal(
+                "`pet` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
         }
 
         [Fact]
         public void DirectQueryOnUnionWithoutSubFields()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query directQueryOnUnionWithoutSubFields {
                     catOrDog
                 }
-            ");
+            ",
+            t => Assert.Equal(
+                "`catOrDog` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void InterfaceTypeMissingSelection()
+        {
+            ExpectErrors(@"
+                {
+                    human { pets }
+                }
+            ",
+            t => Assert.Equal(
+                "`pets` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
 
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "`catOrDog` is an object, interface or union type " +
-                    "field. Leaf selections on objects, interfaces, and " +
-                    "unions without subfields are disallowed."));
+        [Fact]
+        public void ScalarSelectionNotAllowedOnBoolean()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        barks {
+                            sinceWhen
+                        }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`barks` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedOnEnum()
+        {
+            ExpectErrors(@"
+                {
+                    catOrDog {
+                        ... on Cat {
+                            furColor {
+                                inHexDec 
+                            }
+                        }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`furColor` returns an enum value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithArgs()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: SIT) { sinceWhen }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithDirectives()
+        {
+            ExpectErrors(@"
+                { 
+                    dog {
+                        name @include(if: true) { isAlsoHumanName }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`name` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
+        }
+
+        [Fact]
+        public void ScalarSelectionNotAllowedWithDirectivesAndArgs()
+        {
+            ExpectErrors(@"
+                { 
+                    dog {
+                        doesKnowCommand(dogCommand: SIT) @include(if: true) { sinceWhen }
+                    }
+                }
+            ",
+            t => Assert.Equal(
+                "`doesKnowCommand` returns a scalar value. Selections on scalars " +
+                "or enums are never allowed, because they are the leaf " +
+                "nodes of any GraphQL query.",
+                t.Message));
         }
     }
 }

@@ -1,24 +1,28 @@
 import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent, useState } from "react";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import { GetHeaderDataQuery } from "../../../graphql-types";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
+import { Search } from "../misc/search";
+import { useScroll } from "../misc/useScroll";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
-import LogoIconSvg from "../../images/chillicream.svg";
+import LogoIconSvg from "../../images/chillicream-winking.svg";
 import LogoTextSvg from "../../images/chillicream-text.svg";
 import SlackIconSvg from "../../images/slack.svg";
 import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
 
 export const Header: FunctionComponent = () => {
+  const [enableShadow, setEnableShadow] = useState<boolean>(false);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
       site {
         siteMetadata {
+          siteUrl
           topnav {
             name
             link
@@ -32,7 +36,7 @@ export const Header: FunctionComponent = () => {
       }
     }
   `);
-  const { topnav, tools } = data.site!.siteMetadata!;
+  const { siteUrl, topnav, tools } = data.site!.siteMetadata!;
 
   const handleHamburgerOpenClick = () => {
     setTopNavOpen(true);
@@ -42,14 +46,19 @@ export const Header: FunctionComponent = () => {
     setTopNavOpen(false);
   };
 
+  useScroll((top) => {
+    setEnableShadow(top > 0);
+  });
+
   return (
-    <Container>
+    <Container enableShadow={enableShadow}>
+      <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
           <LogoIcon />
           <LogoText />
         </LogoLink>
-        <Navigation topNavOpen={topNavOpen}>
+        <Navigation open={topNavOpen}>
           <NavigationHeader>
             <LogoLink to="/">
               <LogoIcon />
@@ -74,9 +83,7 @@ export const Header: FunctionComponent = () => {
           </Nav>
         </Navigation>
         <Group>
-          <Search>
-            <SearchField placeholder="Search ..." />
-          </Search>
+          <Search siteUrl={siteUrl!} />
           <Tools>
             <ToolLink to={tools!.slack!}>
               <IconContainer>
@@ -103,16 +110,28 @@ export const Header: FunctionComponent = () => {
   );
 };
 
-const Container = styled.header`
+const Container = styled.header<{ enableShadow: boolean }>`
   position: fixed;
   z-index: 20;
   width: 100vw;
   height: 60px;
   background-color: #f40010;
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  ${({ enableShadow }) =>
+    enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
 `;
 
-const ContainerWrapper = styled.header`
+const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
+  body {
+    overflow-y: ${({ disableScrolling }) =>
+      disableScrolling ? "hidden" : "initial"};
+
+    @media only screen and (min-width: 992px) {
+      overflow-y: initial;
+    }
+  }
+`;
+
+const ContainerWrapper = styled.div`
   position: relative;
   display: flex;
   justify-content: center;
@@ -120,6 +139,11 @@ const ContainerWrapper = styled.header`
 
   @media only screen and (min-width: 992px) {
     justify-content: initial;
+  }
+
+  @media only screen and (min-width: 1400px) {
+    margin: 0 auto;
+    width: 1400px;
   }
 `;
 
@@ -167,28 +191,34 @@ const HamburgerOpenIcon = styled(BarsIconSvg)`
   fill: #fff;
 `;
 
-const Navigation = styled.nav<{ topNavOpen: boolean }>`
-  display: ${(props) => (props.topNavOpen ? "flex" : "none")};
+const Navigation = styled.nav<{ open: boolean }>`
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 30;
+  display: ${({ open }) => (open ? "flex" : "none")};
   flex: 1 1 auto;
-  flex-direction: row;
-  opacity: ${(props) => (props.topNavOpen ? "1" : "0")};
+  flex-direction: column;
+  max-height: 100vh;
+  background-color: #f40010;
+  opacity: ${({ open }) => (open ? "1" : "0")};
+  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
   transition: opacity 0.2s ease-in-out;
 
-  @media only screen and (max-width: 992px) {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    z-index: 30;
-    flex-direction: column;
-    background-color: #f40010;
-    box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
-  }
-
   @media only screen and (min-width: 992px) {
+    position: initial;
+    top: initial;
+    right: initial;
+    left: initial;
+    z-index: initial;
     display: flex;
+    flex-direction: row;
     height: 60px;
-    opacity: 1;
+    max-height: initial;
+    background-color: initial;
+    opacity: initial;
+    box-shadow: initial;
   }
 `;
 
@@ -224,18 +254,21 @@ const HamburgerCloseIcon = styled(TimesIconSvg)`
 
 const Nav = styled.ol`
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 calc(100% - 80px);
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 20px 0 0;
+  margin: 0;
   padding: 0;
   list-style-type: none;
+  overflow-y: initial;
 
   @media only screen and (min-width: 992px) {
+    flex: 1 1 auto;
     flex-direction: row;
     margin: 0;
     height: 60px;
+    overflow-y: hidden;
   }
 `;
 
@@ -282,28 +315,6 @@ const Group = styled.div`
   @media only screen and (min-width: 992px) {
     flex: 0 0 auto;
   }
-`;
-
-const Search = styled.div`
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: row;
-  align-items: center;
-
-  @media only screen and (min-width: 992px) {
-    display: flex;
-    flex: 0 0 auto;
-  }
-`;
-
-const SearchField = styled.input`
-  border: 0;
-  border-radius: 4px;
-  padding: 10px 15px;
-  width: 100%;
-  font-family: "Roboto", sans-serif;
-  font-size: 0.833em;
-  background-color: #fff;
 `;
 
 const Tools = styled.div`

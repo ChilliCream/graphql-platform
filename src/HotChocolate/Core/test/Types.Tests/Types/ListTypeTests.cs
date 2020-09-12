@@ -21,17 +21,6 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Create_ElementTypeIsListType_ArgExec()
-        {
-            // arrange
-            // act
-            Action action = () => new ListType(new ListType(new StringType()));
-
-            // assert
-            Assert.Throws<ArgumentException>(action);
-        }
-
-        [Fact]
         public void InstanceOf_LiteralIsNull_ArgNullExec()
         {
             // arrange
@@ -106,7 +95,7 @@ namespace HotChocolate.Types
             var type = new ListType(innerType);
 
             // act
-            Type clrType = type.ClrType;
+            Type clrType = type.RuntimeType;
 
             // assert
             Assert.Equal(typeof(List<string>), clrType);
@@ -531,7 +520,7 @@ namespace HotChocolate.Types
             Action action = () => listType.ParseValue(1);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
     }
 }

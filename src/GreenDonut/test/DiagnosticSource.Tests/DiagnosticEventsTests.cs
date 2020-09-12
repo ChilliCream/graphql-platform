@@ -27,64 +27,31 @@ namespace GreenDonut
             using (DiagnosticListener.AllListeners.Subscribe(observer))
             {
                 // arrange
-                var batchOptions = new DataLoaderOptions<string>
-                {
-                    AutoDispatching = true,
-                    Batching = true,
-                    BatchRequestDelay = TimeSpan.FromMilliseconds(150),
-                    Caching = true
-                };
-                var batchLoader = new DataLoader<string, string>(
-                    batchOptions,
-                    FetchDataAsync);
-                var batchErrorLoader = new DataLoader<string, string>(
-                    batchOptions,
+                var batchScheduler = new ManualBatchScheduler();
+                var loader = new DataLoader<string, string>(batchScheduler, FetchDataAsync);
+                var errorLoader = new DataLoader<string, string>(
+                    batchScheduler,
                     (keys, cancellationToken) =>
                         throw new Exception("BatchError: Foo"));
-                var singleOptions = new DataLoaderOptions<string>
-                {
-                    AutoDispatching = true,
-                    Batching = false,
-                    Caching = true
-                };
-                var singleLoader = new DataLoader<string, string>(
-                    singleOptions,
-                    FetchDataAsync);
 
                 // act
-                await Catch(() => batchLoader.LoadAsync("Foo"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => batchLoader.LoadAsync("Foo", "Bar"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => batchLoader.LoadAsync("Bar", "Baz"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => batchLoader.LoadAsync("Qux"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => batchErrorLoader.LoadAsync("Foo"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => singleLoader.LoadAsync("Foo"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => singleLoader.LoadAsync("Foo", "Bar"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => singleLoader.LoadAsync("Bar", "Baz"))
-                    .ConfigureAwait(false);
-                await Task.Delay(400).ConfigureAwait(false);
-                await Catch(() => singleLoader.LoadAsync("Qux"))
-                    .ConfigureAwait(false);
+                var tasks = new Task[]
+                {
+                    Catch(() => loader.LoadAsync("Foo")),
+                    Catch(() => loader.LoadAsync("Foo", "Bar")),
+                    Catch(() => loader.LoadAsync("Bar", "Baz")),
+                    Catch(() => loader.LoadAsync("Qux")),
+                    Catch(() => errorLoader.LoadAsync("Foo"))
+                };
+                batchScheduler.Dispatch();
+                await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 // assert
                 listener.MatchSnapshot();
             }
         }
 
-        private async Task<IReadOnlyList<Result<string>>> FetchDataAsync(
+        private ValueTask<IReadOnlyList<Result<string>>> FetchDataAsync(
             IReadOnlyList<string> keys,
             CancellationToken cancellationToken)
         {
@@ -98,7 +65,7 @@ namespace GreenDonut
                         : Result<string>.Resolve(null);
             }
 
-            return await Task.FromResult(results).ConfigureAwait(false);
+            return new ValueTask<IReadOnlyList<Result<string>>>(results);
         }
 
         private async Task Catch(Func<Task> execute)

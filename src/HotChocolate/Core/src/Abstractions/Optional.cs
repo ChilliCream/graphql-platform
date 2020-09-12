@@ -12,7 +12,6 @@ namespace HotChocolate
         : IEquatable<Optional<T>>
         , IOptional
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Optional{T}"/> struct.
         /// </summary>
@@ -21,6 +20,12 @@ namespace HotChocolate
         {
             Value = value;
             HasValue = true;
+        }
+
+        private Optional(T value, bool hasValue)
+        {
+            Value = value;
+            HasValue = hasValue;
         }
 
         /// <summary>
@@ -32,12 +37,12 @@ namespace HotChocolate
         object? IOptional.Value => Value;
 
         /// <summary>
-        /// <c>true</c> if the optional has a value.
+        /// <c>true</c> if the optional was explicitly set.
         /// </summary>
         public bool HasValue { get; }
 
         /// <summary>
-        /// <c>true</c> if the optional has no value.
+        /// <c>true</c> if the optional was not explicitly set.
         /// </summary>
         public bool IsEmpty => !HasValue;
 
@@ -47,7 +52,7 @@ namespace HotChocolate
         /// <returns>The name string value</returns>
         public override string? ToString()
         {
-            return Value?.ToString();
+            return HasValue ? Value?.ToString() ?? "null" : "unspecified";
         }
 
         /// <summary>
@@ -135,15 +140,21 @@ namespace HotChocolate
         /// the given value.
         /// </summary>
         /// <param name="value">The value.</param>
-        public static implicit operator Optional<T>(T value)
-            => new Optional<T>(value);
+        public static implicit operator Optional<T>(T value) =>
+            new Optional<T>(value);
 
         /// <summary>
         /// Implicitly gets the optional value.
         /// </summary>
-        /// <param name="name"></param>
-        [return : MaybeNull]
-        public static implicit operator T(Optional<T> optional)
-            => optional.Value;
+        [return: MaybeNull]
+        public static implicit operator T(Optional<T> optional) =>
+            optional.Value;
+
+        /// <summary>
+        /// Creates an empty optional that provides a default value.
+        /// </summary>
+        /// <param name="defaultValue">The default value.</param>
+        public static Optional<T> Empty([MaybeNull]T defaultValue = default) =>
+            new Optional<T>(defaultValue, false);
     }
 }

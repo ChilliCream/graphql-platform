@@ -8,12 +8,14 @@ namespace HotChocolate.Types
         : IHasName
         , IHasDescription
         , IHasDirectives
+        , IHasSyntaxNode
+        , IHasRuntimeType
     {
         /// <summary>
         /// The type of which declares this field.
         /// </summary>
         ITypeSystemObject DeclaringType { get; }
 
-        IReadOnlyDictionary<string, object> ContextData { get; }
+        IReadOnlyDictionary<string, object?> ContextData { get; }
     }
 }

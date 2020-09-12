@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
 
@@ -12,9 +13,25 @@ namespace HotChocolate.Types
     {
         private TypeStatus _status;
         private NameString _name;
+        private string? _scope;
         private string? _description;
 
-        protected TypeSystemObjectBase() { }
+        /// <summary>
+        /// Gets a scope name that was provided by an extension.
+        /// </summary>
+        public string? Scope
+        {
+            get => _scope;
+            protected set
+            {
+                if (IsInitialized)
+                {
+                    throw new InvalidOperationException(
+                        "The type scope is immutable.");
+                }
+                _scope = value;
+            }
+        }
 
         /// <summary>
         /// Gets the GraphQL type name.
@@ -52,30 +69,66 @@ namespace HotChocolate.Types
 
         public abstract IReadOnlyDictionary<string, object?> ContextData { get; }
 
-        internal protected bool IsCompleted =>
+        protected internal bool IsCompleted =>
             _status == TypeStatus.Completed;
 
-        internal protected bool IsNamed =>
+        protected bool IsNamed =>
             _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        internal protected bool IsInitialized =>
+        protected bool IsInitialized =>
             _status == TypeStatus.Initialized
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-        internal virtual void Initialize(IInitializationContext context)
+        internal virtual void Initialize(ITypeDiscoveryContext context)
         {
+            MarkInitialized();
+        }
+
+        internal virtual void CompleteName(ITypeCompletionContext context)
+        {
+            MarkNamed();
+        }
+
+        internal virtual void CompleteType(ITypeCompletionContext context)
+        {
+            MarkCompleted();
+        }
+
+        protected void MarkInitialized()
+        {
+            Debug.Assert(_status == TypeStatus.Uninitialized);
+
+            if (_status != TypeStatus.Uninitialized)
+            {
+                throw new InvalidOperationException();
+            }
+
             _status = TypeStatus.Initialized;
         }
 
-        internal virtual void CompleteName(ICompletionContext context)
+        protected void MarkNamed()
         {
+            Debug.Assert(_status == TypeStatus.Initialized);
+
+            if (_status != TypeStatus.Initialized)
+            {
+                throw new InvalidOperationException();
+            }
+
             _status = TypeStatus.Named;
         }
 
-        internal virtual void CompleteType(ICompletionContext context)
+        protected void MarkCompleted()
         {
+            Debug.Assert(_status == TypeStatus.Named);
+
+            if (_status != TypeStatus.Named)
+            {
+                throw new InvalidOperationException();
+            }
+
             _status = TypeStatus.Completed;
         }
     }

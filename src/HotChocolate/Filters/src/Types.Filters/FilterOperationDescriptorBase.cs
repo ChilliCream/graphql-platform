@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Filters
         {
         }
 
-        internal protected override FilterOperationDefintion Definition { get; } =
+        protected internal override FilterOperationDefintion Definition { get; protected set; } =
             new FilterOperationDefintion();
 
         protected void Name(NameString value)

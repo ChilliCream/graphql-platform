@@ -1,37 +1,20 @@
-import { graphql, useStaticQuery } from "gatsby";
 import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
-import { GetStartpageDataQuery } from "../../graphql-types";
 import { BananaCakepop } from "../components/images/banana-cakepop";
 import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
 import { Link } from "../components/misc/link";
+import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
 const IndexPage: FunctionComponent = () => {
-  const data = useStaticQuery<GetStartpageDataQuery>(graphql`
-    query getStartpageData {
-      arrowLeft: file(relativePath: { eq: "arrow-left.svg" }) {
-        publicURL
-      }
-      arrowRight: file(relativePath: { eq: "arrow-right.svg" }) {
-        publicURL
-      }
-      bg: file(relativePath: { eq: "startpage-header.svg" }) {
-        publicURL
-      }
-    }
-  `);
-
   return (
     <Layout>
       <SEO title="Home" />
-      <Intro url={data.bg!.publicURL!}>
-        <Title>The Ultimate GraphQL Platform</Title>
+      <Intro>
+        <Hero>The Ultimate GraphQL Platform</Hero>
         <Slideshow
-          arrowLeftUrl={data.arrowLeft!.publicURL!}
-          arrowRightUrl={data.arrowRight!.publicURL!}
           autoPlay
           infiniteLoop
           swipeable
@@ -67,30 +50,7 @@ const IndexPage: FunctionComponent = () => {
 
 export default IndexPage;
 
-const Intro = styled.section<{ url: string }>`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 25px;
-  width: 100%;
-  background-image: url("${(props) => props.url}");
-  background-attachment: scroll;
-  background-position-x: 50%;
-  background-position-y: 100%;
-  background-repeat: no-repeat;
-  background-size: cover;
-
-  @media only screen and (min-width: 992px) {
-    padding: 60px 0;
-  }
-`;
-
-const Slideshow = styled(Carousel)<{
-  arrowLeftUrl: string;
-  arrowRightUrl: string;
-}>`
+const Slideshow = styled(Carousel)`
   flex: 0 0 auto;
   width: 100%;
 
@@ -105,44 +65,7 @@ const Slideshow = styled(Carousel)<{
 
     > .control-next,
     > .control-prev {
-      position: absolute;
-      z-index: 10;
-      top: 0;
-      display: block;
-      width: 40px;
-      height: 100%;
-      opacity: 0.5;
-      background-attachment: scroll;
-      background-position-x: 50%;
-      background-position-y: 50%;
-      background-repeat: no-repeat;
-      background-size: 80%;
-      transition: background-size 0.2s ease-in-out, opacity 0.2s ease-in-out;
-
-      &:hover {
-        opacity: 0.6;
-        background-size: 90%;
-      }
-
-      &.control-next {
-        right: 0;
-        background-image: url("${(props) => props.arrowRightUrl}");
-      }
-
-      &.control-prev {
-        left: 0;
-        background-image: url("${(props) => props.arrowLeftUrl}");
-      }
-
-      @media only screen and (min-width: 992px) {
-        &.control-next {
-          right: 40px;
-        }
-
-        &.control-prev {
-          left: 40px;
-        }
-      }
+      display: none;
     }
 
     .control-dots {
@@ -157,13 +80,13 @@ const Slideshow = styled(Carousel)<{
         margin: 0 5px;
         border-radius: 2px;
         height: 6px;
-        background-color: #000;
+        background-color: #fff;
         opacity: 0.5;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out;
 
         &.selected {
-          background-color: #f40010;
+          background-color: #fff;
           opacity: 1;
 
           &:hover {
@@ -172,7 +95,7 @@ const Slideshow = styled(Carousel)<{
         }
 
         &:hover {
-          opacity: 0.6;
+          opacity: 0.85;
         }
       }
     }
@@ -263,17 +186,5 @@ const SlideDescription = styled.p`
 
   @media only screen and (min-width: 768px) {
     display: initial;
-  }
-`;
-
-const Title = styled.h1`
-  flex: 0 0 auto;
-  margin-bottom: 20px;
-  font-size: 2.222em;
-  text-align: center;
-  color: #fff;
-
-  @media only screen and (min-width: 768px) {
-    margin-bottom: 20px;
   }
 `;

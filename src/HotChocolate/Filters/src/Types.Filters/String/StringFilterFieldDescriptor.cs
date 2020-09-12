@@ -156,7 +156,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
+                () => CreateOperation(operationKind));
         }
 
         private StringFilterOperationDescriptor CreateOperation(

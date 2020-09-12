@@ -2,18 +2,25 @@ using System;
 
 namespace HotChocolate.Utilities
 {
-    public static class TypeConversionExtensions
+    public static class TypeConverterExtensions
     {
+        public static bool TryConvert(
+            this ITypeConverter typeConverter,
+            Type to,
+            object source, 
+            out object converted) =>
+            typeConverter.TryConvert(typeof(object), to, source, out converted);
+
         public static bool TryConvert<TFrom, TTo>(
-            this ITypeConversion typeConversion,
+            this ITypeConverter typeConverter,
             TFrom source, out TTo converted)
         {
-            if (typeConversion == null)
+            if (typeConverter is null)
             {
-                throw new ArgumentNullException(nameof(typeConversion));
+                throw new ArgumentNullException(nameof(typeConverter));
             }
 
-            if (typeConversion.TryConvert(
+            if (typeConverter.TryConvert(
                 typeof(TFrom), typeof(TTo),
                 source, out object conv)
                 && conv is TTo convcasted)
@@ -27,15 +34,15 @@ namespace HotChocolate.Utilities
         }
 
         public static TTo Convert<TFrom, TTo>(
-            this ITypeConversion typeConversion,
+            this ITypeConverter typeConverter,
             object source)
         {
-            if (typeConversion == null)
+            if (typeConverter is null)
             {
-                throw new ArgumentNullException(nameof(typeConversion));
+                throw new ArgumentNullException(nameof(typeConverter));
             }
 
-            return (TTo)typeConversion.Convert(
+            return (TTo)typeConverter.Convert(
                 typeof(TFrom), typeof(TTo), source);
         }
     }

@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -8,6 +9,13 @@ namespace HotChocolate.Types.Descriptors
     {
         protected internal EnumTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
+        {
+        }
+
+        protected internal EnumTypeDescriptor(
+            IDescriptorContext context, 
+            EnumTypeDefinition definition)
+            : base(context, definition)
         {
         }
 

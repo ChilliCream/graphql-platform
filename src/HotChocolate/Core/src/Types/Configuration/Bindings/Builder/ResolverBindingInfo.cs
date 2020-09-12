@@ -19,7 +19,7 @@ namespace HotChocolate.Configuration.Bindings
 
         public bool IsValid()
         {
-            if (Resolver == null)
+            if (Resolver is null)
             {
                 return false;
             }

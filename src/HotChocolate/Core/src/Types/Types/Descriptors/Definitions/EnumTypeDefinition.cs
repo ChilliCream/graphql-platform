@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions

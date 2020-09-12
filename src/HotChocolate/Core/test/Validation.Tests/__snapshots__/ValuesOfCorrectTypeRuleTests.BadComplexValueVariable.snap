@@ -1,0 +1,20 @@
+﻿[
+  {
+    "Message": "The specified value type of field `name` does not match the field type.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 79
+      }
+    ],
+    "Extensions": {
+      "fieldName": "name",
+      "fieldType": "String",
+      "locationType": "String",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null
+  }
+]

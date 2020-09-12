@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Xunit;
 
@@ -5,9 +6,7 @@ namespace GreenDonut
 {
     public class CancellationTokenSourceExtensionsTests
     {
-        #region CreateLinkedCancellationToken
-
-        [Fact(DisplayName = "CreateLinkedCancellationToken: Should return the provided token if source is null")]
+        [Fact(DisplayName = "CreateLinkedCancellationToken: Should throw an argument null token if source is null")]
         public void CreateLinkedCancellationTokenSourceNull()
         {
             // arrange
@@ -15,11 +14,10 @@ namespace GreenDonut
             CancellationToken token = new CancellationTokenSource().Token;
 
             // act
-            CancellationToken combinedToken = source
-                .CreateLinkedCancellationToken(token);
+            Action verify = () => source.CreateLinkedCancellationToken(token);
 
             // assert
-            Assert.Equal(token, combinedToken);
+            Assert.Throws<ArgumentNullException>("source", verify);
         }
 
         [Fact(DisplayName = "CreateLinkedCancellationToken: Should return the token of source if token is equal none")]
@@ -52,7 +50,5 @@ namespace GreenDonut
             Assert.NotEqual(source.Token, combinedToken);
             Assert.NotEqual(token, combinedToken);
         }
-
-        #endregion
     }
 }

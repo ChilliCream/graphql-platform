@@ -1,0 +1,8 @@
+﻿SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE EXISTS (
+    SELECT 1
+    FROM "Data" AS "d0"
+    LEFT JOIN "Foo" AS "f0" ON "d0"."FooId" = "f0"."Id"
+    WHERE ("f"."Id" IS NOT NULL AND ("f"."Id" = "d0"."FooId")) AND (("f0"."BarString" = @__p_0) OR ("f0"."BarString" IS NULL AND @__p_0 IS NULL)))

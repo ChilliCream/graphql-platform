@@ -1,0 +1,35 @@
+﻿[
+  {
+    "Message": "Subscription operations must have exactly one root field.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Single-root-field"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "The field `disallowedSecondRootFieldNonExisting` does not exist on the type `Subscription`.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 7,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "type": "Subscription",
+      "field": "disallowedSecondRootFieldNonExisting",
+      "responseName": "disallowedSecondRootFieldNonExisting",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  }
+]

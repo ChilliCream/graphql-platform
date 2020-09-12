@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Message": "The argument `if` does not exist.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "dog"
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 34
+      }
+    ],
+    "Extensions": {
+      "directive": "complex",
+      "argument": "if",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+    },
+    "Exception": null
+  }
+]

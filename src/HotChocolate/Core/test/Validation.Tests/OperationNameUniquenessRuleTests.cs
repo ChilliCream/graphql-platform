@@ -1,22 +1,20 @@
-﻿using HotChocolate.Language;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class OperationNameUniquenessRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public OperationNameUniquenessRuleTests()
-            : base(new OperationNameUniquenessRule())
+            : base(builder => builder.AddOperationRules())
         {
         }
 
         [Fact]
         public void TwoUniqueQueryOperations()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
                 query getDogName {
                     dog {
                         name
@@ -31,22 +29,12 @@ namespace HotChocolate.Validation
                     }
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
-            Assert.Empty(result.Errors);
         }
-
 
         [Fact]
         public void TwoQueryOperationsWithTheSameName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query getName {
                     dog {
                         name
@@ -60,25 +48,16 @@ namespace HotChocolate.Validation
                         }
                     }
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        $"The operation name `getName` is not unique.",
-                        t.Message));
+            ",
+            t => Assert.Equal(
+                $"The operation name `getName` is not unique.",
+                t.Message));
         }
 
         [Fact]
         public void TwoOperationsWithTheSameName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query dogOperation {
                     dog {
                         name
@@ -90,17 +69,108 @@ namespace HotChocolate.Validation
                         id
                     }
                 }
+            ",
+            t => Assert.Equal(
+                $"The operation name `dogOperation` is not unique.",
+                t.Message));
+        }
+
+        [Fact]
+        public void OneAnonOperation()
+        {
+            ExpectValid(@"
+                {
+                    anyArg
+                }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void OneNamedOperation()
+        {
+            ExpectValid(@"
+                query Foo {
+                    anyArg
+                }
+            ");
+        }
 
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                        $"The operation name `dogOperation` is not unique.",
-                        t.Message));
+        [Fact]
+        public void MultipleOperationsOfDifferentTypes()
+        {
+            ExpectValid(@"
+                query Foo {
+                    anyArg
+                }
+                
+                mutation Bar {
+                    field
+                }
+                
+                subscription Baz {
+                    newMessage {
+                        bdoy
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void FragmentAndOperationNamedTheSame()
+        {
+            ExpectValid(@"
+                query Foo {
+                    ...Foo
+                }
+                
+                fragment Foo on Query {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOperationsOfSameName()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                
+                query Foo {
+                    anyArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOpsOfSameNameOfDifferentTypesMutation()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                
+                mutation Foo {
+                    fieldB
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleOpsOfSameNameOfDifferentTypesSubscription()
+        {
+            ExpectErrors(@"
+                query Foo {
+                    anyArg
+                }
+                
+                subscription Foo {
+                    newMessage {
+                        bdoy
+                    }
+                }
+            ");
         }
     }
 }

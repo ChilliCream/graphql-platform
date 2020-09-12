@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     public class InterfaceTypeDescriptor<T>
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         protected internal InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -21,7 +21,14 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        protected internal InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, InterfaceFieldDefinition> fields,
@@ -73,10 +80,41 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
+        public new IInterfaceTypeDescriptor<T> Interface<TInterface>()
+            where TInterface : InterfaceType
+        {
+            base.Interface<TInterface>();
+            return this;
+        }
+
+        public new IInterfaceTypeDescriptor<T> Interface<TInterface>(TInterface type)
+            where TInterface : InterfaceType
+        {
+            base.Interface(type);
+            return this;
+        }
+
+        public new IInterfaceTypeDescriptor<T> Implements<TInterface>()
+            where TInterface : InterfaceType =>
+            Interface<TInterface>();
+
+        public new IInterfaceTypeDescriptor<T> Interface(NamedTypeNode type)
+        {
+            base.Interface(type);
+            return this;
+        }
+
+        public new IInterfaceTypeDescriptor<T> Implements<TInterface>(TInterface type)
+            where TInterface : InterfaceType =>
+            Interface(type);
+
+        public new IInterfaceTypeDescriptor<T> Implements(NamedTypeNode type) =>
+            Interface(type);
+
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }

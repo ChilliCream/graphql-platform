@@ -1,7 +1,5 @@
 using System;
 using System.Text;
-using ChilliCream.Testing;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -92,6 +90,23 @@ namespace HotChocolate.Language
             // assert
             Assert.Equal(
                 trimmedBlockString,
+                Encoding.UTF8.GetString(output.ToArray()));
+        }
+
+        [Fact]
+        public void SingleLineSingleChar_Does_Not_Loop()
+        {
+            // arrange
+            string blockString = ".";
+            byte[] input = Encoding.UTF8.GetBytes(blockString);
+            var output = new Span<byte>(new byte[input.Length]);
+
+            // act
+            StringHelper.TrimBlockStringToken(input, ref output);
+
+            // assert
+            Assert.Equal(
+                ".",
                 Encoding.UTF8.GetString(output.ToArray()));
         }
     }

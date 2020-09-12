@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Selections.Handlers;
@@ -13,13 +14,13 @@ namespace HotChocolate.Types.Selections
     public class SelectionVisitor
         : SelectionVisitorBase
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly SelectionMiddlewareContext _selectionMiddlewareContext;
         private readonly IReadOnlyList<IListHandler> _listHandler = ListHandlers.All;
 
         public SelectionVisitor(
             IResolverContext context,
-            ITypeConversion converter,
+            ITypeConverter converter,
             SelectionMiddlewareContext selectionMiddlewareContext)
             : base(context)
         {
@@ -30,13 +31,13 @@ namespace HotChocolate.Types.Selections
         protected Stack<SelectionClosure> Closures { get; } =
             new Stack<SelectionClosure>();
 
-        public void Accept(ObjectField field)
+        public void Accept(IObjectField field)
         {
             IOutputType type = field.Type;
             SelectionSetNode? selectionSet = Context.FieldSelection.SelectionSet;
             (type, selectionSet) = UnwrapPaging(type, selectionSet);
             IType elementType = type.IsListType() ? type.ElementType() : type;
-            Closures.Push(new SelectionClosure(elementType.ToClrType(), "e"));
+            Closures.Push(new SelectionClosure(elementType.ToRuntimeType(), "e"));
             VisitSelections(type, selectionSet);
         }
 
@@ -59,14 +60,22 @@ namespace HotChocolate.Types.Selections
 
         protected override void LeaveObject(IFieldSelection selection)
         {
-            if (selection.Field.Member is PropertyInfo)
+            if (selection.Field.Member is PropertyInfo member)
             {
-                Expression memberInit = Closures.Pop().CreateMemberInit();
+                SelectionClosure closure = Closures.Pop();
+
+                MemberInitExpression memberInit = closure.CreateMemberInit();
+
+                MemberExpression property = Expression.Property(
+                    Closures.Peek().Instance.Peek(), member);
+
+                Expression withNullCheck = Expression.Condition(
+                        Expression.Equal(property, Expression.Constant(null)),
+                        Expression.Default(memberInit.Type),
+                        memberInit);
 
                 Closures.Peek().Projections[selection.Field.Name] =
-                    Expression.Bind(selection.Field.Member, memberInit);
-
-                base.LeaveObject(selection);
+                    Expression.Bind(selection.Field.Member, withNullCheck);
             }
             else
             {
@@ -91,7 +100,7 @@ namespace HotChocolate.Types.Selections
                     Expression.Property(
                         Closures.Peek().Instance.Peek(), propertyInfo);
 
-                if (selection is FieldSelection fieldSelection)
+                if (selection is IPreparedSelection fieldSelection)
                 {
                     var context = new SelectionVisitorContext(
                         Context,
@@ -133,8 +142,8 @@ namespace HotChocolate.Types.Selections
                     UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
 
                 Type clrType = type.IsListType() ?
-                    type.ElementType().ToClrType() :
-                    type.ToClrType();
+                    type.ElementType().ToRuntimeType() :
+                    type.ToRuntimeType();
 
                 Closures.Push(new SelectionClosure(clrType, "e" + Closures.Count));
 
@@ -149,7 +158,7 @@ namespace HotChocolate.Types.Selections
             {
                 var nextClosure =
                     new SelectionClosure(
-                        selection.Field.ClrType, "e" + Closures.Count);
+                        selection.Field.RuntimeType, "e" + Closures.Count);
 
                 nextClosure.Instance.Push(
                     Expression.Property(

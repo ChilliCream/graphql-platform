@@ -10,28 +10,6 @@ namespace GreenDonut
     /// </summary>
     public static class DataLoaderExtensions
     {
-        #region IDataLoader
-
-        /// <summary>
-        /// Dispatches one or more batch requests. In case of auto dispatching
-        /// we just trigger an implicit dispatch which could mean to interrupt
-        /// a wait delay. Whereas in a manual dispatch scenario it could mean
-        /// to dispatch explicitly.
-        /// </summary>
-        /// <param name="dataLoader">A data loader instance.</param>
-        /// <exception cref="ArgumentNullException">
-        /// Throws if <paramref name="dataLoader"/> is <c>null</c>.
-        /// </exception>
-        public static Task DispatchAsync(this IDataLoader dataLoader)
-        {
-            if (dataLoader == null)
-            {
-                throw new ArgumentNullException(nameof(dataLoader));
-            }
-
-            return dataLoader.DispatchAsync(CancellationToken.None);
-        }
-
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
         /// or enqueues this single request for bacthing if enabled.
@@ -48,7 +26,7 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<object> LoadAsync(
+        public static Task<object?> LoadAsync(
             this IDataLoader dataLoader,
             object key)
         {
@@ -77,7 +55,7 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<IReadOnlyList<object>> LoadAsync(
+        public static Task<IReadOnlyList<object?>> LoadAsync(
             this IDataLoader dataLoader,
             params object[] keys)
         {
@@ -106,7 +84,7 @@ namespace GreenDonut
         /// A single result which may contain a value or information about the
         /// error which may occurred during the call.
         /// </returns>
-        public static Task<IReadOnlyList<object>> LoadAsync(
+        public static Task<IReadOnlyList<object?>> LoadAsync(
             this IDataLoader dataLoader,
             IReadOnlyCollection<object> keys)
         {
@@ -133,7 +111,7 @@ namespace GreenDonut
         public static void Set(
             this IDataLoader dataLoader,
             object key,
-            object value)
+            object? value)
         {
             if (dataLoader == null)
             {
@@ -142,10 +120,6 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
-
-        #region IDataLoader<TKey, TValue>
 
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
@@ -168,6 +142,7 @@ namespace GreenDonut
         public static Task<TValue> LoadAsync<TKey, TValue>(
             this IDataLoader<TKey, TValue> dataLoader,
             TKey key)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -199,6 +174,7 @@ namespace GreenDonut
         public static Task<IReadOnlyList<TValue>> LoadAsync<TKey, TValue>(
             this IDataLoader<TKey, TValue> dataLoader,
             params TKey[] keys)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -230,6 +206,7 @@ namespace GreenDonut
         public static Task<IReadOnlyList<TValue>> LoadAsync<TKey, TValue>(
             this IDataLoader<TKey, TValue> dataLoader,
             IReadOnlyCollection<TKey> keys)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -257,6 +234,7 @@ namespace GreenDonut
             this IDataLoader<TKey, TValue> dataLoader,
             TKey key,
             TValue value)
+                where TKey : notnull
         {
             if (dataLoader == null)
             {
@@ -265,7 +243,5 @@ namespace GreenDonut
 
             dataLoader.Set(key, Task.FromResult(value));
         }
-
-        #endregion
     }
 }

@@ -26,8 +26,9 @@ namespace HotChocolate.Types
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
-            Assert.Equal(typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+            Assert.Equal(
+                typeof(ListType<StringType>),
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -46,8 +47,9 @@ namespace HotChocolate.Types
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
             ITypeReference typeRef = description.Type;
-            Assert.Equal(typeof(ListType<StringType>),
-                Assert.IsType<ClrTypeReference>(typeRef).Type);
+            Assert.Equal(
+                typeof(ListType<StringType>),
+                Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -84,7 +86,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                typeof(StringType),
-               Assert.IsType<ClrTypeReference>(typeRef).Type);
+               Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -103,7 +105,7 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.Equal(
                typeof(StringType),
-               Assert.IsType<ClrTypeReference>(typeRef).Type);
+               Assert.IsType<ExtendedTypeReference>(typeRef).Type.Source);
         }
 
         [Fact]
@@ -168,8 +170,9 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
-            Assert.Equal(typeof(string),
-                Assert.IsType<ClrTypeReference>(description.Type).Type);
+            Assert.Equal(
+                typeof(string),
+                Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("string", description.NativeDefaultValue);
         }
 
@@ -243,8 +246,8 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
-            Assert.Equal(typeof(List<Argument>),
-                Assert.IsType<ClrTypeReference>(description.Type).Type);
+            Assert.Equal(typeof(FieldCollection<Argument>),
+                Assert.IsType<ExtendedTypeReference>(description.Type).Type.Source);
             Assert.Equal("arguments", description.Name);
         }
     }

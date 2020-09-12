@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -45,7 +44,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -61,7 +60,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -77,7 +76,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>

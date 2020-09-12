@@ -26,22 +26,23 @@ namespace HotChocolate.Types.Filters.Expressions
                     property = Expression.Property(context.GetInstance(), operation.Property);
                 }
 
-                switch (operation.Kind)
+                if (operation.Kind == FilterOperationKind.In)
                 {
-                    case FilterOperationKind.In:
-                        expression = FilterExpressionBuilder.In(
+                    expression = FilterExpressionBuilder.In(
+                        property,
+                        operation.Property.PropertyType,
+                        ParseValue());
+                    return true;
+                }
+
+                if (operation.Kind == FilterOperationKind.NotIn)
+                {
+                    expression = FilterExpressionBuilder.Not(
+                        FilterExpressionBuilder.In(
                             property,
                             operation.Property.PropertyType,
-                            ParseValue());
-                        return true;
-
-                    case FilterOperationKind.NotIn:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.In(
-                                property,
-                                operation.Property.PropertyType,
-                                ParseValue()));
-                        return true;
+                            ParseValue()));
+                    return true;
                 }
             }
 
@@ -51,7 +52,7 @@ namespace HotChocolate.Types.Filters.Expressions
             object ParseValue()
             {
                 var parsedValue = type.ParseLiteral(value);
-                Type elementType = type.ElementType().ToClrType();
+                Type elementType = type.ElementType().ToRuntimeType();
 
                 if (operation.Property.PropertyType != elementType)
                 {

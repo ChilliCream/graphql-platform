@@ -61,9 +61,9 @@ namespace HotChocolate.Types.Relay
             // arrange
             ISchema schema = Schema.Create(
                 c => c.RegisterQueryType<QueryType>());
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s(last:2)
                 {
@@ -87,18 +87,17 @@ namespace HotChocolate.Types.Relay
                     .Create());
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
         public async Task UsePaging_WithNonNull_ElementType()
         {
             // arrange
-            ISchema schema = Schema.Create(
-                c => c.RegisterQueryType<QueryType2>());
-            IQueryExecutor executor = schema.MakeExecutable();
+            ISchema schema = Schema.Create(c => c.RegisterQueryType<QueryType2>());
+            IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s(last:2)
                 {
@@ -123,7 +122,18 @@ namespace HotChocolate.Types.Relay
                     .Create());
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public void UsePaging_WithNonNull_ElementType_SchemaSnapshot()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c => c.RegisterQueryType<QueryType2>());
+
+            // assert
+            schema.Print().MatchSnapshot();
         }
 
         [Fact]
@@ -135,9 +145,9 @@ namespace HotChocolate.Types.Relay
                 .AddQueryType<QueryType3>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
-            string query = @"
+            var query = @"
             {
                 s
                 {
@@ -160,7 +170,7 @@ namespace HotChocolate.Types.Relay
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class QueryType

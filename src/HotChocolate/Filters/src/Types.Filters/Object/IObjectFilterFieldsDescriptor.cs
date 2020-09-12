@@ -1,6 +1,3 @@
-using System;
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
     public interface IObjectFilterFieldDescriptor

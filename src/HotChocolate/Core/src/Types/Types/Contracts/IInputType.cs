@@ -1,17 +1,9 @@
-﻿using HotChocolate.Language;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     public interface IInputType
         : ISerializableType
-        , IHasClrType
+        , IParsableType
+        , IHasRuntimeType
     {
-        bool IsInstanceOfType(IValueNode literal);
-
-        bool IsInstanceOfType(object value);
-
-        object ParseLiteral(IValueNode literal);
-
-        IValueNode ParseValue(object value);
     }
 }

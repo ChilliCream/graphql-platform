@@ -1,10 +1,10 @@
-using System.Linq;
 using System;
 using System.Collections.Generic;
-using HotChocolate.Types.Descriptors.Definitions;
+using System.Diagnostics;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
-using System.Globalization;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -23,11 +23,7 @@ namespace HotChocolate.Types
         {
             get
             {
-                if (_contextData is null)
-                {
-                    throw new TypeInitializationException();
-                }
-                return _contextData;
+                return _contextData ?? throw new TypeInitializationException();
             }
         }
 
@@ -39,8 +35,13 @@ namespace HotChocolate.Types
             }
         }
 
-        internal sealed override void Initialize(IInitializationContext context)
+        internal sealed override void Initialize(ITypeDiscoveryContext context)
         {
+            AssertUninitialized();
+
+            OnBeforeInitialize(context);
+
+            Scope = context.Scope;
             _definition = CreateDefinition(context);
 
             if (_definition is null)
@@ -49,61 +50,55 @@ namespace HotChocolate.Types
                     TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
-            context.Interceptor.OnBeforeRegisterDependencies(
-                context, _definition, _definition.ContextData);
-
             RegisterConfigurationDependencies(context, _definition);
-            OnRegisterDependencies(context, _definition);
 
-            context.Interceptor.OnAfterRegisterDependencies(
-                context, _definition, _definition.ContextData);
+            OnAfterInitialize(context, _definition, _definition.ContextData);
 
-            base.Initialize(context);
+            MarkInitialized();
         }
 
         protected abstract TDefinition CreateDefinition(
-            IInitializationContext context);
+            ITypeDiscoveryContext context);
 
         protected virtual void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
         }
 
-        internal sealed override void CompleteName(ICompletionContext context)
+        internal sealed override void CompleteName(ITypeCompletionContext context)
         {
-            if (_definition is null)
-            {
-                throw new InvalidOperationException(
-                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
-            }
+            AssertInitialized();
 
-            context.Interceptor.OnBeforeCompleteName(
-                context, _definition, _definition.ContextData);
+            TDefinition definition = _definition!;
 
-            ExecuteConfigurations(context, _definition, ApplyConfigurationOn.Naming);
-            OnCompleteName(context, _definition);
+            OnBeforeCompleteName(context, definition, definition.ContextData);
+
+            ExecuteConfigurations(context, definition, ApplyConfigurationOn.Naming);
+            OnCompleteName(context, definition);
+
+            Debug.Assert(
+                Name.HasValue,
+                "After the naming is completed the name has to have a value.");
 
             if (Name.IsEmpty)
             {
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
+                    .SetMessage(
                         TypeResources.TypeSystemObjectBase_NameIsNull,
-                        GetType().FullName))
+                        GetType().FullName)
                     .SetCode(ErrorCodes.Schema.NoName)
                     .SetTypeSystemObject(this)
                     .Build());
             }
 
-            base.CompleteName(context);
+            OnAfterCompleteName(context, definition, definition.ContextData);
 
-            context.Interceptor.OnAfterCompleteName(
-                context, _definition, _definition.ContextData);
+            MarkNamed();
         }
 
         protected virtual void OnCompleteName(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             if (definition.Name.HasValue)
@@ -112,18 +107,13 @@ namespace HotChocolate.Types
             }
         }
 
-        internal sealed override void CompleteType(ICompletionContext context)
+        internal sealed override void CompleteType(ITypeCompletionContext context)
         {
-            if (_definition is null)
-            {
-                throw new InvalidOperationException(
-                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
-            }
+            AssertNamed();
 
-            TDefinition definition = _definition;
+            TDefinition definition = _definition!;
 
-            context.Interceptor.OnBeforeCompleteType(
-                context, definition, definition.ContextData);
+            OnBeforeCompleteType(context, definition, definition.ContextData);
 
             ExecuteConfigurations(context, definition, ApplyConfigurationOn.Completion);
             Description = definition.Description;
@@ -132,22 +122,23 @@ namespace HotChocolate.Types
             _contextData = definition.ContextData;
             _definition = null;
 
-            base.CompleteType(context);
+            OnAfterCompleteType(context, definition, _contextData);
 
-            context.Interceptor.OnAfterCompleteType(
-                context, definition, _contextData);
+            MarkCompleted();
         }
 
         protected virtual void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
         }
 
-        private static void RegisterConfigurationDependencies(
-            IInitializationContext context,
+        private void RegisterConfigurationDependencies(
+            ITypeDiscoveryContext context,
             TDefinition definition)
         {
+            OnBeforeRegisterDependencies(context, definition, definition.ContextData);
+
             foreach (var group in definition.GetConfigurations()
                 .SelectMany(t => t.Dependencies)
                 .GroupBy(t => t.Kind))
@@ -156,10 +147,13 @@ namespace HotChocolate.Types
                     group.Select(t => t.TypeReference),
                     group.Key);
             }
+
+            OnRegisterDependencies(context, definition);
+            OnAfterRegisterDependencies(context, definition, definition.ContextData);
         }
 
         private static void ExecuteConfigurations(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition,
             ApplyConfigurationOn kind)
         {
@@ -167,6 +161,135 @@ namespace HotChocolate.Types
                 definition.GetConfigurations().Where(t => t.On == kind))
             {
                 configuration.Configure(context);
+            }
+        }
+
+        protected virtual void OnBeforeInitialize(
+            ITypeDiscoveryContext context)
+        {
+            context.TypeInterceptor.OnBeforeInitialize(context);
+        }
+
+        protected virtual void OnAfterInitialize(
+            ITypeDiscoveryContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnAfterInitialize(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnBeforeRegisterDependencies(
+            ITypeDiscoveryContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnBeforeRegisterDependencies(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterRegisterDependencies(
+            ITypeDiscoveryContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnAfterRegisterDependencies(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnBeforeCompleteName(
+            ITypeCompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnBeforeCompleteName(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterCompleteName(
+            ITypeCompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnAfterCompleteName(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnBeforeCompleteType(
+            ITypeCompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnBeforeCompleteType(
+                context, definition, contextData);
+        }
+
+        protected virtual void OnAfterCompleteType(
+            ITypeCompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object?> contextData)
+        {
+            context.TypeInterceptor.OnAfterCompleteType(
+                context, definition, contextData);
+        }
+
+        private void AssertUninitialized()
+        {
+            Debug.Assert(
+                !IsInitialized,
+                "The type must be uninitialized.");
+
+            Debug.Assert(
+                _definition is null,
+                "The definition should not exist when the type has not been initialized.");
+
+            if (IsInitialized)
+            {
+                throw new InvalidOperationException();
+            }
+        }
+
+        private void AssertInitialized()
+        {
+            Debug.Assert(
+                IsInitialized,
+                "The type must be initialized.");
+
+            Debug.Assert(
+                _definition is { },
+                "Initialize must have been invoked before completing the type name.");
+
+            if (!IsInitialized)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
+            }
+        }
+
+        private void AssertNamed()
+        {
+            Debug.Assert(
+                IsNamed,
+                "The type must be initialized.");
+
+            Debug.Assert(
+                _definition?.Name.HasValue ?? false,
+                "The name must have been completed before completing the type.");
+
+            if (!IsNamed)
+            {
+                throw new InvalidOperationException();
+            }
+
+            if (_definition is null)
+            {
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
         }
     }

@@ -12,12 +12,12 @@ namespace HotChocolate.Types.Factories
             IBindingLookup bindingLookup,
             InterfaceTypeDefinitionNode node)
         {
-            if (bindingLookup == null)
+            if (bindingLookup is null)
             {
                 throw new ArgumentNullException(nameof(bindingLookup));
             }
 
-            if (node == null)
+            if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Factories
                 if (bindingInfo.SourceType != null)
                 {
                     d.Extend().OnBeforeCreate(
-                        t => t.ClrType = bindingInfo.SourceType);
+                        t => t.RuntimeType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -42,8 +42,20 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
+                DeclareInterfaces(d, node.Interfaces);
+
                 DeclareFields(d, node.Fields);
             });
+        }
+
+        private static void DeclareInterfaces(
+            IInterfaceTypeDescriptor typeDescriptor,
+            IReadOnlyCollection<NamedTypeNode> interfaceReferences)
+        {
+            foreach (NamedTypeNode typeNode in interfaceReferences)
+            {
+                typeDescriptor.Interface(typeNode);
+            }
         }
 
         private static void DeclareFields(

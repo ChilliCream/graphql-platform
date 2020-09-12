@@ -1,100 +1,99 @@
-﻿using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
 {
     public class ArgumentNamesRuleTests
-        : ValidationTestBase
+        : DocumentValidatorVisitorTestBase
     {
         public ArgumentNamesRuleTests()
-            : base(new ArgumentNamesRule())
+            : base(builder => builder.AddArgumentRules())
         {
         }
 
         [Fact]
         public void ArgOnRequiredArg()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    dog {
+                        ... argOnRequiredArg
+                    }
+                }
+
                 fragment argOnRequiredArg on Dog {
                     doesKnowCommand(dogCommand: SIT)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void ArgOnOptional()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    dog {
+                        ... argOnOptional
+                    }
+                }
+
                 fragment argOnOptional on Dog {
-                    isHousetrained(atOtherHomes: true) @include(if: true)
+                    isHouseTrained(atOtherHomes: true) @include(if: true)
                 }
             ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.False(result.HasErrors);
         }
 
         [Fact]
         public void InvalidFieldArgName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
-            ");
-
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `command` does not exist.", t.Message));
+            ",
+            t => Assert.Equal(
+                $"The argument `command` does not exist.", t.Message),
+            t => Assert.Equal(
+                $"The argument `dogCommand` is required.", t.Message));
         }
 
         [Fact]
         public void InvalidDirectiveArgName()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
-                fragment invalidArgName on Dog {
-                    isHousetrained(atOtherHomes: true) @include(unless: false)
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
                 }
-            ");
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
-
-            // assert
-            Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    $"The argument `unless` does not exist.", t.Message));
+                fragment invalidArgName on Dog {
+                    isHouseTrained(atOtherHomes: true) @include(unless: false)
+                }
+            ",
+            t => Assert.Equal(
+                $"The argument `unless` does not exist.", t.Message),
+            t => Assert.Equal(
+                $"The argument `if` is required.", t.Message));
         }
 
         [Fact]
         public void ArgumentOrderDoesNotMatter()
         {
-            // arrange
-            Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... multipleArgs
+                        ... multipleArgsReverseOrder
+                    }
+                }
+
                 fragment multipleArgs on Arguments {
                     multipleReqs(x: 1, y: 2)
                 }
@@ -103,12 +102,258 @@ namespace HotChocolate.Validation
                     multipleReqs(y: 1, x: 2)
                 }
             ");
+        }
 
-            // act
-            QueryValidationResult result = Rule.Validate(schema, query);
+        [Fact]
+        public void ArgsAreKnowDeeply()
+        {
+            ExpectValid(@"
+                {
+                    dog {
+                        doesKnowCommand(dogCommand: SIT)
+                    }
+                    human {
+                        pets {
+                            ... on Dog {
+                                doesKnowCommand(dogCommand: SIT)
+                            }
+                        }
+                    }
+                }
+            ");
+        }
 
-            // assert
-            Assert.False(result.HasErrors);
+        [Fact]
+        public void DirectiveArgsAreKnown()
+        {
+            ExpectValid(@"
+                {
+                    dog @skip(if: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void DirectiveWithoutArgsIsValid()
+        {
+            ExpectValid(@"
+                {
+                    dog @complex
+                }
+            ");
+        }
+
+        [Fact]
+        public void DirectiveWithWrongArgsIsInvalid()
+        {
+            ExpectErrors(@"
+                {
+                    dog @complex(if:false)
+                }
+            ");
+        }
+
+        [Fact]
+        public void MisspelledDirectiveArgsAreReported()
+        {
+            ExpectErrors(@"
+                {
+                    dog @skip(iff: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void MisspelledFieldArgsAreReported()
+        {
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... invalidArgName
+                    }
+                }
+                fragment invalidArgName on Dog {
+                    doesKnowCommand(DogCommand: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void UnknownArgsAmongstKnowArgs()
+        {
+            ExpectErrors(@"
+                query {
+                    dog {
+                        ... oneGoodArgOneInvalidArg
+                    }
+                }
+                fragment oneGoodArgOneInvalidArg on Dog {
+                    doesKnowCommand(whoKnows: 1, dogCommand: SIT, unknown: true)
+                }
+            ");
+        }
+
+        [Fact]
+        public void UnknownArgsDeeply()
+        {
+            ExpectErrors(@"
+                {
+                    dog {
+                        doesKnowCommand(unknown: true)
+                    }
+                    human {
+                    pet {
+                        ... on Dog {
+                                doesKnowCommand(unknown: true)
+                            }
+                        }
+                    }
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoArgumentsOnField()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg
+                }
+            ");
+        }
+
+        [Fact]
+        public void NoArgumentsOnDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg @directive
+                }
+            ");
+        }
+
+        [Fact]
+        public void ArgumentOnField()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ArgumentOnDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                    fieldWithArg @directive(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnTwoFields()
+        {
+            // arrange
+            ExpectValid(@"
+                {      
+                    one: fieldWithArg(arg: ""value"")
+                    two: fieldWithArg(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnFieldAndDirective()
+        {
+            // arrange
+            ExpectValid(@"
+                {      
+                    fieldWithArg(arg: ""value"") @directive(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void SameArgumentOnTwoDirectives()
+        {
+            // arrange
+            ExpectValid(@"
+                {       
+                    fieldWithArg @directive1(arg: ""value"") @directive2(arg: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleFieldArguments()
+        {
+            // arrange
+            ExpectValid(@"
+                {
+                fieldWithArg(arg1: ""value"", arg2: ""value"", arg3: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void MultipleDirectiveArguments()
+        {
+            // arrange
+            ExpectValid(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg2: ""value"", arg3: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateFieldArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg(arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateFieldArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg(arg1: ""value"", arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void DuplicateDirectiveArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg1: ""value"")
+                }
+            ");
+        }
+
+        [Fact]
+        public void ManyDuplicateDirectiveArguments()
+        {
+            // arrange
+            ExpectErrors(@"
+                {       
+                    fieldWithArg @directive(arg1: ""value"", arg1: ""value"", arg1: ""value"")
+                }
+            ");
         }
     }
 }

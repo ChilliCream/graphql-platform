@@ -1,9 +1,10 @@
 module.exports = {
   siteMetadata: {
-    title: `ChilliCream GraphQL`,
+    title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
-    baseUrl: `https://chillicream.com`,
+    company: "ChilliCream",
+    siteUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -13,6 +14,10 @@ module.exports = {
       {
         name: `Docs`,
         link: `/docs/hotchocolate`,
+      },
+      {
+        name: `Support`,
+        link: `/support`,
       },
       {
         name: `Blog`,
@@ -65,7 +70,7 @@ module.exports = {
       resolve: `gatsby-plugin-react-svg`,
       options: {
         rule: {
-          include: /images\/.*\.svg/,
+          include: /images/,
         },
       },
     },
@@ -82,11 +87,34 @@ module.exports = {
         plugins: [
           `gatsby-remark-autolink-headers`,
           `gatsby-remark-reading-time`,
-          `gatsby-remark-mermaid`,
+          {
+            resolve: `gatsby-remark-mermaid`,
+            options: {
+              mermaidOptions: {
+                fontFamily: "sans-serif",
+              },
+            },
+          },
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-prismjs`,
             options: {
               showLineNumbers: false,
+              inlineCodeMarker: `±`,
+              languageExtensions: [
+                {
+                  language: "sdl",
+                  extend: "graphql",
+                  definition: {},
+                  insertBefore: {},
+                },
+              ],
             },
           },
           {
@@ -125,6 +153,130 @@ module.exports = {
       options: {
         trackingId: "UA-72800164-1",
         anonymize: true,
+      },
+    },
+    `gatsby-plugin-sitemap`,
+    {
+      resolve: `@darth-knoppix/gatsby-plugin-feed`,
+      options: {
+        baseUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
+        query: `{
+          site {
+            siteMetadata {
+              title
+              description
+              siteUrl
+              author
+              company
+            }
+            pathPrefix
+          }
+        }`,
+        setup: (options) => {
+          const { pathPrefix } = options.query.site;
+          const {
+            author,
+            company,
+            description,
+            siteUrl,
+            title,
+          } = options.query.site.siteMetadata;
+          const baseUrl = siteUrl + pathPrefix;
+          const currentYear = new Date().getUTCFullYear();
+
+          return {
+            ...options,
+            id: baseUrl,
+            title,
+            link: baseUrl,
+            description,
+            copyright: `All rights reserved ${currentYear}, ${company}`,
+            author: {
+              name: author,
+              link: "https://twitter.com/Chilli_Cream",
+            },
+            generator: "ChilliCream",
+            image: `${baseUrl}/favicon-32x32.png`,
+            favicon: `${baseUrl}/favicon-32x32.png`,
+            feedLinks: {
+              atom: `${baseUrl}/atom.xml`,
+              json: `${baseUrl}/feed.json`,
+              rss: `${baseUrl}/rss.xml`,
+            },
+            categories: ["GraphQL", "Products", "Services"],
+          };
+        },
+        feeds: [
+          {
+            query: `{
+              allMarkdownRemark(
+                limit: 100
+                filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
+                sort: { order: DESC, fields: [frontmatter___date] },
+              ) {
+                edges {
+                  node {
+                    excerpt
+                    html
+                    frontmatter {
+                      title
+                      author
+                      authorUrl
+                      date
+                      path
+                      featuredImage {
+                        childImageSharp {
+                          fluid(maxWidth: 800) {
+                            src
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }`,
+            serialize: ({
+              query: {
+                allMarkdownRemark,
+                site: {
+                  pathPrefix,
+                  siteMetadata: { siteUrl },
+                },
+              },
+            }) =>
+              allMarkdownRemark.edges.map(({ node }) => {
+                const date = new Date(Date.parse(node.frontmatter.date));
+                const baseUrl = siteUrl + pathPrefix;
+                const link = baseUrl + node.frontmatter.path;
+                let image = node.frontmatter.featuredImage
+                  ? baseUrl +
+                    node.frontmatter.featuredImage.childImageSharp.fluid.src
+                  : null;
+
+                return {
+                  id: node.frontmatter.path,
+                  link,
+                  title: node.frontmatter.title,
+                  date,
+                  published: date,
+                  description: node.excerpt,
+                  content: node.html.replace(
+                    /\/static\//g,
+                    `${baseUrl}/static/`
+                  ),
+                  image,
+                  author: [
+                    {
+                      name: node.frontmatter.author,
+                      link: node.frontmatter.authorUrl,
+                    },
+                  ],
+                };
+              }),
+            title: "ChilliCream Blog",
+          },
+        ],
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality

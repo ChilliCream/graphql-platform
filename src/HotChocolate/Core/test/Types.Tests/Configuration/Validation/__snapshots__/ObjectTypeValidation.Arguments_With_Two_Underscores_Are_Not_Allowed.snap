@@ -1,0 +1,10 @@
+﻿{
+  "message": "Argument names starting with \u0060__\u0060 are reserved for  the GraphQL specification.",
+  "type": "Query",
+  "extensions": {
+    "argument": "__bar",
+    "field": "foo",
+    "specifiedBy": "http://spec.graphql.org/June2018/#sec-Objects.Type-Validation"
+  }
+}
+

@@ -44,7 +44,7 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(source, c =>
             {
-                c.Use(next => context => Task.CompletedTask);
+                c.Use(next => context => default(ValueTask));
                 c.Options.QueryTypeName = "Simple";
             });
 
@@ -240,7 +240,7 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Abc");
 
-            EnumValue value = type.Values.FirstOrDefault(t => t.Name == "B");
+            IEnumValue value = type.Values.FirstOrDefault(t => t.Name == "B");
             Assert.NotNull(value);
             Assert.True(value.IsDeprecated);
             Assert.Equal("reason123", value.DeprecationReason);

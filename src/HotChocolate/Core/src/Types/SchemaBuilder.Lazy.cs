@@ -1,39 +1,41 @@
 using System;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public partial class SchemaBuilder
     {
-        internal class LazySchema
+        public sealed class LazySchema
         {
-            private ISchema _schema;
+            public event EventHandler? Completed;
+
+            private ISchema? _schema;
             private bool _isSet;
 
             public ISchema Schema
             {
                 get
                 {
-                    if (!_isSet)
+                    if (!_isSet || _schema is null)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(
+                            "The schema does not yet exist.");
                     }
 
                     return _schema;
                 }
                 set
                 {
-                    if (value is null)
-                    {
-                        throw new ArgumentNullException(nameof(value));
-                    }
-
                     if (_isSet)
                     {
-                        throw new InvalidOperationException();
+                        throw new InvalidOperationException(
+                            "The schema was already created.");
                     }
 
+                    _schema = value ?? throw new ArgumentNullException(nameof(value));
                     _isSet = true;
-                    _schema = value;
+                    Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
         }

@@ -3,26 +3,23 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
+using HotChocolate.Fetching;
+
+#nullable enable
 
 namespace HotChocolate.DataLoader
 {
     public abstract class CacheDataLoader<TKey, TValue>
         : DataLoaderBase<TKey, TValue>
+        where TKey : notnull
     {
-        private static readonly DataLoaderOptions<TKey> _defaultOptions =
-            CreateOptions(DataLoaderDefaults.CacheSize);
-
-        protected CacheDataLoader(FetchCache<TKey, TValue> fetch)
-            : base(_defaultOptions)
-        {
-        }
-
         protected CacheDataLoader(int cacheSize)
-            : base(CreateOptions(cacheSize))
-        {
-        }
+            : base(
+                AutoBatchScheduler.Default,
+                new DataLoaderOptions<TKey> { CacheSize = cacheSize, MaxBatchSize = 1 })
+        { }
 
-        protected sealed override async Task<IReadOnlyList<Result<TValue>>> FetchAsync(
+        protected sealed override async ValueTask<IReadOnlyList<Result<TValue>>> FetchAsync(
             IReadOnlyList<TKey> keys,
             CancellationToken cancellationToken)
         {
@@ -44,16 +41,8 @@ namespace HotChocolate.DataLoader
             return items;
         }
 
-        protected abstract Task<TValue> LoadSingleAsync(TKey key, CancellationToken cancellationToken);
-
-        private static DataLoaderOptions<TKey> CreateOptions(int cacheSize) =>
-            new DataLoaderOptions<TKey>
-            {
-                AutoDispatching = false,
-                Batching = false,
-                CacheSize = cacheSize,
-                MaxBatchSize = DataLoaderDefaults.MaxBatchSize,
-                SlidingExpiration = TimeSpan.Zero
-            };
+        protected abstract Task<TValue> LoadSingleAsync(
+            TKey key,
+            CancellationToken cancellationToken);
     }
 }

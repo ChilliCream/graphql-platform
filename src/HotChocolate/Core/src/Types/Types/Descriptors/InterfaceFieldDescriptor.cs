@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _argumentsInitialized;
 
-        public InterfaceFieldDescriptor(
+        protected internal InterfaceFieldDescriptor(
             IDescriptorContext context,
             NameString fieldName)
             : base(context)
@@ -20,7 +20,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-        public InterfaceFieldDescriptor(
+        protected internal InterfaceFieldDescriptor(
+            IDescriptorContext context,
+            InterfaceFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal InterfaceFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member)
             : base(context)
@@ -32,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.InputObjectField);
-            Definition.Type = context.Inspector.GetOutputReturnType(member);
+            Definition.Type = context.TypeInspector.GetOutputReturnTypeRef(member);
 
             if (context.Naming.IsDeprecated(member, out string reason))
             {
@@ -46,7 +54,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        internal protected override InterfaceFieldDefinition Definition { get; } =
+        internal protected override InterfaceFieldDefinition Definition { get; protected set; } =
             new InterfaceFieldDefinition();
 
         protected override void OnCreateDefinition(
@@ -54,7 +62,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -186,5 +194,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             MemberInfo member) =>
             new InterfaceFieldDescriptor(context, member);
+
+        public static InterfaceFieldDescriptor From(
+            IDescriptorContext context,
+            InterfaceFieldDefinition definition) =>
+            new InterfaceFieldDescriptor(context, definition);
     }
 }

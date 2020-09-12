@@ -82,9 +82,9 @@ namespace HotChocolate.Types.Filters
         /// <inheritdoc/>
         public new IComparableFilterFieldDescriptor Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            Type extractedType = Context.TypeInspector.ExtractNamedType(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
+            if (Context.TypeInspector.IsSchemaType(extractedType)
                 && !typeof(ILeafType).IsAssignableFrom(extractedType))
             {
                 // TODO : resource
@@ -92,7 +92,10 @@ namespace HotChocolate.Types.Filters
                     "TypeResources.ObjectFieldDescriptorBase_FieldType");
             }
 
-            base.Type(type);
+            Definition.SetMoreSpecificType(
+                Context.TypeInspector.GetType(extractedType),
+                TypeContext.Input);
+
             return this;
         }
 

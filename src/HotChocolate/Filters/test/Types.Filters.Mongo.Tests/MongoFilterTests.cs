@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types.Relay;
@@ -26,26 +25,27 @@ namespace HotChocolate.Types.Filters
         public async Task GetItems_NoFilter_AllItems_Are_Returned()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { foo } }")
@@ -62,26 +62,27 @@ namespace HotChocolate.Types.Filters
         public async Task GetItems_EqualsFilter_FirstItems_Is_Returned()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { foo: \"abc\" }) { foo } }")
@@ -99,51 +100,53 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
                     {
-                        Nested = null
-                    },
-                    new Model
-                    {
-                        Nested = new Model
+                        new Model
+                        {
+                            Nested = null
+                        },
+                        new Model
                         {
                             Nested = new Model
                             {
-                                Foo = "abc",
-                                Bar = 1,
-                                Baz = true
+                                Nested = new Model
+                                {
+                                    Foo = "abc",
+                                    Bar = 1,
+                                    Baz = true
+                                }
                             }
-                        }
-                    },
-                    new Model
-                    {
-                        Nested = new Model
+                        },
+                        new Model
                         {
-                            Nested= new Model
+                            Nested = new Model
                             {
-                                Foo = "def",
-                                Bar = 2,
-                                Baz = false
+                                Nested= new Model
+                                {
+                                    Foo = "def",
+                                    Bar = 2,
+                                    Baz = false
+                                }
                             }
-                        }
-                    },
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                        },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -162,26 +165,27 @@ namespace HotChocolate.Types.Filters
         public async Task GetItems_With_Paging_EqualsFilter_FirstItems_Is_Returned()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { foo: \"abc\" }) { nodes { foo } } }")
@@ -198,26 +202,27 @@ namespace HotChocolate.Types.Filters
         public async Task Boolean_Filter_Equals()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { baz: true }) { nodes { foo } } }")
@@ -234,26 +239,27 @@ namespace HotChocolate.Types.Filters
         public async Task Boolean_Filter_Not_Equals()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Foo = "abc", Bar = 1, Baz = true },
-                    new Model { Foo = "def", Bar = 2, Baz = false },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Foo = "abc", Bar = 1, Baz = true },
+                        new Model { Foo = "def", Bar = 2, Baz = false },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ paging(where: { baz_not: false }) { nodes { foo } } }")
@@ -271,8 +277,9 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
+                {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 IMongoCollection<Model> collection = database.GetCollection<Model>("col");
@@ -282,14 +289,15 @@ namespace HotChocolate.Types.Filters
                     new Model { Time = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc) },
                 });
                 return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+            })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { time_gt: \"2001-01-01\" }) { time } }")
@@ -306,26 +314,27 @@ namespace HotChocolate.Types.Filters
         public async Task DateType_GreaterThan_Filter()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Model>>(sp =>
                 {
-                    new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
-                    new Model { Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
-                });
-                return collection;
-            });
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
 
-            ISchema schema = SchemaBuilder.New()
+                    IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Model { Date = new DateTime(2000, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                        new Model { Date = new DateTime(2016, 1, 1, 1, 1, 1, DateTimeKind.Utc).Date },
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(where: { date_gt: \"2001-01-01\" }) { date } }")

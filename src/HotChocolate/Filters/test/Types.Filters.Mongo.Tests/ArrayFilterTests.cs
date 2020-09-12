@@ -25,14 +25,22 @@ namespace HotChocolate.Types.Filters
         public async Task Array_Filter_On_Scalar_Types()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                return database.GetCollection<Foo>("col");
-            });
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Foo>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    return database.GetCollection<Foo>("col");
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .BindRuntimeType<ObjectId, IdType>()
+                .Services
+                .BuildServiceProvider();
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
             IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
 
             await collection.InsertOneAsync(new Foo
@@ -49,8 +57,6 @@ namespace HotChocolate.Types.Filters
                 .AddServices(services)
                 .BindClrType<ObjectId, IdType>()
                 .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -70,14 +76,22 @@ namespace HotChocolate.Types.Filters
         public async Task Array_Filter_On_Objects_Types()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                return database.GetCollection<Foo>("col");
-            });
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Foo>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    return database.GetCollection<Foo>("col");
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .BindRuntimeType<ObjectId, IdType>()
+                .Services
+                .BuildServiceProvider();
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
             IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
 
             await collection.InsertOneAsync(new Foo
@@ -89,19 +103,11 @@ namespace HotChocolate.Types.Filters
                 Quux = "abc"
             });
 
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddServices(services)
-                .BindClrType<ObjectId, IdType>()
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
                     "{" +
                     "a: foos(where: { bazs_some: { quux: \"c\" } }) { bars } " +
-                    "}")
+                    "}") 
                 .Create();
 
             // act
@@ -115,14 +121,22 @@ namespace HotChocolate.Types.Filters
         public async Task Collection_Filter_On_Scalar_Types()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                return database.GetCollection<Foo>("col");
-            });
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Foo>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    return database.GetCollection<Foo>("col");
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .BindRuntimeType<ObjectId, IdType>()
+                .Services
+                .BuildServiceProvider();
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
             IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
 
             await collection.InsertOneAsync(new Foo
@@ -139,8 +153,6 @@ namespace HotChocolate.Types.Filters
                 .AddServices(services)
                 .BindClrType<ObjectId, IdType>()
                 .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -160,14 +172,22 @@ namespace HotChocolate.Types.Filters
         public async Task Collection_Filter_On_Objects_Types()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IMongoCollection<Foo>>(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                return database.GetCollection<Foo>("col");
-            });
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Foo>>(sp =>
+                {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    return database.GetCollection<Foo>("col");
+                })
+                .AddGraphQL()
+                .AddQueryType<QueryType>()
+                .BindRuntimeType<ObjectId, IdType>()
+                .Services
+                .BuildServiceProvider();
 
-            IServiceProvider services = serviceCollection.BuildServiceProvider();
+            IRequestExecutor executor = 
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
             IMongoCollection<Foo> collection = services.GetRequiredService<IMongoCollection<Foo>>();
 
             await collection.InsertOneAsync(new Foo
@@ -184,8 +204,6 @@ namespace HotChocolate.Types.Filters
                 .AddServices(services)
                 .BindClrType<ObjectId, IdType>()
                 .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(

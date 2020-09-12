@@ -6,13 +6,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectTypeDefinition
         : TypeDefinitionBase<ObjectTypeDefinitionNode>
+        , IComplexOutputTypeDefinition
     {
-        public override Type ClrType
+        public override Type RuntimeType
         {
-            get => base.ClrType;
+            get => base.RuntimeType;
             set
             {
-                base.ClrType = value;
+                base.RuntimeType = value;
                 FieldBindingType = value;
             }
         }

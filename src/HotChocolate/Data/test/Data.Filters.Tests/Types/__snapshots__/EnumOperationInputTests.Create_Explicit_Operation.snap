@@ -1,0 +1,28 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterTypeFilterInput): String
+}
+
+input EnumOperationFilterInputOfFooBarFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+input FooFilterTypeFilterInput {
+  and: [FooFilterTypeFilterInput!]
+  or: [FooFilterTypeFilterInput!]
+  comparable: EnumOperationFilterInputOfFooBarFilterInput
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

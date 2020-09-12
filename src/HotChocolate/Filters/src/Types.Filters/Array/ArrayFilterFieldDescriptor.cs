@@ -95,14 +95,10 @@ namespace HotChocolate.Types.Filters
                 Definition.Property);
         }
 
-        protected ClrTypeReference GetTypeReference()
-        {
-            return new ClrTypeReference(
+        protected ExtendedTypeReference GetTypeReference() =>
+            Context.TypeInspector.GetTypeRef(
                 typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true);
-        }
+                Definition.Type.Context);
 
         private ArrayFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind)
@@ -137,10 +133,8 @@ namespace HotChocolate.Types.Filters
             var operation = GetFilterOperation(operationKind);
 
             var typeReference = RewriteTypeToNullableType(
-                new ClrTypeReference(typeof(bool),
-                    Definition.Type.Context,
-                    true,
-                    true));
+                Context.TypeInspector.GetTypeRef(typeof(bool)),
+                Context.TypeInspector);
 
             return ArrayBooleanFilterOperationDescriptor.New(
                 Context,

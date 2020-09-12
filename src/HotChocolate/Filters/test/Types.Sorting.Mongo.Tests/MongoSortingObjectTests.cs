@@ -7,6 +7,7 @@ using MongoDB.Bson;
 using Xunit;
 using Snapshooter.Xunit;
 using Squadron;
+using System;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -24,25 +25,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_NoSorting_AllItems_Are_Returned_Unsorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                        new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items { model { foo } } }")
@@ -60,32 +62,34 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSortedOnNullable()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent {
-                        Model = new Model {
-                            Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
-                    new Parent {
-                        Model = new Model {
-                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
-                    new Parent {
-                        Model = new Model {
-                            Foo = "abc", Bar = 2, Baz = false, BazNullable= null } }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent {
+                            Model = new Model {
+                                Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
+                        new Parent {
+                            Model = new Model {
+                                Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                        new Parent {
+                            Model = new Model {
+                                Foo = "abc", Bar = 2, Baz = false, BazNullable= null } }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -104,30 +108,32 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSortedOnNullableObject()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent {
-                        Model = new Model {
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent {
+                            Model = new Model {
                             Foo = "def", Bar = 1, Baz = true, BazNullable= 1 } },
-                    new Parent {
-                        Model = new Model {
-                            Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
-                    new Parent {   }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                        new Parent {
+                            Model = new Model {
+                                Foo = "abc", Bar = 2, Baz = false, BazNullable= 2 } },
+                        new Parent { }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -147,25 +153,27 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                        new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { model: { foo: DESC } }) { model { foo } } }")
@@ -183,25 +191,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_With_Paging__DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                        new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -222,25 +231,26 @@ namespace HotChocolate.Types.Sorting
         public async Task GetItems_OnRenamedField_DescSorting_AllItems_Are_Returned_DescSorted()
         {
             // arrange
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(sp =>
-            {
-                IMongoDatabase database = _mongoResource.CreateDatabase();
-                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
-                collection.InsertMany(new[]
+            IServiceProvider services = new ServiceCollection()
+                .AddSingleton<IMongoCollection<Parent>>(sp =>
                 {
-                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
-                });
-                return collection;
-            });
-
-            ISchema schema = SchemaBuilder.New()
+                    IMongoDatabase database = _mongoResource.CreateDatabase();
+                    IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
+                    collection.InsertMany(new[]
+                    {
+                        new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                        new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
+                    });
+                    return collection;
+                })
+                .AddGraphQL()
                 .AddQueryType<QueryType>()
-                .AddServices(serviceCollection.BuildServiceProvider())
-                .Create();
+                .Services
+                .BuildServiceProvider();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ items(order_by: { model: { qux: DESC } }) { model { bar } } }")

@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -7,7 +8,7 @@ namespace HotChocolate.Validation
         : DocumentValidatorVisitorTestBase
     {
         public VariablesAreInputTypesRuleTests()
-            : base(services => services.AddVariableUniqueAndInputTypeRule())
+            : base(builder => builder.AddVariableRules())
         {
         }
 
@@ -19,7 +20,7 @@ namespace HotChocolate.Validation
             DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
-                        isHousetrained(atOtherHomes: $atOtherHomes)
+                        isHouseTrained(atOtherHomes: $atOtherHomes)
                     }
                 }
 
@@ -45,9 +46,7 @@ namespace HotChocolate.Validation
         [Fact]
         public void QueriesWithInvalidVariableTypes()
         {
-            // arrange
-            IDocumentValidatorContext context = ValidationUtils.CreateContext();
-            DocumentNode query = Utf8GraphQLParser.Parse(@"
+            ExpectErrors(@"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -64,26 +63,6 @@ namespace HotChocolate.Validation
                     # ...
                 }
             ");
-            context.Prepare(query);
-
-            // act
-            Rule.Validate(context, query);
-
-            // assert
-            Assert.NotEmpty(context.Errors);
-            Assert.Collection(context.Errors,
-                t => Assert.Equal(
-                    "The type of variable `cat` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `dog` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `pets` is not an input type.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The type of variable `catOrDog` is not an input type.",
-                    t.Message));
         }
     }
 }

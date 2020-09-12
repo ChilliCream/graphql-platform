@@ -1,7 +1,9 @@
-﻿namespace HotChocolate.Types
+﻿#nullable enable
+
+namespace HotChocolate.Types
 {
     public interface IHasDirectives
     {
-        IDirectiveCollection Directives { get; }
+        public IDirectiveCollection Directives { get; }
     }
 }

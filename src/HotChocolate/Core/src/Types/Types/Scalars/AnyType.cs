@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -12,8 +15,8 @@ namespace HotChocolate.Types
     {
         private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter =
             new ObjectValueToDictionaryConverter();
-        private ObjectToDictionaryConverter _objectToDictConverter;
-        private ITypeConversion _converter;
+        private ObjectToDictionaryConverter _objectToDictConverter = default!;
+        private ITypeConverter _converter = default!;
 
         public AnyType()
             : base(ScalarNames.Any, BindingBehavior.Explicit)
@@ -31,20 +34,20 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        public override Type ClrType => typeof(object);
+        public override Type RuntimeType => typeof(object);
 
         protected override void OnCompleteType(
-            ICompletionContext context,
-            IDictionary<string, object> contextData)
+            ITypeCompletionContext context,
+            IDictionary<string, object?> contextData)
         {
-            _converter = context.Services.GetTypeConversion();
+            _converter = context.Services.GetTypeConverter();
             _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
             base.OnCompleteType(context, contextData);
         }
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -65,7 +68,7 @@ namespace HotChocolate.Types
             }
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public override object? ParseLiteral(IValueNode literal, bool withDefaults = true)
         {
             switch (literal)
             {
@@ -73,10 +76,10 @@ namespace HotChocolate.Types
                     return svn.Value;
 
                 case IntValueNode ivn:
-                    return long.Parse(ivn.Value);
+                    return long.Parse(ivn.Value, CultureInfo.InvariantCulture);
 
                 case FloatValueNode fvn:
-                    return decimal.Parse(fvn.Value);
+                    return decimal.Parse(fvn.Value, CultureInfo.InvariantCulture);
 
                 case BooleanValueNode bvn:
                     return bvn.Value;
@@ -91,22 +94,23 @@ namespace HotChocolate.Types
                     return null;
 
                 default:
-                    throw new ScalarSerializationException(
-                        TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                            Name, literal.GetType()));
+                    throw new SerializationException(
+                        TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, literal.GetType()),
+                        this);
             }
         }
 
-        public override IValueNode ParseValue(object value)
+        public override IValueNode ParseValue(object? value)
         {
             if (value is null)
             {
                 return NullValueNode.Default;
             }
+
             return ParseValue(value, new HashSet<object>());
         }
 
-        private IValueNode ParseValue(object value, ISet<object> set)
+        private IValueNode ParseValue(object? value, ISet<object> set)
         {
             if (value is null)
             {
@@ -136,7 +140,7 @@ namespace HotChocolate.Types
             Type type = value.GetType();
 
             if (type.IsValueType && _converter.TryConvert(
-                type, typeof(string), value, out object converted)
+                type, typeof(string), value, out object? converted)
                 && converted is string c)
             {
                 return new StringValueNode(c);
@@ -170,20 +174,23 @@ namespace HotChocolate.Types
             }
 
             // TODO : resources
-            throw new ScalarSerializationException(
-                "Cycle in object graph detected.");
+            throw new SerializationException(
+                "Cycle in object graph detected.",
+                this);
         }
 
+        public override IValueNode ParseResult(object? resultValue) =>
+            ParseValue(resultValue);
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            switch (value)
+            switch (runtimeValue)
             {
                 case string _:
                 case short _:
@@ -193,28 +200,28 @@ namespace HotChocolate.Types
                 case double _:
                 case decimal _:
                 case bool _:
-                    serialized = value;
+                    resultValue = runtimeValue;
                     return true;
 
                 default:
-                    Type type = value.GetType();
+                    Type type = runtimeValue.GetType();
 
-                    if (type.IsValueType && _converter.TryConvert(
-                        type, typeof(string), value, out object converted)
-                        && converted is string c)
+                    if (type.IsValueType && 
+                        _converter.TryConvert(type, typeof(string), runtimeValue, out object? c) && 
+                        c is string casted)
                     {
-                        serialized = c;
+                        resultValue = casted;
                         return true;
                     }
 
-                    serialized = _objectToDictConverter.Convert(value);
+                    resultValue = _objectToDictConverter.Convert(runtimeValue);
                     return true;
             }
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            value = serialized;
+            runtimeValue = resultValue;
             return true;
         }
     }
