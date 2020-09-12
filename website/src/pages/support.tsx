@@ -1,10 +1,19 @@
 import React, { FunctionComponent } from "react";
-import styled from "styled-components";
+import {
+  Check,
+  ContentContainer,
+  Envelope,
+  ImageContainer,
+  List,
+  ListItem,
+  Section,
+  SectionRow,
+  SectionTitle,
+} from "../components/misc/marketing-elements";
 import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-import CheckSvg from "../images/check.svg";
 import ContactUsSvg from "../images/contact-us.svg";
 import DeveloperSupportSvg from "../images/developer-support.svg";
 import TrainingAndWorkshopSvg from "../images/training-and-workshop.svg";
@@ -40,14 +49,14 @@ const SupportPage: FunctionComponent = () => {
               which are not listed here.
             </p>
             <List>
-              <li>
+              <ListItem>
                 <Check />
                 Private Slack Channel with ChilliCream experts for your team
-              </li>
-              <li>
+              </ListItem>
+              <ListItem>
                 <Check />
                 Architecture, Code and Schema reviews
-              </li>
+              </ListItem>
             </List>
           </ContentContainer>
         </SectionRow>
@@ -64,16 +73,16 @@ const SupportPage: FunctionComponent = () => {
               platform with dedicated training sessions and workshops.
             </p>
             <List>
-              <li>
+              <ListItem>
                 <Check />
                 Learn from ChilliCream experts, what GraphQL is, what it can do
                 and how to use it
-              </li>
-              <li>
+              </ListItem>
+              <ListItem>
                 <Check />
                 Private training sessions, customized to your needs and
                 requirements
-              </li>
+              </ListItem>
             </List>
           </ContentContainer>
         </SectionRow>
@@ -87,13 +96,11 @@ const SupportPage: FunctionComponent = () => {
             <SectionTitle>Get in Touch</SectionTitle>
             <p>
               Want to learn more? Get the right help for your team and reach out
-              to us today.
-            </p>
-            <p>
-              Write us an email at{" "}
+              to us today. Write us an{" "}
               <a href="mailto:contact@chillicream.com">
-                contact(at)chillicream.com
-              </a>
+                <Envelope />
+              </a>{" "}
+              and we will come back to you shortly!
             </p>
           </ContentContainer>
         </SectionRow>
@@ -103,108 +110,3 @@ const SupportPage: FunctionComponent = () => {
 };
 
 export default SupportPage;
-
-const SectionRow = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
-  width: 100%;
-  max-width: 1100px;
-`;
-
-const Section = styled.section`
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 70px 0 50px;
-  width: 100%;
-
-  &:nth-child(odd) {
-    background-color: #efefef;
-  }
-
-  @media only screen and (min-width: 992px) {
-    &:nth-child(even) > ${SectionRow} {
-      flex-direction: row;
-    }
-
-    &:nth-child(odd) > ${SectionRow} {
-      flex-direction: row-reverse;
-    }
-  }
-`;
-
-const ImageContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  margin-bottom: 50px;
-  padding: 0 20px;
-  width: 100%;
-  max-width: 380px;
-
-  @media only screen and (min-width: 992px) {
-    flex: 0 0 35%;
-    box-sizing: initial;
-    margin-bottom: initial;
-    padding: 0;
-    max-width: 280px;
-  }
-`;
-
-const ContentContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding: 0 40px;
-
-  > p {
-    text-align: center;
-  }
-
-  @media only screen and (min-width: 992px) {
-    flex: 0 0 55%;
-    padding: 0;
-
-    > p {
-      text-align: initial;
-    }
-  }
-`;
-
-const SectionTitle = styled.h1`
-  flex: 0 0 auto;
-  font-size: 1.75em;
-  color: #667;
-  text-align: center;
-
-  @media only screen and (min-width: 768px) {
-    margin-bottom: 20px;
-  }
-
-  @media only screen and (min-width: 992px) {
-    text-align: initial;
-  }
-`;
-
-const List = styled.ul`
-  list-style-type: none;
-  align-self: center;
-
-  @media only screen and (min-width: 992px) {
-    align-self: initial;
-  }
-`;
-
-const Check = styled(CheckSvg)`
-  margin: 0 10px 5px 0;
-  width: 24px;
-  height: 24px;
-  vertical-align: middle;
-  fill: green;
-`;

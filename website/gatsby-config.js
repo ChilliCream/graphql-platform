@@ -247,10 +247,13 @@ module.exports = {
             }) =>
               allMarkdownRemark.edges.map(({ node }) => {
                 const date = new Date(Date.parse(node.frontmatter.date));
-                const baseUrl = siteUrl + pathPrefix;
-                const link = baseUrl + node.frontmatter.path;
+                const imgSrcPattern = new RegExp(
+                  `(${pathPrefix})?/static/`,
+                  "g"
+                );
+                const link = siteUrl + pathPrefix + node.frontmatter.path;
                 let image = node.frontmatter.featuredImage
-                  ? baseUrl +
+                  ? siteUrl +
                     node.frontmatter.featuredImage.childImageSharp.fluid.src
                   : null;
 
@@ -262,8 +265,8 @@ module.exports = {
                   published: date,
                   description: node.excerpt,
                   content: node.html.replace(
-                    /\/static\//g,
-                    `${baseUrl}/static/`
+                    imgSrcPattern,
+                    `${siteUrl}/static/`
                   ),
                   image,
                   author: [

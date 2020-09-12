@@ -4,9 +4,19 @@ import styled from "styled-components";
 import { BananaCakepop } from "../components/images/banana-cakepop";
 import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
 import { Link } from "../components/misc/link";
+import {
+  ContentContainer,
+  Envelope,
+  ImageContainer,
+  Section,
+  SectionRow,
+  SectionTitle,
+} from "../components/misc/marketing-elements";
 import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
+
+import ContactUsSvg from "../images/contact-us.svg";
 
 const IndexPage: FunctionComponent = () => {
   return (
@@ -18,6 +28,7 @@ const IndexPage: FunctionComponent = () => {
           autoPlay
           infiniteLoop
           swipeable
+          interval={15000}
           showStatus={false}
           showThumbs={false}
         >
@@ -33,17 +44,83 @@ const IndexPage: FunctionComponent = () => {
             </Link>
           </Slide>
           <Slide>
-            <BananaCakepop />
-            <SlideContent>
-              <SlideTitle>Banana Cakepop</SlideTitle>
-              <SlideDescription>
-                Our tool to explore schemas, execute operations and get deep
-                performance insights.
-              </SlideDescription>
-            </SlideContent>
+            <Link to="/docs/bananacakepop">
+              <BananaCakepop />
+              <SlideContent>
+                <SlideTitle>Banana Cakepop</SlideTitle>
+                <SlideDescription>
+                  Our tool to explore schemas, execute operations and get deep
+                  performance insights.
+                </SlideDescription>
+              </SlideContent>
+            </Link>
           </Slide>
         </Slideshow>
       </Intro>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>
+              What is the ChilliCream GraphQL platform?
+            </SectionTitle>
+            <p>...</p>
+            <Link to="/platform">Learn more</Link>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>Get Started</SectionTitle>
+            <p>...</p>
+            <Link to="/docs/hotchocolate">Learn more</Link>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>From our Blog</SectionTitle>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer large>
+            <BananaCakepop />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>Companies who trust us</SectionTitle>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
+      <Section>
+        <SectionRow>
+          <ImageContainer>
+            <ContactUsSvg />
+          </ImageContainer>
+          <ContentContainer>
+            <SectionTitle>Get in Touch</SectionTitle>
+            <p>
+              Want to learn more? Get the right help for your team and reach out
+              to us today. Write us an{" "}
+              <a href="mailto:contact@chillicream.com">
+                <Envelope />
+              </a>{" "}
+              and we will come back to you shortly!
+            </p>
+          </ContentContainer>
+        </SectionRow>
+      </Section>
     </Layout>
   );
 };

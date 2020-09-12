@@ -47,6 +47,6 @@ const Content = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 60px 0;
+  margin-top: 60px;
   width: 100%;
 `;
