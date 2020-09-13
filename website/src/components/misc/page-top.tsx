@@ -47,6 +47,6 @@ const JumpToTop = styled.button`
   }
 
   @media only screen and (min-width: 1600px) {
-    right: calc(((100vw - 1300px) / 2) - 100px);
+    right: calc(((100vw - 1320px) / 2) - 100px);
   }
 `;
