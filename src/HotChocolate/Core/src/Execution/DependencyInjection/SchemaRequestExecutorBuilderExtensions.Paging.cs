@@ -1,8 +1,6 @@
 using System;
 using HotChocolate;
-using HotChocolate.Configuration.Bindings;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Types;
 using HotChocolate.Types.Pagination;
 
 namespace Microsoft.Extensions.DependencyInjection

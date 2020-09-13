@@ -12,10 +12,10 @@ namespace HotChocolate.Types.Pagination
         bool HasPreviousPage { get; }
 
         /// <summary>
-        /// If <see cref="TotalCount"/> is supported by the <see cref="ICollectionSegmentResolver"/>
+        /// If <see cref="TotalCount"/> is supported by the <see cref="IPageInfo"/>
         /// then this property will provide the total number of entities the current data set
         /// provides.
         /// </summary>
-        long? TotalCount { get; }
+        int? TotalCount { get; }
     }
 }

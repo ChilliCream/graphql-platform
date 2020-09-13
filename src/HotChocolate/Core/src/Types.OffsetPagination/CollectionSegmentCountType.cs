@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class ConnectionCountType<T>
-        : ConnectionType<T>
+    public class CollectionSegmentCountType<T>
+        : CollectionSegmentType<T>
         where T : class, IOutputType
     {
-        public ConnectionCountType()
+        public CollectionSegmentCountType()
         {
         }
 
-        public ConnectionCountType(
-            Action<IObjectTypeDescriptor<Connection>> configure)
+        public CollectionSegmentCountType(
+            Action<IObjectTypeDescriptor<CollectionSegment>> configure)
             : base(descriptor =>
             {
                 ApplyConfig(descriptor);
@@ -22,12 +22,12 @@ namespace HotChocolate.Types.Pagination
         {
         }
 
-        protected override void Configure(IObjectTypeDescriptor<Connection> descriptor) =>
+        protected override void Configure(IObjectTypeDescriptor<CollectionSegment> descriptor) =>
             ApplyConfig(descriptor);
 
-        protected static new void ApplyConfig(IObjectTypeDescriptor<Connection> descriptor)
+        protected static new void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
         {
-            ConnectionType<T>.ApplyConfig(descriptor);
+            CollectionSegmentType<T>.ApplyConfig(descriptor);
 
             descriptor
                 .Field("totalCount")
@@ -38,9 +38,9 @@ namespace HotChocolate.Types.Pagination
         private sealed class Resolvers
         {
             public ValueTask<int> GetTotalCount(
-                [Parent] Connection connection,
+                [Parent] CollectionSegment segment,
                 CancellationToken cancellationToken) =>
-                connection.GetTotalCountAsync(cancellationToken);
+                segment.GetTotalCountAsync(cancellationToken);
         }
     }
 }

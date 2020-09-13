@@ -1,11 +1,11 @@
 namespace HotChocolate.Types.Pagination
 {
-    public class CollectionSegmentInfo : IPageInfo
+    public readonly struct CollectionSegmentInfo : IPageInfo
     {
         public CollectionSegmentInfo(
             bool hasNextPage,
             bool hasPreviousPage,
-            long? totalCount = null)
+            int? totalCount = null)
         {
             HasNextPage = hasNextPage;
             HasPreviousPage = hasPreviousPage;
@@ -16,6 +16,6 @@ namespace HotChocolate.Types.Pagination
 
         public bool HasPreviousPage { get; }
 
-        public long? TotalCount { get; }
+        public int? TotalCount { get; }
     }
 }

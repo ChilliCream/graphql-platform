@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 #nullable enable
 
@@ -18,5 +20,7 @@ namespace HotChocolate.Types.Pagination
         /// Gets basic information about this page in the overall data set.
         /// </summary>
         IPageInfo Info { get; }
+
+        ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken);
     }
 }

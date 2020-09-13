@@ -1,62 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class OffsetPagingProvider
+    public class QueryableOffsetPagingProvider
+        : OffsetPagingProvider
     {
+        private static readonly MethodInfo _createHandler =
+            typeof(QueryableOffsetPagingProvider)
+                .GetMethod(nameof(CreateHandlerInternal))!;
 
-    }
-
-    public abstract class OffsetPagingHandler: IPagingHandler
-    {
-        protected OffsetPagingHandler(PagingSettings settings)
+        public override bool CanHandle(IExtendedType source)
         {
-            DefaultPageSize = settings.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-            MaxPageSize = settings.MaxPageSize ?? PagingDefaults.MaxPageSize;
-            IncludeTotalCount = settings.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
+            throw new NotImplementedException();
         }
 
-        protected int DefaultPageSize { get; }
-
-        protected  int MaxPageSize { get; }
-
-        protected  bool IncludeTotalCount { get; }
-
-        public void ValidateContext(IResolverContext context)
+        protected override OffsetPagingHandler CreateHandler(
+            IExtendedType source,
+            PagingSettings settings)
         {
-            int? take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
-
-            if (take > MaxPageSize)
+            if (source is null)
             {
-                throw ThrowHelper.OffsetPagingHandler_MaxPageSize();
+                throw new ArgumentNullException(nameof(source));
             }
+
+            return (OffsetPagingHandler)_createHandler
+                .MakeGenericMethod(source.ElementType.Source)
+                .Invoke(null, new object[] { settings });
         }
 
-        async ValueTask<IPage> IPagingHandler.SliceAsync(
-            IResolverContext context,
-            object source)
-        {
-            int? skip = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Skip);
-            int? take = context.ArgumentValue<int?>(OffsetPagingArgumentNames.Take);
-
-
-            var arguments = new OffsetPagingArguments(
-                skip ?? 0,
-                take ??DefaultPageSize);
-
-            return await SliceAsync(context, source, arguments).ConfigureAwait(false);
-        }
-
-        protected abstract ValueTask<CollectionSegment> SliceAsync(
-            IResolverContext context,
-            object source,
-            OffsetPagingArguments arguments);
+        private static QueryableOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
+            PagingSettings settings) =>
+            new QueryableOffsetPagingHandler<TEntity>(settings);
     }
+
 
     public class QueryableOffsetPagingHandler<TEntity>
         : OffsetPagingHandler
@@ -78,23 +61,29 @@ namespace HotChocolate.Types.Pagination
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
 
-            int? count = IncludeTotalCount
-                ? (int?)await Task.Run(queryable.Count, context.RequestAborted)
-                    .ConfigureAwait(false)
-                : null;
+            IQueryable<TEntity> original = queryable;
 
+            if (arguments.Skip.HasValue)
+            {
+                queryable = queryable.Skip(arguments.Skip.Value);
+            }
 
-            IQueryable<TClrType> slice = source;
+            queryable = queryable.Take(arguments.Take + 1);
+            List<TEntity> items =
+                await ExecuteQueryableAsync(queryable, context.RequestAborted)
+                    .ConfigureAwait(false);
+            var pageInfo = new CollectionSegmentInfo(
+                items.Count == arguments.Take + 1,
+                (arguments.Skip ?? 0) > 0);
+            items.RemoveAt(arguments.Take);
 
-            if (skip != null)
-                slice = slice.Skip(skip.Value);
-            if (take != null)
-                slice = slice.Take(take.Value);
+            return new CollectionSegment((IReadOnlyCollection<object>)items, pageInfo, CountAsync);
 
-            context.Result = new CollectionSegment(, totalCount);
+            async ValueTask<int> CountAsync(CancellationToken cancellationToken) =>
+                await Task.Run(original.Count, cancellationToken).ConfigureAwait(false);
         }
 
-        protected virtual async ValueTask<IReadOnlyList<TEntity>> ExecuteQueryableAsync(
+        protected virtual async ValueTask<List<TEntity>> ExecuteQueryableAsync(
             IQueryable<TEntity> queryable,
             CancellationToken cancellationToken)
         {
@@ -128,20 +117,5 @@ namespace HotChocolate.Types.Pagination
             return list;
 
         }
-
-        public async Task InvokeAsync(IMiddlewareContext context)
-        {
-
-
-            if (source != null)
-            {
-                int? skip = context.Argument<int?>("skip");
-                int? take = context.Argument<int?>("take");
-
-
-            }
-        }
-
-
     }
 }

@@ -68,7 +68,10 @@ namespace HotChocolate.Types.Pagination
                 lastEdge?.Cursor,
                 count);
 
-            return new Connection<TEntity>(selectedEdges, pageInfo);
+            return new Connection<TEntity>(
+                selectedEdges,
+                pageInfo,
+                ct => new ValueTask<int>(pageInfo.TotalCount ?? 0));
         }
 
         private async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> GetSelectedEdgesAsync(

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading;
 using HotChocolate.Internal;
-using HotChocolate.Types.Descriptors;
 
 #nullable enable
 
