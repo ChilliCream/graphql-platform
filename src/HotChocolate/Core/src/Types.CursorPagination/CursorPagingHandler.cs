@@ -24,11 +24,6 @@ namespace HotChocolate.Types.Pagination
             int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
             int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
 
-            if (first is null && last is null)
-            {
-                first = DefaultPageSize;
-            }
-
             if (first > MaxPageSize || last > MaxPageSize)
             {
                 throw ThrowHelper.ConnectionMiddleware_MaxPageSize();
@@ -39,9 +34,17 @@ namespace HotChocolate.Types.Pagination
             IResolverContext context,
             object source)
         {
+            int? first = context.ArgumentValue<int?>(CursorPagingArgumentNames.First);
+            int? last = context.ArgumentValue<int?>(CursorPagingArgumentNames.Last);
+
+            if (first is null && last is null)
+            {
+                first = DefaultPageSize;
+            }
+
             var arguments = new CursorPagingArguments(
-                context.ArgumentValue<int?>(CursorPagingArgumentNames.First),
-                context.ArgumentValue<int?>(CursorPagingArgumentNames.Last),
+                first,
+                last,
                 context.ArgumentValue<string>(CursorPagingArgumentNames.After),
                 context.ArgumentValue<string>(CursorPagingArgumentNames.Before));
 
