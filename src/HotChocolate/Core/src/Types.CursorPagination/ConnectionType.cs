@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Pagination
 {
     public class ConnectionType<T>
         : ObjectType<IConnection>
-        , IConnectionType
         where T : class, IOutputType
     {
         public ConnectionType()

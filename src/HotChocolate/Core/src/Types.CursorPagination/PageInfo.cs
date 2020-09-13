@@ -1,8 +1,8 @@
 ﻿namespace HotChocolate.Types.Pagination
 {
-    public readonly struct PageInfo : IPageInfo
+    public readonly struct ConnectionPageInfo : IPageInfo
     {
-        public PageInfo(
+        public ConnectionPageInfo(
             bool hasNextPage,
             bool hasPreviousPage,
             string startCursor,

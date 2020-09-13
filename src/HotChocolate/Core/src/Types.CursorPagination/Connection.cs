@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Types.Pagination
 {
-    public class Connection<T> : IConnection
+    public class Connection : IPage
     {
-        public Connection(
-            IPageInfo pageInfo,
-            IReadOnlyList<Edge<T>> edges)
+        public Connection(IReadOnlyCollection<IEdge> edges, ConnectionPageInfo info)
         {
-            PageInfo = pageInfo ?? throw new ArgumentNullException(nameof(pageInfo));
             Edges = edges ?? throw new ArgumentNullException(nameof(edges));
+            Info = info;
         }
 
-        public IPageInfo PageInfo { get; }
+        public IReadOnlyCollection<IEdge> Edges { get; }
 
-        public IReadOnlyList<Edge<T>> Edges { get; }
+        public ConnectionPageInfo Info { get; }
 
-        IReadOnlyList<IEdge> IConnection.Edges => Edges;
+        IReadOnlyCollection<object> IPage.Items => Edges;
+
+        IPageInfo IPage.Info => Info;
     }
 }

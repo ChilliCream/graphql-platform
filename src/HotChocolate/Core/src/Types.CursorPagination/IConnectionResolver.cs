@@ -34,4 +34,35 @@ namespace HotChocolate.Types.Pagination
             bool withTotalCount = false,
             CancellationToken cancellationToken = default);
     }
+
+    public class CursorPagingProvider<TSource> : IPagingProvider<>
+    {
+        public ValueTask<Connection> SliceAsync(
+            CursorPagingContext<TSource> context,
+            CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        async ValueTask<IPage> IPagingProvider<>.SliceAsync(
+            IPagingContext context,
+            CancellationToken cancellationToken) =>
+            await SliceAsync((CursorPagingContext<TSource>)context, cancellationToken);
+
+        IPagingContext IPagingProvider<>.CreateContext(
+            IResolverContext context,
+            object source)
+        {
+
+        }
+
+    }
+
+    public class CursorPagingContext<TSource>
+        : IPagingContext
+    {
+        public IResolverContext ResolverContext { get; }
+        public object Source { get; }
+        public bool IncludeTotalCount { get; }
+    }
 }

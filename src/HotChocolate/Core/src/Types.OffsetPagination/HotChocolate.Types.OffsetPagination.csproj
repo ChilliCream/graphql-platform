@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <PackageId>HotChocolate.Types.OffsetPagination</PackageId>
     <AssemblyName>HotChocolate.Types.OffsetPagination</AssemblyName>
     <RootNamespace>HotChocolate.Types.Pagination</RootNamespace>

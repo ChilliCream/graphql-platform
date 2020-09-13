@@ -1,9 +1,9 @@
 ﻿namespace HotChocolate.Types.Pagination
 {
-    public class PageInfoType : ObjectType<IPageInfo>
+    public class PageInfoType : ObjectType<ConnectionPageInfo>
     {
         protected override void Configure(
-            IObjectTypeDescriptor<IPageInfo> descriptor)
+            IObjectTypeDescriptor<ConnectionPageInfo> descriptor)
         {
             descriptor
                 .Name("PageInfo")
