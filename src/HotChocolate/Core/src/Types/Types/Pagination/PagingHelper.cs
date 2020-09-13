@@ -81,7 +81,9 @@ namespace HotChocolate.Types.Pagination
 
         private static FieldMiddleware CreateMiddleware(
             IPagingHandler handler) =>
-            FieldClassMiddlewareFactory.Create(typeof(PagingMiddleware), handler);
+            FieldClassMiddlewareFactory.Create(
+                typeof(PagingMiddleware), 
+                (typeof(IPagingHandler), handler));
 
         public static PagingSettings GetSettings(
             this ITypeCompletionContext context,
@@ -93,7 +95,7 @@ namespace HotChocolate.Types.Pagination
             PagingSettings settings)
         {
             PagingSettings global = default;
-            if (context.ContextData.TryGetValue(typeof(PagingSettings).FullName, out object? o) &&
+            if (context.ContextData.TryGetValue(typeof(PagingSettings).FullName!, out object? o) &&
                 o is PagingSettings casted)
             {
                 global = casted;

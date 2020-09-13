@@ -1,6 +1,8 @@
+using System;
+
 namespace HotChocolate.Types.Pagination
 {
-    public readonly struct CollectionSegmentInfo : IPageInfo
+    public class CollectionSegmentInfo : IPageInfo
     {
         public CollectionSegmentInfo(
             bool hasNextPage,

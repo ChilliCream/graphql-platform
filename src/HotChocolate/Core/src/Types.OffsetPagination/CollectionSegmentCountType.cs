@@ -27,10 +27,15 @@ namespace HotChocolate.Types.Pagination
 
         protected static new void ApplyConfig(IObjectTypeDescriptor<CollectionSegment> descriptor)
         {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             CollectionSegmentType<T>.ApplyConfig(descriptor);
 
             descriptor
-                .Field("totalCount")
+                .Field(OffsetPagingFieldNames.TotalCount)
                 .Type<NonNullType<IntType>>()
                 .ResolveWith<Resolvers>(t => t.GetTotalCount(default!, default));
         }

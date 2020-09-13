@@ -118,7 +118,7 @@ namespace HotChocolate.Types
             IExtendedType extendedType = context.TypeInspector.GetType (connectionType);
 
             if (!extendedType.IsSchemaType ||
-                !context.TypeInspector.TryCreateTypeInfo(extendedType, out ITypeInfo typeInfo) ||
+                !context.TypeInspector.TryCreateTypeInfo(extendedType, out ITypeInfo? typeInfo) ||
                 !typeInfo.IsOutputType())
             {
                 throw OffsetPagingObjectFieldDescriptorExtensions_InvalidType();
@@ -130,6 +130,7 @@ namespace HotChocolate.Types
         private static OffsetPagingProvider ResolvePagingProvider(
             IServiceProvider services,
             IExtendedType source) =>
-            services.GetServices<OffsetPagingProvider>().First(p => p.CanHandle(source));
+            services.GetServices<OffsetPagingProvider>().FirstOrDefault(p => p.CanHandle(source)) ??
+                new QueryableOffsetPagingProvider();
     }
 }
