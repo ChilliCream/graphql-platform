@@ -12,6 +12,6 @@ namespace HotChocolate.Types.Pagination
     {
         bool CanHandle(IExtendedType source);
 
-        IPagingHandler CreateHandler(PagingSettings settings);
+        IPagingHandler CreateHandler(IExtendedType source, PagingSettings settings);
     }
 }

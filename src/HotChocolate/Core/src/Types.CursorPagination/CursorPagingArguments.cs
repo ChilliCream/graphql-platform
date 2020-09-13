@@ -2,9 +2,9 @@
 
 namespace HotChocolate.Types.Pagination
 {
-    public readonly struct ConnectionArguments
+    public readonly struct CursorPagingArguments
     {
-        public ConnectionArguments(
+        public CursorPagingArguments(
             int? first = null,
             int? last = null,
             string? after = null,

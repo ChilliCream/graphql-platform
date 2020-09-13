@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Pagination
 {
     public class ConnectionType<T>
-        : ObjectType<IConnection>
+        : ObjectType<Connection>
         where T : class, IOutputType
     {
         public ConnectionType()
@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         public ConnectionType(
-            Action<IObjectTypeDescriptor<IConnection>> configure)
+            Action<IObjectTypeDescriptor<Connection>> configure)
             : base(descriptor =>
             {
                 ApplyConfig(descriptor);
@@ -25,10 +25,10 @@ namespace HotChocolate.Types.Pagination
 
         public IEdgeType EdgeType { get; private set; } = default!;
 
-        protected override void Configure(IObjectTypeDescriptor<IConnection> descriptor) =>
+        protected override void Configure(IObjectTypeDescriptor<Connection> descriptor) =>
             ApplyConfig(descriptor);
 
-        protected static void ApplyConfig(IObjectTypeDescriptor<IConnection> descriptor)
+        protected static void ApplyConfig(IObjectTypeDescriptor<Connection> descriptor)
         {
             descriptor
                 .Name(dependency => $"{dependency.Name}Connection")
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Pagination
                 .BindFields(BindingBehavior.Explicit);
 
             descriptor
-                .Field(t => t.PageInfo)
+                .Field(t => t.Info)
                 .Name("pageInfo")
                 .Description("Information to aid in pagination.")
                 .Type<NonNullType<PageInfoType>>();
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Pagination
                 .Field("nodes")
                 .Description("A flattened list of the nodes.")
                 .Type<ListType<T>>()
-                .Resolver(ctx => ctx.Parent<IConnection>().Edges.Select(t => t.Node));
+                .Resolver(ctx => ctx.Parent<Connection>().Edges.Select(t => t.Node));
         }
 
         protected override void OnRegisterDependencies(

@@ -13,10 +13,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Pagination
 {
-    public static class PagingExtensions
+    public static class PagingHelper
     {
         public static IObjectFieldDescriptor UsePaging(
-            this IObjectFieldDescriptor descriptor,
+            IObjectFieldDescriptor descriptor,
             Type type,
             Type? entityType = null,
             GetPagingProvider? resolvePagingProvider = null,
@@ -34,9 +34,8 @@ namespace HotChocolate.Types.Pagination
 
             FieldMiddleware placeholder = next => context => default;
 
-            descriptor.Use(placeholder);
-
             descriptor
+                .Use(placeholder)
                 .Extend()
                 .OnBeforeCompletion((c, d) =>
                 {
@@ -46,7 +45,7 @@ namespace HotChocolate.Types.Pagination
 
                     IExtendedType sourceType = GetSourceType(c.TypeInspector, d, entityType);
                     IPagingProvider pagingProvider = resolvePagingProvider(c.Services, sourceType);
-                    IPagingHandler pagingHandler = pagingProvider.CreateHandler(settings);
+                    IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, settings);
                     FieldMiddleware middleware = CreateMiddleware(pagingHandler);
                     var index = d.MiddlewareComponents.IndexOf(placeholder);
                     d.MiddlewareComponents[index] = middleware;
@@ -55,8 +54,6 @@ namespace HotChocolate.Types.Pagination
 
             return descriptor;
         }
-
-
 
         private static IExtendedType GetSourceType(
             ITypeInspector typeInspector,
@@ -86,12 +83,12 @@ namespace HotChocolate.Types.Pagination
             IPagingHandler handler) =>
             FieldClassMiddlewareFactory.Create(typeof(PagingMiddleware), handler);
 
-        private static PagingSettings GetSettings(
+        public static PagingSettings GetSettings(
             this ITypeCompletionContext context,
             PagingSettings settings) =>
             context.DescriptorContext.GetSettings(settings);
 
-        private static PagingSettings GetSettings(
+        public static PagingSettings GetSettings(
             this IDescriptorContext context,
             PagingSettings settings)
         {

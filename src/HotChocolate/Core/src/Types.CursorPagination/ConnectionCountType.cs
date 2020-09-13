@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         public ConnectionCountType(
-            Action<IObjectTypeDescriptor<IConnection>> configure)
+            Action<IObjectTypeDescriptor<Connection>> configure)
             : base(descriptor =>
             {
                 ApplyConfig(descriptor);
@@ -19,10 +19,10 @@ namespace HotChocolate.Types.Pagination
         {
         }
 
-        protected override void Configure(IObjectTypeDescriptor<IConnection> descriptor) =>
+        protected override void Configure(IObjectTypeDescriptor<Connection> descriptor) =>
             ApplyConfig(descriptor);
 
-        protected static new void ApplyConfig(IObjectTypeDescriptor<IConnection> descriptor)
+        protected static new void ApplyConfig(IObjectTypeDescriptor<Connection> descriptor)
         {
             ConnectionType<T>.ApplyConfig(descriptor);
 
@@ -34,11 +34,11 @@ namespace HotChocolate.Types.Pagination
         private static long GetTotalCount(
             IResolverContext context)
         {
-            IConnection connection = context.Parent<IConnection>();
+            Connection connection = context.Parent<Connection>();
 
-            if (connection.PageInfo.TotalCount.HasValue)
+            if (connection.Info.TotalCount.HasValue)
             {
-                return connection.PageInfo.TotalCount.Value;
+                return connection.Info.TotalCount.Value;
             }
 
             throw new GraphQLException(
