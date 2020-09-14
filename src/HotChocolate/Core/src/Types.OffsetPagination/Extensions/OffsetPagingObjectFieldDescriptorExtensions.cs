@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 namespace HotChocolate.Types
 {
     /// <summary>
-    /// Provides offset paging extensions to <see cref="IObjectFieldDescriptor"/> and 
+    /// Provides offset paging extensions to <see cref="IObjectFieldDescriptor"/> and
     /// <see cref="IInterfaceFieldDescriptor"/>.
     /// </summary>
     public static class OffsetPagingObjectFieldDescriptorExtensions
@@ -44,10 +45,10 @@ namespace HotChocolate.Types
             PagingSettings settings = default)
             where TSchemaType : IOutputType =>
             UseOffsetPaging(
-                descriptor, 
-                typeof(TSchemaType), 
-                itemType, 
-                resolvePagingProvider, 
+                descriptor,
+                typeof(TSchemaType),
+                itemType,
+                resolvePagingProvider,
                 settings);
 
         /// <summary>
@@ -96,7 +97,7 @@ namespace HotChocolate.Types
 
             descriptor
                 .Extend()
-                .OnBeforeCreate((c, d) => 
+                .OnBeforeCreate((c, d) =>
                 {
                     d.Type = CreateTypeRef(c, d.ResolverMember ?? d.Member, type, settings);
                 });
@@ -205,7 +206,7 @@ namespace HotChocolate.Types
                 type);
 
             // we need to ensure that the schema type is a valid output type. For this we create a
-            // type info which decomposes the type into its logical type components and is able 
+            // type info which decomposes the type into its logical type components and is able
             // to check if the named type component is really an output type.
             if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
                 !typeInfo.IsOutputType())
@@ -215,7 +216,7 @@ namespace HotChocolate.Types
 
             settings = context.GetSettings(settings);
 
-            // once we have identified the correct type we will create the 
+            // once we have identified the correct type we will create the
             // paging result type from it.
             IExtendedType connectionType = context.TypeInspector.GetType(
                 settings.IncludeTotalCount ?? false
@@ -229,8 +230,23 @@ namespace HotChocolate.Types
 
         private static OffsetPagingProvider ResolvePagingProvider(
             IServiceProvider services,
-            IExtendedType source) =>
-            services.GetServices<OffsetPagingProvider>().FirstOrDefault(p => p.CanHandle(source)) ??
-                new QueryableOffsetPagingProvider();
+            IExtendedType source)
+        {
+            try
+            {
+                if (services.GetService<IEnumerable<OffsetPagingProvider>>() is { } providers &&
+                    providers.FirstOrDefault(p => p.CanHandle(source)) is { } provider)
+                {
+                    return provider;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // some containers will except if a service does not exist.
+                // in this case we will ignore the exception and return the default provider.
+            }
+
+            return new QueryableOffsetPagingProvider();
+        }
     }
 }

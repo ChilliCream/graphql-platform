@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -150,8 +152,23 @@ namespace HotChocolate.Types
 
         private static CursorPagingProvider ResolvePagingProvider(
             IServiceProvider services,
-            IExtendedType source) =>
-            services.GetServices<CursorPagingProvider>().FirstOrDefault(p => p.CanHandle(source)) ??
-                new QueryableCursorPagingProvider();
+            IExtendedType source)
+        {
+            try
+            {
+                if (services.GetService<IEnumerable<CursorPagingProvider>>() is { } providers &&
+                    providers.FirstOrDefault(p => p.CanHandle(source)) is { } provider)
+                {
+                    return provider;
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // some containers will except if a service does not exist.
+                // in this case we will ignore the exception and return the default provider.
+            }
+
+            return new QueryableCursorPagingProvider();
+        }
     }
 }

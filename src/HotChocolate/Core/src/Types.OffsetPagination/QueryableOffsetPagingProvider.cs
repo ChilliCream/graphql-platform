@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Pagination
             }
 
             return (OffsetPagingHandler)_createHandler
-                .MakeGenericMethod(source.ElementType!.Source)
+                .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
                 .Invoke(null, new object[] { settings })!;
         }
 
