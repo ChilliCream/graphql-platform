@@ -72,7 +72,7 @@ export const ContentContainer = styled.div<{ noImage?: boolean }>`
   }
 
   @media only screen and (min-width: 992px) {
-    flex: 0 0 ${({ noImage }) => (noImage ? 80 : 55)}%;
+    flex: 0 0 ${({ noImage }) => (noImage ? 100 : 55)}%;
     padding: 0;
 
     > p {
