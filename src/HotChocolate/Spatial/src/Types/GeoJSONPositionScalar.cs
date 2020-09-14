@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using HotChocolate.Types.Spatial.Properties;
@@ -115,7 +116,30 @@ namespace HotChocolate.Types.Spatial
             return new ListValueNode(xNode, yNode);
         }
 
-        public override IValueNode ParseResult(object? resultValue) => ParseValue(resultValue);
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (!(resultValue is IList<double> coordinate))
+            {
+                throw PositionScalar_CoordinatesCannotBeNull(this);
+            }
+
+            var xNode = new FloatValueNode(coordinate[0]);
+            var yNode = new FloatValueNode(coordinate[1]);
+
+            // third optional element (z/elevation)
+            if (coordinate.Count > 2)
+            {
+                var zNode = new FloatValueNode(coordinate[2]);
+                return new ListValueNode(xNode, yNode, zNode);
+            }
+
+            return new ListValueNode(xNode, yNode);
+        }
 
         public override bool TryDeserialize(object? serialized, out object? value)
         {
