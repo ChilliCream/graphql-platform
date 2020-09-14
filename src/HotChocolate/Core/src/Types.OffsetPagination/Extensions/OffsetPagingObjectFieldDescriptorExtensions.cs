@@ -7,7 +7,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using static HotChocolate.Utilities.ThrowHelper;
-using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 
 namespace HotChocolate.Types
 {
@@ -143,24 +142,12 @@ namespace HotChocolate.Types
         /// </returns>
         public static IInterfaceFieldDescriptor UseOffsetPaging(
             this IInterfaceFieldDescriptor descriptor,
-            Type? type,
+            Type? type = null,
             PagingSettings settings = default)
         {
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (!typeof(IOutputType).IsAssignableFrom(type) || !type.IsClass)
-            {
-                throw new ArgumentException(
-                    OffsetPagingObjectFieldDescriptorExtensions_SchemaTypeNotValid,
-                    nameof(descriptor));
             }
 
             descriptor
@@ -177,6 +164,11 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor AddOffsetPagingArguments(
             this IObjectFieldDescriptor descriptor)
         {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             return descriptor
                 .Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>())
                 .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
@@ -188,6 +180,11 @@ namespace HotChocolate.Types
         public static IInterfaceFieldDescriptor AddOffsetPagingArguments(
             this IInterfaceFieldDescriptor descriptor)
         {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
             return descriptor
                 .Argument(OffsetPagingArgumentNames.Skip, a => a.Type<IntType>())
                 .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());

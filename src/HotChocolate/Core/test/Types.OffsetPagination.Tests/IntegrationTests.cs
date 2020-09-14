@@ -432,6 +432,52 @@ namespace HotChocolate.Types.Pagination
                 .MatchSnapshotAsync();
         }
 
+        [Fact]
+        public async Task Interface_With_Paging_Field()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryAttr>()
+                    .AddInterfaceType<ISome>(d => d
+                        .Field(t => t.ExplicitType())
+                        .UseOffsetPaging())
+                    .ModifyOptions(o => 
+                    {
+                        o.RemoveUnreachableTypes = false;
+                        o.StrictValidation = false;
+                    })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
+         [Fact]
+        public async Task Attribute_Interface_With_Paging_Field()
+        {
+            Snapshot.FullName();
+
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryAttr>()
+                    .AddInterfaceType<ISome2>()
+                    .ModifyOptions(o => 
+                    {
+                        o.RemoveUnreachableTypes = false;
+                        o.StrictValidation = false;
+                    })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetSchemaAsync();
+
+            schema.Print().MatchSnapshot();
+        }
+
         public class QueryType : ObjectType<Query>
         {
             protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
@@ -524,6 +570,17 @@ namespace HotChocolate.Types.Pagination
                 new List<Foo> { new Foo { Bar = "e" } },
                 new List<Foo> { new Foo { Bar = "f" } }
             };
+        }
+
+        public interface ISome
+        {
+            public string[] ExplicitType();
+        }
+
+        public interface ISome2
+        {
+            [UseOffsetPaging(typeof(NonNullType<StringType>))]
+            public string[] ExplicitType();
         }
     }
 }

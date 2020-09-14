@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types
@@ -68,7 +67,7 @@ namespace HotChocolate.Types
 
         public static IInterfaceFieldDescriptor UsePaging(
             this IInterfaceFieldDescriptor descriptor,
-            Type? type,
+            Type? type = null,
             PagingSettings settings = default)
         {
             if (descriptor is null)
