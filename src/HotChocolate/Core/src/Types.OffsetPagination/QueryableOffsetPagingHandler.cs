@@ -9,10 +9,10 @@ namespace HotChocolate.Types.Pagination
     /// <summary>
     /// Represents the default paging handler for in-memory collections and queryables.
     /// </summary>
-    /// <typeparam name="TEntity">
+    /// <typeparam name="TItemType">
     /// The entity type.
     /// </typeparam>
-    public class QueryableOffsetPagingHandler<TEntity>
+    public class QueryableOffsetPagingHandler<TItemType>
         : OffsetPagingHandler
     {
         public QueryableOffsetPagingHandler(PagingSettings settings)
@@ -25,14 +25,14 @@ namespace HotChocolate.Types.Pagination
             object source,
             OffsetPagingArguments arguments)
         {
-            IQueryable<TEntity> queryable = source switch
+            IQueryable<TItemType> queryable = source switch
             {
-                IQueryable<TEntity> q => q,
-                IEnumerable<TEntity> e => e.AsQueryable(),
+                IQueryable<TItemType> q => q,
+                IEnumerable<TItemType> e => e.AsQueryable(),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
 
-            IQueryable<TEntity> original = queryable;
+            IQueryable<TItemType> original = queryable;
 
             if (arguments.Skip.HasValue)
             {
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Pagination
             }
 
             queryable = queryable.Take(arguments.Take + 1);
-            List<TEntity> items =
+            List<TItemType> items =
                 await ExecuteQueryableAsync(queryable, context.RequestAborted)
                     .ConfigureAwait(false);
             var pageInfo = new CollectionSegmentInfo(
@@ -54,15 +54,15 @@ namespace HotChocolate.Types.Pagination
                 await Task.Run(original.Count, cancellationToken).ConfigureAwait(false);
         }
 
-        protected virtual async ValueTask<List<TEntity>> ExecuteQueryableAsync(
-            IQueryable<TEntity> queryable,
+        protected virtual async ValueTask<List<TItemType>> ExecuteQueryableAsync(
+            IQueryable<TItemType> queryable,
             CancellationToken cancellationToken)
         {
-            var list = new List<TEntity>();
+            var list = new List<TItemType>();
 
-            if (queryable is IAsyncEnumerable<TEntity> enumerable)
+            if (queryable is IAsyncEnumerable<TItemType> enumerable)
             {
-                await foreach (TEntity item in enumerable.WithCancellation(cancellationToken)
+                await foreach (TItemType item in enumerable.WithCancellation(cancellationToken)
                     .ConfigureAwait(false))
                 {
                     list.Add(item);
@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Pagination
             {
                 await Task.Run(() =>
                 {
-                    foreach (TEntity item in queryable)
+                    foreach (TItemType item in queryable)
                     {
                         if (cancellationToken.IsCancellationRequested)
                         {

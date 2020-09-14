@@ -12,23 +12,65 @@ namespace HotChocolate.Types
 {
     public static class OffsetPagingObjectFieldDescriptorExtensions
     {
+        /// <summary>
+        /// Applies the offset paging middleware to the current field.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object field descriptor.
+        /// </param>
+        /// <param name="itemType">
+        /// The item type.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate allowing to dynamically define a paging resolver for a field.
+        /// </param>
+        /// <param name="settings">
+        /// The paging settings that shall be applied to this field.
+        /// </param>
+        /// <typeparam name="TSchemaType">
+        /// The schema type representation of the item type.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the field descriptor for chaining in other configurations.
+        /// </returns>
         public static IObjectFieldDescriptor UseOffsetPaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor,
-            Type? entityType = null,
+            Type? itemType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
             PagingSettings settings = default)
             where TSchemaType : IOutputType =>
             UseOffsetPaging(
                 descriptor, 
                 typeof(TSchemaType), 
-                entityType, 
+                itemType, 
                 resolvePagingProvider, 
                 settings);
 
+        /// <summary>
+        /// Applies the offset paging middleware to the current field.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object field descriptor.
+        /// </param>
+        /// <param name="type">
+        /// The schema type representation of the item type.
+        /// </param>
+        /// <param name="itemType">
+        /// The item type.
+        /// </param>
+        /// <param name="resolvePagingProvider">
+        /// A delegate allowing to dynamically define a paging resolver for a field.
+        /// </param>
+        /// <param name="settings">
+        /// The paging settings that shall be applied to this field.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor for chaining in other configurations.
+        /// </returns>
         public static IObjectFieldDescriptor UseOffsetPaging(
             this IObjectFieldDescriptor descriptor,
             Type? type = null,
-            Type? entityType = null,
+            Type? itemType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
             PagingSettings settings = default)
         {
@@ -44,7 +86,7 @@ namespace HotChocolate.Types
             PagingHelper.UsePaging(
                 descriptor,
                 type,
-                entityType,
+                itemType,
                 (services, source) => resolvePagingProvider(services, source),
                 settings);
 
@@ -58,12 +100,42 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
+        /// <summary>
+        /// Applies the offset paging middleware to the current field.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object field descriptor.
+        /// </param>
+        /// <param name="settings">
+        /// The paging settings that shall be applied to this field.
+        /// </param>
+        /// <typeparam name="TSchemaType">
+        /// The schema type representation of the item type.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the field descriptor for chaining in other configurations.
+        /// </returns>
         public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
             this IInterfaceFieldDescriptor descriptor,
             PagingSettings settings = default)
             where TSchemaType : class, IOutputType =>
             UseOffsetPaging(descriptor, typeof(TSchemaType), settings);
 
+        /// <summary>
+        /// Applies the offset paging middleware to the current field.
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object field descriptor.
+        /// </param>
+        /// <param name="type">
+        /// The schema type representation of the item type.
+        /// </param>
+        /// <param name="settings">
+        /// The paging settings that shall be applied to this field.
+        /// </param>
+        /// <returns>
+        /// Returns the field descriptor for chaining in other configurations.
+        /// </returns>
         public static IInterfaceFieldDescriptor UseOffsetPaging(
             this IInterfaceFieldDescriptor descriptor,
             Type? type,
@@ -94,6 +166,9 @@ namespace HotChocolate.Types
             return descriptor;
         }
 
+        /// <summary>
+        /// Adds the offset paging arguments to an object field.
+        /// </summary>
         public static IObjectFieldDescriptor AddOffsetPagingArguments(
             this IObjectFieldDescriptor descriptor)
         {
@@ -102,6 +177,9 @@ namespace HotChocolate.Types
                 .Argument(OffsetPagingArgumentNames.Take, a => a.Type<IntType>());
         }
 
+        /// <summary>
+        /// Adds the offset paging arguments to an interface field.
+        /// </summary>
         public static IInterfaceFieldDescriptor AddOffsetPagingArguments(
             this IInterfaceFieldDescriptor descriptor)
         {
