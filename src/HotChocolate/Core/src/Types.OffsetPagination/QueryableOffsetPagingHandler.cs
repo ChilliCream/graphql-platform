@@ -6,6 +6,12 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// Represents the default paging handler for in-memory collections and queryables.
+    /// </summary>
+    /// <typeparam name="TEntity">
+    /// The entity type.
+    /// </typeparam>
     public class QueryableOffsetPagingHandler<TEntity>
         : OffsetPagingHandler
     {

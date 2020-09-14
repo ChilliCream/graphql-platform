@@ -1,5 +1,8 @@
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// Specifies the page info for a <see cref="CollectionSegment"/>.
+    /// </summary>
     public class CollectionSegmentInfoType : ObjectType<CollectionSegmentInfo>
     {
         protected override void Configure(IObjectTypeDescriptor<CollectionSegmentInfo> descriptor)

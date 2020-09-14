@@ -4,14 +4,29 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// The collection segment type with additional total count field.
+    /// </summary>
+    /// <typeparam name="T">
+    /// The item type.
+    /// </typeparam>
     public class CollectionSegmentCountType<T>
         : CollectionSegmentType<T>
         where T : class, IOutputType
     {
+        /// <summary>
+        /// Initializes <see cref="CollectionSegmentCountType{T}" />.
+        /// </summary>
         public CollectionSegmentCountType()
         {
         }
 
+        /// <summary>
+        /// Initializes <see cref="CollectionSegmentCountType{T}" />.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate adding more configuration to the type.
+        /// </param>
         public CollectionSegmentCountType(
             Action<IObjectTypeDescriptor<CollectionSegment>> configure)
             : base(descriptor =>

@@ -4,6 +4,9 @@ using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Pagination
 {
+    /// <summary>
+    /// Represents the default paging provider for in-memory collections or queryables.
+    /// </summary>
     public class QueryableOffsetPagingProvider
         : OffsetPagingProvider
     {

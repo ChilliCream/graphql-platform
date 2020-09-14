@@ -8,10 +8,19 @@ namespace HotChocolate.Types.Pagination
         : ObjectType<CollectionSegment>
         where T : class, IOutputType
     {
+        /// <summary>
+        /// Initializes <see cref="CollectionSegmentType{T}" />.
+        /// </summary>
         public CollectionSegmentType()
         {
         }
 
+        /// <summary>
+        /// Initializes <see cref="CollectionSegmentType{T}" />.
+        /// </summary>
+        /// <param name="configure">
+        /// A delegate adding more configuration to the type.
+        /// </param>
         public CollectionSegmentType(
             Action<IObjectTypeDescriptor<CollectionSegment>> configure)
             : base(descriptor =>
@@ -22,6 +31,10 @@ namespace HotChocolate.Types.Pagination
         {
         }
 
+        /// <summary>
+        /// Gets the item type of this collection segment.
+        /// </summary>
+        /// <value></value>
         public IOutputType ItemType { get; private set; } = default!;
 
         protected override void Configure(IObjectTypeDescriptor<CollectionSegment> descriptor) =>
