@@ -1,8 +1,9 @@
-﻿using Xunit;
+﻿using HotChocolate.Types.Pagination;
+using Xunit;
 
 namespace HotChocolate.Types.Relay
 {
-    public class PageInfoTests
+    public class ConnectionPageInfoTests
     {
         [InlineData(true, true, "a", "b", null)]
         [InlineData(true, false, "a", "b", null)]
@@ -18,11 +19,11 @@ namespace HotChocolate.Types.Relay
         public void CreatePageInfo_ArgumentsArePassedCorrectly(
             bool hasNextPage, bool hasPreviousPage,
             string startCursor, string endCursor,
-            long? totalCount)
+            int? totalCount)
         {
             // arrange
             // act
-            var pageInfo = new PageInfo(
+            var pageInfo = new ConnectionPageInfo(
                 hasNextPage, hasPreviousPage,
                 startCursor, endCursor,
                 totalCount);

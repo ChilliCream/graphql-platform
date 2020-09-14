@@ -1,12 +1,12 @@
 ﻿namespace HotChocolate.Types.Pagination
 {
-    public readonly struct ConnectionPageInfo : IPageInfo
+    public class ConnectionPageInfo : IPageInfo
     {
         public ConnectionPageInfo(
             bool hasNextPage,
             bool hasPreviousPage,
-            string startCursor,
-            string endCursor,
+            string? startCursor,
+            string? endCursor,
             int? totalCount = null)
         {
             HasNextPage = hasNextPage;
@@ -20,9 +20,9 @@
 
         public bool HasPreviousPage { get; }
 
-        public string StartCursor { get; }
+        public string? StartCursor { get; }
 
-        public string EndCursor { get; }
+        public string? EndCursor { get; }
 
         public int? TotalCount { get; }
     }
