@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from "react";
-import { BananaCakepop } from "../components/images/banana-cakepop";
+import { BananaCakePop } from "../components/images/banana-cake-pop";
 import { HotChocolate } from "../components/images/hot-chocolate";
 import { Link } from "../components/misc/link";
 import {
@@ -49,7 +49,7 @@ const PlatformPage: FunctionComponent = () => {
       <Section>
         <SectionRow>
           <ImageContainer large>
-            <BananaCakepop />
+            <BananaCakePop />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Banana Cake Pop</SectionTitle>
