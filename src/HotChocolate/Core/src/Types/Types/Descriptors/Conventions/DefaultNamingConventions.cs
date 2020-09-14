@@ -158,6 +158,20 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(value));
             }
 
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                MemberInfo? enumMember = enumType
+                    .GetMember(value.ToString()!)
+                    .FirstOrDefault();
+
+                if (enumMember is not null && 
+                    enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+                {
+                    return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
+                }
+            }
+
             var underscores = 0;
             ReadOnlySpan<char> name = value.ToString().AsSpan();
 

@@ -1,3 +1,3 @@
-﻿SELECT [d].[Id], [d].[Bar]
-FROM [Data] AS [d]
-WHERE ([d].[Bar] <> @__p_0) OR @__p_0 IS NULL
+﻿SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE ("d"."Bar" <> @__p_0) OR @__p_0 IS NULL
