@@ -9,8 +9,8 @@ namespace HotChocolate.Types.Spatial
 {
     public abstract partial class GeoJSONInputObjectType<T>
     {
-        protected void ValidateGeometryKind(ObjectValueNode valueNode, int fieldIndex)
-            => ParseGeometryKind(valueNode, fieldIndex);
+        protected void ValidateGeometryKind(ObjectValueNode valueNode, int fieldIndex) =>
+            ParseGeometryKind(valueNode, fieldIndex);
 
         protected GeoJSONGeometryType ParseGeometryKind(
             ObjectValueNode valueNode,

@@ -25,7 +25,6 @@ namespace HotChocolate.Types.Spatial
             descriptor.Field(CrsFieldName)
                 .Type<IntType>()
                 .Description(GeoJSON_Field_Crs_Description);
-            ;
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)

@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Spatial
 {
-    public static class ValueNodeExtensions
+    internal static class ValueNodeExtensions
     {
         public static void EnsureObjectValueNode(
             this IValueNode valueSyntax,
