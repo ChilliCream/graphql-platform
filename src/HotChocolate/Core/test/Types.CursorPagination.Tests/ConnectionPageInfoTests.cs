@@ -1,7 +1,6 @@
-﻿using HotChocolate.Types.Pagination;
-using Xunit;
+﻿using Xunit;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class ConnectionPageInfoTests
     {

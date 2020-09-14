@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     public class EdgeTests
     {

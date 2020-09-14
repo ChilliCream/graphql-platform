@@ -18,7 +18,8 @@ namespace HotChocolate.Types.Pagination
                 throw new ArgumentNullException(nameof(getTotalCount));
             Edges = edges ??
                 throw new ArgumentNullException(nameof(edges));
-            Info = info;
+            Info = info ?? 
+                throw new ArgumentNullException(nameof(info));
         }
 
         public IReadOnlyCollection<IEdge> Edges { get; }
