@@ -9,9 +9,7 @@ namespace HotChocolate.Types.Pagination
         {
             if (string.IsNullOrEmpty(cursor))
             {
-                throw new ArgumentException(
-                    CursorResources.Edge_CursorNullOrEmpty,
-                    nameof(cursor));
+                throw new ArgumentNullException(nameof(cursor));
             }
 
             Node = node;

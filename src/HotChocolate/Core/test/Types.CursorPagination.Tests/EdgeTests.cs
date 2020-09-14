@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Pagination
         {
             // arrange
             // act
-            var edge = new Edge<string>(cursor, node);
+            var edge = new Edge<string>(node, cursor);
 
             // assert
             Assert.Equal(cursor, edge.Cursor);
@@ -25,10 +25,10 @@ namespace HotChocolate.Types.Pagination
         {
             // arrange
             // act
-            Action a = () => new Edge<string>(null, "abc");
+            void Action() => new Edge<string>("abc", null!);
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
@@ -36,10 +36,10 @@ namespace HotChocolate.Types.Pagination
         {
             // arrange
             // act
-            Action a = () => new Edge<string>(string.Empty, "abc");
+            void Action() => new Edge<string>("abc", string.Empty);
 
             // assert
-            Assert.Throws<ArgumentException>(a);
+            Assert.Throws<ArgumentNullException>(Action);
         }
     }
 }
