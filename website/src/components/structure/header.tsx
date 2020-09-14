@@ -118,6 +118,7 @@ const Container = styled.header<{ enableShadow: boolean }>`
   background-color: #f40010;
   ${({ enableShadow }) =>
     enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
+  transition: box-shadow 0.2s ease-in-out;
 `;
 
 const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
