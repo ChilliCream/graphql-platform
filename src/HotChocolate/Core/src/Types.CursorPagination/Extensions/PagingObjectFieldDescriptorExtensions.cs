@@ -5,7 +5,6 @@ using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Types.Properties.CursorResources;
 using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types
@@ -29,7 +28,7 @@ namespace HotChocolate.Types
 
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
-            Type? type,
+            Type? type = null,
             Type? entityType = null,
             GetCursorPagingProvider? resolvePagingProvider = null,
             PagingSettings settings = default)
@@ -127,7 +126,7 @@ namespace HotChocolate.Types
                 type);
 
             // we need to ensure that the schema type is a valid output type. For this we create a
-            // type info which decomposes the type into its logical type components and is able 
+            // type info which decomposes the type into its logical type components and is able
             // to check if the named type component is really an output type.
             if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
                 !typeInfo.IsOutputType())
@@ -137,7 +136,7 @@ namespace HotChocolate.Types
 
             settings = context.GetSettings(settings);
 
-            // once we have identified the correct type we will create the 
+            // once we have identified the correct type we will create the
             // paging result type from it.
             IExtendedType connectionType = context.TypeInspector.GetType(
                 settings.IncludeTotalCount ?? false
@@ -152,6 +151,7 @@ namespace HotChocolate.Types
         private static CursorPagingProvider ResolvePagingProvider(
             IServiceProvider services,
             IExtendedType source) =>
-            services.GetServices<CursorPagingProvider>().First(p => p.CanHandle(source));
+            services.GetServices<CursorPagingProvider>().FirstOrDefault(p => p.CanHandle(source)) ??
+                new QueryableCursorPagingProvider();
     }
 }

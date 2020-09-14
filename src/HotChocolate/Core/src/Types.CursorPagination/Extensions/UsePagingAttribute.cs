@@ -1,9 +1,8 @@
 using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types.Pagination
 {
     /// <summary>
     /// This attribute adds the cursor paging middleware to the annotated method or property.

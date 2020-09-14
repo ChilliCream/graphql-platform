@@ -10,6 +10,10 @@ using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 
 namespace HotChocolate.Types
 {
+    /// <summary>
+    /// Provides offset paging extensions to <see cref="IObjectFieldDescriptor"/> and 
+    /// <see cref="IInterfaceFieldDescriptor"/>.
+    /// </summary>
     public static class OffsetPagingObjectFieldDescriptorExtensions
     {
         /// <summary>

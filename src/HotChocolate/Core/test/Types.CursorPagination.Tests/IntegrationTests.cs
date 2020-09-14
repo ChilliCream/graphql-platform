@@ -57,10 +57,16 @@ namespace HotChocolate.Types.Pagination
                 .ExecuteAsync(@"
                 {
                     letters {
-                        items
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -84,10 +90,16 @@ namespace HotChocolate.Types.Pagination
                 .ExecuteAsync(@"
                 {
                     letters {
-                        items
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -95,7 +107,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public async Task Simple_StringList_Take_2()
+        public async Task Simple_StringList_First_2()
         {
             Snapshot.FullName();
 
@@ -110,11 +122,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2) {
-                        items
+                    letters(first: 2) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -122,7 +140,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public async Task Attribute_Simple_StringList_Take_2()
+        public async Task Attribute_Simple_StringList_First_2()
         {
             Snapshot.FullName();
 
@@ -137,11 +155,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2) {
-                        items
+                    letters(first: 2) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -149,7 +173,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public async Task Simple_StringList_Take_2_Skip_2()
+        public async Task Simple_StringList_First_2_After()
         {
             Snapshot.FullName();
 
@@ -164,11 +188,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2 skip: 2) {
-                        items
+                    letters(first: 2 after: ""MQ=="") {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -176,7 +206,7 @@ namespace HotChocolate.Types.Pagination
         }
 
         [Fact]
-        public async Task Attribute_Simple_StringList_Take_2_Skip_2()
+        public async Task Attribute_Simple_StringList_First_2_After()
         {
             Snapshot.FullName();
 
@@ -191,11 +221,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2 skip: 2) {
-                        items
+                    letters(first: 2 after: ""MQ=="") {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -219,11 +255,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2) {
-                        items
+                    letters {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -247,11 +289,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2) {
-                        items
+                    letters {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -274,11 +322,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    explicitType(take: 2) {
-                        items
+                    explicitType(first: 2) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -301,11 +355,17 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    explicitType(take: 2) {
-                        items
+                    explicitType(first: 2) {
+                        edges {
+                            node
+                            cursor
+                        }
+                        nodes
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                     }
                 }")
@@ -329,12 +389,20 @@ namespace HotChocolate.Types.Pagination
                 .ExecuteAsync(@"
                 {
                     nestedObjectList {
-                        items {
+                        edges {
+                            node {
+                                bar
+                            }
+                            cursor
+                        }
+                        nodes {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                         totalCount
                     }
@@ -359,12 +427,20 @@ namespace HotChocolate.Types.Pagination
                 .ExecuteAsync(@"
                 {
                     nestedObjectList {
-                        items {
+                        edges {
+                            node {
+                                bar
+                            }
+                            cursor
+                        }
+                        nodes {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                         totalCount
                     }
@@ -388,13 +464,21 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    nestedObjectList(skip: 2) {
-                        items {
+                    nestedObjectList(first: 2) {
+                        edges {
+                            node {
+                                bar
+                            }
+                            cursor
+                        }
+                        nodes {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                         totalCount
                     }
@@ -418,13 +502,21 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    nestedObjectList(skip: 2) {
-                        items {
+                    nestedObjectList(first: 2) {
+                        edges {
+                            node {
+                                bar
+                            }
+                            cursor
+                        }
+                        nodes {
                             bar
                         }
                         pageInfo {
                             hasNextPage
                             hasPreviousPage
+                            startCursor
+                            endCursor
                         }
                         totalCount
                     }
@@ -438,17 +530,17 @@ namespace HotChocolate.Types.Pagination
             {
                 descriptor
                     .Field(t => t.Letters)
-                    .UseOffsetPaging();
+                    .UsePaging();
 
                 descriptor
                     .Field("explicitType")
                     .ResolveWith<Query>(t => t.Letters)
-                    .UseOffsetPaging<NonNullType<StringType>>();
+                    .UsePaging<NonNullType<StringType>>();
 
                 descriptor
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
-                    .UseOffsetPaging(
+                    .UsePaging(
                         settings: new PagingSettings
                         {
                             MaxPageSize = 2,
@@ -492,7 +584,7 @@ namespace HotChocolate.Types.Pagination
 
         public class QueryAttr
         {
-            [UseOffsetPaging]
+            [UsePaging]
             public string[] Letters => new[]
             {
                 "a",
@@ -509,11 +601,11 @@ namespace HotChocolate.Types.Pagination
                 "l"
             };
 
-            [UseOffsetPaging(typeof(NonNullType<StringType>))]
+            [UsePaging(typeof(NonNullType<StringType>))]
             public string[] ExplicitType => Letters;
 
             [GraphQLName("nestedObjectList")]
-            [UseOffsetPaging(
+            [UsePaging(
                 MaxPageSize = 2,
                 IncludeTotalCount = true)]
             public List<List<Foo>> Foos() => new List<List<Foo>>
