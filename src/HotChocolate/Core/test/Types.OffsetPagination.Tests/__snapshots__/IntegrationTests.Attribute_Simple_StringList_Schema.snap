@@ -1,5 +1,5 @@
 ﻿schema {
-  query: Query
+  query: QueryAttr
 }
 
 "Information about the offset pagination."
@@ -21,10 +21,10 @@ type FooCollectionSegment {
   totalCount: Int!
 }
 
-type Query {
+type QueryAttr {
+  nestedObjectList(skip: Int take: Int): FooCollectionSegment
   letters(skip: Int take: Int): StringCollectionSegment
   explicitType(skip: Int take: Int): StringCollectionSegment
-  nestedObjectList(skip: Int take: Int): FooCollectionSegment
 }
 
 type StringCollectionSegment {

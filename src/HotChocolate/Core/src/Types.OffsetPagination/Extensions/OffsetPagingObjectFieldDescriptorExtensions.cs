@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Internal;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
-using Microsoft.Extensions.DependencyInjection;
 using static HotChocolate.Utilities.ThrowHelper;
 using static HotChocolate.Types.Pagination.Properties.OffsetResources;
 
@@ -11,9 +12,22 @@ namespace HotChocolate.Types
 {
     public static class OffsetPagingObjectFieldDescriptorExtensions
     {
+        public static IObjectFieldDescriptor UseOffsetPaging<TSchemaType>(
+            this IObjectFieldDescriptor descriptor,
+            Type? entityType = null,
+            GetOffsetPagingProvider? resolvePagingProvider = null,
+            PagingSettings settings = default)
+            where TSchemaType : IOutputType =>
+            UseOffsetPaging(
+                descriptor, 
+                typeof(TSchemaType), 
+                entityType, 
+                resolvePagingProvider, 
+                settings);
+
         public static IObjectFieldDescriptor UseOffsetPaging(
             this IObjectFieldDescriptor descriptor,
-            Type type,
+            Type? type = null,
             Type? entityType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
             PagingSettings settings = default)
@@ -21,18 +35,6 @@ namespace HotChocolate.Types
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            if (!typeof(IOutputType).IsAssignableFrom(type) || !type.IsClass)
-            {
-                throw new ArgumentException(
-                    OffsetPagingObjectFieldDescriptorExtensions_SchemaTypeNotValid,
-                    nameof(descriptor));
             }
 
             resolvePagingProvider ??= ResolvePagingProvider;
@@ -48,7 +50,10 @@ namespace HotChocolate.Types
 
             descriptor
                 .Extend()
-                .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, type, settings));
+                .OnBeforeCreate((c, d) => 
+                {
+                    d.Type = CreateTypeRef(c, d.ResolverMember ?? d.Member, type, settings);
+                });
 
             return descriptor;
         }
@@ -61,7 +66,7 @@ namespace HotChocolate.Types
 
         public static IInterfaceFieldDescriptor UseOffsetPaging(
             this IInterfaceFieldDescriptor descriptor,
-            Type type,
+            Type? type,
             PagingSettings settings = default)
         {
             if (descriptor is null)
@@ -84,7 +89,7 @@ namespace HotChocolate.Types
             descriptor
                 .AddOffsetPagingArguments()
                 .Extend()
-                .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, type, settings));
+                .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, d.Member, type, settings));
 
             return descriptor;
         }
@@ -107,24 +112,37 @@ namespace HotChocolate.Types
 
         private static ITypeReference CreateTypeRef(
             IDescriptorContext context,
-            Type schemaType,
+            MemberInfo? resolverMember,
+            Type? type,
             PagingSettings settings)
         {
-            settings = context.GetSettings(settings);
+            // first we will try and infer the schema type of the collection.
+            IExtendedType schemaType = PagingHelper.GetSchemaType(
+                context.TypeInspector,
+                resolverMember,
+                type);
 
-            Type connectionType = settings.IncludeTotalCount ?? false
-                ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType)
-                : typeof(CollectionSegmentType<>).MakeGenericType(schemaType);
-            IExtendedType extendedType = context.TypeInspector.GetType (connectionType);
-
-            if (!extendedType.IsSchemaType ||
-                !context.TypeInspector.TryCreateTypeInfo(extendedType, out ITypeInfo? typeInfo) ||
+            // we need to ensure that the schema type is a valid output type. For this we create a
+            // type info which decomposes the type into its logical type components and is able 
+            // to check if the named type component is really an output type.
+            if (!context.TypeInspector.TryCreateTypeInfo(schemaType, out ITypeInfo? typeInfo) ||
                 !typeInfo.IsOutputType())
             {
                 throw OffsetPagingObjectFieldDescriptorExtensions_InvalidType();
             }
 
-            return TypeReference.Create(extendedType, TypeContext.Output);
+            settings = context.GetSettings(settings);
+
+            // once we have identified the correct type we will create the 
+            // paging result type from it.
+            IExtendedType connectionType = context.TypeInspector.GetType(
+                settings.IncludeTotalCount ?? false
+                    ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType.Source)
+                    : typeof(CollectionSegmentType<>).MakeGenericType(schemaType.Source));
+
+            // last but not leas we create a type reference that can be put on the field definition
+            // to tell the type discovery that this field needs this result type.
+            return TypeReference.Create(connectionType, TypeContext.Output);
         }
 
         private static OffsetPagingProvider ResolvePagingProvider(

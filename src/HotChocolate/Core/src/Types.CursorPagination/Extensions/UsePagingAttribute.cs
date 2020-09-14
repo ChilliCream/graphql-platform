@@ -6,31 +6,62 @@ using HotChocolate.Types.Pagination;
 namespace HotChocolate.Types.Relay
 {
     /// <summary>
-    /// Applies a cursor paging middleware to a resolver.
+    /// This attribute adds the cursor paging middleware to the annotated method or property.
     /// </summary>
     public sealed class UsePagingAttribute : DescriptorAttribute
     {
+        private int? _defaultPageSize;
+        private int? _maxPageSize;
+        private bool? _includeTotalCount;
+
+        /// <summary>
+        /// Applies the offset paging middleware to the annotated property.
+        /// </summary>
+        /// <param name="type">
+        /// The schema type representing the item type.
+        /// </param>
         public UsePagingAttribute(Type? type = null)
         {
             Type = type;
         }
 
         /// <summary>
-        /// The schema type representation of the entity.
+        /// The schema type representation of the item type.
         /// </summary>
         [Obsolete("Use Type.")]
         public Type? SchemaType { get => Type; set => Type = value; }
 
         /// <summary>
-        /// The schema type representation of the entity.
+        /// The schema type representation of the item type.
         /// </summary>
         public Type? Type { get; private set; }
 
-        public int? DefaultPageSize { get; set; }
+        /// <summary>
+        /// Specifies the default page size for this field.
+        /// </summary>
+        public int DefaultPageSize
+        {
+            get => _defaultPageSize ?? PagingDefaults.DefaultPageSize;
+            set => _defaultPageSize = value;
+        }
 
-        public int? MaxPageSize { get; set; }
+        /// <summary>
+        /// Specifies the maximum allowed page size.
+        /// </summary>
+        public int MaxPageSize
+        {
+            get => _maxPageSize ?? PagingDefaults.MaxPageSize;
+            set => _maxPageSize = value;
+        }
 
-        public bool? IncludeTotalCount { get; set; }
+        /// <summary>
+        /// Include the total count field to the result type.
+        /// </summary>
+        public bool IncludeTotalCount
+        {
+            get => _includeTotalCount ?? PagingDefaults.IncludeTotalCount;
+            set => _includeTotalCount = value;
+        }
 
         protected override void TryConfigure(
             IDescriptorContext context,
@@ -45,9 +76,9 @@ namespace HotChocolate.Types.Relay
                         Type,
                         settings: new PagingSettings
                         {
-                            DefaultPageSize = DefaultPageSize,
-                            MaxPageSize = MaxPageSize,
-                            IncludeTotalCount = IncludeTotalCount
+                            DefaultPageSize = _defaultPageSize,
+                            MaxPageSize = _maxPageSize,
+                            IncludeTotalCount = _includeTotalCount
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -56,9 +87,9 @@ namespace HotChocolate.Types.Relay
                         Type,
                         new PagingSettings
                         {
-                            DefaultPageSize = DefaultPageSize,
-                            MaxPageSize = MaxPageSize,
-                            IncludeTotalCount = IncludeTotalCount
+                            DefaultPageSize = _defaultPageSize,
+                            MaxPageSize = _maxPageSize,
+                            IncludeTotalCount = _includeTotalCount
                         });
                 }
             }

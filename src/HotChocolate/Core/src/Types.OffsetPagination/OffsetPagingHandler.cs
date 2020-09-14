@@ -4,20 +4,22 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Pagination
 {
-    public abstract class OffsetPagingHandler: IPagingHandler
+    public abstract class OffsetPagingHandler : IPagingHandler
     {
         protected OffsetPagingHandler(PagingSettings settings)
         {
             DefaultPageSize = settings.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = settings.MaxPageSize ?? PagingDefaults.MaxPageSize;
-            IncludeTotalCount = settings.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
+
+            if (MaxPageSize < DefaultPageSize)
+            {
+                DefaultPageSize = MaxPageSize;
+            }
         }
 
         protected int DefaultPageSize { get; }
 
-        protected  int MaxPageSize { get; }
-
-        protected  bool IncludeTotalCount { get; }
+        protected int MaxPageSize { get; }
 
         public void ValidateContext(IResolverContext context)
         {

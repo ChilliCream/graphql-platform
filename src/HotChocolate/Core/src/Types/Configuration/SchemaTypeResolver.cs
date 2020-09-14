@@ -60,6 +60,10 @@ namespace HotChocolate.Configuration
                     type: typeInspector.GetType(
                         typeof(EnumType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
+            else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type scalarType))
+            {
+                schemaType = unresolvedType.With(type: typeInspector.GetType(scalarType));
+            }
             else
             {
                 schemaType = null;
@@ -76,7 +80,7 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(unresolvedType));
             }
-            
+
             if (IsObjectTypeExtension(unresolvedType))
             {
                 kind = TypeKind.Object;
@@ -110,6 +114,12 @@ namespace HotChocolate.Configuration
             if (IsEnumType(unresolvedType))
             {
                 kind = TypeKind.Enum;
+                return true;
+            }
+
+            if (Scalars.TryGetScalar(unresolvedType.Type.Type, out _))
+            {
+                kind = TypeKind.Scalar;
                 return true;
             }
 

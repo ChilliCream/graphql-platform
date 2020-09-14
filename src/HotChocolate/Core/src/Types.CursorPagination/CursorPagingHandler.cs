@@ -10,6 +10,11 @@ namespace HotChocolate.Types.Pagination
         {
             DefaultPageSize = settings.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = settings.MaxPageSize ?? PagingDefaults.MaxPageSize;
+
+            if (MaxPageSize < DefaultPageSize)
+            {
+                DefaultPageSize = MaxPageSize;
+            }
         }
 
         protected int DefaultPageSize { get; }
