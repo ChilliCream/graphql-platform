@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "letters": {
+      "items": [
+        "c",
+        "d"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true
+      }
+    }
+  }
+}
