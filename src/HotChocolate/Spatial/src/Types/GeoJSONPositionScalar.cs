@@ -123,16 +123,21 @@ namespace HotChocolate.Types.Spatial
                 return NullValueNode.Default;
             }
 
-            if (!(resultValue is IList<double> coordinate))
+            if (!(resultValue is double[] coordinate))
             {
                 throw PositionScalar_CoordinatesCannotBeNull(this);
+            }
+
+            if (coordinate.Length != 2 && coordinate.Length != 3)
+            {
+                throw PositionScalar_InvalidPositionObject(this);
             }
 
             var xNode = new FloatValueNode(coordinate[0]);
             var yNode = new FloatValueNode(coordinate[1]);
 
             // third optional element (z/elevation)
-            if (coordinate.Count > 2)
+            if (coordinate.Length > 2)
             {
                 var zNode = new FloatValueNode(coordinate[2]);
                 return new ListValueNode(xNode, yNode, zNode);
@@ -222,11 +227,11 @@ namespace HotChocolate.Types.Spatial
 
             if (!double.IsNaN(coordinate.Z))
             {
-                serialized = new double[] {coordinate.X, coordinate.Y, coordinate.Z};
+                serialized = new double[] { coordinate.X, coordinate.Y, coordinate.Z };
                 return true;
             }
 
-            serialized = new double[] {coordinate.X, coordinate.Y};
+            serialized = new double[] { coordinate.X, coordinate.Y };
             return true;
         }
     }
