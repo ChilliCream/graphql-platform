@@ -7,7 +7,8 @@ namespace HotChocolate.AspNetCore
     internal static class RequestExecutorExtensions
     {
         public static T GetRequiredService<T>(
-            this IRequestExecutor requestExecutor) =>
+            this IRequestExecutor requestExecutor)
+            where T : notnull =>
             requestExecutor.Services.GetRequiredService<T>();
 
         public static IErrorHandler GetErrorHandler(

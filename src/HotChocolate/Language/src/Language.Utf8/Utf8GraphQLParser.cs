@@ -14,20 +14,9 @@ namespace HotChocolate.Language
         private StringValueNode? _description;
 
         public Utf8GraphQLParser(
-            ReadOnlySpan<byte> graphQLData)
-            : this(graphQLData, ParserOptions.Default)
-        {
-        }
-
-        public Utf8GraphQLParser(
             ReadOnlySpan<byte> graphQLData,
-            ParserOptions options)
+            ParserOptions? options = null)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (graphQLData.Length == 0)
             {
                 throw new ArgumentException(
@@ -35,7 +24,7 @@ namespace HotChocolate.Language
                     nameof(graphQLData));
             }
 
-            _options = options;
+            _options = options = options ?? ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new Utf8GraphQLReader(graphQLData);
@@ -44,13 +33,8 @@ namespace HotChocolate.Language
 
         internal Utf8GraphQLParser(
             Utf8GraphQLReader reader,
-            ParserOptions options)
+            ParserOptions? options = null)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (reader.Kind == TokenKind.EndOfFile)
             {
                 throw new ArgumentException(
@@ -58,7 +42,7 @@ namespace HotChocolate.Language
                     nameof(reader));
             }
 
-            _options = options;
+            _options = options = options ?? ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = reader;
@@ -81,12 +65,6 @@ namespace HotChocolate.Language
             Location? location = CreateLocation(in start);
 
             return new DocumentNode(location, definitions);
-        }
-
-        private IReadOnlyList<ArgumentNode> ParseArguments()
-        {
-            MoveNext();
-            return ParseArguments(false);
         }
 
         private IDefinitionNode ParseDefinition()

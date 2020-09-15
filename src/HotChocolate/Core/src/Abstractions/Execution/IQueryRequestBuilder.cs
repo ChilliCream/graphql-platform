@@ -30,6 +30,9 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetVariableValues(
             IReadOnlyDictionary<string, object> variableValues);
 
+        IQueryRequestBuilder SetVariableValues(
+            IVariableValues variableValues);
+
         IQueryRequestBuilder AddVariableValue(
             string name, object value);
 

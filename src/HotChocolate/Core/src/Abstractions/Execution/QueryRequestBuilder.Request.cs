@@ -16,7 +16,7 @@ namespace HotChocolate.Execution
 
             public string OperationName { get; set; }
 
-            public IReadOnlyDictionary<string, object> VariableValues { get; set; }
+            public IVariableValues VariableValues { get; set; }
 
             public object InitialValue { get; set; }
 

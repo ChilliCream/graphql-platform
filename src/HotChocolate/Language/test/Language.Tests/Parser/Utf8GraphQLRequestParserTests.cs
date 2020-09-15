@@ -40,20 +40,20 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
 
         [Fact]
-        public void Parse_Kitchen_Sink_Query_With_Russion_Characters()
+        public void Parse_Kitchen_Sink_Query_With_Russian_Characters()
         {
             // arrange
             byte[] source = Encoding.UTF8.GetBytes(
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("russion-literals.graphql")
+                        Query = FileResource.Open("russian-literals.graphql")
                             .NormalizeLineBreaks()
                     }).NormalizeLineBreaks());
 
@@ -72,17 +72,17 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
 
         [Fact]
-        public void Parse_Kitchen_Sink_Query_With_Russion_Escaped_Characters()
+        public void Parse_Kitchen_Sink_Query_With_Russian_Escaped_Characters()
         {
             // arrange
             byte[] source = Encoding.UTF8.GetBytes(
-                FileResource.Open("russion_utf8_escape_characters.json")
+                FileResource.Open("russian_utf8_escape_characters.json")
                     .NormalizeLineBreaks());
 
             // act
@@ -100,7 +100,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
@@ -116,7 +116,7 @@ namespace HotChocolate.Language
             };
 
             byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
-            string expectedHash = Convert.ToBase64String(
+            var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
             byte[] source = Encoding.UTF8.GetBytes(
@@ -154,7 +154,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Extensions);
 
                     Assert.Equal(expectedHash, r.QueryId);
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
@@ -175,7 +175,7 @@ namespace HotChocolate.Language
                     ).NormalizeLineBreaks());
 
             byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
-            string expectedHash = Convert.ToBase64String(
+            var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
             var cache = new DocumentCache();
@@ -198,7 +198,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Extensions);
 
                     Assert.Equal(expectedHash, r.QueryId);
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
@@ -219,7 +219,7 @@ namespace HotChocolate.Language
                     ).NormalizeLineBreaks());
 
             byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
-            string expectedHash = Convert.ToBase64String(
+            var expectedHash = Convert.ToBase64String(
                 SHA1.Create().ComputeHash(buffer));
 
             var cache = new DocumentCache();
@@ -243,7 +243,7 @@ namespace HotChocolate.Language
 
                     Assert.Equal("FooBar", r.QueryId);
                     Assert.Equal(expectedHash, r.QueryHash);
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot();
                 });
         }
@@ -256,9 +256,8 @@ namespace HotChocolate.Language
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks(),
-                        NamedQuery = "ABC",
+                        Query = FileResource.Open("kitchen-sink.graphql").NormalizeLineBreaks(),
+                        Id = "ABC",
                         OperationName = "DEF",
                         Variables = new Dictionary<string, object>
                         {
@@ -317,7 +316,7 @@ namespace HotChocolate.Language
                         new SnapshotNameExtension("Variables"));
                     r.Extensions.MatchSnapshot(
                         new SnapshotNameExtension("Extensions"));
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
                         .MatchSnapshot(new SnapshotNameExtension("Query"));
                 });
         }
@@ -332,7 +331,7 @@ namespace HotChocolate.Language
                     {
                         Query = FileResource.Open("kitchen-sink.graphql")
                             .NormalizeLineBreaks(),
-                        NamedQuery = "ABC",
+                        Id = "ABC",
                         OperationName = "DEF",
                         Variables = new Dictionary<string, object>
                         {
@@ -373,7 +372,7 @@ namespace HotChocolate.Language
                     }).NormalizeLineBreaks());
 
             // act
-            var parsed = Utf8GraphQLRequestParser.ParseJson(source);
+            object parsed = Utf8GraphQLRequestParser.ParseJson(source);
 
             // assert
             parsed.MatchSnapshot();
@@ -457,7 +456,7 @@ namespace HotChocolate.Language
                     Assert.Equal("MyQuery", r.OperationName);
                     Assert.Equal("hashOfQuery", r.QueryId);
                     Assert.Null(r.Variables);
-                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                     Assert.Null(r.Query);
                     Assert.Null(r.QueryHash);
                 });
@@ -486,8 +485,8 @@ namespace HotChocolate.Language
                 {
                     Assert.Null(r.OperationName);
                     Assert.Equal("hashOfQuery", r.QueryId);
-                    Assert.Empty(r.Variables);
-                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.Empty(r.Variables!);
+                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                     Assert.Null(r.Query);
                     Assert.Null(r.QueryHash);
                 });
@@ -515,8 +514,8 @@ namespace HotChocolate.Language
                 r =>
                 {
                     Assert.Null(r.OperationName);
-                    Assert.Empty(r.Variables);
-                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.Empty(r.Variables!);
+                    Assert.True(r.Extensions!.ContainsKey("persistedQuery"));
                     Assert.NotNull(r.Query);
 
                     if (r.Extensions.TryGetValue("persistedQuery", out object o)
@@ -637,8 +636,8 @@ namespace HotChocolate.Language
             [JsonProperty("operationName")]
             public string OperationName { get; set; }
 
-            [JsonProperty("namedQuery")]
-            public string NamedQuery { get; set; }
+            [JsonProperty("id")]
+            public string Id { get; set; }
 
             [JsonProperty("query")]
             public string Query { get; set; }

@@ -14,7 +14,8 @@ namespace HotChocolate.Execution
         private string _queryHash;
         private string _operationName;
         private IReadOnlyDictionary<string, object> _readOnlyVariableValues;
-        private Dictionary<string, object> _variableValues;
+        private Dictionary<string, object> _variableValuesDict;
+        private IVariableValues _variableValues;
         private object _initialValue;
         private IReadOnlyDictionary<string, object> _readOnlyProperties;
         private Dictionary<string, object> _properties;
@@ -80,10 +81,7 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder TrySetServices(
             IServiceProvider services)
         {
-            if (_services is null)
-            {
-                _services = services;
-            }
+            _services ??= services;
             return this;
         }
 
@@ -95,18 +93,29 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder SetVariableValues(
             IDictionary<string, object> variableValues)
         {
-            _variableValues = variableValues is null
+            _variableValuesDict = variableValues is null
                 ? null
                 : new Dictionary<string, object>(variableValues);
             _readOnlyVariableValues = null;
+            _variableValues = null;
             return this;
         }
 
         public IQueryRequestBuilder SetVariableValues(
            IReadOnlyDictionary<string, object> variableValues)
         {
-            _variableValues = null;
+            _variableValuesDict = null;
             _readOnlyVariableValues = variableValues;
+            _variableValues = null;
+            return this;
+        }
+
+        public IQueryRequestBuilder SetVariableValues(
+            IVariableValues variableValues)
+        {
+            _variableValuesDict = null;
+            _readOnlyVariableValues = null;
+            _variableValues = variableValues;
             return this;
         }
 
@@ -114,7 +123,7 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            _variableValues[name] = value;
+            _variableValuesDict[name] = value;
             return this;
         }
 
@@ -123,7 +132,7 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            _variableValues.Add(name, value);
+            _variableValuesDict.Add(name, value);
             return this;
         }
 
@@ -132,9 +141,9 @@ namespace HotChocolate.Execution
         {
             InitializeVariables();
 
-            if (!_variableValues.ContainsKey(name))
+            if (!_variableValuesDict.ContainsKey(name))
             {
-                _variableValues.Add(name, value);
+                _variableValuesDict.Add(name, value);
             }
             return this;
         }
@@ -264,24 +273,36 @@ namespace HotChocolate.Execution
             };
         }
 
-        private IReadOnlyDictionary<string, object> GetVariableValues()
+        private IVariableValues GetVariableValues()
         {
-            if (_variableValues != null)
+            if (_variableValues is not null)
             {
                 return _variableValues;
             }
-            return _readOnlyVariableValues ?? EmptyDictionary.Instance;
+
+            if (_variableValuesDict is not null)
+            {
+                return new DictionaryVariableValues(_variableValuesDict);
+            }
+
+            if (_readOnlyVariableValues is not null)
+            {
+                return new DictionaryVariableValues(_readOnlyVariableValues);
+            }
+
+            return null;
         }
 
         private void InitializeVariables()
         {
-            if (_variableValues is null)
+            if (_variableValuesDict is null)
             {
-                _variableValues = _readOnlyVariableValues is null
+                _variableValuesDict = _readOnlyVariableValues is null
                     ? new Dictionary<string, object>()
                     : _readOnlyVariableValues.ToDictionary(
                         t => t.Key, t => t.Value);
                 _readOnlyVariableValues = null;
+                _variableValues = null;
             }
         }
 
@@ -328,23 +349,32 @@ namespace HotChocolate.Execution
         }
 
         public static IReadOnlyQueryRequest Create(string query) =>
-            QueryRequestBuilder.New().SetQuery(query).Create();
+            New().SetQuery(query).Create();
 
         public static QueryRequestBuilder New() =>
             new QueryRequestBuilder();
 
         public static QueryRequestBuilder From(IReadOnlyQueryRequest request)
         {
-            var builder = new QueryRequestBuilder();
-            builder._query = request.Query;
-            builder._queryName = request.QueryId;
-            builder._queryHash = request.QueryHash;
-            builder._operationName = request.OperationName;
-            builder._readOnlyVariableValues = request.VariableValues;
-            builder._initialValue = request.InitialValue;
-            builder._readOnlyProperties = request.ContextData;
-            builder._readOnlyExtensions = request.Extensions;
-            builder._services = request.Services;
+            var builder = new QueryRequestBuilder
+            {
+                _query = request.Query,
+                _queryName = request.QueryId,
+                _queryHash = request.QueryHash,
+                _operationName = request.OperationName,
+                _readOnlyVariableValues =
+                    request.VariableValues is DictionaryVariableValues d
+                        ? d.Values
+                        : null,
+                _variableValues =
+                    request.VariableValues is not DictionaryVariableValues
+                        ? request.VariableValues
+                        : null,
+                _initialValue = request.InitialValue,
+                _readOnlyProperties = request.ContextData,
+                _readOnlyExtensions = request.Extensions,
+                _services = request.Services
+            };
 
             if (builder._query is null && builder._queryName is null)
             {
@@ -357,7 +387,7 @@ namespace HotChocolate.Execution
 
         public static QueryRequestBuilder From(GraphQLRequest request)
         {
-            var builder = QueryRequestBuilder.New();
+            QueryRequestBuilder builder = New();
 
             builder
                 .SetQueryId(request.QueryId)
@@ -366,7 +396,7 @@ namespace HotChocolate.Execution
                 .SetVariableValues(request.Variables)
                 .SetExtensions(request.Extensions);
 
-            if (request.Query != null)
+            if (request.Query is not null)
             {
                 builder.SetQuery(request.Query);
             }

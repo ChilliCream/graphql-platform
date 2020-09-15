@@ -3,8 +3,27 @@
   "b": {
     "a": "b",
     "b": true,
-    "c": 1,
-    "d": 1.1
+    "c": {
+      "Kind": "IntValue",
+      "Location": {
+        "Start": 1183,
+        "End": 1187,
+        "Line": 1,
+        "Column": 1184
+      },
+      "Value": "1"
+    },
+    "d": {
+      "Kind": "FloatValue",
+      "Location": {
+        "Start": 1189,
+        "End": 1193,
+        "Line": 1,
+        "Column": 1190
+      },
+      "Format": "FixedPoint",
+      "Value": "1.1"
+    }
   },
   "c": [
     {

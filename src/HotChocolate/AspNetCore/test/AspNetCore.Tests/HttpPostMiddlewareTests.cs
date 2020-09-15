@@ -365,6 +365,28 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Double_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                },
+                "/arguments");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_Incomplete()
         {
             // arrange

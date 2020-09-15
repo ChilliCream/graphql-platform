@@ -8,50 +8,36 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private object? ParseValue()
+        private object? ParseValue(bool preserveNumbers)
         {
-            switch (_reader.Kind)
+            return _reader.Kind switch
             {
-                case TokenKind.LeftBracket:
-                    return ParseList();
-
-                case TokenKind.LeftBrace:
-                    return ParseObject();
-
-                case TokenKind.String:
-                case TokenKind.Integer:
-                case TokenKind.Float:
-                case TokenKind.Name:
-                    return ParseScalar();
-
-                default:
-                    throw UnexpectedToken();
-            }
+                TokenKind.LeftBracket => ParseList(preserveNumbers),
+                TokenKind.LeftBrace => ParseObject(preserveNumbers),
+                TokenKind.String => ParseScalar(preserveNumbers),
+                TokenKind.Integer => ParseScalar(preserveNumbers),
+                TokenKind.Float => ParseScalar(preserveNumbers),
+                TokenKind.Name => ParseScalar(preserveNumbers),
+                _ => throw ThrowHelper.UnexpectedToken(_reader)
+            };
         }
 
         private int SkipValue()
         {
-            switch (_reader.Kind)
+            return _reader.Kind switch
             {
-                case TokenKind.LeftBracket:
-                    return SkipList();
-
-                case TokenKind.LeftBrace:
-                    return SkipObject();
-
-                case TokenKind.String:
-                case TokenKind.Integer:
-                case TokenKind.Float:
-                case TokenKind.Name:
-                    return SkipScalar();
-
-                default:
-                    throw UnexpectedToken();
-            }
+                TokenKind.LeftBracket => SkipList(),
+                TokenKind.LeftBrace => SkipObject(),
+                TokenKind.String => SkipScalar(),
+                TokenKind.Integer => SkipScalar(),
+                TokenKind.Float => SkipScalar(),
+                TokenKind.Name => SkipScalar(),
+                _ => throw ThrowHelper.UnexpectedToken(_reader)
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyDictionary<string, object?> ParseObject()
+        private IReadOnlyDictionary<string, object?> ParseObject(bool preserveNumbers)
         {
             _reader.Expect(TokenKind.LeftBrace);
 
@@ -59,7 +45,7 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBrace)
             {
-                ParseObjectField(obj);
+                ParseObjectField(obj, preserveNumbers);
             }
 
             // skip closing token
@@ -79,14 +65,14 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
-            int end = _reader.End;
+            var end = _reader.End;
             _reader.Expect(TokenKind.RightBrace);
             return end;
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(IDictionary<string, object?> obj)
+        private void ParseObjectField(IDictionary<string, object?> obj, bool preserveNumbers)
         {
             if (_reader.Kind != TokenKind.String)
             {
@@ -101,7 +87,7 @@ namespace HotChocolate.Language
             string name = _reader.GetString();
             _reader.MoveNext();
             _reader.Expect(TokenKind.Colon);
-            object? value = ParseValue();
+            object? value = ParseValue(preserveNumbers);
             obj.Add(name, value);
         }
 
@@ -124,7 +110,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyList<object?> ParseList()
+        private IReadOnlyList<object?> ParseList(bool preserveNumbers)
         {
             if (_reader.Kind != TokenKind.LeftBracket)
             {
@@ -143,7 +129,7 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBracket)
             {
-                list.Add(ParseValue());
+                list.Add(ParseValue(preserveNumbers));
             }
 
             // skip closing token
@@ -164,15 +150,15 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
-            int end = _reader.End;
+            var end = _reader.End;
             _reader.Expect(TokenKind.RightBracket);
             return end;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object? ParseScalar()
+        private object? ParseScalar(bool preserveNumbers)
         {
-            string? value = null;
+            string? value;
 
             switch (_reader.Kind)
             {
@@ -181,10 +167,20 @@ namespace HotChocolate.Language
                     _reader.MoveNext();
                     return value;
 
+                case TokenKind.Integer when preserveNumbers:
+                    IValueNode integerLiteral = Utf8GraphQLParser.Syntax.ParseValueLiteral(_reader);
+                    _reader.MoveNext();
+                    return integerLiteral;
+
                 case TokenKind.Integer:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
                     return long.Parse(value, CultureInfo.InvariantCulture);
+
+                case TokenKind.Float when preserveNumbers:
+                    IValueNode floatLiteral =  Utf8GraphQLParser.Syntax.ParseValueLiteral(_reader);
+                    _reader.MoveNext();
+                    return floatLiteral;
 
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();
@@ -210,17 +206,17 @@ namespace HotChocolate.Language
                         return null;
                     }
 
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
 
                 default:
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int SkipScalar()
         {
-            int end = _reader.End;
+            var end = _reader.End;
 
             switch (_reader.Kind)
             {
@@ -255,10 +251,10 @@ namespace HotChocolate.Language
                         return end;
                     }
 
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
 
                 default:
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
             }
         }
     }

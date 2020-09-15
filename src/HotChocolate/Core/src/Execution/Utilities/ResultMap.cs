@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
         private static readonly ResultValue[] _empty = new ResultValue[0];
         private ResultValue[] _buffer;
         private int _capacity;
-        private bool _needsDefrag = false;
+        private bool _needsDefrag;
 
         public ResultMap()
         {

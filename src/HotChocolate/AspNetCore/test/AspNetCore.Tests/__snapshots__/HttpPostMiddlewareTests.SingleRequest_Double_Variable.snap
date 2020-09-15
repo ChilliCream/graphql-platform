@@ -1,0 +1,11 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Object reference not set to an instance of an object."
+    }
+  ],
+  "Extensions": null
+}
