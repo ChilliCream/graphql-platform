@@ -10,13 +10,13 @@ namespace HotChocolate.Types.Spatial
         {
             var message = type.GeometryType switch
             {
-                GeoJSONGeometryType.Point => Resources.InvalidInputObjectStructure_Point,
-                GeoJSONGeometryType.MultiPoint => Resources.InvalidInputObjectStructure_MultiPoint,
-                GeoJSONGeometryType.LineString => Resources.InvalidInputObjectStructure_LineString,
-                GeoJSONGeometryType.MultiLineString => Resources
+                GeoJsonGeometryType.Point => Resources.InvalidInputObjectStructure_Point,
+                GeoJsonGeometryType.MultiPoint => Resources.InvalidInputObjectStructure_MultiPoint,
+                GeoJsonGeometryType.LineString => Resources.InvalidInputObjectStructure_LineString,
+                GeoJsonGeometryType.MultiLineString => Resources
                     .InvalidInputObjectStructure_MultiLineString,
-                GeoJSONGeometryType.Polygon => Resources.InvalidInputObjectStructure_Polygon,
-                GeoJSONGeometryType.MultiPolygon => Resources
+                GeoJsonGeometryType.Polygon => Resources.InvalidInputObjectStructure_Polygon,
+                GeoJsonGeometryType.MultiPolygon => Resources
                     .InvalidInputObjectStructure_MultiPolygon,
                 _ => throw new NotImplementedException()
             };
@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Spatial
         }
 
         public static Exception InvalidStructure_IsOfWrongGeometryType(
-            GeoJSONGeometryType wrongType,
+            GeoJsonGeometryType wrongType,
             IGeometryType type)
         {
             return new SerializationException(

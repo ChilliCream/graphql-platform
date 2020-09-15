@@ -122,7 +122,7 @@
       PublicKeyToken=b77a5c561934e089
     </value>
   </resheader>
-  <data name="GeoJSONPositionScalar_Description" xml:space="preserve">
+  <data name="GeoJsonPositionScalar_Description" xml:space="preserve">
     <value>A position is an array of numbers. There MUST be two or more elements. The first two elements are longitude and latitude, or easting and northing, precisely in that order and using decimal numbers. Altitude or elevation MAY be included as an optional third element.</value>
   </data>
   <data name="InvalidInputObjectStructure_IsOfWrongGeometryType" xml:space="preserve">
@@ -158,31 +158,31 @@
   <data name="PositionScalar_InvalidPositionObject" xml:space="preserve">
     <value>A valid position object must be a list of two or three int or float literals representing a position. e.g. [1,1] or [2,2,0]</value>
   </data>
-  <data name="GeoJSON_Field_Type_Description" xml:space="preserve">
-    <value>The geometry type of the GeoJSON object</value>
+  <data name="GeoJson_Field_Type_Description" xml:space="preserve">
+    <value>The geometry type of the GeoJson object</value>
   </data>
-  <data name="GeoJSON_Field_Bbox_Description" xml:space="preserve">
+  <data name="GeoJson_Field_Bbox_Description" xml:space="preserve">
     <value>The minimum bounding box around the geometry object</value>
   </data>
-  <data name="GeoJSON_Field_Crs_Description" xml:space="preserve">
+  <data name="GeoJson_Field_Crs_Description" xml:space="preserve">
     <value>The coordinate reference system integer identifier</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_Point" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_Point" xml:space="preserve">
     <value>The "coordinates" field is a single position.</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_LineString" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_LineString" xml:space="preserve">
     <value>The "coordinates" field is an array of two or more positions.</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_MultiPoint" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_MultiPoint" xml:space="preserve">
     <value>The "coordinates" field is an array of positions.</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_MultiLineString" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_MultiLineString" xml:space="preserve">
     <value>The "coordinates" field is an array of LineString coordinate arrays.</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_Polygon" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_Polygon" xml:space="preserve">
     <value>The "coordinates" field MUST be an array of linear ring coordinate arrays. For Polygons with more than one of these rings, the first MUST be the exterior ring, and any others MUST be interior rings. The exterior ring bounds the surface, and the interior rings (if present) bound holes within the surface.</value>
   </data>
-  <data name="GeoJSON_Field_Coordinates_Description_MultiPolygon" xml:space="preserve">
+  <data name="GeoJson_Field_Coordinates_Description_MultiPolygon" xml:space="preserve">
     <value>The "coordinates" field is an array of Polygon coordinate arrays.</value>
   </data>
   <data name="PositionScalar_CoordinatesCannotBeNull" xml:space="preserve">

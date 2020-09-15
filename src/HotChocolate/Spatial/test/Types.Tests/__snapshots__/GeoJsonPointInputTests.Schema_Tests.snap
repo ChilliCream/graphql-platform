@@ -3,19 +3,19 @@
 }
 
 type Query {
-  test(arg: PointInput): String
+  test(arg: GeoJSONPointInput): String
 }
 
-input PointInput {
+input GeoJSONPointInput {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType
+  type: GeoJSONGeometryType
   "The \"coordinates\" field is a single position."
   coordinates: Position
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

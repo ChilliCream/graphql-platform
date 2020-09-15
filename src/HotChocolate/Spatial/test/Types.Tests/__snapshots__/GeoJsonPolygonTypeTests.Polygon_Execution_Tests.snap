@@ -2,20 +2,20 @@
   query: Query
 }
 
-interface GeoJsonInterface {
+interface GeoJSONInterface {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType!
+  type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"
   bbox: [Float]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-type Polygon implements GeoJsonInterface {
+type GeoJSONPolygonType implements GeoJSONInterface {
   "The \"coordinates\" field MUST be an array of linear ring coordinate arrays. For Polygons with more than one of these rings, the first MUST be the exterior ring, and any others MUST be interior rings. The exterior ring bounds the surface, and the interior rings (if present) bound holes within the surface."
   coordinates: [Position]
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType!
+  type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"
   bbox: [Float!]!
   "The coordinate reference system integer identifier"
@@ -23,10 +23,10 @@ type Polygon implements GeoJsonInterface {
 }
 
 type Query {
-  test: Polygon
+  test: GeoJSONPolygonType
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

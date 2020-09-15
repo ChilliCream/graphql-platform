@@ -45,9 +45,9 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
-        internal static string GeoJSONPositionScalar_Description {
+        internal static string GeoJsonPositionScalar_Description {
             get {
-                return ResourceManager.GetString("GeoJSONPositionScalar_Description", resourceCulture);
+                return ResourceManager.GetString("GeoJsonPositionScalar_Description", resourceCulture);
             }
         }
         
@@ -117,57 +117,57 @@ namespace HotChocolate.Types.Spatial.Properties {
             }
         }
         
-        internal static string GeoJSON_Field_Type_Description {
+        internal static string GeoJson_Field_Type_Description {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Type_Description", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Type_Description", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Bbox_Description {
+        internal static string GeoJson_Field_Bbox_Description {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Bbox_Description", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Bbox_Description", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Crs_Description {
+        internal static string GeoJson_Field_Crs_Description {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Crs_Description", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Crs_Description", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_Point {
+        internal static string GeoJson_Field_Coordinates_Description_Point {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_Point", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_Point", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_LineString {
+        internal static string GeoJson_Field_Coordinates_Description_LineString {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_LineString", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_LineString", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_MultiPoint {
+        internal static string GeoJson_Field_Coordinates_Description_MultiPoint {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiPoint", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_MultiPoint", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_MultiLineString {
+        internal static string GeoJson_Field_Coordinates_Description_MultiLineString {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiLineString", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_MultiLineString", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_Polygon {
+        internal static string GeoJson_Field_Coordinates_Description_Polygon {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_Polygon", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_Polygon", resourceCulture);
             }
         }
         
-        internal static string GeoJSON_Field_Coordinates_Description_MultiPolygon {
+        internal static string GeoJson_Field_Coordinates_Description_MultiPolygon {
             get {
-                return ResourceManager.GetString("GeoJSON_Field_Coordinates_Description_MultiPolygon", resourceCulture);
+                return ResourceManager.GetString("GeoJson_Field_Coordinates_Description_MultiPolygon", resourceCulture);
             }
         }
         

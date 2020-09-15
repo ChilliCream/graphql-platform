@@ -1,21 +1,21 @@
-﻿  schema {
+﻿schema {
   query: Query
 }
 
 type Query {
-  test(arg: LineStringInput): String
+  test(arg: GeoJSONLineStringInput): String
 }
 
-input LineStringInput {
+input GeoJSONLineStringInput {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType
+  type: GeoJSONGeometryType
   "The \"coordinates\" field is an array of two or more positions."
   coordinates: [Position]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Spatial.Tests
 {
-    public class GeoJSONPointInputTests
+    public class GeoJsonPointInputTests
     {
         private readonly ListValueNode _point = new ListValueNode(
             new IntValueNode(30),
@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJSONPointInput>())
+                    .Argument("arg", a => a.Type<GeoJsonPointInput>())
                     .Resolver("ghi"))
             .Create();
 
@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             ISchema schema = CreateSchema();
 
-            return schema.GetType<InputObjectType>("PointInput");
+            return schema.GetType<InputObjectType>("GeoJSONPointInput");
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
                     new ObjectFieldNode("coordinates", _point)));
 
             // assert
@@ -57,7 +57,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
                     new ObjectFieldNode("coordinates", _point),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -106,7 +106,7 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
-                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Point)),
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
-                        new ObjectFieldNode("type", new EnumValueNode(GeoJSONGeometryType.Polygon)),
+                        new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
                         new ObjectFieldNode("coordinates", _point))));
         }
 
@@ -132,7 +132,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJSONPointInput>())
+                        .Argument("arg", a => a.Type<GeoJsonPointInput>())
                         .Resolver(ctx => ctx.ArgumentValue<Point>("arg").ToString()))
                 .Create();
 

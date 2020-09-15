@@ -8,21 +8,21 @@ namespace HotChocolate
         public static ISchemaBuilder AddSpatialTypes(this ISchemaBuilder builder)
         {
             return builder
-                .AddType<GeoJSONInterface>()
-                .AddType<GeoJSONGeometryType>()
-                .AddType<GeoJSONPointInput>()
-                .AddType<GeoJSONMultiPointInput>()
-                .AddType<GeoJSONLineStringInput>()
-                .AddType<GeoJSONMultiLineStringInput>()
-                .AddType<GeoJSONPolygonInput>()
-                .AddType<GeoJSONMultiPolygonInput>()
-                .AddType<GeoJSONPointType>()
-                .AddType<GeoJSONMultiPointType>()
-                .AddType<GeoJSONLineStringType>()
-                .AddType<GeoJSONMultiLineStringType>()
-                .AddType<GeoJSONPolygonType>()
-                .AddType<GeoJSONMultiPolygonType>()
-                .BindClrType<Coordinate, GeoJSONPositionScalar>();
+                .AddType<GeoJsonInterface>()
+                .AddType<GeoJsonGeometryType>()
+                .AddType<GeoJsonPointInput>()
+                .AddType<GeoJsonMultiPointInput>()
+                .AddType<GeoJsonLineStringInput>()
+                .AddType<GeoJsonMultiLineStringInput>()
+                .AddType<GeoJsonPolygonInput>()
+                .AddType<GeoJsonMultiPolygonInput>()
+                .AddType<GeoJsonPointType>()
+                .AddType<GeoJsonMultiPointType>()
+                .AddType<GeoJsonLineStringType>()
+                .AddType<GeoJsonMultiLineStringType>()
+                .AddType<GeoJsonPolygonType>()
+                .AddType<GeoJsonMultiPolygonType>()
+                .BindClrType<Coordinate, GeoJsonPositionType>();
         }
     }
 }

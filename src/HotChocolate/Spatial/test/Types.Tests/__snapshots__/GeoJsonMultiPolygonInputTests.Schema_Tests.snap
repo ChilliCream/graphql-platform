@@ -3,19 +3,19 @@
 }
 
 type Query {
-  test(arg: MultiPolygonInput): String
+  test(arg: GeoJSONMultiPolygonInput): String
 }
 
-input MultiPolygonInput {
+input GeoJSONMultiPolygonInput {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType
+  type: GeoJSONGeometryType
   "The \"coordinates\" field is an array of Polygon coordinate arrays."
   coordinates: [[Position]]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

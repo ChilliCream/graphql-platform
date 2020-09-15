@@ -3,19 +3,19 @@
 }
 
 type Query {
-  test(arg: MultiPointInput): String
+  test(arg: GeoJSONMultiPointInput): String
 }
 
-input MultiPointInput {
+input GeoJSONMultiPointInput {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType
+  type: GeoJSONGeometryType
   "The \"coordinates\" field is an array of positions."
   coordinates: [Position]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

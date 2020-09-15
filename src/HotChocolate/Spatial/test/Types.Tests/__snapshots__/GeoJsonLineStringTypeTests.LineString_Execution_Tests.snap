@@ -2,20 +2,20 @@
   query: Query
 }
 
-interface GeoJsonInterface {
+interface GeoJSONInterface {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType!
+  type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"
   bbox: [Float]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-type LineString implements GeoJsonInterface {
+type GeoJSONLineStringType implements GeoJSONInterface {
   "The \"coordinates\" field is an array of two or more positions."
   coordinates: [Position]
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType!
+  type: GeoJSONGeometryType!
   "The minimum bounding box around the geometry object"
   bbox: [Float!]!
   "The coordinate reference system integer identifier"
@@ -23,10 +23,10 @@ type LineString implements GeoJsonInterface {
 }
 
 type Query {
-  test: LineString
+  test: GeoJSONLineStringType
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING

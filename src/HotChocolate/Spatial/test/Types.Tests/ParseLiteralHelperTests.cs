@@ -71,9 +71,9 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.Equal(1, indices.coordinateIndex);
         }
 
-        private class TestGeoJsonInputType : GeoJSONInputObjectType<Point>
+        private class TestGeoJsonInputType : GeoJsonInputObjectType<Point>
         {
-            public override GeoJSONGeometryType GeometryType => GeoJSONGeometryType.Point;
+            public override GeoJsonGeometryType GeometryType => GeoJsonGeometryType.Point;
 
 
             public new (int typeIndex, int coordinateIndex, int crsIndex) GetFieldIndices(

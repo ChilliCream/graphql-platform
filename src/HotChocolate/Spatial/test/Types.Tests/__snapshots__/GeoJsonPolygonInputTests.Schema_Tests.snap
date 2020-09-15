@@ -3,19 +3,19 @@
 }
 
 type Query {
-  test(arg: PolygonInput): String
+  test(arg: GeoJSONPolygonInput): String
 }
 
-input PolygonInput {
+input GeoJSONPolygonInput {
   "The geometry type of the GeoJson object"
-  type: GeoJsonGeometryType
+  type: GeoJSONGeometryType
   "The \"coordinates\" field MUST be an array of linear ring coordinate arrays. For Polygons with more than one of these rings, the first MUST be the exterior ring, and any others MUST be interior rings. The exterior ring bounds the surface, and the interior rings (if present) bound holes within the surface."
   coordinates: [Position]
   "The coordinate reference system integer identifier"
   crs: Int
 }
 
-enum GeoJsonGeometryType {
+enum GeoJSONGeometryType {
   POINT
   MULTI_POINT
   LINE_STRING
