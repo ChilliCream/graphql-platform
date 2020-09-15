@@ -37,10 +37,9 @@ const PlatformPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Hot Chocolate</SectionTitle>
             <p>
-              Hot Chocolate is the GraphQL server, but also provides core
-              libraries for Strawberry Shake, which is our GraphQL client, and
-              our GraphQL tools. No wonder why Hot Chocolate is the
-              ChilliCream's platform core.
+              Hot Chocolate is the GraphQL server and provides core libraries
+              for Strawberry Shake, our GraphQL client, and our GraphQL tools.
+              No wonder why Hot Chocolate is the ChilliCream's platform core.
             </p>
             <Link to="/docs/hotchocolate">Learn more</Link>
           </ContentContainer>
