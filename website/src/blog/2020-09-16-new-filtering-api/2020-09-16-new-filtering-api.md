@@ -189,18 +189,11 @@ Filtering has dedicated input types. `FilterInputType` and `FilterInputType<T>` 
 
 # Execution
 
-To map an incoming GraphQL filter query to the database, Hot Chocolate needs to know how to handle fields and operations.
-We initially started off by having a lookup table. The filter middleware would access this lookup table and search for a matching handler.
-This was completely redesigned in version 11. During schema initialization, we annotate the matching handler directly from the convention onto the field. For this we use a new concept call type interceptors.
-This comes with a few benefits. Firstly, we know during schema creation if all required handlers are registered. In case we do not find a matching handler we can now fail early and tell the developer what is missing.
-Secondly, we do not have to do runtime lookups. All handlers are now directly stored on the fields and available on visitation.
-To be able to use more than one filter convention, e.g. MongoDb and SqlServer, we introduced a new concept called schema scoping.
+To map an incoming GraphQL filter query to the database, Hot Chocolate needs to know how to handle fields and operations. We initially started by having a lookup table. The filter middleware would access this lookup table and search for a matching handler. Since we did a lot of unnecessary work on runtime, we redesigned this to do more of this work at configuration time. During schema initialization, we annotate the matching handler directly from the convention onto the field. For this, we use a new concept call type interceptors. This comes with a few benefits. Firstly, we know during schema creation if all required handlers are registered. In case we do not find a matching handler, we can now fail early and tell the developer what is missing. Secondly, we do not have to do runtime lookups. All handlers are now directly stored on the fields and are available on visitation. We introduced a new concept called type scoping to use more than one filter convention, e.g., MongoDB and SqlServer.
 
 ## Type Interceptor
 
-Type interceptors are one of the new shiny features of version 11. To create an interceptor, you have to extend the class `TypeInterceptor` and register it on the schema builder. You can hook into the schema initialization process and do changes across all types.
-Countless new possibilities come with these interceptors.
-As an example use case we look at feature flags. Feature flags can be useful in services that are tenant-based. You may want to hide parts of an API for a specific tenant.
+Type interceptors are one of the new shiny features of version 11. To create an interceptor, you have to extend the class `TypeInterceptor` and register it on the schema builder. You can hook into the schema initialization process and make changes across all types or even introduce new once while rewriting the schema. Countless new possibilities come with these new type interceptors. As an example, use-case, we looked at feature flags. Feature flags can be useful in services that are tenant-based. You may want to hide parts of an API for a specific tenant.
 
 The simplest example might be the following one:
 
