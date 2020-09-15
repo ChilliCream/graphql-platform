@@ -82,7 +82,7 @@ const PlatformPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Marshmallow Pie</SectionTitle>
             <p>...</p>
-            <Link to="/docs/marshmellowpie">Learn more</Link>
+            <Link to="/docs/marshmallowpie">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>

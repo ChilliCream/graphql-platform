@@ -2,7 +2,7 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
-    "description": "Configure a GraphQL server to fetch data from multiple data sources.",
+    "description": "Build your own thin GraphQL API layer on top of any resource.",
     "items": [
       {
         "path": "index",
@@ -95,7 +95,7 @@
   {
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL endpoint.",
+    "description": "Use this GUI to get deep insights from any GraphQL API.",
     "items": [
       {
         "path": "index",
@@ -106,7 +106,7 @@
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "Configure a GraphQL client in .Net to fetch data from multiple GraphQL endpoints.",
+    "description": "Generate a unique GraphQL client for .Net to fetch data from any GraphQL API.",
     "items": [
       {
         "path": "index",
@@ -115,8 +115,8 @@
     ]
   },
   {
-    "path": "marshmellowpie",
-    "title": "Marshmellow Pie",
+    "path": "marshmallowpie",
+    "title": "Marshmallow Pie",
     "description": "Configure a GraphQL registry to keep track of any GraphQL server and client.",
     "items": [
       {
