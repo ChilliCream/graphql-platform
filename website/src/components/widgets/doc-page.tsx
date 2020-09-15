@@ -68,7 +68,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
           </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
-        <ArticleComments data={data} path={path} title={title} />
+        {false && <ArticleComments data={data} path={path} title={title} />}
       </ArticleWrapper>
       <DocPageAside>
         <DocPageCommunity data={data} originPath={originPath} />

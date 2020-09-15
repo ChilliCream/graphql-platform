@@ -23,6 +23,7 @@ import { Layout } from "../components/structure/layout";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import ContactUsSvg from "../images/contact-us.svg";
@@ -176,21 +177,36 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
-              <Logo width={180}>
-                <AutoguruLogoSvg />
-              </Logo>
               <Logo width={100}>
-                <AtminaLogoSvg />
+                <Link to="https://atmina.de">
+                  <AtminaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.autoguru.com.au">
+                  <AutoguruLogoSvg />
+                </Link>
               </Logo>
               <Logo width={120}>
-                <GiaLogoSvg />
+                <Link to="https://gia.ch">
+                  <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://motitech.co.uk">
+                  <MotiviewLogoSvg />
+                </Link>
               </Logo>
               <Logo width={120}>
-                <Seven2OneLogoSvg />
+                <Link to="https://www.seven2one.de">
+                  <Seven2OneLogoSvg />
+                </Link>
               </Logo>
               {false && (
                 <Logo width={100}>
-                  <SwissLifeLogoSvg />
+                  <Link to="https://www.swisslife.ch">
+                    <SwissLifeLogoSvg />
+                  </Link>
                 </Logo>
               )}
             </Logos>
@@ -425,7 +441,7 @@ const Logo = styled.div<{ width?: number }>`
   margin: 30px;
   width: ${({ width }) => width || 160}px;
 
-  > svg {
+  > a > svg {
     fill: #667;
     transition: fill 0.2s ease-in-out;
 
