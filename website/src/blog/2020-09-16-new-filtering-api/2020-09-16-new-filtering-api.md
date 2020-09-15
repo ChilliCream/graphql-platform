@@ -9,13 +9,13 @@ authorUrl: https://github.com/pascal_senn
 authorImageUrl: https://avatars0.githubusercontent.com/u/14233220
 ---
 
-With version 11 we release a complete rewrite of filtering, sorting and selections. With our initial release a few versions back we decided to use a similar syntax as Prisma did. Initially, this looked like a very intuitive way of declaring filters. In preview releases of version 11 we already shipped some extensions, like object filters and list filters.
+With version 11, we release a complete rewrite of filtering, sorting, and selections. With our initial release a few versions back, we decided to use a similar syntax as Prisma did. Initially, this looked like a very intuitive way of declaring filters. We already shipped some extensions in preview releases of version 11, like object filters, list filters, etc.
 
-We started investigating into opening up the API for users that want to provide their own set of filters or write their own database providers. Quickly we realized that the API was not good enough for a public release and, even worse, the underlying GraphQL syntax was not ideal.
+We started investigating into opening up the API for users who want to provide their filters or write their database providers for Hot Chocolate. Quickly we realized that the API was not good enough for a public release and, even worse, the underlying GraphQL syntax was not ideal to use.
 
-This was a huge setback for us, but we still went back to the drawing board and made a complete redesign of it. We looked at a lot of different implementation of similar features and combined with the experience we made, we settled on a similar approach to Hasura or Postgraphile.
+This was a huge setback for us, but we still went back to the drawing board and made a complete redesign of it. We looked at many different implementations of similar features, and combined with the experience we made; we settled on a similar approach to Hasura or Postgraphile.
 
-The main issue with the filters released with version 10, is the strict binding of field and operation. The discussion and a detailed description of the issue we faced can be followed in this [Issue on GitHub](https://github.com/ChilliCream/hotchocolate/issues/2044)
+The main issue with the filters released with version 10 is the strict binding of field and operation. The discussion and a detailed description of the problem we faced can be followed in this [Issue on GitHub](https://github.com/ChilliCream/hotchocolate/issues/2044)
 
 Here is a quick summary:
 
@@ -49,7 +49,7 @@ where: {
 }
 ```
 
-As soon as we dived deeper into possible extension, the problems became more severe and the API becomes a lot more inconsistent. A good example of this issue is when we want to filter by the length of a string. We could filter by `foo_length_gt:4` or `foo_length: { is_gt: 4}` or even `foo: {length: {is_gt:4}}`. All of these approaches would follow the style guide. The first would be like we define filters for the field, the second similar to the list filters and the last one would be like the object filters.
+As soon as we dived deeper into possible extensions, the problems became more severe, and the API became more inconsistent. A good example of this issue is when we want to filter by the length of a string. We could filter by `foo_length_gt:4` or `foo_length: { is_gt: 4}` or even `foo: { length: { is_gt:4 } }`. All of these approaches would follow the style guide. The first would be like we define filters for the field, the second similar to the list filters, and the last one would be like the object filters.
 
 # The New Filtering
 
@@ -105,19 +105,19 @@ where: {
 
 # THIS IS BREAKING MY API!
 
-We know. We had a long discussion about this. We feel confident that this new approach is the right way to go and it is designed to stay. The 10.X.X filters are still available in version 11. They will be deprecated though and will be removed in version 12.
+We know. We had a long discussion about this. We feel confident that this new approach is the right way to go, and it is designed to stay. The 10.X.X filters are still available in version 11. They will be deprecated, though, and will be removed in version 12.
 
 # The Data Package
 
-With version 11 we introduce a new package for Hot Chocolate. We created a new package called `HotChocolate.Data`. This package contains `HotChocolate.Data.Filtering`, `HotChocolate.Data.Sorting` and `HotChocolate.Data.Projections`.
+With version 11, we introduce a new package for Hot Chocolate. We created a new package called `HotChocolate.Data`. This package contains `HotChocolate.Data.Filtering`, `HotChocolate.Data.Sorting` and `HotChocolate.Data.Projections`.
 
 # Migrating from 10 to 11
 
-We could not avoid conflicts in names between the old and the new filtering. You can use static imports or full qualified names if you need to have the old and the new API in the same file.
+We could not avoid conflicts in type names between the old and the new filtering. You can use static imports or fully qualified type names to have the old and the new filtering API in the same file.
 
-If you have full control over the frontend, the easiest way to migrate is to just replace the old filtering with the new one and do the necessary changes in the frontend.
+If you have full control over the front end, the easiest way to migrate is to replace the old filtering with the new one and make the necessary changes.
 
-If this is not an option for you, then you will have to declare new fields and deprecate the old ones. You may even use the filters on the same fields, but you will end up with conflicting argument names.
+If this is not an option for you, you will have to declare new fields and deprecate the old ones once they are no longer used. You may even use the filters on the same fields, but you will end up with conflicting argument names.
 
 # Getting started
 
@@ -133,7 +133,7 @@ public void ConfigureServcies(IServiceCollection services) {
 }
 ```
 
-You are now all set and ready to use the filters. For a pure code first approach, you can use the attribute `[UseFiltering]` and for code first you can use the `.UseFiltering()` extension method.
+You are now all set and ready to use the filters. For a pure code first approach, you can use the attribute `[UseFiltering]`, and for code first, you can use the `UseFiltering()` extension method.
 
 ```csharp
 // pure code first
@@ -158,11 +158,9 @@ public class Query : ObjectType {
 
 # How does it work?
 
-The old filtering was bundling a field and operation together. With the new filtering, this is now separated. The concept of field and operation still exists, though a little different.
-A field is always used for navigation. You can think of it as a selector. In code first, a field represents a property of a class.
-An operation is always an action in the context of a field. Semantically you can look at it as a function. Most often this is a compare operation, like equals or greater than, but it can also be more arbitrary. In the context of spatial data exist many functions that can be translated to database queries, like `ConvexHull()` or `Distance(Geometry g)`. Filtering on spatial data is something we plan to support soon. Operations are identified by an integer.
+The old filtering was bundling a field and operation together. With the new filtering, this is now separated. The concept of field and operation still exists, though a little different. A field is always used for navigation. You can think of it as a selector. In code first, a field represents a property of a class. An operation is always an action in the context of a field. Semantically you can look at it as a function. This is often a compare operation, like equals or greater than, but it can also be more arbitrary. In spatial data, many functions can be translated to database queries, like `ConvexHull()` or `Distance(Geometry g)`. Filtering on spatial data is something we plan to support soon. Operations are identified by an integer, which is called the operation ID.
 
-In most cases, a filter type either, only contains fields or only operations, but it is in no ways restricted. A filter type can contain both. This can be useful to provide necessary metadata. Let's continue the example `Distance(Geometry g)` from above. This function has a parameter `g`. To calculate the distance between to points, the consumer needs to provide one point. The function then returns the distance between these two points. In GraphQL this now can be combined into one input type:
+In most cases, a filter type either only contains fields or only operations, but it is in no way restricted to that. A filter type can contain both. This can be useful to provide the necessary metadata. Let's continue the example `Distance(Geometry g)` from above. This function has a parameter `g`. To calculate the distance between to points, the consumer needs to provide one point. The function then returns the distance between these two points. In GraphQL, this now can be combined into one input type:
 
 ```graphql
 input HouseFilterInputType {
@@ -183,16 +181,11 @@ input DistanceToFilterInputType {
 }
 ```
 
-The new version of filtering does not only have a new look and feel at the API level, but also comes with lots of changes to the Hot Chocolate core. The data package is now completely separated from the core and no internal APIs are used.
-Like most of the things in Hot Chocolate, filtering can roughly be broken down into two parts. Schema building and execution.
-Something we really focused on are the new conventions. The goal was to make it easier for users to extend the capabilities of filtering. It is a lot easier to create custom filters and providers now.
-Both schema building and execution are configurable with conventions.
+The new version of filtering does not only have a new look and feel at the API level but also comes with lots of changes to the Hot Chocolate core. The data package is now completely separated from the core, and no internal APIs are used. Like most of the things in Hot Chocolate, filtering can roughly be broken down into two parts. Schema building and execution. Something we focused on is the new conventions. The goal was to make it easier for users to extend the capabilities of filtering. It is now a lot easier to create custom filters and providers to add new functionality. Both schema building and execution are configurable with conventions.
 
 # Schema Building
 
-Filtering has dedicated input types. `FilterInputType` and `FilterInputType<T>` are extensions of the normal `InputObjectType`.
-Both filter input types have a similar interface to the normal input type. In addition to `Name`, `Description`, `Directive` et al, there are a couple new methods. You can specify fields and operations. There is also `AllowOr` and `AllowAnd`. These two add the special fields needed for these operations.
-The `FilterInputType` uses the convention for naming and inference of properties. Similar to the scalar registration on the schema builder, operation types can be bound on the filter convention.
+Filtering has dedicated input types. `FilterInputType` and `FilterInputType<T>` are extensions of the normal `InputObjectType`. Both filter input types have a similar interface to the normal input type. In addition to `Name`, `Description`, `Directive`, there are a couple of specific descriptors to describe filter capabilities. You can specify fields and operations. There is also `AllowOr` and `AllowAnd`. These two add the special fields needed for these operations. The `FilterInputType` uses the convention for naming and inference of properties. Like the scalar registration on the schema builder, operation types can be bound on the filter convention.
 
 # Execution
 
