@@ -111,11 +111,11 @@ namespace HotChocolate.Types.Introspection
             return null;
         }
 
-        private IEnumerable<EnumValue> GetEnumValues(IType type, bool includeDeprecated)
+        private IEnumerable<IEnumValue> GetEnumValues(IType type, bool includeDeprecated)
         {
             if (type is EnumType et)
             {
-                IReadOnlyCollection<EnumValue> values = et.Values;
+                IReadOnlyCollection<IEnumValue> values = et.Values;
                 if (!includeDeprecated)
                 {
                     return values.Where(t => !t.IsDeprecated);

@@ -1,0 +1,49 @@
+﻿{
+  "data": {
+    "nestedObjectList": {
+      "edges": [
+        {
+          "node": [
+            {
+              "bar": "a"
+            }
+          ],
+          "cursor": "MA=="
+        },
+        {
+          "node": [
+            {
+              "bar": "b"
+            },
+            {
+              "bar": "c"
+            }
+          ],
+          "cursor": "MQ=="
+        }
+      ],
+      "nodes": [
+        [
+          {
+            "bar": "a"
+          }
+        ],
+        [
+          {
+            "bar": "b"
+          },
+          {
+            "bar": "c"
+          }
+        ]
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "MQ=="
+      },
+      "totalCount": 5
+    }
+  }
+}

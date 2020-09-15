@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "letters": {
+      "edges": [
+        {
+          "node": "c",
+          "cursor": "Mg=="
+        },
+        {
+          "node": "d",
+          "cursor": "Mw=="
+        }
+      ],
+      "nodes": [
+        "c",
+        "d"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true,
+        "startCursor": "Mg==",
+        "endCursor": "Mw=="
+      }
+    }
+  }
+}

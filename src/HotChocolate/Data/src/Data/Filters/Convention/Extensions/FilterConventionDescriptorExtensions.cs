@@ -53,27 +53,32 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            descriptor.BindRuntimeType<string, StringOperationFilterInput>();
-            descriptor.BindRuntimeType<bool, BooleanOperationFilterInput>();
-            descriptor.BindRuntimeType<byte, ComparableOperationFilterInput<byte>>();
-            descriptor.BindRuntimeType<short, ComparableOperationFilterInput<short>>();
-            descriptor.BindRuntimeType<int, ComparableOperationFilterInput<int>>();
-            descriptor.BindRuntimeType<long, ComparableOperationFilterInput<long>>();
-            descriptor.BindRuntimeType<float, ComparableOperationFilterInput<float>>();
-            descriptor.BindRuntimeType<double, ComparableOperationFilterInput<double>>();
-            descriptor.BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>();
-            descriptor.BindRuntimeType<bool?, BooleanOperationFilterInput>();
-            descriptor.BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>();
-            descriptor.BindRuntimeType<short?, ComparableOperationFilterInput<short?>>();
-            descriptor.BindRuntimeType<int?, ComparableOperationFilterInput<int?>>();
-            descriptor.BindRuntimeType<long?, ComparableOperationFilterInput<long?>>();
-            descriptor.BindRuntimeType<float?, ComparableOperationFilterInput<float?>>();
-            descriptor.BindRuntimeType<double?, ComparableOperationFilterInput<double?>>();
-            descriptor.BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>();
-            descriptor.BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>();
-            descriptor.BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>();
-            descriptor.BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>();
-            descriptor.BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>();
+            descriptor
+                .BindRuntimeType<string, StringOperationFilterInput>()
+                .BindRuntimeType<bool, BooleanOperationFilterInput>()
+                .BindRuntimeType<byte, ComparableOperationFilterInput<byte>>()
+                .BindRuntimeType<short, ComparableOperationFilterInput<short>>()
+                .BindRuntimeType<int, ComparableOperationFilterInput<int>>()
+                .BindRuntimeType<long, ComparableOperationFilterInput<long>>()
+                .BindRuntimeType<float, ComparableOperationFilterInput<float>>()
+                .BindRuntimeType<double, ComparableOperationFilterInput<double>>()
+                .BindRuntimeType<decimal, ComparableOperationFilterInput<decimal>>()
+                .BindRuntimeType<Guid, ComparableOperationFilterInput<Guid>>()
+                .BindRuntimeType<DateTime, ComparableOperationFilterInput<DateTime>>()
+                .BindRuntimeType<DateTimeOffset, ComparableOperationFilterInput<DateTimeOffset>>()
+                .BindRuntimeType<TimeSpan, ComparableOperationFilterInput<TimeSpan>>()
+                .BindRuntimeType<bool?, BooleanOperationFilterInput>()
+                .BindRuntimeType<byte?, ComparableOperationFilterInput<byte?>>()
+                .BindRuntimeType<short?, ComparableOperationFilterInput<short?>>()
+                .BindRuntimeType<int?, ComparableOperationFilterInput<int?>>()
+                .BindRuntimeType<long?, ComparableOperationFilterInput<long?>>()
+                .BindRuntimeType<float?, ComparableOperationFilterInput<float?>>()
+                .BindRuntimeType<double?, ComparableOperationFilterInput<double?>>()
+                .BindRuntimeType<decimal?, ComparableOperationFilterInput<decimal?>>()
+                .BindRuntimeType<Guid?, ComparableOperationFilterInput<Guid?>>()
+                .BindRuntimeType<DateTime?, ComparableOperationFilterInput<DateTime?>>()
+                .BindRuntimeType<DateTimeOffset?, ComparableOperationFilterInput<DateTimeOffset?>>()
+                .BindRuntimeType<TimeSpan?, ComparableOperationFilterInput<TimeSpan?>>();
 
             return descriptor;
         }

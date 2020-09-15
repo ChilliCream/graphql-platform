@@ -17,15 +17,17 @@ namespace HotChocolate.Types
 
         public EnumTypeDefinitionNode? SyntaxNode { get; private set; }
 
-        public IReadOnlyCollection<EnumValue> Values => _enumValues.Values;
+        public IReadOnlyCollection<IEnumValue> Values => _enumValues.Values;
 
-        IReadOnlyCollection<IEnumValue> IEnumType.Values => Values;
+        protected IReadOnlyDictionary<NameString, IEnumValue> NameLookup => _enumValues;
+
+        protected IReadOnlyDictionary<object, IEnumValue> ValueLookup => _valueLookup;
 
         public bool TryGetRuntimeValue(
             NameString name,
             [NotNullWhen(true)] out object? runtimeValue)
         {
-            if (_enumValues.TryGetValue(name, out EnumValue? value))
+            if (_enumValues.TryGetValue(name, out IEnumValue? value))
             {
                 runtimeValue = value.Value;
                 return true;
@@ -64,12 +66,8 @@ namespace HotChocolate.Types
         /// <inheritdoc />
         public bool IsInstanceOfType(object? runtimeValue)
         {
-            if (runtimeValue is null)
-            {
-                return true;
-            }
-
-            return RuntimeType.IsInstanceOfType(runtimeValue);
+            return runtimeValue is null ||
+                RuntimeType.IsInstanceOfType(runtimeValue);
         }
 
         /// <inheritdoc />
@@ -81,7 +79,7 @@ namespace HotChocolate.Types
             }
 
             if (valueSyntax is EnumValueNode evn &&
-                _enumValues.TryGetValue(evn.Value, out EnumValue? ev))
+                _enumValues.TryGetValue(evn.Value, out IEnumValue? ev))
             {
                 return ev.Value;
             }
@@ -110,7 +108,7 @@ namespace HotChocolate.Types
                 return NullValueNode.Default;
             }
 
-            if (_valueLookup.TryGetValue(runtimeValue, out EnumValue? enumValue))
+            if (_valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
             {
                 return new EnumValueNode(enumValue.Name);
             }
@@ -129,7 +127,7 @@ namespace HotChocolate.Types
             }
 
             if (resultValue is string s &&
-                _enumValues.TryGetValue(s, out EnumValue? enumValue))
+                _enumValues.TryGetValue(s, out IEnumValue? enumValue))
             {
                 return new EnumValueNode(enumValue.Name);
             }
@@ -159,7 +157,7 @@ namespace HotChocolate.Types
             }
 
             if (RuntimeType.IsInstanceOfType(runtimeValue) &&
-                _valueLookup.TryGetValue(runtimeValue, out EnumValue? enumValue))
+                _valueLookup.TryGetValue(runtimeValue, out IEnumValue? enumValue))
             {
                 return enumValue.Name;
             }
@@ -200,7 +198,7 @@ namespace HotChocolate.Types
             }
 
             if (resultValue is string s &&
-                _enumValues.TryGetValue(s, out EnumValue? enumValue))
+                _enumValues.TryGetValue(s, out IEnumValue? enumValue))
             {
                 runtimeValue = enumValue.Value;
                 return true;

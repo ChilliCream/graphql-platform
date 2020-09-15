@@ -37,7 +37,7 @@ export const Pagination: FunctionComponent<PaginationProperties> = ({
 };
 
 const Container = styled.ol`
-  margin: 20px 0;
+  margin: 0 0 60px;
   padding: 0;
   list-style-type: none;
 `;

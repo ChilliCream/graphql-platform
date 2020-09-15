@@ -5,6 +5,7 @@ import { GetHeaderDataQuery } from "../../../graphql-types";
 import { IconContainer } from "../misc/icon-container";
 import { Link } from "../misc/link";
 import { Search } from "../misc/search";
+import { useScroll } from "../misc/useScroll";
 
 import BarsIconSvg from "../../images/bars.svg";
 import GithubIconSvg from "../../images/github.svg";
@@ -15,6 +16,7 @@ import TimesIconSvg from "../../images/times.svg";
 import TwitterIconSvg from "../../images/twitter.svg";
 
 export const Header: FunctionComponent = () => {
+  const [enableShadow, setEnableShadow] = useState<boolean>(false);
   const [topNavOpen, setTopNavOpen] = useState<boolean>(false);
   const data = useStaticQuery<GetHeaderDataQuery>(graphql`
     query getHeaderData {
@@ -44,8 +46,12 @@ export const Header: FunctionComponent = () => {
     setTopNavOpen(false);
   };
 
+  useScroll((top) => {
+    setEnableShadow(top > 0);
+  });
+
   return (
-    <Container>
+    <Container enableShadow={enableShadow}>
       <BodyStyle disableScrolling={topNavOpen} />
       <ContainerWrapper>
         <LogoLink to="/">
@@ -104,13 +110,15 @@ export const Header: FunctionComponent = () => {
   );
 };
 
-const Container = styled.header`
+const Container = styled.header<{ enableShadow: boolean }>`
   position: fixed;
   z-index: 20;
   width: 100vw;
   height: 60px;
   background-color: #f40010;
-  box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);
+  ${({ enableShadow }) =>
+    enableShadow && "box-shadow: 0px 3px 6px 0px rgba(0, 0, 0, 0.25);"}
+  transition: box-shadow 0.2s ease-in-out;
 `;
 
 const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
@@ -124,7 +132,7 @@ const BodyStyle = createGlobalStyle<{ disableScrolling: boolean }>`
   }
 `;
 
-const ContainerWrapper = styled.header`
+const ContainerWrapper = styled.div`
   position: relative;
   display: flex;
   justify-content: center;
@@ -134,9 +142,9 @@ const ContainerWrapper = styled.header`
     justify-content: initial;
   }
 
-  @media only screen and (min-width: 1500px) {
+  @media only screen and (min-width: 1400px) {
     margin: 0 auto;
-    width: 1300px;
+    width: 1400px;
   }
 `;
 
