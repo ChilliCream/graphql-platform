@@ -14,6 +14,110 @@ namespace HotChocolate.Language
     public class Utf8GraphQLRequestParserTests
     {
         [Fact]
+        public void Utf8GraphQLRequestParser_Parse()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
+
+            // act
+            IReadOnlyList<GraphQLRequest> batch =
+                Utf8GraphQLRequestParser.Parse(source);
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Null(r.QueryId);
+                    Assert.Null(r.Variables);
+                    Assert.Null(r.Extensions);
+
+                    QuerySyntaxSerializer.Serialize(r.Query!, true)
+                        .MatchSnapshot();
+                });
+        }
+
+        [Fact]
+        public void Utf8GraphQLRequestParser_ParseJson()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
+
+            // act
+            var obj = Utf8GraphQLRequestParser.ParseJson(source);
+
+            // assert
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Utf8GraphQLRequestParser_ParseJson_FromString()
+        {
+            // arrange
+            string json = JsonConvert.SerializeObject(
+                new GraphQLRequestDto
+                {
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks()
+                }).NormalizeLineBreaks();
+
+            // act
+            var obj = Utf8GraphQLRequestParser.ParseJson(json);
+
+            // assert
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Utf8GraphQLRequestParser_ParseJsonObject()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
+
+            // act
+            var obj = Utf8GraphQLRequestParser.ParseJsonObject(source);
+
+            // assert
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Utf8GraphQLRequestParser_ParseJsonObject_FromString()
+        {
+            // arrange
+            string json = JsonConvert.SerializeObject(
+                new GraphQLRequestDto
+                {
+                    Query = FileResource.Open("kitchen-sink.graphql")
+                        .NormalizeLineBreaks()
+                }).NormalizeLineBreaks();
+
+            // act
+            var obj = Utf8GraphQLRequestParser.ParseJsonObject(json);
+
+            // assert
+            obj.MatchSnapshot();
+        }
+
+        [Fact]
         public void Parse_Kitchen_Sink_Query_No_Cache()
         {
             // arrange
