@@ -1,33 +1,99 @@
 ﻿{
-  "a": "b",
-  "b": {
-    "a": "b",
-    "b": true,
-    "c": {
-      "Kind": "IntValue",
-      "Location": {
-        "Start": 1183,
-        "End": 1187,
-        "Line": 1,
-        "Column": 1184
-      },
-      "Value": "1"
-    },
-    "d": {
-      "Kind": "FloatValue",
-      "Location": {
-        "Start": 1189,
-        "End": 1193,
-        "Line": 1,
-        "Column": 1190
-      },
-      "Format": "FixedPoint",
-      "Value": "1.1"
-    }
+  "a": {
+    "Kind": "StringValue",
+    "Location": null,
+    "Value": "b",
+    "Block": false
   },
-  "c": [
-    {
-      "a": "b"
-    }
-  ]
+  "b": {
+    "Kind": "ObjectValue",
+    "Location": null,
+    "Fields": [
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "a"
+        },
+        "Value": {
+          "Kind": "StringValue",
+          "Location": null,
+          "Value": "b",
+          "Block": false
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "b"
+        },
+        "Value": {
+          "Kind": "BooleanValue",
+          "Location": null,
+          "Value": true
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "c"
+        },
+        "Value": {
+          "Kind": "IntValue",
+          "Location": null,
+          "Value": "1"
+        }
+      },
+      {
+        "Kind": "ObjectField",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "d"
+        },
+        "Value": {
+          "Kind": "FloatValue",
+          "Location": null,
+          "Format": "FixedPoint",
+          "Value": "1.1"
+        }
+      }
+    ]
+  },
+  "c": {
+    "Kind": "ListValue",
+    "Location": null,
+    "Items": [
+      {
+        "Kind": "ObjectValue",
+        "Location": null,
+        "Fields": [
+          {
+            "Kind": "ObjectField",
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "a"
+            },
+            "Value": {
+              "Kind": "StringValue",
+              "Location": null,
+              "Value": "b",
+              "Block": false
+            }
+          }
+        ]
+      }
+    ]
+  }
 }
