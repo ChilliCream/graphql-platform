@@ -106,12 +106,14 @@ namespace HotChocolate.Types.Spatial
         {
         }
 
+        // Null or Runtime Dictionary<string, object> or List<object>, => Null or Runtime Value
         public override object? Deserialize(object? resultValue)
         {
 
             return base.Deserialize(resultValue);
         }
 
+        // Null or Runtime => Null or Dictionary<string, object> or List<object> or ResultMap or ResultMapList or ResultValueList
         public override object? Serialize(object? runtimeValue)
         {
             if (runtimeValue is null)
