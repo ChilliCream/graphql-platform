@@ -1,0 +1,40 @@
+﻿{
+  "Kind": "ObjectValue",
+  "Location": {
+    "Start": 0,
+    "End": 8,
+    "Line": 1,
+    "Column": 1
+  },
+  "Fields": [
+    {
+      "Kind": "ObjectField",
+      "Location": {
+        "Start": 2,
+        "End": 8,
+        "Line": 1,
+        "Column": 3
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 2,
+          "End": 4,
+          "Line": 1,
+          "Column": 3
+        },
+        "Value": "a"
+      },
+      "Value": {
+        "Kind": "IntValue",
+        "Location": {
+          "Start": 5,
+          "End": 8,
+          "Line": 1,
+          "Column": 6
+        },
+        "Value": "1"
+      }
+    }
+  ]
+}

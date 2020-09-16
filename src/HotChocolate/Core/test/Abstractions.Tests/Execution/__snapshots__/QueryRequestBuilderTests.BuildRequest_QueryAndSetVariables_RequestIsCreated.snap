@@ -9,7 +9,7 @@
     "three": "baz"
   },
   "InitialValue": null,
-  "ContextData": {},
+  "ContextData": null,
   "Services": null,
-  "Extensions": {}
+  "Extensions": null
 }
