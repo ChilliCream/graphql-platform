@@ -5,12 +5,12 @@
   "QueryId": null,
   "QueryHash": null,
   "OperationName": null,
-  "VariableValues": {},
+  "VariableValues": null,
   "InitialValue": null,
   "ContextData": {
     "one": "foo",
     "two": "bar"
   },
   "Services": null,
-  "Extensions": {}
+  "Extensions": null
 }
