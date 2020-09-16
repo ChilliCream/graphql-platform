@@ -1,9 +1,11 @@
 import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
+import styled from "styled-components";
+import { GetEfMeetsGraphQlImageQuery } from "../../../graphql-types";
 
 export const EFMeetsGraphQL: FunctionComponent = () => {
-  const data = useStaticQuery(graphql`
+  const data = useStaticQuery<GetEfMeetsGraphQlImageQuery>(graphql`
     query getEFMeetsGraphQLImage {
       placeholderImage: file(
         relativePath: { eq: "ef-meets-graphql.png" }
@@ -18,5 +20,18 @@ export const EFMeetsGraphQL: FunctionComponent = () => {
     }
   `);
 
-  return <Img fluid={data.placeholderImage.childImageSharp.fluid} />;
+  return (
+    <Container>
+      <Img fluid={data.placeholderImage?.childImageSharp?.fluid as any} />
+    </Container>
+  );
 };
+
+const Container = styled.div`
+  padding: 30px;
+
+  .gatsby-image-wrapper {
+    border-radius: 4px;
+    box-shadow: 0 9px 18px rgba(0, 0, 0, 0.25);
+  }
+`;
