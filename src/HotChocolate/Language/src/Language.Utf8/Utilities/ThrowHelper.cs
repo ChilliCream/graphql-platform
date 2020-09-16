@@ -5,25 +5,25 @@ namespace HotChocolate.Language
 {
     internal static class ThrowHelper
     {
-        public static void InvalidRequestStructure(Utf8GraphQLReader reader) =>
-            throw new SyntaxException(
+        public static SyntaxException InvalidRequestStructure(Utf8GraphQLReader reader) =>
+            new SyntaxException(
                 reader,
                 "Expected `{` or `[` as first syntax token.");
 
-        public static void NoIdAndNoQuery(Utf8GraphQLReader reader) =>
-            throw new SyntaxException(
+        public static SyntaxException NoIdAndNoQuery(Utf8GraphQLReader reader) =>
+            new SyntaxException(
                 reader,
                 "The request is missing the `query` property and the `id` property.");
 
-        public static void QueryMustBeStringOrNull(Utf8GraphQLReader reader) =>
-            throw new SyntaxException(
+        public static SyntaxException QueryMustBeStringOrNull(Utf8GraphQLReader reader) =>
+            new SyntaxException(
                 reader,
                 "The query field must be a string or null.");
 
-        public static void UnexpectedProperty(
+        public static SyntaxException UnexpectedProperty(
             Utf8GraphQLReader reader,
             ReadOnlySpan<byte> fieldName) =>
-            throw new SyntaxException(
+            new SyntaxException(
                 reader,
                 string.Format(
                     CultureInfo.InvariantCulture,
@@ -31,7 +31,7 @@ namespace HotChocolate.Language
                     Utf8GraphQLReader.GetString(fieldName, false)));
 
         public static SyntaxException ExpectedObjectOrNull(Utf8GraphQLReader reader) =>
-            throw new SyntaxException(
+            new SyntaxException(
                 reader,
                 string.Format(
                     CultureInfo.InvariantCulture,
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
                     reader.GetString()));
 
         public static SyntaxException ExpectedStringOrNull(Utf8GraphQLReader reader) =>
-            throw new SyntaxException(
+            new SyntaxException(
                 reader,
                 string.Format(
                     CultureInfo.InvariantCulture,

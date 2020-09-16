@@ -42,8 +42,7 @@ namespace HotChocolate.Language
                 return ParseBatchRequest();
             }
 
-            ThrowHelper.InvalidRequestStructure(_reader);
-            return default!;
+            throw ThrowHelper.InvalidRequestStructure(_reader);
         }
 
         public GraphQLSocketMessage ParseMessage()
@@ -117,8 +116,7 @@ namespace HotChocolate.Language
                 }
                 else
                 {
-                    ThrowHelper.NoIdAndNoQuery(_reader);
-                    return default!;
+                    throw ThrowHelper.NoIdAndNoQuery(_reader);
                 }
             }
 
@@ -129,8 +127,7 @@ namespace HotChocolate.Language
 
             if (request.Document is null && request.QueryId is null)
             {
-                ThrowHelper.NoIdAndNoQuery(_reader);
-                return default!;
+                throw ThrowHelper.NoIdAndNoQuery(_reader);
             }
 
             return new GraphQLRequest
@@ -172,8 +169,7 @@ namespace HotChocolate.Language
 
                         if (request.HasQuery && _reader.Kind != TokenKind.String)
                         {
-                            ThrowHelper.QueryMustBeStringOrNull(_reader);
-                            return;
+                            throw ThrowHelper.QueryMustBeStringOrNull(_reader);
                         }
 
                         request.Query = _reader.Value;
@@ -235,8 +231,7 @@ namespace HotChocolate.Language
                     break;
 
                 default:
-                    ThrowHelper.UnexpectedProperty(_reader, fieldName);
-                    return;
+                    throw ThrowHelper.UnexpectedProperty(_reader, fieldName);
             }
         }
 
