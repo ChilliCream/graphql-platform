@@ -18,6 +18,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddType<MockObjectType>()
             .AddQueryType(
                 d => d
                     .Name("Query")
@@ -31,6 +32,29 @@ namespace HotChocolate.Types.Spatial.Tests
             ISchema schema = CreateSchema();
 
             return schema.GetType<InputObjectType>("GeoJSONPointInput");
+        }
+
+        private GeometryType CreateScalarType()
+        {
+            ISchema schema = CreateSchema();
+
+            return schema.GetType<GeometryType>("Geometry");
+        }
+
+        [Fact]
+        public void ParseLiteral_Point_With_Valid_Coordinates_Scalar()
+        {
+            GeometryType type = CreateScalarType();
+
+            // act
+            object? result = type.ParseLiteral(
+                new ObjectValueNode(
+                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
+                    new ObjectFieldNode("coordinates", _point)));
+
+            // assert
+            Assert.Equal(30, Assert.IsType<Point>(result).X);
+            Assert.Equal(10, Assert.IsType<Point>(result).Y);
         }
 
         [Fact]

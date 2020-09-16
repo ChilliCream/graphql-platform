@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Spatial
 {
     public abstract partial class GeoJsonInputObjectType<T>
         : InputObjectType<T>,
-          IGeometryType
+          IGeometryInputType
     {
         private IInputField _typeField = default!;
         private IInputField _coordinatesField = default!;

@@ -31,6 +31,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddType<MockObjectType>()
             .AddQueryType(
                 d => d
                     .Name("Query")
