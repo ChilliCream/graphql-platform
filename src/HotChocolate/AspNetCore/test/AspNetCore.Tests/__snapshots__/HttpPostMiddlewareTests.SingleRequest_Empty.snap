@@ -4,7 +4,16 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The request is missing the `query` property and the `id` property."
+      "message": "The request is missing the `query` property and the `id` property.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "code": "EXEC_SYNTAX_ERROR"
+      }
     }
   ],
   "Extensions": null

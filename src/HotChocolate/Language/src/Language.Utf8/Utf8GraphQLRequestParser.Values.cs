@@ -8,16 +8,16 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private object? ParseValue(bool preserveNumbers)
+        private object? ParseValue()
         {
             return _reader.Kind switch
             {
-                TokenKind.LeftBracket => ParseList(preserveNumbers),
-                TokenKind.LeftBrace => ParseObject(preserveNumbers),
-                TokenKind.String => ParseScalar(preserveNumbers),
-                TokenKind.Integer => ParseScalar(preserveNumbers),
-                TokenKind.Float => ParseScalar(preserveNumbers),
-                TokenKind.Name => ParseScalar(preserveNumbers),
+                TokenKind.LeftBracket => ParseList(),
+                TokenKind.LeftBrace => ParseObject(),
+                TokenKind.String => ParseScalar(),
+                TokenKind.Integer => ParseScalar(),
+                TokenKind.Float => ParseScalar(),
+                TokenKind.Name => ParseScalar(),
                 _ => throw ThrowHelper.UnexpectedToken(_reader)
             };
         }
@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyDictionary<string, object?> ParseObject(bool preserveNumbers)
+        private IReadOnlyDictionary<string, object?> ParseObject()
         {
             _reader.Expect(TokenKind.LeftBrace);
 
@@ -45,7 +45,7 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBrace)
             {
-                ParseObjectField(obj, preserveNumbers);
+                ParseObjectField(obj);
             }
 
             // skip closing token
@@ -72,7 +72,7 @@ namespace HotChocolate.Language
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(IDictionary<string, object?> obj, bool preserveNumbers)
+        private void ParseObjectField(IDictionary<string, object?> obj)
         {
             if (_reader.Kind != TokenKind.String)
             {
@@ -87,7 +87,7 @@ namespace HotChocolate.Language
             string name = _reader.GetString();
             _reader.MoveNext();
             _reader.Expect(TokenKind.Colon);
-            object? value = ParseValue(preserveNumbers);
+            object? value = ParseValue();
             obj.Add(name, value);
         }
 
@@ -110,7 +110,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyList<object?> ParseList(bool preserveNumbers)
+        private IReadOnlyList<object?> ParseList()
         {
             if (_reader.Kind != TokenKind.LeftBracket)
             {
@@ -129,7 +129,7 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBracket)
             {
-                list.Add(ParseValue(preserveNumbers));
+                list.Add(ParseValue());
             }
 
             // skip closing token
@@ -156,7 +156,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object? ParseScalar(bool preserveNumbers)
+        private object? ParseScalar()
         {
             string? value;
 
@@ -167,20 +167,10 @@ namespace HotChocolate.Language
                     _reader.MoveNext();
                     return value;
 
-                case TokenKind.Integer when preserveNumbers:
-                    IValueNode integerLiteral = Utf8GraphQLParser.Syntax.ParseValueLiteral(_reader);
-                    _reader.MoveNext();
-                    return integerLiteral;
-
                 case TokenKind.Integer:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
                     return long.Parse(value, CultureInfo.InvariantCulture);
-
-                case TokenKind.Float when preserveNumbers:
-                    IValueNode floatLiteral =  Utf8GraphQLParser.Syntax.ParseValueLiteral(_reader);
-                    _reader.MoveNext();
-                    return floatLiteral;
 
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();

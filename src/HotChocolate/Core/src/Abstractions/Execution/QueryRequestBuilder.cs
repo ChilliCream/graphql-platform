@@ -15,7 +15,6 @@ namespace HotChocolate.Execution
         private string _operationName;
         private IReadOnlyDictionary<string, object> _readOnlyVariableValues;
         private Dictionary<string, object> _variableValuesDict;
-        private IVariableValues _variableValues;
         private object _initialValue;
         private IReadOnlyDictionary<string, object> _readOnlyProperties;
         private Dictionary<string, object> _properties;
@@ -97,7 +96,6 @@ namespace HotChocolate.Execution
                 ? null
                 : new Dictionary<string, object>(variableValues);
             _readOnlyVariableValues = null;
-            _variableValues = null;
             return this;
         }
 
@@ -106,16 +104,6 @@ namespace HotChocolate.Execution
         {
             _variableValuesDict = null;
             _readOnlyVariableValues = variableValues;
-            _variableValues = null;
-            return this;
-        }
-
-        public IQueryRequestBuilder SetVariableValues(
-            IVariableValues variableValues)
-        {
-            _variableValuesDict = null;
-            _readOnlyVariableValues = null;
-            _variableValues = variableValues;
             return this;
         }
 
@@ -273,24 +261,9 @@ namespace HotChocolate.Execution
             };
         }
 
-        private IVariableValues GetVariableValues()
+        private IReadOnlyDictionary<string, object> GetVariableValues()
         {
-            if (_variableValues is not null)
-            {
-                return _variableValues;
-            }
-
-            if (_variableValuesDict is not null)
-            {
-                return new DictionaryVariableValues(_variableValuesDict);
-            }
-
-            if (_readOnlyVariableValues is not null)
-            {
-                return new DictionaryVariableValues(_readOnlyVariableValues);
-            }
-
-            return null;
+            return _variableValuesDict ?? _readOnlyVariableValues;
         }
 
         private void InitializeVariables()
@@ -302,17 +275,12 @@ namespace HotChocolate.Execution
                     : _readOnlyVariableValues.ToDictionary(
                         t => t.Key, t => t.Value);
                 _readOnlyVariableValues = null;
-                _variableValues = null;
             }
         }
 
         private IReadOnlyDictionary<string, object> GetProperties()
         {
-            if (_properties != null)
-            {
-                return _properties;
-            }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _properties ?? _readOnlyProperties;
         }
 
         private void InitializeProperties()
@@ -329,11 +297,7 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetExtensions()
         {
-            if (_extensions != null)
-            {
-                return _extensions;
-            }
-            return _readOnlyProperties ?? EmptyDictionary.Instance;
+            return _extensions ?? _readOnlyProperties;
         }
 
         private void InitializeExtensions()
@@ -362,14 +326,7 @@ namespace HotChocolate.Execution
                 _queryName = request.QueryId,
                 _queryHash = request.QueryHash,
                 _operationName = request.OperationName,
-                _readOnlyVariableValues =
-                    request.VariableValues is DictionaryVariableValues d
-                        ? d.Values
-                        : null,
-                _variableValues =
-                    request.VariableValues is not DictionaryVariableValues
-                        ? request.VariableValues
-                        : null,
+                _readOnlyVariableValues = request.VariableValues,
                 _initialValue = request.InitialValue,
                 _readOnlyProperties = request.ContextData,
                 _readOnlyExtensions = request.Extensions,

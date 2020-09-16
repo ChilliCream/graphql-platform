@@ -7,7 +7,6 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
-        private readonly ParserOptions _options;
         private readonly bool _createLocation;
         private readonly bool _allowFragmentVars;
         private Utf8GraphQLReader _reader;
@@ -24,7 +23,7 @@ namespace HotChocolate.Language
                     nameof(graphQLData));
             }
 
-            _options = options = options ?? ParserOptions.Default;
+             options ??= ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new Utf8GraphQLReader(graphQLData);
@@ -42,7 +41,7 @@ namespace HotChocolate.Language
                     nameof(reader));
             }
 
-            _options = options = options ?? ParserOptions.Default;
+            options ??= ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = reader;
@@ -170,8 +169,8 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(options));
             }
 
-            int length = checked(sourceText.Length * 4);
-            bool useStackalloc =
+            var length = checked(sourceText.Length * 4);
+            var useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
             byte[]? source = null;
@@ -196,7 +195,7 @@ namespace HotChocolate.Language
             }
         }
 
-        internal unsafe static int ConvertToBytes(
+        internal static unsafe int ConvertToBytes(
             string text,
             ref Span<byte> buffer)
         {
@@ -204,7 +203,7 @@ namespace HotChocolate.Language
             {
                 fixed (char* stringPtr = text)
                 {
-                    int length = StringHelper.UTF8Encoding.GetBytes(
+                    var length = StringHelper.UTF8Encoding.GetBytes(
                         stringPtr, text.Length,
                         bytePtr, buffer.Length);
                     buffer = buffer.Slice(0, length);

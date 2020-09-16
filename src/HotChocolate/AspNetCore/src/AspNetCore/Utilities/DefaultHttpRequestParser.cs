@@ -68,12 +68,12 @@ namespace HotChocolate.AspNetCore.Utilities
                 // if we find variables we do need to parse them
                 if ((string)parameters[_variablesIdentifier] is { Length: > 0 } sv)
                 {
-                    variables = ParseJsonObject(sv, true);
+                    variables = ParseVariables(sv);
                 }
 
                 if ((string)parameters[_extensionsIdentifier] is { Length: > 0 } se)
                 {
-                    extensions = ParseJsonObject(se);;
+                    extensions = ParseJsonObject(se);
                 }
 
                 return new GraphQLRequest(

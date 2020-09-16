@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -24,12 +26,54 @@ namespace HotChocolate.Language
             }
         }
 
-        private IReadOnlyDictionary<string, object?>? ParseObjectOrNull(bool preserveNumbers)
+        private IReadOnlyDictionary<string, object?>? ParseObjectOrNull()
         {
             switch (_reader.Kind)
             {
                 case TokenKind.LeftBrace:
-                    return ParseObject(preserveNumbers);
+                    return ParseObject();
+
+                case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                    _reader.MoveNext();
+                    return null;
+
+                default:
+                    throw ThrowHelper.ExpectedObjectOrNull(_reader);
+            }
+        }
+
+        private IReadOnlyDictionary<string, object?>? ParseVariables()
+        {
+            switch (_reader.Kind)
+            {
+                case TokenKind.LeftBrace:
+                    _reader.Expect(TokenKind.LeftBrace);
+
+                    var obj = new Dictionary<string, object?>();
+
+                    while (_reader.Kind != TokenKind.RightBrace)
+                    {
+                        if (_reader.Kind != TokenKind.String)
+                        {
+                            throw new SyntaxException(_reader,
+                                string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    LangResources.ParseMany_InvalidOpenToken,
+                                    TokenKind.String,
+                                    TokenVisualizer.Visualize(in _reader)));
+                        }
+
+                        string name = _reader.GetString();
+                        _reader.MoveNext();
+                        _reader.Expect(TokenKind.Colon);
+                        IValueNode value = ParseValueSyntax();
+                        obj.Add(name, value);
+                    }
+
+                    // skip closing token
+                    _reader.Expect(TokenKind.RightBrace);
+
+                    return obj;
 
                 case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
                     _reader.MoveNext();

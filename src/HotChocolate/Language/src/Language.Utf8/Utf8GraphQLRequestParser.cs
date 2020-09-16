@@ -75,7 +75,7 @@ namespace HotChocolate.Language
         public object? ParseJson()
         {
             _reader.MoveNext();
-            return ParseValue(false);
+            return ParseValue();
         }
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -184,14 +184,14 @@ namespace HotChocolate.Language
                 case _v:
                     if (fieldName.SequenceEqual(Variables))
                     {
-                        request.Variables = ParseObjectOrNull(true);
+                        request.Variables = ParseVariables();
                     }
                     break;
 
                 case _e:
                     if (fieldName.SequenceEqual(Extensions))
                     {
-                        request.Extensions = ParseObjectOrNull(false);
+                        request.Extensions = ParseObjectOrNull();
                     }
                     break;
 

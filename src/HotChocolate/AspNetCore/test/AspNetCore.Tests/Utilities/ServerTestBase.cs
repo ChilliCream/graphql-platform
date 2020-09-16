@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Microsoft.VisualBasic.CompilerServices;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Utilities
@@ -31,12 +30,23 @@ namespace HotChocolate.AspNetCore.Utilities
                         .AddQueryType(d => d.Name("Query"))
                         .AddTypeExtension<QueryExtension>()
                     .AddGraphQLServer("arguments")
-                        .AddQueryType(d => d
-                            .Name("QueryRoot")
-                            .Field("double_arg")
-                            .Argument("d", t => t.Type<FloatType>())
-                            .Type<FloatType>()
-                            .Resolve(c => c.ArgumentValue<double?>("d"))),
+                        .AddQueryType(d =>
+                        {
+                            d
+                                .Name("QueryRoot");
+
+                            d
+                                .Field("double_arg")
+                                .Argument("d", t => t.Type<FloatType>())
+                                .Type<FloatType>()
+                                .Resolve(c => c.ArgumentValue<double?>("d"));
+
+                            d
+                                .Field("decimal_arg")
+                                .Argument("d", t => t.Type<DecimalType>())
+                                .Type<DecimalType>()
+                                .Resolve(c => c.ArgumentValue<decimal?>("d"));
+                        }),
                 app => app
                     .UseWebSockets()
                     .UseRouting()

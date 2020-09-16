@@ -34,7 +34,7 @@ namespace HotChocolate.Language
 
         public string? OperationName { get; }
 
-        public ObjectValueNode? Variables { get; }
+        public IReadOnlyDictionary<string, object?>? Variables { get; }
 
         public IReadOnlyDictionary<string, object?>? Extensions { get; }
     }
