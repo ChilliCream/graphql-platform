@@ -2,6 +2,7 @@
 {
     public interface IOutputType
         : IType
+        , IHasRuntimeType
     {
     }
 }

@@ -5,8 +5,7 @@ namespace HotChocolate.Execution
 {
     public partial class QueryRequestBuilder
     {
-        private class QueryRequest
-            : IReadOnlyQueryRequest
+        private class QueryRequest : IReadOnlyQueryRequest
         {
             public IQuery Query { get; set; }
 

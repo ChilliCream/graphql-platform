@@ -10,7 +10,7 @@
     "two": "bar"
   },
   "InitialValue": null,
-  "ContextData": {},
+  "ContextData": null,
   "Services": null,
-  "Extensions": {}
+  "Extensions": null
 }

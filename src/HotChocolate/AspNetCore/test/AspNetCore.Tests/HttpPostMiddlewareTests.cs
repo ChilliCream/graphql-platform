@@ -365,6 +365,132 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Double_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                },
+                "/arguments");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Double_Max_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                double.MaxValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Double_Min_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                double.MinValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Decimal_Max_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Decimal) {
+                             decimal_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                decimal.MaxValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Decimal_Min_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Decimal) {
+                             decimal_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                decimal.MinValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_Incomplete()
         {
             // arrange
@@ -391,7 +517,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(request));
         }
 
         [InlineData("[]")]
@@ -408,7 +534,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(request));
         }
 
         [Fact]
