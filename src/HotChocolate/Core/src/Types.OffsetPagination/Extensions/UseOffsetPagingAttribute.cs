@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types
 {
     /// <summary>
     /// This attribute adds the offset paging middleware to the annotated method or property.
