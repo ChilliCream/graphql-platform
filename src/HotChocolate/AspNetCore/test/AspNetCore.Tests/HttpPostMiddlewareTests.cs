@@ -517,7 +517,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(request));
         }
 
         [InlineData("[]")]
@@ -534,7 +534,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(request));
         }
 
         [Fact]
