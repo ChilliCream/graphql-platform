@@ -4,7 +4,7 @@ module.exports = {
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     company: "ChilliCream",
-    siteUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
+    siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -13,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate`,
+        link: `/docs/hotchocolate/v10/`,
       },
       {
         name: `Support`,
@@ -34,7 +34,6 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
@@ -85,21 +84,26 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
-          `gatsby-remark-autolink-headers`,
+          {
+            resolve: `gatsby-remark-autolink-headers`,
+            options: {
+              offsetY: 60,
+            },
+          },
           `gatsby-remark-reading-time`,
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-mermaid`,
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
               },
-            },
-          },
-          {
-            resolve: `gatsby-remark-code-buttons`,
-            options: {
-              tooltipText: `Copy`,
-              toasterText: "Copied code example",
             },
           },
           {
@@ -159,7 +163,7 @@ module.exports = {
     {
       resolve: `@darth-knoppix/gatsby-plugin-feed`,
       options: {
-        baseUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
+        baseUrl: `https://chillicream.com`,
         query: `{
           site {
             siteMetadata {
