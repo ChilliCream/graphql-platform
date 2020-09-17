@@ -25,7 +25,7 @@ namespace HotChocolate.PersistedQueries.Redis
             // arrange
             // act
             Action action = () =>
-                RedisQueryStorageServiceCollectionExtensions
+                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                     .AddRedisQueryStorage(null, sp => _database);
 
             // assert
@@ -40,7 +40,7 @@ namespace HotChocolate.PersistedQueries.Redis
 
             // act
             Action action = () =>
-                RedisQueryStorageServiceCollectionExtensions
+                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                     .AddRedisQueryStorage(services, null);
 
             // assert
@@ -54,7 +54,7 @@ namespace HotChocolate.PersistedQueries.Redis
             var services = new ServiceCollection();
 
             // act
-            RedisQueryStorageServiceCollectionExtensions
+            HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                 .AddRedisQueryStorage(services, sp => _database);
 
             // assert
@@ -71,7 +71,7 @@ namespace HotChocolate.PersistedQueries.Redis
             // arrange
             // act
             Action action = () =>
-                RedisQueryStorageServiceCollectionExtensions
+                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                     .AddReadOnlyRedisQueryStorage(null, sp => _database);
 
             // assert
@@ -86,7 +86,7 @@ namespace HotChocolate.PersistedQueries.Redis
 
             // act
             Action action = () =>
-                RedisQueryStorageServiceCollectionExtensions
+                HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                     .AddReadOnlyRedisQueryStorage(services, null);
 
             // assert
@@ -100,7 +100,7 @@ namespace HotChocolate.PersistedQueries.Redis
             var services = new ServiceCollection();
 
             // act
-            RedisQueryStorageServiceCollectionExtensions
+            HotChocolateRedisPersistedQueriesServiceCollectionExtensions
                 .AddReadOnlyRedisQueryStorage(services, sp => _database);
 
             // assert

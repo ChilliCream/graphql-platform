@@ -6,8 +6,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
-    public partial class QueryRequestBuilder
-        : IQueryRequestBuilder
+    public class QueryRequestBuilder : IQueryRequestBuilder
     {
         private IQuery _query;
         private string _queryName;
@@ -241,24 +240,18 @@ namespace HotChocolate.Execution
 
         public IReadOnlyQueryRequest Create()
         {
-            if (_query is null && _queryName is null)
-            {
-                throw new QueryRequestBuilderException(
-                    AbstractionResources.QueryRequestBuilder_QueryIsNull);
-            }
-
             return new QueryRequest
-            {
-                Query = _query,
-                QueryId = _queryName,
-                QueryHash = _queryHash,
-                OperationName = _operationName,
-                InitialValue = _initialValue,
-                Services = _services,
-                VariableValues = GetVariableValues(),
-                ContextData = GetProperties(),
-                Extensions = GetExtensions()
-            };
+            (
+                query: _query,
+                queryId: _queryName,
+                queryHash: _queryHash,
+                operationName: _operationName,
+                initialValue: _initialValue,
+                services: _services,
+                variableValues: GetVariableValues(),
+                contextData: GetProperties(),
+                extensions: GetExtensions()
+            );
         }
 
         private IReadOnlyDictionary<string, object> GetVariableValues()

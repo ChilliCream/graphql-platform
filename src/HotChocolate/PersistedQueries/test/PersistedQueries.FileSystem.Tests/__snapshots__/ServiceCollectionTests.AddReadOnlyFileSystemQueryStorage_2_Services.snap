@@ -9,6 +9,6 @@
   },
   {
     "Key": "HotChocolate.PersistedQueries.FileSystem.IQueryFileMap",
-    "Value": "HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap"
+    "Value": null
   }
 ]

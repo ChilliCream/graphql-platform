@@ -9,8 +9,8 @@
     "one": "foo",
     "two": "bar"
   },
-  "InitialValue": null,
+  "Extensions": null,
   "ContextData": null,
   "Services": null,
-  "Extensions": null
+  "InitialValue": null
 }

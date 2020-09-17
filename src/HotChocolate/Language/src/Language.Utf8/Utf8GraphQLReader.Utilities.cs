@@ -25,10 +25,9 @@ namespace HotChocolate.Language
             }
 
             var length = escapedValue.Length;
-            var useStackalloc = length <= GraphQLConstants.StackallocThreshold;
             byte[]? unescapedArray = null;
 
-            Span<byte> unescapedSpan = useStackalloc
+            Span<byte> unescapedSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : unescapedArray = ArrayPool<byte>.Shared.Rent(length);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Execution
 {
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution
     public static class RequestExecutorServiceProviderExtensions
     {
         /// <summary>
-        /// Gets the <see cref="IRequestExecutor" /> from the <see cref="IServiceProvider"/>.
+        /// Gets the <see cref="ISchema" /> from the <see cref="IServiceProvider"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceProvider"/>.
@@ -32,7 +33,35 @@ namespace HotChocolate.Execution
             NameString schemaName = default,
             CancellationToken cancellationToken = default)
         {
-            IRequestExecutor executor = 
+            IRequestExecutor executor =
+                await GetRequestExecutorAsync(services, schemaName, cancellationToken)
+                    .ConfigureAwait(false);
+
+            return executor.Schema;
+        }
+
+        /// <summary>
+        /// Builds the <see cref="ISchema" /> from the <see cref="IRequestExecutorBuilder"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="schemaName">
+        /// The schema name.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutor" />.
+        /// </returns>
+        public static async ValueTask<ISchema> BuildSchemaAsync(
+            this IRequestExecutorBuilder builder,
+            NameString schemaName = default,
+            CancellationToken cancellationToken = default)
+        {
+            IServiceProvider services = builder.Services.BuildServiceProvider();
+            IRequestExecutor executor =
                 await GetRequestExecutorAsync(services, schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -59,6 +88,32 @@ namespace HotChocolate.Execution
             NameString schemaName = default,
             CancellationToken cancellationToken = default) =>
             services
+                .GetRequiredService<IRequestExecutorResolver>()
+                .GetRequestExecutorAsync(schemaName, cancellationToken);
+
+        /// <summary>
+        /// Builds the <see cref="IRequestExecutor" /> from the 
+        /// <see cref="IRequestExecutorBuilder"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="schemaName">
+        /// The schema name.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutor" />.
+        /// </returns>
+        public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
+            this IRequestExecutorBuilder builder,
+            NameString schemaName = default,
+            CancellationToken cancellationToken = default) =>
+            builder
+                .Services
+                .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync(schemaName, cancellationToken);
 

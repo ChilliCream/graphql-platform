@@ -503,12 +503,12 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
-        [InlineData("{}")]
-        [InlineData("{ }")]
-        [InlineData("{\n}")]
-        [InlineData("{\r\n}")]
+        [InlineData("{}", 1)]
+        [InlineData("{ }", 2)]
+        [InlineData("{\n}", 3)]
+        [InlineData("{\r\n}", 4)]
         [Theory]
-        public async Task SingleRequest_Empty(string request)
+        public async Task SingleRequest_Empty(string request, int id)
         {
             // arrange
             TestServer server = CreateStarWarsServer();
@@ -517,15 +517,15 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot(new SnapshotNameExtension(request));
+            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
         }
 
-        [InlineData("[]")]
-        [InlineData("[ ]")]
-        [InlineData("[\n]")]
-        [InlineData("[\r\n]")]
+        [InlineData("[]", 1)]
+        [InlineData("[ ]", 2)]
+        [InlineData("[\n]", 3)]
+        [InlineData("[\r\n]", 4)]
         [Theory]
-        public async Task BatchRequest_Empty(string request)
+        public async Task BatchRequest_Empty(string request, int id)
         {
             // arrange
             TestServer server = CreateStarWarsServer();
@@ -534,7 +534,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot(new SnapshotNameExtension(request));
+            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
         }
 
         [Fact]
