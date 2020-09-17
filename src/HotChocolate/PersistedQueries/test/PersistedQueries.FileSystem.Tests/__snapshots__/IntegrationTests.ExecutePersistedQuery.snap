@@ -1,15 +1,10 @@
 ﻿{
-  "Data": null,
-  "Errors": [
-    {
-      "Message": "Cannot Validate",
-      "Code": null,
-      "Path": null,
-      "Locations": null,
-      "Extensions": null,
-      "Exception": null
-    }
-  ],
-  "Extensions": null,
+  "Data": {
+    "__typename": "Query"
+  },
+  "Errors": null,
+  "Extensions": {
+    "persistedDocument": true
+  },
   "ContextData": null
 }

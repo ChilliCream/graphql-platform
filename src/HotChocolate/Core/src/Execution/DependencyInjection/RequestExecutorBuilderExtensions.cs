@@ -47,6 +47,41 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Adds a delegate that will be used to add a <see cref="ISchemaBuilder"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="schemaBuilder">
+        /// The schema builder that shall be used to configure the request executor.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
+        [Obsolete(
+            "This helper only exists to allow legacy schema handling. " +
+            "Consider moving to the new configuration API.")]
+        public static IRequestExecutorBuilder SetSchemaBuilder(
+            this IRequestExecutorBuilder builder,
+            ISchemaBuilder schemaBuilder)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (schemaBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(schemaBuilder));
+            }
+
+            return Configure(
+                builder,
+                options => options.SchemaBuilder = schemaBuilder);
+        }
+
+        /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>

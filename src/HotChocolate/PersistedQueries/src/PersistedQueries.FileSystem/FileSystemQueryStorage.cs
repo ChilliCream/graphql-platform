@@ -61,17 +61,17 @@ namespace HotChocolate.PersistedQueries.FileSystem
             CancellationToken cancellationToken)
         {
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            
+
             DocumentNode document = await BufferHelper.ReadAsync(
                 stream,
                 (buffer, buffered) =>
                 {
-                    var span = buffer.AsSpan().Slice(0, buffered);
+                    Span<byte> span = buffer.AsSpan().Slice(0, buffered);
                     return Utf8GraphQLParser.Parse(span);
                 },
                 cancellationToken)
                 .ConfigureAwait(false);
-            
+
             return new QueryDocument(document);
         }
 
