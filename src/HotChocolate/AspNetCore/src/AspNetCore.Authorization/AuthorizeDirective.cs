@@ -39,11 +39,11 @@ namespace HotChocolate.AspNetCore.Authorization
             }
             else
             {
-                ArgumentNode policyArgument = node.Arguments
+                ArgumentNode? policyArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "policy");
-                ArgumentNode rolesArgument = node.Arguments
+                ArgumentNode? rolesArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "roles");
-                ArgumentNode resolverArgument = node.Arguments
+                ArgumentNode? resolverArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "apply");
 
                 Policy = (policyArgument is { }

@@ -27,9 +27,19 @@ export const Footer: FunctionComponent = () => {
           }
         }
       }
+      docNav: file(
+        sourceInstanceName: { eq: "docs" }
+        relativePath: { eq: "docs.json" }
+      ) {
+        products: childrenDocsJson {
+          path
+          title
+        }
+      }
     }
   `);
   const { topnav, tools } = data.site!.siteMetadata!;
+  const { products } = data.docNav!;
 
   return (
     <Container>
@@ -68,7 +78,7 @@ export const Footer: FunctionComponent = () => {
           </Connect>
         </About>
         <Links>
-          <Title>Links</Title>
+          <Title>General Links</Title>
           <Navigation>
             {topnav!.map((item, index) => (
               <NavLink key={`topnav-item-${index}`} to={item!.link!}>
@@ -78,8 +88,17 @@ export const Footer: FunctionComponent = () => {
           </Navigation>
         </Links>
         <Location>
-          <Title>Location</Title>
-          <Description>You can find us in Zurich</Description>
+          <Title>Documentation</Title>
+          <Navigation>
+            {products!.map((item, index) => (
+              <NavLink
+                key={`products-item-${index}`}
+                to={`/docs/${item!.path!}/`}
+              >
+                {item!.title}
+              </NavLink>
+            ))}
+          </Navigation>
         </Location>
       </ContainerWrapper>
       <ContainerWrapper>
@@ -238,7 +257,7 @@ const Location = styled.div`
 `;
 
 const Title = styled.h3`
-  margin: 15px 0 0;
+  margin: 15px 0 9px;
   font-size: 1em;
   font-weight: bold;
   color: #c6c6ce;

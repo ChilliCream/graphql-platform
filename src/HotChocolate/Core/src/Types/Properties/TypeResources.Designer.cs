@@ -297,12 +297,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Edge_CursorIsNull {
-            get {
-                return ResourceManager.GetString("Edge_CursorIsNull", resourceCulture);
-            }
-        }
-        
         internal static string EnumTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("EnumTypeExtension_CannotMerge", resourceCulture);

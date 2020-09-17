@@ -24,19 +24,23 @@ const Container = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
+
+  @media only screen and (min-width: 820px) {
+    padding: 20px 10px 0;
+  }
 `;
 
 const Article = styled.article`
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
   padding-bottom: 20px;
 
-  @media only screen and (min-width: 800px) {
-    border: 1px solid #ccc;
-    border-top: 0 none;
+  @media only screen and (min-width: 820px) {
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
   }
 `;
 
@@ -46,7 +50,7 @@ const Title = styled.h1`
   margin-left: 20px;
   font-size: 2em;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     margin-right: 50px;
     margin-left: 50px;
   }
@@ -58,7 +62,7 @@ const Content = styled.div`
     padding-left: 20px;
   }
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     > * {
       padding-right: 50px;
       padding-left: 50px;

@@ -66,6 +66,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                     if (span.Length > bytesRemaining)
                     {
+                        // TODO : we need to ensure that the message size is restricted like on the
+                        // http request.
                         byte[] next = ArrayPool<byte>.Shared.Rent(buffer.Length * 2);
                         Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
                         ArrayPool<byte>.Shared.Return(buffer);
@@ -115,8 +117,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             switch (parsedMessage.Type)
             {
                 case MessageTypes.Connection.Initialize:
-                    message = DeserializeInitConnMessage(
-                        parsedMessage);
+                    message = DeserializeInitConnMessage(parsedMessage);
                     return true;
 
                 case MessageTypes.Connection.Terminate:
@@ -124,8 +125,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     return true;
 
                 case MessageTypes.Subscription.Start:
-                    return TryDeserializeDataStartMessage(
-                        parsedMessage, out message);
+                    return TryDeserializeDataStartMessage(parsedMessage, out message);
 
                 case MessageTypes.Subscription.Stop:
                     message = DeserializeDataStopMessage(parsedMessage);
@@ -154,9 +154,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 return false;
             }
 
-            IReadOnlyList<GraphQLRequest> batch =
-                Utf8GraphQLRequestParser.Parse(parsedMessage.Payload);
-
+            IReadOnlyList<GraphQLRequest> batch = Parse(parsedMessage.Payload);
             message = new DataStartMessage(parsedMessage.Id, batch[0]);
             return true;
         }

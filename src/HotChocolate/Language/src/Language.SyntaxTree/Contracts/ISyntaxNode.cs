@@ -13,7 +13,8 @@ namespace HotChocolate.Language
         SyntaxKind Kind { get; }
 
         /// <summary>
-        /// Gets a <see cref="Location"/> for this node if available.
+        /// Gets a <see cref="Location"/> of this node in the parsed source text 
+        /// if available the parser provided this information.
         /// </summary>
         Location? Location { get; }
 
@@ -26,21 +27,23 @@ namespace HotChocolate.Language
         IEnumerable<ISyntaxNode> GetNodes();
 
         /// <summary>
-        /// Generates a string representation of the current GraphQL syntax node.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </summary>
         /// <returns>
-        /// Returns a string representation of the current GraphQL syntax node.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </returns>
         string ToString();
 
         /// <summary>
-        /// Generates a string representation of the current GraphQL syntax node.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </summary>
         /// <param name="indented">
-        /// Specifies if the GraphQL string representation shall contain indentations.
+        /// A value that indicates whether the GraphQL output should be formatted,
+        /// which includes indenting nested GraphQL tokens, adding
+        /// new lines, and adding white space between property names and values.
         /// </param>
         /// <returns>
-        /// Returns a string representation of the current GraphQL syntax node.
+        /// Returns the GraphQL syntax representation of this <see cref="ISyntaxNode"/>.
         /// </returns>
         string ToString(bool indented);
     }

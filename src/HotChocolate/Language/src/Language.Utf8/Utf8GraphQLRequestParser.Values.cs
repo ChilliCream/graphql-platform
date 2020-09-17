@@ -10,44 +10,30 @@ namespace HotChocolate.Language
     {
         private object? ParseValue()
         {
-            switch (_reader.Kind)
+            return _reader.Kind switch
             {
-                case TokenKind.LeftBracket:
-                    return ParseList();
-
-                case TokenKind.LeftBrace:
-                    return ParseObject();
-
-                case TokenKind.String:
-                case TokenKind.Integer:
-                case TokenKind.Float:
-                case TokenKind.Name:
-                    return ParseScalar();
-
-                default:
-                    throw UnexpectedToken();
-            }
+                TokenKind.LeftBracket => ParseList(),
+                TokenKind.LeftBrace => ParseObject(),
+                TokenKind.String => ParseScalar(),
+                TokenKind.Integer => ParseScalar(),
+                TokenKind.Float => ParseScalar(),
+                TokenKind.Name => ParseScalar(),
+                _ => throw ThrowHelper.UnexpectedToken(_reader)
+            };
         }
 
         private int SkipValue()
         {
-            switch (_reader.Kind)
+            return _reader.Kind switch
             {
-                case TokenKind.LeftBracket:
-                    return SkipList();
-
-                case TokenKind.LeftBrace:
-                    return SkipObject();
-
-                case TokenKind.String:
-                case TokenKind.Integer:
-                case TokenKind.Float:
-                case TokenKind.Name:
-                    return SkipScalar();
-
-                default:
-                    throw UnexpectedToken();
-            }
+                TokenKind.LeftBracket => SkipList(),
+                TokenKind.LeftBrace => SkipObject(),
+                TokenKind.String => SkipScalar(),
+                TokenKind.Integer => SkipScalar(),
+                TokenKind.Float => SkipScalar(),
+                TokenKind.Name => SkipScalar(),
+                _ => throw ThrowHelper.UnexpectedToken(_reader)
+            };
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,7 +65,7 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
-            int end = _reader.End;
+            var end = _reader.End;
             _reader.Expect(TokenKind.RightBrace);
             return end;
         }
@@ -164,7 +150,7 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
-            int end = _reader.End;
+            var end = _reader.End;
             _reader.Expect(TokenKind.RightBracket);
             return end;
         }
@@ -172,7 +158,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private object? ParseScalar()
         {
-            string? value = null;
+            string? value;
 
             switch (_reader.Kind)
             {
@@ -210,17 +196,17 @@ namespace HotChocolate.Language
                         return null;
                     }
 
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
 
                 default:
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int SkipScalar()
         {
-            int end = _reader.End;
+            var end = _reader.End;
 
             switch (_reader.Kind)
             {
@@ -255,10 +241,10 @@ namespace HotChocolate.Language
                         return end;
                     }
 
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
 
                 default:
-                    throw UnexpectedToken();
+                    throw ThrowHelper.UnexpectedToken(_reader);
             }
         }
     }

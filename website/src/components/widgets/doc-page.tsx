@@ -68,7 +68,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
           </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
-        <ArticleComments data={data} path={path} title={title} />
+        {false && <ArticleComments data={data} path={path} title={title} />}
       </ArticleWrapper>
       <DocPageAside>
         <DocPageCommunity data={data} originPath={originPath} />
@@ -105,14 +105,14 @@ const Container = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
 
-  @media only screen and (min-width: 1050px) {
-    max-width: 1050px;
+  @media only screen and (min-width: 1070px) {
+    max-width: 1070px;
   }
 
-  @media only screen and (min-width: 1300px) {
-    max-width: 1300px;
+  @media only screen and (min-width: 1320px) {
+    max-width: 1320px;
   }
 `;
 
@@ -122,18 +122,18 @@ const ResponsiveMenu = styled.div`
   align-items: center;
   padding: 30px 20px 20px;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     padding-right: 50px;
     padding-left: 50px;
   }
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     > .toc-toggle {
       display: none;
     }
   }
 
-  @media only screen and (min-width: 1300px) {
+  @media only screen and (min-width: 1320px) {
     display: none;
   }
 `;

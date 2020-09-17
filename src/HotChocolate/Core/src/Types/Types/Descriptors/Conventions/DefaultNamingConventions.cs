@@ -198,7 +198,7 @@ namespace HotChocolate.Types.Descriptors
 
             var size = underscores + name.Length;
             char[]? rented = null;
-            Span<char> buffer = size < 128
+            Span<char> buffer = size <= 128
                 ? stackalloc char[size]
                 : rented = ArrayPool<char>.Shared.Rent(size);
 
