@@ -21,10 +21,9 @@ namespace HotChocolate.Language
             options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
-            var useStackalloc = length <= GraphQLConstants.StackallocThreshold;
             byte[]? source = null;
 
-            Span<byte> sourceSpan = useStackalloc
+            Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -65,10 +64,9 @@ namespace HotChocolate.Language
             options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
-            var useStackalloc = length <= GraphQLConstants.StackallocThreshold;
             byte[]? source = null;
 
-            Span<byte> sourceSpan = useStackalloc
+            Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : source = ArrayPool<byte>.Shared.Rent(length);
 
@@ -112,10 +110,9 @@ namespace HotChocolate.Language
             options ??= ParserOptions.Default;
 
             var length = checked(sourceText.Length * 4);
-            var useStackalloc = length <= GraphQLConstants.StackallocThreshold;
             byte[]? source = null;
 
-            Span<byte> sourceSpan = useStackalloc
+            Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : source = ArrayPool<byte>.Shared.Rent(length);
 

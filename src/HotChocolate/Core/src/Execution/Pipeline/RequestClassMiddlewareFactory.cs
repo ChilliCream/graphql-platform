@@ -4,10 +4,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
-namespace HotChocolate.Execution.Utilities
+namespace HotChocolate.Execution.Pipeline
 {
     internal static class RequestClassMiddlewareFactory
     {
@@ -75,6 +76,8 @@ namespace HotChocolate.Execution.Utilities
             AddService<IActivator>(list, schemaServices);
             AddService<IErrorHandler>(list, schemaServices);
             AddService<IDiagnosticEvents>(list, schemaServices);
+            AddService<IWriteStoredQueries>(list, schemaServices);
+            AddService<IReadStoredQueries>(list, schemaServices);
             AddService<QueryExecutor>(list, schemaServices);
             AddService<MutationExecutor>(list, schemaServices);
             AddService<SubscriptionExecutor>(list, schemaServices);
@@ -88,9 +91,10 @@ namespace HotChocolate.Execution.Utilities
             ICollection<IParameterHandler> parameterHandlers,
             Expression service)
         {
-            Expression expression = Expression.Convert(Expression.Call(
-                service, _getService, Expression.Constant(typeof(T))), typeof(T));
-            parameterHandlers.Add(new TypeParameterHandler(typeof(T), expression));
+            Expression serviceType = Expression.Constant(typeof(T));
+            Expression getService = Expression.Call(service, _getService, serviceType);
+            Expression castService = Expression.Convert(getService, typeof(T));
+            parameterHandlers.Add(new TypeParameterHandler(typeof(T), castService));
         }
 
         private static List<IParameterHandler> CreateDelegateParameterHandlers(

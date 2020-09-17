@@ -29,13 +29,9 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(string queryId) =>
-            TryReadQueryAsync(queryId, CancellationToken.None);
-
-        /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(
+        public Task<QueryDocument?> TryReadQueryAsync(
             string queryId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
@@ -45,7 +41,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             return TryReadQueryInternalAsync(queryId);
         }
 
-        private async Task<QueryDocument> TryReadQueryInternalAsync(
+        private async Task<QueryDocument?> TryReadQueryInternalAsync(
             string queryId)
         {
             var buffer = (byte[])await _database.StringGetAsync(queryId)
@@ -55,14 +51,10 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         /// <inheritdoc />
-        public Task WriteQueryAsync(string queryId, IQuery query) =>
-            WriteQueryAsync(queryId, query, CancellationToken.None);
-
-        /// <inheritdoc />
         public Task WriteQueryAsync(
             string queryId,
             IQuery query,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
