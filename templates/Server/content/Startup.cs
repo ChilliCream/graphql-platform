@@ -25,7 +25,7 @@ namespace HotChocolate.Server.Template
             app
                 .UseWebSockets()
                 .UseRouting()
-                .UseEndpoints(endpoint => endpoint.MapGraphQL());
+                .UseEndpoints(endpoint => endpoint.MapGraphQL("/"));
         }
     }
 }

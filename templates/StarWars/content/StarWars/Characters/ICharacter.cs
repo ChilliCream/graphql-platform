@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 
 namespace StarWars.Characters
 {
@@ -23,7 +22,7 @@ namespace StarWars.Characters
         /// <summary>
         /// The ids of the character's friends.
         /// </summary>
-        [UsePaging(SchemaType = typeof(InterfaceType<ICharacter>))]
+        [UsePaging(typeof(InterfaceType<ICharacter>))]
         IReadOnlyList<int> Friends { get; }
 
         /// <summary>

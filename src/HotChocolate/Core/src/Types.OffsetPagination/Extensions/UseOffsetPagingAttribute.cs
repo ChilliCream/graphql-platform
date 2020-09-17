@@ -67,7 +67,7 @@ namespace HotChocolate.Types
             {
                 odf.UseOffsetPaging(
                     Type,
-                    settings: new PagingSettings
+                    options: new PagingOptions
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
             {
                 idf.UseOffsetPaging(
                     Type,
-                    settings: new PagingSettings
+                    options: new PagingOptions
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,

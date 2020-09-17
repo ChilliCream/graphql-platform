@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Pagination
 
         protected override OffsetPagingHandler CreateHandler(
             IExtendedType source,
-            PagingSettings settings)
+            PagingOptions options)
         {
             if (source is null)
             {
@@ -31,11 +31,11 @@ namespace HotChocolate.Types.Pagination
 
             return (OffsetPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(null, new object[] { settings })!;
+                .Invoke(null, new object[] { options })!;
         }
 
         private static QueryableOffsetPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-            PagingSettings settings) =>
-            new QueryableOffsetPagingHandler<TEntity>(settings);
+            PagingOptions options) =>
+            new QueryableOffsetPagingHandler<TEntity>(options);
     }
 }

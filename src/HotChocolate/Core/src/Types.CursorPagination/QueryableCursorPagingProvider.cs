@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Pagination
 
         protected override CursorPagingHandler CreateHandler(
             IExtendedType source,
-            PagingSettings settings)
+            PagingOptions options)
         {
             if (source is null)
             {
@@ -33,11 +33,11 @@ namespace HotChocolate.Types.Pagination
 
             return (CursorPagingHandler)_createHandler
                 .MakeGenericMethod(source.ElementType?.Source ?? source.Source)
-                .Invoke(null, new object[] { settings })!;
+                .Invoke(null, new object[] { options })!;
         }
 
         private static QueryableCursorPagingHandler<TEntity> CreateHandlerInternal<TEntity>(
-            PagingSettings settings) =>
-            new QueryableCursorPagingHandler<TEntity>(settings);
+            PagingOptions options) =>
+            new QueryableCursorPagingHandler<TEntity>(options);
     }
 }
