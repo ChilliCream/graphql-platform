@@ -10,6 +10,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types.CursorPagination\HotChocolate.Types.CursorPagination.csproj" />
+    <ProjectReference Include="..\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\Validation\HotChocolate.Validation.csproj" />
     <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>

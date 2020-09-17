@@ -32,7 +32,7 @@ namespace StarWars.Characters
         public string Name { get; }
 
         /// <inheritdoc />
-        [UsePaging(SchemaType = typeof(InterfaceType<ICharacter>))]
+        [UsePaging(typeof(InterfaceType<ICharacter>))]
         [GetFriendsResolver]
         public IReadOnlyList<int> Friends { get; }
 
