@@ -65,6 +65,22 @@ namespace Microsoft.Extensions.DependencyInjection
             "services.AddGraphQLServer().AddQueryType<Query>()...")]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,
+            Func<IServiceProvider, ISchema> schemaFactory,
+            int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+            RequestExecutorBuilderLegacyHelper.SetSchema(
+                    services
+                        .AddGraphQLServerCore(maxAllowedRequestSize)
+                        .AddGraphQL()
+                        .AddHttpRequestInterceptor()
+                        .AddSubscriptionServices(),
+                    schemaFactory)
+                .Services;
+
+        [Obsolete(
+            "Use the new configuration API -> " +
+            "services.AddGraphQLServer().AddQueryType<Query>()...")]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
             ISchemaBuilder schemaBuilder,
             int maxAllowedRequestSize = 20 * 1000 * 1000) =>
             RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(

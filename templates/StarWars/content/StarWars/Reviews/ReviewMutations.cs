@@ -15,11 +15,11 @@ namespace StarWars.Reviews
         public async Task<CreateReviewPayload> CreateReview(
             CreateReviewInput input,
             [Service]IReviewRepository repository,
-            [Service]IEventSender eventSender)
+            [Service]ITopicEventSender eventSender)
         {
             var review = new Review(input.Stars, input.Commentary);
             repository.AddReview(input.Episode, review);
-            await eventSender.SendAsync(new OnReviewMessage(input.Episode, review));
+            await eventSender.SendAsync(input.Episode, review);
             return new CreateReviewPayload(input.Episode, review);
         }
     }

@@ -9,8 +9,8 @@ namespace HotChocolate.Types.Pagination
 {
     public class QueryableCursorPagingHandler<TEntity> : CursorPagingHandler
     {
-        public QueryableCursorPagingHandler(PagingSettings settings)
-            : base(settings)
+        public QueryableCursorPagingHandler(PagingOptions options)
+            : base(options)
         {
         }
 

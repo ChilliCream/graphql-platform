@@ -211,7 +211,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingSettings(new PagingSettings { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -239,7 +239,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingSettings(new PagingSettings { DefaultPageSize = 50 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -267,7 +267,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingSettings(new PagingSettings { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -523,7 +523,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        settings: new PagingSettings
+                        options: new PagingOptions
                         {
                             MaxPageSize = 2,
                             IncludeTotalCount = true
