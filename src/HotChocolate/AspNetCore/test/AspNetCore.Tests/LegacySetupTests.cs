@@ -43,6 +43,32 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task AddGraphQL_With_UseGraphQL_With_Factory()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services => services
+                    .AddGraphQL(sp =>
+                        SchemaBuilder.New()
+                            .AddServices(sp)
+                            .AddQueryType(d => d
+                                .Name("Query")
+                                .Field("hello")
+                                .Resolve("world"))
+                            .Create()),
+                app => app
+                    .UseWebSockets()
+                    .UseGraphQL());
+
+            // act
+            ClientQueryResult result = await server.PostAsync(
+                new ClientQueryRequest { Query = "{ __typename }" });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task AddGraphQL_With_UseGraphQL_With_SchemaBuilder()
         {
             // arrange

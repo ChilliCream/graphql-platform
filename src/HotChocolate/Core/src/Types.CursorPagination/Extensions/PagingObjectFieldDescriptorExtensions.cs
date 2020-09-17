@@ -15,24 +15,24 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TEntity>(
             this IObjectFieldDescriptor descriptor,
             GetCursorPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UsePaging<TSchemaType>(descriptor, typeof(TEntity), resolvePagingProvider, settings);
+            UsePaging<TSchemaType>(descriptor, typeof(TEntity), resolvePagingProvider, options);
 
         public static IObjectFieldDescriptor UsePaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor,
             Type? entityType = null,
             GetCursorPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UsePaging(descriptor, typeof(TSchemaType), entityType, resolvePagingProvider, settings);
+            UsePaging(descriptor, typeof(TSchemaType), entityType, resolvePagingProvider, options);
 
         public static IObjectFieldDescriptor UsePaging(
             this IObjectFieldDescriptor descriptor,
             Type? type = null,
             Type? entityType = null,
             GetCursorPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
         {
             if (descriptor is null)
             {
@@ -48,27 +48,27 @@ namespace HotChocolate.Types
                 type,
                 entityType,
                 (services, source) => resolvePagingProvider(services, source),
-                settings);
+                options);
 
             descriptor
                 .Extend()
                 .OnBeforeCreate(
                     (c, d) => d.Type = CreateConnectionTypeRef(
-                        c, d.ResolverMember ?? d.Member, type, settings));
+                        c, d.ResolverMember ?? d.Member, type, options));
 
             return descriptor;
         }
 
         public static IInterfaceFieldDescriptor UsePaging<TSchemaType>(
             this IInterfaceFieldDescriptor descriptor,
-            PagingSettings settings = default)
+            PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UsePaging(descriptor, typeof(TSchemaType), settings);
+            UsePaging(descriptor, typeof(TSchemaType), options);
 
         public static IInterfaceFieldDescriptor UsePaging(
             this IInterfaceFieldDescriptor descriptor,
             Type? type = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
         {
             if (descriptor is null)
             {
@@ -79,7 +79,7 @@ namespace HotChocolate.Types
                 .AddPagingArguments()
                 .Extend()
                 .OnBeforeCreate(
-                    (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, settings));
+                    (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, options));
 
             return descriptor;
         }
@@ -118,7 +118,7 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             MemberInfo? resolverMember,
             Type? type,
-            PagingSettings settings)
+            PagingOptions options)
         {
             // first we will try and infer the schema type of the collection.
             IExtendedType schemaType = PagingHelper.GetSchemaType(
@@ -135,12 +135,12 @@ namespace HotChocolate.Types
                 throw PagingObjectFieldDescriptorExtensions_InvalidType();
             }
 
-            settings = context.GetSettings(settings);
+            options = context.GetSettings(options);
 
             // once we have identified the correct type we will create the
             // paging result type from it.
             IExtendedType connectionType = context.TypeInspector.GetType(
-                settings.IncludeTotalCount ?? false
+                options.IncludeTotalCount ?? false
                     ? typeof(ConnectionCountType<>).MakeGenericType(schemaType.Source)
                     : typeof(ConnectionType<>).MakeGenericType(schemaType.Source));
 
