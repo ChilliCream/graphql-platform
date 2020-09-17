@@ -15,8 +15,8 @@ namespace HotChocolate.Types.Pagination
     public class QueryableOffsetPagingHandler<TItemType>
         : OffsetPagingHandler
     {
-        public QueryableOffsetPagingHandler(PagingSettings settings)
-            : base(settings)
+        public QueryableOffsetPagingHandler(PagingOptions options)
+            : base(options)
         {
         }
 

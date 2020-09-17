@@ -75,5 +75,38 @@ namespace HotChocolate.Execution.Configuration
 
             return builder.Configure(options => options.Schema = schema);
         }
+
+        /// <summary>
+        /// Sets the schema builder that shall be used to configure the request executor.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="schemaFactory">
+        /// The factory to create the schema.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
+        [Obsolete(
+            "This helper only exists to allow legacy schema handling. " +
+            "Consider moving to the new configuration API.")]
+        public static IRequestExecutorBuilder SetSchema(
+            IRequestExecutorBuilder builder,
+            Func<IServiceProvider, ISchema> schemaFactory)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (schemaFactory is null)
+            {
+                throw new ArgumentNullException(nameof(schemaFactory));
+            }
+
+            return builder.Configure((s, o) => o.Schema = schemaFactory(s));
+        }
     }
 }

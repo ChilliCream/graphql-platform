@@ -1,6 +1,6 @@
 namespace HotChocolate.Types.Pagination
 {
-    public struct PagingSettings
+    public struct PagingOptions
     {
         public int? DefaultPageSize { get; set; }
 
