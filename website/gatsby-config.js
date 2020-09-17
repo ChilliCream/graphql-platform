@@ -4,7 +4,7 @@ module.exports = {
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
     company: "ChilliCream",
-    siteUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
+    siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
       {
@@ -34,7 +34,6 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
@@ -164,7 +163,7 @@ module.exports = {
     {
       resolve: `@darth-knoppix/gatsby-plugin-feed`,
       options: {
-        baseUrl: `https://chillicream.github.io`, // todo: set to `https://chillicream.com` before we go online
+        baseUrl: `https://chillicream.com`,
         query: `{
           site {
             siteMetadata {
