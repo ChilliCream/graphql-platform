@@ -391,6 +391,32 @@
           {
             "path": "index",
             "title": "Introduction"
+          },
+          {
+            "path": "installation",
+            "title": "Installation"
+          },
+          {
+            "path": "usage",
+            "title": "Usage"
+          },
+          {
+            "path": "api",
+            "title": "API"
+          },
+          {
+            "path": "advanced-concepts",
+            "title": "Advanced Concepts",
+            "items": [
+              {
+                "path": "index",
+                "title": "Custom DataLoader"
+              },
+              {
+                "path": "diagnostics",
+                "title": "Diagnostic Events"
+              }
+            ]
           }
         ]
       },

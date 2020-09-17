@@ -230,8 +230,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
         </ProductSwitcher>
         {!productSwitcherOpen && activeProduct!.versions!.length > 1 && (
           <ProductVersions>
-            {activeProduct!.versions!.map((version) => (
+            {activeProduct!.versions!.map((version, index) => (
               <ProductVersion
+                key={version!.path! + index}
                 className={
                   activeVersion!.path! === version!.path! ? "active" : undefined
                 }
@@ -278,7 +279,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 };
 
 function containsActiveItem(selectedPath: string, itemPath: string) {
-  return selectedPath.startsWith(itemPath);
+  const itemPathWithSlash = itemPath.endsWith("/") ? itemPath : itemPath + "/";
+
+  return selectedPath.startsWith(itemPathWithSlash);
 }
 
 function isActive(selectedPath: string, itemPath: string) {
