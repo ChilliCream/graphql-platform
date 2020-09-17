@@ -2,11 +2,13 @@
   "Data": null,
   "Errors": [
     {
-      "Message": "Cannot Validate",
-      "Code": null,
+      "Message": "The query request contains no document.",
+      "Code": "QUERY_NOT_FOUND",
       "Path": null,
       "Locations": null,
-      "Extensions": null,
+      "Extensions": {
+        "code": "QUERY_NOT_FOUND"
+      },
       "Exception": null
     }
   ],
