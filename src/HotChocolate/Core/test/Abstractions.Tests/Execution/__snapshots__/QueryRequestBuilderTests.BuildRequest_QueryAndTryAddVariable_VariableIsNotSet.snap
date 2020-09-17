@@ -8,8 +8,8 @@
   "VariableValues": {
     "one": "foo"
   },
-  "InitialValue": null,
+  "Extensions": null,
   "ContextData": null,
   "Services": null,
-  "Extensions": null
+  "InitialValue": null
 }

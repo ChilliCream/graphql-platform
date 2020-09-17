@@ -6,10 +6,10 @@
   "QueryHash": null,
   "OperationName": null,
   "VariableValues": null,
-  "InitialValue": null,
+  "Extensions": null,
   "ContextData": {
     "three": "baz"
   },
   "Services": null,
-  "Extensions": null
+  "InitialValue": null
 }
