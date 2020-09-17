@@ -1212,7 +1212,7 @@ data-styled.g100[id="blog-article__Container-sc-7c8ya8-0"]{content:"jvsAAt,"}/*!
 <p>But before we can get started let us first setup a web project with <em>Hot Chocolate</em>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="13986307946431674000"
+              data-toaster-id="9413046923498803000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1221,7 +1221,7 @@ data-styled.g100[id="blog-article__Container-sc-7c8ya8-0"]{content:"jvsAAt,"}/*!
 cd logging
 dotnet new web
 dotnet add package HotChocolate.AspNetCore:9.0.0-preview.5
-dotnet add package HotChocolate.AspNetCore.Playground:9.0.0-preview.5`, `13986307946431674000`)"
+dotnet add package HotChocolate.AspNetCore.Playground:9.0.0-preview.5`, `9413046923498803000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1239,7 +1239,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>After our project is setup let us start with setting up the ASP.net core logging infrastructure. This is fairly easy with ASP.net core. Head over to the <code class="language-text">Program.cs</code> and replace the builder configuration with the following one.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97343719447469340000"
+              data-toaster-id="4645333796438300000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1251,7 +1251,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
             logging.ClearProviders();
             logging.AddConsole();
         })
-        .UseStartup<Startup>();`, `97343719447469340000`)"
+        .UseStartup<Startup>();`, `4645333796438300000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1272,12 +1272,12 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Next head over to the <code class="language-text">Startup.cs</code> and register the logger with the dependency injection by adding the following line to <code class="language-text">ConfigureServices</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="24074398323903877000"
+              data-toaster-id="74499066793042500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddLogging();`, `24074398323903877000`)"
+              onClick="copyToClipboard(`services.AddLogging();`, `74499066793042500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1296,7 +1296,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Before we add the actual event methods, let us create a class called <code class="language-text">DiagnosticObserver</code>. In order to write events to the logger we need to inject a concrete logger to our class. So, our class could look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48431572291557410000"
+              data-toaster-id="54867520609383290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1310,7 +1310,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
-}`, `48431572291557410000`)"
+}`, `54867520609383290000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1332,7 +1332,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Next, let us add our two event methods.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90348406186945410000"
+              data-toaster-id="88360152437578970000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1376,7 +1376,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
             }
         }
     }
-}`, `90348406186945410000`)"
+}`, `88360152437578970000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1434,12 +1434,12 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Add the following line to the <code class="language-text">ConfigureServices</code> method in our <code class="language-text">Startup.cs</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86874750387656870000"
+              data-toaster-id="71412036967910430000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddDiagnosticObserver<DiagnosticObserver>();`, `86874750387656870000`)"
+              onClick="copyToClipboard(`services.AddDiagnosticObserver<DiagnosticObserver>();`, `71412036967910430000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1453,7 +1453,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>For this we add a simple query type:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="1637161198166992100"
+              data-toaster-id="80986054040850400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1461,7 +1461,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
               onClick="copyToClipboard(`public class Query
 {
     public string Hello() => &quot;world&quot;;
-}`, `1637161198166992100`)"
+}`, `80986054040850400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1477,7 +1477,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Next we register the query type with our schema by adding the following line to the <code class="language-text">ConfigureServices</code> method in our <code class="language-text">Startup.cs</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="93400721098603500000"
+              data-toaster-id="59477911971202740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1485,7 +1485,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
               onClick="copyToClipboard(`services.AddGraphQL(c =>
 {
     c.RegisterQueryType<Query>();
-});`, `93400721098603500000`)"
+});`, `59477911971202740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1502,7 +1502,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Replace the <code class="language-text">Configure</code> method in our <code class="language-text">Startup.cs</code> with the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92747342878536930000"
+              data-toaster-id="85823757045212000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1521,7 +1521,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
     {
         await context.Response.WriteAsync(&quot;Hello World!&quot;);
     });
-}`, `92747342878536930000`)"
+}`, `85823757045212000000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1548,12 +1548,12 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>You should now be able to start the GraphQL server.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3327608618058963500"
+              data-toaster-id="52079364966742925000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet run`, `3327608618058963500`)"
+              onClick="copyToClipboard(`dotnet run`, `52079364966742925000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1567,14 +1567,14 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore.P
 <p>Add the following query and execute it:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54441337972264270000"
+              data-toaster-id="74000094998213230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`{
   hello
-}`, `54441337972264270000`)"
+}`, `74000094998213230000`)"
             >
               <div
                 class="gatsby-code-button"

@@ -1329,7 +1329,7 @@ data-styled.g145[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The start event is raised once the query engine receives a request.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5217645136871707000"
+              data-toaster-id="78036854364673540000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1338,7 +1338,7 @@ data-styled.g145[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 public void BeginQueryExecute(IQueryContext context)
 {
     // ... your code
-}`, `5217645136871707000`)"
+}`, `78036854364673540000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1357,7 +1357,7 @@ public void BeginQueryExecute(IQueryContext context)
 <p>The stop event is raised once the query engine has completed processing the request. This event is even called if an error has occurred. Additional to the <code class="language-text">IQueryContext</code> the event also provides the <code class="language-text">IExecutionResult</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74088604193240940000"
+              data-toaster-id="9360702478965322000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1368,7 +1368,7 @@ public void EndQueryExecute(
     IExecutionResult result)
 {
     // ... your code
-}`, `74088604193240940000`)"
+}`, `9360702478965322000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1388,7 +1388,7 @@ public void EndQueryExecute(
 <p>The error event is raised should there be an unhandled exception on the query middleware level. This event is not raised whenever a validation or field error is thrown.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21150380691074070000"
+              data-toaster-id="42934915323190895000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1399,7 +1399,7 @@ public virtual void OnQueryError(
     Exception exception)
 {
     // ... your code
-}`, `21150380691074070000`)"
+}`, `42934915323190895000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1421,7 +1421,7 @@ public virtual void OnQueryError(
 <p>The start event is raised once the parser middleware is invoked.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37527691368774345000"
+              data-toaster-id="95045296818363970000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1430,7 +1430,7 @@ public virtual void OnQueryError(
 public void BeginParsing(IQueryContext context)
 {
     // ... your code
-}`, `37527691368774345000`)"
+}`, `95045296818363970000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1448,7 +1448,7 @@ public void BeginParsing(IQueryContext context)
 <p>The stop event is raised once the parser finished. It is important to know that the stop event is even raised if a <code class="language-text">SyntaxException</code> is thrown. The <code class="language-text">Document</code> property on the <code class="language-text">IQueryContext</code> will be null in this case. The parser middleware will add a property to the context data indicating if the query was retrieved from the cache: <code class="language-text">DocumentRetrievedFromCache</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17715781714131507000"
+              data-toaster-id="39750524859503060000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1457,7 +1457,7 @@ public void BeginParsing(IQueryContext context)
 public void EndParsing(IQueryContext context)
 {
     // ... your code
-}`, `17715781714131507000`)"
+}`, `39750524859503060000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1479,7 +1479,7 @@ public void EndParsing(IQueryContext context)
 <p>The validation start event is called once the validation middleware is invoked.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73147570623001720000"
+              data-toaster-id="63614466240721090000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1488,7 +1488,7 @@ public void EndParsing(IQueryContext context)
 public void BeginValidation(IQueryContext context)
 {
     // ... your code
-}`, `73147570623001720000`)"
+}`, `63614466240721090000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1506,7 +1506,7 @@ public void BeginValidation(IQueryContext context)
 <p>The stop event is raised once the validation finished. It is important to know that the stop event is even raised if a validation error is raised.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78803424521013100000"
+              data-toaster-id="28173369869062783000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1515,7 +1515,7 @@ public void BeginValidation(IQueryContext context)
 public void EndValidation(IQueryContext context)
 {
     // ... your code
-}`, `78803424521013100000`)"
+}`, `28173369869062783000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1533,7 +1533,7 @@ public void EndValidation(IQueryContext context)
 <p>The validation error event will be raised for each query document analysis that yields at least one error.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21487573068452946000"
+              data-toaster-id="73173765167040460000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1544,7 +1544,7 @@ public void OnValidationError(
     IReadOnlyCollection<IError> errors)
 {
     // ... your code
-}`, `21487573068452946000`)"
+}`, `73173765167040460000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1566,7 +1566,7 @@ public void OnValidationError(
 <h2 id="start-operation" style="position:relative;"><a href="#start-operation" aria-label="start operation permalink" class="anchor before"><svg aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Start Operation</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5392062079640781000"
+              data-toaster-id="36605568927405875000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1575,7 +1575,7 @@ public void OnValidationError(
 public void BeginOperationExecute(IQueryContext context)
 {
     // ... your code
-}`, `5392062079640781000`)"
+}`, `36605568927405875000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1592,7 +1592,7 @@ public void BeginOperationExecute(IQueryContext context)
 <h2 id="stop-operation" style="position:relative;"><a href="#stop-operation" aria-label="stop operation permalink" class="anchor before"><svg aria-hidden="true" focusable="false" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Stop Operation</h2>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="86259530769294020000"
+              data-toaster-id="14849731367828478000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1603,7 +1603,7 @@ public void EndOperationExecute(
     IExecutionResult result)
 {
     // ... your code
-}`, `86259530769294020000`)"
+}`, `14849731367828478000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1628,7 +1628,7 @@ public void EndOperationExecute(
 <p>The resolver start event is raised for each invocation of a resolver pipeline. The resolver pipeline is made-up of multiple field middleware components. The exact composition of such a pipeline varies on your setup.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83840835455192020000"
+              data-toaster-id="66419468156286610000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1637,7 +1637,7 @@ public void EndOperationExecute(
 public void BeginResolveField(IResolverContext context)
 {
     // ... your code
-}`, `83840835455192020000`)"
+}`, `66419468156286610000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1655,7 +1655,7 @@ public void BeginResolveField(IResolverContext context)
 <p>The resolver stop event is raised once the execution of the resolver pipeline is completed. The provided result is the not completed result of the resolver. This means that the actual result that is integrated into the query result can differ since type converter and serialization are applied during field value completion.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="82256970968056090000"
+              data-toaster-id="48994242465387500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1666,7 +1666,7 @@ public void EndResolveField(
     object result)
 {
     // ... your code
-}`, `82256970968056090000`)"
+}`, `48994242465387500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1686,7 +1686,7 @@ public void EndResolveField(
 <p>The resolver error event is raised should one or more resolver errors occurs.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="51746588958966240000"
+              data-toaster-id="76027358592061310000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1697,7 +1697,7 @@ public void OnResolverError(
     IEnumerable<IError> errors)
 {
     // ... your code
-}`, `51746588958966240000`)"
+}`, `76027358592061310000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1717,7 +1717,7 @@ public void OnResolverError(
 <p>In order to subscribe to the Hot Chocolate instrumentation events, you have to create a class that implements the marker interface <code class="language-text">IDiagnosticObserver</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74181221939946470000"
+              data-toaster-id="90556589892164160000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1725,7 +1725,7 @@ public void OnResolverError(
               onClick="copyToClipboard(`public class MyDiagnosticObserver
     : IDiagnosticObserver
 {
-}`, `74181221939946470000`)"
+}`, `90556589892164160000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1741,7 +1741,7 @@ public void OnResolverError(
 <p>The observer subscribes to an event by adding a method that is annotated with the event name like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="79963874312444610000"
+              data-toaster-id="34652560845930850000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1756,7 +1756,7 @@ public void OnResolverError(
     {
         // ... your code
     }
-}`, `79963874312444610000`)"
+}`, `34652560845930850000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1779,7 +1779,7 @@ public void OnResolverError(
 <p>When subscribing to start/stop events you also have to add the actual event method, otherwise the diagnostic source will not enable the event.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="88702101365481300000"
+              data-toaster-id="85390679817499750000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1806,7 +1806,7 @@ public void OnResolverError(
     {
         // ... your code
     }
-}`, `88702101365481300000`)"
+}`, `85390679817499750000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1841,7 +1841,7 @@ public void OnResolverError(
 <p>You can use the context data to pass tracing details like a custom request id between your events:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80541192066765800000"
+              data-toaster-id="86966804999717100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1870,7 +1870,7 @@ public void OnResolverError(
         Guid tracingId = (Guid)context.ContextData[&quot;TracingId&quot;];
         // ... your code
     }
-}`, `80541192066765800000`)"
+}`, `86966804999717100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1908,7 +1908,7 @@ public void OnResolverError(
 <p>Registering the observer with the <code class="language-text">QueryExecutionBuilder</code> does not require any dependency injection provider, but let`s you only inject infrastructure services.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43377569421008945000"
+              data-toaster-id="49919611026485210000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1918,7 +1918,7 @@ public void OnResolverError(
     .Create()
     .MakeExecutable(builder => builder
         .AddDiagnosticObserver<MyDiagnosticObserver>()
-        .UseDefaultPipeline());`, `43377569421008945000`)"
+        .UseDefaultPipeline());`, `49919611026485210000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1936,12 +1936,12 @@ public void OnResolverError(
 <p>If you want to use the observer in conjunction with your dependency injection provider you can also add the observer to your services. We have added an extension method for <code class="language-text">IServiceCollection</code> that mirrors the builder extension.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="25610695812244468000"
+              data-toaster-id="90381565971238160000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddDiagnosticObserver<MyDiagnosticObserver>();`, `25610695812244468000`)"
+              onClick="copyToClipboard(`services.AddDiagnosticObserver<MyDiagnosticObserver>();`, `90381565971238160000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1955,7 +1955,7 @@ public void OnResolverError(
 <p>If you are using our <code class="language-text">AddGraphQL</code> or <code class="language-text">AddStitchedSchema</code> extensions, you should be covered. In the case that you are putting everything together yourself you will need to register the service provider with your schema manually.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80579684713201400000"
+              data-toaster-id="41830300714092020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1968,7 +1968,7 @@ public void OnResolverError(
 QueryExecutionBuilder
     .New()
     .UseDefaultPipeline()
-    .Populate(services);`, `80579684713201400000`)"
+    .Populate(services);`, `41830300714092020000`)"
             >
               <div
                 class="gatsby-code-button"
