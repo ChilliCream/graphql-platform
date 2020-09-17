@@ -448,8 +448,8 @@ So, in order to give the generator a hint about these things we need to extend o
 
 ```graphql
 extend scalar ByteArray
-  @runtimeType(name: "System.Byte[]")
-  @serializationType(name: "System.String")
+@runtimeType(name: "System.Byte[]")
+@serializationType(name: "System.String")
 ```
 
 The above example declares that for the `ByteArray` scalar the runtime type (the type that is used in the C# models) shall be a `System.Byte[]` and that the serialization type (the type which client and server use to send the data) shall be a `System.String`. For the generator that is enough to generate everything accordingly.

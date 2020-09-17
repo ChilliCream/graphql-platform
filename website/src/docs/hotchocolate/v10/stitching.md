@@ -1,36 +1,28 @@
 ---
-path: "/blog/2019/02/20/schema-stitching"
-date: "2019-02-20"
-title: "GraphQL - Schema Stitching with Version 8"
-tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "schema-stitching"]
-author: Michael Staib
-authorUrl: https://github.com/michaelstaib
-authorImageUrl: https://avatars1.githubusercontent.com/u/9714350?s=100&v=4
+title: Schema Stitching
 ---
-
-With version 8 of Hot Chocolate we have mainly focused on schema stitching. One of the most requested features in this area was auto-stitching. Auto-stitching will enable us to automatically pull in schemas from other GraphQL servers and merge those into one schema.
 
 **What is schema stitching actually?**
 
 Schema stitching is the capability to merge multiple GraphQL schemas into one schema that can be queried.
 
-## Introduction
+# Introduction
 
 **So, for what is that useful?**
 
 In our case we have lots of specialized services that serve data for specific problem domains. Some of these services are GraphQL services, some of them are REST services and yes sadly a little portion of those are still SOAP services.
 
-With _Hot Chocolate_ schema stitching we are able to create a gateway that bundles all those services into one GraphQL schema.
+With Hot Chocolate schema stitching we are able to create a gateway that bundles all those services into one GraphQL schema.
 
 **Is schema stitching basically just putting two schemas together?**
 
 Just putting two schemas into one and avoid name collisions is simple. But what we want to achieve with schema stitching is one consistent schema.
 
-_Hot Chocolate_ schema stitching allows us to really integrate services into one schema by folding types into one another and even renaming or removing parts.
+Hot Chocolate schema stitching allows us to really integrate services into one schema by folding types into one another and even renaming or removing parts.
 
 With this we can create a consistent GraphQL schema that hides the implementation details of our backend services and provides the consumer of our endpoint with the capability to fetch the data they need with one call, no under- or over-fetching and most importantly no repeated fetching because we first needed to fetch that special id with which we now can fetch this other thingy.
 
-## Getting Started
+# Getting Started
 
 In order to showcase how schema stitching works and what the problems are let us assume we have a service like twitter, where a user can post messages.
 
@@ -38,7 +30,7 @@ Moreover, let us assume we have three teams working on internal micro-/domain-se
 
 The first service is handling the message stream and has the following schema:
 
-```graphql
+```sdl
 type Query {
   messages(userId: ID!): [Message!]
   message(messageId: ID!): Message
@@ -68,7 +60,7 @@ type NewMessagePayload {
 
 The second service is handling the users of the services and has the following schema:
 
-```graphql
+```sdl
 type Query {
   user(userId: ID!): User!
   users: [User!]
@@ -105,7 +97,7 @@ type User {
 
 Last but not least we have a third service handling the message analytics. In our example case we keep it simple and our analytics service just tracks three different counters per message. The schema for this service looks like the following:
 
-```graphql
+```sdl
 type Query {
   analytics(messageId: ID!, type: CounterType!): MessageAnalytics
 }
@@ -130,13 +122,13 @@ Even worse for our UI team, in order to build a stream view that shows the messa
 
 This is actually one of the very things GraphQL tries to solve.
 
-## Setting up our server
+# Setting up our server
 
 Before we start with stitching itself let`s get into how to setup our server.
 
-Every _Hot Chocolate_ server can be a stitching server. This means in order to get started we can just use the _Hot Chocolate_ GraphQL server template and modify it a little bit to make the server a stitching server.
+Every Hot Chocolate server can be a stitching server. This means in order to get started we can just use the Hot Chocolate GraphQL server template and modify it a little bit to make the server a stitching server.
 
-If you do not have the _Hot Chocolate_ GraphQL server template installed execute first the following command.
+If you do not have the Hot Chocolate GraphQL server template installed execute first the following command.
 
 ```bash
 dotnet new -i HotChocolate.Templates.Server
@@ -147,22 +139,28 @@ After that we will create a new folder and add a new server to that folder.
 ```bash
 mkdir stitching-demo
 cd stitching-demo
-dotnet new graphql-server
+dotnet new graphql
 ```
 
 With this we have now a functioning GraphQL server with a simple hello world example.
 
-In order to make this server a stitching server we now have to add the _Hot Chocolate_ stitching engine.
+In order to make this server a stitching server we now have to add the Hot Chocolate stitching engine.
 
 ```bash
 dotnet add package HotChocolate.Stitching
 ```
 
+and Subscription package if using AspNetCore
+
+```
+dotnet add package HotChocolate.AspNetCore.Subscriptions
+```
+
 Now that our GraphQL server is ready we can start to configure the endpoints of our remote schemas.
 
-> Remote schemas are what we call the GraphQL schemas that we want to include into our merged schema. Remote schemas can be any GraphQL Spec compliant server (Apollo, Sangria, Hot Chocolate etc.) that serves its schema over HTTP. Also we can include local schemas that are created with the _Hot Chocolate_ .net API.
+> Remote schemas are what we call the GraphQL schemas that we want to include into our merged schema. Remote schemas can be any GraphQL Spec compliant server (Apollo, Sangria, Hot Chocolate etc.) that serves its schema over HTTP. Also we can include local schemas that are created with the Hot Chocolate .NET API.
 
-The endpoints are declared by using a named `HttpClient` via the HttpClient factory that is included with ASP.net core.
+The endpoints are declared by using a named `HttpClient` via the HttpClient factory that is included with ASP.NET core.
 
 ```csharp
 services.AddHttpClient("messages", (sp, client) =>
@@ -179,20 +177,19 @@ services.AddHttpClient("analytics", (sp, client) =>
 });
 ```
 
-Now let\`s remove the parts from the server template that we don't need.
+Now let\`s remove the parts from the server template that we don't need and add subscriptions support.
 
 > We will show some strategies of how to handle authenticated services later on.
 
 ```csharp
 services.AddDataLoaderRegistry();
 
-services.AddGraphQL(sp => Schema.Create(c =>
-{
-    c.RegisterQueryType<Query>();
-}));
+services.AddGraphQL(sp => SchemaBuilder.New().AddType<Query>().Create());
+
+services.AddGraphQLSubscriptions();
 ```
 
-## Stitching Builder
+# Stitching Builder
 
 The stitching builder is the main API to configure a stitched GraphQL schema (GraphQL gateway). In order to have a simple auto-merge we have just to provide all the necessary schema names and the stitching layer will fetch the remote schemas via introspection on the first call to the stitched schema.
 
@@ -203,28 +200,28 @@ services.AddStitchedSchema(builder => builder
   .AddSchemaFromHttp("analytics"));
 ```
 
-Since a stitched schema is essentially no different to any other GraphQL schema, we can configure custom types, add custom middleware or do any other thing that we could do with a _Hot Chocolate_ GraphQL schema.
+Since a stitched schema is essentially no different to any other GraphQL schema, we can configure custom types, add custom middleware or do any other thing that we could do with a Hot Chocolate GraphQL schema.
 
 In our example we are stitching together schemas that come with non-spec scalar types like `DateTime`. So, the stitching layer would report a schema error when stitching the above three schemas together since the `DateTime` scalar is unknown.
 
-In order to declare this custom scalar we can register the extended scalar set like with a regular _Hot Chocolate_ GraphQL schema through the `AddSchemaConfiguration`-method on the stitching builder.
+In order to declare this custom scalar we can register the extended scalar set like with a regular Hot Chocolate GraphQL schema through the `AddSchemaConfiguration`-method on the stitching builder.
 
 ```csharp
 services.AddStitchedSchema(builder => builder
   .AddSchemaFromHttp("messages")
   .AddSchemaFromHttp("users")
-  .AddSchemaFromHttp("analytics"))
+  .AddSchemaFromHttp("analytics")
   .AddSchemaConfiguration(c =>
   {
     c.RegisterExtendedScalarTypes();
-  })
+  }));
 ```
 
-> More information about our scalars can be found [here](https://hotchocolate.io/docs/custom-scalar-types).
+> More information about our scalars can be found [here](/docs/hotchocolate/v10/schema/custom-scalar-types).
 
 With this in place our stitched schema now looks like the following:
 
-```graphql
+```sdl
 type Query {
   messages(userId: ID!): [Message!]
   message(messageId: ID!): Message
@@ -295,7 +292,7 @@ enum CounterType {
 
 We have just achieved a simple schema merge without doing a lot of work. But honestly we would like to change some of the types. While the stitching result is nice, we would like to integrate the types with each other.
 
-### Extending Types
+# Schema Extensions
 
 So, the first thing that we would like to have is a new field on the query that is called `me`. The `me` field shall represent the currently signed in user of our service.
 
@@ -314,7 +311,7 @@ Further, the user type should expose the message stream of the user, this way we
 
 In order to extend types in a stitched schema we can use the new GraphQL extend syntax that was introduced with the 2018 spec.
 
-```graphql
+```sdl
 extend type Query {
   me: User! @delegate(schema: "users", path: "user(id: $contextData:UserId)")
 }
@@ -343,7 +340,7 @@ Currently this variable has four scopes:
 
 - Arguments
 
-  Access arguments of the annotated field field: `$arguments:ArgumentName`
+  Access arguments of the annotated field: `$arguments:ArgumentName`
 
 - Fields
 
@@ -355,11 +352,11 @@ Currently this variable has four scopes:
 
 - ScopedContextData
 
-  Access properties of the scoped field context data map: `$contextData:Key`
+  Access properties of the scoped field context data map: `$scopedContextData:Key`
 
 The context data can be used to map custom properties into our GraphQL resolvers. In our case we will use it to map the internal user ID from the user claims into our context data map. This allows us to have some kind of abstraction between the actual HttpRequest and the data that is needed to process a GraphQL request.
 
-> Documentation on how to add custom context data from a http request can be found [here](https://hotchocolate.io/docs/custom-context)
+> Documentation on how to add custom context data from a http request can be found [here](/docs/hotchocolate/v10/execution-engine/custom-context)
 
 OK, let\`s sum this up, with the `delegate` directive we are able to create powerful stitching resolvers without writing one line of c# code. Furthermore, we are able to create new types that make the API richer without those types having any representation in any of the remote schemas.
 
@@ -381,7 +378,7 @@ services.AddStitchedSchema(builder => builder
 
 Now with all of this in place our schema looks like the following:
 
-```graphql
+```sdl
 type Query {
   me: User!
   messages(userId: ID!): [Message!]
@@ -452,11 +449,11 @@ enum CounterType {
 }
 ```
 
-### Renaming and Removing Types
+# Schema Transformations
 
 Though this is nice, we would like to go even further and enhance our `Message` type like the following:
 
-```graphql
+```sdl
 type Message {
   id: ID!
   text: String!
@@ -497,7 +494,7 @@ services.AddStitchedSchema(builder => builder
 
 With that we have removed the types from our stitched schema. Now, let us move on to extend our message type.
 
-```graphql
+```sdl
 extend type Message {
   createdBy: User!
   @delegate(schema: "users", path: "user(id: $fields:createdById)")
@@ -530,7 +527,7 @@ services.AddStitchedSchema(builder => builder
 
 Our new schema now looks like the following:
 
-```graphql
+```sdl
 type Query {
   me: User!
   messages(userId: ID!): [Message!]
@@ -591,7 +588,7 @@ type User {
 }
 ```
 
-### Query Rewriter
+# Query Rewriter
 
 As can be seen, it is quite simple to stitch multiple schemas together and enhance them with the stitching builder.
 
@@ -691,11 +688,11 @@ services.AddStitchedSchema(builder => builder
   })
 ```
 
-> We could also declare a field middleware as class. More about what can be done with a field middleware can be found [here](https://hotchocolate.io/docs/middleware).
+> We could also declare a field middleware as class. More about what can be done with a field middleware can be found [here](/docs/hotchocolate/v10/execution-engine/middleware).
 
 With all of this in place we can now rewrite our `Message` type extension and access the `createdById` from the scoped context data:
 
-```graphql
+```sdl
 extend type Message {
   createdBy: User!
   @delegate(schema: "users", path: "user(id: $scopedContextData:createdById)")
@@ -706,11 +703,11 @@ extend type Message {
 }
 ```
 
-### Customizing Stitching Builder
+# Extending the Schema Builder
 
 The stitching builder can be extended on multiple levels by writing different kinds of schema syntax rewriter.
 
-#### Source Schema Rewriter
+## Source Schema Rewriter
 
 The refactoring methods that we provide like `IgnoreField` or `RenameType` and so on rewrite the source schemas before they are merged.
 
@@ -722,9 +719,24 @@ If we wanted to rewrite just parts of a type like adding some documentation or a
 
 In both types we could opt to use the rewriter and visitor base classes that are included in our parser package.
 
-> Information about our parser can be found [here](https://hotchocolate.io/docs/parser).
+The type rewriter provides us also with a simple way to automatically rewrite fields and decorate them with the delegation attribute.
 
-#### Merged Schema Rewriter
+```csharp
+var path = new SelectionPathComponent(
+    field.Name,
+    field.Arguments.Select(t => new ArgumentNode(
+        t.Name,
+        new ScopedVariableNode(
+            null,
+            new NameNode(ScopeNames.Arguments),
+            t.Name))).ToList());
+
+field.AddDelegationPath("schemaName", path);
+```
+
+> Information about our parser can be found [here](/docs/hotchocolate/v10/advanced).
+
+## Merged Schema Rewriter
 
 Apart from the source schema rewriters we can also rewrite the schema document after it has been merged:
 
@@ -740,13 +752,60 @@ Also, if we just wanted to validate the schema for merge errors or collect infor
 IStitchingBuilder AddMergedDocumentVisitor(Action<DocumentNode> visit);
 ```
 
-#### Merge Rules
+## Merge Rules
 
 In most cases the default merge rules should be enough. But with more domain knowledge about the source schemas one could write more aggressive merge rules.
 
 The merge rules are chained and pass along what they cannot handle. The types of the various schemas are bucketed by name and passed to the merge rule chain.
 
-## Authentication
+# Error Handling
+
+Errors from remote schemas are automatically rewritten and exposed as an error of the stitched schema. In order to rewrite an error correctly we need the path collection to be set; otherwise, the error will be exposed as global error.
+
+Like with just any Hot Chocolate schema you can add error filters in order to provide more context data or to provide a better rewrite logic. Our initial rewrite logic will add the unmodified original error as property `remote` to the extensions.
+
+## Add an error filter
+
+```csharp
+serviceCollection.AddStitchedSchema(builder =>
+    builder.AddSchemaFromHttp("messages")
+        .AddSchemaFromHttp("users")
+        .AddSchemaFromHttp("analytics"))
+        .AddExecutionConfiguration(b =>
+        {
+            b.AddErrorFilter(error =>
+            {
+                return error.AddExtension("STITCH", "SOMETHING");
+            });
+        }));
+```
+
+## Get the original error
+
+```csharp
+serviceCollection.AddStitchedSchema(builder =>
+    builder.AddSchemaFromHttp("messages")
+        .AddSchemaFromHttp("users")
+        .AddSchemaFromHttp("analytics"))
+        .AddExecutionConfiguration(b =>
+        {
+            b.AddErrorFilter(error =>
+            {
+                if(error.Extensions.TryGetValue("remote", out object o)
+                  && o is IError originalError)
+                {
+                    return error.AddExtension(
+                      "remote_code",
+                      originalError.Code);
+                }
+                return error;
+            });
+        }));
+```
+
+> More about error filter can be found [here](/docs/hotchocolate/v10/execution-engine/error-filter).
+
+# Authentication
 
 In many cases schemas will be protected by some sort of authentication. In most cases http requests are authenticated with bearer tokens that are passed along as `Authorization` header.
 
@@ -754,7 +813,7 @@ Moreover, the most common case that we have seen so far is that people want to p
 
 The stitching engine creates a lazy query executor that will only start merging the schemas on the first call to the GraphQL gateway. This allows us to use the token of an incoming call to execute the introspection queries on the remote schemas. This also safes us from having to store some kind of service token with the GraphQL gateway.
 
-In order to pass on the incoming `Authorization` header to our registered HttpClients we need to first register the HttpContext accessor from ASP.net core.
+In order to pass on the incoming `Authorization` header to our registered HttpClients we need to first register the HttpContext accessor from ASP.NET core.
 
 ```csharp
 services.AddHttpContextAccessor();
@@ -781,13 +840,32 @@ services.AddHttpClient("messages", (sp, client) =>
 
 Another variant can also be to store service tokens for the remote schemas with our GraphQL gateway.
 
-How you want to implement authentication strongly depends on your needs. With the reliance on the HttpClient factory from the ASP.net core foundation we are very flexible and can handle multiple scenarios.
+How you want to implement authentication strongly depends on your needs. With the reliance on the HttpClient factory from the ASP.NET core foundation we are very flexible and can handle multiple scenarios.
 
-## Batching
+# Making HTTP clients resilient
+
+When using stitching in production environments it is important to configure the HTTP clients to be resilient against connection losses and other HTTP errors. Since we are using Microsoft HttpClient factory, we can use `Polly` to configure retry policies and more. This is especially important if you are using external services like the GitHub GraphQL schema.
+
+```csharp
+services.AddHttpClient("GitHub", client =>
+{
+    client.BaseAddress = new Uri("https://api.github.com/");
+})
+.AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
+{
+    TimeSpan.FromSeconds(1),
+    TimeSpan.FromSeconds(5),
+    TimeSpan.FromSeconds(10)
+}));
+```
+
+Microsoft provides a great documentation for Polly and we recommend to check it out: [Use HttpClientFactory to implement resilient HTTP requests](https://docs.microsoft.com/en-us/dotnet/standard/microservices-architecture/implement-resilient-applications/use-httpclientfactory-to-implement-resilient-http-requests).
+
+# Batching
 
 The stitching layer transparently batches queries to the remote schemas. So, if you extend types like the following:
 
-```graphql
+```sdl
 extend type Message {
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
@@ -851,7 +929,7 @@ We would merge those two queries into one:
 
 This lets the remote schema optimize the calls much better since now the remote schema could take advantage of things like _DataLoader_ etc.
 
-## Root Types
+# Root Types
 
 We are currently supporting stitching `Query` and `Mutation`.
 
@@ -861,7 +939,7 @@ Stitching queries is straight forward and works like described earlier. Mutation
 
 Query resolvers are executed in parallel when possible. All fields of a query have to be side-effect free.
 
-https://facebook.github.io/graphql/June2018/#sec-Normal-and-Serial-Execution
+[GraphQL June 2018 Specification](https://facebook.github.io/graphql/June2018/#sec-Normal-and-Serial-Execution)
 
 > Normally the executor can execute the entries in a grouped field set in whatever order it chooses (normally in parallel). Because the resolution of fields other than top‐level mutation fields must always be side effect‐free and idempotent, the execution order must not affect the result, and hence the server has the freedom to execute the field entries in whatever order it deems optimal.
 
@@ -884,7 +962,7 @@ Or, even simpler put, only fields that are declared on the mutation type can del
 
 Let's put that in a context.
 
-```graphql
+```sdl
 type Mutation {
   newUser(input: NewUserInput!): NewUserPayload! @delegate(schema: "users")
 }
@@ -910,7 +988,7 @@ In the above example we have a mutation that delegates the `newUser` field to th
 
 This also means that we cannot group mutations like we could group queries. So, something like the following would not work since it is not spec-compliant:
 
-```graphql
+```sdl
 type Mutation {
   userMutations: UserMutations
 }
@@ -920,7 +998,7 @@ type UserMutations {
 }
 ```
 
-## Stitching Context
+# Stitching Context
 
 The stitching engine provides a lot of extension points, but if we wanted to write the stitching for one specific resolver by ourselves then we could do that by using the `IStitchingContext` which is a scoped service and can be resolved through the resolver context.
 
@@ -929,18 +1007,3 @@ IStitchingContext stitchingContext = context.Service<IStichingContext>();
 IRemoteQueryClient remoteQueryClient = stitchingContext.GetRemoteQueryClient("messages");
 IExecutionResult result = remoteQueryClient.ExecuteAsync("{ foo { bar } }")
 ```
-
-## Example
-
-We have a simple stitching example [here](https://github.com/ChilliCream/hotchocolate-examples/tree/master/Stitching).
-
-## Version 9
-
-We originally wanted to include subscription stitching with version 8, but are now moving this feature to next version.
-
-Apart from that, Version 9 will mainly focus on schema improvements.
-
-If you have feedback or feature requests for our schema stitching we love to talk to you about it. Head over to our [slack channel](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
-
-[hot chocolate]: https://hotchocolate.io
-[hot chocolate source code]: https://github.com/ChilliCream/hotchocolate

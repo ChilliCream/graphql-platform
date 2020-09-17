@@ -13,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate`,
+        link: `/docs/hotchocolate/v10/`,
       },
       {
         name: `Support`,
@@ -85,21 +85,26 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
-          `gatsby-remark-autolink-headers`,
+          {
+            resolve: `gatsby-remark-autolink-headers`,
+            options: {
+              offsetY: 60,
+            },
+          },
           `gatsby-remark-reading-time`,
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-mermaid`,
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
               },
-            },
-          },
-          {
-            resolve: `gatsby-remark-code-buttons`,
-            options: {
-              tooltipText: `Copy`,
-              toasterText: "Copied code example",
             },
           },
           {

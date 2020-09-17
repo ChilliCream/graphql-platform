@@ -34,7 +34,10 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const { fields, frontmatter, html } = data.file!.childMarkdownRemark!;
   const slug = fields!.slug!.substring(1);
   const path = `/docs/${slug}`;
-  const selectedProduct = slug.substring(0, slug.indexOf("/"));
+  const productAndVersionPattern = /^([\w-]*?)\/(v\d+)?/g;
+  const result = productAndVersionPattern.exec(slug);
+  const selectedProduct = result![1]! || "";
+  const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
 
   const handleToggleTOC = useCallback(() => {
@@ -51,6 +54,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
         data={data}
         selectedPath={path}
         selectedProduct={selectedProduct}
+        selectedVersion={selectedVersion}
       />
       <ArticleWrapper>
         <Article>
