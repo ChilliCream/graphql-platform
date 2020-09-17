@@ -18,13 +18,9 @@ namespace HotChocolate.Data
                     m.GetParameters().Length == 2 &&
                     m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
-        public UseFilteringAttribute(Type filterType)
+        public UseFilteringAttribute(Type? filterType = null)
         {
             Type = filterType;
-        }
-
-        public UseFilteringAttribute()
-        {
         }
 
         /// <summary>
