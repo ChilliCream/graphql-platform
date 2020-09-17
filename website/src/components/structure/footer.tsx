@@ -34,6 +34,9 @@ export const Footer: FunctionComponent = () => {
         products: childrenDocsJson {
           path
           title
+          versions {
+            path
+          }
         }
       }
     }
@@ -90,12 +93,16 @@ export const Footer: FunctionComponent = () => {
         <Location>
           <Title>Documentation</Title>
           <Navigation>
-            {products!.map((item, index) => (
+            {products!.map((product, index) => (
               <NavLink
                 key={`products-item-${index}`}
-                to={`/docs/${item!.path!}/`}
+                to={
+                  product!.versions![0]!.path! === ""
+                    ? `/docs/${product!.path!}/`
+                    : `/docs/${product!.path!}/${product!.versions![0]!.path!}/`
+                }
               >
-                {item!.title}
+                {product!.title}
               </NavLink>
             ))}
           </Navigation>
