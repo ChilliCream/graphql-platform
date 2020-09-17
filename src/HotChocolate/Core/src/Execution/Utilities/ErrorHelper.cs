@@ -119,14 +119,14 @@ namespace HotChocolate.Execution.Utilities
                 .Build();
         }
 
-        public static IReadOnlyQueryResult ParserExpectedQuery() =>
+        public static IQueryResult ParserExpectedQuery() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage("The parse query middleware expects a valid query request.")
                     .SetCode(ErrorCodes.Execution.Incomplete)
                     .Build());
 
-        public static IReadOnlyQueryResult RootTypeNotFound(OperationType operationType) =>
+        public static IQueryResult RootTypeNotFound(OperationType operationType) =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
@@ -134,7 +134,7 @@ namespace HotChocolate.Execution.Utilities
                         operationType)
                     .Build());
 
-        public static IReadOnlyQueryResult StateInvalidForOperationResolver() =>
+        public static IQueryResult StateInvalidForOperationResolver() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
@@ -142,7 +142,7 @@ namespace HotChocolate.Execution.Utilities
                         "validation result is invalid.")
                     .Build());
 
-        public static IReadOnlyQueryResult StateInvalidForOperationVariableCoercion() =>
+        public static IQueryResult StateInvalidForOperationVariableCoercion() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
@@ -150,7 +150,7 @@ namespace HotChocolate.Execution.Utilities
                         "variables.")
                     .Build());
 
-        public static IReadOnlyQueryResult StateInvalidForOperationExecution() =>
+        public static IQueryResult StateInvalidForOperationExecution() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
                     .SetMessage(
@@ -166,5 +166,12 @@ namespace HotChocolate.Execution.Utilities
                     .SetPath(path)
                     .AddLocation(field)
                     .Build();
+
+        public static IQueryResult StateInvalidForDocumentValidation() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage("The query request contains no document.")
+                    .SetCode(ErrorCodes.Execution.QueryNotFound)
+                    .Build());
     }
 }

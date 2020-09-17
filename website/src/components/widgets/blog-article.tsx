@@ -79,5 +79,5 @@ const Container = styled.div`
   flex: 0 0 auto;
   flex-direction: row;
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
 `;

@@ -19,6 +19,13 @@ namespace HotChocolate.Data
             typeof(FilterObjectFieldDescriptorExtensions)
                 .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
 
+        /// <summary>
+        /// Registers the middleware and adds the arguments for filtering
+        /// </summary>
+        /// <param name="descriptor">The field descriptor where the arguments and middleware are
+        /// applied to</param>
+        /// <param name="scope">Specifies what scope should be used for the
+        /// <see cref="FilterConvention" /></param>
         public static IObjectFieldDescriptor UseFiltering(
             this IObjectFieldDescriptor descriptor,
             string? scope = null)
@@ -31,6 +38,14 @@ namespace HotChocolate.Data
             return UseFiltering(descriptor, null, null, scope);
         }
 
+        /// <summary>
+        /// Registers the middleware and adds the arguments for filtering
+        /// </summary>
+        /// <param name="descriptor">The field descriptor where the arguments and middleware are
+        /// applied to</param>
+        /// <param name="scope">Specifies what scope should be used for the
+        /// <see cref="FilterConvention" /></param>
+        /// <typeparam name="T">Either a runtime type or a <see cref="FilterInputType"/></typeparam>
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor,
             string? scope = null)
@@ -48,6 +63,15 @@ namespace HotChocolate.Data
             return UseFiltering(descriptor, filterType, null, scope);
         }
 
+        /// <summary>
+        /// Registers the middleware and adds the arguments for filtering
+        /// </summary>
+        /// <param name="descriptor">The field descriptor where the arguments and middleware are
+        /// applied to</param>
+        /// <param name="configure">Configures the filter input types that is used by the field
+        /// </param>
+        /// <param name="scope">Specifies what scope should be used for the
+        /// <see cref="FilterConvention" /></param>
         public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor,
             Action<IFilterInputTypeDescriptor<T>> configure,
@@ -67,6 +91,37 @@ namespace HotChocolate.Data
             return UseFiltering(descriptor, filterType.GetType(), filterType, scope);
         }
 
+        /// <summary>
+        /// Registers the middleware and adds the arguments for filtering
+        /// </summary>
+        /// <param name="descriptor">The field descriptor where the arguments and middleware are
+        /// applied to</param>
+        /// <param name="type">Either a runtime type or a <see cref="FilterInputType"/></param>
+        /// <param name="scope">Specifies what scope should be used for the
+        /// <see cref="FilterConvention" /></param>
+        public static IObjectFieldDescriptor UseFiltering(
+            this IObjectFieldDescriptor descriptor,
+            Type type,
+            string? scope = null)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            Type filterType =
+                typeof(IFilterInputType).IsAssignableFrom(type)
+                    ? type
+                    : typeof(FilterInputType<>).MakeGenericType(type);
+
+            return UseFiltering(descriptor, filterType, null, scope);
+        }
+
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
             Type? filterType,
@@ -80,70 +135,77 @@ namespace HotChocolate.Data
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate((c, definition) =>
-                {
-                    Type? argumentType = filterType;
-
-                    if (argumentType is null)
+                .OnBeforeCreate(
+                    (c, definition) =>
                     {
-                        if (definition.ResultType is null || 
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType, out ITypeInfo? typeInfo))
+                        Type? argumentType = filterType;
+
+                        if (argumentType is null)
                         {
-                            throw new ArgumentException(
-                                FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
-                                nameof(descriptor));
+                            if (definition.ResultType is null ||
+                                definition.ResultType == typeof(object) ||
+                                !c.TypeInspector.TryCreateTypeInfo(
+                                    definition.ResultType,
+                                    out ITypeInfo? typeInfo))
+                            {
+                                throw new ArgumentException(
+                                    FilterObjectFieldDescriptorExtensions_UseFiltering_CannotHandleType,
+                                    nameof(descriptor));
+                            }
+
+                            argumentType = typeof(FilterInputType<>)
+                                .MakeGenericType(typeInfo.NamedType);
                         }
 
-                        argumentType = typeof(FilterInputType<>)
-                            .MakeGenericType(typeInfo.NamedType);
-                    }
+                        ITypeReference argumentTypeReference = filterTypeInstance is null
+                            ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                                argumentType,
+                                TypeContext.Input,
+                                scope)
+                            : TypeReference.Create(filterTypeInstance, scope);
 
-                    ITypeReference argumentTypeReference = filterTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
-                            argumentType,
-                            TypeContext.Input,
-                            scope)
-                        : TypeReference.Create(filterTypeInstance, scope);
+                        if (argumentType == typeof(object))
+                        {
+                            throw FilterObjectFieldDescriptorExtensions_CannotInfer();
+                        }
 
-                    if (argumentType == typeof(object))
-                    {
-                        throw FilterObjectFieldDescriptorExtensions_CannotInfer();
-                    }
+                        var argumentDefinition = new ArgumentDefinition
+                        {
+                            Name = argumentPlaceholder,
+                            Type = c.TypeInspector.GetTypeRef(
+                                argumentType,
+                                TypeContext.Input,
+                                scope)
+                        };
+                        definition.Arguments.Add(argumentDefinition);
 
-                    var argumentDefinition = new ArgumentDefinition
-                    {
-                        Name = argumentPlaceholder,
-                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input, scope)
-                    };
-                    definition.Arguments.Add(argumentDefinition);
+                        definition.Configurations.Add(
+                            LazyTypeConfigurationBuilder
+                                .New<ObjectFieldDefinition>()
+                                .Definition(definition)
+                                .Configure(
+                                    (context, defintion) =>
+                                        CompileMiddleware(
+                                            context,
+                                            definition,
+                                            argumentTypeReference,
+                                            placeholder,
+                                            scope))
+                                .On(ApplyConfigurationOn.Completion)
+                                .DependsOn(argumentTypeReference, true)
+                                .Build());
 
-                    definition.Configurations.Add(
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, defintion) =>
-                                CompileMiddleware(
-                                    context,
-                                    definition,
-                                    argumentTypeReference,
-                                    placeholder,
-                                    scope))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build());
-
-                    definition.Configurations.Add(
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, defintion) =>
-                                argumentDefinition.Name =
-                                    context.GetFilterConvention(scope).GetArgumentName())
-                            .On(ApplyConfigurationOn.Naming)
-                            .Build());
-                });
+                        definition.Configurations.Add(
+                            LazyTypeConfigurationBuilder
+                                .New<ObjectFieldDefinition>()
+                                .Definition(definition)
+                                .Configure(
+                                    (context, defintion) =>
+                                        argumentDefinition.Name =
+                                            context.GetFilterConvention(scope).GetArgumentName())
+                                .On(ApplyConfigurationOn.Naming)
+                                .Build());
+                    });
 
             return descriptor;
         }

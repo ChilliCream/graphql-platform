@@ -6,20 +6,20 @@ namespace HotChocolate.Execution.Configuration
 {
     public readonly struct SchemaBuilderAction
     {
-        public SchemaBuilderAction(Action<SchemaBuilder> action)
+        public SchemaBuilderAction(Action<ISchemaBuilder> action)
         {
             Action = action;
             AsyncAction = default;
         }
 
-        public SchemaBuilderAction(Func<SchemaBuilder, CancellationToken, ValueTask> asyncAction)
+        public SchemaBuilderAction(Func<ISchemaBuilder, CancellationToken, ValueTask> asyncAction)
         {
             Action = default;
             AsyncAction = asyncAction;
         }
 
-        public Action<SchemaBuilder>? Action { get; }
+        public Action<ISchemaBuilder>? Action { get; }
 
-        public Func<SchemaBuilder, CancellationToken, ValueTask>? AsyncAction { get; }
+        public Func<ISchemaBuilder, CancellationToken, ValueTask>? AsyncAction { get; }
     }
 }

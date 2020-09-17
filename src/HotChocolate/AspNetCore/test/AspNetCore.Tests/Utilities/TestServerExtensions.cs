@@ -103,7 +103,7 @@ namespace HotChocolate.AspNetCore.Utilities
                 ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
                 result.StatusCode = response.StatusCode;
                 result.ContentType = response.Content.Headers.ContentType.ToString();
-                return new [] { result };
+                return new[] { result };
             }
         }
 
@@ -136,7 +136,7 @@ namespace HotChocolate.AspNetCore.Utilities
             string path = "/graphql")
         {
             HttpResponseMessage response =
-                await SendGetRequestAsync(testServer, request.ToString(), path);
+                await SendGetRequestAsync(testServer, request.ToString().Replace("+", "%2B"), path);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
