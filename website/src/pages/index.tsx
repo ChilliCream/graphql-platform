@@ -20,6 +20,7 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
@@ -142,7 +143,7 @@ const IndexPage: FunctionComponent = () => {
               our startup guide and see how simple it's to create your first
               API.
             </p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -177,6 +178,11 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
+              <Logo width={160}>
+                <Link to="https://aeieng.com">
+                  <AeiLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={100}>
                 <Link to="https://atmina.de">
                   <AtminaLogoSvg />
@@ -350,6 +356,8 @@ const SlideContent = styled.div`
   @media only screen and (min-width: 1200px) {
     right: 30%;
     left: 30%;
+    margin: 0 auto;
+    max-width: 700px;
   }
 `;
 

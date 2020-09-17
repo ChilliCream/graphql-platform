@@ -193,9 +193,9 @@ The server should be accessible through plaground under the following URL `http:
 
 Add the following query and execute it:
 
-```GraphQL
+```graphql
 {
-    hello
+  hello
 }
 ```
 
