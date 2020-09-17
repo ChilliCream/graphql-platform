@@ -1,5 +1,4 @@
 ---
-id: example-other-code-first
 title: Other Examples
 ---
 

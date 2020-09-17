@@ -213,6 +213,24 @@
                 "title": "MongoDB"
               }
             ]
+          },
+          {
+            "path": "examples",
+            "title": "Examples",
+            "items": [
+              {
+                "path": "index",
+                "title": "Star Wars"
+              },
+              {
+                "path": "slack-clone",
+                "title": "Slack Clone"
+              },
+              {
+                "path": "other-examples",
+                "title": "Other Examples"
+              }
+            ]
           }
         ]
       },
