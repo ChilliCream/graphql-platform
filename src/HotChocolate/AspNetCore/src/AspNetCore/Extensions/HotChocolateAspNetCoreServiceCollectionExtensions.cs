@@ -54,7 +54,9 @@ namespace Microsoft.Extensions.DependencyInjection
             RequestExecutorBuilderLegacyHelper.SetSchema(
                 services
                     .AddGraphQLServerCore(maxAllowedRequestSize)
-                    .AddGraphQL(),
+                    .AddGraphQL()
+                    .AddHttpRequestInterceptor()
+                    .AddSubscriptionServices(),
                 schema)
                 .Services;
 
