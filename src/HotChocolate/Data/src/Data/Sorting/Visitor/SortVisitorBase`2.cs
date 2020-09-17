@@ -44,7 +44,7 @@ namespace HotChocolate.Data.Sorting
 
         protected override ISyntaxVisitorAction Enter(IValueNode node, TContext context)
         {
-            base.Leave(node, context);
+            base.Enter(node, context);
 
             if (context.Fields.Peek() is ISortField field &&
                 field.Type is SortEnumType sortType &&
