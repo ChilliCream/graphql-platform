@@ -75,6 +75,11 @@ namespace HotChocolate.Execution
         bool IsCachedDocument { get; set; }
 
         /// <summary>
+        /// Defines that the document was retrieved from a query storage.
+        /// </summary>
+        bool IsPersistedDocument { get; set; }
+
+        /// <summary>
         /// Gets or sets the document validation result.
         /// </summary>
         DocumentValidatorResult? ValidationResult { get; set; }

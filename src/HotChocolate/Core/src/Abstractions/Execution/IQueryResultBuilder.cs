@@ -8,7 +8,7 @@ namespace HotChocolate.Execution
     public interface IQueryResultBuilder
     {
         IQueryResultBuilder SetData(
-            IReadOnlyDictionary<string, object?>? data, 
+            IReadOnlyDictionary<string, object?>? data,
             IDisposable? disposable = null);
 
         IQueryResultBuilder AddError(IError error);
@@ -27,6 +27,6 @@ namespace HotChocolate.Execution
 
         IQueryResultBuilder ClearContextData();
 
-        IReadOnlyQueryResult Create();
+        IQueryResult Create();
     }
 }

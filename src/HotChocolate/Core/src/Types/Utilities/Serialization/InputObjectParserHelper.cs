@@ -114,8 +114,14 @@ namespace HotChocolate.Utilities.Serialization
             {
                 if (type.Fields.TryGetField(fieldValue.Key, out InputField field))
                 {
-                    object value = field.Type.Deserialize(fieldValue.Value);
-                    value = field.Formatter is not null ? field.Formatter.OnAfterDeserialize(value) : value;
+                    object value = fieldValue.Value is IValueNode literal
+                        ? field.Type.ParseLiteral(literal)
+                        : field.Type.Deserialize(fieldValue.Value);
+
+                    value = field.Formatter is not null
+                        ? field.Formatter.OnAfterDeserialize(value)
+                        : value;
+
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else

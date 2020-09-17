@@ -34,10 +34,10 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 await storage.WriteQueryAsync(queryId, query);
 
                 // assert
-                Assert.True(File.Exists(IOPath.Combine(path, "1234")));
+                Assert.True(File.Exists(IOPath.Combine(path, "1234.graphql")));
                 QuerySyntaxSerializer.Serialize(
                     Utf8GraphQLParser.Parse(
-                        File.ReadAllBytes(IOPath.Combine(path, "1234"))))
+                        await File.ReadAllBytesAsync(IOPath.Combine(path, "1234.graphql"))))
                     .MatchSnapshot();
             }
             finally
@@ -70,11 +70,10 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 var query = new QuerySourceText("{ foo }");
 
                 // act
-                Func<Task> action =
-                    () => storage.WriteQueryAsync(queryId, query);
+                Task Action() => storage.WriteQueryAsync(queryId, query);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             }
             finally
             {
@@ -102,11 +101,10 @@ namespace HotChocolate.PersistedQueries.FileSystem
                     new DefaultQueryFileMap(path));
 
                 // act
-                Func<Task> action =
-                    () => storage.WriteQueryAsync("1234", null);
+                Task Action() => storage.WriteQueryAsync("1234", null!);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             }
             finally
             {
@@ -125,27 +123,20 @@ namespace HotChocolate.PersistedQueries.FileSystem
             try
             {
                 // arrange
-                path = IOPath.Combine(
-                    IOPath.GetTempPath(),
-                    "d_" + Guid.NewGuid().ToString("N"));
+                path = IOPath.Combine(IOPath.GetTempPath(), "d_" + Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(path);
 
-                var storage = new FileSystemQueryStorage(
-                    new DefaultQueryFileMap(path));
+                var storage = new FileSystemQueryStorage(new DefaultQueryFileMap(path));
 
                 var queryId = "1234";
-                await File.WriteAllTextAsync(
-                    IOPath.Combine(path, queryId),
-                    "{ foo }");
+                await File.WriteAllTextAsync(IOPath.Combine(path, queryId + ".graphql"), "{ foo }");
 
                 // act
                 QueryDocument query = await storage.TryReadQueryAsync(queryId);
 
                 // assert
                 Assert.NotNull(query);
-                QuerySyntaxSerializer.Serialize(
-                    query.Document)
-                    .MatchSnapshot();
+                query.Document.ToString().MatchSnapshot();
             }
             finally
             {
@@ -175,10 +166,10 @@ namespace HotChocolate.PersistedQueries.FileSystem
                     new DefaultQueryFileMap(path));
 
                 // act
-                Func<Task> action = () => storage.TryReadQueryAsync(queryId);
+                Task Action() => storage.TryReadQueryAsync(queryId);
 
                 // assert
-                await Assert.ThrowsAsync<ArgumentNullException>(action);
+                await Assert.ThrowsAsync<ArgumentNullException>(Action);
             }
             finally
             {

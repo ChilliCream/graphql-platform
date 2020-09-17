@@ -8,12 +8,12 @@
   "VariableValues": {
     "two": "bar"
   },
-  "InitialValue": {
-    "a": "456"
-  },
+  "Extensions": null,
   "ContextData": {
     "one": "foo"
   },
   "Services": {},
-  "Extensions": {}
+  "InitialValue": {
+    "a": "456"
+  }
 }

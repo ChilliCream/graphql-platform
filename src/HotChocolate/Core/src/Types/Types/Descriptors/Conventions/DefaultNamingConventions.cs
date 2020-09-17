@@ -158,6 +158,20 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(value));
             }
 
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                MemberInfo? enumMember = enumType
+                    .GetMember(value.ToString()!)
+                    .FirstOrDefault();
+
+                if (enumMember is not null && 
+                    enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+                {
+                    return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
+                }
+            }
+
             var underscores = 0;
             ReadOnlySpan<char> name = value.ToString().AsSpan();
 
@@ -184,7 +198,7 @@ namespace HotChocolate.Types.Descriptors
 
             var size = underscores + name.Length;
             char[]? rented = null;
-            Span<char> buffer = size < 128
+            Span<char> buffer = size <= 128
                 ? stackalloc char[size]
                 : rented = ArrayPool<char>.Shared.Rent(size);
 

@@ -14,7 +14,7 @@ namespace HotChocolate.Language
         private const byte _p = (byte)'p';
 
         // This uses C# compiler's ability to refer to static data directly. For more information see https://vcsjones.dev/2019/02/01/csharp-readonly-span-bytes-static
-        private static ReadOnlySpan<byte> OperationName => new byte[]
+        private static ReadOnlySpan<byte> OperationName => new[]
         {
             (byte)'o',
             (byte)'p',
@@ -31,21 +31,7 @@ namespace HotChocolate.Language
             (byte)'e'
         };
 
-        private static ReadOnlySpan<byte> QueryName => new byte[]
-        {
-            (byte)'n',
-            (byte)'a',
-            (byte)'m',
-            (byte)'e',
-            (byte)'d',
-            (byte)'Q',
-            (byte)'u',
-            (byte)'e',
-            (byte)'r',
-            (byte)'y'
-        };
-
-        private static ReadOnlySpan<byte> Query => new byte[]
+        private static ReadOnlySpan<byte> Query => new[]
         {
             (byte)'q',
             (byte)'u',
@@ -54,7 +40,7 @@ namespace HotChocolate.Language
             (byte)'y'
         };
 
-        private static ReadOnlySpan<byte> Variables => new byte[]
+        private static ReadOnlySpan<byte> Variables => new[]
         {
             (byte)'v',
             (byte)'a',
@@ -67,7 +53,7 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static ReadOnlySpan<byte> Extensions => new byte[]
+        private static ReadOnlySpan<byte> Extensions => new[]
         {
             (byte)'e',
             (byte)'x',
@@ -81,7 +67,7 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static ReadOnlySpan<byte> Type => new byte[]
+        private static ReadOnlySpan<byte> Type => new[]
         {
             (byte)'t',
             (byte)'y',
@@ -89,13 +75,13 @@ namespace HotChocolate.Language
             (byte)'e'
         };
 
-        private static ReadOnlySpan<byte> Id => new byte[]
+        private static ReadOnlySpan<byte> Id => new[]
         {
             (byte)'i',
             (byte)'d'
         };
 
-        private static ReadOnlySpan<byte> Payload => new byte[]
+        private static ReadOnlySpan<byte> Payload => new[]
         {
             (byte)'p',
             (byte)'a',

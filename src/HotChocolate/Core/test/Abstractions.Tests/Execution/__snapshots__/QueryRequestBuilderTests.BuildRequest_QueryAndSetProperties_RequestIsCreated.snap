@@ -5,11 +5,11 @@
   "QueryId": null,
   "QueryHash": null,
   "OperationName": null,
-  "VariableValues": {},
-  "InitialValue": null,
+  "VariableValues": null,
+  "Extensions": null,
   "ContextData": {
     "three": "baz"
   },
   "Services": null,
-  "Extensions": {}
+  "InitialValue": null
 }
