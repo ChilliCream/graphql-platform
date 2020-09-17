@@ -5,9 +5,9 @@
   "QueryId": null,
   "QueryHash": null,
   "OperationName": null,
-  "VariableValues": {},
-  "InitialValue": null,
-  "ContextData": {},
+  "VariableValues": null,
+  "Extensions": null,
+  "ContextData": null,
   "Services": {},
-  "Extensions": {}
+  "InitialValue": null
 }

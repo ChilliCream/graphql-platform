@@ -46,7 +46,11 @@ namespace HotChocolate.Types.Pagination
             var pageInfo = new CollectionSegmentInfo(
                 items.Count == arguments.Take + 1,
                 (arguments.Skip ?? 0) > 0);
-            items.RemoveAt(arguments.Take);
+
+            if (items.Count > arguments.Take)
+            {
+                items.RemoveAt(arguments.Take);
+            }
 
             return new CollectionSegment((IReadOnlyCollection<object>)items, pageInfo, CountAsync);
 

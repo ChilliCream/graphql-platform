@@ -19,12 +19,11 @@ namespace HotChocolate
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";
-            public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
-            public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
             public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
             public const string InvalidType = "EXEC_INVALID_TYPE";
             public const string SyntaxError = "EXEC_SYNTAX_ERROR";
+            public const string QueryNotFound = "QUERY_NOT_FOUND";
         }
 
         public static class Schema

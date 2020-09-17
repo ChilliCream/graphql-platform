@@ -1,0 +1,14 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The GraphQL batch request has no elements.",
+      "extensions": {
+        "code": "INVALID_REQUEST"
+      }
+    }
+  ],
+  "Extensions": null
+}

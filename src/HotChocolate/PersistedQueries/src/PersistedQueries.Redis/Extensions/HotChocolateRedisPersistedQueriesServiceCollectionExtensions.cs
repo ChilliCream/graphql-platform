@@ -10,7 +10,7 @@ namespace HotChocolate
     /// <summary>
     /// Provides utility methods to setup dependency injection.
     /// </summary>
-    public static class RedisQueryStorageServiceCollectionExtensions
+    public static class HotChocolateRedisPersistedQueriesServiceCollectionExtensions
     {
         /// <summary>
         /// Adds a redis read and write query storage to the
@@ -39,8 +39,7 @@ namespace HotChocolate
 
             return services
                 .AddReadOnlyRedisQueryStorage(databaseFactory)
-                .AddSingleton<IWriteStoredQueries>(sp =>
-                    sp.GetRequiredService<RedisQueryStorage>());
+                .AddSingleton<IWriteStoredQueries>(sp => sp.GetRequiredService<RedisQueryStorage>());
         }
 
         /// <summary>
@@ -79,7 +78,7 @@ namespace HotChocolate
         private static IServiceCollection RemoveService<TService>(
             this IServiceCollection services)
         {
-            ServiceDescriptor serviceDescriptor = services
+            ServiceDescriptor? serviceDescriptor = services
                 .FirstOrDefault(t => t.ServiceType == typeof(TService));
 
             if (serviceDescriptor != null)

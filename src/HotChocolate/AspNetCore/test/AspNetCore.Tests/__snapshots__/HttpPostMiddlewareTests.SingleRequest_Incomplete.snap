@@ -4,7 +4,16 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The query field must be a string or null."
+      "message": "The query field must be a string or null.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 15
+        }
+      ],
+      "extensions": {
+        "code": "EXEC_SYNTAX_ERROR"
+      }
     }
   ],
   "Extensions": null

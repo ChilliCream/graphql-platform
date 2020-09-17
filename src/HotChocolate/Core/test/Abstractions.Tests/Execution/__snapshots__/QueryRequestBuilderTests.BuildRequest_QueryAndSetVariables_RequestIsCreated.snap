@@ -8,8 +8,8 @@
   "VariableValues": {
     "three": "baz"
   },
-  "InitialValue": null,
-  "ContextData": {},
+  "Extensions": null,
+  "ContextData": null,
   "Services": null,
-  "Extensions": {}
+  "InitialValue": null
 }
