@@ -23,6 +23,10 @@ namespace HotChocolate.Data
             Type = filterType;
         }
 
+        public UseFilteringAttribute()
+        {
+        }
+
         /// <summary>
         /// Gets or sets the filter type which specifies the filter object structure.
         /// </summary>
