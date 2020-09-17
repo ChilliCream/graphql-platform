@@ -44,10 +44,14 @@ namespace HotChocolate.PersistedQueries.FileSystem
         private async Task<QueryDocument?> TryReadQueryInternalAsync(
             string queryId)
         {
-            var buffer = (byte[])await _database.StringGetAsync(queryId)
-                .ConfigureAwait(false);
-            DocumentNode document = Utf8GraphQLParser.Parse(buffer);
-            return new QueryDocument(document);
+            var buffer = (byte[]?)await _database.StringGetAsync(queryId).ConfigureAwait(false);
+
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            return new QueryDocument(Utf8GraphQLParser.Parse(buffer));
         }
 
         /// <inheritdoc />
@@ -66,9 +70,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(query));
             }
 
-            return _database.StringSetAsync(
-                queryId,
-                query.AsSpan().ToArray());
+            return _database.StringSetAsync(queryId, query.AsSpan().ToArray());
         }
     }
 }
