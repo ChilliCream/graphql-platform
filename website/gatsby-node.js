@@ -52,8 +52,8 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     isPermanent: true,
   });
   createRedirect({
-    fromPath: "/docs",
-    toPath: "/docs/hotchocolate",
+    fromPath: "/docs/",
+    toPath: "/docs/hotchocolate/",
     redirectInBrowser: true,
     isPermanent: true,
   });
