@@ -1217,12 +1217,12 @@ data-styled.g100[id="blog-article__Container-sc-7c8ya8-0"]{content:"jvsAAt,"}/*!
 <p>In order to get started with the developer preview first create a new ASP.NET Core project.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="20179177643919167000"
+              data-toaster-id="94240995664299020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet new web -n Demo`, `20179177643919167000`)"
+              onClick="copyToClipboard(`dotnet new web -n Demo`, `94240995664299020000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1235,13 +1235,13 @@ data-styled.g100[id="blog-article__Container-sc-7c8ya8-0"]{content:"jvsAAt,"}/*!
 <p>Next, add the ASP.NET Core server package.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73316076696146800000"
+              data-toaster-id="45114548283419500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`cd Demo
-dotnet add package HotChocolate.AspNetCore --version 11.0.0-dev.1`, `73316076696146800000`)"
+dotnet add package HotChocolate.AspNetCore --version 11.0.0-dev.1`, `45114548283419500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1259,7 +1259,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Before we look at how we do it, version 11, let us see how we usually would start in version 10.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42082201113673050000"
+              data-toaster-id="1998299692485505500"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1269,7 +1269,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
     services.AddGraphQL(sp =>
         SchemaBuilder.New()
             .AddQueryType<Query>());
-}`, `42082201113673050000`)"
+}`, `1998299692485505500`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1288,7 +1288,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>After long nights we came up with a new approach that brings everything together into one API that is very easy to extend.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="96361734282499670000"
+              data-toaster-id="29834964592601997000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1298,7 +1298,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
     services
         .AddGraphQLServer()
             .AddQueryType<Query>();
-}`, `96361734282499670000`)"
+}`, `29834964592601997000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1317,7 +1317,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>First, when in a server context like ASP.NET Core or Azure Functions, we now have this new <code class="language-text">AddGraphQLServer()</code> method that sets up a new schema and executor with additional services the server needs. This API also does not allow just one schema but multiple.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52682520253272736000"
+              data-toaster-id="56036970300459885000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1330,7 +1330,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
         .AddGraphQLServer(&quot;internal&quot;)
             .AddQueryType<Query>()
             .AddTypeExtension<InternalQueryExtension>();
-}`, `52682520253272736000`)"
+}`, `56036970300459885000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1352,7 +1352,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>I can put each of these schemas on a different route and for that, we also now support Microsoft`s new routing API.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49821913986459140000"
+              data-toaster-id="45130582927300500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1366,7 +1366,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
         endpoints.MapGraphQL();
         endpoints.MapGraphQL(&quot;/internal&quot;, schemaName: &quot;internal&quot;);
     });
-}`, `49821913986459140000`)"
+}`, `45130582927300500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1390,7 +1390,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Another part that I mentioned is that we can more seamlessly configure a schema. If we wanted, for instance, to add apollo tracing support to our internal schema but not the default schema we can do that now with one line of code.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5592333852439025000"
+              data-toaster-id="54746585379031680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1404,7 +1404,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
             .AddQueryType<Query>()
             .AddTypeExtension<InternalQueryExtension>()
             .AddApolloTracing();
-}`, `5592333852439025000`)"
+}`, `54746585379031680000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1426,7 +1426,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Having configuration bound to specific schemas also means that the performance impact from components like apollo tracing effects only the schema it is applied to. We could also add this globally by adding apollo tracing to the service collection instead of the request builder. In this case, apollo tracing would be applied to all schemas.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="32415856567878152000"
+              data-toaster-id="45355660267939420000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1440,7 +1440,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
         .AddGraphQLServer(&quot;internal&quot;)
             .AddQueryType<Query>()
             .AddTypeExtension<InternalQueryExtension>();
-}`, `32415856567878152000`)"
+}`, `45355660267939420000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1464,7 +1464,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Another area that is now super simple to set up is subscriptions. To use in-memory subscriptions, we configure our schema like the following.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4039625403621905000"
+              data-toaster-id="77654376576742500000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1477,7 +1477,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
             .AddMutationType<Mutation>()
             .AddSubscriptionType<Subscription>()
             .AddInMemorySubscriptions();
-}`, `4039625403621905000`)"
+}`, `77654376576742500000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1499,7 +1499,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Next, we need to define our <code class="language-text">Mutation</code> type to trigger subscriptions whenever something happens on our schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7198694850187448000"
+              data-toaster-id="90454737342935650000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1514,7 +1514,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
         eventSender.SendAsync(userId, message);
         return message;
     }
-}`, `7198694850187448000`)"
+}`, `90454737342935650000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1538,14 +1538,14 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>From a GraphQL standpoint, we would like to subscribe to a specific user to receive the messages for that user.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="27796010629888168000"
+              data-toaster-id="30254762440775516000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`subscription onMessage {
   onMessage(userId: &quot;123&quot;);
-}`, `27796010629888168000`)"
+}`, `30254762440775516000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1561,7 +1561,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>Let us have a look at how we would create our subscription type for that.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10456196195696067000"
+              data-toaster-id="115986666058809360"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1573,7 +1573,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
         [Topic] string userId,
         [EventMessage] string message) =>
         message;
-}`, `10456196195696067000`)"
+}`, `115986666058809360`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1597,7 +1597,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 <p>To this, there is an even better example. With version 11, we want to bring schema-first or SDL-first up to par with code-first. In SDL-first integrating paging is quite tedious at the moment, since you have to write all the paging and connection types and so forth. But if we could have a feature that can rewrite a schema, we could let people specify a schema like the following.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43615546184306230000"
+              data-toaster-id="76560158224594960000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1608,7 +1608,7 @@ dotnet <span class="token function">add</span> package HotChocolate.AspNetCore -
 
 type User {
   # removed for brevity
-}`, `43615546184306230000`)"
+}`, `76560158224594960000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1627,7 +1627,7 @@ type User {
 <p>The configuration would take this initial schema and rewrite it to the following schema that includes all those types necessary for relay pagination.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="10034900010795788000"
+              data-toaster-id="38641150358632270000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1647,7 +1647,7 @@ type PageInfo {
 
 type User {
   # removed for brevity
-}`, `10034900010795788000`)"
+}`, `38641150358632270000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1675,7 +1675,7 @@ type User {
 <p>To allow cross-cutting features like this, we are now allowing to intercept type configurations and rewrite them.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17517153677120944000"
+              data-toaster-id="79337184599637640000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1699,7 +1699,7 @@ type User {
                             .Resolver(resolverContext => &quot;say hello&quot;);
                     }
                 });
-}`, `17517153677120944000`)"
+}`, `79337184599637640000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1734,7 +1734,7 @@ type User {
 <p>If I, for instance, wanted to use the persisted queries execution flow, I could do so by using the following configuration.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33767347182160323000"
+              data-toaster-id="26935397694889574000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1748,7 +1748,7 @@ type User {
                 .Field(&quot;hello&quot;)
                 .Resolver(&quot;world&quot;))
             .UsePersistedQueryPipeline();
-}`, `33767347182160323000`)"
+}`, `26935397694889574000`)"
             >
               <div
                 class="gatsby-code-button"
