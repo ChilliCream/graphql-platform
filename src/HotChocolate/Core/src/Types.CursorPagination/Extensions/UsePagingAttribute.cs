@@ -1,8 +1,9 @@
 using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types
 {
     /// <summary>
     /// This attribute adds the cursor paging middleware to the annotated method or property.
@@ -73,7 +74,7 @@ namespace HotChocolate.Types.Pagination
                 {
                     ofd.UsePaging(
                         Type,
-                        settings: new PagingSettings
+                        options: new PagingOptions
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
@@ -84,7 +85,7 @@ namespace HotChocolate.Types.Pagination
                 {
                     ifd.UsePaging(
                         Type,
-                        new PagingSettings
+                        new PagingOptions
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,

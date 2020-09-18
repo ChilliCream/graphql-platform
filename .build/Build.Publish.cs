@@ -65,7 +65,22 @@ partial class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetOutputDirectory(PackageDirectory)
                 .SetVersion(GitVersion.SemVer));
-                
+
+            var projFile = File.ReadAllText(StarWarsProj);
+            File.WriteAllText(StarWarsProj, projFile.Replace("11.0.0-dev.14", GitVersion.SemVer));
+
+            projFile = File.ReadAllText(EmptyServerProj);
+            File.WriteAllText(EmptyServerProj, projFile.Replace("11.0.0-dev.14", GitVersion.SemVer));
+
+            NuGetPack(c => c
+                .SetVersion(GitVersion.SemVer)
+                .SetOutputDirectory(PackageDirectory)
+                .SetConfiguration(Configuration)
+                .CombineWith(
+                    t => t.SetTargetPath(StarWarsTemplateNuSpec),
+                    t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
+
+
             /*
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)
@@ -95,7 +110,7 @@ partial class Build : NukeBuild
                     .SetApiKey(NuGetApiKey)
                     .CombineWith(packages, (_, v) => _
                         .SetTargetPath(v)),
-                degreeOfParallelism: 5,
+                degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
 }

@@ -7,14 +7,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal static class MessageSerialization
     {
-        public static readonly JsonSerializerSettings JsonSettings =
+        private static readonly JsonSerializerSettings _jsonSettings =
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 NullValueHandling = NullValueHandling.Ignore
             };
 
-        public static readonly UTF8Encoding Encoding = new UTF8Encoding();
+        private static readonly UTF8Encoding _encoding = new UTF8Encoding();
 
         private static readonly byte[] _keepConnectionAliveMessage =
            SerializeInternal(KeepConnectionAliveMessage.Default);
@@ -40,8 +40,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private static byte[] SerializeInternal(OperationMessage message)
         {
-            return Encoding.GetBytes(
-                JsonConvert.SerializeObject(message, JsonSettings));
+            return _encoding.GetBytes(JsonConvert.SerializeObject(message, _jsonSettings));
         }
     }
 }

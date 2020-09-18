@@ -321,7 +321,7 @@ extend type Query {
 
 extend type User {
   messages: [Message!]
-    @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
+  @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
 }
 ```
 
@@ -500,11 +500,11 @@ With that we have removed the types from our stitched schema. Now, let us move o
 ```graphql
 extend type Message {
   createdBy: User!
-    @delegate(schema: "users", path: "user(id: $fields:createdById)")
+  @delegate(schema: "users", path: "user(id: $fields:createdById)")
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -698,11 +698,11 @@ With all of this in place we can now rewrite our `Message` type extension and ac
 ```graphql
 extend type Message {
   createdBy: User!
-    @delegate(schema: "users", path: "user(id: $scopedContextData:createdById)")
+  @delegate(schema: "users", path: "user(id: $scopedContextData:createdById)")
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -792,7 +792,7 @@ extend type Message {
   views: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   likes: Int! @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
   replies: Int!
-    @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
+  @delegate(schema: "analytics", path: "analytics(id: $fields:id)")
 }
 ```
 
@@ -902,7 +902,7 @@ type User {
   id: ID!
   username: String!
   messages: [Message!]
-    @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
+  @delegate(schema: "messages", path: "messages(userId: $fields:Id)")
 }
 ```
 
