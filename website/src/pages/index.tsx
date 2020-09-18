@@ -92,7 +92,7 @@ const IndexPage: FunctionComponent = () => {
             <Link to="/blog/2020/03/18/entity-framework">
               <EFMeetsGraphQL />
               <SlideContent>
-                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
+                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
                 <SlideDescription>
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
@@ -139,8 +139,8 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
             <p>
-              Creating a GraphQL API with Hot Chocolate is very easy. Checkout
-              our startup guide and see how simple it's to create your first
+              Creating a GraphQL API with Hot Chocolate is very easy. Check out
+              our startup guide and see how simple it is to create your first
               API.
             </p>
             <Link to="/docs/hotchocolate/v10/">Learn more</Link>
