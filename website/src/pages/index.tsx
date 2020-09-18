@@ -92,7 +92,7 @@ const IndexPage: FunctionComponent = () => {
             <Link to="/blog/2020/03/18/entity-framework">
               <EFMeetsGraphQL />
               <SlideContent>
-                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
+                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
                 <SlideDescription>
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
