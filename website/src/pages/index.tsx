@@ -5,7 +5,9 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
+import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
+import { BlogPostStrawberryShake } from "../components/images/blog-post-strawberry-shake";
+import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -89,17 +91,6 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
-            <Link to="/blog/2020/03/18/entity-framework">
-              <EFMeetsGraphQL />
-              <SlideContent>
-                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
-                <SlideDescription>
-                  Get started with Hot Chocolate and Entity Framework
-                </SlideDescription>
-              </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
             <Link to="/docs/bananacakepop">
               <BananaCakePop />
               <SlideContent>
@@ -109,6 +100,27 @@ const IndexPage: FunctionComponent = () => {
                   deep performance insights.
                 </SlideDescription>
               </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2020/03/18/entity-framework">
+              <BlogPostEFMeetsGraphQL />
+              <SlideContent>
+                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
+                <SlideDescription>
+                  Get started with Hot Chocolate and Entity Framework
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2020/07/16/version-11">
+              <BlogPostVersion11 />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2019/11/25/strawberry-shake_2">
+              <BlogPostStrawberryShake />
             </Link>
           </Slide>
         </Slideshow>
