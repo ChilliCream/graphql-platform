@@ -776,17 +776,31 @@ namespace HotChocolate.Types
                 var list = new List<ObjectFieldNode>();
 
 
-                if (dict.TryGetValue(field.Name.Value, out object? value))
+                if (dict.TryGetValue(TypeFieldName, out object? value))
                 {
                     list.Add(new ObjectFieldNode(
-                        field.Name.Value,
-                        field.Type.ParseResult(value)));
+                        TypeFieldName,
+                        GeoJsonTypeSerializer.Default.ParseResult(value)));
+                }
+               
+                if (dict.TryGetValue(CoordinatesFieldName, out value))
+                {
+                    list.Add(new ObjectFieldNode(
+                        CoordinatesFieldName,
+                        GeoJsonPositionSerializer.Default.ParseResult(value)));
+                }
+                
+                if (dict.TryGetValue(CrsFieldName, out value) && value is int crs)
+                {
+                    list.Add(new ObjectFieldNode(
+                        CrsFieldName,
+                        new IntValueNode(crs)));
                 }
 
                 return new ObjectValueNode(list);
             }
 
-            if (RuntimeType != typeof(object) && RuntimeType.IsInstanceOfType(resultValue))
+            if (resultValue is Point)
             {
                 return ParseValue(resultValue);
             }
@@ -796,6 +810,41 @@ namespace HotChocolate.Types
 
         public override IValueNode ParseValue(object? runtimeValue)
         {
+            if (runtimeValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (runtimeValue is IReadOnlyDictionary<string, object> dict)
+            {
+                var list = new List<ObjectFieldNode>();
+
+
+                if (dict.TryGetValue(TypeFieldName, out object? value))
+                {
+                    list.Add(new ObjectFieldNode(
+                        TypeFieldName,
+                        GeoJsonTypeSerializer.Default.ParseResult(value)));
+                }
+               
+                if (dict.TryGetValue(CoordinatesFieldName, out value))
+                {
+                    list.Add(new ObjectFieldNode(
+                        CoordinatesFieldName,
+                        GeoJsonPositionSerializer.Default.ParseResult(value)));
+                }
+                
+                if (dict.TryGetValue(CrsFieldName, out value) && value is int crs)
+                {
+                    list.Add(new ObjectFieldNode(
+                        CrsFieldName,
+                        new IntValueNode(crs)));
+                }
+
+                return new ObjectValueNode(list);
+            }
+
+
             throw new System.NotImplementedException();
         }
 
