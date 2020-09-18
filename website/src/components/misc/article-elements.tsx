@@ -24,8 +24,10 @@ export const Article = styled.article`
 `;
 
 export const ArticleHeader = styled.header`
-  > .gatsby-image-wrapper {
-    border-radius: 4px 4px 0 0;
+  @media only screen and (min-width: 820px) {
+    > .gatsby-image-wrapper {
+      border-radius: 4px 4px 0 0;
+    }
   }
 `;
 
