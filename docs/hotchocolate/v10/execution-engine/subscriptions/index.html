@@ -1309,7 +1309,7 @@ data-styled.g145[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Subscribing to an event is like writing a standard query. The one difference here is the operation keyword and that we are only allowed to have one root field in our query since the root fields represent events.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="28941211577113534000"
+              data-toaster-id="28516839837571363000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1319,7 +1319,7 @@ data-styled.g145[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     stars
     comment
   }
-}`, `28941211577113534000`)"
+}`, `28516839837571363000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1351,12 +1351,12 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>In order to add the subscription provider to our server add the following service in the <code class="language-text">ConfigureServices</code> method of our <code class="language-text">Startup.cs</code>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="28613619530533028000"
+              data-toaster-id="64866221143359005000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddInMemorySubscriptionProvider();`, `28613619530533028000`)"
+              onClick="copyToClipboard(`services.AddInMemorySubscriptionProvider();`, `64866221143359005000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1369,12 +1369,12 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>or</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="7366217000042341000"
+              data-toaster-id="43025118166945780000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddRedisSubscriptionProvider(configuration);`, `7366217000042341000`)"
+              onClick="copyToClipboard(`services.AddRedisSubscriptionProvider(configuration);`, `43025118166945780000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1387,7 +1387,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>Finally, we have to configure our ASP.NET Core pipeline to use websocket:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26462329558450713000"
+              data-toaster-id="40828080507202630000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1399,7 +1399,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
         app.UseWebSockets()
           .UseGraphQL();
     }
-}`, `26462329558450713000`)"
+}`, `40828080507202630000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1422,7 +1422,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>Once this is setup, subscriptions are generally available. In order to define subscriptions we have to create a subscription type. The subscription type is just a regular <code class="language-text">ObjectType</code>, so we create it like any other root type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="40816571987028810000"
+              data-toaster-id="33404223021750325000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1436,7 +1436,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
             .Type<NonNullType<ReviewType>>()
             .Argument(&quot;episode&quot;, arg => arg.Type<NonNullType<EpisodeType>>());
     }
-}`, `40816571987028810000`)"
+}`, `33404223021750325000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1458,7 +1458,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>But there is a difference when it comes to the resolver. A subscription resolver can ask for an additional argument that represents the event message.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92456707705365330000"
+              data-toaster-id="97519216156970120000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1466,7 +1466,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
               onClick="copyToClipboard(`public Review OnReview(Episode episode, IEventMessage message)
 {
     return (Review)message.Payload;
-}`, `92456707705365330000`)"
+}`, `97519216156970120000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1485,7 +1485,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>So, in our mutation we can ask for the <code class="language-text">IEventSender</code> and raise an event like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="82790092715904270000"
+              data-toaster-id="91347447316522010000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1497,7 +1497,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
     _repository.AddReview(episode, review);
     await eventSender.SendAsync(new OnReviewMessage(episode, review));
     return review;
-}`, `82790092715904270000`)"
+}`, `91347447316522010000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1517,7 +1517,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>In the above case we are sending a <code class="language-text">OnReviewMessage</code> which actually inherits from <code class="language-text">EventMessage</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42848924684285846000"
+              data-toaster-id="68080577170990230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1537,7 +1537,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
                 new EnumValueNode(
                     episode.ToString().ToUpperInvariant())));
     }
-}`, `42848924684285846000`)"
+}`, `68080577170990230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1569,12 +1569,12 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>The in-memory subscription provider does not need any configuration and is easily setup:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="22869855388769776000"
+              data-toaster-id="63594328116813760000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddInMemorySubscriptionProvider();`, `22869855388769776000`)"
+              onClick="copyToClipboard(`services.AddInMemorySubscriptionProvider();`, `63594328116813760000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1591,7 +1591,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 <p>After we have added the package we can add the redis subscription provider to our services like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48461236581556765000"
+              data-toaster-id="89977311102101270000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1605,7 +1605,7 @@ We have an out-of-the-box redis subscription provider that uses the redis publis
 
 configuration.EndPoints.Add(&quot;host:port&quot;);
 
-services.AddRedisSubscriptionProvider(configuration);`, `48461236581556765000`)"
+services.AddRedisSubscriptionProvider(configuration);`, `89977311102101270000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1630,7 +1630,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>To use the PubSub System in the subscription inject is as a service via the <code class="language-text">ITopicEventReceiver</code> and return the subscribed stream.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="81261510705345450000"
+              data-toaster-id="11733190462836406000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1644,7 +1644,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
     }
 
     // ...
-}`, `81261510705345450000`)"
+}`, `11733190462836406000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1674,7 +1674,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>In our case the review will published on the <code class="language-text">EpisodeXYReviewed</code> channel. This call will subscriptions returned in our <code class="language-text">Subscription</code> class above.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44067834170727550000"
+              data-toaster-id="82903160732149000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1692,7 +1692,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
     }
 
     // ...
-}`, `44067834170727550000`)"
+}`, `82903160732149000000`)"
             >
               <div
                 class="gatsby-code-button"
