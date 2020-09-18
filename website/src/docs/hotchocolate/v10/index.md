@@ -146,7 +146,7 @@ type Employee @json {
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/schema/directive)
+[Learn more](/docs/hotchocolate/v10/schema/directives)
 
 ## Built-in Authorization Directives
 
