@@ -1310,7 +1310,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Open your terminal, navigate to a location of your choice and run the following commands:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37285153343059930000"
+              data-toaster-id="5180837339438416000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1318,7 +1318,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`mkdir twitter-service
 cd twitter-service
 mkdir src
-cd src`, `37285153343059930000`)"
+cd src`, `5180837339438416000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1336,7 +1336,7 @@ Next up you will have to create a solution file and a server project.</p>
 <p>In your terminal run the following command to create the solution file and create a minimal ASP.NET server project:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="85961903133598020000"
+              data-toaster-id="34942173796885377000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1345,7 +1345,7 @@ Next up you will have to create a solution file and a server project.</p>
 
 cd ..
 dotnet new sln -n Demo
-dotnet sln add src/Server`, `85961903133598020000`)"
+dotnet sln add src/Server`, `34942173796885377000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1363,13 +1363,13 @@ dotnet sln <span class="token function">add</span> src/Server</code></pre></div>
 <p>Get back in your terminal and run the following command to add the <em>HotChocolate.AspNetCore</em> package:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="12728174212864696000"
+              data-toaster-id="68389975798484845000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`dotnet add src/Server package HotChocolate.AspNetCore
-dotnet restore`, `12728174212864696000`)"
+dotnet restore`, `68389975798484845000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1385,7 +1385,7 @@ dotnet restore</code></pre></div>
 <p>So, in order to configure our server lets open the <code class="language-text">src/Server/Startup.cs</code> and rewrite the <code class="language-text">ConfigureServices</code> method like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21019456225126530000"
+              data-toaster-id="40673060644026400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1395,7 +1395,7 @@ dotnet restore</code></pre></div>
     services.AddGraphQL(
         // we will add our config here later
     );
-}`, `21019456225126530000`)"
+}`, `40673060644026400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1415,7 +1415,7 @@ dotnet restore</code></pre></div>
 <p>Create a new file <code class="language-text">src/Server/Query.cs</code> and add the following code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="5909694474068949000"
+              data-toaster-id="6018194946776667000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1426,7 +1426,7 @@ dotnet restore</code></pre></div>
     {
         public string Hello => &quot;World&quot;;
     }
-}`, `5909694474068949000`)"
+}`, `6018194946776667000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1445,7 +1445,7 @@ dotnet restore</code></pre></div>
 <p>Now lets register this type as our query type with the GraphQL schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77140736560496600000"
+              data-toaster-id="29434015424107885000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1455,7 +1455,7 @@ dotnet restore</code></pre></div>
     services.AddGraphQL(
         SchemaBuilder.New()
             .AddQueryType<Query>());
-}`, `77140736560496600000`)"
+}`, `29434015424107885000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1474,7 +1474,7 @@ dotnet restore</code></pre></div>
 <p>For that replace the <code class="language-text">Configure</code> method in <code class="language-text">src/Server/Startup.cs</code> with the following code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="87028373245362160000"
+              data-toaster-id="19063800060474390000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1487,7 +1487,7 @@ dotnet restore</code></pre></div>
     }
 
     app.UseGraphQL();
-}`, `87028373245362160000`)"
+}`, `19063800060474390000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1511,12 +1511,12 @@ dotnet restore</code></pre></div>
 <p>The <code class="language-text">watch</code> command will compile and run our server. Every time a code file changes the <code class="language-text">watch</code> command will recompile our server so we do not have to worry about compiling all the time. The server will per default be hosted on <code class="language-text">http://localhost:5000</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="47814337994997640000"
+              data-toaster-id="40660632565255600000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet watch --project src/Server/ run`, `47814337994997640000`)"
+              onClick="copyToClipboard(`dotnet watch --project src/Server/ run`, `40660632565255600000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1567,14 +1567,14 @@ dotnet restore</code></pre></div>
 <p>OK, lets write our first query and see if our GraphQL server works properly. Paste the following query into the left-hand panel of Banana Cake Pop and hit the play button on the top right.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4403599347429554000"
+              data-toaster-id="66405903601313800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`query {
   hello
-}`, `4403599347429554000`)"
+}`, `66405903601313800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1589,7 +1589,7 @@ dotnet restore</code></pre></div>
 <p>The server should return the following JSON result.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="56423877241400630000"
+              data-toaster-id="49345335351616184000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1598,7 +1598,7 @@ dotnet restore</code></pre></div>
   &quot;data&quot;: {
     &quot;hello&quot;: &quot;World&quot;
   }
-}`, `56423877241400630000`)"
+}`, `49345335351616184000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1661,7 +1661,7 @@ Subscriptions in GraphQL represent events. We can basically subscribe to events 
 <p>Enable it for the whole project:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77787463184817500000"
+              data-toaster-id="20819185808310125000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1677,7 +1677,7 @@ Subscriptions in GraphQL represent events. We can basically subscribe to events 
     <PackageReference Include=&quot;HotChocolate.AspNetCore&quot; Version=&quot;10.3.2&quot; />
   </ItemGroup>
 
-</Project>`, `77787463184817500000`)"
+</Project>`, `20819185808310125000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1701,7 +1701,7 @@ Subscriptions in GraphQL represent events. We can basically subscribe to events 
 <p>Enable it just for a specific files:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="49959697235047916000"
+              data-toaster-id="25288856571490583000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1714,7 +1714,7 @@ namespace Server
     {
         public string Hello => &quot;World&quot;;
     }
-}`, `49959697235047916000`)"
+}`, `25288856571490583000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1735,14 +1735,14 @@ namespace Server
 <p>With nullable reference types enabled the inferred schema will be inferred like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83589502329884360000"
+              data-toaster-id="57962571157829480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   hello: String!
-}`, `83589502329884360000`)"
+}`, `57962571157829480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1759,7 +1759,7 @@ namespace Server
 <p>So, if we would change our <code class="language-text">Query</code> type to return null ...</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43773544659902220000"
+              data-toaster-id="70348183847112970000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1770,7 +1770,7 @@ namespace Server
     {
         public string Hello => null;
     }
-}`, `43773544659902220000`)"
+}`, `70348183847112970000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1789,7 +1789,7 @@ namespace Server
 <p>... and we re-ran our query we would get the following result:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="94411043276195400000"
+              data-toaster-id="94154737213844930000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1810,7 +1810,7 @@ namespace Server
       }
     }
   ]
-}`, `94411043276195400000`)"
+}`, `94154737213844930000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1842,7 +1842,7 @@ namespace Server
 <p>First we need our base model that represents the tweet. Let us stay simple here and just call the type <code class="language-text">Tweet</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="68479850093878400000"
+              data-toaster-id="63198326753598685000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1880,7 +1880,7 @@ public class User
 
     public Guid Id { get; }
     public string Name { get; }
-}`, `68479850093878400000`)"
+}`, `63198326753598685000`)"
             >
               <div
                 class="gatsby-code-button"
