@@ -1,10 +1,13 @@
 import { graphql, useStaticQuery } from "gatsby";
+import Img, { FluidObject } from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
-import { BananaCakepop } from "../components/images/banana-cakepop";
-import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
+import { BananaCakePop } from "../components/images/banana-cake-pop";
+import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
+import { BlogPostStrawberryShake } from "../components/images/blog-post-strawberry-shake";
+import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -19,8 +22,16 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
-import ContactUsSvg from "../images/contact-us.svg";
+import AeiLogoSvg from "../images/companies/aei.svg";
+import AtminaLogoSvg from "../images/companies/atmina.svg";
+import AutoguruLogoSvg from "../images/companies/autoguru.svg";
+import GiaLogoSvg from "../images/companies/gia.svg";
+import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
+import ContactUsSvg from "../images/contact-us.svg";
+import DashboardSvg from "../images/dashboard.svg";
+import GetStartedSvg from "../images/get-started.svg";
 
 const IndexPage: FunctionComponent = () => {
   const data = useStaticQuery<GetIndexPageDataQuery>(graphql`
@@ -32,8 +43,39 @@ const IndexPage: FunctionComponent = () => {
           }
         }
       }
+      allMarkdownRemark(
+        limit: 3
+        filter: { frontmatter: { path: { glob: "/blog/**/*" } } }
+        sort: { fields: [frontmatter___date], order: DESC }
+      ) {
+        edges {
+          node {
+            id
+            fields {
+              readingTime {
+                text
+              }
+            }
+            frontmatter {
+              featuredImage {
+                childImageSharp {
+                  fluid(maxWidth: 800) {
+                    ...GatsbyImageSharpFluid
+                  }
+                }
+              }
+              path
+              title
+              date(formatString: "MMMM DD, YYYY")
+            }
+          }
+        }
+      }
     }
   `);
+  const {
+    allMarkdownRemark: { edges },
+  } = data;
 
   return (
     <Layout>
@@ -49,10 +91,22 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
-            <Link to="/blog/2020/03/18/entity-framework">
-              <EFMeetsGraphQL />
+            <Link to="/docs/bananacakepop">
+              <BananaCakePop />
               <SlideContent>
-                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
+                <SlideTitle>Banana Cake Pop</SlideTitle>
+                <SlideDescription>
+                  Our GraphQL IDE to explore schemas, execute operations and get
+                  deep performance insights.
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2020/03/18/entity-framework">
+              <BlogPostEFMeetsGraphQL />
+              <SlideContent>
+                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
                 <SlideDescription>
                   Get started with Hot Chocolate and Entity Framework
                 </SlideDescription>
@@ -60,42 +114,48 @@ const IndexPage: FunctionComponent = () => {
             </Link>
           </Slide>
           <Slide>
-            <Link to="/docs/bananacakepop">
-              <BananaCakepop />
-              <SlideContent>
-                <SlideTitle>Banana Cake Pop</SlideTitle>
-                <SlideDescription>
-                  Our tool to explore schemas, execute operations and get deep
-                  performance insights.
-                </SlideDescription>
-              </SlideContent>
+            <Link to="/blog/2020/07/16/version-11">
+              <BlogPostVersion11 />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2019/11/25/strawberry-shake_2">
+              <BlogPostStrawberryShake />
             </Link>
           </Slide>
         </Slideshow>
       </Intro>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <BananaCakepop />
+          <ImageContainer>
+            <DashboardSvg />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>
               What is the ChilliCream GraphQL platform?
             </SectionTitle>
-            <p>...</p>
+            <p>
+              It's a new way of defining modern APIs which are strongly typed
+              from server to client. Fetch once with no more under- or
+              over-fetching, just the right amount.
+            </p>
             <Link to="/platform">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <BananaCakepop />
+          <ImageContainer>
+            <GetStartedSvg />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
-            <p>...</p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <p>
+              Creating a GraphQL API with Hot Chocolate is very easy. Check out
+              our startup guide and see how simple it is to create your first
+              API.
+            </p>
+            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -103,6 +163,25 @@ const IndexPage: FunctionComponent = () => {
         <SectionRow>
           <ContentContainer noImage>
             <SectionTitle centerAlways>From our Blog</SectionTitle>
+            <Articles>
+              {edges.map(({ node }) => {
+                const featuredImage = node?.frontmatter!.featuredImage
+                  ?.childImageSharp?.fluid as FluidObject;
+
+                return (
+                  <Article key={`article-${node.id}`}>
+                    <Link to={node.frontmatter!.path!}>
+                      {featuredImage && <Img fluid={featuredImage} />}
+                      <ArticleMetadata>
+                        {node.frontmatter!.date!} ・{" "}
+                        {node.fields!.readingTime!.text!}
+                      </ArticleMetadata>
+                      <ArticleTitle>{node.frontmatter!.title}</ArticleTitle>
+                    </Link>
+                  </Article>
+                );
+              })}
+            </Articles>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -110,7 +189,45 @@ const IndexPage: FunctionComponent = () => {
         <SectionRow>
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
-            <Logos>{false && <SwissLifeLogoSvg />}</Logos>
+            <Logos>
+              <Logo width={160}>
+                <Link to="https://aeieng.com">
+                  <AeiLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={100}>
+                <Link to="https://atmina.de">
+                  <AtminaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.autoguru.com.au">
+                  <AutoguruLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://gia.ch">
+                  <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://motitech.co.uk">
+                  <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://www.seven2one.de">
+                  <Seven2OneLogoSvg />
+                </Link>
+              </Logo>
+              {false && (
+                <Logo width={100}>
+                  <Link to="https://www.swisslife.ch">
+                    <SwissLifeLogoSvg />
+                  </Link>
+                </Logo>
+              )}
+            </Logos>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -251,6 +368,8 @@ const SlideContent = styled.div`
   @media only screen and (min-width: 1200px) {
     right: 30%;
     left: 30%;
+    margin: 0 auto;
+    max-width: 700px;
   }
 `;
 
@@ -281,18 +400,68 @@ const SlideDescription = styled.p`
   }
 `;
 
-const Logos = styled.div`
+const Articles = styled.ul`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-around;
+  margin: 0 0 20px;
+  list-style-type: none;
+
+  @media only screen and (min-width: 820px) {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+`;
+
+const Article = styled.li`
+  display: flex;
+  margin: 20px 0 0;
+  width: 100%;
+  border-radius: 4px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+
+  > a {
+    flex: 1 1 auto;
+  }
+
+  > a > .gatsby-image-wrapper {
+    border-radius: 4px 4px 0 0;
+  }
+
+  @media only screen and (min-width: 820px) {
+    width: 30%;
+  }
+`;
+
+const ArticleMetadata = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-around;
-  padding: 40px 0 20px;
+  margin: 15px 20px 7px;
+  font-size: 0.778em;
+  color: #667;
+`;
 
-  > svg {
-    flex: 0 0 auto;
-    width: 100%;
-    max-width: 100px;
-    max-height: 100px;
+const ArticleTitle = styled.h1`
+  margin: 0 20px 15px;
+  font-size: 1em;
+`;
+
+const Logos = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+`;
+
+const Logo = styled.div<{ width?: number }>`
+  flex: 0 0 auto;
+  margin: 30px;
+  width: ${({ width }) => width || 160}px;
+
+  > a > svg {
     fill: #667;
     transition: fill 0.2s ease-in-out;
 

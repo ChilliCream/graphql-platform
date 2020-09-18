@@ -1,6 +1,7 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -8,54 +9,79 @@ namespace HotChocolate.Language
     {
         private string? ParseStringOrNull()
         {
-            if (_reader.Kind == TokenKind.String)
+            switch (_reader.Kind)
             {
-                string value = _reader.GetString();
-                _reader.MoveNext();
-                return value;
-            }
+                case TokenKind.String:
+                {
+                    string value = _reader.GetString();
+                    _reader.MoveNext();
+                    return value;
+                }
+                case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                    _reader.MoveNext();
+                    return null;
 
-            if (_reader.Kind == TokenKind.Name
-                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
-            {
-                _reader.MoveNext();
-                return null;
+                default:
+                    throw ThrowHelper.ExpectedStringOrNull(_reader);
             }
-
-            // TODO : resources
-            throw new SyntaxException(
-                _reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Expected a string-token or a null-token, " +
-                    "but found a {0}-token with value `{1}`.",
-                    _reader.Kind.ToString(),
-                    _reader.GetString()));
         }
 
         private IReadOnlyDictionary<string, object?>? ParseObjectOrNull()
         {
-            if (_reader.Kind == TokenKind.LeftBrace)
+            switch (_reader.Kind)
             {
-                return ParseObject();
-            }
+                case TokenKind.LeftBrace:
+                    return ParseObject();
 
-            if (_reader.Kind == TokenKind.Name
-                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
+                case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                    _reader.MoveNext();
+                    return null;
+
+                default:
+                    throw ThrowHelper.ExpectedObjectOrNull(_reader);
+            }
+        }
+
+        private IReadOnlyDictionary<string, object?>? ParseVariables()
+        {
+            switch (_reader.Kind)
             {
-                _reader.MoveNext();
-                return null;
-            }
+                case TokenKind.LeftBrace:
+                    _reader.Expect(TokenKind.LeftBrace);
 
-            // TODO : resources
-            throw new SyntaxException(
-                _reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Expected an object or a null-token, " +
-                    "but found a {0}-token with value `{1}`.",
-                    _reader.Kind.ToString(),
-                    _reader.GetString()));
+                    var obj = new Dictionary<string, object?>();
+
+                    while (_reader.Kind != TokenKind.RightBrace)
+                    {
+                        if (_reader.Kind != TokenKind.String)
+                        {
+                            throw new SyntaxException(_reader,
+                                string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    LangResources.ParseMany_InvalidOpenToken,
+                                    TokenKind.String,
+                                    TokenVisualizer.Visualize(in _reader)));
+                        }
+
+                        string name = _reader.GetString();
+                        _reader.MoveNext();
+                        _reader.Expect(TokenKind.Colon);
+                        IValueNode value = ParseValueSyntax();
+                        obj.Add(name, value);
+                    }
+
+                    // skip closing token
+                    _reader.Expect(TokenKind.RightBrace);
+
+                    return obj;
+
+                case TokenKind.Name when _reader.Value.SequenceEqual(GraphQLKeywords.Null):
+                    _reader.MoveNext();
+                    return null;
+
+                default:
+                    throw ThrowHelper.ExpectedObjectOrNull(_reader);
+            }
         }
 
         private bool IsNullToken()
@@ -63,14 +89,5 @@ namespace HotChocolate.Language
             return _reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(GraphQLKeywords.Null);
         }
-
-        // TODO : resources
-        private SyntaxException UnexpectedToken() =>
-            throw new SyntaxException(_reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Unexpected token found `{0}` " +
-                    "while expecting a scalar value.",
-                    _reader.Kind));
     }
 }
