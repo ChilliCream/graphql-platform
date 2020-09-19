@@ -11,8 +11,8 @@ namespace HotChocolate.Execution.Utilities
 {
     public sealed class Selection : ISelection
     {
-        private static readonly PreparedArgumentMap _emptyArguments =
-            new PreparedArgumentMap(new Dictionary<NameString, PreparedArgument>());
+        private static readonly ArgumentMap _emptyArguments =
+            new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
 
         private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
@@ -25,7 +25,7 @@ namespace HotChocolate.Execution.Utilities
             FieldNode selection,
             FieldDelegate resolverPipeline,
             NameString? responseName = null,
-            IReadOnlyDictionary<NameString, PreparedArgument>? arguments = null,
+            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false)
         {
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Utilities
                 throw new ArgumentNullException(nameof(resolverPipeline));
             Arguments = arguments is null
                 ? _emptyArguments
-                : new PreparedArgumentMap(arguments);
+                : new ArgumentMap(arguments);
             SyntaxNodes = _emptySelections;
             InclusionKind = internalSelection
                 ? SelectionInclusionKind.Internal
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Utilities
         public FieldDelegate ResolverPipeline { get; }
 
         /// <inheritdoc />
-        public IPreparedArgumentMap Arguments { get; }
+        public IArgumentMap Arguments { get; }
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }

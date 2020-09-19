@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal interface ISelectionVariants
+    public interface ISelectionVariants
     {
         SelectionSetNode SelectionSet { get; }
 

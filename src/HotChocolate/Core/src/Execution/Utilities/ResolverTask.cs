@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Utilities
                 if (_selection.Arguments.TryCoerceArguments(
                     _context.Variables,
                     _context.ReportError,
-                    out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs))
+                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                 {
                     _context.Arguments = coercedArgs;
                     await ExecuteResolverPipelineAsync().ConfigureAwait(false);

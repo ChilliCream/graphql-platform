@@ -357,7 +357,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private IReadOnlyDictionary<NameString, PreparedArgument>? CoerceArgumentValues(
+        private IReadOnlyDictionary<NameString, ArgumentValue>? CoerceArgumentValues(
             ObjectField field,
             FieldNode selection,
             string responseName)
@@ -367,7 +367,7 @@ namespace HotChocolate.Execution.Utilities
                 return null;
             }
 
-            var arguments = new Dictionary<NameString, PreparedArgument>();
+            var arguments = new Dictionary<NameString, ArgumentValue>();
 
             for (var i = 0; i < selection.Arguments.Count; i++)
             {
@@ -402,7 +402,7 @@ namespace HotChocolate.Execution.Utilities
             return arguments;
         }
 
-        private PreparedArgument CreateArgumentValue(
+        private ArgumentValue CreateArgumentValue(
             string responseName,
             Argument argument,
             ArgumentNode? argumentValue,
@@ -414,7 +414,7 @@ namespace HotChocolate.Execution.Utilities
 
             if (argumentValue is { } && validationResult.HasErrors)
             {
-                return new PreparedArgument(
+                return new ArgumentValue(
                     argument,
                     ErrorHelper.ArgumentNonNullError(
                         argumentValue,
@@ -426,7 +426,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 try
                 {
-                    return new PreparedArgument(
+                    return new ArgumentValue(
                         argument,
                         value.GetValueKind(),
                         true,
@@ -438,18 +438,18 @@ namespace HotChocolate.Execution.Utilities
                 {
                     if (argumentValue is not null)
                     {
-                        return new PreparedArgument(
+                        return new ArgumentValue(
                             argument,
                             ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                     }
 
-                    return new PreparedArgument(
+                    return new ArgumentValue(
                         argument,
                         ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
                 }
             }
 
-            return new PreparedArgument(
+            return new ArgumentValue(
                 argument,
                 value.GetValueKind(),
                 false,

@@ -4,9 +4,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public sealed class PreparedArgument
+    public sealed class ArgumentValue
     {
-        public PreparedArgument(
+        public ArgumentValue(
             Argument argument,
             ValueKind kind,
             bool isFinal,
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Utilities
             ValueLiteral = valueLiteral ?? throw new ArgumentNullException(nameof(valueLiteral));
         }
 
-        public PreparedArgument(Argument argument, IError error)
+        public ArgumentValue(Argument argument, IError error)
         {
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Error = error ?? throw new ArgumentNullException(nameof(error));
