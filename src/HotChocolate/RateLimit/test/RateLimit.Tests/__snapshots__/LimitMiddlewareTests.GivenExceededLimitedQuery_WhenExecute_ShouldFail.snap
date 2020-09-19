@@ -1,0 +1,26 @@
+﻿{
+  "Data": {
+    "version": null
+  },
+  "Errors": [
+    {
+      "Message": "The maximum number of requests was exceeded.",
+      "Code": "REQUEST_LIMIT_EXCEEDED",
+      "Path": [
+        "version"
+      ],
+      "Locations": [
+        {
+          "Line": 3,
+          "Column": 29
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "code": "REQUEST_LIMIT_EXCEEDED"
+      }
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null
+}

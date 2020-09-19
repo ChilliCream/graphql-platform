@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.AspNetCore.RateLimit</PackageId>
+    <AssemblyName>HotChocolate.AspNetCore.RateLimit</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.RateLimit</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\RateLimit\src\RateLimit\HotChocolate.RateLimit.csproj" />
+  </ItemGroup>
+
+</Project>
