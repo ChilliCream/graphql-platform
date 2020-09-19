@@ -1309,7 +1309,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to depict the issue that <em>DataLoader</em> solves in this context, let me introduce a little GraphQL schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="51223675295250800000"
+              data-toaster-id="53933638255895430000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1322,7 +1322,7 @@ type Person {
   id: ID
   name: String
   friends: [Person]
-}`, `51223675295250800000`)"
+}`, `53933638255895430000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1345,7 +1345,7 @@ type Person {
 <p>So, a query against the above schema could look like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="61756046712725790000"
+              data-toaster-id="64273629319897180000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1358,7 +1358,7 @@ type Person {
   b: person(id: &quot;b&quot;) {
     name
   }
-}`, `61756046712725790000`)"
+}`, `64273629319897180000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1381,7 +1381,7 @@ type Person {
 <p>So, let's look at some code in order to understand what they are doing. First, let's have a look at how we would write our field resolver without <em>DataLoader</em>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="65518256766431330000"
+              data-toaster-id="67480260233495670000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1389,7 +1389,7 @@ type Person {
               onClick="copyToClipboard(`public async Task<Person> GetPerson(string id, [Service]IPersonRepository repository)
 {
     return await repository.GetPersonById(id);
-}`, `65518256766431330000`)"
+}`, `67480260233495670000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1409,12 +1409,12 @@ type Person {
 <p>In order to use <em>DataLoader</em> with Hot Chocolate we have to add the <em>DataLoader</em> registry. The <em>DataLoader</em> registry basically manages the data loader instances and interacts with the execution engine.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77892768325849560000"
+              data-toaster-id="12769724825421470000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddDataLoaderRegistry();`, `77892768325849560000`)"
+              onClick="copyToClipboard(`services.AddDataLoaderRegistry();`, `12769724825421470000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1430,7 +1430,7 @@ type Person {
 <p>Let us first look at the class <em>DataLoader</em>:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="67528674565688566000"
+              data-toaster-id="75036934581188850000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1451,7 +1451,7 @@ type Person {
     {
         return _repository.GetPersonBatch(keys);
     }
-}`, `67528674565688566000`)"
+}`, `75036934581188850000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1481,7 +1481,7 @@ type Person {
 <p><em>DataLoader</em> have to be injected at field resolver argument level and <strong>NOT</strong> as constructor arguments since the lifetime of a <em>DataLoader</em> is in many cases shorter than the class containing the field resolvers.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="72552035097734940000"
+              data-toaster-id="81012382348995220000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1489,7 +1489,7 @@ type Person {
               onClick="copyToClipboard(`public Task<Person> GetPerson(string id, [DataLoader]PersonDataLoader personLoader)
 {
     return personLoader.LoadAsync(id);
-}`, `72552035097734940000`)"
+}`, `81012382348995220000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1507,7 +1507,7 @@ type Person {
 <p>But there are still some more issues ahead that <em>DataLoader</em> will help us with. For that we should amend our query a little bit.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80006108885006500000"
+              data-toaster-id="11413586990323243000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1526,7 +1526,7 @@ type Person {
       name
     }
   }
-}`, `80006108885006500000`)"
+}`, `11413586990323243000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1554,7 +1554,7 @@ type Person {
 <p>Let's say our person object is located in a Mongo database and the document would look something like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29462852982307840000"
+              data-toaster-id="86759615516147400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1577,7 +1577,7 @@ type Person {
     &quot;c&quot;,
     &quot;e&quot;
   ]
-}`, `29462852982307840000`)"
+}`, `86759615516147400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1615,7 +1615,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p>The batch <em>DataLoader</em> gets the keys as <code class="language-text">IReadOnlyList&lt;TKey&gt;</code> and returns a <code class="language-text">IReadOnlyDictionary&lt;TKey, TValue&gt;</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="42962943494872130000"
+              data-toaster-id="77743566229160560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1623,7 +1623,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
               onClick="copyToClipboard(`public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPersonRepository repository)
 {
     return context.BatchDataLoader<string, Person>(&quot;personByIdBatch&quot;, keys => repository.GetPersonBatchAsync(keys)).LoadAsync(id);
-}`, `42962943494872130000`)"
+}`, `77743566229160560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1642,7 +1642,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p>The Group <em>DataLoader</em> gets the keys as <code class="language-text">IReadOnlyList&lt;TKey&gt;</code> and returns a <code class="language-text">ILookup&lt;TKey, TValue&gt;</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="66892094057132480000"
+              data-toaster-id="68187149966959560000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1650,7 +1650,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
               onClick="copyToClipboard(`public Task<IEnumerable<Person>> GetPersonByCountry(string country, IResolverContext context, [Service]IPersonRepository repository)
 {
     return context.GroupDataLoader<string, Person>(&quot;personByCountry&quot;, keys => repository.GetPersonsByCountry(keys).ToLookup(t => t.Country)).LoadAsync(country);
-}`, `66892094057132480000`)"
+}`, `68187149966959560000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1668,7 +1668,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p>The cache <em>DataLoader</em> is basically the easiest to implement since there is no batching involved. So, we can just use the initial <code class="language-text">GetPersonById</code> method. We, do not get the benefits of batching with this one, but if in a query graph the same entity is resolved twice we will load it only once from the data source.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="93562521472466500000"
+              data-toaster-id="60408567784958510000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1676,7 +1676,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
               onClick="copyToClipboard(`public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPersonRepository repository)
 {
     return context.CacheDataLoader<string, Person>(&quot;personById&quot;, keys => repository.GetPersonById(keys)).LoadAsync(id);
-}`, `93562521472466500000`)"
+}`, `60408567784958510000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1694,7 +1694,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p><code class="language-text">FetchOnceAsync</code> is not really a <em>DataLoader</em> like described by facebook. It rather uses the infrastructure of our <em>DataLoader</em> to provide an easy way to provide cache heavy resource calls that shall only be done once per request.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11427478211859632000"
+              data-toaster-id="36267941116772140000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1702,7 +1702,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
               onClick="copyToClipboard(`public Task<Person> GetPerson(string id, IResolverContext context, [Service]IPersonRepository repository)
 {
     return context.FetchOnceAsync(&quot;cachingLoader&quot;, () => repository.GetSomeResource());
-}`, `11427478211859632000`)"
+}`, `36267941116772140000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1719,7 +1719,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p>This is more like an edge case that is supported than a certain type of <em>DataLoader</em>. Sometimes we have more complex resolvers that might first fetch data from one <em>DataLoader</em> and use that to fetch data from the next. With the new <em>DataLoader</em> implementation this is supported and under test.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="37374742953703930000"
+              data-toaster-id="92492713532863230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1728,7 +1728,7 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 {
     Person person = await context.DataLoader(&quot;personLoader&quot;, keys => repository.GetPersonById(keys)).LoadAsync(id);
     return await context.DataLoader(&quot;customerLoader&quot;, keys => repository.GetCustomerById(keys)).LoadAsync(person.CustomerIds);
-}`, `37374742953703930000`)"
+}`, `92492713532863230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1747,13 +1747,13 @@ The best case now would be that we only fetch <code class="language-text">c</cod
 <p>In order to add support for global <em>DataLoader</em> you can add a second <em>DataLoader</em> registry. This one has to be declared as singleton. It is important that you declare the global registry first since we use the last registry to register ad-hoc <em>DataLoader</em>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="15075104147270402000"
+              data-toaster-id="39130614150135366000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services.AddSingleton<IDataLoaderRegistry, DataLoaderRegistry>();
-services.AddDataLoaderRegistry();`, `15075104147270402000`)"
+services.AddDataLoaderRegistry();`, `39130614150135366000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1770,14 +1770,14 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>Here is how we can now register a DataLoader:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55113779947912820000"
+              data-toaster-id="11743659850016797000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`services.AddDataLoader<IMyDataLoader, MyDataLoader>();
 services.AddDataLoader<MyDataLoader>();
-services.AddDataLoader<IMyDataLoader>(s => ....);`, `55113779947912820000`)"
+services.AddDataLoader<IMyDataLoader>(s => ....);`, `11743659850016797000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1793,7 +1793,7 @@ services<span class="token punctuation">.</span><span class="token generic-metho
 <p>On the resolver side I can now resolve my DataLoader through an interface:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="21780498151662166000"
+              data-toaster-id="85410125581743200000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1801,7 +1801,7 @@ services<span class="token punctuation">.</span><span class="token generic-metho
               onClick="copyToClipboard(`public async Task<string> ResolveSomething(IMyDataLoader dataLoader)
 {
 
-}`, `21780498151662166000`)"
+}`, `85410125581743200000`)"
             >
               <div
                 class="gatsby-code-button"
