@@ -103,7 +103,7 @@ namespace HotChocolate.Execution
             }");
 
             // assert
-            list.Select(t => t.Selection.Name.Value).ToList().MatchSnapshot();
+            list.Select(t => t.SyntaxNode.Name.Value).ToList().MatchSnapshot();
         }
 
         private static void CollectSelections(
@@ -119,7 +119,7 @@ namespace HotChocolate.Execution
             if (selection.Field.Type.NamedType() is ObjectType objectType)
             {
                 foreach (IFieldSelection child in context.GetSelections(
-                    objectType, selection.Selection.SelectionSet))
+                    objectType, selection.SyntaxNode.SelectionSet))
                 {
                     CollectSelections(context, child, collected);
                 }

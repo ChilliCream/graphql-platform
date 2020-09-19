@@ -33,17 +33,17 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionVariants =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
-                selectionSets.Values,
+                selectionVariants.Values,
                 selectionSet =>
                 {
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
-                        selectionSet.GetSelections(schema.QueryType),
+                        selectionSet.GetSelectionSet(schema.QueryType).Selections,
                         selection => Assert.Equal("foo", selection.ResponseName));
                 });
         }
@@ -68,17 +68,17 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionVariants =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
-                selectionSets.Values,
+                selectionVariants.Values,
                 selectionSet =>
                 {
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
-                        selectionSet.GetSelections(schema.QueryType),
+                        selectionSet.GetSelectionSet(schema.QueryType).Selections,
                         selection => Assert.Equal("foo", selection.ResponseName));
                 });
         }
@@ -110,29 +110,32 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionVariants =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            IPreparedSelection hero = selectionSets[operation.SelectionSet].GetSelections(schema.QueryType).Single();
+            ISelection hero = selectionVariants[operation.SelectionSet]
+                .GetSelectionSet(schema.QueryType).Selections.Single();
             Assert.Equal("hero", hero.ResponseName);
 
             Assert.Collection(
-                selectionSets[hero.SelectionSet].GetSelections(schema.GetType<ObjectType>("Droid")),
+                selectionVariants[hero.SelectionSet]
+                    .GetSelectionSet(schema.GetType<ObjectType>("Droid")).Selections,
                 selection => Assert.Equal("name", selection.ResponseName),
                 selection => Assert.Equal("primaryFunction", selection.ResponseName));
 
             Assert.Collection(
-                selectionSets[hero.SelectionSet].GetSelections(schema.GetType<ObjectType>("Human")),
+                selectionVariants[hero.SelectionSet]
+                    .GetSelectionSet(schema.GetType<ObjectType>("Human")).Selections,
                 selection => Assert.Equal("name", selection.ResponseName),
                 selection => Assert.Equal("homePlanet", selection.ResponseName));
 
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
-                selectionSets);
+                selectionVariants);
             op.Print().MatchSnapshot();
         }
 
@@ -168,11 +171,11 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
@@ -201,17 +204,17 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSetVariants =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
             Assert.Collection(
-                selectionSets.Values,
+                selectionSetVariants.Values,
                 selectionSet =>
                 {
                     Assert.Equal(operation.SelectionSet, selectionSet.SelectionSet);
                     Assert.Collection(
-                        selectionSet.GetSelections(schema.QueryType),
+                        selectionSet.GetSelectionSet(schema.QueryType).Selections,
                         selection => Assert.Equal("foo", selection.ResponseName));
                 });
         }
@@ -276,24 +279,25 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
-            Assert.Equal("name", droidSelections[0].ResponseName);
-            Assert.False(droidSelections[0].IsConditional);
-            Assert.True(droidSelections[0].IsIncluded(variables.Object));
+            Assert.Equal("name", droidSelections.Selections[0].ResponseName);
+            Assert.False(droidSelections.Selections[0].IsConditional);
+            Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
             Assert.False(droidSelections.IsConditional);
         }
 
@@ -328,24 +332,25 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
-            Assert.Equal("name", droidSelections[0].ResponseName);
-            Assert.False(droidSelections[0].IsConditional);
-            Assert.True(droidSelections[0].IsIncluded(variables.Object));
+            Assert.Equal("name", droidSelections.Selections[0].ResponseName);
+            Assert.False(droidSelections.Selections[0].IsConditional);
+            Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
             Assert.False(droidSelections.IsConditional);
         }
 
@@ -384,24 +389,24 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
-            Assert.Equal("name", droidSelections[0].ResponseName);
-            Assert.True(droidSelections[0].IsConditional);
-            Assert.True(droidSelections[0].IsIncluded(variables.Object));
+            Assert.Equal("name", droidSelections.Selections[0].ResponseName);
+            Assert.True(droidSelections.Selections[0].IsConditional);
+            Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
             Assert.True(droidSelections.IsConditional);
         }
 
@@ -439,24 +444,25 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
-            Assert.Equal("name", droidSelections[0].ResponseName);
-            Assert.False(droidSelections[0].IsConditional);
-            Assert.True(droidSelections[0].IsIncluded(variables.Object));
+            Assert.Equal("name", droidSelections.Selections[0].ResponseName);
+            Assert.False(droidSelections.Selections[0].IsConditional);
+            Assert.True(droidSelections.Selections[0].IsIncluded(variables.Object));
             Assert.False(droidSelections.IsConditional);
         }
 
@@ -499,27 +505,28 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
             Assert.Collection(
-                droidSelections.Where(t => t.IsIncluded(vFalse.Object)),
+                droidSelections.Selections.Where(t => t.IsIncluded(vFalse.Object)),
                 t => Assert.Equal("id", t.ResponseName));
 
             Assert.Collection(
-                droidSelections.Where(t => t.IsIncluded(vTrue.Object)),
+                droidSelections.Selections.Where(t => t.IsIncluded(vTrue.Object)),
                 t => Assert.Equal("name", t.ResponseName),
                 t => Assert.Equal("id", t.ResponseName),
                 t => Assert.Equal("height", t.ResponseName));
@@ -564,23 +571,24 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
             Assert.Collection(
-                droidSelections.Where(t => t.IsIncluded(variables.Object)),
+                droidSelections.Selections.Where(t => t.IsIncluded(variables.Object)),
                 t => Assert.Equal("id", t.ResponseName),
                 t => Assert.Equal("height", t.ResponseName));
 
@@ -614,22 +622,23 @@ namespace HotChocolate.Execution.Utilities
             var fragments = new FragmentCollection(schema, document);
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
                 schema.QueryType,
                 selectionSets);
-            IPreparedSelectionList rootSelections =
-                op.RootSelectionSet.GetSelections(op.RootSelectionSet.GetPossibleTypes().First());
-            IPreparedSelectionList droidSelections =
-                op.GetSelections(rootSelections[0].SelectionSet!, droid);
+            ISelectionSet rootSelections =
+                op.RootSelectionVariants.GetSelectionSet(
+                    op.RootSelectionVariants.GetPossibleTypes().First());
+            ISelectionSet droidSelections =
+                op.GetSelectionSet(rootSelections.Selections[0].SelectionSet!, droid);
 
-            Assert.Empty(droidSelections.Where(t => t.IsIncluded(variables.Object)));
+            Assert.Empty(droidSelections.Selections.Where(t => t.IsIncluded(variables.Object)));
 
             op.Print().MatchSnapshot();
         }
@@ -667,11 +676,11 @@ namespace HotChocolate.Execution.Utilities
             var optimizers = new List<NoopOptimizer> { new NoopOptimizer() };
 
             // act
-            IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                 OperationCompiler.Compile(schema, fragments, operation, optimizers);
 
             // assert
-            var op = new PreparedOperation(
+            var op = new Operation(
                 "abc",
                 document,
                 operation,
@@ -716,7 +725,7 @@ namespace HotChocolate.Execution.Utilities
                     FieldNode bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
                     FieldDelegate bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
-                    var compiledSelection = new PreparedSelection(
+                    var compiledSelection = new Selection(
                         context.TypeContext,
                         baz,
                         bazSelection,

@@ -54,10 +54,10 @@ namespace HotChocolate.Execution.Pipeline
 
                 var fragments = new FragmentCollection(context.Schema, context.Document);
 
-                IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                     Compile(context.Schema, fragments, operation, _optimizers);
 
-                context.Operation = new PreparedOperation(
+                context.Operation = new Operation(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),
                     context.Document,
                     operation,

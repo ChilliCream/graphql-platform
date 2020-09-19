@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Utilities
     /// <summary>
     /// Represents a field selection during execution.
     /// </summary>
-    public interface IPreparedSelection : IFieldSelection
+    public interface ISelection : IFieldSelection
     {
         /// <summary>
         /// The type that declares the field that is selected by this selection.
@@ -66,5 +66,12 @@ namespace HotChocolate.Execution.Utilities
         /// otherwise, <c>false</c> is returned.
         /// </returns>
         bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false);
+    }
+
+    public interface IFragment
+    {
+
+
+        ISelectionSet Selections { get; }
     }
 }

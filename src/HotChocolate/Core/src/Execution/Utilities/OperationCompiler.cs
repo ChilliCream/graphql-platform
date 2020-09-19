@@ -5,7 +5,6 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
 using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
@@ -23,18 +22,18 @@ namespace HotChocolate.Execution.Utilities
             _fragments = fragments;
         }
 
-        public static IReadOnlyDictionary<SelectionSetNode, PSS> Compile(
+        public static IReadOnlyDictionary<SelectionSetNode, SelectionVariants> Compile(
             ISchema schema,
             FragmentCollection fragments,
             OperationDefinitionNode operation,
             IEnumerable<ISelectionSetOptimizer>? optimizers = null)
         {
-            var selectionSets = new Dictionary<SelectionSetNode, PSS>();
-            void Register(PreparedSelectionSet s) => selectionSets[s.SelectionSet] = s;
+            var selectionSets = new Dictionary<SelectionSetNode, SelectionVariants>();
+            void Register(SelectionVariants s) => selectionSets[s.SelectionSet] = s;
 
             SelectionSetNode selectionSet = operation.SelectionSet;
             ObjectType typeContext = schema.GetOperationType(operation.Operation);
-            var root = new PSS(operation.SelectionSet);
+            var root = new SelectionVariants(operation.SelectionSet);
             Register(root);
 
             var collector = new OperationCompiler(schema, fragments);
@@ -55,24 +54,24 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             ObjectType typeContext,
             Stack<IObjectField> fieldContext,
-            PSS current,
-            Action<PSS> register,
+            SelectionVariants current,
+            Action<SelectionVariants> register,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
             List<ISelectionSetOptimizer> optimizers,
             bool internalSelection = false)
         {
             // we first collect the fields that we find in the selection set ...
-            IDictionary<string, PreparedSelection> fields =
+            IDictionary<string, Selection> fields =
                 CollectFields(typeContext, selectionSet, includeConditionLookup, internalSelection);
 
             // ... after that is done we will check if there are query optimizer that want
             // to provide additional fields.
             OptimizeSelectionSet(fieldContext, typeContext, selectionSet, fields, optimizers);
 
-            var selections = new List<PreparedSelection>();
+            var selections = new List<Selection>();
             var isConditional = false;
 
-            foreach (PreparedSelection selection in fields.Values)
+            foreach (Selection selection in fields.Values)
             {
                 // we now make the selection read-only and add it to the final selection-set.
                 selection.MakeReadOnly();
@@ -94,10 +93,10 @@ namespace HotChocolate.Execution.Utilities
                     {
                         // composite fields always have to have a selection-set
                         // otherwise we need to throw.
-                        throw QueryCompiler_CompositeTypeSelectionSet(selection.Selection);
+                        throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                     }
 
-                    var next = new PSS(selection.SelectionSet);
+                    var next = new SelectionVariants(selection.SelectionSet);
                     register(next);
 
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
@@ -126,18 +125,18 @@ namespace HotChocolate.Execution.Utilities
                 }
             }
 
-            current.AddSelections(
+            current.AddSelectionSet(
                 typeContext,
-                new PreparedSelectionList(selections, isConditional));
+                new SelectionSet(selections, isConditional));
         }
 
-        private IDictionary<string, PreparedSelection> CollectFields(
+        private IDictionary<string, Selection> CollectFields(
             ObjectType typeContext,
             SelectionSetNode selectionSet,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
             bool internalSelection)
         {
-            var fields = new OrderedDictionary<string, PreparedSelection>();
+            var fields = new OrderedDictionary<string, Selection>();
 
             CollectFields(
                 typeContext,
@@ -154,7 +153,7 @@ namespace HotChocolate.Execution.Utilities
             SelectionSetNode selectionSet,
             SelectionIncludeCondition? includeCondition,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             bool internalSelection)
         {
             for (var i = 0; i < selectionSet.Selections.Count; i++)
@@ -182,7 +181,7 @@ namespace HotChocolate.Execution.Utilities
             ISelectionNode selection,
             SelectionIncludeCondition? includeCondition,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             bool internalSelection)
         {
             switch (selection.Kind)
@@ -224,7 +223,7 @@ namespace HotChocolate.Execution.Utilities
             FieldNode selection,
             SelectionIncludeCondition? includeCondition,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             bool internalSelection)
         {
             NameString fieldName = selection.Name.Value;
@@ -234,7 +233,7 @@ namespace HotChocolate.Execution.Utilities
 
             if (typeContext.Fields.TryGetField(fieldName, out ObjectField? field))
             {
-                if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
+                if (fields.TryGetValue(responseName, out Selection? preparedSelection))
                 {
                     preparedSelection.AddSelection(selection, includeCondition);
                 }
@@ -242,7 +241,7 @@ namespace HotChocolate.Execution.Utilities
                 {
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
-                    preparedSelection = new PreparedSelection(
+                    preparedSelection = new Selection(
                         typeContext,
                         field,
                         selection,
@@ -278,7 +277,7 @@ namespace HotChocolate.Execution.Utilities
             FragmentSpreadNode fragmentSpread,
             SelectionIncludeCondition? includeCondition,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             bool internalSelection)
         {
             if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragment &&
@@ -299,7 +298,7 @@ namespace HotChocolate.Execution.Utilities
             InlineFragmentNode inlineFragment,
             SelectionIncludeCondition? includeCondition,
             IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             bool internalSelection)
         {
             if (_fragments.GetFragment(type, inlineFragment) is { } fragment &&
@@ -624,7 +623,7 @@ namespace HotChocolate.Execution.Utilities
             Stack<IObjectField> fieldContext,
             IObjectType typeContext,
             SelectionSetNode selectionSet,
-            IDictionary<string, PreparedSelection> fields,
+            IDictionary<string, Selection> fields,
             IReadOnlyList<ISelectionSetOptimizer> optimizers)
         {
             if (optimizers.Count > 0)

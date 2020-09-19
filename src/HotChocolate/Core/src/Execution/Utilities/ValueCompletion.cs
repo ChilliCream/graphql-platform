@@ -450,7 +450,7 @@ namespace HotChocolate.Execution.Utilities
                 SelectionSetNode selectionSet =
                     middlewareContext.FieldSelection.SelectionSet!;
 
-                IPreparedSelectionList selections =
+                ISelectionSet selections =
                     operationContext.CollectFields(selectionSet, objectType);
 
                 completedResult = selections.EnqueueResolverTasks(

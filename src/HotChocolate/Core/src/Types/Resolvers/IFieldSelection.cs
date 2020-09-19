@@ -21,14 +21,14 @@ namespace HotChocolate.Resolvers
         IObjectField Field { get; }
 
         /// <summary>
-        /// Gets the field selection.
+        /// Gets the field selection syntax node.
         /// </summary>
-        FieldNode Selection { get; }
+        FieldNode SyntaxNode { get; }
 
         /// <summary>
         /// Gets the merged field selections.
         /// </summary>
-        IReadOnlyList<FieldNode> Selections { get; }
+        IReadOnlyList<FieldNode> SyntaxNodes { get; }
 
         /// <summary>
         /// Gets the merged field selections.
