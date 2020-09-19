@@ -1311,7 +1311,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In schema-first we could create a simple hello world schema like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58569152965223070000"
+              data-toaster-id="75860648942554100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1319,7 +1319,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
     .AddDocumentFromString(&quot;type Query { hello: String }&quot;)
     .AddResolver(&quot;Query&quot;, &quot;hello&quot;, &quot;World&quot;)
-    .Create();`, `58569152965223070000`)"
+    .Create();`, `75860648942554100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1336,7 +1336,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>With conventions we could create our above schema like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23559841965338845000"
+              data-toaster-id="13919464297290873000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1348,7 +1348,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 
 ISchema schema = SchemaBuilder.New()
     .AddQueryType<Query>()
-    .Create();`, `23559841965338845000`)"
+    .Create();`, `13919464297290873000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1372,7 +1372,7 @@ ISchema schema = SchemaBuilder.New()
 <p>The second way to express a schema in code-first is to declare schema types. Schema types allow us to exactly express the structure and properties of our schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11782630886277001000"
+              data-toaster-id="59461861554670944000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1388,7 +1388,7 @@ ISchema schema = SchemaBuilder.New()
 
 ISchema schema = SchemaBuilder.New()
     .AddQueryType<QueryType>()
-    .Create();`, `11782630886277001000`)"
+    .Create();`, `59461861554670944000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1412,7 +1412,7 @@ ISchema schema = SchemaBuilder.New()
 <p>We could also use our generic variant in order to have the best of both worlds:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48042539903833470000"
+              data-toaster-id="20242041527083176000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1433,7 +1433,7 @@ public class Query
 
 ISchema schema = SchemaBuilder.New()
     .AddQueryType<QueryType>()
-    .Create();`, `48042539903833470000`)"
+    .Create();`, `20242041527083176000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1462,7 +1462,7 @@ ISchema schema = SchemaBuilder.New()
 <p>The above example would yield the following schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43137383960541140000"
+              data-toaster-id="12746766025955924000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1470,7 +1470,7 @@ ISchema schema = SchemaBuilder.New()
               onClick="copyToClipboard(`type Query {
   hello: String
   foo: String
-}`, `43137383960541140000`)"
+}`, `12746766025955924000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1490,7 +1490,7 @@ ISchema schema = SchemaBuilder.New()
 <p>As I mentioned earlier, we can mix and match our approach and also extend schema-first fields with code-first:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54977042608953570000"
+              data-toaster-id="97061931111036220000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1508,7 +1508,7 @@ ISchema schema = SchemaBuilder.New()
     .AddDocumentFromString(&quot;type Query { hello: String }&quot;)
     .AddResolver(&quot;Query&quot;, &quot;hello&quot;, &quot;World&quot;)
     .AddType<QueryTypeExtension>()
-    .Create();`, `54977042608953570000`)"
+    .Create();`, `97061931111036220000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1534,7 +1534,7 @@ ISchema schema = SchemaBuilder.New()
 <p>The above example would again yield the following schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="3631137851431076400"
+              data-toaster-id="32373792409482084000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1542,7 +1542,7 @@ ISchema schema = SchemaBuilder.New()
               onClick="copyToClipboard(`type Query {
   hello: String
   foo: String
-}`, `3631137851431076400`)"
+}`, `32373792409482084000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1561,7 +1561,7 @@ ISchema schema = SchemaBuilder.New()
 <p>We can also bind additional types to a single schema type. For instance we can bind the <code class="language-text">System.Guid</code> to our <code class="language-text">StringType</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29712495668776407000"
+              data-toaster-id="24926061431530890000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1569,7 +1569,7 @@ ISchema schema = SchemaBuilder.New()
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
     ...
     .BindClrType<Guid, StringType>()
-    .Create();`, `29712495668776407000`)"
+    .Create();`, `24926061431530890000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1585,7 +1585,7 @@ ISchema schema = SchemaBuilder.New()
 <p>You can also rebind scalars with this, so instead of the default <code class="language-text">int</code> to <code class="language-text">IntType</code> binding we could bind that as well to our <code class="language-text">StringType</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48433044490028370000"
+              data-toaster-id="47413743487927130000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1593,7 +1593,7 @@ ISchema schema = SchemaBuilder.New()
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
     ...
     .BindClrType<int, StringType>()
-    .Create();`, `48433044490028370000`)"
+    .Create();`, `47413743487927130000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1610,7 +1610,7 @@ ISchema schema = SchemaBuilder.New()
 <p>Like with any type in Hot Chocolate we can inherit from schema in order to provide further logic and details. If we for instance wanted to provide a schema description or decorate the schema with directives, we could do that like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18425704202324900000"
+              data-toaster-id="22005814266413416000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1628,7 +1628,7 @@ ISchema schema = SchemaBuilder.New()
     .AddDocumentFromString(&quot;type Query { hello: String }&quot;)
     .AddResolver(&quot;Query&quot;, &quot;hello&quot;, &quot;World&quot;)
     .SetSchema<MySchema>()
-    .Create();`, `18425704202324900000`)"
+    .Create();`, `22005814266413416000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1655,12 +1655,12 @@ ISchema schema = SchemaBuilder.New()
 <p>The schema object that we create with the <code class="language-text">SchemaBuilder</code> describes the set of possible data we can query. In order to actually query data of that schema we have to make it executable.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11272529142632036000"
+              data-toaster-id="95850738339542240000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`IQueryExecutor executor = schema.MakeExecutable();`, `11272529142632036000`)"
+              onClick="copyToClipboard(`IQueryExecutor executor = schema.MakeExecutable();`, `95850738339542240000`)"
             >
               <div
                 class="gatsby-code-button"
