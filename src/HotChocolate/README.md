@@ -1,4 +1,4 @@
-![HotChocolate](https://chillicream.com/products/hotchocolate-banner.svg)
+![HotChocolate](https://chillicream.com/resources/hotchocolate-banner.svg)
 
 [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
