@@ -36,11 +36,10 @@ namespace HotChocolate.Types
                 .Argument("label")
                 .Description(
                     "If this argument label has a value other than null, it will be passed " +
-                    "on to the result of this deferred directive. This label is intended to " +
+                    "on to the result of this defer directive. This label is intended to " +
                     "give client applications a way to identify to which fragment a deferred " +
                     "result belongs to.")
-                .Type<StringType>()
-                .DefaultValue(1);
+                .Type<StringType>();
 
             descriptor
                 .Argument(WellKnownDirectives.IfArgument)
