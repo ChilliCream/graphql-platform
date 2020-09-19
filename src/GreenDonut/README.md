@@ -1,6 +1,6 @@
-![GreenDonut](https://chillicream.com/img/projects/greendonut-banner.svg)
+![GreenDonut](https://chillicream.com/resources/greendonut-banner.svg)
 
-[![GitHub release](https://img.shields.io/github/release/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/GreenDonut.svg)](https://www.nuget.org/packages/GreenDonut/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE)
+[![GitHub release](https://img.shields.io/github/release/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/GreenDonut.svg)](https://www.nuget.org/packages/GreenDonut/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE) [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
 
 ---
 
