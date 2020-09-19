@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.AspNetCore.Rat
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Abstractions", "..\Core\src\Abstractions\HotChocolate.Abstractions.csproj", "{FE6BBE91-DB14-428C-9A51-88FB577A8EB6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{017BFCBF-BA15-4F29-9441-15673367C3F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{FE6BBE91-DB14-428C-9A51-88FB577A8EB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE6BBE91-DB14-428C-9A51-88FB577A8EB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE6BBE91-DB14-428C-9A51-88FB577A8EB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{017BFCBF-BA15-4F29-9441-15673367C3F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{017BFCBF-BA15-4F29-9441-15673367C3F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{017BFCBF-BA15-4F29-9441-15673367C3F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{017BFCBF-BA15-4F29-9441-15673367C3F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,6 +68,7 @@ Global
 		{AEEAA3CD-F82E-4FA0-BE19-7DF8AAEFB2E8} = {D383205E-A0C9-423B-A9C4-E0869BA86AC8}
 		{486E42D4-8478-4F4A-BC79-9A5CDB3C3B3C} = {D383205E-A0C9-423B-A9C4-E0869BA86AC8}
 		{FE6BBE91-DB14-428C-9A51-88FB577A8EB6} = {D383205E-A0C9-423B-A9C4-E0869BA86AC8}
+		{017BFCBF-BA15-4F29-9441-15673367C3F2} = {D383205E-A0C9-423B-A9C4-E0869BA86AC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {88894CA8-4583-4830-9DC8-4C48FADEBC2F}

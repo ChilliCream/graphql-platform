@@ -1,0 +1,8 @@
+﻿{
+  "limitKey": "1-user",
+  "limit": {
+    "Timestamp": "2020-09-19T19:50:55.5971227Z",
+    "Requests": 2
+  },
+  "expiration": "00:02:00"
+}

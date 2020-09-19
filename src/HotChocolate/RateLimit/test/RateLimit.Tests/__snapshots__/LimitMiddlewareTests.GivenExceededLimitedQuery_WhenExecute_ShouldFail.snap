@@ -6,19 +6,21 @@
     {
       "Message": "The maximum number of requests was exceeded.",
       "Code": "REQUEST_LIMIT_EXCEEDED",
-      "Path": [
-        "version"
-      ],
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "version"
+      },
       "Locations": [
         {
           "Line": 3,
           "Column": 29
         }
       ],
-      "Exception": null,
       "Extensions": {
         "code": "REQUEST_LIMIT_EXCEEDED"
-      }
+      },
+      "Exception": null
     }
   ],
   "Extensions": null,

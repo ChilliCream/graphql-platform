@@ -44,23 +44,20 @@ namespace HotChocolate.RateLimit.Tests
             result.MatchSnapshot();
         }
 
-        private Task<IExecutionResult> ExecuteVersionByUserQuery(IServiceProvider services)
+        private async Task<IExecutionResult> ExecuteVersionByUserQuery(IServiceProvider services)
         {
-            IReadOnlyQueryRequest queryRequest = QueryRequestBuilder.New()
-                .SetQuery($@"
+            IRequestExecutor executor = await services
+                .GetRequestExecutorAsync();
+
+            return await executor
+                .ExecuteAsync($@"
                         query version {{
                             version
-                        }}")
-                .SetServices(services)
-                .Create();
-
-            IQueryExecutor queryExecutor = services.GetRequiredService<IQueryExecutor>();
-
-            return queryExecutor.ExecuteAsync(queryRequest);
+                        }}");
         }
 
         private ServiceProvider CreateServiceProvider(ILimitContext limitContext)
-        {   
+        {
             return new ServiceCollection()
                 .AddDistributedMemoryCache()
                 .AddRateLimit(o =>
@@ -73,7 +70,10 @@ namespace HotChocolate.RateLimit.Tests
                         .WithLimit(TimeSpan.FromMinutes(1), 1));
                 })
                 .AddSingleton(limitContext)
-                .AddGraphQL(CreateSchema)
+                .AddGraphQLServer()
+                .AddQueryType<QueryType>()
+                .AddLimitDirectiveType()
+                .Services
                 .BuildServiceProvider();
         }
 
@@ -90,15 +90,6 @@ namespace HotChocolate.RateLimit.Tests
                 .Returns(RequestIdentity.Create("user", "1"));
 
             return limitContext.Object;
-        }
-
-        private static ISchema CreateSchema(IServiceProvider serviceProvider)
-        {
-            return SchemaBuilder.New()
-                .AddQueryType<QueryType>()
-                .AddLimitDirectiveType()
-                .AddServices(serviceProvider)
-                .Create();
         }
 
         private class QueryType : ObjectType<Query>

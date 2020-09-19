@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\RateLimit\src\RateLimit\HotChocolate.RateLimit.csproj" />
   </ItemGroup>
 

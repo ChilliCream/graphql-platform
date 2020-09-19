@@ -71,7 +71,7 @@ namespace HotChocolate.RateLimit.Tests
         public void GivenLimit_WhenConvertToByteAndBack_ShouldBeTheSame()
         {
             // Arrange
-            var limit = Limit.Create(DateTime.MaxValue, int.MaxValue);
+            var limit = Limit.Create(new DateTime(2020, 08, 01, 14, 41, 55, DateTimeKind.Utc), 20);
 
             // Act
             byte[] payload = limit.ToByte();

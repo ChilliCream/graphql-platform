@@ -35,11 +35,8 @@ namespace HotChocolate.RateLimit.Tests
                 new LimitPolicy(policyIdentifiers, TimeSpan.FromSeconds(10), 5), default);
 
             // Assert
-            new {limitKey, limit, expiration}.MatchSnapshot();
-            //limitKey.Should().Be("1-user");
-            //limit.Requests.Should().Be(1);
-            //limit.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-            //expiration.Should().Be(TimeSpan.FromSeconds(10));
+            new {limitKey, limit, expiration}.MatchSnapshot(option =>
+                option.Assert(f => Assert.True(f.Field<DateTime>("limit.Timestamp") < DateTime.UtcNow)));
         }
 
         [Fact]
@@ -67,11 +64,8 @@ namespace HotChocolate.RateLimit.Tests
                 new LimitPolicy(policyIdentifiers, TimeSpan.FromSeconds(10), 5), default);
 
             // Assert
-            new { limitKey, limit, expiration }.MatchSnapshot();
-            //limitKey.Should().Be("1-user");
-            //limit.Requests.Should().Be(1);
-            //limit.Timestamp.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-            //expiration.Should().Be(TimeSpan.FromSeconds(10));
+            new { limitKey, limit, expiration }.MatchSnapshot(option =>
+                option.Assert(f => Assert.True(f.Field<DateTime>("limit.Timestamp") < DateTime.UtcNow)));
         }
 
         [Fact]
@@ -99,11 +93,8 @@ namespace HotChocolate.RateLimit.Tests
                 new LimitPolicy(policyIdentifiers, TimeSpan.FromMinutes(2), 5), default);
 
             // Assert
-            new { limitKey, limit, expiration }.MatchSnapshot();
-            //limitKey.Should().Be("1-user");
-            //limit.Requests.Should().Be(2);
-            //limit.Timestamp.Should().BeCloseTo(DateTime.UtcNow.AddMinutes(-1), TimeSpan.FromSeconds(1));
-            //expiration.Should().Be(TimeSpan.FromMinutes(2));
+            new { limitKey, limit, expiration }.MatchSnapshot(option =>
+                option.Assert(f => Assert.True(f.Field<DateTime>("limit.Timestamp") < DateTime.UtcNow)));
         }
     }
 }
