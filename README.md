@@ -35,7 +35,7 @@ Our GraphQL server to create GraphQL endpoints and merge schemas.
 
 Our schema registry for any GrapQL client and server.
 
-[Readme](src/MarshmellowPie/README.md)
+[Readme](src/MarshmallowPie/README.md)
 
 ### Strawberry Shake
 
@@ -51,7 +51,7 @@ Examples of things built on top of the ChilliCream GraphQL Platform that are ope
 
 ## From our community
 
-[Check out](Community.md) what members of our awesome community have made!
+[Check out](COMMUNITY.md) what members of our awesome community have made!
 
 ## Financial Contributors
 
