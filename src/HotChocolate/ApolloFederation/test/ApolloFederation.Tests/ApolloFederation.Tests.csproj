@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.ApolloFederation.Tests</AssemblyName>
     <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

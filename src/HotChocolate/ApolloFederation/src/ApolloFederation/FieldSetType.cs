@@ -44,8 +44,8 @@ namespace HotChocolate.ApolloFederation
 
         protected override StringValueNode ParseValue(SelectionSetNode value)
         {
-            string s = value.ToString();
-            return new StringValueNode(s.Substring(1, s.Length - 2));
+            string s = value.ToString(false);
+            return new StringValueNode(s.Substring(1, s.Length - 2).Trim());
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -75,8 +75,8 @@ namespace HotChocolate.ApolloFederation
 
             if (value is SelectionSetNode selectionSet)
             {
-                string s = selectionSet.ToString();
-                serialized = s.Substring(1, s.Length - 2);
+                string s = selectionSet.ToString(false);
+                serialized = s.Substring(1, s.Length - 2).Trim();
                 return true;
             }
 
