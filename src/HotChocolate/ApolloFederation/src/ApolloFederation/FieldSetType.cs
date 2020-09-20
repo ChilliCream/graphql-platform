@@ -6,11 +6,11 @@ using HotChocolate.Types;
 namespace HotChocolate.ApolloFederation
 {
     /// <summary>
-    /// A scalar called _FieldSet is a custom scalar type that is used to 
+    /// A scalar called _FieldSet is a custom scalar type that is used to
     /// represent a set of fields.
-    /// 
+    ///
     /// Grammatically, a field set is a selection set minus the braces.
-    /// 
+    ///
     /// This means it can represent a single field "upc", multiple fields "id countryCode",
     /// and even nested selection sets "id organization { id }".
     /// </summary>
@@ -31,14 +31,30 @@ namespace HotChocolate.ApolloFederation
 
         protected override SelectionSetNode ParseLiteral(StringValueNode literal)
         {
-            // parse selection set
-            throw new NotImplementedException();
+            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{literal}}}");
         }
 
         protected override StringValueNode ParseValue(SelectionSetNode value)
         {
-            // serialize selection set
-            throw new NotImplementedException();
+            string s = value.ToString();
+            return new StringValueNode(s.Substring(1, s.Length - 2));
+        }
+
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is SelectionSetNode selectionSet)
+            {
+                string s = selectionSet.ToString();
+                return new StringValueNode(s.Substring(1, s.Length - 2));
+            }
+
+            // TODO : throw helper
+            throw new SerializationException("Unable to serialize...", this);
         }
 
         public override bool TrySerialize(object? value, out object? serialized)
@@ -51,7 +67,9 @@ namespace HotChocolate.ApolloFederation
 
             if (value is SelectionSetNode selectionSet)
             {
-                // serialize selection set
+                string s = selectionSet.ToString();
+                serialized = s.Substring(1, s.Length - 2);
+                return true;
             }
 
             serialized = null;
@@ -74,7 +92,8 @@ namespace HotChocolate.ApolloFederation
 
             if (serialized is string serializedSelectionSet)
             {
-                // parse selection set
+                value = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{serializedSelectionSet}}}");
+                return true;
             }
 
             value = null;
