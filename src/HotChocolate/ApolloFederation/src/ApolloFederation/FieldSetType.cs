@@ -42,11 +42,8 @@ namespace HotChocolate.ApolloFederation
             }
         }
 
-        protected override StringValueNode ParseValue(SelectionSetNode runtimeValue)
-        {
-            string s = runtimeValue.ToString(false);
-            return new StringValueNode(s.Substring(1, s.Length - 2).Trim());
-        }
+        protected override StringValueNode ParseValue(SelectionSetNode runtimeValue) =>
+            new StringValueNode(SerializeSelectionSet(runtimeValue));
 
         public override IValueNode ParseResult(object? resultValue)
         {
@@ -62,8 +59,7 @@ namespace HotChocolate.ApolloFederation
 
             if (resultValue is SelectionSetNode selectionSet)
             {
-                s = selectionSet.ToString();
-                return new StringValueNode(s.Substring(1, s.Length - 2));
+                return new StringValueNode(SerializeSelectionSet(selectionSet));
             }
 
             // TODO : throw helper
@@ -80,8 +76,7 @@ namespace HotChocolate.ApolloFederation
 
             if (runtimeValue is SelectionSetNode selectionSet)
             {
-                string s = selectionSet.ToString(false);
-                resultValue = s.Substring(1, s.Length - 2).Trim();
+                resultValue = SerializeSelectionSet(selectionSet);
                 return true;
             }
 
@@ -123,5 +118,11 @@ namespace HotChocolate.ApolloFederation
 
         private static SelectionSetNode ParseSelectionSet(string s) =>
             Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");
+
+        private static string SerializeSelectionSet(SelectionSetNode selectionSet)
+        {
+            string s = selectionSet.ToString(false);
+            return s.Substring(1, s.Length - 2).Trim();
+        }
     }
 }

@@ -61,11 +61,40 @@ namespace HotChocolate.ApolloFederation
         }
 
         [Fact]
-        public void TryDeserialize_Invalid_Format()
+        public void TryDeserialize_Null()
+        {
+            // arrange
+            var type = new FieldSetType();
+
+            // act
+            var success = type.TryDeserialize(null, out object? selectionSet);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(selectionSet);
+        }
+
+        [Fact]
+        public void TryDeserialize_Invalid_Syntax()
         {
             // arrange
             var type = new FieldSetType();
             const string serialized = "1";
+
+            // act
+            var success = type.TryDeserialize(serialized, out object? selectionSet);
+
+            // assert
+            Assert.False(success);
+            Assert.Null(selectionSet);
+        }
+
+        [Fact]
+        public void TryDeserialize_Invalid_Type()
+        {
+            // arrange
+            var type = new FieldSetType();
+            const int serialized = 1;
 
             // act
             var success = type.TryDeserialize(serialized, out object? selectionSet);
