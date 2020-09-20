@@ -211,7 +211,45 @@ namespace HotChocolate.Configuration
             // assert
             Assert.Collection(
                 errors,
-                e => Assert.NotNull(e.TypeSystemObject));
+                error => 
+                {
+                    Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
+                    Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
+                    Assert.False(error.Extensions.ContainsKey("involvedTypes"));
+                });
+        }
+
+        [Fact]
+        public void Cannot_Infer_Multiple_Input_Type()
+        {
+            // arrange
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+            var typeDiscoverer = new TypeDiscoverer(
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output),
+                },
+                new AggregateTypeInitializationInterceptor());
+
+            // act
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Collection(
+                errors,
+                error => 
+                {
+                    Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
+                    Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
+                    Assert.True(error.Extensions.ContainsKey("involvedTypes"));
+                });
         }
 
         public class FooType
@@ -240,7 +278,14 @@ namespace HotChocolate.Configuration
 
         public class QueryWithInferError
         {
-            public string Foo(object o) => throw new NotImplementedException();
+            public string Foo(IMyArg o) => throw new NotImplementedException();
         }
+
+        public class QueryWithInferError2
+        {
+            public string Foo(IMyArg o) => throw new NotImplementedException();
+        }
+
+        public interface IMyArg { }
     }
 }
