@@ -31,7 +31,15 @@ namespace HotChocolate.ApolloFederation
 
         protected override SelectionSetNode ParseLiteral(StringValueNode literal)
         {
-            return Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{literal}}}");
+            try
+            {
+                return ParseSelectionSet(literal.Value);
+            }
+            catch (SyntaxException)
+            {
+                // TODO : ThrowHelper
+                throw new SerializationException("The fieldset has an invalid format.", this);
+            }
         }
 
         protected override StringValueNode ParseValue(SelectionSetNode value)
@@ -92,12 +100,23 @@ namespace HotChocolate.ApolloFederation
 
             if (serialized is string serializedSelectionSet)
             {
-                value = Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{serializedSelectionSet}}}");
-                return true;
+                try
+                {
+                    value = ParseSelectionSet(serializedSelectionSet);
+                    return true;
+                }
+                catch (SyntaxException)
+                {
+                    value = null;
+                    return false;
+                }
             }
 
             value = null;
             return false;
         }
+
+        private static SelectionSetNode ParseSelectionSet(string s) =>
+            Utf8GraphQLParser.Syntax.ParseSelectionSet($"{{{s}}}");
     }
 }
