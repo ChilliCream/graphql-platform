@@ -217,6 +217,8 @@ namespace HotChocolate.Configuration
                     Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
                     Assert.False(error.Extensions.ContainsKey("involvedTypes"));
                 });
+
+            new SchemaException(errors).Message.MatchSnapshot();
         }
 
         [Fact]
