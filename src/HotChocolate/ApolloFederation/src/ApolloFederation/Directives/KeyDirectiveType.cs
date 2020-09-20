@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.ApolloFederation
 {
     /// <summary>
-    /// The @key directive is used to indicate a combination of fields that 
+    /// The @key directive is used to indicate a combination of fields that
     /// can be used to uniquely identify and fetch an object or interface.
     /// </summary>
     public sealed class KeyDirectiveType
