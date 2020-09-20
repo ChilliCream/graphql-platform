@@ -1,20 +1,8 @@
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
     public interface IBooleanFilterFieldDescriptor
         : IFluent
     {
-        /// <summary>
-        /// Defines the name of the field to filter.
-        /// </summary>
-        /// <param name="value">The name of the field.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IBooleanFilterFieldDescriptor Name(NameString value);
-
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -58,7 +46,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
+        /// <param name="ignore">If set to true the field is ignored</param>
         IBooleanFilterFieldDescriptor Ignore(bool ignore = true);
     }
 }

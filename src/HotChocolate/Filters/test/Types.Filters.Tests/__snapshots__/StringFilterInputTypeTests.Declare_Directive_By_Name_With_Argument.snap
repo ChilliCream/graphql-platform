@@ -8,8 +8,8 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  bar: String @bar(qux: "foo")
   OR: [FooFilter!]
+  bar: String @bar(qux: "foo")
 }
 
 directive @bar(qux: String) on INPUT_FIELD_DEFINITION

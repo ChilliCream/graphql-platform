@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<InputFieldDefinition>
         , IInputFieldDescriptor
     {
-        public InputFieldDescriptor(
+        protected internal InputFieldDescriptor(
             IDescriptorContext context,
             NameString fieldName)
             : base(context)
@@ -17,7 +17,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = fieldName;
         }
 
-        public InputFieldDescriptor(
+        protected internal InputFieldDescriptor(
+            IDescriptorContext context,
+            InputFieldDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal InputFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
@@ -28,9 +36,9 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.InputObjectField);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
-            Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
 
-            if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
+            if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
@@ -40,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Property);
@@ -147,5 +155,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             PropertyInfo property) =>
             new InputFieldDescriptor(context, property);
+
+        public static InputFieldDescriptor From(
+            IDescriptorContext context,
+            InputFieldDefinition definition) =>
+            new InputFieldDescriptor(context, definition);
     }
 }

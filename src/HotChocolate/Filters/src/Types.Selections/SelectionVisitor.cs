@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Selections.Handlers;
@@ -14,13 +14,13 @@ namespace HotChocolate.Types.Selections
     public class SelectionVisitor
         : SelectionVisitorBase
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
         private readonly SelectionMiddlewareContext _selectionMiddlewareContext;
         private readonly IReadOnlyList<IListHandler> _listHandler = ListHandlers.All;
 
         public SelectionVisitor(
             IResolverContext context,
-            ITypeConversion converter,
+            ITypeConverter converter,
             SelectionMiddlewareContext selectionMiddlewareContext)
             : base(context)
         {
@@ -31,29 +31,19 @@ namespace HotChocolate.Types.Selections
         protected Stack<SelectionClosure> Closures { get; } =
             new Stack<SelectionClosure>();
 
-        public void Accept(ObjectField field)
+        public void Accept(IObjectField field)
         {
             IOutputType type = field.Type;
             SelectionSetNode? selectionSet = Context.FieldSelection.SelectionSet;
             (type, selectionSet) = UnwrapPaging(type, selectionSet);
             IType elementType = type.IsListType() ? type.ElementType() : type;
-            Closures.Push(new SelectionClosure(elementType.ToClrType(), "e"));
+            Closures.Push(new SelectionClosure(elementType.ToRuntimeType(), "e"));
             VisitSelections(type, selectionSet);
         }
 
-        public bool TryProject<T>(
-            [NotNullWhen(true)]out Expression<Func<T, T>>? projection)
+        public Expression<Func<T, T>> Project<T>()
         {
-            if (_selectionMiddlewareContext.Errors.Count == 0)
-            {
-                projection = (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
-                return true;
-            }
-            else
-            {
-                projection = null;
-                return false;
-            }
+            return (Expression<Func<T, T>>)Closures.Peek().CreateMemberInitLambda();
         }
 
         protected override void LeaveLeaf(IFieldSelection selection)
@@ -110,7 +100,7 @@ namespace HotChocolate.Types.Selections
                     Expression.Property(
                         Closures.Peek().Instance.Peek(), propertyInfo);
 
-                if (selection is FieldSelection fieldSelection)
+                if (selection is IPreparedSelection fieldSelection)
                 {
                     var context = new SelectionVisitorContext(
                         Context,
@@ -152,8 +142,8 @@ namespace HotChocolate.Types.Selections
                     UnwrapPaging(selection.Field.Type, selection.Selection.SelectionSet);
 
                 Type clrType = type.IsListType() ?
-                    type.ElementType().ToClrType() :
-                    type.ToClrType();
+                    type.ElementType().ToRuntimeType() :
+                    type.ToRuntimeType();
 
                 Closures.Push(new SelectionClosure(clrType, "e" + Closures.Count));
 
@@ -168,7 +158,7 @@ namespace HotChocolate.Types.Selections
             {
                 var nextClosure =
                     new SelectionClosure(
-                        selection.Field.ClrType, "e" + Closures.Count);
+                        selection.Field.RuntimeType, "e" + Closures.Count);
 
                 nextClosure.Instance.Push(
                     Expression.Property(

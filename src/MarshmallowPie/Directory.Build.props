@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/resources/hotchocolate-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup>

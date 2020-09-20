@@ -2,22 +2,27 @@
   {
     "Message": "The parent type does not match the type condition on the fragment.",
     "Code": null,
-    "Path": [
-      "human",
-      "pets"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "human"
+      },
+      "Depth": 1,
+      "Name": "pets"
+    },
     "Locations": [
       {
         "Line": 11,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "typeCondition": "HumanOrAlien",
       "selectionSetType": "Pet",
       "fragment": "humanOrAlienFragment",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-is-possible"
-    }
+    },
+    "Exception": null
   }
 ]

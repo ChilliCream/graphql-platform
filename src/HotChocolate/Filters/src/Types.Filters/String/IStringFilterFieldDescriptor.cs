@@ -4,22 +4,12 @@ namespace HotChocolate.Types.Filters
         : IFluent
     {
         /// <summary>
-        /// Defines the name of the field to filter.
-        /// </summary>
-        /// <param name="value">The name of the field.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IStringFilterFieldDescriptor Name(NameString value);
-
-        /// <summary>
         /// Defines the filter binding behavior.
         ///
         /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
-        /// <param name="behavior">
+        /// <param name="bindingBehavior">
         /// The binding behavior.
         ///
         /// Implicit:
@@ -96,7 +86,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Ignore the specified property.
         /// </summary>
-        /// <param name="ignore">If set to true the field is ignored</param> 
+        /// <param name="ignore">If set to true the field is ignored</param>
         IStringFilterFieldDescriptor Ignore(bool ignore = true);
     }
 }

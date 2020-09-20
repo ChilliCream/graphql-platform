@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
@@ -13,12 +12,12 @@ namespace HotChocolate.Types
             FieldResolverDelegate fieldResolver,
             bool skipMiddleware)
         {
-            if (globalComponents == null)
+            if (globalComponents is null)
             {
                 throw new ArgumentNullException(nameof(globalComponents));
             }
 
-            if (fieldComponents == null)
+            if (fieldComponents is null)
             {
                 throw new ArgumentNullException(nameof(fieldComponents));
             }
@@ -27,7 +26,7 @@ namespace HotChocolate.Types
                 || (globalComponents.Count == 0
                     && fieldComponents.Count == 0))
             {
-                if (fieldResolver == null)
+                if (fieldResolver is null)
                 {
                     return null;
                 }
@@ -69,12 +68,9 @@ namespace HotChocolate.Types
         {
             return async ctx =>
             {
-                if (!ctx.IsResultModified && fieldResolver != null)
+                if (!ctx.IsResultModified && fieldResolver is { })
                 {
-                    Task<object> task = fieldResolver.Invoke(ctx);
-                    ctx.Result = task == null
-                        ? null
-                        : await task.ConfigureAwait(false);
+                    ctx.Result = await fieldResolver(ctx).ConfigureAwait(false);
                 }
             };
         }

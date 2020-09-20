@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -16,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
             Definition = new T();
         }
 
-        internal protected override T Definition { get; }
+        protected internal override T Definition { get; protected set; }
 
         protected void SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
@@ -37,24 +36,21 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(Type type)
         {
-            Type extractedType = Context.Inspector.ExtractType(type);
+            var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
-            if (Context.Inspector.IsSchemaType(extractedType)
-                && !typeof(IInputType).IsAssignableFrom(extractedType))
+            if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
             {
                 throw new ArgumentException(
                     TypeResources.ArgumentDescriptor_InputTypeViolation);
             }
 
-            Definition.SetMoreSpecificType(
-                type,
-                TypeContext.Input);
+            Definition.SetMoreSpecificType(typeInfo.GetExtendedType(), TypeContext.Input);
         }
 
         public void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
-            if (inputType == null)
+            if (inputType is null)
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
@@ -71,7 +67,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(ITypeReference typeReference)
         {
-            if (typeReference == null)
+            if (typeReference is null)
             {
                 throw new ArgumentNullException(nameof(typeReference));
             }
@@ -82,7 +78,7 @@ namespace HotChocolate.Types.Descriptors
 
         public void Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
+            if (typeNode is null)
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
@@ -98,14 +94,16 @@ namespace HotChocolate.Types.Descriptors
 
         public void DefaultValue(object value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Definition.DefaultValue = NullValueNode.Default;
                 Definition.NativeDefaultValue = null;
             }
             else
             {
-                Definition.SetMoreSpecificType(value.GetType(), TypeContext.Input);
+                Definition.SetMoreSpecificType(
+                    Context.TypeInspector.GetType(value.GetType()),
+                    TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
             }
@@ -114,13 +112,13 @@ namespace HotChocolate.Types.Descriptors
         public void Directive<TDirective>(TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
         }
 
         public void Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
         }
 
         public void Directive(

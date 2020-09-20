@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Selections;
 using HotChocolate.Types.Sorting;
 using HotChocolate.Utilities;
@@ -41,28 +41,27 @@ namespace HotChocolate.Types
             IObjectFieldDescriptor descriptor,
             Type? objectType)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((context, definition) =>
                 {
                     Type? selectionType = objectType;
 
-                    if (selectionType == null)
+                    if (selectionType is null)
                     {
-                        if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                        if (definition.ResultType is null ||
+                            !context.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType, out ITypeInfo? typeInfo))
                         {
-                            // TODO : resources
                             throw new ArgumentException(
                                 "Cannot handle the specified type.",
                                 nameof(descriptor));
                         }
 
-                        selectionType = typeInfo.ClrType;
+                        selectionType = typeInfo.NamedType;
                     }
 
                     ILazyTypeConfiguration lazyConfiguration =
@@ -87,16 +86,17 @@ namespace HotChocolate.Types
             Type type,
             ObjectFieldDefinition definition,
             FieldMiddleware placeholder,
-            ICompletionContext context)
+            ITypeCompletionContext context)
         {
-            IFilterConvention filterConvention = context.DescriptorContext.GetFilterConvention();
+            string filterConventionArgumentName =
+                context.DescriptorContext.GetFilterNamingConvention().ArgumentName;
             string sortingConventionArgumentName =
                 context.DescriptorContext.GetSortingNamingConvention().ArgumentName;
             Type middlewareType = _middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType,
                     SelectionMiddlewareContext.Create(
-                        filterConvention, sortingConventionArgumentName));
+                        filterConventionArgumentName, sortingConventionArgumentName));
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }

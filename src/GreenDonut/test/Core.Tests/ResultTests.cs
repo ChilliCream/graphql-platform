@@ -6,8 +6,6 @@ namespace GreenDonut
 {
     public class ResultTests
     {
-        #region Equals(Result<TValue>)
-
         [Fact(DisplayName = "Equals: Should return false if comparing error with value")]
         public void EqualsErrorValue()
         {
@@ -76,10 +74,6 @@ namespace GreenDonut
             Assert.True(result);
         }
 
-        #endregion
-
-        #region Equals(object)
-
         [Fact(DisplayName = "Equals: Should return false if object is null")]
         public void EqualsOpjectNull()
         {
@@ -136,10 +130,6 @@ namespace GreenDonut
             Assert.True(result);
         }
 
-        #endregion
-
-        #region GetHashCode
-
         [Fact(DisplayName = "GetHashCode: Should return 0")]
         public void GetHashCodeEmpty()
         {
@@ -178,10 +168,6 @@ namespace GreenDonut
             // assert
             Assert.Equal(error.GetHashCode(), result.GetHashCode());
         }
-
-        #endregion
-
-        #region Rejected Result
 
         [Fact(DisplayName = "ImplicitReject: Should return a resolved Result if error is null")]
         public void ImplicitRejectErrorIsNull()
@@ -230,10 +216,6 @@ namespace GreenDonut
             Assert.Null(result.Value);
         }
 
-        #endregion
-
-        #region Resolved Result
-
         [InlineData(null)]
         [InlineData("Foo")]
         [Theory(DisplayName = "ImplicitResolve: Should return a resolved Result")]
@@ -276,7 +258,5 @@ namespace GreenDonut
             Assert.False(result.IsError);
             Assert.Equal(value, result.Value);
         }
-
-        #endregion
     }
 }

@@ -10,24 +10,36 @@ namespace HotChocolate.Types.Descriptors
     public class ObjectTypeDescriptorBase<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
-        public ObjectTypeDescriptorBase(IDescriptorContext context, Type clrType)
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context, 
+            Type clrType)
             : base(context, clrType)
         {
         }
 
-        public ObjectTypeDescriptorBase(IDescriptorContext context)
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context)
             : base(context)
         {
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        protected internal ObjectTypeDescriptorBase(
+            IDescriptorContext context,
+            ObjectTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
+            HashSet<string> subscribeResolver = null;
+
             if (Definition.Fields.IsImplicitBinding())
             {
                 FieldDescriptorUtilities.AddImplicitFields(
@@ -36,15 +48,39 @@ namespace HotChocolate.Types.Descriptors
                     p =>
                     {
                         ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
-                            Context, p, Definition.FieldBindingType);
+                            Context, p, Definition.RuntimeType, Definition.FieldBindingType);
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
                     },
                     fields,
-                    handledMembers);
+                    handledMembers,
+                    include: IncludeField);
             }
 
             base.OnCompleteFields(fields, handledMembers);
+
+            bool IncludeField(IReadOnlyList<MemberInfo> all, MemberInfo current)
+            {
+                if (subscribeResolver is null)
+                {
+                    subscribeResolver = new HashSet<string>();
+
+                    foreach(MemberInfo member in all) 
+                    {
+                        if(member.IsDefined(typeof(SubscribeAttribute)))
+                        {
+                            SubscribeAttribute attribute = 
+                                member.GetCustomAttribute<SubscribeAttribute>();
+                            if(attribute.With is not null) 
+                            {
+                                subscribeResolver.Add(attribute.With);
+                            }
+                        }
+                    }
+                }
+
+                return !subscribeResolver.Contains(current.Name);
+            }
         }
 
         public new IObjectTypeDescriptor<T> Name(NameString value)

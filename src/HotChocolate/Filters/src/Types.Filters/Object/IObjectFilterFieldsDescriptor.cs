@@ -1,21 +1,8 @@
-using System;
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
     public interface IObjectFilterFieldDescriptor
         : IFluent
     {
-        /// <summary>
-        /// Defines the name of the field to filter.
-        /// </summary>
-        /// <param name="value">The name of the field.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IObjectFilterFieldDescriptor Name(NameString value);
-
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -50,5 +37,6 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IObjectFilterOperationDescriptor AllowObject();
+
     }
 }

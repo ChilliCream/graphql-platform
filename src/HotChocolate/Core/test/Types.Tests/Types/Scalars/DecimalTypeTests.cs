@@ -108,7 +108,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(input));
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(value));
         }
 
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(input));
         }
 
@@ -233,7 +233,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseValue(input);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -261,7 +261,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseValue(input);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
 
@@ -274,7 +274,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseValue(value));
         }
 
@@ -317,6 +317,74 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(TypeKind.Scalar, kind);
+        }
+
+        [Fact]
+        public void ParseValue_HandlesMoreThan6Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.1234567m;
+            var output = "1234567.1234567";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToDefaultSignificantDigits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.891123456789m;
+            var output = "1234567.891123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_Handle12Digits()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
+        }
+
+        [Fact]
+        public void ParseValue_FormatsToSpecifiedNumberOfDecimalDigitsLong()
+        {
+            // arrange
+            var type = new DecimalType();
+            var input = 1234567.890123456789m;
+            var output = "1234567.890123456789";
+
+            // act
+            var result = type.ParseValue(input);
+
+            // assert
+            Assert.True(result is FloatValueNode);
+            Assert.True(result.Value is string);
+            Assert.Equal(output, (string)result.Value);
         }
 
         private FloatValueNode CreateExponentialLiteral() =>

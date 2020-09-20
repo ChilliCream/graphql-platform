@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -13,10 +12,14 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            FilterOperation operation,
-            IFilterConvention filterConventions)
-            : base(context, name, type, operation, filterConventions)
-        { 
+            FilterOperation operation)
+            : base(context)
+        {
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            Definition.Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
         }
 
         /// <inheritdoc/>

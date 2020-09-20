@@ -1,21 +1,10 @@
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
     public interface IArrayFilterFieldDescriptor<TArray>
         : IFluent
     {
-        /// <summary>
-        /// Defines the name of the field to filter.
-        /// </summary>
-        /// <param name="value">The name of the field.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or
-        /// <see cref="string.Empty"/>.
-        /// </exception>
-        IArrayFilterFieldDescriptor<TArray> Name(NameString value);
-
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -55,7 +44,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -71,7 +60,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>
@@ -87,7 +76,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
-        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() 
+        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>()
             where TFilter : FilterInputType<TArray>;
 
         /// <summary>

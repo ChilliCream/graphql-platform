@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
+  "data": {
     "bar": {
       "id": "QmFyCmQxMjM="
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

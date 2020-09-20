@@ -4,10 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Utilities;
@@ -18,26 +18,29 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-        private readonly IFilterConvention _convention;
-
         protected FilterInputTypeDescriptor(
             IDescriptorContext context,
-            Type entityType,
-            IFilterConvention convention)
+            Type entityType)
             : base(context)
         {
-            _convention = convention;
-            Definition.EntityType = entityType ??
-                throw new ArgumentNullException(nameof(entityType));
-            Definition.ClrType = typeof(object);
-            Definition.Name = _convention.GetTypeName(context, entityType);
-            Definition.Description = _convention.GetTypeDescription(context, entityType);
+            IFilterNamingConvention convention = context.GetFilterNamingConvention();
+            Definition.EntityType = entityType
+                ?? throw new ArgumentNullException(nameof(entityType));
+            Definition.RuntimeType = typeof(object);
+            Definition.Name = convention.GetFilterTypeName(context, entityType);
+            // TODO : should we rework get type description?
+            Definition.Description = context.Naming.GetTypeDescription(
+                entityType,
+                TypeKind.Object);
             Definition.Fields.BindingBehavior =
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected internal sealed override FilterInputTypeDefinition Definition { get; } =
-            new FilterInputTypeDefinition();
+        protected internal sealed override FilterInputTypeDefinition Definition
+        {
+            get;
+            protected set;
+        } = new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
@@ -59,14 +62,14 @@ namespace HotChocolate.Types.Filters
             TDirective directiveInstance)
             where TDirective : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IFilterInputTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new()
         {
-            Definition.AddDirective(new TDirective());
+            Definition.AddDirective(new TDirective(), Context.TypeInspector);
             return this;
         }
 
@@ -83,7 +86,7 @@ namespace HotChocolate.Types.Filters
         {
             if (Definition.EntityType is { })
             {
-                Context.Inspector.ApplyAttributes(Context, this, Definition.EntityType);
+                Context.TypeInspector.ApplyAttributes(Context, this, Definition.EntityType);
             }
 
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
@@ -114,12 +117,13 @@ namespace HotChocolate.Types.Filters
             if (Definition.Fields.IsImplicitBinding()
                 && Definition.EntityType != typeof(object))
             {
-                foreach (PropertyInfo property in Context.Inspector
+                foreach (PropertyInfo property in Context.TypeInspector
                     .GetMembers(Definition.EntityType)
                     .OfType<PropertyInfo>())
                 {
                     if (!handledProperties.Contains(property)
-                        && TryCreateImplicitFilter(property,
+                        && TryCreateImplicitFilter(
+                            property,
                             out FilterFieldDefintion? definition))
                     {
                         foreach (FilterOperationDefintion filter in definition.Filters)
@@ -138,23 +142,92 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             [NotNullWhen(true)] out FilterFieldDefintion? definition)
         {
-            definition = null;
             Type type = property.PropertyType;
 
-            if (type.IsGenericType &&
-                System.Nullable.GetUnderlyingType(type) is Type nullableType)
+            if (type.IsGenericType
+                && System.Nullable.GetUnderlyingType(type) is { } nullableType)
             {
                 type = nullableType;
             }
 
-            IEnumerator<TryCreateImplicitFilter> enumerator =
-                _convention.GetImplicitFactories().GetEnumerator();
+            if (type == typeof(string))
+            {
+                var field = new StringFilterFieldDescriptor(Context, property);
+                definition = field.CreateDefinition();
+                return true;
+            }
 
-            while (enumerator.MoveNext()
-                && !enumerator.Current(Context, type, property, _convention, out definition))
-            {/**/}
+            if (type == typeof(bool))
+            {
+                var field = new BooleanFilterFieldDescriptor(
+                    Context,
+                    property);
+                definition = field.CreateDefinition();
+                return true;
+            }
 
-            return definition != null;
+            if (IsComparable(property.PropertyType))
+            {
+                var field = new ComparableFilterFieldDescriptor(
+                    Context,
+                    property);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            if (Context.TypeInspector.TryCreateTypeInfo(type, out ITypeInfo? typeInfo) &&
+                typeInfo.GetExtendedType()?.ElementType?.Source is { } elementType)
+            {
+                ArrayFilterFieldDescriptor field;
+
+                if (elementType == typeof(string)
+                    || elementType == typeof(bool)
+                    || typeof(IComparable).IsAssignableFrom(elementType))
+                {
+                    field = new ArrayFilterFieldDescriptor(
+                        Context,
+                        property,
+                        typeof(ISingleFilter<>).MakeGenericType(elementType));
+                }
+                else
+                {
+                    field = new ArrayFilterFieldDescriptor(Context, property, elementType);
+                }
+
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            if (type.IsClass)
+            {
+                var field = new ObjectFilterFieldDescriptor(
+                    Context,
+                    property,
+                    property.PropertyType);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            definition = null;
+            return false;
+        }
+
+        private bool IsComparable(Type type)
+        {
+            if (typeof(IComparable).IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            if (type.IsValueType
+                && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return typeof(IComparable).IsAssignableFrom(
+                    System.Nullable.GetUnderlyingType(type));
+            }
+
+            return false;
         }
 
         public IFilterInputTypeDescriptor<T> BindFields(
@@ -175,8 +248,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new StringFilterFieldDescriptor(Context, p, _convention));
+                return Fields.GetOrAddDescriptor(
+                    p,
+                    () => new StringFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -189,8 +263,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new BooleanFilterFieldDescriptor(Context, p, _convention));
+                return Fields.GetOrAddDescriptor(
+                    p,
+                    () => new BooleanFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -203,8 +278,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ComparableFilterFieldDescriptor(Context, p, _convention));
+                return Fields.GetOrAddDescriptor(
+                    p,
+                    () => new ComparableFilterFieldDescriptor(Context, p));
             }
 
             throw new ArgumentException(
@@ -217,8 +293,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                Fields.GetOrAddDescriptor(p,
-                    () => new IgnoredFilterFieldDescriptor(Context, p, _convention));
+                Fields.GetOrAddDescriptor(
+                    p,
+                    () => new IgnoredFilterFieldDescriptor(Context, p));
                 return this;
             }
 
@@ -232,8 +309,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p, _convention));
+                return Fields.GetOrAddDescriptor(
+                    p,
+                    () => new ObjectFilterFieldDescriptor<TObject>(Context, p));
             }
 
             throw new ArgumentException(
@@ -246,8 +324,9 @@ namespace HotChocolate.Types.Filters
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                return Fields.GetOrAddDescriptor(p,
-                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p, _convention));
+                return Fields.GetOrAddDescriptor(
+                    p,
+                    () => new ArrayFilterFieldDescriptor<TObject>(Context, p));
             }
 
             throw new ArgumentException(
@@ -291,9 +370,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context,
-            Type entityType,
-            IFilterConvention convention) =>
-                new FilterInputTypeDescriptor<T>(context, entityType, convention);
+            IDescriptorContext context, Type entityType) =>
+            new FilterInputTypeDescriptor<T>(context, entityType);
     }
 }

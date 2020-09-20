@@ -63,13 +63,13 @@ namespace HotChocolate.Utilities
         {
             // arrange
             var factory = new ServiceFactory();
-            var type = typeof(ClassWithNoException);
+            var type = typeof(ClassWithException);
 
             // act
             Action action = () => factory.CreateInstance(type);
 
             // assert
-            Assert.Throws<CreateServiceException>(action)
+            Assert.Throws<ServiceException>(action)
                 .Message.MatchSnapshot();
         }
 
@@ -78,14 +78,13 @@ namespace HotChocolate.Utilities
         {
             // arrange
             var factory = new ServiceFactory();
-            factory.Services = new EmptyServiceProvider();
             var type = typeof(ClassWithDependencies);
 
             // act
             Action action = () => factory.CreateInstance(type);
 
             // assert
-            Assert.Throws<CreateServiceException>(action)
+            Assert.Throws<ServiceException>(action)
                 .Message.MatchSnapshot();
         }
 
@@ -100,7 +99,7 @@ namespace HotChocolate.Utilities
             Action action = () => factory.CreateInstance(type);
 
             // assert
-            Assert.Throws<CreateServiceException>(action)
+            Assert.Throws<ServiceException>(action)
                 .Message.MatchSnapshot();
         }
 
@@ -112,15 +111,15 @@ namespace HotChocolate.Utilities
         {
             public ClassWithDependencies(ClassWithNoDependencies dependency)
             {
-                Dependency = dependency;
+                Dependency = dependency ?? throw new ArgumentNullException(nameof(dependency));
             }
 
             public ClassWithNoDependencies Dependency { get; }
         }
 
-        private class ClassWithNoException
+        private class ClassWithException
         {
-            public ClassWithNoException()
+            public ClassWithException()
             {
                 throw new NullReferenceException();
             }

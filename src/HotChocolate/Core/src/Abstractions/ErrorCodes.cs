@@ -13,15 +13,17 @@ namespace HotChocolate
         public static class Execution
         {
             public const string CannotSerialize = "EXEC_BATCH_VAR_SERIALIZE";
+            public const string CannotSerializeLeafValue = "EXEC_INVALID_LEAF_VALUE";
+            public const string CannotResolveAbstractType = "EXEC_UNABLE_TO_RESOLVE_ABSTRACT_TYPE";
+            public const string ListTypeNotSupported = "EXEC_LIST_TYPE_NOT_SUPPORTED";
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";
-            public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
-            public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
             public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
             public const string InvalidType = "EXEC_INVALID_TYPE";
             public const string SyntaxError = "EXEC_SYNTAX_ERROR";
+            public const string QueryNotFound = "QUERY_NOT_FOUND";
         }
 
         public static class Schema

@@ -82,16 +82,20 @@ const Container = styled.ul`
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  margin: 0;
+  margin: 0 0 60px;
   width: 100%;
   max-width: 800px;
   list-style-type: none;
 `;
 
 const Article = styled.li`
-  margin-bottom: 15px;
+  @media only screen and (min-width: 820px) {
+    margin: 20px 0 0;
+    border-radius: 4px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
 
-  @media only screen and (min-width: 800px) {
-    border: 1px solid #ccc;
+    > a > .gatsby-image-wrapper {
+      border-radius: 4px 4px 0 0;
+    }
   }
 `;

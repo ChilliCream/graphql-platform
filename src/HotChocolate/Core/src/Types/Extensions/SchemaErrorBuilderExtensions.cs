@@ -10,7 +10,7 @@ namespace HotChocolate
             string format,
             params object[] args)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }

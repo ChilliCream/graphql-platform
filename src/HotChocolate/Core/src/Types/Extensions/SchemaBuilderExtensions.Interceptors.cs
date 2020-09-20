@@ -1,8 +1,5 @@
 using System;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Properties;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -12,12 +9,24 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where T : ITypeInitializationInterceptor
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
             return builder.AddTypeInterceptor(typeof(T));
+        }
+
+        public static ISchemaBuilder TryAddTypeInterceptor<T>(
+            this ISchemaBuilder builder)
+            where T : ITypeInitializationInterceptor
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.TryAddTypeInterceptor(typeof(T));
         }
     }
 }

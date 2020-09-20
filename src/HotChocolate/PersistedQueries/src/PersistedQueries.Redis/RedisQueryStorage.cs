@@ -29,13 +29,9 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(string queryId) =>
-            TryReadQueryAsync(queryId, CancellationToken.None);
-
-        /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(
+        public Task<QueryDocument?> TryReadQueryAsync(
             string queryId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
@@ -45,24 +41,24 @@ namespace HotChocolate.PersistedQueries.FileSystem
             return TryReadQueryInternalAsync(queryId);
         }
 
-        private async Task<QueryDocument> TryReadQueryInternalAsync(
+        private async Task<QueryDocument?> TryReadQueryInternalAsync(
             string queryId)
         {
-            var buffer = (byte[])await _database.StringGetAsync(queryId)
-                .ConfigureAwait(false);
-            DocumentNode document = Utf8GraphQLParser.Parse(buffer);
-            return new QueryDocument(document);
-        }
+            var buffer = (byte[]?)await _database.StringGetAsync(queryId).ConfigureAwait(false);
 
-        /// <inheritdoc />
-        public Task WriteQueryAsync(string queryId, IQuery query) =>
-            WriteQueryAsync(queryId, query, CancellationToken.None);
+            if (buffer is null)
+            {
+                return null;
+            }
+
+            return new QueryDocument(Utf8GraphQLParser.Parse(buffer));
+        }
 
         /// <inheritdoc />
         public Task WriteQueryAsync(
             string queryId,
             IQuery query,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
@@ -74,9 +70,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(query));
             }
 
-            return _database.StringSetAsync(
-                queryId,
-                query.ToSpan().ToArray());
+            return _database.StringSetAsync(queryId, query.AsSpan().ToArray());
         }
     }
 }

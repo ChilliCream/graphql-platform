@@ -1,12 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Utilities.ErrorHelper;
 
 namespace HotChocolate.Types
 {
@@ -19,11 +18,11 @@ namespace HotChocolate.Types
         private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
-        internal DirectiveCollection(
+        public DirectiveCollection(
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
-            if (directiveDefinitions == null)
+            if (directiveDefinitions is null)
             {
                 throw new ArgumentNullException(nameof(directiveDefinitions));
             }
@@ -39,11 +38,9 @@ namespace HotChocolate.Types
 
         public bool Contains(NameString key) => _lookup.Contains(key);
 
-        #region Initialization
-
-        internal void CompleteCollection(ICompletionContext context)
+        public void CompleteCollection(ITypeCompletionContext context)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -66,53 +63,43 @@ namespace HotChocolate.Types
         }
 
         private bool TryCompleteDirective(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             DirectiveDefinition definition,
             ISet<string> processed,
             out Directive directive)
         {
-            DirectiveType directiveType = context.GetDirectiveType(definition.Reference);
-            directive = null;
-
-            if (directiveType != null)
+            if (!context.TryGetDirectiveType(definition.Reference, out DirectiveType directiveType))
             {
-                if (!processed.Add(directiveType.Name) && !directiveType.IsRepeatable)
-                {
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            TypeResources.DirectiveCollection_DirectiveIsUnique,
-                            directiveType.Name))
-                        .SetCode(ErrorCodes.Schema.MissingType)
-                        .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(definition.ParsedDirective)
-                        .SetExtension("Source", _source)
-                        .Build());
-                }
-                else if (directiveType.Locations.Contains(_location))
-                {
-                    directive = Directive.FromDescription(directiveType, definition, _source);
-                }
-                else
-                {
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            TypeResources.DirectiveCollection_LocationNotAllowed,
-                            directiveType.Name,
-                            _location))
-                        .SetCode(ErrorCodes.Schema.MissingType)
-                        .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(definition.ParsedDirective)
-                        .SetExtension("Source", _source)
-                        .Build());
-                }
+                directive = null;
+                return false;
             }
 
-            return directive != null;
+            if (!processed.Add(directiveType.Name) && !directiveType.IsRepeatable)
+            {
+                context.ReportError(
+                    DirectiveCollection_DirectiveIsUnique(
+                        directiveType, context.Type,
+                        definition.ParsedDirective, _source));
+                directive = null;
+                return false;
+            }
+            else if (directiveType.Locations.Contains(_location))
+            {
+                directive = Directive.FromDescription(directiveType, definition, _source);
+                return true;
+            }
+            else
+            {
+                context.ReportError(
+                    DirectiveCollection_LocationNotAllowed(
+                        directiveType, _location, context.Type,
+                        definition.ParsedDirective, _source));
+                directive = null;
+                return false;
+            }
         }
 
-        private void ValidateArguments(ICompletionContext context, Directive directive)
+        private void ValidateArguments(ITypeCompletionContext context, Directive directive)
         {
             Dictionary<string, ArgumentNode> arguments =
                 directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
@@ -124,34 +111,18 @@ namespace HotChocolate.Types
                 {
                     if (!arg.Type.IsInstanceOfType(argument.Value))
                     {
-                        // TODO : resources
-                        context.ReportError(SchemaErrorBuilder.New()
-                            .SetMessage(string.Format(
-                                CultureInfo.InvariantCulture,
-                                "The argument `{0}` value type is wrong.",
-                                arg.Name))
-                            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
-                            .SetTypeSystemObject(context.Type)
-                            .AddSyntaxNode(directive.ToNode())
-                            .SetExtension("Source", _source)
-                            .Build());
+                        context.ReportError(
+                            DirectiveCollection_ArgumentValueTypeIsWrong(
+                                directive.Type, context.Type, directive.ToNode(),
+                                _source, arg.Name));
                     }
                 }
                 else
                 {
-                    // TODO : resources
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "The argument `{0}` does not exist on the " +
-                            "directive `{1}`.",
-                            argument.Name.Value,
-                            directive.Type.Name))
-                        .SetCode(ErrorCodes.Schema.InvalidArgument)
-                        .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(directive.ToNode())
-                        .SetExtension("Source", _source)
-                        .Build());
+                    context.ReportError(
+                        DirectiveCollection_ArgumentDoesNotExist(
+                            directive.Type, context.Type, directive.ToNode(),
+                            _source, argument.Name.Value));
                 }
             }
 
@@ -161,25 +132,13 @@ namespace HotChocolate.Types
                 if (!arguments.TryGetValue(argument.Name, out ArgumentNode arg)
                     || arg.Value is NullValueNode)
                 {
-                    // TODO : resources
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            "The argument `{0}` of directive `{1}` " +
-                            "mustn't be null.",
-                            argument.Name.Value,
-                            directive.Type.Name))
-                        .SetCode(ErrorCodes.Schema.NonNullArgument)
-                        .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(directive.ToNode())
-                        .SetExtension("Source", _source)
-                        .Build());
+                    context.ReportError(
+                        DirectiveCollection_ArgumentNonNullViolation(
+                            directive.Type, context.Type, directive.ToNode(),
+                            _source, argument.Name));
                 }
             }
         }
-
-        #endregion
-
         public IEnumerator<IDirective> GetEnumerator()
         {
             return _directives.GetEnumerator();
@@ -191,7 +150,7 @@ namespace HotChocolate.Types
         }
 
         public static DirectiveCollection CreateAndComplete(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {

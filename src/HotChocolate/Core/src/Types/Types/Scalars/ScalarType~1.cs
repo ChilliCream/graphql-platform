@@ -9,7 +9,7 @@ namespace HotChocolate.Types
     /// GraphQL responses take the form of a hierarchical tree;
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
-    public abstract class ScalarType<TClrType>
+    public abstract class ScalarType<TRuntimeType>
         : ScalarType
     {
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -17,41 +17,41 @@ namespace HotChocolate.Types
         {
         }
 
-        public sealed override Type ClrType => typeof(TClrType);
+        public sealed override Type RuntimeType => typeof(TRuntimeType);
 
-        public override bool TrySerialize(object? value, out object? serialized)
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is TClrType)
+            if (runtimeValue is TRuntimeType)
             {
-                serialized = value;
+                resultValue = runtimeValue;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object? serialized, out object? value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is TClrType)
+            if (resultValue is TRuntimeType)
             {
-                value = serialized;
+                runtimeValue = resultValue;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

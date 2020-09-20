@@ -22,6 +22,8 @@ namespace HotChocolate.StarWars.Types
                 .UsePaging<CharacterType>()
                 .Name("friends");
 
+            descriptor.Field<SharedResolvers>(r => r.GetOtherHuman(default, default));
+
             descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default))
                 .Type<FloatType>()
                 .Argument("unit", a => a.Type<EnumType<Unit>>())

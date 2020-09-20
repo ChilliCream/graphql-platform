@@ -58,6 +58,12 @@ export const DocPageLegacy: FunctionComponent = () => {
 const Dialog = styled.div<{ show: boolean }>`
   display: ${({ show }) => (show ? "initial" : "none")};
   background-color: #ffb806;
+
+  @media only screen and (min-width: 820px) {
+    > .gatsby-image-wrapper {
+      border-radius: 4px 4px 0 0;
+    }
+  }
 `;
 
 const Container = styled.div`
@@ -65,7 +71,7 @@ const Container = styled.div`
   flex-direction: row;
   padding: 10px 20px;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     padding: 10px 50px;
   }
 `;

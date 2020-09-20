@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -10,24 +11,28 @@ namespace HotChocolate.Configuration
     public class TypeInitializationOrderTests
     {
         [Fact]
-        public void TypeDependencies_Are_Correctly_Copied_From_Extension_To_Type()
+        public void Merge_Type_Extensions_AB_KeepOrder()
         {
-            // the order should not make any difference (AB BA)
+            // the field order will change depending on the extension order.
             SchemaBuilder.New()
                 .AddQueryType(c => c.Name("Query"))
                 .AddType<QueryExtensionType_A>()
                 .AddType<QueryExtensionType_B>()
             .Create()
-            .ToString()
+            .Print()
             .MatchSnapshot();
+        }
 
+         [Fact]
+        public void Merge_Type_Extensions_BA_KeepOrder()
+        {
             SchemaBuilder.New()
                 .AddQueryType(c => c.Name("Query"))
                 .AddType<QueryExtensionType_B>()
                 .AddType<QueryExtensionType_A>()
             .Create()
-            .ToString()
-            .MatchSnapshot();
+            .Print()
+            .MatchSnapshot(new SnapshotNameExtension("BA"));
         }
 
         public class QueryExtensionType_A : ObjectTypeExtension
@@ -40,9 +45,10 @@ namespace HotChocolate.Configuration
                     .Resolver(
                         new Word[] { new Word { Value = "Hello" }, new Word { Value = "World" } })
                     .Extend()
-                    .OnBeforeCreate(d =>
+                    .OnBeforeCreate((c,d) =>
                     {
-                        var reference = new ClrTypeReference(typeof(Word), TypeContext.Output);
+                        ExtendedTypeReference reference =
+                            c.TypeInspector.GetTypeRef(typeof(Word), TypeContext.Output);
 
                         ILazyTypeConfiguration lazyConfiguration =
                             LazyTypeConfigurationBuilder

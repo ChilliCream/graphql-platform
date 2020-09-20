@@ -26,7 +26,7 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
                     Assert.Null(operationDefinition.Name);
                     Assert.Equal(OperationType.Query, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.VariableDefinitions);
@@ -37,18 +37,18 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet!.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FieldNode>(s2);
 
-                                    FieldNode field2 = (FieldNode)s2;
+                                    var field2 = (FieldNode)s2;
                                     Assert.Null(field2.Alias);
                                     Assert.Equal("y", field2.Name.Value);
                                     Assert.Empty(field2.Arguments);
@@ -80,8 +80,8 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
-                    Assert.Equal("a", operationDefinition.Name.Value);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal("a", operationDefinition.Name!.Value);
                     Assert.Equal(expectedOperation, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.Directives);
 
@@ -98,18 +98,18 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet!.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FieldNode>(s2);
 
-                                    FieldNode field2 = (FieldNode)s2;
+                                    var field2 = (FieldNode)s2;
                                     Assert.Null(field2.Alias);
                                     Assert.Equal("y", field2.Name.Value);
                                     Assert.Empty(field2.Arguments);
@@ -138,8 +138,8 @@ namespace HotChocolate.Language
                 {
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
-                    Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
-                    Assert.Equal("a", operationDefinition.Name.Value);
+                    Assert.Equal(SyntaxKind.OperationDefinition, operationDefinition.Kind);
+                    Assert.Equal("a", operationDefinition.Name!.Value);
                     Assert.Equal(OperationType.Query, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.VariableDefinitions);
                     Assert.Empty(operationDefinition.Directives);
@@ -149,18 +149,18 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet!.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FragmentSpreadNode>(s2);
 
-                                    FragmentSpreadNode spread = (FragmentSpreadNode)s2;
+                                    var spread = (FragmentSpreadNode)s2;
                                     Assert.Equal("y", spread.Name.Value);
                                     Assert.Empty(spread.Directives);
                                 });
@@ -441,7 +441,7 @@ namespace HotChocolate.Language
         public void LargeString()
         {
             // arrange
-            string s = new string('s', 2048);
+            var s = new string('s', 2048);
             byte[] sourceText = Encoding.UTF8.GetBytes(
                 "{ foo(bar: \"" + s + "\") }");
 
@@ -461,11 +461,11 @@ namespace HotChocolate.Language
         }
 
         [Fact]
-        public void RussionLiterals()
+        public void RussianLiterals()
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("russion-literals.graphql")
+                FileResource.Open("russian-literals.graphql")
                     .NormalizeLineBreaks());
 
             // act

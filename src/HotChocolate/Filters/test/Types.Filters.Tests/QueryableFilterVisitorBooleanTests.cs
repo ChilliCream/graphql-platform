@@ -13,7 +13,8 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(true)));
 
             FooFilterType fooType = CreateType(new FooFilterType());
@@ -22,17 +23,16 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { Bar = true };
+            var a = new Foo {Bar = true};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = false };
+            var b = new Foo {Bar = false};
             Assert.False(func(b));
         }
 
@@ -41,7 +41,8 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(false)));
 
             FooFilterType fooType = CreateType(new FooFilterType());
@@ -50,17 +51,16 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooType,
                 typeof(Foo),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<Foo, bool> func = filter.CreateOrAssert<Foo>().Compile();
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            var a = new Foo { Bar = false };
+            var a = new Foo {Bar = false};
             Assert.True(func(a));
 
-            var b = new Foo { Bar = true };
+            var b = new Foo {Bar = true};
             Assert.False(func(b));
         }
 
@@ -69,7 +69,8 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(true)));
 
             FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
@@ -78,20 +79,19 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooNullableType,
                 typeof(FooNullable),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
+            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { Bar = true };
+            var a = new FooNullable {Bar = true};
             Assert.True(func(a));
 
-            var b = new FooNullable { Bar = false };
+            var b = new FooNullable {Bar = false};
             Assert.False(func(b));
 
-            var c = new FooNullable { Bar = null };
+            var c = new FooNullable {Bar = null};
             Assert.False(func(c));
         }
 
@@ -100,7 +100,8 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             var value = new ObjectValueNode(
-                new ObjectFieldNode("bar",
+                new ObjectFieldNode(
+                    "bar",
                     new BooleanValueNode(false)));
 
             FooNullableFilterType fooNullableType = CreateType(new FooNullableFilterType());
@@ -109,20 +110,19 @@ namespace HotChocolate.Types.Filters
             var filter = new QueryableFilterVisitorContext(
                 fooNullableType,
                 typeof(FooNullable),
-                MockFilterConvention.Default.GetExpressionDefinition(),
-                TypeConversion.Default,
+                DefaultTypeConverter.Default,
                 true);
             QueryableFilterVisitor.Default.Visit(value, filter);
-            Func<FooNullable, bool> func = filter.CreateOrAssert<FooNullable>().Compile();
+            Func<FooNullable, bool> func = filter.CreateFilter<FooNullable>().Compile();
 
             // assert
-            var a = new FooNullable { Bar = false };
+            var a = new FooNullable {Bar = false};
             Assert.True(func(a));
 
-            var b = new FooNullable { Bar = true };
+            var b = new FooNullable {Bar = true};
             Assert.False(func(b));
 
-            var c = new FooNullable { Bar = null };
+            var c = new FooNullable {Bar = null};
             Assert.False(func(c));
         }
 
@@ -143,7 +143,9 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
 
@@ -154,7 +156,9 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<FooNullable> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .AllowEquals().And().AllowNotEquals();
+                    .AllowEquals()
+                    .And()
+                    .AllowNotEquals();
             }
         }
     }

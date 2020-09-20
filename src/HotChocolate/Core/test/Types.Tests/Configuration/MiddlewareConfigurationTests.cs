@@ -20,23 +20,23 @@ namespace HotChocolate.Types.Configuration
                         next => context =>
                         {
                             context.Result = "123";
-                            return Task.CompletedTask;
+                            return default(ValueTask);
                         })
                     .Map(
                         new FieldReference("Query", "b"),
                         next => context =>
                         {
                             context.Result = "456";
-                            return Task.CompletedTask;
+                            return default(ValueTask);
                         }));
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -52,16 +52,16 @@ namespace HotChocolate.Types.Configuration
                         next => context =>
                         {
                             context.Result = "456";
-                            return Task.CompletedTask;
+                            return default(ValueTask);
                         }));
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -78,16 +78,16 @@ namespace HotChocolate.Types.Configuration
                         next => context =>
                         {
                             context.Result = "456";
-                            return Task.CompletedTask;
+                            return default(ValueTask);
                         }));
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class TestFieldMiddleware
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Configuration
                 _next = next ?? throw new ArgumentNullException(nameof(next));
             }
 
-            public Task InvokeAsync(IMiddlewareContext context)
+            public ValueTask InvokeAsync(IMiddlewareContext context)
             {
                 context.Result = "123456789";
                 return _next(context);

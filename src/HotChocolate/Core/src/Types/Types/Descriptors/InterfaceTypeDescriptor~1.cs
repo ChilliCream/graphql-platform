@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     public class InterfaceTypeDescriptor<T>
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         protected internal InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -21,7 +21,14 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        protected internal InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context, definition)
+        {
+        }
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, InterfaceFieldDefinition> fields,
@@ -107,7 +114,7 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }

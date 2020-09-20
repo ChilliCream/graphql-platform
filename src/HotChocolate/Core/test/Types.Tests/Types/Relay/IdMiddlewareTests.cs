@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,22 +14,20 @@ namespace HotChocolate.Types.Relay
             var schema = Schema.Create(t =>
             {
                 t.RegisterQueryType<SomeQuery>();
-                t.UseGlobalObjectIdentifier();
             });
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result =
-                await executor.ExecuteAsync("{ id string }");
+            IExecutionResult result = await executor.ExecuteAsync("{ id string }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         public class SomeQuery
         {
-            [GraphQLType(typeof(NonNullType<IdType>))]
+            [ID]
             public string GetId() => "Hello";
 
             public string GetString() => "Hello";

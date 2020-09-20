@@ -151,7 +151,7 @@ namespace HotChocolate.Validation.Rules
             DirectiveNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
             {
                 context.Directives.Push(d);
                 return Continue;
@@ -245,8 +245,8 @@ namespace HotChocolate.Validation.Rules
 
             IValueNode? defaultValue = parent.Kind switch
             {
-                NodeKind.Argument => context.InputFields.Peek().DefaultValue,
-                NodeKind.ObjectField => context.InputFields.Peek().DefaultValue,
+                SyntaxKind.Argument => context.InputFields.Peek().DefaultValue,
+                SyntaxKind.ObjectField => context.InputFields.Peek().DefaultValue,
                 _ => null
             };
 

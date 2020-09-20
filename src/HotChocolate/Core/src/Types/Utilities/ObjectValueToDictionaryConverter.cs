@@ -10,7 +10,7 @@ namespace HotChocolate.Utilities
     {
         public Dictionary<string, object> Convert(ObjectValueNode objectValue)
         {
-            if (objectValue == null)
+            if (objectValue is null)
             {
                 throw new ArgumentNullException(nameof(objectValue));
             }
@@ -24,7 +24,7 @@ namespace HotChocolate.Utilities
 
         public List<object> Convert(ListValueNode listValue)
         {
-            if (listValue == null)
+            if (listValue is null)
             {
                 throw new ArgumentNullException(nameof(listValue));
             }

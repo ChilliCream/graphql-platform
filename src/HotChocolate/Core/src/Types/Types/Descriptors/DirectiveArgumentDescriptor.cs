@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<DirectiveArgumentDefinition>
         , IDirectiveArgumentDescriptor
     {
-        public DirectiveArgumentDescriptor(
+        protected internal DirectiveArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName)
             : base(context)
@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = argumentName;
         }
 
-        public DirectiveArgumentDescriptor(
+        protected internal DirectiveArgumentDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
@@ -26,20 +26,28 @@ namespace HotChocolate.Types.Descriptors
                 property, MemberKind.DirectiveArgument);
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.DirectiveArgument);
-            Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Type = context.TypeInspector.GetInputReturnTypeRef(property);
             Definition.Property = property;
 
-            if (context.Inspector.TryGetDefaultValue(property, out object defaultValue))
+            if (context.TypeInspector.TryGetDefaultValue(property, out object defaultValue))
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
+        }
+
+        protected internal DirectiveArgumentDescriptor(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         protected override void OnCreateDefinition(DirectiveArgumentDefinition definition)
         {
             if (Definition.Property is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Property);
@@ -125,5 +133,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             PropertyInfo property) =>
             new DirectiveArgumentDescriptor(context, property);
+
+        public static DirectiveArgumentDescriptor From(
+            IDescriptorContext context,
+            DirectiveArgumentDefinition definition) =>
+            new DirectiveArgumentDescriptor(context, definition);
     }
 }

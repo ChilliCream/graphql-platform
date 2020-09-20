@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -16,19 +15,17 @@ namespace HotChocolate.Types.Filters
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
-            Type type,
-            IFilterConvention filterConventions)
-            : base(FilterKind.Object, context, property, filterConventions)
+            Type type)
+            : base(context, property)
         {
             _type = type;
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Object
+            };
         }
 
-        /// <inheritdoc/>
-        public new IObjectFilterFieldDescriptor Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IObjectFilterFieldDescriptor BindFilters(
@@ -56,28 +53,26 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 _type,
-                Definition.Kind,
                 operationKind,
                 Definition.Property);
+
+            ExtendedTypeReference typeRef = Context.TypeInspector.GetTypeRef(
+                typeof(FilterInputType<>).MakeGenericType(_type),
+                Definition.Type.Context);
 
             return ObjectFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(
-                    typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true),
-                operation,
-                FilterConvention);
+                typeRef,
+                operation);
         }
 
         private ObjectFilterOperationDescriptor GetOrCreateOperation(
             FilterOperationKind operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
-                () => CreateOperation(operationKind));
+                    () => CreateOperation(operationKind));
         }
 
         public IObjectFilterOperationDescriptor AllowObject()
@@ -87,5 +82,6 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+
     }
 }

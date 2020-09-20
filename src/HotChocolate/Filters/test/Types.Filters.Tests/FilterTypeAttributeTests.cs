@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using HotChocolate.Types.Descriptors;
 using Xunit;
 
@@ -97,7 +94,7 @@ namespace HotChocolate.Types.Filters
         {
             public static string TypeName { get; } = "ThisIsATest";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)
@@ -116,7 +113,7 @@ namespace HotChocolate.Types.Filters
             public static string ComparableField { get; } = "ComparableField";
             public static string BooleanField { get; } = "BooleanField";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)

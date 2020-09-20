@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Filters
 
         /// <summary>
         /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
-        /// that can be accessed via introspection.
+        /// that can be accessd via introspection.
         /// </summary>
         /// <param name="value">The filter type description.</param>
         ///

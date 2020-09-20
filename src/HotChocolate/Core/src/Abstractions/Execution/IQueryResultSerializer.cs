@@ -2,14 +2,14 @@
 using System.IO;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     public interface IQueryResultSerializer
     {
-        string ContentType { get; }
-
         Task SerializeAsync(
-            IReadOnlyQueryResult result,
+            IQueryResult result,
             Stream stream,
             CancellationToken cancellationToken = default);
     }

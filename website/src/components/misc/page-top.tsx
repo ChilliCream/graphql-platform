@@ -1,10 +1,6 @@
-import React, {
-  createRef,
-  FunctionComponent,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createRef, FunctionComponent, useCallback } from "react";
 import styled from "styled-components";
+import { useScroll } from "./useScroll";
 
 import ArrowUpIconSvg from "../../images/arrow-up.svg";
 
@@ -15,19 +11,8 @@ export const PageTop: FunctionComponent = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  useEffect(() => {
-    const handler = () => {
-      const top = document.body.scrollTop || document.documentElement.scrollTop;
-
-      ref.current!.style.display = top > 60 ? "initial" : "none";
-    };
-
-    handler();
-    document.addEventListener("scroll", handler);
-
-    return () => {
-      document.removeEventListener("scroll", handler);
-    };
+  useScroll((top) => {
+    ref.current!.style.display = top > 60 ? "initial" : "none";
   });
 
   return (
@@ -62,6 +47,6 @@ const JumpToTop = styled.button`
   }
 
   @media only screen and (min-width: 1600px) {
-    right: calc(((100vw - 1300px) / 2) - 100px);
+    right: calc(((100vw - 1320px) / 2) - 100px);
   }
 `;

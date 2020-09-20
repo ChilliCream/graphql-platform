@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -95,7 +95,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(
@@ -125,7 +125,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<QueryType>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Filters
                     )
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ list(where: { fooNested: { bar: \"a\" } }) { fooNested { bar } } }")
@@ -187,7 +187,7 @@ namespace HotChocolate.Types.Filters
                     )
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ list(where: { fooNested: {bar: \"a\"} }) { fooNested { bar } } }")
@@ -208,7 +208,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -226,7 +226,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -244,7 +244,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -262,7 +262,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -280,7 +280,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -298,7 +298,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -316,7 +316,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -334,7 +334,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -353,7 +353,7 @@ namespace HotChocolate.Types.Filters
                 .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
@@ -375,7 +375,7 @@ namespace HotChocolate.Types.Filters
                     .UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) { foo } }")
@@ -399,7 +399,7 @@ namespace HotChocolate.Types.Filters
                     .UseFiltering())
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery(

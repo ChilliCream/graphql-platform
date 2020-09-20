@@ -1,0 +1,16 @@
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}

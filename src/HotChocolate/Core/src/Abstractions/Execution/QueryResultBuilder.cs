@@ -5,17 +5,20 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Execution
 {
-    public class QueryResultBuilder
-        : IQueryResultBuilder
+    public class QueryResultBuilder : IQueryResultBuilder
     {
         private IReadOnlyDictionary<string, object?>? _data;
         private List<IError>? _errors;
         private ExtensionData? _extensionData;
         private ExtensionData? _contextData;
+        private IDisposable? _disposable;
 
-        public IQueryResultBuilder SetData(IReadOnlyDictionary<string, object?>? data)
+        public IQueryResultBuilder SetData(
+            IReadOnlyDictionary<string, object?>? data,
+            IDisposable? disposable = null)
         {
             _data = data;
+            _disposable = disposable;
             return this;
         }
 
@@ -129,18 +132,19 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IReadOnlyQueryResult Create()
+        public IQueryResult Create()
         {
-            return new ReadOnlyQueryResult(
+            return new QueryResult(
                 _data,
                 _errors is { } && _errors.Count > 0 ? _errors : null,
                 _extensionData is { } && _extensionData.Count > 0 ? _extensionData : null,
-                _contextData is { } && _contextData.Count > 0 ? _contextData : null);
+                _contextData is { } && _contextData.Count > 0 ? _contextData : null,
+                _disposable);
         }
 
         public static QueryResultBuilder New() => new QueryResultBuilder();
 
-        public static QueryResultBuilder FromResult(IReadOnlyQueryResult result)
+        public static QueryResultBuilder FromResult(IQueryResult result)
         {
             var builder = new QueryResultBuilder();
             builder._data = result.Data;
@@ -162,10 +166,14 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IReadOnlyQueryResult CreateError(IError error) =>
-            new ReadOnlyQueryResult(null, new List<IError> { error }, null, null);
+        public static IQueryResult CreateError(
+            IError error,
+            IReadOnlyDictionary<string, object?>? contextData = null) =>
+            new QueryResult(null, new List<IError> { error }, contextData: contextData);
 
-        public static IReadOnlyQueryResult CreateError(IEnumerable<IError> errors) =>
-            new ReadOnlyQueryResult(null, new List<IError>(errors), null, null);
+        public static IQueryResult CreateError(
+            IReadOnlyList<IError> errors,
+            IReadOnlyDictionary<string, object?>? contextData = null) =>
+            new QueryResult(null, errors, contextData: contextData);
     }
 }

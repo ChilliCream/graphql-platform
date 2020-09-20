@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using Xunit;
 
@@ -5,366 +6,586 @@ namespace HotChocolate.Types.Descriptors
 {
     public class SyntaxTypeReferenceTests
     {
-        [InlineData("abc", TypeContext.Input, false, null)]
-        [InlineData("abc", TypeContext.Input, null, false)]
-        [InlineData("abc", TypeContext.Input, true, false)]
-        [InlineData("abc", TypeContext.None, true, false)]
-        [InlineData("abc", TypeContext.Output, true, false)]
-        [InlineData("abc", TypeContext.Output, false, true)]
-        [InlineData("abc", TypeContext.Output, null, true)]
-        [InlineData("abc", TypeContext.Output, true, null)]
-        [InlineData("abc", TypeContext.Output, null, null)]
-        [Theory]
-        public void SyntaxTypeReference_CreateInstance(
-            string typeName,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
+        [Fact]
+        public void TypeReference_Create()
         {
             // arrange
-            // act
-            var typeReference = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // assert
-            Assert.Equal(typeName, typeReference.Type.ToString());
-            Assert.Equal(context, typeReference.Context);
-            Assert.Equal(isTypeNullable, typeReference.IsTypeNullable);
-            Assert.Equal(isElementTypeNullable,
-                typeReference.IsElementTypeNullable);
-        }
-
-        [InlineData("def", TypeContext.Input, false, null)]
-        [InlineData("abc", TypeContext.Input, null, false)]
-        [InlineData("abc", TypeContext.Input, true, false)]
-        [InlineData("abc", TypeContext.None, true, false)]
-        [InlineData("abc", TypeContext.Output, true, false)]
-        [InlineData("abc", TypeContext.Output, false, true)]
-        [InlineData("abc", TypeContext.Output, null, true)]
-        [InlineData("abc", TypeContext.Output, true, null)]
-        [InlineData("abc", TypeContext.Output, null, null)]
-        [Theory]
-        public void SyntaxTypeReference_Equals_True(
-            string typeName,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            var y = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
+            var namedType = new NamedTypeNode("Foo");
 
             // act
-            bool result = x.Equals(y);
+            SyntaxTypeReference typeReference = TypeReference.Create(
+                namedType,
+                TypeContext.Input,
+                scope: "foo");
 
             // assert
-            Assert.True(result);
-        }
-
-        [InlineData("def", TypeContext.Input, false, null)]
-        [InlineData("abc", TypeContext.Input, null, false)]
-        [InlineData("abc", TypeContext.Input, true, false)]
-        [InlineData("abc", TypeContext.None, true, false)]
-        [InlineData("abc", TypeContext.Output, true, false)]
-        [InlineData("abc", TypeContext.Output, false, true)]
-        [InlineData("abc", TypeContext.Output, null, true)]
-        [InlineData("abc", TypeContext.Output, true, null)]
-        [InlineData("abc", TypeContext.Output, null, null)]
-        [Theory]
-        public void ISyntaxTypeReference_Equals_True(
-            string typeName,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            ISyntaxTypeReference y = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
-        }
-
-        [InlineData("def", TypeContext.Input, false, null)]
-        [InlineData("abc", TypeContext.Input, null, false)]
-        [InlineData("abc", TypeContext.Input, true, false)]
-        [InlineData("abc", TypeContext.None, true, false)]
-        [InlineData("abc", TypeContext.Output, true, false)]
-        [InlineData("abc", TypeContext.Output, false, true)]
-        [InlineData("abc", TypeContext.Output, null, true)]
-        [InlineData("abc", TypeContext.Output, true, null)]
-        [InlineData("abc", TypeContext.Output, null, null)]
-        [Theory]
-        public void Object_Equals_True(
-            string typeName,
-            TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            object y = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            bool result = x.Equals(y);
-
-            // assert
-            Assert.True(result);
+            Assert.Equal(namedType, typeReference.Type);
+            Assert.Equal(TypeContext.Input, typeReference.Context);
+            Assert.Equal("foo", typeReference.Scope);
         }
 
         [Fact]
-        public void SyntaxTypeReference_Equals_False()
+        public void TypeReference_Create_With_Name()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
+            // act
+            SyntaxTypeReference typeReference = TypeReference.Create(
+                "Foo",
                 TypeContext.Input,
-                true,
-                false);
+                scope: "foo");
 
-            var y = new SyntaxTypeReference(
-                new NamedTypeNode("cde"),
-                TypeContext.Input,
-                true,
-                false);
+            // assert
+            Assert.Equal("Foo", typeReference.Type.NamedType().Name.Value);
+            Assert.Equal(TypeContext.Input, typeReference.Context);
+            Assert.Equal("foo", typeReference.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_Equals_To_Null()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
 
             // act
-            bool result = x.Equals(y);
+            var result = x.Equals((SyntaxTypeReference)null);
 
             // assert
             Assert.False(result);
         }
 
         [Fact]
-        public void ISyntaxTypeReference_Equals_False()
+        public void SyntaxTypeReference_Equals_To_Same()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
-
-            ISyntaxTypeReference y = new SyntaxTypeReference(
-                new NamedTypeNode("cde"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
 
             // act
-            bool result = x.Equals(y);
+            var xx = x.Equals((SyntaxTypeReference)x);
+
+            // assert
+            Assert.True(xx);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_Equals_Context_None_Does_Not_Matter()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output);
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals(y);
+            var xz = x.Equals(z);
+            var yz = y.Equals(z);
+
+            // assert
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_Equals_Scope_Different()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None,
+                scope: "a");
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output,
+                scope: "a");
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals(y);
+            var xz = x.Equals(z);
+            var yz = y.Equals(z);
+
+            // assert
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_To_Null()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            // act
+            var result = x.Equals((ITypeReference)null);
 
             // assert
             Assert.False(result);
         }
 
         [Fact]
-        public void Object_Equals_False()
+        public void ITypeReference_Equals_To_Same()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
-
-            object y = new SyntaxTypeReference(
-                new NamedTypeNode("cde"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
 
             // act
-            bool result = x.Equals(y);
+            var xx = x.Equals((ITypeReference)x);
+
+            // assert
+            Assert.True(xx);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_To_SyntaxTypeRef()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            // act
+            var xx = x.Equals(TypeReference.Create(_typeInspector.GetType(typeof(int))));
+
+            // assert
+            Assert.False(xx);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_Context_None_Does_Not_Matter()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output);
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals((ITypeReference)y);
+            var xz = x.Equals((ITypeReference)z);
+            var yz = y.Equals((ITypeReference)z);
+
+            // assert
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void ITypeReference_Equals_Scope_Different()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None,
+                scope: "a");
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output,
+                scope: "a");
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
+
+            // act
+            var xy = x.Equals((ITypeReference)y);
+            var xz = x.Equals((ITypeReference)z);
+            var yz = y.Equals((ITypeReference)z);
+
+            // assert
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
+        }
+
+        [Fact]
+        public void Object_Equals_To_Null()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            // act
+            var result = x.Equals((object)null);
 
             // assert
             Assert.False(result);
         }
 
         [Fact]
-        public void SyntaxTypeReference_RefEquals_True()
+        public void Object_Equals_To_Same()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
 
             // act
-            bool result = x.Equals(x);
+            var xx = x.Equals((object)x);
 
             // assert
-            Assert.True(result);
+            Assert.True(xx);
         }
 
         [Fact]
-        public void ISyntaxTypeReference_RefEquals_True()
+        public void Object_Equals_To_Object()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
 
             // act
-            bool result = x.Equals((ISyntaxTypeReference)x);
+            var xx = x.Equals(new object());
 
             // assert
-            Assert.True(result);
+            Assert.False(xx);
         }
 
         [Fact]
-        public void Object_RefEquals_True()
+        public void Object_Equals_Context_None_Does_Not_Matter()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None);
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output);
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
 
             // act
-            bool result = x.Equals((object)x);
+            var xy = x.Equals((object)y);
+            var xz = x.Equals((object)z);
+            var yz = y.Equals((object)z);
 
             // assert
-            Assert.True(result);
+            Assert.True(xy);
+            Assert.True(xz);
+            Assert.False(yz);
         }
 
         [Fact]
-        public void SyntaxTypeReference_NullEquals_False()
+        public void Object_Equals_Scope_Different()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None,
+                scope: "a");
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.Output,
+                scope: "a");
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
 
             // act
-            bool result = x.Equals((SyntaxTypeReference)null);
+            var xy = x.Equals((object)y);
+            var xz = x.Equals((object)z);
+            var yz = y.Equals((object)z);
 
             // assert
-            Assert.False(result);
+            Assert.True(xy);
+            Assert.False(xz);
+            Assert.False(yz);
         }
 
         [Fact]
-        public void ISyntaxTypeReference_NullEquals_False()
+        public void SyntaxTypeReference_ToString()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
+            SyntaxTypeReference typeReference = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
 
             // act
-            bool result = x.Equals((ISyntaxTypeReference)null);
+            var result = typeReference.ToString();
 
             // assert
-            Assert.False(result);
+            Assert.Equal("Input: Foo", result);
         }
 
         [Fact]
-        public void Object_NullEquals_False()
+        public void SyntaxTypeReference_WithType()
         {
             // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
                 TypeContext.Input,
-                true,
-                false);
+                scope: "foo");
 
             // act
-            bool result = x.Equals((object)null);
+            SyntaxTypeReference typeReference2 = typeReference1.WithType(new NamedTypeNode("Bar"));
 
             // assert
-            Assert.False(result);
+            Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
         }
-
-        [InlineData("abc", TypeContext.Input, false, null)]
-        [InlineData("abc", TypeContext.Input, null, false)]
-        [InlineData("abc", TypeContext.Output, true, false)]
-        [InlineData("abc", TypeContext.None, true, false)]
-        [InlineData("def", TypeContext.Input, true, false)]
-        [Theory]
-        public void SyntaxTypeReference_GetHashCode_NotEquals(
-           string typeName,
-           TypeContext context,
-           bool? isTypeNullable,
-           bool? isElementTypeNullable)
-        {
-            // arrange
-            var x = new SyntaxTypeReference(
-                new NamedTypeNode("abc"),
-                TypeContext.Input,
-                true,
-                false);
-
-            var y = new SyntaxTypeReference(
-                new NamedTypeNode(typeName),
-                context,
-                isTypeNullable,
-                isElementTypeNullable);
-
-            // act
-            int xhash = x.GetHashCode();
-            int yhash = y.GetHashCode();
-
-            // assert
-            Assert.NotEqual(xhash, yhash);
-        }
-
 
         [Fact]
-        public void ClrTypeReference_ToString()
+        public void SyntaxTypeReference_WithType_Null()
         {
             // arrange
-            var typeReference = new SyntaxTypeReference(
-               new NonNullTypeNode(new NamedTypeNode("abc")),
-               TypeContext.Input,
-               true,
-               false);
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
 
             // act
-            string result = typeReference.ToString();
+            Action action = () => typeReference1.WithType(null!);
 
             // assert
-            Assert.Equal("Input: abc!", result);
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_WithContext()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.WithContext(TypeContext.Output);
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.Output, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_WithContext_Nothing()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.WithContext();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.None, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_WithScope()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.WithScope("bar");
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_WithScope_Nothing()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.WithScope();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Null(typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.With(
+                new NamedTypeNode("Bar"),
+                TypeContext.Output,
+                scope: "bar");
+
+            // assert
+            Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
+            Assert.Equal(TypeContext.Output, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With_Nothing()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.With();
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With_Type()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.With(new NamedTypeNode("Bar"));
+
+            // assert
+            Assert.Equal("Bar", Assert.IsType<NamedTypeNode>(typeReference2.Type).Name.Value);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With_Type_Null()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            Action action = () => typeReference1.With(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With_Context()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.With(context: TypeContext.None);
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(TypeContext.None, typeReference2.Context);
+            Assert.Equal(typeReference1.Scope, typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_With_Scope()
+        {
+            // arrange
+            SyntaxTypeReference typeReference1 = TypeReference.Create(
+                "Foo",
+                TypeContext.Input,
+                scope: "foo");
+
+            // act
+            SyntaxTypeReference typeReference2 = typeReference1.With(scope: "bar");
+
+            // assert
+            Assert.Equal(typeReference1.Type, typeReference2.Type);
+            Assert.Equal(typeReference1.Context, typeReference2.Context);
+            Assert.Equal("bar", typeReference2.Scope);
+        }
+
+        [Fact]
+        public void SyntaxTypeReference_GetHashCode()
+        {
+            // arrange
+            SyntaxTypeReference x = TypeReference.Create(
+                "Foo",
+                TypeContext.None,
+                scope: "foo");
+
+            SyntaxTypeReference y = TypeReference.Create(
+                "Foo",
+                TypeContext.None,
+                scope: "foo");
+
+            SyntaxTypeReference z = TypeReference.Create(
+                "Foo",
+                TypeContext.Input);
+
+            // act
+            var xh = x.GetHashCode();
+            var yh = y.GetHashCode();
+            var zh = z.GetHashCode();
+
+            // assert
+            Assert.Equal(xh, yh);
+            Assert.NotEqual(xh, zh);
         }
     }
 }

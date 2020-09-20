@@ -1,11 +1,10 @@
 <Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../../'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Nullable.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1; netstandard2.1; netstandard2.0</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
-    <!--Nullable>enable</Nullable-->
-    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+    <NoWarn>$(NoWarn);CA1812</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

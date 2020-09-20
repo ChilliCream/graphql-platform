@@ -20,24 +20,24 @@ namespace HotChocolate.Types.Filters
         public FilterInputType(
             Action<IFilterInputTypeDescriptor<T>> configure)
         {
-            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
 
         public Type EntityType { get; private set; } = typeof(object);
 
         protected override InputObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
-                typeof(T),
-                context.DescriptorContext.GetFilterConvention());
+                typeof(T));
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -64,12 +64,12 @@ namespace HotChocolate.Types.Filters
         }
 
         protected override void OnCompleteFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {
-            fields.Add(new AndField(context.DescriptorContext, this));
-            fields.Add(new OrField(context.DescriptorContext, this));
+            fields.Add(new AndField(context.DescriptorContext));
+            fields.Add(new OrField(context.DescriptorContext));
 
             foreach (FilterOperationDefintion fieldDefinition in
                 definition.Fields.OfType<FilterOperationDefintion>())
@@ -78,6 +78,7 @@ namespace HotChocolate.Types.Filters
             }
         }
 
+
         // we are disabling the default configure method so
         // that this does not lead to confusion.
         protected sealed override void Configure(
@@ -85,5 +86,6 @@ namespace HotChocolate.Types.Filters
         {
             throw new NotSupportedException();
         }
+
     }
 }

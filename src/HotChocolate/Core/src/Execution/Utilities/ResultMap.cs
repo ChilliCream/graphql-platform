@@ -1,15 +1,21 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public sealed class ResultMap : IResultMap, IReadOnlyDictionary<string, object?>
+    public sealed class ResultMap
+        : IResultMap
+        , IReadOnlyDictionary<string, object?>
+        , IHasResultDataParent
     {
         private static readonly ResultValue[] _empty = new ResultValue[0];
         private ResultValue[] _buffer;
         private int _capacity;
-        private bool _needsDefrag = false;
+        private bool _needsDefrag;
 
         public ResultMap()
         {
@@ -17,6 +23,8 @@ namespace HotChocolate.Execution
         }
 
         public IResultData? Parent { get; set; }
+
+        IResultData? IHasResultDataParent.Parent { get => Parent; set => Parent = value; }
 
         public ResultValue this[int index] { get => _buffer[index]; }
 
@@ -26,17 +34,12 @@ namespace HotChocolate.Execution
         {
             get
             {
-                for (var i = 0; i < _capacity; i++)
+                ResultValue value = GetValue(key, out int index);
+                if (index == -1)
                 {
-                    ResultValue value = _buffer[i];
-
-                    if (value.HasValue && value.Name.Equals(key, StringComparison.Ordinal))
-                    {
-                        return value.Value;
-                    }
+                    throw new KeyNotFoundException(key);
                 }
-
-                throw new KeyNotFoundException(key);
+                return value.Value;
             }
         }
 
@@ -72,7 +75,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        public void SetValue(int index, string name, object value)
+        public void SetValue(int index, string name, object? value, bool isNullable = true)
         {
             if (index >= _capacity)
             {
@@ -84,12 +87,71 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (value is null)
+            _buffer[index] = new ResultValue(name, value, isNullable);
+        }
+
+        public ResultValue GetValue(string name, out int index)
+        {
+            if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentNullException(nameof(value));
+                throw new ArgumentNullException(nameof(name));
             }
 
-            _buffer[index] = new ResultValue(name, value);
+            IntPtr i = (IntPtr)0;
+            int length = _capacity;
+            ref ResultValue searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
+
+            while (length >= 8)
+            {
+                length -= 8;
+
+                if (name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 0).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 1).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 2).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 3).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 4).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 5).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 6).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 7).Name))
+                {
+                    index = i.ToInt32();
+                    return _buffer[index];
+                }
+
+                i += 1;
+            }
+
+            if (length >= 4)
+            {
+                length -= 4;
+
+                if (name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 0).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 1).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 2).Name) ||
+                    name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i += 3).Name))
+                {
+                    index = i.ToInt32();
+                    return _buffer[index];
+                }
+
+                i += 4;
+            }
+
+            while (length > 0)
+            {
+                length -= 1;
+
+                if (name.EqualsOrdinal(Unsafe.Add(ref searchSpace, i).Name))
+                {
+                    index = i.ToInt32();
+                    return _buffer[index];
+                }
+
+                i += 1;
+            }
+
+            index = -1;
+            return default;
         }
 
         public void RemoveValue(int index)
@@ -142,22 +204,22 @@ namespace HotChocolate.Execution
             _needsDefrag = false;
         }
 
-        public void EnsureCapacity(int min)
+        public void EnsureCapacity(int capacity)
         {
-            if (_buffer.Length < min)
+            if (_buffer.Length < capacity)
             {
                 var newCapacity = _buffer.Length == 0 ? 4 : _buffer.Length * 2;
-                if (newCapacity < min)
+                if (newCapacity < capacity)
                 {
-                    newCapacity = min;
+                    newCapacity = capacity;
                 }
                 _buffer = new ResultValue[newCapacity];
             }
-            _capacity = min;
+            _capacity = capacity;
             _needsDefrag = false;
         }
 
-        public void Clear()
+        public void Reset()
         {
             for (var i = 0; i < _capacity; i++)
             {
@@ -226,5 +288,10 @@ namespace HotChocolate.Execution
                 }
             }
         }
+    }
+
+    internal interface IHasResultDataParent
+    {
+        IResultData? Parent { get; set; }
     }
 }

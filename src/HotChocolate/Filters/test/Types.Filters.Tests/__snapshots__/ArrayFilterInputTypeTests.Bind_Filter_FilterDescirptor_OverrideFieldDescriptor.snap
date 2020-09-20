@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
 }
 
@@ -7,19 +7,19 @@ type Query {
 }
 
 input FooSimpleFilter {
-  all: ISingleFilterOfBooleanFilter
   AND: [FooSimpleFilter!]
-  any: Boolean
-  none: ISingleFilterOfBooleanFilter
   OR: [FooSimpleFilter!]
+  all: ISingleFilterOfBooleanFilter
+  none: ISingleFilterOfBooleanFilter
   some: ISingleFilterOfBooleanFilter
+  any: Boolean
 }
 
 input ISingleFilterOfBooleanFilter {
   AND: [ISingleFilterOfBooleanFilter!]
+  OR: [ISingleFilterOfBooleanFilter!]
   element: Boolean
   element_not: Boolean
-  OR: [ISingleFilterOfBooleanFilter!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

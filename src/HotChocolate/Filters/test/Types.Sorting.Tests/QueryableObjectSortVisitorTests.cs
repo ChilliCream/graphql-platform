@@ -45,8 +45,11 @@ namespace HotChocolate.Types.Sorting
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
-                        new ObjectFieldNode("baz", 
-                            new EnumValueNode(SortOperationKind.Asc)))));
+                        new ObjectFieldNode("baz",
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -78,7 +81,10 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Asc)))));
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -110,7 +116,10 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Asc)))));
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -142,7 +151,10 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Asc)))));
+                    new EnumValueNode(SortOperationKind.Asc)
+                    )
+                )
+            ));
 
             FooSortType sortType = CreateType(new FooSortType());
 
@@ -174,7 +186,10 @@ namespace HotChocolate.Types.Sorting
                 new ObjectFieldNode("bar",
                     new ObjectValueNode(
                         new ObjectFieldNode("baz",
-                            new EnumValueNode(SortOperationKind.Desc)))));
+                    new EnumValueNode(SortOperationKind.Desc)
+                    )
+                )
+            ));
 
             FooSortType sortType = CreateType(new FooSortType());
 

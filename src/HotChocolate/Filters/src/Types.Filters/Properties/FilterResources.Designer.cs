@@ -70,15 +70,6 @@ namespace HotChocolate.Types.Filters.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No operation name for {0} in filter type {1} found. Add operation name to filter conventions..
-        /// </summary>
-        internal static string FilterConvention_NoOperationNameFound {
-            get {
-                return ResourceManager.GetString("FilterConvention_NoOperationNameFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The operation descriptor type {0} does not match the requested type {1}..
         /// </summary>
         internal static string FilterFieldOperationDescriptor_InvalidDescriptorType {

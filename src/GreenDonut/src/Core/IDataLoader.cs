@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 namespace GreenDonut
 {
-    #region IDataLoader
-
     /// <summary>
     /// A <c>DataLoader</c> creates a public API for loading data from a
     /// particular data back-end with unique keys such as the `id` column of a
@@ -21,40 +19,13 @@ namespace GreenDonut
     public interface IDataLoader
     {
         /// <summary>
-        /// Raises when an incoming data request is added to the buffer. Will
-        /// never be raised if batching is disabled.
-        /// </summary>
-        event RequestBufferedEventHandler RequestBuffered;
-
-        /// <summary>
-        /// Gets the current count of buffered data requests waiting for being
-        /// dispatched as batches. Will always return <c>0</c> if batching is
-        /// disabled.
-        /// </summary>
-        int BufferedRequests { get; }
-
-        /// <summary>
-        /// Gets the current count of cached values. Will always return
-        /// <c>0</c> if caching is disabled.
-        /// </summary>
-        int CachedValues { get; }
-
-        /// <summary>
         /// Empties the complete cache.
         /// </summary>
         void Clear();
 
         /// <summary>
-        /// Dispatches one or more batch requests. In case of auto dispatching
-        /// we just trigger an implicit dispatch which could mean to interrupt
-        /// a wait delay. Whereas in a manual dispatch scenario it could mean
-        /// to dispatch explicitly.
-        /// </summary>
-        Task DispatchAsync(CancellationToken cancellationToken);
-
-        /// <summary>
         /// Loads a single value by key. This call may return a cached value
-        /// or enqueues this single request for bacthing if enabled.
+        /// or enqueues this single request for batching if enabled.
         /// </summary>
         /// <param name="key">A unique key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -71,7 +42,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -88,7 +59,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="keys">A list of unique keys.</param>
@@ -126,10 +97,6 @@ namespace GreenDonut
         void Set(object key, Task<object?> value);
     }
 
-    #endregion
-
-    #region IDataLoader<TKey, TValue>
-
     /// <summary>
     /// A <c>DataLoader</c> creates a public API for loading data from a
     /// particular data back-end with unique keys such as the `id` column of a
@@ -149,7 +116,7 @@ namespace GreenDonut
     {
         /// <summary>
         /// Loads a single value by key. This call may return a cached value
-        /// or enqueues this single request for bacthing if enabled.
+        /// or enqueues this single request for batching if enabled.
         /// </summary>
         /// <param name="key">A unique key.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -164,7 +131,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="cancellationToken">A cancellation token.</param>
@@ -181,7 +148,7 @@ namespace GreenDonut
 
         /// <summary>
         /// Loads multiple values by keys. This call may return cached values
-        /// and enqueues requests which were not cached for bacthing if
+        /// and enqueues requests which were not cached for batching if
         /// enabled.
         /// </summary>
         /// <param name="keys">A list of unique keys.</param>
@@ -218,6 +185,4 @@ namespace GreenDonut
         /// </exception>
         void Set(TKey key, Task<TValue> value);
     }
-
-    #endregion
 }

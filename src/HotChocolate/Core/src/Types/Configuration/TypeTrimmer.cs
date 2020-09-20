@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Language;
 using HotChocolate.Types;
 
 #nullable enable
@@ -11,9 +10,9 @@ namespace HotChocolate.Configuration
     {
         private readonly HashSet<TypeSystemObjectBase> _touched =
             new HashSet<TypeSystemObjectBase>();
-        private readonly DiscoveredTypes _discoveredTypes;
+        private readonly TypeRegistry _discoveredTypes;
 
-        public TypeTrimmer(DiscoveredTypes discoveredTypes)
+        public TypeTrimmer(TypeRegistry discoveredTypes)
         {
             _discoveredTypes = discoveredTypes;
         }
@@ -70,7 +69,7 @@ namespace HotChocolate.Configuration
         {
             VisitDirectives(type);
 
-            foreach (EnumValue value in type.Values)
+            foreach (IEnumValue value in type.Values)
             {
                 VisitDirectives(value);
             }
@@ -124,15 +123,12 @@ namespace HotChocolate.Configuration
                 }
             }
 
-            if (!implements)
+            foreach (ObjectType objectType in
+                _discoveredTypes.Types.Select(t => t.Type).OfType<ObjectType>())
             {
-                foreach (ObjectType objectType in
-                    _discoveredTypes.Types.Select(t => t.Type).OfType<ObjectType>())
+                if (objectType.IsImplementing(type))
                 {
-                    if (objectType.IsImplementing(type))
-                    {
-                        Visit(objectType);
-                    }
+                    Visit(objectType);
                 }
             }
         }

@@ -8,7 +8,7 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <licenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://hotchocolate.io/</projectUrl>
-    <iconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</iconUrl>
+    <iconUrl>https://chillicream.com/resources/strawberryshake-signet.png</iconUrl>
     <description>Package Description</description>
     <releaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/</releaseNotes>
     <copyright>Copyright © 2019 ChilliCream (Michael &amp; Rafael Staib)</copyright>

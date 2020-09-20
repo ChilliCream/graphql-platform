@@ -95,7 +95,7 @@ namespace HotChocolate.Types
             var type = new ListType(innerType);
 
             // act
-            Type clrType = type.ClrType;
+            Type clrType = type.RuntimeType;
 
             // assert
             Assert.Equal(typeof(List<string>), clrType);
@@ -520,7 +520,7 @@ namespace HotChocolate.Types
             Action action = () => listType.ParseValue(1);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
     }
 }

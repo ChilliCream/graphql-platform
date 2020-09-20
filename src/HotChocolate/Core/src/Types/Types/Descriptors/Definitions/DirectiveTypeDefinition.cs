@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -8,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class DirectiveTypeDefinition
         : DefinitionBase<DirectiveDefinitionNode>
-        , IHasClrType
+        , IHasRuntimeType
     {
         private Type _clrType = typeof(object);
 
@@ -21,12 +20,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets or sets the .net type representation of this directive.
         /// </summary>
-        public Type ClrType
+        public Type RuntimeType
         {
             get => _clrType;
             set
             {
-                if (value == null)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }

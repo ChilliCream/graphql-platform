@@ -182,9 +182,9 @@ namespace HotChocolate.AspNetCore.Authorization
             ClaimsPrincipal principal)
         {
             IServiceProvider services = context.Service<IServiceProvider>();
-            IAuthorizationService authorizeService =
+            IAuthorizationService? authorizeService =
                 services.GetService<IAuthorizationService>();
-            IAuthorizationPolicyProvider policyProvider =
+            IAuthorizationPolicyProvider? policyProvider =
                 services.GetService<IAuthorizationPolicyProvider>();
 
             if (authorizeService == null || policyProvider == null)

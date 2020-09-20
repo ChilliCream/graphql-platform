@@ -21,17 +21,17 @@ namespace HotChocolate.Resolvers
         public async Task HandleNullResolverTask(string field, string argument)
         {
             // arrange
-            IQueryExecutor executor =
+            IRequestExecutor executor =
                 Schema.Create(c => c.RegisterQueryType<QueryType>())
                     .MakeExecutable();
 
             // act
-            string arg = argument == null ? "null" : $"\"{argument}\"";
+            var arg = argument is null ? "null" : $"\"{argument}\"";
             IExecutionResult result = await executor.ExecuteAsync(
                 $"{{ {field}(name: {arg}) }}");
 
             // assert
-            result.MatchSnapshot(SnapshotNameExtension.Create(
+            result.ToJson().MatchSnapshot(SnapshotNameExtension.Create(
                 field, argument ?? "null"));
         }
 
@@ -45,27 +45,21 @@ namespace HotChocolate.Resolvers
                 descriptor.Field("case3")
                     .Argument("name", a => a.Type<StringType>())
                     .Type<StringType>()
-                    .Resolver(new FieldResolverDelegate(ctx =>
+                    .Resolve(ctx =>
                     {
-                        string name = ctx.Argument<string>("name");
-                        if (name == null)
-                        {
-                            return null;
-                        }
-                        return Task.FromResult<object>(name);
-                    }));
+                        var name = ctx.ArgumentValue<string>("name");
+                        return name is null
+                            ? new ValueTask<object>(default(object))
+                            : new ValueTask<object>(name);
+                    });
 
                 descriptor.Field("case4")
                     .Argument("name", a => a.Type<StringType>())
                     .Type<StringType>()
                     .Resolver(ctx =>
                     {
-                        string name = ctx.Argument<string>("name");
-                        if (name == null)
-                        {
-                            return null;
-                        }
-                        return Task.FromResult(name);
+                        var name = ctx.ArgumentValue<string>("name");
+                        return name is null ? null : Task.FromResult(name);
                     });
             }
         }
@@ -74,7 +68,7 @@ namespace HotChocolate.Resolvers
         {
             public Task<string> Case1(string name)
             {
-                if (name == null)
+                if (name is null)
                 {
                     return null;
                 }
@@ -86,7 +80,7 @@ namespace HotChocolate.Resolvers
         {
             public Task<string> Case2(string name)
             {
-                if (name == null)
+                if (name is null)
                 {
                     return null;
                 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate.Validation
+﻿namespace HotChocolate.Validation
 {
     public class Query
     {

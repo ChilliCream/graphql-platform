@@ -624,7 +624,7 @@ namespace HotChocolate.Execution
                     {
                         context.Result = context.Argument<DateTimeOffset>("a")
                             .ToUniversalTime();
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     });
                 }).MakeExecutable();
 
@@ -649,7 +649,7 @@ namespace HotChocolate.Execution
             await ExpectValid(
                 @"
                     mutation($review: ReviewInput!) {
-                        createReview(episode: NEWHOPE review: $review) {
+                        createReview(episode: NEW_HOPE review: $review) {
                             stars
                             commentary
                         }
@@ -668,7 +668,7 @@ namespace HotChocolate.Execution
                 builder => builder.AddQueryType(d => d
                     .Field("foo")
                     .Argument("bar", a => a.Type<SomeInputType>())
-                    .Resolver(ctx => ctx.Argument<SomeInput>("bar").Property)
+                    .Resolver(ctx => ctx.ArgumentValue<SomeInput>("bar").Property)
                     .Type<StringType>()),
                 @"
                     query($bar: SomeInput!) {
@@ -688,7 +688,7 @@ namespace HotChocolate.Execution
                 builder => builder.AddQueryType(d => d
                     .Field("foo")
                     .Argument("bar", a => a.Type<SomeInputType>())
-                    .Resolver(ctx => ctx.Argument<ISomeInput>("bar").Property)
+                    .Resolver(ctx => ctx.ArgumentValue<ISomeInput>("bar").Property)
                     .Type<StringType>()),
                 @"
                     query($bar: SomeInput!) {
@@ -708,7 +708,7 @@ namespace HotChocolate.Execution
                 "type Foo { a: String b(a: BarInput): String } ",
                 c =>
                 {
-                    c.Use(next => context => Task.CompletedTask);
+                    c.Use(next => context => default(ValueTask));
                     c.RegisterType<IntType>();
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();

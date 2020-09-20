@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
     public class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
-        , IHasClrType
+        , IHasRuntimeType
     {
         protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -23,7 +23,15 @@ namespace HotChocolate.Types.Descriptors
                 context.Options.DefaultBindingBehavior;
         }
 
-        Type IHasClrType.ClrType => Definition.ClrType;
+        protected internal DirectiveTypeDescriptor(
+            IDescriptorContext context, 
+            DirectiveTypeDefinition definition)
+            : base(context, definition)
+        {
+            Definition = definition;
+        }
+
+        Type IHasRuntimeType.RuntimeType => Definition.RuntimeType;
 
         protected override void OnCompleteArguments(
             IDictionary<NameString, DirectiveArgumentDefinition> arguments,
@@ -42,10 +50,6 @@ namespace HotChocolate.Types.Descriptors
 
             base.OnCompleteArguments(arguments, handledProperties);
         }
-
-
-
-        #region IDirectiveDescriptor<T>
 
         public new IDirectiveTypeDescriptor<T> SyntaxNode(
             DirectiveDefinitionNode directiveDefinitionNode)
@@ -82,7 +86,7 @@ namespace HotChocolate.Types.Descriptors
         public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
         {
-            if (property == null)
+            if (property is null)
             {
                 throw new ArgumentNullException(nameof(property));
             }
@@ -164,7 +168,5 @@ namespace HotChocolate.Types.Descriptors
             base.Repeatable();
             return this;
         }
-
-        #endregion
     }
 }

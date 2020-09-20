@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "nestedObjectList": {
+      "items": [
+        [
+          {
+            "bar": "a"
+          }
+        ],
+        [
+          {
+            "bar": "b"
+          },
+          {
+            "bar": "c"
+          }
+        ]
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false
+      },
+      "totalCount": 5
+    }
+  }
+}

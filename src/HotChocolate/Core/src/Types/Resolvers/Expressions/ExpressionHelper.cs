@@ -6,19 +6,22 @@ namespace HotChocolate.Resolvers.Expressions
 {
     internal static class ExpressionHelper
     {
-        public static async Task<object> AwaitHelper<T>(Task<T> task)
+        public static async ValueTask<object> AwaitTaskHelper<T>(Task<T> task)
         {
-            if (task == null)
+            if (task is null)
             {
                 return null;
             }
             return await task.ConfigureAwait(false);
         }
 
-        public static Task<object> WrapResultHelper<T>(T result)
+        public static async ValueTask<object> AwaitValueTaskHelper<T>(ValueTask<T> task)
         {
-            return Task.FromResult<object>(result);
+            return await task.ConfigureAwait(false);
         }
+
+        public static ValueTask<object> WrapResultHelper<T>(T result) =>
+            new ValueTask<object>(result);
 
         [Obsolete]
         public static TContextData ResolveContextData<TContextData>(
@@ -168,7 +171,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             return new SetState<TContextData>(value =>
             {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key ,value);
+                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
             });
         }
 
@@ -178,7 +181,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             return new SetState(value =>
             {
-                context.ScopedContextData = context.ScopedContextData.SetItem(key ,value);
+                context.ScopedContextData = context.ScopedContextData.SetItem(key, value);
             });
         }
 
@@ -188,7 +191,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             return new SetState<TContextData>(value =>
             {
-                context.LocalContextData = context.LocalContextData.SetItem(key ,value);
+                context.LocalContextData = context.LocalContextData.SetItem(key, value);
             });
         }
 
@@ -198,7 +201,7 @@ namespace HotChocolate.Resolvers.Expressions
         {
             return new SetState(value =>
             {
-                context.LocalContextData = context.LocalContextData.SetItem(key ,value);
+                context.LocalContextData = context.LocalContextData.SetItem(key, value);
             });
         }
     }

@@ -5,7 +5,6 @@ using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -18,12 +17,12 @@ namespace HotChocolate.Types.Descriptors
             Type clrType)
             : base(context)
         {
-            if (clrType == null)
+            if (clrType is null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.RuntimeType = clrType;
             Definition.Name = context.Naming.GetTypeName(clrType, TypeKind.Interface);
             Definition.Description = context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
@@ -32,10 +31,18 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context)
             : base(context)
         {
-            Definition.ClrType = typeof(object);
+            Definition.RuntimeType = typeof(object);
         }
 
-        internal protected override InterfaceTypeDefinition Definition { get; } =
+        protected InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal override InterfaceTypeDefinition Definition { get; protected set; } =
             new InterfaceTypeDefinition();
 
         protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
@@ -44,12 +51,12 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             InterfaceTypeDefinition definition)
         {
-            if (Definition.ClrType is { })
+            if (Definition.RuntimeType is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
-                    Definition.ClrType);
+                    Definition.RuntimeType);
             }
 
             var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
@@ -102,7 +109,8 @@ namespace HotChocolate.Types.Descriptors
                     TypeResources.InterfaceTypeDescriptor_InterfaceBaseClass);
             }
 
-            Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
+            Definition.Interfaces.Add(
+                Context.TypeInspector.GetTypeRef(typeof(TInterface), TypeContext.Output));
             return this;
         }
 
@@ -110,7 +118,7 @@ namespace HotChocolate.Types.Descriptors
             TInterface type)
             where TInterface : InterfaceType
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -122,13 +130,12 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceTypeDescriptor Interface(
             NamedTypeNode namedType)
         {
-            if (namedType == null)
+            if (namedType is null)
             {
                 throw new ArgumentNullException(nameof(namedType));
             }
 
-            Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedType, TypeContext.Output));
+            Definition.Interfaces.Add(TypeReference.Create(namedType, TypeContext.Output));
             return this;
         }
 
@@ -147,7 +154,8 @@ namespace HotChocolate.Types.Descriptors
         {
             InterfaceFieldDescriptor fieldDescriptor =
                 Fields.FirstOrDefault(t => t.Definition.Name.Equals(name));
-            if (fieldDescriptor is { })
+
+            if (fieldDescriptor is not null)
             {
                 return fieldDescriptor;
             }
@@ -170,14 +178,14 @@ namespace HotChocolate.Types.Descriptors
         public IInterfaceTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IInterfaceTypeDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -204,9 +212,19 @@ namespace HotChocolate.Types.Descriptors
         public static InterfaceTypeDescriptor FromSchemaType(
             IDescriptorContext context, Type schemaType)
         {
-            var descriptor = New(context, schemaType);
-            descriptor.Definition.ClrType = typeof(object);
+            InterfaceTypeDescriptor descriptor = New(context, schemaType);
+            descriptor.Definition.RuntimeType = typeof(object);
             return descriptor;
         }
+
+        public static InterfaceTypeDescriptor From(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor(context, definition);
+
+        public static InterfaceTypeDescriptor<T> From<T>(
+            IDescriptorContext context,
+            InterfaceTypeDefinition definition) =>
+            new InterfaceTypeDescriptor<T>(context, definition);
     }
 }

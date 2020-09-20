@@ -3,7 +3,6 @@ using System.Reflection;
 using System.Threading;
 using GreenDonut;
 using HotChocolate.Language;
-using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.CodeGeneration
@@ -13,14 +12,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
         internal static ArgumentKind LookupKind(
            ParameterInfo parameter, Type sourceType)
         {
-            if (parameter == null)
+            if (parameter is null)
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
 
             ArgumentKind argumentKind;
-            if (TryCheckForResolverArguments(
-                    parameter, sourceType, out argumentKind)
+            if (TryCheckForResolverArguments(parameter, sourceType, out argumentKind)
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
@@ -49,7 +47,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (sourceType == null)
+            if (sourceType is null)
             {
                 argumentKind = default(ArgumentKind);
                 return false;
@@ -76,7 +74,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (parameter.ParameterType == typeof(ObjectType))
+            if (parameter.ParameterType == typeof(ObjectType) ||
+                parameter.ParameterType == typeof(IObjectType))
             {
                 argumentKind = ArgumentKind.ObjectType;
                 return true;
@@ -139,7 +138,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
             }
 #pragma warning restore CS0612
 
-            if (IsService(parameter))
+            if (IsService(parameter)
+                || IsScopedService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
                 return true;
@@ -190,6 +190,11 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return parameter.IsDefined(typeof(LocalStateAttribute));
         }
 
+        internal static bool IsScopedService(ParameterInfo parameter)
+        {
+            return parameter.IsDefined(typeof(ScopedServiceAttribute));
+        }
+
         internal static bool IsService(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ServiceAttribute));
@@ -202,8 +207,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
         }
 
         internal static bool IsEventMessage(ParameterInfo parameter) =>
-            typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType)
-            || parameter.IsDefined(typeof(EventMessageAttribute));
+            parameter.IsDefined(typeof(EventMessageAttribute));
 
         internal static bool IsOutputField(ParameterInfo parameter) =>
             typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);

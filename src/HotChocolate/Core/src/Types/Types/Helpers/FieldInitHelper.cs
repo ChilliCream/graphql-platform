@@ -11,21 +11,15 @@ namespace HotChocolate.Types
     internal static class FieldInitHelper
     {
         public static IValueNode CreateDefaultValue(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ArgumentDefinition definition,
             IInputType fieldType)
         {
             try
             {
-                if (definition.NativeDefaultValue != null)
-                {
-                    return fieldType.ParseValue(
-                       definition.NativeDefaultValue);
-                }
-
-                return definition.DefaultValue is { }
-                    ? definition.DefaultValue
-                    : null;
+                return definition.NativeDefaultValue != null
+                    ? fieldType.ParseValue(definition.NativeDefaultValue)
+                    : definition.DefaultValue;
             }
             catch (Exception ex)
             {
@@ -41,7 +35,7 @@ namespace HotChocolate.Types
         }
 
         public static void CompleteFields<TTypeDef, TFieldType, TFieldDef>(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TTypeDef definition,
             IReadOnlyCollection<FieldBase<TFieldType, TFieldDef>> fields)
             where TTypeDef : DefinitionBase, IHasSyntaxNode
