@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
@@ -43,8 +44,8 @@ namespace HotChocolate.Configuration
                     .Select(t => new
                     {
                         type = t.Type.GetType().GetTypeName(),
-                        runtimeType = t.Type is IHasRuntimeType hr 
-                            ? hr.RuntimeType.GetTypeName() 
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
                             : null,
                         references = t.References.Select(t => t.ToString()).ToList()
                     }).ToList(),
@@ -86,8 +87,8 @@ namespace HotChocolate.Configuration
                     .Select(t => new
                     {
                         type = t.Type.GetType().GetTypeName(),
-                        runtimeType = t.Type is IHasRuntimeType hr 
-                            ? hr.RuntimeType.GetTypeName() 
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
                             : null,
                         references = t.References.Select(t => t.ToString()).ToList()
                     }).ToList(),
@@ -129,8 +130,8 @@ namespace HotChocolate.Configuration
                     .Select(t => new
                     {
                         type = t.Type.GetType().GetTypeName(),
-                        runtimeType = t.Type is IHasRuntimeType hr 
-                            ? hr.RuntimeType.GetTypeName() 
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
                             : null,
                         references = t.References.Select(t => t.ToString()).ToList()
                     }).ToList(),
@@ -173,8 +174,8 @@ namespace HotChocolate.Configuration
                     .Select(t => new
                     {
                         type = t.Type.GetType().GetTypeName(),
-                        runtimeType = t.Type is IHasRuntimeType hr 
-                            ? hr.RuntimeType.GetTypeName() 
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
                             : null,
                         references = t.References.Select(t => t.ToString()).ToList()
                     }).ToList(),
@@ -184,6 +185,33 @@ namespace HotChocolate.Configuration
                     t => t.Value.ToString())
 
             }.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Cannot_Infer_Input_Type()
+        {
+            // arrange
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+            var typeDiscoverer = new TypeDiscoverer(
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
+                },
+                new AggregateTypeInitializationInterceptor());
+
+            // act
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Collection(
+                errors,
+                e => Assert.NotNull(e.TypeSystemObject));
         }
 
         public class FooType
@@ -208,6 +236,11 @@ namespace HotChocolate.Configuration
         public class Bar
         {
             public string Baz { get; }
+        }
+
+        public class QueryWithInferError
+        {
+            public string Foo(object o) => throw new NotImplementedException();
         }
     }
 }
