@@ -55,7 +55,10 @@ namespace HotChocolate.ApolloFederation
                 });
 
             ObjectType query = schema.GetType<ObjectType>("Query");
-            query.Fields["field"].Directives.Single(t => t.Name == "external");
+            // assert
+            Assert.Collection(query.Fields["field"].Directives,
+                item => Assert.Equal("external", item.Name)
+            );
         }
 
         [Fact]
@@ -81,7 +84,10 @@ namespace HotChocolate.ApolloFederation
                 .Create();
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
-            queryInterface.Fields["field"].Directives.Single(t => t.Name == "external");
+            // assert
+            Assert.Collection(queryInterface.Fields["field"].Directives,
+                item => Assert.Equal("external", item.Name)
+            );
         }
     }
 }
