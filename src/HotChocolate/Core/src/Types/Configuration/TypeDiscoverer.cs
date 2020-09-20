@@ -167,15 +167,32 @@ namespace HotChocolate.Configuration
             {
                 foreach (ITypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
                 {
-                    _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            TypeResources.TypeRegistrar_TypesInconsistent,
-                            unresolvedReference)
-                        .SetExtension(
-                            TypeErrorFields.Reference,
-                            unresolvedReference)
-                        .SetCode(ErrorCodes.Schema.UnresolvedTypes)
-                        .Build());
+                    var types = _typeRegistry.Types.Where(
+                        t => t.Dependencies.Select(t => t.TypeReference)
+                            .Any(r => r.Equals(unresolvedReference))).ToList();
+
+                    ISchemaErrorBuilder builder =
+                         SchemaErrorBuilder.New()
+                            .SetMessage(
+                                TypeResources.TypeRegistrar_TypesInconsistent,
+                                unresolvedReference)
+                            .SetExtension(
+                                TypeErrorFields.Reference,
+                                unresolvedReference)
+                            .SetCode(ErrorCodes.Schema.UnresolvedTypes);
+
+                    if (types.Count == 1)
+                    {
+                        builder.SetTypeSystemObject(types[0].Type);
+                    }
+                    else if(types.Count > 1)
+                    {
+                        builder
+                            .SetTypeSystemObject(types[0].Type)
+                            .SetExtension("involvedTypes", types.Select(t => t.Type).ToList());
+                    }
+
+                    _errors.Add(builder.Build());
                 }
             }
         }
