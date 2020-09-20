@@ -1,6 +1,4 @@
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using Xunit;
@@ -14,22 +12,22 @@ namespace HotChocolate.ApolloFederation
         public void AddExternalDirective_EnsureAvailableInSchema()
         {
             // arrange
-            ISchema schema = this.CreateSchema(b =>
+            ISchema schema = CreateSchema(b =>
             {
                 b.AddDirectiveType<ExternalDirectiveType>();
             });
 
             // act
-            DirectiveType directive =
+            DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
                     t => t.Name.Equals("external"));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<ExternalDirectiveType>(directive);
-            Assert.Equal("external", directive.Name);
-            Assert.Equal(0, directive.Arguments.Count());
-            Assert.Collection(directive.Locations,
+            Assert.Equal("external", directive!.Name);
+            Assert.Empty(directive!.Arguments);
+            Assert.Collection(directive!.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
         }
 
@@ -50,15 +48,13 @@ namespace HotChocolate.ApolloFederation
                     ));
 
                     t.RegisterDirective<ExternalDirectiveType>();
-
-                    t.Use(next => context => default(ValueTask));
+                    t.Use(next => context => default);
                 });
 
-            ObjectType query = schema.GetType<ObjectType>("Query");
             // assert
+            ObjectType query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name)
-            );
+                item => Assert.Equal("external", item.Name));
         }
 
         [Fact]
@@ -66,7 +62,7 @@ namespace HotChocolate.ApolloFederation
         {
             // arrange
             // act
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
                     type Query {
@@ -77,17 +73,15 @@ namespace HotChocolate.ApolloFederation
                     interface IQuery {
                         field(a: Int): String
                             @external
-                    }
-                    ")
+                    }")
                 .AddDirectiveType<ExternalDirectiveType>()
-                .Use(next => context => default(ValueTask))
+                .Use(next => context => default)
                 .Create();
 
-            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             // assert
+            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             Assert.Collection(queryInterface.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name)
-            );
+                item => Assert.Equal("external", item.Name));
         }
     }
 }

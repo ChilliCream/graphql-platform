@@ -11,21 +11,21 @@ namespace HotChocolate.ApolloFederation
         public void AddProvidesDirective_EnsureAvailableInSchema()
         {
             // arrange
-            ISchema schema = this.CreateSchema(b =>
+            ISchema schema = CreateSchema(b =>
             {
                 b.AddDirectiveType<ProvidesDirectiveType>();
             });
 
             // act
-            DirectiveType directive =
+            DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
                     t => t.Name.Equals("provides"));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<ProvidesDirectiveType>(directive);
-            Assert.Equal("provides", directive.Name);
-            Assert.Equal(1, directive.Arguments.Count());
+            Assert.Equal("provides", directive!.Name);
+            Assert.Single(directive.Arguments);
             this.AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
