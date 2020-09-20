@@ -7,6 +7,17 @@ namespace HotChocolate.ApolloFederation
     public class FieldSetTypeTests
     {
         [Fact]
+        public void Ensure_Type_Name_Is_Correct()
+        {
+            // arrange
+            // act
+            var type = new FieldSetType();
+
+            // assert
+            Assert.Equal(TypeNames.FieldSet, type.Name);
+        }
+
+        [Fact]
         public void Deserialize()
         {
             // arrange

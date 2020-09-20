@@ -55,9 +55,14 @@ namespace HotChocolate.ApolloFederation
                 return NullValueNode.Default;
             }
 
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
             if (resultValue is SelectionSetNode selectionSet)
             {
-                string s = selectionSet.ToString();
+                s = selectionSet.ToString();
                 return new StringValueNode(s.Substring(1, s.Length - 2));
             }
 
