@@ -4,7 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.ApolloFederation
 {
     /// <summary>
-    /// The @provides directive is used to annotate the expected returned fieldset 
+    /// The @provides directive is used to annotate the expected returned fieldset
     /// from a field on a base type that is guaranteed to be selectable by the gateway.
     /// </summary>
     public class ProvidesDirectiveType
