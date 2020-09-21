@@ -6,14 +6,14 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.AspNetCore.RateLimit
 {
-    internal class LimitMiddleware
+    internal class RateLimitMiddleware
     {
         private readonly FieldDelegate _next;
         private readonly ILimitProcessor _limitProcessor;
-        private readonly LimitOptions _options;
+        private readonly RateLimitOptions _options;
 
-        public LimitMiddleware(
-            FieldDelegate next, ILimitProcessor limitProcessor, IOptions<LimitOptions> options)
+        public RateLimitMiddleware(
+            FieldDelegate next, ILimitProcessor limitProcessor, IOptions<RateLimitOptions> options)
         {
             _next = next;
             _limitProcessor = limitProcessor;
@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore.RateLimit
 
         public async Task InvokeAsync(
             IDirectiveContext directiveContext,
-            ILimitContext limitContext)
+            IRateLimitContext rateLimitContext)
         {
             LimitDirective directive = directiveContext.Directive.ToObject<LimitDirective>();
 
@@ -34,8 +34,8 @@ namespace HotChocolate.AspNetCore.RateLimit
 
             LimitPolicy policy = _options.Policies[directive.Policy];
 
-            RequestIdentity requestIdentity = limitContext
-                .CreateRequestIdentity(policy.Identifiers, directiveContext.Path);
+            RequestIdentity requestIdentity = await rateLimitContext
+                .CreateRequestIdentityAsync(policy.Identifiers, directiveContext.Path);
 
             // Add restrictive scope as option, and throw here if no identity was found
             if (requestIdentity.IsEmpty)

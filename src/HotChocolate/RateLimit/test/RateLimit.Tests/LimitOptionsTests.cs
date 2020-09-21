@@ -10,7 +10,7 @@ namespace HotChocolate.RateLimit.Tests
         public void GivenLimitOptions_WhenAddPolicy_ShouldHavePolicy()
         {
             // Arrange
-            var limitOptions = new LimitOptions();
+            var limitOptions = new RateLimitOptions();
 
             // Act
             limitOptions.AddPolicy("policy", pb => pb.WithLimit(TimeSpan.FromMinutes(1), 1));
@@ -23,7 +23,7 @@ namespace HotChocolate.RateLimit.Tests
         public void GivenLimitOptions_WhenAddPolicyWithEmptyName_ShouldThrow()
         {
             // Arrange
-            var limitOptions = new LimitOptions();
+            var limitOptions = new RateLimitOptions();
 
             // Act
             // Assert
@@ -35,7 +35,7 @@ namespace HotChocolate.RateLimit.Tests
         public void GivenLimitOptions_WhenAddPolicyWithNullConfiguration_ShouldThrow()
         {
             // Arrange
-            var limitOptions = new LimitOptions();
+            var limitOptions = new RateLimitOptions();
 
             // Act
             // Assert

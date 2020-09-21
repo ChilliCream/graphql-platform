@@ -5,7 +5,7 @@ using HotChocolate.RateLimit;
 
 namespace HotChocolate.AspNetCore.RateLimit
 {
-    public class LimitOptions
+    public class RateLimitOptions
     {
         private readonly IDictionary<string, LimitPolicy> _policies =
             new Dictionary<string, LimitPolicy>(StringComparer.InvariantCultureIgnoreCase);
@@ -13,7 +13,7 @@ namespace HotChocolate.AspNetCore.RateLimit
         public IReadOnlyDictionary<string, LimitPolicy> Policies =>
             new ReadOnlyDictionary<string, LimitPolicy>(_policies);
 
-        public void AddPolicy(string name, Action<LimitPolicyBuilder> configure)
+        public void AddPolicy(string name, Action<RateLimitPolicyBuilder> configure)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -25,7 +25,7 @@ namespace HotChocolate.AspNetCore.RateLimit
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            var policyBuilder = new LimitPolicyBuilder();
+            var policyBuilder = new RateLimitPolicyBuilder();
             configure(policyBuilder);
             _policies[name] = policyBuilder.Build();
         }

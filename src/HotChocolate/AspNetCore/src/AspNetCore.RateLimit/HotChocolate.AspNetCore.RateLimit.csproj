@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
     <ProjectReference Include="..\..\..\RateLimit\src\RateLimit\HotChocolate.RateLimit.csproj" />
   </ItemGroup>

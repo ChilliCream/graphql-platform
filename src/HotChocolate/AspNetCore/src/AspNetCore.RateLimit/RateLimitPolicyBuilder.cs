@@ -4,19 +4,25 @@ using HotChocolate.RateLimit;
 
 namespace HotChocolate.AspNetCore.RateLimit
 {
-    public class LimitPolicyBuilder
+    public class RateLimitPolicyBuilder
     {
         private readonly List<IPolicyIdentifier> _identifiers = new List<IPolicyIdentifier>();
         private TimeSpan _period;
         private int _limit;
 
-        public LimitPolicyBuilder AddClaimIdentifier(string claimType)
+        public RateLimitPolicyBuilder AddIdentifier(IPolicyIdentifier identifier)
+        {
+            _identifiers.Add(identifier);
+            return this;
+        }
+
+        public RateLimitPolicyBuilder AddClaimIdentifier(string claimType)
         {
             _identifiers.Add(new ClaimsPolicyIdentifier(claimType));
             return this;
         }
 
-        public LimitPolicyBuilder AddHeaderIdentifier(string header)
+        public RateLimitPolicyBuilder AddHeaderIdentifier(string header)
         {
             _identifiers.Add(new HeaderPolicyIdentifier(header));
             return this;

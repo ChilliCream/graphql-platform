@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.RateLimit
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition)
                 .Repeatable()
-                .Use<LimitMiddleware>();
+                .Use<RateLimitMiddleware>();
         }
     }
 }

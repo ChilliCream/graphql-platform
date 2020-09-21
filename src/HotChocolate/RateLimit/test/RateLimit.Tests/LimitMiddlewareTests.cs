@@ -17,8 +17,8 @@ namespace HotChocolate.RateLimit.Tests
         public async Task GivenValidLimitedQuery_WhenExecute_ShouldSuccess()
         {
             // Arrange
-            ILimitContext limitContext = CreateLimitContext();
-            IServiceProvider services = CreateServiceProvider(limitContext);
+            IRateLimitContext rateLimitContext = CreateLimitContext();
+            IServiceProvider services = CreateServiceProvider(rateLimitContext);
 
             // Act
             IExecutionResult result = await ExecuteVersionByUserQuery(services);
@@ -31,8 +31,8 @@ namespace HotChocolate.RateLimit.Tests
         public async Task GivenExceededLimitedQuery_WhenExecute_ShouldFail()
         {
             // Arrange
-            ILimitContext limitContext = CreateLimitContext();
-            IServiceProvider services = CreateServiceProvider(limitContext);
+            IRateLimitContext rateLimitContext = CreateLimitContext();
+            IServiceProvider services = CreateServiceProvider(rateLimitContext);
             ILimitStore limitStore = services.GetService<ILimitStore>();
             await limitStore.SetAsync(
                 "1-user", TimeSpan.FromMinutes(1), Limit.Create(DateTime.UtcNow, 1), default);
@@ -56,7 +56,7 @@ namespace HotChocolate.RateLimit.Tests
                         }}");
         }
 
-        private ServiceProvider CreateServiceProvider(ILimitContext limitContext)
+        private ServiceProvider CreateServiceProvider(IRateLimitContext rateLimitContext)
         {
             return new ServiceCollection()
                 .AddDistributedMemoryCache()
@@ -69,7 +69,7 @@ namespace HotChocolate.RateLimit.Tests
                         .AddHeaderIdentifier("Client-Id")
                         .WithLimit(TimeSpan.FromMinutes(1), 1));
                 })
-                .AddSingleton(limitContext)
+                .AddSingleton(rateLimitContext)
                 .AddGraphQLServer()
                 .AddQueryType<QueryType>()
                 .AddLimitDirectiveType()
@@ -77,17 +77,17 @@ namespace HotChocolate.RateLimit.Tests
                 .BuildServiceProvider();
         }
 
-        private ILimitContext CreateLimitContext()
+        private IRateLimitContext CreateLimitContext()
         {
-            var limitContext = new Mock<ILimitContext>();
+            var limitContext = new Mock<IRateLimitContext>();
 
             limitContext.Setup(x => x
-                    .CreateRequestIdentity(It.IsAny<IReadOnlyCollection<IPolicyIdentifier>>(), It.IsAny<Path>()))
-                .Returns(RequestIdentity.Create("user", "1"));
+                    .CreateRequestIdentityAsync(It.IsAny<IReadOnlyCollection<IPolicyIdentifier>>(), It.IsAny<Path>()))
+                .ReturnsAsync(RequestIdentity.Create("user", "1"));
 
             limitContext.Setup(x => x
-                    .CreateRequestIdentity(It.IsAny<IReadOnlyCollection<IPolicyIdentifier>>(), It.IsAny<Path>()))
-                .Returns(RequestIdentity.Create("user", "1"));
+                    .CreateRequestIdentityAsync(It.IsAny<IReadOnlyCollection<IPolicyIdentifier>>(), It.IsAny<Path>()))
+                .ReturnsAsync(RequestIdentity.Create("user", "1"));
 
             return limitContext.Object;
         }

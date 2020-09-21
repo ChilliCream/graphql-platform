@@ -8,11 +8,11 @@ namespace HotChocolate.AspNetCore.RateLimit
     {
         public static IServiceCollection AddRateLimit(
             this IServiceCollection services,
-            Action<LimitOptions> options)
+            Action<RateLimitOptions> options)
         {
             return services
                 .Configure(options)
-                .AddSingleton<ILimitContext, LimitContext>()
+                .AddSingleton<IRateLimitContext, RateLimitContext>()
                 .AddRateLimitCore();
         }
     }

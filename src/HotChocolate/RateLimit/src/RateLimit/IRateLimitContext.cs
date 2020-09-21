@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace HotChocolate.RateLimit
 {
-    public interface ILimitContext
+    public interface IRateLimitContext
     {
-        RequestIdentity CreateRequestIdentity(
+        Task<RequestIdentity> CreateRequestIdentityAsync(
             IReadOnlyCollection<IPolicyIdentifier> identifiers, Path path);
     }
 }
