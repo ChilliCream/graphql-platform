@@ -1,5 +1,7 @@
 using System;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.ApolloFederation.Extensions
 {
