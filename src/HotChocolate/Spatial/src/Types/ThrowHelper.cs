@@ -3,67 +3,8 @@ using HotChocolate.Types.Spatial.Properties;
 
 namespace HotChocolate.Types.Spatial
 {
-    public static class ThrowHelper
+    internal static class ThrowHelper
     {
-        public static Exception InvalidStructure_CoordinatesOfWrongFormat(
-            IGeometryType type)
-        {
-            var message = type.GeometryType switch
-            {
-                GeoJsonGeometryType.Point => Resources.InvalidInputObjectStructure_Point,
-                GeoJsonGeometryType.MultiPoint => Resources.InvalidInputObjectStructure_MultiPoint,
-                GeoJsonGeometryType.LineString => Resources.InvalidInputObjectStructure_LineString,
-                GeoJsonGeometryType.MultiLineString => Resources
-                    .InvalidInputObjectStructure_MultiLineString,
-                GeoJsonGeometryType.Polygon => Resources.InvalidInputObjectStructure_Polygon,
-                GeoJsonGeometryType.MultiPolygon => Resources
-                    .InvalidInputObjectStructure_MultiPolygon,
-                _ => throw new NotImplementedException()
-            };
-
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(
-                        Resources.InvalidInputObjectStructure_CoordinatesOfWrongFormat +
-                        message,
-                        type.GeometryType)
-                    .Build(),
-                type);
-        }
-
-        public static Exception InvalidStructure_IsOfWrongGeometryType(
-            GeoJsonGeometryType wrongType,
-            IGeometryType type)
-        {
-            return new SerializationException(
-                ErrorBuilder.New()
-                    .SetMessage(
-                        Resources.InvalidInputObjectStructure_IsOfWrongGeometryType,
-                        wrongType,
-                        type.GeometryType)
-                    .Build(),
-                type);
-        }
-
-        public static SerializationException InvalidStructure_TypeIsMissing(IType type) =>
-            new SerializationException(
-                Resources.InvalidInputObjectStructure_TypeIsMissing,
-                type);
-
-        public static SerializationException InvalidStructure_CoordinatesIsMissing(IType type) =>
-            new SerializationException(
-                Resources.InvalidInputObjectStructure_CoordinatesIsMissing,
-                type);
-
-        public static SerializationException InvalidStructure_TypeCannotBeNull(IType type) =>
-            new SerializationException(
-                Resources.InvalidInputObjectStructure_TypeCannotBeNull,
-                type);
-
-        public static SerializationException InvalidStructure_CoordinatesCannotBeNull(
-            IType type) =>
-            new SerializationException(Resources.PositionScalar_CoordinatesCannotBeNull, type);
-
         public static SerializationException PositionScalar_InvalidPositionObject(IType type) =>
             new SerializationException(Resources.PositionScalar_InvalidPositionObject, type);
 
@@ -72,5 +13,65 @@ namespace HotChocolate.Types.Spatial
 
         public static ArgumentException Resolver_Type_InvalidGeometryType() =>
             new ArgumentException(Resources.Resolver_Type_InvalidGeometryType);
+
+        public static GeoJsonSerializationException Serializer_CouldNotSerialize() =>
+            new GeoJsonSerializationException(Resources.Serializer_CouldNotSerialize);
+
+        public static GeoJsonSerializationException Serializer_CouldNotDeserialize() =>
+            new GeoJsonSerializationException(Resources.Serializer_CouldNotDeserialize);
+
+        public static GeoJsonSerializationException Serializer_Parse_TypeIsInvalid() =>
+            new GeoJsonSerializationException(Resources.Serializer_Parse_TypeIsInvalid);
+
+        public static GeoJsonSerializationException Serializer_CoordinatesIsMissing() =>
+            new GeoJsonSerializationException(Resources.Serializer_Parse_CoordinatesIsMissing);
+
+        public static GeoJsonSerializationException Serializer_TypeIsMissing() =>
+            new GeoJsonSerializationException(Resources.Serializer_Parse_TypeIsMissing);
+
+        public static GeoJsonSerializationException Serializer_Parse_CoordinatesIsInvalid() =>
+            new GeoJsonSerializationException(Resources.Serializer_Parse_CoordinatesIsInvalid);
+
+        public static GeoJsonSerializationException Serializer_CouldNotParseLiteral() =>
+            new GeoJsonSerializationException(Resources.Serializer_CouldNotParseLiteral);
+
+        public static GeoJsonSerializationException Serializer_CouldNotParseValue() =>
+            new GeoJsonSerializationException(Resources.Serializer_CouldNotParseValue);
+
+        public static GeoJsonSerializationException Geometry_Deserialize_TypeIsUnknown(
+            string type) =>
+            new GeoJsonSerializationException(Resources.Geometry_Deserialize_TypeIsUnknown, type);
+
+        public static GeoJsonSerializationException Geometry_Deserialize_TypeIsMissing() =>
+            new GeoJsonSerializationException(Resources.Geometry_Deserialize_TypeIsMissing);
+
+        public static GeoJsonSerializationException Geometry_Serialize_InvalidGeometryType(
+            Type type) =>
+            new GeoJsonSerializationException(
+                Resources.Geometry_Serialize_InvalidGeometryType,
+                type.Name);
+
+        public static GeoJsonSerializationException Geometry_Parse_InvalidGeometryType(
+            Type type) =>
+            new GeoJsonSerializationException(
+                Resources.Geometry_Parse_InvalidGeometryType,
+                type.Name);
+
+        public static GeoJsonSerializationException Geometry_Serialize_TypeIsUnknown(string type) =>
+            new GeoJsonSerializationException(Resources.Geometry_Serialize_TypeIsUnknown, type);
+
+        public static GeoJsonSerializationException Geometry_Parse_TypeIsUnknown(string type) =>
+            new GeoJsonSerializationException(Resources.Geometry_Parse_TypeIsUnknown, type);
+
+        public static GeoJsonSerializationException Geometry_Serializer_NotFound(
+            GeoJsonGeometryType type) =>
+            new GeoJsonSerializationException(Resources.Geometry_Serializer_NotFound, type);
+
+        public static GeoJsonSerializationException Geometry_Parse_InvalidGeometryKind(
+            string type) =>
+            new GeoJsonSerializationException(Resources.Geometry_Parse_InvalidGeometryKind, type);
+
+        public static GeoJsonSerializationException Geometry_Parse_InvalidType() =>
+            new GeoJsonSerializationException(Resources.Geometry_Parse_InvalidType);
     }
 }

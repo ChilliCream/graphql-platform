@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point)));
 
             // assert
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point)));
 
             // assert
@@ -81,7 +81,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Point)),
+                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -164,7 +164,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: POINT, coordinates:[9,10] })}");
+                "{ test(arg: { type: Point, coordinates:[9,10] })}");
 
             // assert
             result.MatchSnapshot();

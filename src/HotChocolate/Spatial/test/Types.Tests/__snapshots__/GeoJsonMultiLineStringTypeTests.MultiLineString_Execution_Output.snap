@@ -1,7 +1,7 @@
 ﻿{
   "Data": {
     "test": {
-      "type": "MULTI_LINE_STRING",
+      "type": "MultiLineString",
       "coordinates": [
         [
           10.0,

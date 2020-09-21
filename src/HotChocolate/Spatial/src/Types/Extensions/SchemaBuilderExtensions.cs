@@ -22,6 +22,8 @@ namespace HotChocolate
                 .AddType<GeoJsonMultiLineStringType>()
                 .AddType<GeoJsonPolygonType>()
                 .AddType<GeoJsonMultiPolygonType>()
+                .AddType<GeoJsonGeometryEnumType>()
+                .AddType<GeometryType>()
                 .BindClrType<Coordinate, GeoJsonPositionType>();
         }
     }

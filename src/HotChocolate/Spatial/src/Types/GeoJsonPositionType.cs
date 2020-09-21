@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using HotChocolate.Types.Spatial.Properties;
@@ -14,7 +12,7 @@ namespace HotChocolate.Types.Spatial
     /// </para>
     /// <para>https://tools.ietf.org/html/rfc7946#section-3.1.1</para>
     /// </summary>
-    public class GeoJsonPositionType : ScalarType<Coordinate>
+    public sealed class GeoJsonPositionType : ScalarType<Coordinate>
     {
         public GeoJsonPositionType() : base("Position")
         {
@@ -23,33 +21,74 @@ namespace HotChocolate.Types.Spatial
 
         public override bool IsInstanceOfType(IValueNode valueSyntax)
         {
-            return GeoJsonPositionSerializer.Default.IsInstanceOfType(valueSyntax);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.IsInstanceOfType(valueSyntax);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
-
-            return GeoJsonPositionSerializer.Default.ParseLiteral(valueSyntax, withDefaults);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.ParseLiteral(valueSyntax, withDefaults);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
 
         public override IValueNode ParseValue(object? value)
         {
-            return GeoJsonPositionSerializer.Default.ParseValue(value);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.ParseValue(value);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
 
         public override IValueNode ParseResult(object? resultValue)
         {
-            return GeoJsonPositionSerializer.Default.ParseResult(resultValue);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.ParseResult(resultValue);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
 
         public override bool TryDeserialize(object? serialized, out object? value)
         {
-            return GeoJsonPositionSerializer.Default.TryDeserialize(serialized, out value);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.TryDeserialize(serialized, out value);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
 
         public override bool TrySerialize(object? value, out object? serialized)
         {
-            return GeoJsonPositionSerializer.Default.TrySerialize(value, out serialized);
+            try
+            {
+                return GeoJsonPositionSerializer.Default.TrySerialize(value, out serialized);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
     }
 }

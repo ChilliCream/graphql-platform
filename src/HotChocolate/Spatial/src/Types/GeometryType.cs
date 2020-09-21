@@ -1,103 +1,17 @@
-using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.WellKnownFields;
+using static HotChocolate.Types.GeoJsonSerializers;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types.Spatial
 {
-    public class GeometryType : ScalarType<Geometry>
+    public sealed class GeometryType : ScalarType<Geometry>
     {
-        private static Type[]? _inputs =
-        {
-             typeof(GeoJsonPointInput)
-        };
-
-        private static IReadOnlyList<TypeDependency>? _typeDependencies;
-        private static ITypeReference? _geometryKindRef;
-
-        private static IReadOnlyDictionary<GeoJsonGeometryType, IGeometryInputType> _inputTypes = null!;
-        private static IReadOnlyDictionary<GeoJsonGeometryType, IGeometryType> _outTypes = null!;
-
-        private static EnumType<GeoJsonGeometryType> _geometryKindType = null!;
-
         public GeometryType() : base("Geometry")
         {
-        //    Description = Resources.GeoJsonPositionScalar_Description;
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            IDictionary<string, object?> contextData)
-        {
-            foreach (var type in _inputs!)
-            {
-                context.RegisterDependency(
-                    new TypeDependency(
-                        context.TypeInspector.GetTypeRef(
-                            type,
-                            TypeContext.Input,
-                            context.Scope)));
-            }
-
-            _typeDependencies = context.TypeDependencies;
-
-            _geometryKindRef = context.TypeInspector.GetTypeRef(
-                typeof(EnumType<GeoJsonGeometryType>),
-                TypeContext.None,
-                context.Scope);
-
-            context.RegisterDependency(new TypeDependency(_geometryKindRef));
-
-
-            base.OnRegisterDependencies(context, contextData);
-        }
-
-        protected override void OnCompleteType(
-            ITypeCompletionContext context,
-            IDictionary<string, object?> contextData)
-        {
-            var inputTypes = new Dictionary<GeoJsonGeometryType, IGeometryInputType>();
-            var outputTypes = new Dictionary<GeoJsonGeometryType, IGeometryType>();
-            foreach (var dependency in _typeDependencies!)
-            {
-                if (context.TryGetType<IGeometryType>(
-                    dependency.TypeReference,
-                    out var geometryType))
-                {
-                    if (geometryType is IGeometryInputType inputType)
-                    {
-                        inputTypes[geometryType.GeometryType] = inputType;
-                    }
-                    else
-                    {
-                        outputTypes[geometryType.GeometryType] = geometryType;
-
-                    }
-                }
-            }
-
-            if (context.TryGetType<EnumType<GeoJsonGeometryType>>(
-                _geometryKindRef!,
-                out var kind))
-            {
-                _geometryKindType = kind;
-            }
-            else
-            {
-                throw new Exception();
-            }
-
-            _inputTypes = inputTypes;
-            _outTypes = outputTypes;
-            _inputs = null!;
-            _geometryKindRef = null!;
-            _typeDependencies = null!;
-
-            base.OnCompleteType(context, contextData);
+            //    Description = Resources.GeoJsonPositionScalar_Description;
         }
 
         public GeometryType(
@@ -106,14 +20,44 @@ namespace HotChocolate.Types.Spatial
         {
         }
 
-        // Null or Runtime Dictionary<string, object> or List<object>, => Null or Runtime Value
         public override object? Deserialize(object? resultValue)
         {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
 
-            return base.Deserialize(resultValue);
+            if (resultValue is Geometry geometry)
+            {
+                if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
+                {
+                    throw Geometry_Deserialize_TypeIsUnknown(geometry.GeometryType);
+                }
+
+                return Serializers[kind].Deserialize(resultValue);
+            }
+
+            if (resultValue is IReadOnlyDictionary<string, object> dict)
+            {
+                if (!dict.TryGetValue(TypeFieldName, out var typeObject) ||
+                    !(typeObject is string type))
+                {
+                    throw Geometry_Deserialize_TypeIsMissing();
+                }
+
+                if (GeoJsonTypeSerializer.Default.TryParseString(
+                    type,
+                    out GeoJsonGeometryType kind))
+                {
+                    return Serializers[kind].Deserialize(resultValue);
+                }
+
+                throw Geometry_Deserialize_TypeIsUnknown(type);
+            }
+
+            throw Serializer_CouldNotDeserialize();
         }
 
-        // Null or Runtime => Null or Dictionary<string, object> or List<object> or ResultMap or ResultMapList or ResultValueList
         public override object? Serialize(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -123,21 +67,15 @@ namespace HotChocolate.Types.Spatial
 
             if (!(runtimeValue is Geometry geometry))
             {
-                throw new Exception();
+                throw Geometry_Serialize_InvalidGeometryType(runtimeValue.GetType());
             }
 
             if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
             {
-                throw new Exception();
+                throw Geometry_Serialize_TypeIsUnknown(geometry.GeometryType);
             }
 
-            if (!_outTypes.TryGetValue(kind, out IGeometryType? geometryType))
-            {
-                throw new Exception();
-            }
-            //TODO: how should we hook into the execution engine?
-
-            throw new Exception();
+            return Serializers[kind].Serialize(runtimeValue);
         }
 
         public override bool IsInstanceOfType(IValueNode valueSyntax)
@@ -147,7 +85,7 @@ namespace HotChocolate.Types.Spatial
                 return true;
             }
 
-            IGeometryInputType geometryType = GetGeometryType(valueSyntax);
+            IGeoJsonSerializer geometryType = GetGeometrySerializer(valueSyntax);
             return geometryType.IsInstanceOfType(valueSyntax);
         }
 
@@ -158,7 +96,7 @@ namespace HotChocolate.Types.Spatial
                 return null;
             }
 
-            IGeometryInputType geometryType = GetGeometryType(valueSyntax);
+            IGeoJsonSerializer geometryType = GetGeometrySerializer(valueSyntax);
             return geometryType.ParseLiteral(valueSyntax);
         }
 
@@ -171,17 +109,17 @@ namespace HotChocolate.Types.Spatial
 
             if (!(runtimeValue is Geometry geometry))
             {
-                throw new Exception();
+                throw Geometry_Parse_InvalidGeometryType(runtimeValue.GetType());
             }
 
             if (!TryGetGeometryKind(geometry, out GeoJsonGeometryType kind))
             {
-                throw new Exception();
+                throw Geometry_Parse_TypeIsUnknown(geometry.GeometryType);
             }
 
-            if (!_inputTypes.TryGetValue(kind, out IGeometryInputType? geometryType))
+            if (!Serializers.TryGetValue(kind, out var geometryType))
             {
-                throw new Exception();
+                throw Geometry_Serializer_NotFound(kind);
             }
 
             return geometryType.ParseValue(runtimeValue);
@@ -199,50 +137,48 @@ namespace HotChocolate.Types.Spatial
                 return ParseValue(resultValue);
             }
 
-            if (resultValue is IReadOnlyDictionary<string, object> d &&
-                d.TryGetValue(TypeFieldName, out object? fieldObject) &&
-                fieldObject is string field &&
-                _geometryKindType.ParseLiteral(
-                    new StringValueNode(field)) is GeoJsonGeometryType type &&
-                _inputTypes.TryGetValue(type, out var geometryType))
+            if (resultValue is IReadOnlyDictionary<string, object> dict)
             {
-                return geometryType.ParseValue(resultValue);
+                if (!dict.TryGetValue(TypeFieldName, out var typeObject) ||
+                    !(typeObject is string type))
+                {
+                    throw Serializer_TypeIsMissing();
+                }
+
+                if (GeoJsonTypeSerializer.Default.TryParseString(
+                    type,
+                    out GeoJsonGeometryType kind))
+                {
+                    return Serializers[kind].ParseResult(resultValue);
+                }
+
+                throw Geometry_Parse_InvalidGeometryKind(type);
             }
 
-            throw new Exception();
+            throw Serializer_CouldNotParseValue();
         }
 
-        private IGeometryInputType GetGeometryType(IValueNode valueSyntax)
+        private IGeoJsonSerializer GetGeometrySerializer(IValueNode valueSyntax)
         {
             valueSyntax.EnsureObjectValueNode(out var obj);
 
             if (!TryGetGeometryKind(obj, out GeoJsonGeometryType geometryType))
             {
-                throw new Exception();
+                throw Geometry_Parse_InvalidType();
             }
 
-            if (!_inputTypes.TryGetValue(geometryType, out IGeometryInputType? type))
+            if (!Serializers.TryGetValue(geometryType, out var serializer))
             {
-                throw new Exception();
+                throw Geometry_Serializer_NotFound(geometryType);
             }
 
-            return type;
+            return serializer;
         }
 
         private bool TryGetGeometryKind(
             Geometry geometry,
-            out GeoJsonGeometryType geometryType)
-        {
-            if (_geometryKindType.ParseLiteral(
-                new StringValueNode(geometry.GeometryType)) is GeoJsonGeometryType type)
-            {
-                geometryType = type;
-                return true;
-            }
-
-            geometryType = default;
-            return false;
-        }
+            out GeoJsonGeometryType geometryType) =>
+            GeoJsonTypeSerializer.Default.TryParseString(geometry.GeometryType, out geometryType);
 
         private bool TryGetGeometryKind(
             ObjectValueNode valueSyntax,
@@ -252,7 +188,8 @@ namespace HotChocolate.Types.Spatial
             for (var i = 0; i < fields.Count; i++)
             {
                 if (fields[i].Name.Value == TypeFieldName &&
-                    _geometryKindType.ParseLiteral(fields[i].Value) is GeoJsonGeometryType type)
+                    GeoJsonTypeSerializer.Default.ParseLiteral(fields[i].Value) is
+                        GeoJsonGeometryType type)
                 {
                     geometryType = type;
                     return true;

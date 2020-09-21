@@ -131,30 +131,6 @@
   <data name="InvalidInputObjectStructure_CoordinatesOfWrongFormat" xml:space="preserve">
     <value>Failed to parse {0}. `coordinates` is of wrong format, it should be </value>
   </data>
-  <data name="InvalidInputObjectStructure_TypeIsMissing" xml:space="preserve">
-    <value>Failed to parse {0}. `type` is a required field.</value>
-  </data>
-  <data name="InvalidInputObjectStructure_CoordinatesIsMissing" xml:space="preserve">
-    <value>Failed to parse {0}. `coordinates` is a required field.</value>
-  </data>
-  <data name="InvalidInputObjectStructure_Point" xml:space="preserve">
-    <value>a single position. e.g. `[1,1]`</value>
-  </data>
-  <data name="InvalidInputObjectStructure_MultiPoint" xml:space="preserve">
-    <value>an array of positions. e.g. `[[1,1], [2,2]]`</value>
-  </data>
-  <data name="InvalidInputObjectStructure_LineString" xml:space="preserve">
-    <value>an array of two or more positions. e.g. `[[1,1], [2,2]]`</value>
-  </data>
-  <data name="InvalidInputObjectStructure_MultiLineString" xml:space="preserve">
-    <value>an array of LineStrings. e.g. `[[[1,1], [2,2]], [[0,0], [3,3]]]</value>
-  </data>
-  <data name="InvalidInputObjectStructure_Polygon" xml:space="preserve">
-    <value>an closed array of four or more positions.</value>
-  </data>
-  <data name="InvalidInputObjectStructure_MultiPolygon" xml:space="preserve">
-    <value>an array of Polygons.</value>
-  </data>
   <data name="PositionScalar_InvalidPositionObject" xml:space="preserve">
     <value>A valid position object must be a list of two or three int or float literals representing a position. e.g. [1,1] or [2,2,0]</value>
   </data>
@@ -188,10 +164,58 @@
   <data name="PositionScalar_CoordinatesCannotBeNull" xml:space="preserve">
     <value>The specified value has to be a Coordinate Type</value>
   </data>
-  <data name="InvalidInputObjectStructure_TypeCannotBeNull" xml:space="preserve">
-    <value>Value of field `type` is invalid. Cannot be null</value>
-  </data>
   <data name="Resolver_Type_InvalidGeometryType" xml:space="preserve">
     <value>Geometry type is not supported</value>
+  </data>
+  <data name="Serializer_CouldNotDeserialize" xml:space="preserve">
+    <value>The specified value is not a serialized input object</value>
+  </data>
+  <data name="Serializer_CouldNotSerialize" xml:space="preserve">
+    <value>The specified value is not a valid input object.</value>
+  </data>
+  <data name="Serializer_CouldNotParseLiteral" xml:space="preserve">
+    <value>Could not parse the given literal.</value>
+  </data>
+  <data name="Serializer_CouldNotParseValue" xml:space="preserve">
+    <value>Could not parse the given value.</value>
+  </data>
+  <data name="Serializer_Parse_CoordinatesIsInvalid" xml:space="preserve">
+    <value>Could not parse object. `Coordinates` is invalid.</value>
+  </data>
+  <data name="Serializer_Parse_TypeIsInvalid" xml:space="preserve">
+    <value>Could not parse object. `Type` is invalid.</value>
+  </data>
+  <data name="Serializer_Parse_CoordinatesIsMissing" xml:space="preserve">
+    <value>Could not parse object. `Coordinates` is missing.</value>
+  </data>
+  <data name="Serializer_Parse_TypeIsMissing" xml:space="preserve">
+    <value>Could not parse object. `Type` is missing.</value>
+  </data>
+  <data name="Geometry_Deserialize_TypeIsUnknown" xml:space="preserve">
+    <value>Could not deserialize object. `Type` {0} is unknown.</value>
+  </data>
+  <data name="Geometry_Serialize_TypeIsUnknown" xml:space="preserve">
+    <value>Could not serialize object. `Type` {0} is unknown.</value>
+  </data>
+  <data name="Geometry_Deserialize_TypeIsMissing" xml:space="preserve">
+    <value>Could not deserialize object. `type` is missing.</value>
+  </data>
+  <data name="Geometry_Parse_TypeIsUnknown" xml:space="preserve">
+    <value>Could not parse object. `Type` {0} is unknown.</value>
+  </data>
+  <data name="Geometry_Serialize_InvalidGeometryType" xml:space="preserve">
+    <value>Could not serialize geometry. Type {0} is no valid geometry type</value>
+  </data>
+  <data name="Geometry_Parse_InvalidGeometryType" xml:space="preserve">
+    <value>Could not parse geometry. Type {0} is no valid geometry type</value>
+  </data>
+  <data name="Geometry_Serializer_NotFound" xml:space="preserve">
+    <value>No serializer was found for {0}</value>
+  </data>
+  <data name="Geometry_Parse_InvalidGeometryKind" xml:space="preserve">
+    <value>Could not parse geometry. `Type` {0} is no valid geometry type</value>
+  </data>
+  <data name="Geometry_Parse_InvalidType" xml:space="preserve">
+    <value>Could not parse geometry. `type` is invalid</value>
   </data>
 </root>

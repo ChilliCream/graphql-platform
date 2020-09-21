@@ -69,7 +69,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
-                        new EnumValueNode("MULTI_POLYGON")),
+                        new EnumValueNode("MultiPolygon")),
                     new ObjectFieldNode("coordinates", _multiPolygon)));
 
             // assert
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
-                        new EnumValueNode("MULTI_POLYGON")),
+                        new EnumValueNode("MultiPolygon")),
                     new ObjectFieldNode("coordinates", _multiPolygon),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -158,7 +158,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     new ObjectValueNode(
                         new ObjectFieldNode(
                             "type",
-                            new EnumValueNode("MULTI_POLYGON")),
+                            new EnumValueNode("MultiPolygon")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
@@ -192,7 +192,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MULTI_POLYGON, coordinates:[ [" +
+                "{ test(arg: { type: MultiPolygon, coordinates:[ [" +
                 "[[30, 20], [45, 40], [10, 40], [30, 20]] ], " +
                 "[ [[15, 5], [40, 10], [10, 20], [5, 10], [15, 5]] ] ] })}");
 

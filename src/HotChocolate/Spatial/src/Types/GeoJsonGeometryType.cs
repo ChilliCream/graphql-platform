@@ -1,6 +1,5 @@
 namespace HotChocolate.Types.Spatial
 {
-    [GraphQLName("GeoJSONGeometryType")]
     public enum GeoJsonGeometryType
     {
         Point,

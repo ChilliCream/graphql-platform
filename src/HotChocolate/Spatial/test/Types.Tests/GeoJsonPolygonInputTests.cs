@@ -53,7 +53,9 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode(nameof(GeoJsonGeometryType.Polygon))),
                     new ObjectFieldNode("coordinates", _polygon)));
 
             // assert
@@ -77,7 +79,9 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(GeoJsonGeometryType.Polygon)),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode(nameof(GeoJsonGeometryType.Polygon))),
                     new ObjectFieldNode("coordinates", _polygon),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -168,7 +172,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: POLYGON, coordinates:[ [30, 10], [40, 40], [20, 40], [10, 20], [30, 10] ] })}");
+                "{ test(arg: { type: Polygon, coordinates:[ [30, 10], [40, 40], [20, 40], [10, 20], [30, 10] ] })}");
 
             // assert
             result.MatchSnapshot();

@@ -1,20 +1,12 @@
 ﻿{
   "Data": {
     "test": {
-      "type": "Point",
       "coordinates": [
-        [
-          30.0,
-          10.0
-        ]
-      ],
-      "bbox": [
-        30.0,
-        10.0,
         30.0,
         10.0
       ],
-      "crs": 4326
+      "type": "Point",
+      "crs": 0
     }
   },
   "Errors": null,

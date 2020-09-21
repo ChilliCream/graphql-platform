@@ -1,28 +1,63 @@
-using System.Collections.Generic;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-using static HotChocolate.Types.Spatial.WellKnownFields;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Spatial
 {
-    public abstract partial class GeoJsonInputObjectType<T>
-        : InputObjectType<T>,
-          IGeometryInputType
+    public abstract class GeoJsonInputObjectType<T>
+        : InputObjectType<T>
     {
-        private IInputField _typeField = default!;
-        private IInputField _coordinatesField = default!;
-        private IInputField _crsField = default!;
+        private readonly IGeoJsonSerializer _serializer;
 
-        public abstract GeoJsonGeometryType GeometryType { get; }
-
-        protected override void OnAfterCompleteType(
-            ITypeCompletionContext context,
-            DefinitionBase definition,
-            IDictionary<string, object?> contextData)
+        protected GeoJsonInputObjectType(GeoJsonGeometryType geometryType)
         {
-            _coordinatesField = Fields[CoordinatesFieldName];
-            _typeField = Fields[TypeFieldName];
-            _crsField = Fields[CrsFieldName];
+            _serializer = GeoJsonSerializers.Serializers[geometryType];
+        }
+
+        public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
+        {
+            try
+            {
+                return _serializer.ParseLiteral(valueSyntax, withDefaults);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
+
+        public override IValueNode ParseValue(object? runtimeValue)
+        {
+            try
+            {
+                return _serializer.ParseValue(runtimeValue);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
+
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
+        {
+            try
+            {
+                return _serializer.TryDeserialize(resultValue, out runtimeValue);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            try
+            {
+                return _serializer.TrySerialize(runtimeValue, out resultValue);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
         }
     }
 }

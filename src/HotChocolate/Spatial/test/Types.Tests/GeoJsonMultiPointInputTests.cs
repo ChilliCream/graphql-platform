@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode("MULTI_POINT")),
+                    new ObjectFieldNode("type", new EnumValueNode("MultiPoint")),
                     new ObjectFieldNode("coordinates", _multipoint)));
 
             // assert
@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode("MULTI_POINT")),
+                    new ObjectFieldNode("type", new EnumValueNode("MultiPoint")),
                     new ObjectFieldNode("coordinates", _multipoint),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -138,7 +138,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     new ObjectValueNode(
                         new ObjectFieldNode(
                             "type",
-                            new EnumValueNode("MULTI_POINT")),
+                            new EnumValueNode("MultiPoint")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MULTI_POINT, coordinates:[[10, 40], [40, 30], [20, 20], [30, 10]] })}");
+                "{ test(arg: { type: MultiPoint, coordinates:[[10, 40], [40, 30], [20, 20], [30, 10]] })}");
 
             // assert
             result.MatchSnapshot();

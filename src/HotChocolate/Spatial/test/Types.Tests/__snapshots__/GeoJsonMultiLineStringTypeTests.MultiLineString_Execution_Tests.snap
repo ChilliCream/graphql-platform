@@ -27,13 +27,13 @@ type Query {
 }
 
 enum GeoJSONGeometryType {
-  POINT
-  MULTI_POINT
-  LINE_STRING
-  MULTI_LINE_STRING
-  POLYGON
-  MULTI_POLYGON
-  GEOMETRY_COLLECTION
+  Point
+  MultiPoint
+  LineString
+  MultiLineString
+  Polygon
+  MultiPolygon
+  GeometryCollection
 }
 
 "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."

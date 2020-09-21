@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
-                        new EnumValueNode("MULTI_LINE_STRING")),
+                        new EnumValueNode("MultiLineString")),
                     new ObjectFieldNode("coordinates", _multiLinestring)));
 
             // assert
@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 new ObjectValueNode(
                     new ObjectFieldNode(
                         "type",
-                        new EnumValueNode("MULTI_LINE_STRING")),
+                        new EnumValueNode("MultiLineString")),
                     new ObjectFieldNode("coordinates", _multiLinestring),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     new ObjectValueNode(
                         new ObjectFieldNode(
                             "type",
-                            new EnumValueNode("MULTI_LINE_STRING")),
+                            new EnumValueNode("MultiLineString")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
@@ -190,7 +190,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MULTI_LINE_STRING, coordinates: [ [" +
+                "{ test(arg: { type: MultiLineString, coordinates: [ [" +
                 "[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]] ] })}");
 
             // assert

@@ -3,21 +3,24 @@ using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types.Spatial
 {
-    public class GeoJsonInterface : InterfaceType
+    public sealed class GeoJsonInterface : InterfaceType
     {
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
             descriptor.GeoJsonName(nameof(GeoJsonInterface));
 
-            descriptor.Field(TypeFieldName)
-                .Type<NonNullType<EnumType<GeoJsonGeometryType>>>()
+            descriptor
+                .Field(TypeFieldName)
+                .Type<NonNullType<GeoJsonGeometryEnumType>>()
                 .Description(GeoJson_Field_Type_Description);
 
-            descriptor.Field(BboxFieldName)
+            descriptor
+                .Field(BboxFieldName)
                 .Type<ListType<FloatType>>()
                 .Description(GeoJson_Field_Bbox_Description);
 
-            descriptor.Field(CrsFieldName)
+            descriptor
+                .Field(CrsFieldName)
                 .Type<IntType>()
                 .Description(GeoJson_Field_Crs_Description);
         }

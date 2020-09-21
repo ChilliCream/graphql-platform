@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                    new ObjectFieldNode("type", new EnumValueNode("LineString")),
                     new ObjectFieldNode("coordinates", _linestring)));
 
             // assert
@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                    new ObjectFieldNode("type", new EnumValueNode("LineString")),
                     new ObjectFieldNode("coordinates", _linestring),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -132,7 +132,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     new ObjectValueNode(
                         new ObjectFieldNode(
                             "type",
-                            new EnumValueNode("LINE_STRING")),
+                            new EnumValueNode("LineString")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
@@ -167,7 +167,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: LINE_STRING, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
+                "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
 
             // assert
             result.MatchSnapshot();
@@ -199,7 +199,7 @@ namespace HotChocolate.Types.Spatial.Tests
             InputObjectType type = schema.GetType<InputObjectType>("GeoJSONLineStringInput");
 
             var node = new ObjectValueNode(
-                new ObjectFieldNode("type", new EnumValueNode("LINE_STRING")),
+                new ObjectFieldNode("type", new EnumValueNode("LineString")),
                 new ObjectFieldNode("coordinates", _linestring),
                 new ObjectFieldNode("crs", 26912));
 
