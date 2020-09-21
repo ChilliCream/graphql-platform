@@ -10,12 +10,18 @@ namespace HotChocolate.Data
     {
         private static readonly MethodInfo _generic = typeof(FilterObjectFieldDescriptorExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Single(m => m.Name.Equals(
-                nameof(FilterObjectFieldDescriptorExtensions.UseFiltering),
-                StringComparison.Ordinal)
-                && m.GetGenericArguments().Length == 1
-                && m.GetParameters().Length == 2
-                && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+            .Single(
+                m => m.Name.Equals(
+                        nameof(FilterObjectFieldDescriptorExtensions.UseFiltering),
+                        StringComparison.Ordinal) &&
+                    m.GetGenericArguments().Length == 1 &&
+                    m.GetParameters().Length == 2 &&
+                    m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
+
+        public UseFilteringAttribute(Type? filterType = null)
+        {
+            Type = filterType;
+        }
 
         /// <summary>
         /// Gets or sets the filter type which specifies the filter object structure.
@@ -40,9 +46,10 @@ namespace HotChocolate.Data
             }
             else
             {
-                _generic.MakeGenericMethod(Type).Invoke(
-                    null,
-                    new object?[] { descriptor, Scope });
+                _generic.MakeGenericMethod(Type)
+                    .Invoke(
+                        null,
+                        new object?[] { descriptor, Scope });
             }
         }
     }
