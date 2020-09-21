@@ -107,6 +107,11 @@ namespace HotChocolate.Configuration
 
             CollectErrors();
 
+            if (_errors.Count == 0)
+            {
+               _typeRegistry.CompleteDiscovery();
+            }
+
             return _errors;
         }
 
@@ -168,7 +173,7 @@ namespace HotChocolate.Configuration
                 foreach (ITypeReference unresolvedReference in _typeRegistrar.GetUnresolved())
                 {
                     var types = _typeRegistry.Types.Where(
-                        t => t.Dependencies.Select(t => t.TypeReference)
+                        t => t.Dependencies.Select(d => d.TypeReference)
                             .Any(r => r.Equals(unresolvedReference))).ToList();
 
                     ISchemaErrorBuilder builder =
