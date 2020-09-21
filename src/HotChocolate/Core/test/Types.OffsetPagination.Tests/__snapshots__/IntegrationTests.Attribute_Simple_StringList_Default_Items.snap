@@ -1,0 +1,22 @@
+﻿{
+  "data": {
+    "letters": {
+      "items": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false
+      }
+    }
+  }
+}

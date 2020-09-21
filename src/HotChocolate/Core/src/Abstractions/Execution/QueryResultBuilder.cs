@@ -132,7 +132,7 @@ namespace HotChocolate.Execution
             return this;
         }
 
-        public IReadOnlyQueryResult Create()
+        public IQueryResult Create()
         {
             return new QueryResult(
                 _data,
@@ -166,12 +166,12 @@ namespace HotChocolate.Execution
             return builder;
         }
 
-        public static IReadOnlyQueryResult CreateError(
+        public static IQueryResult CreateError(
             IError error,
             IReadOnlyDictionary<string, object?>? contextData = null) =>
             new QueryResult(null, new List<IError> { error }, contextData: contextData);
 
-        public static IReadOnlyQueryResult CreateError(
+        public static IQueryResult CreateError(
             IReadOnlyList<IError> errors,
             IReadOnlyDictionary<string, object?>? contextData = null) =>
             new QueryResult(null, errors, contextData: contextData);

@@ -89,14 +89,13 @@ const Container = styled.ul`
 `;
 
 const Article = styled.li`
-  margin: 20px 0 0;
-
   @media only screen and (min-width: 820px) {
+    margin: 20px 0 0;
     border-radius: 4px;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
-  }
 
-  > a > .gatsby-image-wrapper {
-    border-radius: 4px 4px 0 0;
+    > a > .gatsby-image-wrapper {
+      border-radius: 4px 4px 0 0;
+    }
   }
 `;

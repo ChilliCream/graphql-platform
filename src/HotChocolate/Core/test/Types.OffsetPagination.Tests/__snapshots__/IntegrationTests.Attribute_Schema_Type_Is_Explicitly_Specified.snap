@@ -1,0 +1,14 @@
+﻿{
+  "data": {
+    "explicitType": {
+      "items": [
+        "a",
+        "b"
+      ],
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": false
+      }
+    }
+  }
+}

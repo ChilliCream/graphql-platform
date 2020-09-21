@@ -52,8 +52,58 @@ exports.createPages = async ({ actions, graphql, reporter }) => {
     isPermanent: true,
   });
   createRedirect({
-    fromPath: "/docs",
-    toPath: "/docs/hotchocolate",
+    fromPath: "/docs/",
+    toPath: "/docs/hotchocolate/v10/",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+
+  // images
+  createRedirect({
+    fromPath: "/img/projects/greendonut-banner.svg",
+    toPath: "/resources/greendonut-banner.svg",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/greendonut-signet.png",
+    toPath: "/resources/greendonut-signet.png",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/hotchocolate-banner.svg",
+    toPath: "/resources/hotchocolate-banner.svg",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/hotchocolate-signet.png",
+    toPath: "/resources/hotchocolate-signet.png",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/react-rasta-banner.svg",
+    toPath: "/resources/react-rasta-banner.svg",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/react-rasta-signet.png",
+    toPath: "/resources/react-rasta-signet.png",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/strawberryshake-banner.svg",
+    toPath: "/resources/strawberryshake-banner.svg",
+    redirectInBrowser: true,
+    isPermanent: true,
+  });
+  createRedirect({
+    fromPath: "/img/projects/strawberryshake-signet.png",
+    toPath: "/resources/strawberryshake-signet.png",
     redirectInBrowser: true,
     isPermanent: true,
   });

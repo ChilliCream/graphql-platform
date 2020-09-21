@@ -2,91 +2,327 @@
   {
     "path": "hotchocolate",
     "title": "Hot Chocolate",
-    "description": "Configure a GraphQL server to fetch data from multiple data sources.",
-    "items": [
+    "description": "Build your own thin GraphQL API layer on top of any resource.",
+    "versions": [
       {
-        "path": "index",
-        "title": "Introduction"
-      },
-      {
-        "path": "getting-started",
-        "title": "Getting Started"
-      },
-      {
-        "path": "defining-a-schema",
-        "title": "Defining a schema",
+        "path": "v10",
+        "title": "v10 (stable)",
         "items": [
           {
             "path": "index",
-            "title": "Schema basics"
+            "title": "Introduction"
           },
           {
-            "path": "versioning",
-            "title": "Versioning"
+            "path": "code-first",
+            "title": "Code-First"
           },
           {
-            "path": "unions-and-interfaces",
-            "title": "Unions and Interfaces"
+            "path": "schema-first",
+            "title": "Schema-First"
           },
           {
-            "path": "scalars",
-            "title": "Scalars"
+            "path": "schema",
+            "title": "Schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Schema"
+              },
+              {
+                "path": "object-type",
+                "title": "Object Type"
+              },
+              {
+                "path": "interface-type",
+                "title": "Interface Type"
+              },
+              {
+                "path": "union-type",
+                "title": "Union Type"
+              },
+              {
+                "path": "input-object-type",
+                "title": "Input Object Type"
+              },
+              {
+                "path": "enum-type",
+                "title": "Enum Type"
+              },
+              {
+                "path": "descriptions",
+                "title": "Schema Descriptions"
+              },
+              {
+                "path": "custom-scalar-types",
+                "title": "Scalar Type Support"
+              },
+              {
+                "path": "descriptor-attributes",
+                "title": "Descriptor Attributes"
+              },
+              {
+                "path": "extending-types",
+                "title": "Custom Base Classes"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              },
+              {
+                "path": "resolvers",
+                "title": "Resolvers"
+              },
+              {
+                "path": "relay",
+                "title": "Relay"
+              },
+              {
+                "path": "conventions",
+                "title": "Conventions"
+              },
+              {
+                "path": "options",
+                "title": "Schema Options"
+              }
+            ]
           },
           {
-            "path": "directives",
-            "title": "Directives"
+            "path": "data-fetching",
+            "title": "Data Fetching",
+            "items": [
+              {
+                "path": "index",
+                "title": "Data Loaders"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filters",
+                "title": "Filters"
+              }
+            ]
+          },
+          {
+            "path": "security",
+            "title": "Security",
+            "items": [
+              {
+                "path": "index",
+                "title": "Authorization"
+              },
+              {
+                "path": "security",
+                "title": "Security"
+              }
+            ]
+          },
+          {
+            "path": "execution-engine",
+            "title": "Execution Engine",
+            "items": [
+              {
+                "path": "index",
+                "title": "Middleware"
+              },
+              {
+                "path": "validation-rules",
+                "title": "Validation Rules"
+              },
+              {
+                "path": "instrumentation",
+                "title": "Instrumentation"
+              },
+              {
+                "path": "apollo-tracing",
+                "title": "Apollo Tracing"
+              },
+              {
+                "path": "batching",
+                "title": "Batching"
+              },
+              {
+                "path": "persisted-queries",
+                "title": "Persisted Queries"
+              },
+              {
+                "path": "custom-context-data",
+                "title": "Custom Context Data"
+              },
+              {
+                "path": "subscriptions",
+                "title": "Subscriptions"
+              },
+              {
+                "path": "type-conversion",
+                "title": "Type Conversion"
+              },
+              {
+                "path": "error-filter",
+                "title": "Error Filter"
+              },
+              {
+                "path": "execution-options",
+                "title": "Execution Options"
+              }
+            ]
+          },
+          {
+            "path": "server",
+            "title": "Server",
+            "items": [
+              {
+                "path": "index",
+                "title": "ASP.Net"
+              },
+              {
+                "path": "dependency-injection",
+                "title": "Dependency Injection"
+              }
+            ]
+          },
+          {
+            "path": "stitching",
+            "title": "Schema Stitching"
+          },
+          {
+            "path": "tooling",
+            "title": "Tooling"
+          },
+          {
+            "path": "advanced",
+            "title": "Advanced",
+            "items": [
+              {
+                "path": "index",
+                "title": "Parser"
+              },
+              {
+                "path": "dotnet-cli",
+                "title": ".Net CLI"
+              }
+            ]
+          },
+          {
+            "path": "tutorials",
+            "title": "Tutorials",
+            "items": [
+              {
+                "path": "index",
+                "title": "Entity Framework"
+              }
+            ]
+          },
+          {
+            "path": "examples",
+            "title": "Examples",
+            "items": [
+              {
+                "path": "index",
+                "title": "Star Wars"
+              },
+              {
+                "path": "slack-clone",
+                "title": "Slack Clone"
+              },
+              {
+                "path": "other-examples",
+                "title": "Other Examples"
+              }
+            ]
           }
         ]
       },
       {
-        "path": "fetching-data",
-        "title": "Fetching data",
+        "path": "",
+        "title": "v11 (preview)",
         "items": [
           {
             "path": "index",
-            "title": "Resolver"
+            "title": "Introduction"
           },
           {
-            "path": "fetching-from-databases",
-            "title": "Fetching from Databases"
+            "path": "getting-started",
+            "title": "Getting Started"
           },
           {
-            "path": "fetching-from-rest",
-            "title": "Fetching from REST"
+            "path": "defining-a-schema",
+            "title": "Defining a schema",
+            "items": [
+              {
+                "path": "index",
+                "title": "Schema basics"
+              },
+              {
+                "path": "versioning",
+                "title": "Versioning"
+              },
+              {
+                "path": "unions-and-interfaces",
+                "title": "Unions and Interfaces"
+              },
+              {
+                "path": "scalars",
+                "title": "Scalars"
+              },
+              {
+                "path": "directives",
+                "title": "Directives"
+              }
+            ]
           },
           {
-            "path": "dataloader",
-            "title": "DataLoader"
+            "path": "fetching-data",
+            "title": "Fetching data",
+            "items": [
+              {
+                "path": "index",
+                "title": "Resolver"
+              },
+              {
+                "path": "fetching-from-databases",
+                "title": "Fetching from Databases"
+              },
+              {
+                "path": "fetching-from-rest",
+                "title": "Fetching from REST"
+              },
+              {
+                "path": "dataloader",
+                "title": "DataLoader"
+              },
+              {
+                "path": "pagination",
+                "title": "Pagination"
+              },
+              {
+                "path": "filtering",
+                "title": "Filtering"
+              },
+              {
+                "path": "sorting",
+                "title": "Sorting"
+              }
+            ]
           },
           {
-            "path": "pagination",
-            "title": "Pagination"
-          },
-          {
-            "path": "filtering",
-            "title": "Filtering"
-          },
-          {
-            "path": "sorting",
-            "title": "Sorting"
-          }
-        ]
-      },
-      {
-        "path": "api-reference",
-        "title": "API Reference",
-        "items": [
-          {
-            "path": "index",
-            "title": "Overview"
-          },
-          {
-            "path": "language",
-            "title": "Lanugage"
-          },
-          {
-            "path": "visitors",
-            "title": "Visitors"
+            "path": "api-reference",
+            "title": "API Reference",
+            "items": [
+              {
+                "path": "index",
+                "title": "Overview"
+              },
+              {
+                "path": "language",
+                "title": "Lanugage"
+              },
+              {
+                "path": "visitors",
+                "title": "Visitors"
+              }
+            ]
           }
         ]
       }
@@ -95,33 +331,51 @@
   {
     "path": "bananacakepop",
     "title": "Banana Cake Pop",
-    "description": "Use this GUI to get deep insights from any GraphQL endpoint.",
-    "items": [
+    "description": "Use this GUI to get deep insights from any GraphQL API.",
+    "versions": [
       {
-        "path": "index",
-        "title": "Introduction"
+        "path": "",
+        "title": "v1 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          }
+        ]
       }
     ]
   },
   {
     "path": "strawberryshake",
     "title": "Strawberry Shake",
-    "description": "Configure a GraphQL client in .Net to fetch data from multiple GraphQL endpoints.",
-    "items": [
+    "description": "Generate a unique GraphQL client for .Net to fetch data from any GraphQL API.",
+    "versions": [
       {
-        "path": "index",
-        "title": "Introduction"
+        "path": "",
+        "title": "v11 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          }
+        ]
       }
     ]
   },
   {
-    "path": "marshmellowpie",
-    "title": "Marshmellow Pie",
+    "path": "marshmallowpie",
+    "title": "Marshmallow Pie",
     "description": "Configure a GraphQL registry to keep track of any GraphQL server and client.",
-    "items": [
+    "versions": [
       {
-        "path": "index",
-        "title": "Introduction"
+        "path": "",
+        "title": "v11 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          }
+        ]
       }
     ]
   },
@@ -129,10 +383,52 @@
     "path": "greendonut",
     "title": "Green Donut",
     "description": "Configure data loaders and caching for GraphQL endpoints.",
-    "items": [
+    "versions": [
       {
-        "path": "index",
-        "title": "Introduction"
+        "path": "v10",
+        "title": "v10 (stable)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          },
+          {
+            "path": "installation",
+            "title": "Installation"
+          },
+          {
+            "path": "usage",
+            "title": "Usage"
+          },
+          {
+            "path": "api",
+            "title": "API"
+          },
+          {
+            "path": "advanced-concepts",
+            "title": "Advanced Concepts",
+            "items": [
+              {
+                "path": "index",
+                "title": "Custom DataLoader"
+              },
+              {
+                "path": "diagnostics",
+                "title": "Diagnostic Events"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "",
+        "title": "v11 (preview)",
+        "items": [
+          {
+            "path": "index",
+            "title": "Introduction"
+          }
+        ]
       }
     ]
   }
