@@ -50,16 +50,16 @@ namespace HotChocolate.Execution
                 return Array.Empty<IFieldSelection>();
             }
 
-            IPreparedSelectionList fields =
+            ISelectionSet fields =
                 _operationContext.CollectFields(selectionSet, typeContext);
 
             if (fields.IsConditional)
             {
                 var finalFields = new List<IFieldSelection>();
 
-                for (var i = 0; i < fields.Count; i++)
+                for (var i = 0; i < fields.Selections.Count; i++)
                 {
-                    IPreparedSelection selection = fields[i];
+                    ISelection selection = fields.Selections[i];
                     if (selection.IsIncluded(_operationContext.Variables, allowInternals))
                     {
                         finalFields.Add(selection);
@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
                 return finalFields;
             }
 
-            return fields;
+            return fields.Selections;
         }
 
         public void ReportError(string errorMessage)

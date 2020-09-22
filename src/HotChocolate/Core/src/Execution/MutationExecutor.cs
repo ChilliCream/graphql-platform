@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Utilities;
@@ -18,12 +19,13 @@ namespace HotChocolate.Execution
 
             var responseIndex = 0;
             var scopedContext = ImmutableDictionary<string, object?>.Empty;
-            IPreparedSelectionList rootSelections = operationContext.Operation.GetRootSelections();
-            ResultMap resultMap = operationContext.Result.RentResultMap(rootSelections.Count);
+            ISelectionSet selectionSet = operationContext.Operation.GetRootSelectionSet();
+            IReadOnlyList<ISelection> selections = selectionSet.Selections;
+            ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
-            for (var i = 0; i < rootSelections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
-                IPreparedSelection selection = rootSelections[i];
+                ISelection selection = selectionSet.Selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
                     operationContext.Execution.TaskBacklog.Register(

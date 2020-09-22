@@ -18,10 +18,10 @@ namespace HotChocolate.Execution
         {
             private readonly ObjectPool<OperationContext> _operationContextPool;
             private readonly QueryExecutor _queryExecutor;
-            private readonly IDiagnosticEvents _diagnosicEvents;
+            private readonly IDiagnosticEvents _diagnosticEvents;
             private readonly IRequestContext _requestContext;
             private readonly ObjectType _subscriptionType;
-            private readonly IPreparedSelectionList _rootSelections;
+            private readonly ISelectionSet _rootSelections;
             private ISourceStream _sourceStream = default!;
             private object? _cachedRootValue = null;
             private bool _disposed;
@@ -31,15 +31,15 @@ namespace HotChocolate.Execution
                 QueryExecutor queryExecutor,
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
-                IPreparedSelectionList rootSelections,
-                IDiagnosticEvents diagnosicEvents)
+                ISelectionSet rootSelections,
+                IDiagnosticEvents diagnosticEvents)
             {
                 _operationContextPool = operationContextPool;
                 _queryExecutor = queryExecutor;
                 _requestContext = requestContext;
                 _subscriptionType = subscriptionType;
                 _rootSelections = rootSelections;
-                _diagnosicEvents = diagnosicEvents;
+                _diagnosticEvents = diagnosticEvents;
             }
 
             public static async ValueTask<Subscription> SubscribeAsync(
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 QueryExecutor queryExecutor,
                 IRequestContext requestContext,
                 ObjectType subscriptionType,
-                IPreparedSelectionList rootSelections,
+                ISelectionSet rootSelections,
                 IDiagnosticEvents diagnosicEvents)
             {
                 var subscription = new Subscription(
@@ -99,8 +99,9 @@ namespace HotChocolate.Execution
 
                 try
                 {
-                    var scopedContext = ImmutableDictionary<string, object?>.Empty
-                        .SetItem(WellKnownContextData.EventMessage, payload);
+                    ImmutableDictionary<string, object?> scopedContext =
+                        ImmutableDictionary<string, object?>.Empty
+                            .SetItem(WellKnownContextData.EventMessage, payload);
 
                     object? rootValue = RootValueResolver.TryResolve(
                         _requestContext,
@@ -146,16 +147,16 @@ namespace HotChocolate.Execution
                         _requestContext.Variables!);
 
                     ResultMap resultMap = operationContext.Result.RentResultMap(1);
-                    IPreparedSelection rootSelection = _rootSelections[0];
+                    ISelection rootSelection = _rootSelections.Selections[0];
 
                     var middlewareContext = new MiddlewareContext();
                     middlewareContext.Initialize(
                         operationContext,
-                        _rootSelections[0],
+                        _rootSelections.Selections[0],
                         resultMap,
                         1,
                         rootValue,
-                        Path.New(_rootSelections[0].ResponseName),
+                        Path.New(_rootSelections.Selections[0].ResponseName),
                         ImmutableDictionary<string, object?>.Empty);
 
                     ISourceStream sourceStream =
