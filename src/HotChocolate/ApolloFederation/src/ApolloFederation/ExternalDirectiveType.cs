@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.ApolloFederation.Properties;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 
 namespace HotChocolate.ApolloFederation
@@ -21,23 +18,5 @@ namespace HotChocolate.ApolloFederation
                 .Description(FederationResources.ExternalDirective_Description)
                 .Location(DirectiveLocation.FieldDefinition);
         }
-    }
-
-    public class Foo : TypeInterceptor 
-    {
-        // 
-
-        public override void OnTypesInitialized(
-            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
-        {
-            // discoveryContexts.First().Type;
-
-
-            // find entity type
-
-
-
-            base.OnTypesInitialized(discoveryContexts);
-        }        
     }
 }
