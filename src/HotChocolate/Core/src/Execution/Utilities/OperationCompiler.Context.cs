@@ -10,6 +10,7 @@ namespace HotChocolate.Execution.Utilities
     {
         private class CompilerContext
         {
+            private readonly HashSet<(SelectionSetNode, NameString)> _processed;
             private readonly Stack<CompilerContext> _backlog;
             private readonly IDictionary<SelectionSetNode, SelectionVariants> _variantsLookup;
             private List<IFragment>? _fragments;
@@ -32,6 +33,7 @@ namespace HotChocolate.Execution.Utilities
                     new Dictionary<ISelectionNode, SelectionIncludeCondition>();
                 Optimizers = optimizers;
                 IsConditional = false;
+                _processed = new HashSet<(SelectionSetNode, NameString)>();
                 _backlog = backlog;
                 _variantsLookup = selectionVariantsLookup;
             }
@@ -45,7 +47,8 @@ namespace HotChocolate.Execution.Utilities
                 IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
                 IImmutableList<ISelectionOptimizer> optimizers,
                 Stack<CompilerContext> backlog,
-                IDictionary<SelectionSetNode, SelectionVariants> selectionVariantsLookup)
+                IDictionary<SelectionSetNode, SelectionVariants> selectionVariantsLookup,
+                HashSet<(SelectionSetNode, NameString)> processed)
             {
                 Type = type;
                 Path = path;
@@ -58,6 +61,7 @@ namespace HotChocolate.Execution.Utilities
                 IsConditional = false;
                 _backlog = backlog;
                 _variantsLookup = selectionVariantsLookup;
+                _processed = processed;
             }
 
             public IObjectType Type { get; }
@@ -97,27 +101,35 @@ namespace HotChocolate.Execution.Utilities
                 SelectionVariants.AddSelectionSet(Type, Selections, _fragments, IsConditional);
             }
 
-            public void Branch(ObjectType type, ISelection selection)
+            public void TryBranch(ObjectType type, ISelection selection)
             {
+                SelectionSetNode selectionSet = selection.SelectionSet!;
+
+                if(!_processed.Add((selectionSet, type.Name)))
+                {
+                    return;
+                }
+
                 if (!_variantsLookup.TryGetValue(
-                    selection.SelectionSet!,
+                    selectionSet,
                     out SelectionVariants? selectionVariants))
                 {
-                    selectionVariants = new SelectionVariants(selection.SelectionSet!);
-                    _variantsLookup[selection.SelectionSet!] = selectionVariants;
+                    selectionVariants = new SelectionVariants(selectionSet);
+                    _variantsLookup[selectionSet] = selectionVariants;
                 }
 
                 var context = new CompilerContext
                 (
                     type,
                     Path.Push(selection.Field),
-                    selection.SelectionSet!,
+                    selectionSet,
                     selectionVariants,
                     selection.IsInternal,
                     IncludeConditionLookup,
                     RegisterOptimizers(Optimizers, selection.Field),
                     _backlog,
-                    _variantsLookup
+                    _variantsLookup,
+                    _processed
                 );
 
                 _backlog.Push(context);
@@ -143,7 +155,8 @@ namespace HotChocolate.Execution.Utilities
                     IncludeConditionLookup,
                     Optimizers,
                     _backlog,
-                    _variantsLookup
+                    _variantsLookup,
+                    _processed
                 );
 
                 return context;

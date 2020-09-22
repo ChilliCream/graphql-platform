@@ -102,7 +102,7 @@ namespace HotChocolate.Execution.Utilities
                     {
                         // we branch the context which will enqueue the new context 
                         // to the work backlog.
-                        context.Branch(possibleTypes[i], selection);
+                        context.TryBranch(possibleTypes[i], selection);
                     }
                 }
             }

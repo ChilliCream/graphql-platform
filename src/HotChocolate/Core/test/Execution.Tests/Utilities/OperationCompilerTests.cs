@@ -813,6 +813,48 @@ namespace HotChocolate.Execution.Utilities
             Assert.Empty(op.GetSelectionSet(rootField.SelectionSet, human).Fragments);
         }
 
+        [Fact]
+        public void Reuse_Selection()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query Hero($episode: Episode, $withFriends: Boolean!) {
+                    hero(episode: $episode) {
+                        name
+                        friends @include(if: $withFriends) {
+                            nodes {
+                                id
+                            }
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
+                OperationCompiler.Compile(schema, fragments, operation, null);
+
+            // assert
+            new Operation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets)
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class Foo
         {
             public Bar Bar => new Bar();
