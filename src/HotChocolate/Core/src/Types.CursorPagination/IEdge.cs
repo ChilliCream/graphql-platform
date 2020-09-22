@@ -10,6 +10,6 @@
         /// <summary>
         /// Gets the node.
         /// </summary>
-        object Node { get; }
+        object? Node { get; }
     }
 }

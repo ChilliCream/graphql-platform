@@ -45,11 +45,11 @@ namespace HotChocolate.Execution.Utilities
         /// </param>
         public SelectionSet(
             IReadOnlyList<ISelection> selections,
-            IReadOnlyList<IFragment> fragments,
+            IReadOnlyList<IFragment>? fragments,
             bool isConditional)
         {
             Selections = selections;
-            Fragments = fragments;
+            Fragments = fragments ?? _empty;
             IsConditional = isConditional;
         }
 

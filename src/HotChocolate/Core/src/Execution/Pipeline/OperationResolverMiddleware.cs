@@ -14,12 +14,12 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IReadOnlyList<ISelectionSetOptimizer>? _optimizers;
+        private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
 
         public OperationResolverMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
-            IEnumerable<ISelectionSetOptimizer> optimizers)
+            IEnumerable<ISelectionOptimizer> optimizers)
         {
             if (optimizers is null)
             {

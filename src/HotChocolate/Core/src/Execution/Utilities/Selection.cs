@@ -49,7 +49,7 @@ namespace HotChocolate.Execution.Utilities
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
 
-            if (includeCondition is { })
+            if (includeCondition is not null)
             {
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
                 ModifyCondition(true);

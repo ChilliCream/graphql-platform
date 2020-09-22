@@ -8,8 +8,8 @@ namespace HotChocolate.Execution.Utilities
     {
         SelectionSetNode SelectionSet { get; }
 
-        IEnumerable<ObjectType> GetPossibleTypes();
+        IEnumerable<IObjectType> GetPossibleTypes();
 
-        ISelectionSet GetSelectionSet(ObjectType typeContext);
+        ISelectionSet GetSelectionSet(IObjectType typeContext);
     }
 }

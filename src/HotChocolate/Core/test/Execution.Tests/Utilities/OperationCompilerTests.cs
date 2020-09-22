@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -707,26 +708,43 @@ namespace HotChocolate.Execution.Utilities
             public string Text => "Baz";
         }
 
-        public class NoopOptimizer : ISelectionSetOptimizer
+        public class NoopOptimizer : ISelectionOptimizer
         {
-            public void Optimize(SelectionSetOptimizerContext context)
+            public bool AllowFragmentDeferral(
+                SelectionOptimizerContext context, 
+                InlineFragmentNode fragment) => true;
+
+            public bool AllowFragmentDeferral(
+                SelectionOptimizerContext context, 
+                FragmentSpreadNode fragmentSpread, 
+                FragmentDefinitionNode fragmentDefinition) => true;
+
+            public void OptimizeSelectionSet(SelectionOptimizerContext context)
             {
             }
         }
 
-        public class SimpleOptimizer : ISelectionSetOptimizer
+        public class SimpleOptimizer : ISelectionOptimizer
         {
-            public void Optimize(SelectionSetOptimizerContext context)
+            public bool AllowFragmentDeferral(
+                SelectionOptimizerContext context, 
+                InlineFragmentNode fragment) => true;
+
+            public bool AllowFragmentDeferral(
+                SelectionOptimizerContext context, 
+                FragmentSpreadNode fragmentSpread, 
+                FragmentDefinitionNode fragmentDefinition) => true;
+
+            public void OptimizeSelectionSet(SelectionOptimizerContext context)
             {
-                if (context.FieldContext.TryPeek(out IObjectField field)
-                    && field.Name.Equals("bar"))
+                if (!context.Path.IsEmpty && context.Path.Peek() is { Name: { Value: "bar" } })
                 {
-                    IObjectField baz = context.TypeContext.Fields["baz"];
+                    IObjectField baz = context.Type.Fields["baz"];
                     FieldNode bazSelection = Utf8GraphQLParser.Syntax.ParseField("baz { text }");
                     FieldDelegate bazPipeline = context.CompileResolverPipeline(baz, bazSelection);
 
                     var compiledSelection = new Selection(
-                        context.TypeContext,
+                        context.Type,
                         baz,
                         bazSelection,
                         bazPipeline,

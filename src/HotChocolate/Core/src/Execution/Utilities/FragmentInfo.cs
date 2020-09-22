@@ -7,9 +7,9 @@ namespace HotChocolate.Execution.Utilities
     /// <summary>
     /// Represents an aligned interface for fragments to the execution engine.
     /// </summary>
-    internal sealed class Fragment
+    internal sealed class FragmentInfo
     {
-        public Fragment(
+        public FragmentInfo(
             IType typeCondition,
             SelectionSetNode selectionSet,
             IReadOnlyList<DirectiveNode> directives)
