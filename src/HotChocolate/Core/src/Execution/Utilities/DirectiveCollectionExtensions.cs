@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Utilities
 {
@@ -12,23 +13,19 @@ namespace HotChocolate.Execution.Utilities
             return directive is null ? null : GetIfArgumentValue(directive);
         }
 
-        public static IValueNode? IncludeValue(
-            this IReadOnlyList<DirectiveNode> directives)
+        public static IValueNode? IncludeValue(this IReadOnlyList<DirectiveNode> directives)
         {
             DirectiveNode? directive = directives.GetIncludeDirective();
             return directive is null ? null : GetIfArgumentValue(directive);
         }
 
-        public static bool IsDeferrable(
-            this InlineFragmentNode fragmentNode) =>
+        public static bool IsDeferrable(this InlineFragmentNode fragmentNode) =>
             fragmentNode.Directives.GetDeferDirective() is not null;
 
-        public static bool IsDeferrable(
-            this FragmentSpreadNode fragmentSpreadNode) =>
+        public static bool IsDeferrable(this FragmentSpreadNode fragmentSpreadNode) =>
             fragmentSpreadNode.Directives.GetDeferDirective() is not null;
 
-        public static bool IsDeferrable(
-            this IReadOnlyList<DirectiveNode> directives) =>
+        public static bool IsDeferrable(this IReadOnlyList<DirectiveNode> directives) =>
             directives.GetDeferDirective() is not null;
 
         private static IValueNode GetIfArgumentValue(DirectiveNode directive)
@@ -66,9 +63,10 @@ namespace HotChocolate.Execution.Utilities
         {
             for (var i = 0; i < directives.Count; i++)
             {
-                if (string.Equals(directives[i].Name.Value, name, StringComparison.Ordinal))
+                DirectiveNode directive = directives[i];
+                if (directive.Name.Value.EqualsOrdinal(name))
                 {
-                    return directives[i];
+                    return directive;
                 }
             }
             return null;

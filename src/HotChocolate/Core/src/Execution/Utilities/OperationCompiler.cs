@@ -28,12 +28,9 @@ namespace HotChocolate.Execution.Utilities
             OperationDefinitionNode operation,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
+            var compiler = new OperationCompiler(schema, fragments);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
-
             ObjectType rootType = schema.GetOperationType(operation.Operation);
-            var rootSelectionVariants = new SelectionVariants(operation.SelectionSet);
-
-            var collector = new OperationCompiler(schema, fragments);
             var backlog = new Stack<CompilerContext>();
 
             // creates and enqueues the root compiler context.
@@ -41,12 +38,11 @@ namespace HotChocolate.Execution.Utilities
                 backlog,
                 rootType,
                 operation.SelectionSet,
-                rootSelectionVariants,
                 optimizers?.ToImmutableList() ?? ImmutableList<ISelectionOptimizer>.Empty,
                 selectionSetLookup);
 
             // processes the backlog and by doing so traverses the query graph.
-            collector.Visit(backlog);
+            compiler.Visit(backlog);
 
             return selectionSetLookup;
         }
@@ -110,6 +106,8 @@ namespace HotChocolate.Execution.Utilities
                     }
                 }
             }
+
+            context.Complete();
         }
 
         private void CollectFields(
@@ -198,7 +196,7 @@ namespace HotChocolate.Execution.Utilities
                     context.Fields.Add(responseName, preparedSelection);
                 }
 
-                if (includeCondition is { } && selection.SelectionSet is { })
+                if (includeCondition is not null && selection.SelectionSet is not null)
                 {
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
@@ -221,13 +219,31 @@ namespace HotChocolate.Execution.Utilities
             FragmentSpreadNode fragmentSpread,
             SelectionIncludeCondition? includeCondition)
         {
-            if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragment &&
-                DoesTypeApply(fragment.TypeCondition, context.Type))
+            if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragmentInfo &&
+                DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
-                CollectFields(
-                    context,
-                    fragment.SelectionSet,
-                    includeCondition);
+                FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
+
+                if (fragmentSpread.IsDeferrable() &&
+                    AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
+                {
+                    var deferContext = context.Branch(fragmentInfo);
+                    CompileSelectionSet(deferContext);
+
+                    context.RegisterFragment(new Fragment(
+                        context.Type,
+                        fragmentDefinition,
+                        deferContext.GetSelectionSet(),
+                        context.IsInternalSelection,
+                        includeCondition));
+                }
+                else
+                {
+                    CollectFields(
+                        context,
+                        fragmentInfo.SelectionSet,
+                        includeCondition);
+                }
             }
         }
 
@@ -244,15 +260,13 @@ namespace HotChocolate.Execution.Utilities
                 {
                     var deferContext = context.Branch(fragmentInfo);
                     CompileSelectionSet(deferContext);
-                    ISelectionSet selectionSet = deferContext.GetSelectionSet();
-                    
-                    var fragment = new Fragment(
-                        context.Type, 
-                        inlineFragment, 
-                        selectionSet, 
-                        context.IsInternalSelection, 
-                        includeCondition);
-                    context.RegisterFragment(fragment);
+
+                    context.RegisterFragment(new Fragment(
+                        context.Type,
+                        inlineFragment,
+                        deferContext.GetSelectionSet(),
+                        context.IsInternalSelection,
+                        includeCondition));
                 }
                 else
                 {

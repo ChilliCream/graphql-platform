@@ -153,21 +153,22 @@ namespace HotChocolate.Execution.Utilities
                 Stack<CompilerContext> backlog,
                 IObjectType type,
                 SelectionSetNode selectionSet,
-                SelectionVariants selectionVariants,
                 IImmutableList<ISelectionOptimizer> optimizers,
                 IDictionary<SelectionSetNode, SelectionVariants> selectionVariantsLookup)
             {
+                var rootSelections = new SelectionVariants(selectionSet);
+                selectionVariantsLookup[selectionSet] = rootSelections;
+
                 var context = new CompilerContext
                 (
                     backlog,
                     type,
                     selectionSet,
-                    selectionVariants,
+                    rootSelections,
                     optimizers,
                     selectionVariantsLookup
                 );
 
-                selectionVariantsLookup[selectionSet] = context.SelectionVariants;
                 backlog.Push(context);
 
                 return context;

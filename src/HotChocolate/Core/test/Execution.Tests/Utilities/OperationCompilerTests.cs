@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -689,6 +688,129 @@ namespace HotChocolate.Execution.Utilities
                 selectionSets);
 
             op.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Defer_Inline_Fragment()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                    hero(episode: EMPIRE) {
+                        name
+                        ... @defer {
+                            id
+                        }
+                    }
+                }");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
+                OperationCompiler.Compile(schema, fragments, operation, null);
+
+            // assert
+            var op = new Operation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+
+            ISelection rootField = op.GetRootSelectionSet().Selections.Single();
+
+            ObjectType droid = schema.GetType<ObjectType>("Droid");
+
+            Assert.Collection(
+                op.GetSelectionSet(rootField.SelectionSet, droid).Fragments,
+                f =>  
+                {
+                    Assert.Equal(SyntaxKind.InlineFragment, f.SyntaxNode.Kind);
+                    Assert.Collection(
+                        f.SelectionSet.Selections,
+                        s => Assert.Equal("id", s.ResponseName));
+                });
+
+            ObjectType human = schema.GetType<ObjectType>("Human");
+
+            Assert.Collection(
+                op.GetSelectionSet(rootField.SelectionSet, human).Fragments,
+                f =>  
+                {
+                    Assert.Equal(SyntaxKind.InlineFragment, f.SyntaxNode.Kind);
+                    Assert.Collection(
+                        f.SelectionSet.Selections,
+                        s => Assert.Equal("id", s.ResponseName));
+                });
+        }
+
+        [Fact]
+        public void Defer_Fragment_Spread()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"{
+                    hero(episode: EMPIRE) {
+                        name
+                        ... Foo @defer
+                    }
+                }
+                
+                fragment Foo on Droid {
+                    id
+                }
+                ");
+
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            var fragments = new FragmentCollection(schema, document);
+
+            // act
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
+                OperationCompiler.Compile(schema, fragments, operation, null);
+
+            // assert
+            var op = new Operation(
+                "abc",
+                document,
+                operation,
+                schema.QueryType,
+                selectionSets);
+
+            ISelection rootField = op.GetRootSelectionSet().Selections.Single();
+
+            ObjectType droid = schema.GetType<ObjectType>("Droid");
+
+            Assert.Collection(
+                op.GetSelectionSet(rootField.SelectionSet, droid).Fragments,
+                f =>  
+                {
+                    Assert.Equal(SyntaxKind.FragmentDefinition, f.SyntaxNode.Kind);
+                    Assert.Collection(
+                        f.SelectionSet.Selections,
+                        s => Assert.Equal("id", s.ResponseName));
+                });
+
+            ObjectType human = schema.GetType<ObjectType>("Human");
+
+            Assert.Empty(op.GetSelectionSet(rootField.SelectionSet, human).Fragments);
         }
 
         public class Foo

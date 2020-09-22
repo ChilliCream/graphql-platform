@@ -29,6 +29,7 @@ namespace HotChocolate.Execution.Utilities
             SelectionSet = selectionSet;
             IsInternal = internalFragment;
             IsConditional = includeCondition is not null;
+            _includeCondition = includeCondition;
 
             InclusionKind = internalFragment
                 ? SelectionInclusionKind.Internal
