@@ -138,7 +138,8 @@ namespace HotChocolate.Types
         {
             if (serialized is null)
             {
-                value = null;
+                value = null
+                    ;
                 return true;
             }
 

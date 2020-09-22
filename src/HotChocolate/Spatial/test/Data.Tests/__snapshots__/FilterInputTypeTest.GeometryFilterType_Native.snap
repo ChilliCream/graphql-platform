@@ -1,0 +1,306 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input ComparableOperationFilterInputOfDoubleFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input ComparableOperationFilterInputOfInt32FilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input CoordinateFilterInput {
+  and: [CoordinateFilterInput!]
+  or: [CoordinateFilterInput!]
+  x: ComparableOperationFilterInputOfDoubleFilterInput
+  y: ComparableOperationFilterInputOfDoubleFilterInput
+  z: ComparableOperationFilterInputOfDoubleFilterInput
+  m: ComparableOperationFilterInputOfDoubleFilterInput
+  item: ComparableOperationFilterInputOfDoubleFilterInput
+  coordinateValue: CoordinateFilterInput
+}
+
+input CoordinateSequenceFactoryFilterInput {
+  and: [CoordinateSequenceFactoryFilterInput!]
+  or: [CoordinateSequenceFactoryFilterInput!]
+  ordinates: EnumOperationFilterInputOfOrdinatesFilterInput
+}
+
+input CoordinateSequenceFilterInput {
+  and: [CoordinateSequenceFilterInput!]
+  or: [CoordinateSequenceFilterInput!]
+  dimension: ComparableOperationFilterInputOfInt32FilterInput
+  measures: ComparableOperationFilterInputOfInt32FilterInput
+  spatial: ComparableOperationFilterInputOfInt32FilterInput
+  ordinates: EnumOperationFilterInputOfOrdinatesFilterInput
+  hasZ: BooleanOperationFilterInput
+  hasM: BooleanOperationFilterInput
+  zOrdinateIndex: ComparableOperationFilterInputOfInt32FilterInput
+  mOrdinateIndex: ComparableOperationFilterInputOfInt32FilterInput
+  count: ComparableOperationFilterInputOfInt32FilterInput
+}
+
+input EnumOperationFilterInputOfDimensionFilterInput {
+  eq: Dimension
+  neq: Dimension
+  in: [Dimension!]
+  nin: [Dimension!]
+}
+
+input EnumOperationFilterInputOfOgcGeometryTypeFilterInput {
+  eq: OgcGeometryType
+  neq: OgcGeometryType
+  in: [OgcGeometryType!]
+  nin: [OgcGeometryType!]
+}
+
+input EnumOperationFilterInputOfOrdinatesFilterInput {
+  eq: Ordinates
+  neq: Ordinates
+  in: [Ordinates!]
+  nin: [Ordinates!]
+}
+
+input EnumOperationFilterInputOfPrecisionModelsFilterInput {
+  eq: PrecisionModels
+  neq: PrecisionModels
+  in: [PrecisionModels!]
+  nin: [PrecisionModels!]
+}
+
+input EnvelopeFilterInput {
+  and: [EnvelopeFilterInput!]
+  or: [EnvelopeFilterInput!]
+  isNull: BooleanOperationFilterInput
+  width: ComparableOperationFilterInputOfDoubleFilterInput
+  height: ComparableOperationFilterInputOfDoubleFilterInput
+  minX: ComparableOperationFilterInputOfDoubleFilterInput
+  maxX: ComparableOperationFilterInputOfDoubleFilterInput
+  minY: ComparableOperationFilterInputOfDoubleFilterInput
+  maxY: ComparableOperationFilterInputOfDoubleFilterInput
+  area: ComparableOperationFilterInputOfDoubleFilterInput
+  minExtent: ComparableOperationFilterInputOfDoubleFilterInput
+  maxExtent: ComparableOperationFilterInputOfDoubleFilterInput
+  centre: CoordinateFilterInput
+}
+
+input GeometryContainsOperationTypeFilterInput {
+  data: Geometry!
+  eq: Boolean
+  neq: Boolean
+}
+
+input GeometryFactoryFilterInput {
+  and: [GeometryFactoryFilterInput!]
+  or: [GeometryFactoryFilterInput!]
+  precisionModel: PrecisionModelFilterInput
+  coordinateSequenceFactory: CoordinateSequenceFactoryFilterInput
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+}
+
+input GeometryFilterInput {
+  and: [GeometryFilterInput!]
+  or: [GeometryFilterInput!]
+  area: ComparableOperationFilterInputOfDoubleFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  pointOnSurface: PointFilterInput
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  contains: GeometryContainsOperationTypeFilterInput
+}
+
+input ListFilterInputOfFilterInputTypeOfCoordinateFilterInput {
+  all: CoordinateFilterInput
+  none: CoordinateFilterInput
+  some: CoordinateFilterInput
+  any: Boolean
+}
+
+input PointFilterInput {
+  and: [PointFilterInput!]
+  or: [PointFilterInput!]
+  coordinateSequence: CoordinateSequenceFilterInput
+  coordinates: ListFilterInputOfFilterInputTypeOfCoordinateFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  isEmpty: BooleanOperationFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  boundaryDimension: EnumOperationFilterInputOfDimensionFilterInput
+  x: ComparableOperationFilterInputOfDoubleFilterInput
+  y: ComparableOperationFilterInputOfDoubleFilterInput
+  coordinate: CoordinateFilterInput
+  geometryType: StringOperationFilterInput
+  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  boundary: GeometryFilterInput
+  z: ComparableOperationFilterInputOfDoubleFilterInput
+  m: ComparableOperationFilterInputOfDoubleFilterInput
+  factory: GeometryFactoryFilterInput
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  precisionModel: PrecisionModelFilterInput
+  numGeometries: ComparableOperationFilterInputOfInt32FilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  area: ComparableOperationFilterInputOfDoubleFilterInput
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  centroid: PointFilterInput
+  interiorPoint: PointFilterInput
+  pointOnSurface: PointFilterInput
+  envelope: GeometryFilterInput
+  envelopeInternal: EnvelopeFilterInput
+  isRectangle: BooleanOperationFilterInput
+}
+
+input PrecisionModelFilterInput {
+  and: [PrecisionModelFilterInput!]
+  or: [PrecisionModelFilterInput!]
+  isFloating: BooleanOperationFilterInput
+  maximumSignificantDigits: ComparableOperationFilterInputOfInt32FilterInput
+  scale: ComparableOperationFilterInputOfDoubleFilterInput
+  precisionModelType: EnumOperationFilterInputOfPrecisionModelsFilterInput
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum Dimension {
+  POINT
+  CURVE
+  SURFACE
+  DONTCARE
+  TRUE
+  FALSE
+}
+
+enum OgcGeometryType {
+  POINT
+  LINE_STRING
+  POLYGON
+  MULTI_POINT
+  MULTI_LINE_STRING
+  MULTI_POLYGON
+  GEOMETRY_COLLECTION
+  CIRCULAR_STRING
+  COMPOUND_CURVE
+  CURVE_POLYGON
+  MULTI_CURVE
+  MULTI_SURFACE
+  CURVE
+  SURFACE
+  POLYHEDRAL_SURFACE
+  TIN
+}
+
+enum Ordinates {
+  NONE
+  SPATIAL1
+  SPATIAL2
+  XY
+  Z
+  XYZ
+  SPATIAL4
+  SPATIAL5
+  SPATIAL6
+  SPATIAL7
+  SPATIAL8
+  SPATIAL9
+  SPATIAL10
+  SPATIAL11
+  SPATIAL12
+  SPATIAL13
+  SPATIAL14
+  SPATIAL15
+  SPATIAL16
+  ALL_SPATIAL_ORDINATES
+  M
+  XYM
+  XYZM
+  MEASURE2
+  MEASURE3
+  MEASURE4
+  MEASURE5
+  MEASURE6
+  MEASURE7
+  MEASURE8
+  MEASURE9
+  MEASURE10
+  MEASURE11
+  MEASURE12
+  MEASURE13
+  MEASURE14
+  MEASURE15
+  MEASURE16
+  ALL_MEASURE_ORDINATES
+  ALL_ORDINATES
+}
+
+enum PrecisionModels {
+  FLOATING
+  FLOATING_SINGLE
+  FIXED
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+scalar Geometry
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

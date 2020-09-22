@@ -10,13 +10,14 @@ using static HotChocolate.Data.ErrorHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>
-        , IFilterProvider
-        , IFilterProviderConvention
+        : Convention<FilterProviderDefinition>,
+          IFilterProvider,
+          IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
             new List<IFilterFieldHandler<TContext>>();
+
         private Action<IFilterProviderDescriptor<TContext>>? _configure;
 
         protected FilterProvider()
@@ -61,11 +62,17 @@ namespace HotChocolate.Data.Filters
                 throw FilterProvider_NoHandlersConfigured(this);
             }
 
+            if (context.Convention is not IFilterConvention)
+            {
+                throw new InvalidOperationException();
+            }
+
             IServiceProvider services = new DictionaryServiceProvider(
-                (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                    (typeof(IFilterProvider), this),
+                    (typeof(IConventionContext), context),
+                    (typeof(IFilterConvention), context.Convention),
+                    (typeof(IDescriptorContext), context.DescriptorContext),
+                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, IFilterFieldHandler? Instance) handler in definition.Handlers)
@@ -75,14 +82,14 @@ namespace HotChocolate.Data.Filters
                     case null when services.TryGetOrCreateService(
                         handler.Type,
                         out IFilterFieldHandler<TContext>? service):
-                        _fieldHandlers .Add(service);
+                        _fieldHandlers.Add(service);
                         break;
                     case null:
                         context.ReportError(
                             FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
                         break;
                     case IFilterFieldHandler<TContext> casted:
-                        _fieldHandlers .Add(casted);
+                        _fieldHandlers.Add(casted);
                         break;
                 }
             }
