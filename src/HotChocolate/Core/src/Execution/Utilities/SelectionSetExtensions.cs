@@ -1,23 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal static class PreparedSelectionListExtensions
+    internal static class SelectionSetExtensions
     {
         public static ResultMap EnqueueResolverTasks(
-            this IPreparedSelectionList selections,
+            this ISelectionSet selectionSet,
             IOperationContext operationContext,
             Func<NameString, Path> createPath,
             IImmutableDictionary<string, object?> scopedContext,
             object? parent)
         {
             var responseIndex = 0;
+            IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
             for (var i = 0; i < selections.Count; i++)
             {
-                IPreparedSelection selection = selections[i];
+                ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
                     operationContext.Execution.TaskBacklog.Register(

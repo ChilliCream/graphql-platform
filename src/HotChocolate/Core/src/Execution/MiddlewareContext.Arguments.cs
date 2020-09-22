@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        public IReadOnlyDictionary<NameString, PreparedArgument> Arguments { get; set; } =
+        public IReadOnlyDictionary<NameString, ArgumentValue> Arguments { get; set; } =
             default!;
 
         public T Argument<T>(NameString name)
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
 
         public T ArgumentValue<T>(NameString name)
         {
-            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
@@ -43,7 +43,7 @@ namespace HotChocolate.Execution
 
         public Optional<T> ArgumentOptional<T>(NameString name)
         {
-            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
@@ -55,7 +55,7 @@ namespace HotChocolate.Execution
 
         public T ArgumentLiteral<T>(NameString name) where T : IValueNode
         {
-            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
 
         public ValueKind ArgumentKind(NameString name)
         {
-            if (!Arguments.TryGetValue(name, out PreparedArgument? argument))
+            if (!Arguments.TryGetValue(name, out ArgumentValue? argument))
             {
                 throw ResolverContext_ArgumentDoesNotExist(FieldSelection, Path, name);
             }
@@ -83,7 +83,7 @@ namespace HotChocolate.Execution
             return argument.Kind ?? ValueKind.Unknown;
         }
 
-        private T CoerceArgumentValue<T>(PreparedArgument argument)
+        private T CoerceArgumentValue<T>(ArgumentValue argument)
         {
             object? value = argument.Value;
 
