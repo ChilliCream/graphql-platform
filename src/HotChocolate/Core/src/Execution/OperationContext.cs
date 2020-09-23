@@ -20,8 +20,8 @@ namespace HotChocolate.Execution
 
         public IExecutionContext Execution => _executionContext;
 
-        public ICollection<IDeferredExecutionTask> DeferredTasks { get; } =
-            new List<IDeferredExecutionTask>();
+        public IDeferredTaskBacklog DeferredTasks =>
+            throw new NotImplementedException();
 
         public ISelectionSet CollectFields(
             SelectionSetNode selectionSet,

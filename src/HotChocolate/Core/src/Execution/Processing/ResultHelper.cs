@@ -146,21 +146,19 @@ namespace HotChocolate.Execution.Processing
                             map.SetValue(index, value.Name, null, true);
                             break;
                         }
-                        else
-                        {
-                            if (index != -1)
-                            {
-                                map.RemoveValue(index);
-                            }
-                            path = path.Parent;
-                            parent = parent.Parent;
 
-                            if (parent is null)
-                            {
-                                _data = null;
-                                _resultOwner.Dispose();
-                                break;
-                            }
+                        if (index != -1)
+                        {
+                            map.RemoveValue(index);
+                        }
+                        path = path.Parent;
+                        parent = parent.Parent;
+
+                        if (parent is null)
+                        {
+                            _data = null;
+                            _resultOwner.Dispose();
+                            break;
                         }
                     }
                     else if (parent is ResultMapList mapList &&
@@ -172,11 +170,9 @@ namespace HotChocolate.Execution.Processing
                             mapList[mapListIndexSegment.Index] = null;
                             break;
                         }
-                        else
-                        {
-                            path = path.Parent;
-                            parent = parent.Parent;
-                        }
+
+                        path = path.Parent;
+                        parent = parent.Parent;
                     }
                     else if (parent is ResultList list &&
                         path is IndexerPathSegment listIndexSegment)
@@ -186,11 +182,9 @@ namespace HotChocolate.Execution.Processing
                             list[listIndexSegment.Index] = null;
                             break;
                         }
-                        else
-                        {
-                            path = path.Parent;
-                            parent = parent.Parent;
-                        }
+
+                        path = path.Parent;
+                        parent = parent.Parent;
                     }
                     else
                     {

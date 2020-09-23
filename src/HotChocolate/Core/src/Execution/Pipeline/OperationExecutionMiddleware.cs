@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Pipeline
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
+        private readonly DeferredQueryExecutor _deferredQueryExecutor;
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
         private object? _cachedQueryValue = null;
@@ -25,6 +26,7 @@ namespace HotChocolate.Execution.Pipeline
             IDiagnosticEvents diagnosticEvents,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
+            DeferredQueryExecutor deferredQueryExecutor,
             MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor)
         {
@@ -36,6 +38,8 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
+            _deferredQueryExecutor = deferredQueryExecutor ??
+                throw new ArgumentNullException(nameof(deferredQueryExecutor));
             _mutationExecutor = mutationExecutor ??
                 throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
@@ -67,6 +71,8 @@ namespace HotChocolate.Execution.Pipeline
 
                     try
                     {
+                        IQueryResult? result;
+
                         if (context.Operation.Definition.Operation == OperationType.Query)
                         {
                             object? query = RootValueResolver.TryResolve(
@@ -83,7 +89,7 @@ namespace HotChocolate.Execution.Pipeline
                                 query,
                                 context.Variables);
 
-                            context.Result = await _queryExecutor
+                            result = await _queryExecutor
                                 .ExecuteAsync(operationContext)
                                 .ConfigureAwait(false);
                         }
@@ -103,9 +109,18 @@ namespace HotChocolate.Execution.Pipeline
                                 mutation,
                                 context.Variables);
 
-                            context.Result = await _mutationExecutor
+                            result = await _mutationExecutor
                                 .ExecuteAsync(operationContext)
                                 .ConfigureAwait(false);
+                        }
+
+                        if (operationContext.DeferredTasks.IsEmpty)
+                        {
+                            context.Result = result;
+                        }
+                        else
+                        {
+                            
                         }
 
                         await _next(context).ConfigureAwait(false);

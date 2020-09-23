@@ -15,16 +15,20 @@ namespace HotChocolate.Execution.Processing
 
         void SetData(ResultMap resultMap);
 
+        void SetExtension(string key, object? value);
+
         /// <summary>
         /// Adds an error thread-safe to the result object.
         /// </summary>
         /// <param name="error">The error that shall be added.</param>
+        /// <param name="selection">The affected field.</param>
         void AddError(IError error, FieldNode? selection = null);
 
         /// <summary>
         /// Adds a errors thread-safe to the result object.
         /// </summary>
-        /// <param name="error">The error that shall be added.</param>
+        /// <param name="errors">The errors that shall be added.</param>
+        /// <param name="selection">The affected field.</param>
         void AddErrors(IEnumerable<IError> errors, FieldNode? selection = null);
 
         void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
@@ -32,5 +36,7 @@ namespace HotChocolate.Execution.Processing
         IReadOnlyQueryResult BuildResult();
 
         void DropResult();
+
+        void Reset();
     }
 }

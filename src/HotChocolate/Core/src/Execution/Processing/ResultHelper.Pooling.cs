@@ -1,6 +1,6 @@
 namespace HotChocolate.Execution.Processing
 {
-    internal sealed partial class ResultHelper : IResultHelper
+    internal sealed partial class ResultHelper
     {
         public void Reset()
         {
