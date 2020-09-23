@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -111,6 +112,21 @@ namespace HotChocolate.Types
             Assert.Equal("123", barValue);
         }
 
+        [Fact]
+        public void ExplicitArguments()
+        {
+            SchemaBuilder.New()
+                .AddDirectiveType<FooDirectiveTypeExplicit>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("abc")
+                    .Resolve("def")
+                    .Directive(new FooDirective()))
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         private static ISchema CreateSchema()
         {
             return CreateSchema(b =>
@@ -128,6 +144,18 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("Foo");
                 descriptor.Location(DirectiveLocation.Schema);
+            }
+        }
+
+        public class FooDirectiveTypeExplicit
+            : DirectiveType<FooDirective>
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("Foo");
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.BindArgumentsExplicitly();
             }
         }
 
