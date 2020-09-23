@@ -15,18 +15,16 @@ namespace HotChocolate.Execution.Pipeline
         private readonly IDiagnosticEvents _diagnosticEvents;
         private readonly ObjectPool<OperationContext> _operationContextPool;
         private readonly QueryExecutor _queryExecutor;
-        private readonly DeferredQueryExecutor _deferredQueryExecutor;
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
-        private object? _cachedQueryValue = null;
-        private object? _cachedMutation = null;
+        private object? _cachedQueryValue;
+        private object? _cachedMutation;
 
         public OperationExecutionMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
             ObjectPool<OperationContext> operationContextPool,
             QueryExecutor queryExecutor,
-            DeferredQueryExecutor deferredQueryExecutor,
             MutationExecutor mutationExecutor,
             SubscriptionExecutor subscriptionExecutor)
         {
@@ -38,8 +36,6 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(operationContextPool));
             _queryExecutor = queryExecutor ??
                 throw new ArgumentNullException(nameof(queryExecutor));
-            _deferredQueryExecutor = deferredQueryExecutor ??
-                throw new ArgumentNullException(nameof(deferredQueryExecutor));
             _mutationExecutor = mutationExecutor ??
                 throw new ArgumentNullException(nameof(mutationExecutor));
             _subscriptionExecutor = subscriptionExecutor ??
@@ -71,7 +67,7 @@ namespace HotChocolate.Execution.Pipeline
 
                     try
                     {
-                        IQueryResult? result;
+                        IQueryResult? result = null;
 
                         if (context.Operation.Definition.Operation == OperationType.Query)
                         {
@@ -114,13 +110,26 @@ namespace HotChocolate.Execution.Pipeline
                                 .ConfigureAwait(false);
                         }
 
-                        if (operationContext.DeferredTasks.IsEmpty)
+                        if (operationContext.Execution.DeferredTaskBacklog.IsEmpty || 
+                            result is null)
                         {
                             context.Result = result;
                         }
                         else
                         {
-                            
+                            // if we have deferred query task we will take ownership
+                            // of the life time handling and return the operation context
+                            // once we handled all deferred tasks.
+                            var operationContextOwner = new OperationContextOwner(
+                                operationContext, _operationContextPool);
+                            operationContext = null;
+
+                            context.Result = new DeferredResult
+                            (
+                                result,
+                                new DeferredTaskExecutor(operationContextOwner),
+                                session: operationContextOwner
+                            );
                         }
 
                         await _next(context).ConfigureAwait(false);

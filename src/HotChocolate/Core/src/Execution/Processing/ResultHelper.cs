@@ -10,12 +10,14 @@ namespace HotChocolate.Execution.Processing
         private readonly object _syncMapList = new object();
         private readonly object _syncList = new object();
         private readonly object _syncErrors = new object();
+        private readonly object _syncExtensions = new object();
         private readonly List<IError> _errors = new List<IError>();
         private readonly HashSet<FieldNode> _fieldErrors = new HashSet<FieldNode>();
         private readonly List<NonNullViolation> _nonNullViolations = new List<NonNullViolation>();
         private readonly ResultPool _resultPool;
         private ResultMemoryOwner _resultOwner;
         private ResultMap? _data;
+        private Dictionary<string, object?>? _extensions;
 
         public ResultHelper(ResultPool resultPool)
         {
@@ -84,6 +86,15 @@ namespace HotChocolate.Execution.Processing
         public void SetData(ResultMap data)
         {
             _data = data;
+        }
+
+        public void SetExtension(string key, object? value)
+        {
+            lock (_syncExtensions)
+            {
+                _extensions ??= new Dictionary<string, object?>();
+                _extensions[key] = value;
+            }
         }
 
         public void AddError(IError error, FieldNode? selection = null)
@@ -202,8 +213,9 @@ namespace HotChocolate.Execution.Processing
 
             return new QueryResult
             (
-                data: _data,
-                errors: _errors.Count == 0 ? null : new List<IError>(_errors),
+                _data,
+                _errors.Count == 0 ? null : new List<IError>(_errors),
+                _extensions,
                 resultMemoryOwner: _data is null ? null : _resultOwner
             );
         }

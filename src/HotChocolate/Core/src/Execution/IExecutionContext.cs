@@ -11,9 +11,15 @@ namespace HotChocolate.Execution
     internal interface IExecutionContext
     {
         /// <summary>
-        /// Gets the task queue.
+        /// Gets the backlog of the task that have to be processed.
         /// </summary>
         ITaskBacklog TaskBacklog { get; }
+
+        /// <summary>
+        /// Gets the backlog of the task that shall be processed after 
+        /// all the main tasks have been executed.
+        /// </summary>
+        IDeferredTaskBacklog DeferredTaskBacklog { get; }
 
         ObjectPool<ResolverTask> TaskPool { get; }
 

@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly IQueryResult _initialResult;
         private readonly IAsyncEnumerable<IQueryResult> _deferredResults;
-        private readonly IAsyncDisposable? _session;
+        private readonly IDisposable? _session;
         private bool _isRead;
         private bool _disposed;
 
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing
             IAsyncEnumerable<IQueryResult> deferredResults,
             IReadOnlyDictionary<string, object?>? extensions = null,
             IReadOnlyDictionary<string, object?>? contextData = null,
-            IAsyncDisposable? session = null)
+            IDisposable? session = null)
         {
             _initialResult = initialResult ??
                 throw new ArgumentNullException(nameof(initialResult));
@@ -57,16 +57,14 @@ namespace HotChocolate.Execution.Processing
             return new EnumerateResults(_initialResult, _deferredResults, this);
         }
 
-        public async ValueTask DisposeAsync()
+        public ValueTask DisposeAsync()
         {
             if (!_disposed)
             {
-                if (_session is { })
-                {
-                    await _session.DisposeAsync().ConfigureAwait(false);
-                }
+                _session?.Dispose();
                 _disposed = true;
             }
+            return default;
         }
 
         private class EnumerateResults : IAsyncEnumerable<IQueryResult>

@@ -41,7 +41,6 @@ namespace HotChocolate.Execution
         {
             _executionContext.Reset();
             _resultHelper.Reset();
-            DeferredTasks.Clear();
             _requestContext = default!;
             Operation = default!;
             RootValue = null;

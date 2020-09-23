@@ -69,8 +69,6 @@ namespace HotChocolate.Execution
 
         IExecutionContext Execution { get; }
 
-        IDeferredTaskBacklog DeferredTasks { get; }
-
         // TODO : documentation -> remember this are the raw collected fields without visibility
         ISelectionSet CollectFields(
             SelectionSetNode selectionSet,

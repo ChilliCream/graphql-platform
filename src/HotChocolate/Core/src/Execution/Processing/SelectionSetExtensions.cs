@@ -43,7 +43,7 @@ namespace HotChocolate.Execution.Processing
                     IFragment fragment = fragments[i];
                     if (!fragment.IsConditional)
                     {
-                        operationContext.DeferredTasks.Register(
+                        operationContext.Execution.DeferredTaskBacklog.Register(
                             new DeferredFragment(
                                 fragment,
                                 fragment.GetLabel(operationContext.Variables),

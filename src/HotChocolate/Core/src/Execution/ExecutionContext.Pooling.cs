@@ -10,6 +10,7 @@ namespace HotChocolate.Execution
     {
         private readonly IExecutionTaskContext _taskContext;
         private readonly TaskBacklog _taskBacklog;
+        private readonly DeferredTaskBacklog _deferredTaskBacklog;
         private readonly TaskStatistics _taskStatistics;
         private CancellationTokenSource _completed = default!;
 
@@ -20,6 +21,8 @@ namespace HotChocolate.Execution
             _taskContext = taskContext;
             _taskStatistics = new TaskStatistics();
             _taskBacklog = new TaskBacklog(_taskStatistics, resolverTaskPool);
+            _deferredTaskBacklog = new DeferredTaskBacklog();
+
             TaskPool = resolverTaskPool;
             TaskStats.StateChanged += TaskStatisticsEventHandler;
             TaskStats.AllTasksCompleted += OnCompleted;
@@ -59,6 +62,7 @@ namespace HotChocolate.Execution
             BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
             BatchDispatcher = default!;
             _taskBacklog.Reset();
+            _deferredTaskBacklog.Reset();
             _taskStatistics.Reset();
 
             TryComplete();

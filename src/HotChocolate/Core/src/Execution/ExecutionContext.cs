@@ -12,6 +12,9 @@ namespace HotChocolate.Execution
 
         public ITaskBacklog TaskBacklog => _taskBacklog;
 
+        public IDeferredTaskBacklog DeferredTaskBacklog { get; } = 
+            new DeferredTaskBacklog();
+
         public ITaskStatistics TaskStats => _taskStatistics;
 
         public bool IsCompleted => TaskStats.IsCompleted;
