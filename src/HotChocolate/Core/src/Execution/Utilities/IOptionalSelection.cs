@@ -1,39 +1,10 @@
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-
 namespace HotChocolate.Execution.Utilities
 {
     /// <summary>
-    /// Represents a field selection during execution.
+    /// Represents selections with inclusion conditions.
     /// </summary>
-    public interface IPreparedSelection : IFieldSelection
+    public interface IOptionalSelection
     {
-        /// <summary>
-        /// The type that declares the field that is selected by this selection.
-        /// </summary>
-        IObjectType DeclaringType { get; }
-
-        /// <summary>
-        /// If this selection selects a field that returns a composite type
-        /// then this selection set represents the fields that are selected
-        /// on that returning composite type.
-        ///
-        /// If this selection however selects a leaf field than this
-        /// selection set will be <c>null</c>.
-        /// </summary>
-        SelectionSetNode? SelectionSet { get; }
-
-        /// <summary>
-        /// The compiled resolver pipeline for this selection.
-        /// </summary>
-        FieldDelegate ResolverPipeline { get; }
-
-        /// <summary>
-        /// The arguments that have been pre-coerced for this field selection.
-        /// </summary>
-        IPreparedArgumentMap Arguments { get; }
-
         /// <summary>
         /// Defines when this selection is included for processing.
         /// </summary>
@@ -50,7 +21,7 @@ namespace HotChocolate.Execution.Utilities
         public bool IsConditional { get; }
 
         /// <summary>
-        /// Defines if this field is included into the selection set with the following
+        /// Defines if this selection is included into the selection set with the following
         /// set of <paramref name="variableValues"/>.
         /// If <see cref="InclusionKind" /> is <see cref="SelectionInclusionKind.Always"/>
         /// this method will always return true.
