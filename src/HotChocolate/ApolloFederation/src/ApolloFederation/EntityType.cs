@@ -29,7 +29,7 @@ namespace HotChocolate.ApolloFederation
                 definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Directives.Any(
-                    directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}))
+                    directive => directive.Reference is NameDirectiveReference { Name: { Value: "key" } }))
                 {
                     typesToBeUnioned.Add(objectType);
                 }
