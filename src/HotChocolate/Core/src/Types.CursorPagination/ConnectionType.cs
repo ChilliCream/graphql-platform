@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Pagination
 {
     public class ConnectionType<T>
         : ObjectType<Connection>
+        , IPageType
         where T : class, IOutputType
     {
         public ConnectionType()
@@ -24,6 +25,8 @@ namespace HotChocolate.Types.Pagination
         }
 
         public IEdgeType EdgeType { get; private set; } = default!;
+
+        IOutputType IPageType.ItemType => EdgeType;
 
         protected override void Configure(IObjectTypeDescriptor<Connection> descriptor) =>
             ApplyConfig(descriptor);

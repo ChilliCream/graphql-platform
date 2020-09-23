@@ -2,14 +2,16 @@ import { graphql, useStaticQuery } from "gatsby";
 import Img from "gatsby-image";
 import React, { FunctionComponent } from "react";
 import styled from "styled-components";
-import { GetEfMeetsGraphQlImageQuery } from "../../../graphql-types";
+import { GetBlogPostEfMeetsGraphQlImageQuery } from "../../../graphql-types";
 
-export const EFMeetsGraphQL: FunctionComponent = () => {
-  const data = useStaticQuery<GetEfMeetsGraphQlImageQuery>(graphql`
-    query getEFMeetsGraphQLImage {
+export const BlogPostEFMeetsGraphQL: FunctionComponent = () => {
+  const data = useStaticQuery<GetBlogPostEfMeetsGraphQlImageQuery>(graphql`
+    query getBlogPostEFMeetsGraphQLImage {
       placeholderImage: file(
-        relativePath: { eq: "ef-meets-graphql.png" }
-        sourceInstanceName: { eq: "images" }
+        relativePath: {
+          eq: "2020-03-18-entity-framework/banner-entityframework.png"
+        }
+        sourceInstanceName: { eq: "blog" }
       ) {
         childImageSharp {
           fluid(maxWidth: 1200) {

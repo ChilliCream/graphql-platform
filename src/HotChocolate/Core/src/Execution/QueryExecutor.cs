@@ -26,8 +26,8 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(scopedContext));
             }
 
-            IPreparedSelectionList rootSelections =
-                operationContext.Operation.GetRootSelections();
+            ISelectionSet rootSelections =
+                operationContext.Operation.GetRootSelectionSet();
 
             ResultMap resultMap = rootSelections.EnqueueResolverTasks(
                 operationContext, Path.New, scopedContext,
