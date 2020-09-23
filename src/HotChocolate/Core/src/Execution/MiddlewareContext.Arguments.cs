@@ -1,10 +1,10 @@
 using System.Collections.Generic;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.Processing.ThrowHelper;
 
 namespace HotChocolate.Execution
 {

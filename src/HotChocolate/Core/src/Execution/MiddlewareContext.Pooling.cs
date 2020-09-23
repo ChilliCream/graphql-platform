@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution
 {

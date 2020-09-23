@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution

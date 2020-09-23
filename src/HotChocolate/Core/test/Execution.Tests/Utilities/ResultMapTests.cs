@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Xunit;
 
-namespace HotChocolate.Execution.Utilities
+namespace HotChocolate.Execution.Processing
 {
     public class ResultMapTests
     {

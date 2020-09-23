@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution
 {

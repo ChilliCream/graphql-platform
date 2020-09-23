@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.Processing.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
 {

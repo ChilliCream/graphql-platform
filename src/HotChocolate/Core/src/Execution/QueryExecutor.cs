@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Utilities;
-using static HotChocolate.Execution.Utilities.ResolverExecutionHelper;
+using HotChocolate.Execution.Processing;
+using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
 
 namespace HotChocolate.Execution
 {

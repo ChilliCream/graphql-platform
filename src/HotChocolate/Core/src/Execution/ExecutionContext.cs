@@ -1,6 +1,6 @@
 using System;
 using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 
 namespace HotChocolate.Execution

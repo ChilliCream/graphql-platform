@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 

@@ -9,7 +9,7 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Execution.Utilities
+namespace HotChocolate.Execution.Processing
 {
     public class VariableCoercionHelperTests
     {

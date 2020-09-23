@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 

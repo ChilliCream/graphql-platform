@@ -1,21 +1,21 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.DependencyInjection
+namespace HotChocolate.Execution.DependencyInjection
 {
-    public class SchemaRequestExecutorBuilderExtensions_TypeInterceptorTests
+    public class SchemaRequestExecutorBuilderExtensionsTypeInterceptorTests
     {
         [Fact]
         public async Task OnBeforeRegisterDependencies()
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -41,7 +41,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -67,8 +67,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -84,7 +84,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -96,8 +96,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -113,7 +113,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -125,7 +125,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -151,7 +151,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -177,8 +177,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -194,7 +194,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -206,8 +206,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -223,7 +223,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -235,7 +235,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -261,7 +261,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -287,8 +287,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -304,7 +304,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -316,8 +316,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -333,7 +333,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -345,7 +345,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -371,7 +371,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -397,8 +397,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -414,7 +414,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -426,8 +426,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -443,7 +443,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -455,7 +455,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -481,7 +481,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -507,8 +507,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -524,7 +524,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -536,8 +536,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -553,7 +553,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -565,7 +565,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -591,7 +591,7 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
+            var found = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -617,8 +617,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -634,7 +634,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);
@@ -646,8 +646,8 @@ namespace HotChocolate.DependencyInjection
         {
             // arrange
             Snapshot.FullName();
-            bool found = false;
-            bool canHandleInvoked = false;
+            var found = false;
+            var canHandleInvoked = false;
 
             // act
             await CreateSchemaAsync(c => c
@@ -663,7 +663,7 @@ namespace HotChocolate.DependencyInjection
                             found = true;
                         }
                     },
-                    canHandle: c => canHandleInvoked = true));
+                    c => canHandleInvoked = true));
 
             // assert
             Assert.True(found);

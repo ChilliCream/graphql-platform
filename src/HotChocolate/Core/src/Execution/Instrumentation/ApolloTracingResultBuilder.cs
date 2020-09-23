@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Instrumentation.ApolloTracingResultKeys;
 
 namespace HotChocolate.Execution.Instrumentation

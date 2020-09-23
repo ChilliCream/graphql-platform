@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.Processing.ThrowHelper;
 
 namespace HotChocolate.Execution
 {

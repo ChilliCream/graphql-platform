@@ -3,7 +3,7 @@ using HotChocolate.Language;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Execution.Utilities
+namespace HotChocolate.Execution.Processing
 {
     public class SelectionIncludeConditionTests
     {

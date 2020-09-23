@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Utilities.OperationCompiler;
+using static HotChocolate.Execution.Processing.OperationCompiler;
 
 namespace HotChocolate.Execution.Pipeline
 {

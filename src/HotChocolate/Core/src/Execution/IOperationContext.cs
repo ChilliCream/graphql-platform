@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -68,6 +68,8 @@ namespace HotChocolate.Execution
         IResultHelper Result { get; }
 
         IExecutionContext Execution { get; }
+
+        
 
         // TODO : documentation -> remember this are the raw collected fields without visibility
         ISelectionSet CollectFields(
