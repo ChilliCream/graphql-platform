@@ -46,7 +46,7 @@ namespace HotChocolate.Types
                 .Argument(t => t.If)
                 .Name(WellKnownDirectives.IfArgument)
                 .Description("Deferred when true.")
-                .Type<NonNullType<BooleanType>>();
+                .Type<BooleanType>();
         }
     }
 }
