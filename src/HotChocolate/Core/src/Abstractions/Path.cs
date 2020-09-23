@@ -25,7 +25,7 @@ namespace HotChocolate
         /// </summary>
         /// <param name="index">The index of the element.</param>
         /// <returns>Returns a new path segment pointing to an element in a list.</returns>
-        public IndexerPathSegment Append(int index)
+        public virtual IndexerPathSegment Append(int index)
         {
             if (index < 0)
             {
@@ -41,7 +41,7 @@ namespace HotChocolate
         /// </summary>
         /// <param name="name">The name of the path segment.</param>
         /// <returns>Returns a new path segment.</returns>
-        public NamePathSegment Append(NameString name)
+        public virtual NamePathSegment Append(NameString name)
         {
             name.EnsureNotEmpty(nameof(name));
             return new NamePathSegment(this, name);
@@ -63,6 +63,11 @@ namespace HotChocolate
         /// </returns>
         public IReadOnlyList<object> ToList()
         {
+            if (this is RootPathSegment)
+            {
+                return Array.Empty<object>();
+            }
+
             var stack = new List<object>();
             Path? current = this;
 
@@ -129,6 +134,8 @@ namespace HotChocolate
             return new NamePathSegment(null, name);
         }
 
+        public static RootPathSegment Root { get; } = RootPathSegment.Instance;
+
         internal static Path FromList(IReadOnlyList<object> path)
         {
             if (path is null)
@@ -138,12 +145,10 @@ namespace HotChocolate
 
             if (path.Count == 0)
             {
-                throw new ArgumentException(
-                    AbstractionResources.Path_WithPath_Path_Cannot_Be_Empty,
-                    nameof(path));
+                return Root;
             }
 
-            Path segment = Path.New((string)path[0]);
+            Path segment = New((string)path[0]);
 
             for (var i = 1; i < path.Count; i++)
             {

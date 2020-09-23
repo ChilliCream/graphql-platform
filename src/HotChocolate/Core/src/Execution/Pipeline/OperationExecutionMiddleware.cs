@@ -63,7 +63,7 @@ namespace HotChocolate.Execution.Pipeline
                 }
                 else
                 {
-                    OperationContext operationContext = _operationContextPool.Get();
+                    OperationContext? operationContext = _operationContextPool.Get();
 
                     try
                     {
@@ -112,7 +112,10 @@ namespace HotChocolate.Execution.Pipeline
                     }
                     finally
                     {
-                        _operationContextPool.Return(operationContext);
+                        if (operationContext is not null)
+                        {
+                            _operationContextPool.Return(operationContext);
+                        }
                     }
                 }
             }

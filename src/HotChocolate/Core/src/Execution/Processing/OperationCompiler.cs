@@ -227,11 +227,12 @@ namespace HotChocolate.Execution.Processing
                 if (fragmentSpread.IsDeferrable() &&
                     AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
                 {
-                    var deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(fragmentInfo);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(
                         context.Type,
+                        fragmentSpread,
                         fragmentDefinition,
                         deferContext.GetSelectionSet(),
                         context.IsInternalSelection,
@@ -258,7 +259,7 @@ namespace HotChocolate.Execution.Processing
                 if (inlineFragment.IsDeferrable() &&
                     AllowFragmentDeferral(context, inlineFragment))
                 {
-                    var deferContext = context.Branch(fragmentInfo);
+                    CompilerContext deferContext = context.Branch(fragmentInfo);
                     CompileSelectionSet(deferContext);
 
                     context.RegisterFragment(new Fragment(

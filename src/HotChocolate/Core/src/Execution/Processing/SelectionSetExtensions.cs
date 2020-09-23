@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Processing
         public static ResultMap EnqueueResolverTasks(
             this ISelectionSet selectionSet,
             IOperationContext operationContext,
-            Func<NameString, Path> createPath,
+            Path path,
             IImmutableDictionary<string, object?> scopedContext,
             object? parent)
         {
@@ -29,12 +29,30 @@ namespace HotChocolate.Execution.Processing
                             responseIndex++,
                             resultMap,
                             parent,
-                            createPath(selection.ResponseName),
+                            path.Append(selection.ResponseName),
                             scopedContext));
                 }
             }
 
-            // if(selectionSet.Fragments.Count > 0)
+            if (selectionSet.Fragments.Count > 0)
+            {
+
+                IReadOnlyList<IFragment> fragments = selectionSet.Fragments;
+                for (var i = 0; i < fragments.Count; i++)
+                {
+                    IFragment fragment = fragments[i];
+                    if (!fragment.IsConditional)
+                    {
+                        operationContext.DeferredTasks.Add(
+                            new DeferredFragment(
+                                fragment,
+                                fragment.GetLabel(operationContext.Variables),
+                                path,
+                                parent,
+                                scopedContext));
+                    }
+                }
+            }
 
             return resultMap;
         }

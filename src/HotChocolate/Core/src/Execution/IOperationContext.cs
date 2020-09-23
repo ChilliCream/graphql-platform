@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
@@ -34,7 +35,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets the operation that is being executed.
         /// </summary>
-        /// <value></value>
         IPreparedOperation Operation { get; }
 
         /// <summary>
@@ -69,11 +69,11 @@ namespace HotChocolate.Execution
 
         IExecutionContext Execution { get; }
 
-        
+        ICollection<IDeferredExecutionTask> DeferredTasks { get; }
 
         // TODO : documentation -> remember this are the raw collected fields without visibility
         ISelectionSet CollectFields(
-            SelectionSetNode selectionSet, 
+            SelectionSetNode selectionSet,
             ObjectType typeContext);
     }
 }

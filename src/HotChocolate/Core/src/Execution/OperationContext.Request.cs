@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal sealed partial class OperationContext : IOperationContext
+    internal sealed partial class OperationContext
     {
         public ISchema Schema => _requestContext.Schema;
 
@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
         public IActivator Activator => _requestContext.Activator;
 
         public IDiagnosticEvents DiagnosticEvents => _requestContext.DiagnosticEvents;
-        
+
         public IDictionary<string, object?> ContextData => _requestContext.ContextData;
 
         public CancellationToken RequestAborted => _requestContext.RequestAborted;

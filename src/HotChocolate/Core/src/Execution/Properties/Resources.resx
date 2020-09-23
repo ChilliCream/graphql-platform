@@ -135,4 +135,7 @@
   <data name="MiddlewareContext_ReportErrorCannotBeNull" xml:space="preserve">
     <value>errorMessage mustn't be null or empty.</value>
   </data>
+  <data name="DeferredResult_ReadResultsAsync_ReadOnlyOnce" xml:space="preserve">
+    <value>You can only read a response stream once.</value>
+  </data>
 </root>

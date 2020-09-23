@@ -105,12 +105,6 @@ namespace HotChocolate.Properties {
             }
         }
         
-        internal static string Path_WithPath_Path_Cannot_Be_Empty {
-            get {
-                return ResourceManager.GetString("Path_WithPath_Path_Cannot_Be_Empty", resourceCulture);
-            }
-        }
-        
         internal static string Path_WithPath_Path_Value_NotSupported {
             get {
                 return ResourceManager.GetString("Path_WithPath_Path_Value_NotSupported", resourceCulture);

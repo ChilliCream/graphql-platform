@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -18,6 +19,9 @@ namespace HotChocolate.Execution
         public IResultHelper Result => _resultHelper;
 
         public IExecutionContext Execution => _executionContext;
+
+        public ICollection<IDeferredExecutionTask> DeferredTasks { get; } =
+            new List<IDeferredExecutionTask>();
 
         public ISelectionSet CollectFields(
             SelectionSetNode selectionSet,

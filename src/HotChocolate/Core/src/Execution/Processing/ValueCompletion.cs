@@ -451,7 +451,7 @@ namespace HotChocolate.Execution.Processing
 
                 completedResult = selections.EnqueueResolverTasks(
                     operationContext,
-                    path.Append,
+                    path,
                     middlewareContext.ScopedContextData,
                     result);
                 return true;

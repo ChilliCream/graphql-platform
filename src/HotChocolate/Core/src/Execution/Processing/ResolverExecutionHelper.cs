@@ -8,10 +8,10 @@ namespace HotChocolate.Execution.Processing
         public static async Task ExecuteTasksAsync(
             IOperationContext operationContext)
         {
-            int proposedTaskCount = operationContext.Operation.ProposedTaskCount;
+            var proposedTaskCount = operationContext.Operation.ProposedTaskCount;
             var tasks = new Task[proposedTaskCount];
 
-            for (int i = 0; i < proposedTaskCount; i++)
+            for (var i = 0; i < proposedTaskCount; i++)
             {
                 tasks[i] = StartExecutionTaskAsync(
                     operationContext.Execution,
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
         private static Task StartExecutionTaskAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken) =>
-            Task.Run(() => ExecuteResolvers(executionContext, cancellationToken));
+            Task.Run(() => ExecuteResolvers(executionContext, cancellationToken), cancellationToken);
 
         private static async Task ExecuteResolvers(
             IExecutionContext executionContext,

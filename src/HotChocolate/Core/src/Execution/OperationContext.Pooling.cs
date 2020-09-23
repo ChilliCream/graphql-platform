@@ -5,7 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution
 {
-    internal sealed partial class OperationContext : IOperationContext
+    internal sealed partial class OperationContext
     {
         private readonly ExecutionContext _executionContext;
         private readonly ResultHelper _resultHelper;
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
         {
             _requestContext = requestContext;
             _executionContext.Initialize(
-                batchDispatcher, 
+                batchDispatcher,
                 requestContext.RequestAborted);
             Operation = operation;
             RootValue = rootValue;
@@ -41,6 +41,7 @@ namespace HotChocolate.Execution
         {
             _executionContext.Reset();
             _resultHelper.Reset();
+            DeferredTasks.Clear();
             _requestContext = default!;
             Operation = default!;
             RootValue = null;

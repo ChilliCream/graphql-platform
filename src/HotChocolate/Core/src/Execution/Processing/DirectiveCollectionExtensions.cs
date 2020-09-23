@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution.Processing
@@ -53,6 +54,51 @@ namespace HotChocolate.Execution.Processing
             this IReadOnlyList<DirectiveNode> directives) =>
             GetDirective(directives, WellKnownDirectives.Include);
 
+        internal static DeferDirective? GetDeferDirective(
+            this IReadOnlyList<DirectiveNode> directives,
+            IVariableValueCollection variables)
+        {
+            DirectiveNode? directiveNode =
+                GetDirective(directives, WellKnownDirectives.Defer);
+
+            if (directiveNode is not null)
+            {
+                var @if = false;
+                string? label = null;
+
+                foreach (ArgumentNode argument in directiveNode.Arguments)
+                {
+                    switch (argument.Name.Value)
+                    {
+                        case WellKnownDirectives.IfArgument:
+                            @if = argument.Value switch
+                            {
+                                VariableNode variable =>
+                                    variables.GetVariable<BooleanValueNode>(
+                                        variable.Name.Value).Value,
+                                BooleanValueNode b => b.Value,
+                                _ => @if
+                            };
+                            break;
+
+                        case WellKnownDirectives.LabelArgument:
+                            label = argument.Value switch
+                            {
+                                VariableNode variable =>
+                                    variables.GetVariable<string?>(variable.Name.Value),
+                                StringValueNode b => b.Value,
+                                _ => label
+                            };
+                            break;
+                    }
+                }
+
+                return new DeferDirective(@if, label);
+            }
+
+            return null;
+        }
+
         private static DirectiveNode? GetDeferDirective(
             this IReadOnlyList<DirectiveNode> directives) =>
             GetDirective(directives, WellKnownDirectives.Defer);
@@ -61,6 +107,11 @@ namespace HotChocolate.Execution.Processing
             this IReadOnlyList<DirectiveNode> directives,
             string name)
         {
+            if (directives.Count == 0)
+            {
+                return null;
+            }
+
             for (var i = 0; i < directives.Count; i++)
             {
                 DirectiveNode directive = directives[i];

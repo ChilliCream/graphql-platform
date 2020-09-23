@@ -70,8 +70,9 @@ namespace HotChocolate.Execution.Processing
         {
             var fragments = new List<InlineFragmentNode>();
 
-            foreach (ObjectType typeContext in selectionVariants.GetPossibleTypes())
+            foreach (IObjectType objectType in selectionVariants.GetPossibleTypes())
             {
+                var typeContext = (ObjectType) objectType;
                 var selections = new List<ISelectionNode>();
 
                 foreach (Selection selection in selectionVariants.GetSelectionSet(typeContext)
@@ -100,7 +101,6 @@ namespace HotChocolate.Execution.Processing
                             }
                         }
                     }
-
                     if (selection.IsInternal)
                     {
                         directives.Add(new DirectiveNode("_internal"));
