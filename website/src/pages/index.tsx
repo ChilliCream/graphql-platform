@@ -27,6 +27,7 @@ import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import ContactUsSvg from "../images/contact-us.svg";
@@ -213,6 +214,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={160}>
                 <Link to="https://motitech.co.uk">
                   <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://pushpay.com">
+                  <PushpayLogoSvg />
                 </Link>
               </Logo>
               <Logo width={120}>
