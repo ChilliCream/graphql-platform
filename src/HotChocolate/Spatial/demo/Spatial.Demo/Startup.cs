@@ -1,0 +1,46 @@
+using HotChocolate;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Spatial.Filters;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
+namespace Spatial.Demo
+{
+    public class Startup
+    {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddDbContextPool<ApplicationDbContext>(
+                    options => options.UseNpgsql(
+                        "Database=opensgid;Host=opensgid.agrc.utah.gov;Username=agrc;Password=agrc",
+                        o => o.UseNetTopologySuite()))
+                .AddGraphQLServer()
+                .AddSpatialTypes()
+                .AddFiltering(
+                    x => x
+                        .AddDefaults()
+                        .AddSpatialOperations()
+                        .BindSpatialTypes()
+                        .Provider(
+                            new QueryableFilterProvider(
+                                p => p.AddSpatialHandlers().AddDefaultFieldHandlers())))
+                .AddQueryType<Query>();
+        }
+
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints => endpoints.MapGraphQL());
+        }
+    }
+}

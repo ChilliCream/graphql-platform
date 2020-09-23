@@ -18,7 +18,6 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor.Operation(SpatialFilterOperations.Distance).Name("distance");
             descriptor.Operation(SpatialFilterOperations.Buffer).Name("buffer");
             descriptor.Operation(SpatialFilterOperations.Geometry).Name("geometry");
-            descriptor.Operation(SpatialFilterOperations.To).Name("to");
             return descriptor;
         }
 
@@ -36,6 +35,8 @@ namespace HotChocolate.Data.Spatial.Filters
                 .BindRuntimeType<LineString, LineStringFilterType>();
             descriptor
                 .BindRuntimeType<Point, PointFilterType>();
+            descriptor
+                .BindRuntimeType<MultiPolygon, MultiPolygonFilterType>();
 
 
             return descriptor;

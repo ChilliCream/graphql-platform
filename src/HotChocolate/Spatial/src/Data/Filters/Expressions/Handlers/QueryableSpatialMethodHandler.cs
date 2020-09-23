@@ -6,7 +6,6 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
-using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Spatial.Filters
 {
@@ -17,14 +16,11 @@ namespace HotChocolate.Data.Spatial.Filters
 
         protected string GeometryFieldName { get; }
         protected string BufferFieldName { get; }
-        protected string ToFieldName { get; }
 
-        protected QueryableSpatialMethodHandler(
-            IFilterConvention convention)
+        protected QueryableSpatialMethodHandler(IFilterConvention convention)
         {
             GeometryFieldName = convention.GetOperationName(SpatialFilterOperations.Geometry);
             BufferFieldName = convention.GetOperationName(SpatialFilterOperations.Buffer);
-            ToFieldName = convention.GetOperationName(SpatialFilterOperations.To);
         }
 
         public override bool CanHandle(

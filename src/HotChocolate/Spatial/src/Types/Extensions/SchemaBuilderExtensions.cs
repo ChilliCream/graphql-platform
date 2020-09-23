@@ -1,4 +1,6 @@
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Spatial;
+using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate
@@ -25,6 +27,12 @@ namespace HotChocolate
                 .AddType<GeoJsonGeometryEnumType>()
                 .AddType<GeometryType>()
                 .BindClrType<Coordinate, GeoJsonPositionType>();
+        }
+
+        public static IRequestExecutorBuilder AddSpatialTypes(
+            this IRequestExecutorBuilder builder)
+        {
+            return builder.ConfigureSchema(x => x.AddSpatialTypes());
         }
     }
 }

@@ -31,7 +31,7 @@ namespace HotChocolate.Types
                 { MultiLineString, nameof(MultiLineString) },
                 { Polygon, nameof(Polygon) },
                 { MultiPolygon, nameof(MultiPolygon) },
-                { GeometryCollection, nameof(GeometryCollection) },
+                { GeometryCollection, nameof(GeometryCollection) }
             };
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
