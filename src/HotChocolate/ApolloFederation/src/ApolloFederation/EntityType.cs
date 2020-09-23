@@ -27,8 +27,7 @@ namespace HotChocolate.ApolloFederation
                 discoveryContext.Type is ObjectType objectType)
             {
                 if (objectTypeDefinition.Directives.Any(
-                    directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}
-                ))
+                    directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}))
                 {
                     typesToBeUnioned.Add(objectType);
                 }
