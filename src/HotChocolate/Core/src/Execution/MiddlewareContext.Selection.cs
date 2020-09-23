@@ -7,13 +7,13 @@ namespace HotChocolate.Execution
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {
-        private IPreparedSelection _selection = default!;
+        private ISelection _selection = default!;
 
         public IObjectType ObjectType => _selection.DeclaringType;
 
         public IObjectField Field => _selection.Field;
 
-        public FieldNode FieldSelection => _selection.Selection;
+        public FieldNode FieldSelection => _selection.SyntaxNode;
 
         public NameString ResponseName => _selection.ResponseName;
 

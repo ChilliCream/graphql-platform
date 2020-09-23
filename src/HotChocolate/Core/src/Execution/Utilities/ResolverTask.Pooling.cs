@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Utilities
     {
         public void Initialize(
             IOperationContext operationContext,
-            IPreparedSelection selection,
+            ISelection selection,
             ResultMap resultMap,
             int responseIndex,
             object? parent,

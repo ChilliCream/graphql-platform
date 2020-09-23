@@ -36,14 +36,14 @@ namespace HotChocolate.Execution
                 throw SubscriptionExecutor_ContextInvalidState();
             }
 
-            IPreparedSelectionList rootSelections = requestContext.Operation.GetRootSelections();
+            ISelectionSet selectionSet = requestContext.Operation.GetRootSelectionSet();
 
-            if (rootSelections.Count != 1)
+            if (selectionSet.Selections.Count != 1)
             {
                 throw SubscriptionExecutor_SubscriptionsMustHaveOneField();
             }
 
-            if (rootSelections[0].Field.SubscribeResolver is null)
+            if (selectionSet.Selections[0].Field.SubscribeResolver is null)
             {
                 throw SubscriptionExecutor_NoSubscribeResolver();
             }
@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
                     _queryExecutor,
                     requestContext,
                     requestContext.Operation.RootType,
-                    rootSelections,
+                    selectionSet,
                     _diagnosticEvents)
                     .ConfigureAwait(false);
 

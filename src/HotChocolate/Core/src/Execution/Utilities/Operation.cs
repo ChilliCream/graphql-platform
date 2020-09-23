@@ -3,26 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedOperation : IPreparedOperation
+    internal sealed class Operation : IPreparedOperation
     {
-        private readonly IReadOnlyDictionary<SelectionSetNode, PSS> _selectionSets;
+        private readonly IReadOnlyDictionary<SelectionSetNode, SelectionVariants> _selectionSets;
 
-        public PreparedOperation(
+        public Operation(
             string id,
             DocumentNode document,
             OperationDefinitionNode definition,
             ObjectType rootType,
-            IReadOnlyDictionary<SelectionSetNode, PSS> selectionSets)
+            IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets)
         {
             Id = id;
             Name = definition.Name?.Value;
             Document = document;
             Definition = definition;
-            RootSelectionSet = selectionSets[definition.SelectionSet];
+            RootSelectionVariants = selectionSets[definition.SelectionSet];
             RootType = rootType;
             Type = definition.Operation;
             _selectionSets = selectionSets;
@@ -37,7 +36,7 @@ namespace HotChocolate.Execution.Utilities
 
         public OperationDefinitionNode Definition { get; }
 
-        public IPreparedSelectionSet RootSelectionSet { get; }
+        public ISelectionVariants RootSelectionVariants { get; }
 
         public ObjectType RootType { get; }
 
@@ -45,37 +44,38 @@ namespace HotChocolate.Execution.Utilities
 
         public int ProposedTaskCount { get; }
 
-        public IPreparedSelectionList GetRootSelections() =>
-            RootSelectionSet.GetSelections(RootType);
+        public ISelectionSet GetRootSelectionSet() =>
+            RootSelectionVariants.GetSelectionSet(RootType);
 
-        public IPreparedSelectionList GetSelections(
+        public ISelectionSet GetSelectionSet(
             SelectionSetNode selectionSet,
             ObjectType typeContext)
         {
-            return _selectionSets.TryGetValue(selectionSet, out PSS? preparedSelectionSet)
-                ? preparedSelectionSet.GetSelections(typeContext)
-                : PreparedSelectionList.Empty;
+            return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
+                ? variants.GetSelectionSet(typeContext)
+                : SelectionSet.Empty;
         }
 
         public string Print()
         {
-            var operation = Definition.WithSelectionSet(Visit(RootSelectionSet));
+            OperationDefinitionNode operation =
+                Definition.WithSelectionSet(Visit(RootSelectionVariants));
             var document = new DocumentNode(new[] { operation });
             return document.ToString();
         }
 
         public override string ToString() => Print();
 
-        private SelectionSetNode Visit(IPreparedSelectionSet selectionSet)
+        private SelectionSetNode Visit(ISelectionVariants selectionVariants)
         {
             var fragments = new List<InlineFragmentNode>();
 
-            foreach (ObjectType typeContext in selectionSet.GetPossibleTypes())
+            foreach (ObjectType typeContext in selectionVariants.GetPossibleTypes())
             {
                 var selections = new List<ISelectionNode>();
 
-                foreach (PreparedSelection selection in selectionSet.GetSelections(typeContext)
-                    .OfType<PreparedSelection>())
+                foreach (Selection selection in selectionVariants.GetSelectionSet(typeContext)
+                    .Selections.OfType<Selection>())
                 {
                     var directives = new List<DirectiveNode>();
 
@@ -110,20 +110,20 @@ namespace HotChocolate.Execution.Utilities
                     {
                         selections.Add(new FieldNode(
                             null,
-                            selection.Selection.Name,
-                            selection.Selection.Alias,
+                            selection.SyntaxNode.Name,
+                            selection.SyntaxNode.Alias,
                             directives,
-                            selection.Selection.Arguments,
+                            selection.SyntaxNode.Arguments,
                             null));
                     }
                     else
                     {
                         selections.Add(new FieldNode(
                             null,
-                            selection.Selection.Name,
-                            selection.Selection.Alias,
+                            selection.SyntaxNode.Name,
+                            selection.SyntaxNode.Alias,
                             directives,
-                            selection.Selection.Arguments,
+                            selection.SyntaxNode.Arguments,
                             Visit(_selectionSets[selection.SelectionSet])));
                     }
                 }
