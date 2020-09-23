@@ -20,11 +20,13 @@ namespace HotChocolate.ApolloFederation
         private IList<ObjectType> typesToBeUnioned = new List<ObjectType>();
         public override bool TriggerAggregations { get; } = true;
 
-        public override void OnAfterInitialize(ITypeDiscoveryContext discoveryContext, DefinitionBase definition,
+        public override void OnAfterInitialize(
+            ITypeDiscoveryContext discoveryContext, 
+            DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            if (definition is ObjectTypeDefinition objectTypeDefinition &&
-                discoveryContext.Type is ObjectType objectType)
+            if (discoveryContext.Type is ObjectType objectType && 
+                definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Directives.Any(
                     directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}))
@@ -34,7 +36,9 @@ namespace HotChocolate.ApolloFederation
             }
         }
 
-        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition,
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext, 
+            DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
             if (completionContext.Type is EntityType entityType &&
