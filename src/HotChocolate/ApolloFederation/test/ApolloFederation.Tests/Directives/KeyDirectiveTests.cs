@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using Xunit;
 
@@ -19,12 +20,12 @@ namespace HotChocolate.ApolloFederation
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals("key"));
+                    t => t.Name.Equals(TypeNames.Key));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<KeyDirectiveType>(directive);
-            Assert.Equal("key", directive!.Name);
+            Assert.Equal(TypeNames.Key, directive!.Name);
             Assert.Single(directive.Arguments);
             AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,
@@ -34,55 +35,132 @@ namespace HotChocolate.ApolloFederation
         }
 
         [Fact]
-        public void AnnotateExternalToObjectFieldCodeFirst()
+        public void AnnotateKeyToObjectTypeCodeFirst()
         {
             // arrange
-            // act
             var schema = Schema.Create(
                 t =>
                 {
+                    var testTypeDefinition = new ObjectType(
+                        o =>
+                        {
+                            o.Name("TestType")
+                                .Key("id");
+                            o.Field("id")
+                                .Type<IntType>();
+                            o.Field("name")
+                                .Type<StringType>();
+                        }
+                    );
+                    t.RegisterType(testTypeDefinition);
                     t.RegisterQueryType(new ObjectType(
                         o => o.Name("Query")
-                            .Field("field")
-                            .Argument("a", a => a.Type<StringType>())
-                            .Type<StringType>()
+                            .Field("someField")
+                            .Argument("a", a => a.Type<IntType>())
+                            .Type(testTypeDefinition)
                     ));
 
-                    t.RegisterDirective<ExternalDirectiveType>();
+                    t.RegisterDirective<KeyDirectiveType>();
+                    t.RegisterType<FieldSetType>();
                     t.Use(next => context => default);
                 });
 
+            // act
+            ObjectType testType = schema.GetType<ObjectType>("TestType");
             // assert
-            ObjectType query = schema.GetType<ObjectType>("Query");
-            Assert.Collection(query.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name));
+            Assert.Collection(testType.Directives,
+                item =>
+                {
+                    Assert.Equal(
+                        TypeNames.Key,
+                        item.Name
+                    );
+                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                }
+            );
         }
 
         [Fact]
-        public void AnnotateExternalToInterfaceFieldSchemaFirst()
+        public void AnnotateKeyToObjectTypeSchemaFirst()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
+                    type TestType @key(fields: ""id"") {
+                        id: Int!
+                        name: String!
+                    }
+
                     type Query {
-                        field(a: Int): String
-                            @external
+                        someField(a: Int): TestType
                     }
 
                     interface IQuery {
-                        field(a: Int): String
-                            @external
+                        someField(a: Int): TestType
                     }")
-                .AddDirectiveType<ExternalDirectiveType>()
+                .AddDirectiveType<KeyDirectiveType>()
+                .AddType<FieldSetType>()
                 .Use(next => context => default)
                 .Create();
 
+            // act
+            ObjectType testType = schema.GetType<ObjectType>("TestType");
+
             // assert
-            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
-            Assert.Collection(queryInterface.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name));
+            Assert.Collection(testType.Directives,
+                item =>
+                {
+                    Assert.Equal(
+                        TypeNames.Key,
+                        item.Name
+                    );
+                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                }
+            );
+        }
+
+        [Fact]
+        public void AnnotateKeyToObjectTypePureCodeFirst()
+        {
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query>()
+                .Create();
+
+            // act
+            ObjectType testType = schema.GetType<ObjectType>("TestType");
+
+            // assert
+            Assert.Collection(testType.Directives,
+                item =>
+                {
+                    Assert.Equal(
+                        TypeNames.Key,
+                        item.Name
+                    );
+                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                }
+            );
+        }
+
+        public class Query
+        {
+            public TestType someField(int id)
+            {
+                return new TestType();
+            }
+        }
+
+        [Key("id")]
+        public class TestType
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
         }
     }
 }

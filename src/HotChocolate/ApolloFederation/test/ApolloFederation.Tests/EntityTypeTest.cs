@@ -42,7 +42,7 @@ namespace HotChocolate.ApolloFederation
         }
 
         [Fact]
-        public void TestEntityTypeCodeFirst()
+        public void TestEntityTypeCodeFirstClassKeyAttribute()
         {
             // arrange
             // act
@@ -54,29 +54,28 @@ namespace HotChocolate.ApolloFederation
             // assert
             EntityType entityType = schema.GetType<EntityType>("_Entity");
             Assert.Collection(entityType.Types.Values,
-                t => Assert.Equal("Review", t.Name),
-                t => Assert.Equal("User", t.Name));
+                t => Assert.Equal("UserWithClassAttribute", t.Name),
+                t => Assert.Equal("Review", t.Name));
         }
     }
 
     public class Query
     {
-        [ExtendObjectType()]
-        public User GetUser(int id)
-        {
-            return new User();
-        }
+        public UserWithClassAttribute GetUser(int id) => default;
     }
 
-    public class User
+    [Key("Id IdCode")]
+    public class UserWithClassAttribute
     {
         public int Id { get; set; }
+        public string IdCode { get; set; }
         public Review[] Reviews { get; set; }
     }
 
+    [Key("Id")]
     public class Review
     {
         public int Id { get; set; }
-        public User Author { get; set; }
+        public UserWithClassAttribute Author { get; set; }
     }
 }
