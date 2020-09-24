@@ -67,7 +67,7 @@ namespace HotChocolate.Execution.Processing
             }
             catch (GraphQLException ex)
             {
-                if (subscription is { })
+                if (subscription is not null)
                 {
                     await subscription.DisposeAsync().ConfigureAwait(false);
                 }
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Processing
                 IErrorBuilder errorBuilder = requestContext.ErrorHandler.CreateUnexpectedError(ex);
                 IError error = requestContext.ErrorHandler.Handle(errorBuilder.Build());
 
-                if (subscription is { })
+                if (subscription is not null)
                 {
                     await subscription.DisposeAsync().ConfigureAwait(false);
                 }
