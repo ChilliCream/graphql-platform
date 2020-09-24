@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
             helper.SetData(map);
 
             // act
-            IReadOnlyQueryResult result = helper.BuildResult();
+            IQueryResult result = helper.BuildResult();
 
             // assert
             result.ToJson().MatchSnapshot();

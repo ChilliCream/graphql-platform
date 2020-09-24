@@ -41,6 +41,7 @@ namespace HotChocolate.Execution.Processing
 
             BatchDispatcher = batchDispatcher;
             BatchDispatcher.TaskEnqueued += BatchDispatcherEventHandler;
+            _clean = false;
         }
 
         private void TryComplete()
