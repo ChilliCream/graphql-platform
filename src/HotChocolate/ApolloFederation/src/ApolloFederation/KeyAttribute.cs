@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HotChocolate.ApolloFederation.Extensions;
+using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -14,7 +15,7 @@ namespace HotChocolate.ApolloFederation
             FieldSet = fieldSet;
         }
 
-        public NameString FieldSet { get; }
+        public string FieldSet { get; }
 
         protected override void TryConfigure(IDescriptorContext context, IDescriptor descriptor, ICustomAttributeProvider element)
         {
@@ -26,6 +27,15 @@ namespace HotChocolate.ApolloFederation
             if (descriptor is IObjectTypeDescriptor ad)
             {
                 ad.Key(FieldSet);
+            }
+
+            if (descriptor is IObjectFieldDescriptor ofd)
+            {
+                ofd.Extend().OnBeforeCreate(
+                    d =>
+                    {
+                        d.ContextData[FederationResources.KeyDirective_ContextDataMarkerName] = true;
+                    });
             }
         }
     }

@@ -8,10 +8,9 @@ namespace HotChocolate.ApolloFederation
     public class EntityTypeTest
     {
         [Fact]
-        public void TestEntityTypeSchemaFirst()
+        public void TestEntityTypeSchemaFirstSingleKey()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddDocumentFromString(
@@ -27,6 +26,7 @@ namespace HotChocolate.ApolloFederation
 
                     type User @key(fields: ""id"") {
                         id: Int!
+                        idCode: String!
                         reviews: [Review!]!
                     }
                 "
@@ -34,37 +34,146 @@ namespace HotChocolate.ApolloFederation
                 .Use(next => context => default)
                 .Create();
 
-            // assert
+            // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("Review", t.Name),
                 t => Assert.Equal("User", t.Name));
         }
 
         [Fact]
-        public void TestEntityTypeCodeFirstClassKeyAttribute()
+        public void TestEntityTypeSchemaFirstMultiKey()
         {
             // arrange
-            // act
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
-                .AddQueryType<Query>()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        user(a: Int!): User
+                    }
+
+                    type User @key(fields: ""id idCode"") {
+                        id: Int!
+                        idCode: String!
+                    }
+                "
+                )
+                .Use(next => context => default)
                 .Create();
 
-            // assert
+            // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
+            Assert.Collection(entityType.Types.Values,
+                t => Assert.Equal("User", t.Name));
+        }
+
+        [Fact]
+        public void TestEntityTypeSchemaFirstNestedKey()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        user(a: Int!): User
+                    }
+
+                    type User @key(fields: ""id address { matchCode }"") {
+                        id: Int!
+                        address: Address
+                    }
+
+                    type Address {
+                        matchCode: String!
+                    }
+                "
+                )
+                .Use(next => context => default)
+                .Create();
+
+            // act
+            EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
+            Assert.Collection(entityType.Types.Values,
+                t => Assert.Equal("User", t.Name));
+        }
+
+        [Fact]
+        public void TestEntityTypeCodeFirstClassKeyAttributeSingleKey()
+        {
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<Review>>()
+                .Create();
+
+            // act
+            EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
+            Assert.Collection(entityType.Types.Values,
+                t => Assert.Equal("Review", t.Name));
+        }
+
+        [Fact]
+        public void TestEntityTypeCodeFirstClassKeyAttributeMultiKey()
+        {
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<UserWithClassAttribute>>()
+                .Create();
+
+            // act
+            EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("UserWithClassAttribute", t.Name),
                 t => Assert.Equal("Review", t.Name));
         }
+
+        [Fact]
+        public void TestEntityTypeCodeFirstPropertyKeyAttributes()
+        {
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<UserWithPropertyAttributes>>()
+                .Create();
+
+            // act
+            EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
+            Assert.Collection(entityType.Types.Values,
+                t => Assert.Equal("UserWithPropertyAttributes", t.Name));
+        }
+
+        [Fact]
+        public void TestEntityTypeCodeFirstClassKeyAttributeNestedKey()
+        {
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<UserWithNestesKeyClassAttribute>>()
+                .Create();
+
+            // act
+            EntityType entityType = schema.GetType<EntityType>("_Entity");
+            // assert
+            Assert.Collection(entityType.Types.Values,
+                t => Assert.Equal("UserWithNestesKeyClassAttribute", t.Name));
+        }
     }
 
-    public class Query
+    public class Query<T>
     {
-        public UserWithClassAttribute GetUser(int id) => default;
+        public T GetEntity(int id) => default;
     }
 
-    [Key("Id IdCode")]
+    [Key("id idCode")]
     public class UserWithClassAttribute
     {
         public int Id { get; set; }
@@ -72,10 +181,29 @@ namespace HotChocolate.ApolloFederation
         public Review[] Reviews { get; set; }
     }
 
-    [Key("Id")]
+    public class UserWithPropertyAttributes
+    {
+        [Key]
+        public int Id { get; set; }
+        [Key]
+        public string IdCode { get; set; }
+    }
+
+    [Key("id address { matchCode }")]
+    public class UserWithNestesKeyClassAttribute
+    {
+        public int Id { get; set; }
+        public Address Address { get; set; }
+    }
+
+    public class Address
+    {
+        public string MatchCode { get; set; }
+    }
+
+    [Key("id")]
     public class Review
     {
         public int Id { get; set; }
-        public UserWithClassAttribute Author { get; set; }
     }
 }

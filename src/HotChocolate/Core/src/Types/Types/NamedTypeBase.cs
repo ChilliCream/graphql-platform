@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Introspection;
 
 #nullable enable
 
@@ -76,6 +77,10 @@ namespace HotChocolate.Types
             _syntaxNode = definition.SyntaxNode;
 
             var directives = new DirectiveCollection(this, definition.Directives);
+            if (definition.Name.Value == "UserWithPropertyAttributes" || definition.Name.Value == "Review")
+            {
+                Console.WriteLine("found");
+            }
             directives.CompleteCollection(context);
             _directives = directives;
         }

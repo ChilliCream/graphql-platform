@@ -132,4 +132,7 @@
   <data name="RequiresDirective_Description" xml:space="preserve">
     <value>Used to annotate the required input fieldset from a base type for a resolver.</value>
   </data>
+  <data name="KeyDirective_ContextDataMarkerName" xml:space="preserve">
+    <value>HotChocolate.ApolloFederation.Key</value>
+  </data>
 </root>
