@@ -4,7 +4,7 @@ using NetTopologySuite.Geometries;
 namespace HotChocolate.Data.Spatial.Filters
 {
     public class LineStringFilterType
-        : FilterInputType<LineString>
+        : GeometryFilterType<LineString>
     {
         protected override void Configure(IFilterInputTypeDescriptor<LineString> descriptor)
         {
