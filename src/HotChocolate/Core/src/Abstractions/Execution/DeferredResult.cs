@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Properties;
+using HotChocolate.Properties;
 
 #nullable enable
 
@@ -34,6 +34,27 @@ namespace HotChocolate.Execution.Processing
             _session = session;
         }
 
+        public DeferredResult(DeferredResult result, IDisposable session)
+        {
+            if (result is null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            if (session is null)
+            {
+                throw new ArgumentNullException(nameof(session));
+            }
+
+            _initialResult = result._initialResult;
+            _deferredResults = result._deferredResults;
+            Extensions = result.Extensions;
+            ContextData = result.ContextData;
+            _session = result._session is not null
+                ? new CombinedDispose(result._session, session)
+                : session;
+        }
+
         public IReadOnlyList<IError>? Errors => null;
 
         public IReadOnlyDictionary<string, object?>? Extensions { get; }
@@ -45,7 +66,7 @@ namespace HotChocolate.Execution.Processing
             if (_isRead)
             {
                 throw new InvalidOperationException(
-                    Resources.DeferredResult_ReadResultsAsync_ReadOnlyOnce);
+                    AbstractionResources.SubscriptionResult_ReadOnlyOnce);
             }
 
             if (_disposed)
@@ -95,6 +116,29 @@ namespace HotChocolate.Execution.Processing
                 }
 
                 await _session.DisposeAsync();
+            }
+        }
+
+        internal class CombinedDispose : IDisposable
+        {
+            private readonly IDisposable _a;
+            private readonly IDisposable _b;
+            private bool _disposed;
+
+            public CombinedDispose(IDisposable a, IDisposable b)
+            {
+                _a = a;
+                _b = b;
+            }
+
+            public void Dispose()
+            {
+                if (!_disposed)
+                {
+                    _a.Dispose();
+                    _b.Dispose();
+                    _disposed = true;
+                }
             }
         }
     }
