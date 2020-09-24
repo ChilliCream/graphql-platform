@@ -31,7 +31,7 @@ namespace HotChocolate.Execution.Processing
             _task = default!;
             _operationContext = default!;
             _selection = default!;
-            _context.Reset();
+            _context.Clean();
             return true;
         }
     }

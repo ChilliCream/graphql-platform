@@ -2,7 +2,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class ResultHelper
     {
-        public void Reset()
+        public void Clear()
         {
             _errors.Clear();
             _fieldErrors.Clear();

@@ -26,6 +26,6 @@ namespace HotChocolate.Execution.Processing
         /// <summary>
         /// Clears the backlog.
         /// </summary>
-        void Reset();
+        void Clear();
     }
 }

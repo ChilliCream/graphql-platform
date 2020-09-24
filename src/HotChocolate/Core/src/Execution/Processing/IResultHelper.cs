@@ -43,6 +43,6 @@ namespace HotChocolate.Execution.Processing
 
         void DropResult();
 
-        void Reset();
+        void Clear();
     }
 }

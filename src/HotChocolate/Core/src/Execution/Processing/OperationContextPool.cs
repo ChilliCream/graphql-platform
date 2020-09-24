@@ -3,7 +3,7 @@ using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal sealed class OperationContextPool 
+    internal sealed class OperationContextPool
         : DefaultObjectPool<OperationContext>
     {
         public OperationContextPool(
@@ -13,7 +13,7 @@ namespace HotChocolate.Execution.Processing
         {
         }
 
-        private class OperationContextPoolPolicy 
+        private class OperationContextPoolPolicy
             : IPooledObjectPolicy<OperationContext>
         {
             private Func<OperationContext> _factory;
@@ -27,7 +27,7 @@ namespace HotChocolate.Execution.Processing
 
             public bool Return(OperationContext obj)
             {
-                obj.Reset();
+                obj.Clean();
                 return true;
             }
         }

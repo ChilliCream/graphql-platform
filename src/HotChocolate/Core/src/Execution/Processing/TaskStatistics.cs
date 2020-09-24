@@ -41,8 +41,9 @@ namespace HotChocolate.Execution.Processing
 
         public void TaskCompleted()
         {
-            int allTasks = _allTasks;
-            int completedTasks = Interlocked.Increment(ref _completedTasks);
+            var allTasks = _allTasks;
+            var completedTasks = Interlocked.Increment(ref _completedTasks);
+
             if (allTasks == completedTasks)
             {
                 IsCompleted = true;
@@ -50,7 +51,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public void Reset()
+        public void Clear()
         {
             _newTasks = 0;
             _allTasks = 0;

@@ -30,7 +30,7 @@ namespace HotChocolate.Execution.Processing
 
             public bool Return(ResultMap obj)
             {
-                obj.Reset();
+                obj.Clear();
                 return true;
             }
         }

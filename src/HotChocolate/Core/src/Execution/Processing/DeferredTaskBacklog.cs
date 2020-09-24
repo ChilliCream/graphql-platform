@@ -17,7 +17,7 @@ namespace HotChocolate.Execution.Processing
         public void Register(IDeferredExecutionTask deferredTask) =>
             _channel.Writer.TryWrite(deferredTask);
 
-        public void Reset() =>
+        public void Clear() =>
             _channel = new UnsortedChannel<IDeferredExecutionTask>(true);
     }
 }

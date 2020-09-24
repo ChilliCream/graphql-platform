@@ -29,7 +29,7 @@ namespace HotChocolate.Execution.Processing
                         break;
                     }
 
-                    context.Result.Reset();
+                    context.Result.Clear();
                     context.Execution.Reset();
 
                     yield return await deferredTask.ExecuteAsync(context).ConfigureAwait(false);

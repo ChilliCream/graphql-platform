@@ -97,8 +97,8 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(name));
             }
 
-            IntPtr i = (IntPtr)0;
-            int length = _capacity;
+            var i = (IntPtr)0;
+            var length = _capacity;
             ref ResultValue searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
             while (length >= 8)
@@ -219,7 +219,7 @@ namespace HotChocolate.Execution.Processing
             _needsDefrag = false;
         }
 
-        public void Reset()
+        public void Clear()
         {
             for (var i = 0; i < _capacity; i++)
             {

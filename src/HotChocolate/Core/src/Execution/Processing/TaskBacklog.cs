@@ -58,7 +58,7 @@ namespace HotChocolate.Execution.Processing
 
         public void Complete() => _channel.Writer.Complete();
 
-        public void Reset()
+        public void Clear()
         {
             _channel = new UnsortedChannel<IExecutionTask>(true);
         }

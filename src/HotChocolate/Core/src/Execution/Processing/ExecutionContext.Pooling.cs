@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Processing
         private readonly DeferredTaskBacklog _deferredTaskBacklog;
         private readonly TaskStatistics _taskStatistics;
         private CancellationTokenSource _completed = default!;
-        private bool _reset = true;
+        private bool _clean = true;
 
         public ExecutionContext(
             IExecutionTaskContext taskContext,
@@ -31,9 +31,9 @@ namespace HotChocolate.Execution.Processing
             IBatchDispatcher batchDispatcher,
             CancellationToken requestAborted)
         {
-            if (!_reset)
+            if (!_clean)
             {
-                Reset();
+                Clean();
             }
 
             _completed = new CancellationTokenSource();
@@ -61,27 +61,27 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        public void Reset()
+        public void Clean()
         {
-            if (!_reset)
+            if (!_clean)
             {
                 BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
                 BatchDispatcher = default!;
-                _taskBacklog.Reset();
-                _deferredTaskBacklog.Reset();
-                _taskStatistics.Reset();
+                _taskBacklog.Clear();
+                _deferredTaskBacklog.Clear();
+                _taskStatistics.Clear();
 
                 TryComplete();
                 _completed.Dispose();
                 _completed = default!;
-                _reset = true;
+                _clean = true;
             }
         }
 
-        void IExecutionContext.Reset()
+        public void Reset()
         {
-            _taskBacklog.Reset();
-            _taskStatistics.Reset();
+            _taskBacklog.Clear();
+            _taskStatistics.Clear();
 
             TryComplete();
             _completed.Dispose();

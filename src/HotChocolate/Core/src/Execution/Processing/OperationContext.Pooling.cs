@@ -36,10 +36,10 @@ namespace HotChocolate.Execution.Processing
             Services = scopedServices;
         }
 
-        public void Reset()
+        public void Clean()
         {
-            _executionContext.Reset();
-            _resultHelper.Reset();
+            _executionContext.Clean();
+            _resultHelper.Clear();
             _requestContext = default!;
             Operation = default!;
             RootValue = null;
