@@ -10,6 +10,8 @@ namespace HotChocolate.Data.Spatial.Filters
     {
         private static readonly MethodInfo _contains =
             typeof(Geometry).GetMethod(nameof(Geometry.Contains))!;
+        private static readonly MethodInfo _distance =
+            typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
 
         private static readonly MethodInfo _buffer =
             typeof(Geometry)
@@ -18,9 +20,7 @@ namespace HotChocolate.Data.Spatial.Filters
                     m => m.Name.Equals(nameof(Geometry.Buffer)) &&
                         m.GetParameters().Length == 1);
 
-        public static Expression Buffer(
-            Geometry geometry,
-            double buffer)
+        public static Expression Buffer(Geometry geometry, double buffer)
         {
             return Expression.Call(
                 CreateAndConvertParameter<Geometry>(geometry),
@@ -28,23 +28,29 @@ namespace HotChocolate.Data.Spatial.Filters
                 CreateAndConvertParameter<double>(buffer));
         }
 
-        public static Expression Contains(
-            Expression property,
-            Expression geometry)
+        public static Expression Contains(Expression property, Expression geometry)
         {
-            return Expression.Call(
-                property,
-                _contains,
-                geometry);
+            return Expression.Call(property, _contains, geometry);
         }
 
-        public static Expression Contains(
-            Expression property,
-            Geometry geometry)
+        public static Expression Contains(Expression property, Geometry geometry)
         {
             return Expression.Call(
                 property,
                 _contains,
+                CreateAndConvertParameter<Geometry>(geometry));
+        }
+
+        public static Expression Distance(Expression property, Expression geometry)
+        {
+            return Expression.Call(property, _distance, geometry);
+        }
+
+        public static Expression Distance(Expression property, Geometry geometry)
+        {
+            return Expression.Call(
+                property,
+                _distance,
                 CreateAndConvertParameter<Geometry>(geometry));
         }
 

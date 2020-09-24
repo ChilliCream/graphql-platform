@@ -10,8 +10,8 @@ namespace HotChocolate.Data.Spatial.Filters
         {
             descriptor.AddFieldHandler<QueryableSpatialBufferDataHandler>();
             descriptor.AddFieldHandler<QueryableSpatialGeometryDataHandler>();
-
             descriptor.AddFieldHandler<QueryableSpatialContainsOperationHandler>();
+            descriptor.AddFieldHandler<QueryableSpatialDistanceOperationHandler>();
             return descriptor;
         }
     }

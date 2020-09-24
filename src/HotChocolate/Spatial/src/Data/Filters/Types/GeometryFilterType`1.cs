@@ -27,6 +27,7 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor.Field(x => x.SRID);
 
             descriptor.Operation(Contains).Type<GeometryContainsOperationType>();
+            descriptor.Operation(Distance).Type<GeometryDistanceOperationType>();
         }
     }
 }
