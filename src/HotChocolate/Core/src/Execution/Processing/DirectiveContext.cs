@@ -84,7 +84,11 @@ namespace HotChocolate.Execution.Processing
             get => _middlewareContext.LocalContextData;
             set => _middlewareContext.LocalContextData = value;
         }
-        public IType? ValueType { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public IType? ValueType
+        {
+            get => middlewareContext.ValueType;
+            set => middlewareContext.ValueType = value;
+        }
 
         [Obsolete]
         [return: MaybeNull]

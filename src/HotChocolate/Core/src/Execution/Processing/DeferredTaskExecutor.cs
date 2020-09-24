@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Processing
         }
 
         public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             try
             {
