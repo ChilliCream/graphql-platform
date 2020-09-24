@@ -31,8 +31,8 @@ namespace HotChocolate.ApolloFederation
             IDictionary<string, object> contextData)
         {
             // Add types to union if they contain a key directive
-            if (definition is ObjectTypeDefinition objectTypeDefinition &&
-                discoveryContext.Type is ObjectType objectType)
+            if (discoveryContext.Type is ObjectType objectType  &&
+                definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 var containsObjectLevelKeyDirective = objectTypeDefinition.Directives.Any(
                     directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}
@@ -46,6 +46,11 @@ namespace HotChocolate.ApolloFederation
                     typesToBeUnioned.Add(objectType);
                 }
             }
+
+            AggregatePropertyLevelKeyDefinitions(
+                discoveryContext,
+                definition
+            );
         }
 
         public override void OnBeforeCompleteType(
@@ -53,11 +58,6 @@ namespace HotChocolate.ApolloFederation
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            AggregatePropertyLevelKeyDefinitions(
-                completionContext,
-                definition
-            );
-
             FillTypeUnionIfEntityType(
                 completionContext,
                 definition
@@ -65,10 +65,10 @@ namespace HotChocolate.ApolloFederation
         }
 
         private void AggregatePropertyLevelKeyDefinitions(
-            ITypeCompletionContext completionContext,
+            ITypeDiscoveryContext completionContext,
             DefinitionBase definition)
         {
-            if (completionContext.Type is ObjectType && definition is ObjectTypeDefinition objectTypeDefinition)
+            if (completionContext.Type is ObjectType objectType && definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Fields.Any(
                     field => field.ContextData.ContainsKey(FederationResources.KeyDirective_ContextDataMarkerName)
@@ -87,6 +87,7 @@ namespace HotChocolate.ApolloFederation
                     }
 
                     objectTypeDefinition.Key(strBuilder.ToString());
+                    typesToBeUnioned.Add(objectType);
                 }
             }
         }

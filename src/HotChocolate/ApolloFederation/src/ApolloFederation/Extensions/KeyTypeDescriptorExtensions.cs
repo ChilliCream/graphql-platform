@@ -64,7 +64,8 @@ namespace HotChocolate.ApolloFederation.Extensions
 
             objectTypeDefinition.Directives.Add(
                 new DirectiveDefinition(
-                    directiveNode
+                    directiveNode,
+                    new SchemaTypeReference(new KeyDirectiveType())
                 )
             );
         }
