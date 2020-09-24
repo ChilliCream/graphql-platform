@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.ObjectPool;
 using static HotChocolate.Execution.Processing.ThrowHelper;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class SubscriptionExecutor
     {

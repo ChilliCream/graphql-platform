@@ -1,0 +1,35 @@
+﻿{
+  "data": {
+    "hero": {
+      "id": "2001"
+    }
+  },
+  "hasNext": true
+}
+
+{
+  "label": "friends",
+  "path": [
+    "hero"
+  ],
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 5,
+          "column": 37
+        }
+      ],
+      "path": [
+        "hero",
+        "friends"
+      ]
+    }
+  ],
+  "data": {
+    "friends": null
+  },
+  "hasNext": false
+}
+

@@ -1,18 +1,14 @@
 using System;
-using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
-    internal partial class ExecutionContext
-        : IExecutionContext
+    internal partial class ExecutionContext : IExecutionContext
     {
-        private readonly object _sync = new object();
-
         public ITaskBacklog TaskBacklog => _taskBacklog;
 
-        public IDeferredTaskBacklog DeferredTaskBacklog { get; } = 
+        public IDeferredTaskBacklog DeferredTaskBacklog { get; } =
             new DeferredTaskBacklog();
 
         public ITaskStatistics TaskStats => _taskStatistics;
@@ -44,9 +40,7 @@ namespace HotChocolate.Execution
             object? source, EventArgs args) =>
             TryDispatchBatches();
 
-        private void OnCompleted(
-            object? source,
-            EventArgs args) =>
+        private void OnCompleted(object? source, EventArgs args) =>
             _taskBacklog.Complete();
     }
 }

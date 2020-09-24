@@ -1,8 +1,7 @@
-using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     /// <summary>
     /// The execution context provides access to the task queue,
@@ -16,7 +15,7 @@ namespace HotChocolate.Execution
         ITaskBacklog TaskBacklog { get; }
 
         /// <summary>
-        /// Gets the backlog of the task that shall be processed after 
+        /// Gets the backlog of the task that shall be processed after
         /// all the main tasks have been executed.
         /// </summary>
         IDeferredTaskBacklog DeferredTaskBacklog { get; }
@@ -31,5 +30,7 @@ namespace HotChocolate.Execution
         IBatchDispatcher BatchDispatcher { get; }
 
         bool IsCompleted { get; }
+
+        void Reset();
     }
 }

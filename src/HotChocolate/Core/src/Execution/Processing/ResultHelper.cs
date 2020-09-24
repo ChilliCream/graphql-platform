@@ -17,6 +17,9 @@ namespace HotChocolate.Execution.Processing
         private readonly ResultPool _resultPool;
         private ResultMemoryOwner _resultOwner;
         private ResultMap? _data;
+        private Path? _path;
+        private string? _label;
+        private bool? _hasNext;
         private Dictionary<string, object?>? _extensions;
 
         public ResultHelper(ResultPool resultPool)
@@ -95,6 +98,21 @@ namespace HotChocolate.Execution.Processing
                 _extensions ??= new Dictionary<string, object?>();
                 _extensions[key] = value;
             }
+        }
+
+        public void SetPath(Path? path)
+        {
+            _path = path;
+        }
+
+        public void SetLabel(string? label)
+        {
+            _label = label;
+        }
+
+        public void SetHasNext(bool value)
+        {
+            _hasNext = value;
         }
 
         public void AddError(IError error, FieldNode? selection = null)
@@ -216,6 +234,9 @@ namespace HotChocolate.Execution.Processing
                 _data,
                 _errors.Count == 0 ? null : new List<IError>(_errors),
                 _extensions,
+                label: _label,
+                path: _path,
+                hasNext: _hasNext,
                 resultMemoryOwner: _data is null ? null : _resultOwner
             );
         }

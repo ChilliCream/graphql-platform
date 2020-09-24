@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal interface IOperationContextOwner : IDisposable
     {

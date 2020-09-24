@@ -1,9 +1,8 @@
 using System;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {

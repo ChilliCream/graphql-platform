@@ -17,6 +17,12 @@ namespace HotChocolate.Execution.Processing
 
         void SetExtension(string key, object? value);
 
+        void SetPath(Path? path);
+
+        void SetLabel(string? label);
+
+        void SetHasNext(bool value);
+
         /// <summary>
         /// Adds an error thread-safe to the result object.
         /// </summary>

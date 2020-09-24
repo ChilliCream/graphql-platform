@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Properties;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Execution.Processing;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext
     {

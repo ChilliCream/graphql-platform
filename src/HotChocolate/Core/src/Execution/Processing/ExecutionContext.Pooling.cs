@@ -1,18 +1,17 @@
 using System.Threading;
-using Microsoft.Extensions.ObjectPool;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
+using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal partial class ExecutionContext
-        : IExecutionContext
     {
         private readonly IExecutionTaskContext _taskContext;
         private readonly TaskBacklog _taskBacklog;
         private readonly DeferredTaskBacklog _deferredTaskBacklog;
         private readonly TaskStatistics _taskStatistics;
         private CancellationTokenSource _completed = default!;
+        private bool _reset = true;
 
         public ExecutionContext(
             IExecutionTaskContext taskContext,
@@ -32,6 +31,11 @@ namespace HotChocolate.Execution
             IBatchDispatcher batchDispatcher,
             CancellationToken requestAborted)
         {
+            if (!_reset)
+            {
+                Reset();
+            }
+
             _completed = new CancellationTokenSource();
             requestAborted.Register(TryComplete);
 
@@ -41,7 +45,7 @@ namespace HotChocolate.Execution
 
         private void TryComplete()
         {
-            if (_completed is { })
+            if (_completed is not null!)
             {
                 try
                 {
@@ -59,15 +63,29 @@ namespace HotChocolate.Execution
 
         public void Reset()
         {
-            BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
-            BatchDispatcher = default!;
+            if (!_reset)
+            {
+                BatchDispatcher.TaskEnqueued -= BatchDispatcherEventHandler;
+                BatchDispatcher = default!;
+                _taskBacklog.Reset();
+                _deferredTaskBacklog.Reset();
+                _taskStatistics.Reset();
+
+                TryComplete();
+                _completed.Dispose();
+                _completed = default!;
+                _reset = true;
+            }
+        }
+
+        void IExecutionContext.Reset()
+        {
             _taskBacklog.Reset();
-            _deferredTaskBacklog.Reset();
             _taskStatistics.Reset();
 
             TryComplete();
             _completed.Dispose();
-            _completed = default!;
+            _completed = new CancellationTokenSource();
         }
     }
 }

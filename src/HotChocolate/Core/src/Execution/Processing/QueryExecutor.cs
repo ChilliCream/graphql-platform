@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed class QueryExecutor
     {
@@ -35,6 +34,7 @@ namespace HotChocolate.Execution
 
             await ExecuteTasksAsync(operationContext);
 
+            operationContext.TrySetNext();
             operationContext.Result.SetData(resultMap);
             return operationContext.Result.BuildResult();
         }

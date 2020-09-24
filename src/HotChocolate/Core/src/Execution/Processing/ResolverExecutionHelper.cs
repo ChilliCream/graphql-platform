@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Processing
         private static Task StartExecutionTaskAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken) =>
-            Task.Run(() => ExecuteResolvers(executionContext, cancellationToken), cancellationToken);
+            Task.Run(() => ExecuteResolvers(executionContext, cancellationToken));
 
         private static async Task ExecuteResolvers(
             IExecutionContext executionContext,

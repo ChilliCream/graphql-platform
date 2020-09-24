@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using HotChocolate.Execution.Processing;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal class DeferredTaskExecutor : IAsyncEnumerable<IQueryResult>
     {
@@ -31,11 +30,7 @@ namespace HotChocolate.Execution
                     }
 
                     context.Result.Reset();
-
-                    if (!context.Execution.DeferredTaskBacklog.IsEmpty)
-                    {
-                        context.Result.SetExtension("hasNext", true);
-                    }
+                    context.Execution.Reset();
 
                     yield return await deferredTask.ExecuteAsync(context).ConfigureAwait(false);
                 }

@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext
     {

@@ -63,10 +63,16 @@ namespace HotChocolate.Execution.Processing
                 ScopedContextData,
                 Value);
 
-            await ResolverExecutionHelper.ExecuteTasksAsync(operationContext);
+            await ResolverExecutionHelper
+                .ExecuteTasksAsync(operationContext)
+                .ConfigureAwait(false);
 
-            operationContext.Result.SetData(resultMap);
-            return operationContext.Result.BuildResult();
+            return operationContext
+                .TrySetNext(true)
+                .SetLabel(Label)
+                .SetPath(Path)
+                .SetData(resultMap)
+                .BuildResult();
         }
     }
 }

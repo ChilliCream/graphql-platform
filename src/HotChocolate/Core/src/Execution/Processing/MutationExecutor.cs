@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Processing;
 using static HotChocolate.Execution.Processing.ResolverExecutionHelper;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed class MutationExecutor
     {
@@ -18,7 +17,8 @@ namespace HotChocolate.Execution
             }
 
             var responseIndex = 0;
-            var scopedContext = ImmutableDictionary<string, object?>.Empty;
+            ImmutableDictionary<string, object?> scopedContext =
+                ImmutableDictionary<string, object?>.Empty;
             ISelectionSet selectionSet = operationContext.Operation.GetRootSelectionSet();
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
@@ -42,6 +42,7 @@ namespace HotChocolate.Execution
                 }
             }
 
+            operationContext.TrySetNext();
             operationContext.Result.SetData(resultMap);
             return operationContext.Result.BuildResult();
         }

@@ -1,12 +1,9 @@
-using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
-using HotChocolate.Types;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -15,7 +12,7 @@ namespace HotChocolate
     public class DeferTests
     {
         [Fact]
-        public async Task Foo()
+        public async Task NoOptimization_Defer_Single_Scalar_Field()
         {
             IExecutionResult result =
                 await new ServiceCollection()
@@ -34,13 +31,53 @@ namespace HotChocolate
 
             IResponseStream stream = Assert.IsType<DeferredResult>(result);
 
-            var results = new List<string>();
+            var results = new StringBuilder();
+            
             await foreach (IQueryResult payload in stream.ReadResultsAsync())
             {
-                results.Add(payload.ToJson());
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
             }
-            results.MatchSnapshot();
+            
+            results.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public async Task NoOptimization_Nested_Defer()
+        {
+            IExecutionResult result =
+                await new ServiceCollection()
+                    .AddStarWarsRepositories()
+                    .AddGraphQL()
+                    .AddStarWarsTypes()
+                    .ExecuteRequestAsync(
+                        @"{
+                            hero(episode: NEW_HOPE) {
+                                id
+                                ... @defer(label: ""friends"") {
+                                    friends {
+                                        nodes {
+                                            id
+                                            ... @defer {
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }");
+
+            IResponseStream stream = Assert.IsType<DeferredResult>(result);
+
+            var results = new StringBuilder();
+            
+            await foreach (IQueryResult payload in stream.ReadResultsAsync())
+            {
+                results.AppendLine(payload.ToJson());
+                results.AppendLine();
+            }
+            
+            results.ToString().MatchSnapshot();
+        }
     }
 }

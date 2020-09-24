@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext : IExecutionTaskContext
     {

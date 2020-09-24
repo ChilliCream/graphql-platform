@@ -1,13 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal interface IOperationContext : IHasContextData
     {

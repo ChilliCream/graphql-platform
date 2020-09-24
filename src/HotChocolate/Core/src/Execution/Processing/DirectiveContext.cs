@@ -8,7 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed class DirectiveContext : IDirectiveContext
     {
@@ -125,8 +125,8 @@ namespace HotChocolate.Execution
             _middlewareContext.ArgumentOptional<T>(name);
 
         public IReadOnlyList<IFieldSelection> GetSelections(
-            ObjectType typeContext, 
-            SelectionSetNode? selectionSet = null, 
+            ObjectType typeContext,
+            SelectionSetNode? selectionSet = null,
             bool allowInternals = false) =>
             _middlewareContext.GetSelections(typeContext, selectionSet, allowInternals);
     }

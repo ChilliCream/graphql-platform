@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.ObjectPool;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed class OperationContextPool 
         : DefaultObjectPool<OperationContext>

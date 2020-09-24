@@ -1,9 +1,8 @@
 using System;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal sealed partial class OperationContext : IOperationContext
     {

@@ -27,6 +27,12 @@ namespace HotChocolate.Execution
 
         IQueryResultBuilder ClearContextData();
 
+        IQueryResultBuilder SetLabel(string? label);
+
+        IQueryResultBuilder SetPath(Path? path);
+
+        IQueryResultBuilder SetHasNext(bool? hasNext);
+
         IQueryResult Create();
     }
 }

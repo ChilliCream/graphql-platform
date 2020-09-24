@@ -1,9 +1,8 @@
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext : IMiddlewareContext
     {

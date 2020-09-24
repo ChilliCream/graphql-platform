@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
-using HotChocolate.Execution.Processing;
 
-namespace HotChocolate.Execution
+namespace HotChocolate.Execution.Processing
 {
     internal partial class MiddlewareContext
     {
