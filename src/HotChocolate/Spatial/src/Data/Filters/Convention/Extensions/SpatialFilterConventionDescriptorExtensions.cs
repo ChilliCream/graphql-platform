@@ -4,6 +4,7 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Spatial.Filters
 {
+
     public static class SpatialFilterConventionDescriptorExtensions
     {
         /// the default names of the spatial filter operations
@@ -34,12 +35,11 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor
                 .BindRuntimeType<Geometry, GeometryFilterType>();
             descriptor
-                .BindRuntimeType<LineString, LineStringFilterType>();
-            descriptor
                 .BindRuntimeType<Point, PointFilterType>();
             descriptor
+                .BindRuntimeType<LineString, LineStringFilterType>();
+            descriptor
                 .BindRuntimeType<MultiPolygon, MultiPolygonFilterType>();
-
 
             return descriptor;
         }
