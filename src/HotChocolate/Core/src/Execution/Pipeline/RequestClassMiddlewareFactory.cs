@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
 

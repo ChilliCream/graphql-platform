@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
 {

@@ -3,7 +3,7 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;

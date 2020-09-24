@@ -1,8 +1,11 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "foos": []
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }

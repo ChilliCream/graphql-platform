@@ -69,11 +69,38 @@ namespace HotChocolate.Execution.Serialization
         {
             writer.WriteStartObject();
 
+            WritePatchInfo(writer, result);
             WriteErrors(writer, result.Errors);
             WriteData(writer, result.Data);
             WriteExtensions(writer, result.Extensions);
+            WriteHasNext(writer, result);
 
             writer.WriteEndObject();
+        }
+
+        private static void WritePatchInfo(
+            Utf8JsonWriter writer,
+            IQueryResult result)
+        {
+            if (result.Label is not null)
+            {
+                writer.WriteString("label", result.Label);
+            }
+
+            if (result.Path is not null)
+            {
+                WritePath(writer, result.Path);
+            }
+        }
+
+        private static void WriteHasNext(
+            Utf8JsonWriter writer,
+            IQueryResult result)
+        {
+            if (result.HasNext.HasValue)
+            {
+                writer.WriteBoolean("hasNext", result.HasNext.Value);
+            }
         }
 
         private static void WriteData(
@@ -119,7 +146,7 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteString(_message, error.Message);
 
             WriteLocations(writer, error.Locations);
-            WritePath(writer, error.Path?.ToList());
+            WritePath(writer, error.Path);
             WriteExtensions(writer, error.Extensions);
 
             writer.WriteEndObject();
@@ -150,46 +177,52 @@ namespace HotChocolate.Execution.Serialization
             writer.WriteEndObject();
         }
 
-        private static void WritePath(Utf8JsonWriter writer, IReadOnlyList<object>? path)
+        private static void WritePath(Utf8JsonWriter writer, Path? path)
         {
-            if (path is { Count: > 0 })
+            if (path is not null && path is not RootPathSegment)
             {
                 writer.WritePropertyName(_path);
-
-                writer.WriteStartArray();
-
-                for (var i = 0; i < path.Count; i++)
-                {
-                    switch (path[i])
-                    {
-                        case NameString n:
-                            writer.WriteStringValue(n.Value);
-                            break;
-
-                        case string s:
-                            writer.WriteStringValue(s);
-                            break;
-
-                        case int n:
-                            writer.WriteNumberValue(n);
-                            break;
-
-                        case short n:
-                            writer.WriteNumberValue(n);
-                            break;
-
-                        case long n:
-                            writer.WriteNumberValue(n);
-                            break;
-
-                        default:
-                            writer.WriteStringValue(path[i].ToString());
-                            break;
-                    }
-                }
-
-                writer.WriteEndArray();
+                WritePathValue(writer, path);
             }
+        }
+
+        private static void WritePathValue(Utf8JsonWriter writer, Path path)
+        {
+            writer.WriteStartArray();
+
+            IReadOnlyList<object> list = path.ToList();
+
+            for (var i = 0; i < list.Count; i++)
+            {
+                switch (list[i])
+                {
+                    case NameString n:
+                        writer.WriteStringValue(n.Value);
+                        break;
+
+                    case string s:
+                        writer.WriteStringValue(s);
+                        break;
+
+                    case int n:
+                        writer.WriteNumberValue(n);
+                        break;
+
+                    case short n:
+                        writer.WriteNumberValue(n);
+                        break;
+
+                    case long n:
+                        writer.WriteNumberValue(n);
+                        break;
+
+                    default:
+                        writer.WriteStringValue(list[i].ToString());
+                        break;
+                }
+            }
+
+            writer.WriteEndArray();
         }
 
         private static void WriteExtensions(
@@ -358,6 +391,10 @@ namespace HotChocolate.Execution.Serialization
 
                 case Uri u:
                     writer.WriteStringValue(u.ToString());
+                    break;
+
+                case Path p:
+                    WritePath(writer, p);
                     break;
 
                 default:

@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 

@@ -11,6 +11,9 @@ namespace HotChocolate.Execution
         private List<IError>? _errors;
         private ExtensionData? _extensionData;
         private ExtensionData? _contextData;
+        private string? _label;
+        private Path? _path;
+        private bool? _hasNext;
         private IDisposable? _disposable;
 
         public IQueryResultBuilder SetData(
@@ -132,6 +135,24 @@ namespace HotChocolate.Execution
             return this;
         }
 
+        public IQueryResultBuilder SetLabel(string? label)
+        {
+            _label = label;
+            return this;
+        }
+
+        public IQueryResultBuilder SetPath(Path? path)
+        {
+            _path = path;
+            return this;
+        }
+
+        public IQueryResultBuilder SetHasNext(bool? hasNext)
+        {
+            _hasNext = hasNext;
+            return this;
+        }
+
         public IQueryResult Create()
         {
             return new QueryResult(
@@ -139,6 +160,9 @@ namespace HotChocolate.Execution
                 _errors is { } && _errors.Count > 0 ? _errors : null,
                 _extensionData is { } && _extensionData.Count > 0 ? _extensionData : null,
                 _contextData is { } && _contextData.Count > 0 ? _contextData : null,
+                _label,
+                _path,
+                _hasNext,
                 _disposable);
         }
 

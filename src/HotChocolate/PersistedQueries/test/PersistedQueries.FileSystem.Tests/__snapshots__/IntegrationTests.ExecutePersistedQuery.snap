@@ -1,4 +1,6 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "__typename": "Query"
   },
@@ -6,5 +8,6 @@
   "Extensions": {
     "persistedDocument": true
   },
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }
