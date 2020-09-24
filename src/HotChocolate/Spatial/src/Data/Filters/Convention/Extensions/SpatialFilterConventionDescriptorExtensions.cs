@@ -6,6 +6,7 @@ namespace HotChocolate.Data.Spatial.Filters
 {
     public static class SpatialFilterConventionDescriptorExtensions
     {
+        /// the default names of the spatial filter operations
         public static IFilterConventionDescriptor AddSpatialOperations(
             this IFilterConventionDescriptor descriptor)
         {
@@ -21,6 +22,7 @@ namespace HotChocolate.Data.Spatial.Filters
             return descriptor;
         }
 
+        /// the fields and operations available to each type
         public static IFilterConventionDescriptor BindSpatialTypes(
             this IFilterConventionDescriptor descriptor)
         {

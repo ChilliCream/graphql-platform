@@ -1,5 +1,6 @@
 namespace HotChocolate.Data.Spatial.Filters
 {
+    /// All of the available spatial operations
     public static class SpatialFilterOperations
     {
         public const int Buffer = 513;
