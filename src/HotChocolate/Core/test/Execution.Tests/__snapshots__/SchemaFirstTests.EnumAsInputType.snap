@@ -1,8 +1,11 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "setEnumValue": "Baz"
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }

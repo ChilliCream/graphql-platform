@@ -12,23 +12,59 @@
   "path": [
     "hero"
   ],
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
+  "data": {
+    "friends": {
+      "nodes": [
         {
-          "line": 5,
-          "column": 37
+          "id": "1000"
+        },
+        {
+          "id": "1002"
+        },
+        {
+          "id": "1003"
         }
-      ],
-      "path": [
-        "hero",
-        "friends"
       ]
     }
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "hero",
+    "friends",
+    "nodes",
+    2
   ],
   "data": {
-    "friends": null
+    "name": "Leia Organa"
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "hero",
+    "friends",
+    "nodes",
+    1
+  ],
+  "data": {
+    "name": "Han Solo"
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "hero",
+    "friends",
+    "nodes",
+    0
+  ],
+  "data": {
+    "name": "Luke Skywalker"
   },
   "hasNext": false
 }

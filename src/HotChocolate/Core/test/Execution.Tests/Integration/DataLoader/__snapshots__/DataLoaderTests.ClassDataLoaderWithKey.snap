@@ -1,5 +1,7 @@
 ﻿[
   {
+    "Label": null,
+    "Path": null,
     "Data": {
       "a": "a",
       "b": "b"
@@ -13,9 +15,12 @@
         ]
       ]
     },
-    "ContextData": null
+    "ContextData": null,
+    "HasNext": null
   },
   {
+    "Label": null,
+    "Path": null,
     "Data": {
       "a": "a"
     },
@@ -27,9 +32,12 @@
         ]
       ]
     },
-    "ContextData": null
+    "ContextData": null,
+    "HasNext": null
   },
   {
+    "Label": null,
+    "Path": null,
     "Data": {
       "c": "c"
     },
@@ -41,6 +49,7 @@
         ]
       ]
     },
-    "ContextData": null
+    "ContextData": null,
+    "HasNext": null
   }
 ]
