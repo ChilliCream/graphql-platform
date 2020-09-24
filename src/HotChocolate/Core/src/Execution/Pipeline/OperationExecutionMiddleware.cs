@@ -5,7 +5,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
 {

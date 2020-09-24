@@ -13,7 +13,7 @@ using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution
 {

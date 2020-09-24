@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {

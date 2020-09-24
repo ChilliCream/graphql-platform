@@ -1,6 +1,6 @@
 ﻿using System;
 using HotChocolate.Language;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {

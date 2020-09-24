@@ -1,7 +1,8 @@
 using System;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution
 {
     internal static class ErrorHelper
     {

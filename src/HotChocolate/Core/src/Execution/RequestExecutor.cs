@@ -86,16 +86,18 @@ namespace HotChocolate.Execution
                     throw new InvalidOperationException();
                 }
 
-                if(scope is not null && context.Result is DeferredResult deferred)
+                if (scope is not null)
                 {
-                    context.Result = new DeferredResult(deferred, scope);
-                    scope = null;
-                }
-
-                if(scope is not null && context.Result is SubscriptionResult result)
-                {
-                    context.Result = new SubscriptionResult(result, scope);
-                    scope = null;
+                    if (context.Result is DeferredResult deferred)
+                    {
+                        context.Result = new DeferredResult(deferred, scope);
+                        scope = null;
+                    }
+                    else if (context.Result is SubscriptionResult result)
+                    {
+                        context.Result = new SubscriptionResult(result, scope);
+                        scope = null;
+                    }
                 }
 
                 return context.Result;

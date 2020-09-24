@@ -45,9 +45,7 @@ namespace HotChocolate.Execution
         }
 
         public static IQueryResult BuildResult(
-            this IOperationContext context)
-        {
-            return context.Result.BuildResult();
-        }
+            this IOperationContext context) =>
+            context.Result.BuildResult();
     }
 }

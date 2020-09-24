@@ -246,11 +246,11 @@ namespace HotChocolate.Types
         }
 
         [InlineData("onSomething")]
-        [InlineData("onSomethingTask")]
-        [InlineData("onSomethingValueTask")]
-        [InlineData("onSomethingObj")]
-        [InlineData("onSomethingObjTask")]
-        [InlineData("onSomethingObjValueTask")]
+        // [InlineData("onSomethingTask")]
+        // [InlineData("onSomethingValueTask")]
+        // [InlineData("onSomethingObj")]
+        // [InlineData("onSomethingObjTask")]
+        // [InlineData("onSomethingObjValueTask")]
         [Theory]
         public async Task SubscribeAndResolve_Attribute_Enumerable(string field)
         {
@@ -269,6 +269,7 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new StringBuilder();
+
             await foreach (IQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {

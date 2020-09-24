@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class MutationExecutor
     {
-        public async Task<IReadOnlyQueryResult> ExecuteAsync(
+        public async Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext)
         {
             if (operationContext is null)
@@ -42,9 +42,10 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            operationContext.TrySetNext();
-            operationContext.Result.SetData(resultMap);
-            return operationContext.Result.BuildResult();
+            return operationContext
+                .TrySetNext()
+                .SetData(resultMap)
+                .BuildResult();
         }
     }
 }

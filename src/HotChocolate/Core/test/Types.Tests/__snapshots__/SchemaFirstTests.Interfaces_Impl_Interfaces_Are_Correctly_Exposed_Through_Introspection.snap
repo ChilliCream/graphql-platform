@@ -1016,6 +1016,16 @@
           "interfaces": null,
           "enumValues": null,
           "possibleTypes": null
+        },
+        {
+          "kind": "SCALAR",
+          "name": "Int",
+          "description": "The \u0060Int\u0060 scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": null
         }
       ],
       "directives": [
@@ -1063,6 +1073,82 @@
           ],
           "onOperation": false,
           "onFragment": true,
+          "onField": true
+        },
+        {
+          "name": "defer",
+          "description": "The \u0060@defer\u0060 directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment.A query with \u0060@defer\u0060 directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. \u0060@include\u0060 and \u0060@skip\u0060 take precedence over \u0060@defer\u0060.",
+          "args": [
+            {
+              "name": "label",
+              "description": "If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "if",
+              "description": "Deferred when true.",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              },
+              "defaultValue": null
+            }
+          ],
+          "onOperation": false,
+          "onFragment": true,
+          "onField": false
+        },
+        {
+          "name": "stream",
+          "description": "The \u0060@stream\u0060 directive may be provided for a field of \u0060List\u0060 type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. \u0060@include\u0060 and \u0060@skip\u0060 take precedence over \u0060@stream\u0060.",
+          "args": [
+            {
+              "name": "label",
+              "description": "If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "initialCount",
+              "description": "The initial elements that shall be send down to the consumer.",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "if",
+              "description": "Streamed when true.",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                }
+              },
+              "defaultValue": null
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
           "onField": true
         },
         {

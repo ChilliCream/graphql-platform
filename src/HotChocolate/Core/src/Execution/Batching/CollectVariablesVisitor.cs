@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
 {

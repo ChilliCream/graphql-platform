@@ -5,7 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Processing.ErrorHelper;
+using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Processing
 {

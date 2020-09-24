@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution
 {
     internal static class ThrowHelper
     {

@@ -74,6 +74,7 @@ namespace HotChocolate.Execution.Processing
                     {
                         break;
                     }
+
                     yield return await OnEvent(enumerator.Current).ConfigureAwait(false);
                 }
             }
@@ -87,7 +88,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            private async Task<IReadOnlyQueryResult> OnEvent(object payload)
+            private async Task<IQueryResult> OnEvent(object payload)
             {
                 using IServiceScope serviceScope = _requestContext.Services.CreateScope();
 
@@ -116,7 +117,8 @@ namespace HotChocolate.Execution.Processing
                         rootValue,
                         _requestContext.Variables!);
 
-                    return await _queryExecutor.ExecuteAsync(operationContext, scopedContext)
+                    return await _queryExecutor
+                        .ExecuteAsync(operationContext, scopedContext)
                         .ConfigureAwait(false);
                 }
                 finally

@@ -7,11 +7,11 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class QueryExecutor
     {
-        public Task<IReadOnlyQueryResult> ExecuteAsync(
+        public Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext) =>
             ExecuteAsync(operationContext, ImmutableDictionary<string, object?>.Empty);
 
-        public async Task<IReadOnlyQueryResult> ExecuteAsync(
+        public async Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext,
             IImmutableDictionary<string, object?> scopedContext)
         {
@@ -34,9 +34,10 @@ namespace HotChocolate.Execution.Processing
 
             await ExecuteTasksAsync(operationContext);
 
-            operationContext.TrySetNext();
-            operationContext.Result.SetData(resultMap);
-            return operationContext.Result.BuildResult();
+            return operationContext
+                .TrySetNext()
+                .SetData(resultMap)
+                .BuildResult();
         }
     }
 }

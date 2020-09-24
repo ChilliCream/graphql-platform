@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Processing
 
         void AddNonNullViolation(FieldNode selection, Path path, IResultMap parent);
 
-        IReadOnlyQueryResult BuildResult();
+        IQueryResult BuildResult();
 
         void DropResult();
 

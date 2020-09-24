@@ -145,7 +145,7 @@ namespace HotChocolate.Execution.Processing
             _nonNullViolations.Add(new NonNullViolation(selection, path, parent));
         }
 
-        public IReadOnlyQueryResult BuildResult()
+        public IQueryResult BuildResult()
         {
             // TODO : add null errors
             while (_data != null && _nonNullViolations.TryPop(out NonNullViolation violation))

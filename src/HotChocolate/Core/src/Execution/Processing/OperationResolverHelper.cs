@@ -2,7 +2,7 @@
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Processing.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {
