@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Client\" />
+    <Folder Include="Cypher\" />
+    <Folder Include="Filtering\" />
+    <Folder Include="Sorting\" />
+    <Folder Include="Projection\" />
+    <Folder Include="Paging\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Neo4j.Driver" Version="4.1.1" />
+  </ItemGroup>
+</Project>
