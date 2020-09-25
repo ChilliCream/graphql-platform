@@ -1,8 +1,11 @@
+using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Execution.Serialization;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;
 using Xunit;
@@ -32,13 +35,13 @@ namespace HotChocolate
             IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
             var results = new StringBuilder();
-            
+
             await foreach (IQueryResult payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
             }
-            
+
             results.ToString().MatchSnapshot();
         }
 
@@ -70,13 +73,13 @@ namespace HotChocolate
             IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
             var results = new StringBuilder();
-            
+
             await foreach (IQueryResult payload in stream.ReadResultsAsync())
             {
                 results.AppendLine(payload.ToJson());
                 results.AppendLine();
             }
-            
+
             results.ToString().MatchSnapshot();
         }
     }
