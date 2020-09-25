@@ -88,9 +88,9 @@ namespace HotChocolate.Execution
 
                 if (scope is not null)
                 {
-                    if (context.Result is DeferredResult deferred)
+                    if (context.Result is DeferredQueryResult deferred)
                     {
-                        context.Result = new DeferredResult(deferred, scope);
+                        context.Result = new DeferredQueryResult(deferred, scope);
                         scope = null;
                     }
                     else if (context.Result is SubscriptionResult result)

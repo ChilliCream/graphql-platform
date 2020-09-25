@@ -20,6 +20,7 @@ namespace HotChocolate.AspNetCore.Utilities
             ServerFactory.Create(
                 services => services
                     .AddRouting()
+                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                         .AddStarWarsTypes()
                         .AddTypeExtension<QueryExtension>()

@@ -1,0 +1,31 @@
+﻿---
+Content-Type: application/json; charset=utf-8
+Content-Length: 46
+
+{"data":{"hero":{"id":"2001"}},"hasNext":true}
+
+---
+Content-Type: application/json; charset=utf-8
+Content-Length: 123
+
+{"label":"friends","path":["hero"],"data":{"friends":{"nodes":[{"id":"1000"},{"id":"1002"},{"id":"1003"}]}},"hasNext":true}
+
+---
+Content-Type: application/json; charset=utf-8
+Content-Length: 82
+
+{"path":["hero","friends","nodes",2],"data":{"name":"Leia Organa"},"hasNext":true}
+
+---
+Content-Type: application/json; charset=utf-8
+Content-Length: 79
+
+{"path":["hero","friends","nodes",1],"data":{"name":"Han Solo"},"hasNext":true}
+
+---
+Content-Type: application/json; charset=utf-8
+Content-Length: 86
+
+{"path":["hero","friends","nodes",0],"data":{"name":"Luke Skywalker"},"hasNext":false}
+
+----

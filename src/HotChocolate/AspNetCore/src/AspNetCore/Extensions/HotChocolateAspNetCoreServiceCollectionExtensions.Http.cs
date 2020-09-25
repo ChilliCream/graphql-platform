@@ -35,5 +35,27 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.ConfigureSchemaServices(s =>
                 s.TryAddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>());
         }
+
+        public static IServiceCollection AddHttpRequestSerializer(
+            this IServiceCollection services,
+            HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
+            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
+        {
+            services.RemoveAll<IHttpResultSerializer>();
+            services.AddSingleton<IHttpResultSerializer>(
+                new DefaultHttpResultSerializer(
+                    batchSerialization,
+                    deferSerialization));
+            return services;
+        }
+
+        public static IServiceCollection AddHttpRequestSerializer<T>(
+            this IServiceCollection services)
+            where T : class, IHttpResultSerializer
+        {
+            services.RemoveAll<IHttpResultSerializer>();
+            services.AddSingleton<IHttpResultSerializer, T>();
+            return services;
+        }
     }
 }

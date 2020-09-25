@@ -6,9 +6,9 @@ using HotChocolate.Properties;
 
 #nullable enable
 
-namespace HotChocolate.Execution.Processing
+namespace HotChocolate.Execution
 {
-    public sealed class DeferredResult
+    public sealed class DeferredQueryResult
         : IExecutionResult
         , IResponseStream
     {
@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Processing
         private bool _isRead;
         private bool _disposed;
 
-        public DeferredResult(
+        public DeferredQueryResult(
             IQueryResult initialResult,
             IAsyncEnumerable<IQueryResult> deferredResults,
             IReadOnlyDictionary<string, object?>? extensions = null,
@@ -34,11 +34,11 @@ namespace HotChocolate.Execution.Processing
             _session = session;
         }
 
-        public DeferredResult(DeferredResult result, IDisposable session)
+        public DeferredQueryResult(DeferredQueryResult queryResult, IDisposable session)
         {
-            if (result is null)
+            if (queryResult is null)
             {
-                throw new ArgumentNullException(nameof(result));
+                throw new ArgumentNullException(nameof(queryResult));
             }
 
             if (session is null)
@@ -46,12 +46,12 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(session));
             }
 
-            _initialResult = result._initialResult;
-            _deferredResults = result._deferredResults;
-            Extensions = result.Extensions;
-            ContextData = result.ContextData;
-            _session = result._session is not null
-                ? new CombinedDispose(result._session, session)
+            _initialResult = queryResult._initialResult;
+            _deferredResults = queryResult._deferredResults;
+            Extensions = queryResult.Extensions;
+            ContextData = queryResult.ContextData;
+            _session = queryResult._session is not null
+                ? new CombinedDispose(queryResult._session, session)
                 : session;
         }
 
