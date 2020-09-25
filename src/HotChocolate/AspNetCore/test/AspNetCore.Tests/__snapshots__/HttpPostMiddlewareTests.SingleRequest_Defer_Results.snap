@@ -1,5 +1,5 @@
 ﻿{
   "ContentType": "multipart/mixed; boundary=\"-\"",
   "StatusCode": "OK",
-  "Content": "---\nContent-Type: application/json; charset=utf-8\nContent-Length: 49\n\n{\"data\":{\"hero\":{\"name\":\"R2-D2\"}},\"hasNext\":true}\n\n---\nContent-Type: application/json; charset=utf-8\nContent-Length: 70\n\n{\"label\":\"my_id\",\"path\":[\"hero\"],\"data\":{\"id\":\"2001\"},\"hasNext\":false}\n\n----\n"
+  "Content": "---\nContent-Type: application/json; charset=utf-8\nContent-Length: 49\n\n{\"data\":{\"hero\":{\"name\":\"R2-D2\"}},\"hasNext\":true}\n\n---\nContent-Type: application/json; charset=utf-8\nContent-Length: 70\n\n{\"label\":\"my_id\",\"path\":[\"hero\"],\"data\":{\"id\":\"2001\"},\"hasNext\":false}\n\n-----\n"
 }
