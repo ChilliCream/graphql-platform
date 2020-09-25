@@ -11,7 +11,6 @@ namespace HotChocolate.Execution.Serialization
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
-        private readonly UTF8Encoding _encoding = new UTF8Encoding();
         private readonly JsonQueryResultSerializer _serializer =
             new JsonQueryResultSerializer();
 

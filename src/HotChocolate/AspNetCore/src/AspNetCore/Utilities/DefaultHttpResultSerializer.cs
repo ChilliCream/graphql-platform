@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -9,43 +10,116 @@ namespace HotChocolate.AspNetCore.Utilities
 {
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
-        private readonly JsonQueryResultSerializer _queryResultSerializer =
-            new JsonQueryResultSerializer();
-        private readonly JsonArrayResponseStreamSerializer _responseStreamSerializer =
-            new JsonArrayResponseStreamSerializer();
-
-        public string GetContentType(IExecutionResult result) =>
+        private const string _multiPartContentType =
+            "content-type: multipart/mixed; boundary=\"-\"";
+        private const string _jsonContentType =
             "application/json; charset=utf-8";
 
-        public HttpStatusCode GetStatusCode(IExecutionResult result)
+        private readonly JsonQueryResultSerializer _jsonSerializer =
+            new JsonQueryResultSerializer();
+        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer =
+            new JsonArrayResponseStreamSerializer();
+        private readonly MultiPartResponseStreamSerializer _multiPartSerializer =
+            new MultiPartResponseStreamSerializer();
+
+        private readonly HttpResultSerialization _batchSerialization;
+        private readonly HttpResultSerialization _deferSerialization;
+
+        public DefaultHttpResultSerializer(
+            HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
+            HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
         {
-            if (result is IQueryResult q)
-            {
-                return q.Data is null
-                    ? q.ContextData is not null &&
-                      q.ContextData.ContainsKey(ContextDataKeys.ValidationErrors)
-                        ? HttpStatusCode.BadRequest
-                        : HttpStatusCode.InternalServerError
-                    : HttpStatusCode.OK;
-            }
-            return HttpStatusCode.OK;
+            _batchSerialization = batchSerialization;
+            _deferSerialization = deferSerialization;
         }
 
-        public async ValueTask SerializeAsync(
+        public virtual string GetContentType(IExecutionResult result)
+        {
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            switch (result)
+            {
+                case QueryResult:
+                    return _jsonContentType;
+
+                case DeferredQueryResult:
+                    return _deferSerialization == HttpResultSerialization.JsonArray
+                        ? _jsonContentType
+                        : _multiPartContentType;
+
+                case BatchQueryResult:
+                    return _deferSerialization == HttpResultSerialization.JsonArray
+                        ? _jsonContentType
+                        : _multiPartContentType;
+
+                default:
+                    return _jsonContentType;
+            }
+        }
+
+        public virtual HttpStatusCode GetStatusCode(IExecutionResult result)
+        {
+            switch (result)
+            {
+                case QueryResult queryResult:
+                    return queryResult.Data is null
+                        ? queryResult.ContextData is not null &&
+                          queryResult.ContextData.ContainsKey(ContextDataKeys.ValidationErrors)
+                            ? HttpStatusCode.BadRequest
+                            : HttpStatusCode.InternalServerError
+                        : HttpStatusCode.OK;
+
+                case DeferredQueryResult:
+                case BatchQueryResult:
+                    return HttpStatusCode.OK;
+
+                default:
+                    return HttpStatusCode.InternalServerError;
+            }
+        }
+
+        public virtual async ValueTask SerializeAsync(
             IExecutionResult result,
             Stream stream,
             CancellationToken cancellationToken)
         {
-            if (result is IReadOnlyQueryResult q)
+            switch (result)
             {
-                await _queryResultSerializer.SerializeAsync(
-                    q, stream, cancellationToken);
-            }
+                case IQueryResult queryResult:
+                    await _jsonSerializer.SerializeAsync(queryResult, stream, cancellationToken);
+                    break;
 
-            if (result is IResponseStream r)
-            {
-                await _responseStreamSerializer.SerializeAsync(
-                    r, stream, cancellationToken);
+                case DeferredQueryResult deferredResult
+                    when _deferSerialization == HttpResultSerialization.JsonArray:
+                    await _jsonArraySerializer.SerializeAsync(
+                        deferredResult, stream, cancellationToken);
+                    break;
+
+                case DeferredQueryResult deferredResult:
+                    await _multiPartSerializer.SerializeAsync(
+                        deferredResult, stream, cancellationToken);
+                    break;
+
+                case BatchQueryResult batchResult
+                    when _batchSerialization == HttpResultSerialization.JsonArray:
+                    await _jsonArraySerializer.SerializeAsync(
+                        batchResult, stream, cancellationToken);
+                    break;
+
+                case BatchQueryResult batchResult:
+                    await _multiPartSerializer.SerializeAsync(
+                        batchResult, stream, cancellationToken);
+                    break;
+
+                default:
+                    await _jsonSerializer.SerializeAsync(
+                        ErrorHelper.ResponseTypeNotSupported(),
+                        stream,
+                        cancellationToken);
+                    break;
             }
         }
     }

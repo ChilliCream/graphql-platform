@@ -29,7 +29,7 @@ namespace HotChocolate
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredResult>(result);
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
             var results = new StringBuilder();
             
@@ -67,7 +67,7 @@ namespace HotChocolate
                             }
                         }");
 
-            IResponseStream stream = Assert.IsType<DeferredResult>(result);
+            IResponseStream stream = Assert.IsType<DeferredQueryResult>(result);
 
             var results = new StringBuilder();
             
