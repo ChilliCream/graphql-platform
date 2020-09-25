@@ -30,7 +30,11 @@ namespace HotChocolate.Types.Relay
                 context.Argument<string>("after"),
                 context.Argument<string>("before"));
 
-            if (connectionResolver is { } && context.Result is TSource source)
+            if (context.Result is IConnection)
+            {
+                // do nothing, we've already got an IConnection
+            }
+            else if (connectionResolver is { } && context.Result is TSource source)
             {
                 context.Result = await connectionResolver.ResolveAsync(
                     context,
