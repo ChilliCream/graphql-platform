@@ -5,10 +5,11 @@ using HotChocolate.Types.Spatial;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
+using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types
 {
-    internal abstract class GeoJsonSerializerBase : IGeoJsonSerializer
+    internal abstract class GeoJsonSerializerBase<T> : IGeoJsonSerializer
     {
         public abstract bool TrySerialize(object? runtimeValue, out object? resultValue);
 
@@ -50,7 +51,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (runtimeValue is Point)
+            if (runtimeValue is T)
             {
                 return true;
             }
@@ -65,18 +66,18 @@ namespace HotChocolate.Types
             object? coordinates = null;
             int? crs = null;
 
-            if (obj.TryGetValue(WellKnownFields.TypeFieldName, out var typeObject))
+            if (obj.TryGetValue(TypeFieldName, out var typeObject))
             {
                 type = GeoJsonTypeSerializer.Default.Deserialize(typeObject)
                     as GeoJsonGeometryType?;
             }
 
-            if (obj.TryGetValue(WellKnownFields.CoordinatesFieldName, out var coordinateObject))
+            if (obj.TryGetValue(CoordinatesFieldName, out var coordinateObject))
             {
                 coordinates = ParseCoordinates(coordinateObject);
             }
 
-            if (obj.TryGetValue(WellKnownFields.CrsFieldName, out var crsObject) &&
+            if (obj.TryGetValue(CrsFieldName, out var crsObject) &&
                 crsObject is int crsInt)
             {
                 crs = crsInt;
@@ -106,16 +107,16 @@ namespace HotChocolate.Types
             {
                 var fieldName = obj.Fields[i].Name.Value;
                 IValueNode syntaxNode = obj.Fields[i].Value;
-                if (WellKnownFields.TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
+                if (TypeFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     type = GeoJsonTypeSerializer.Default.ParseLiteral(syntaxNode)
                         as GeoJsonGeometryType?;
                 }
-                else if (WellKnownFields.CoordinatesFieldName.EqualsInvariantIgnoreCase(fieldName))
+                else if (CoordinatesFieldName.EqualsInvariantIgnoreCase(fieldName))
                 {
                     coordinates = ParseCoordinates(syntaxNode);
                 }
-                else if (WellKnownFields.CrsFieldName.EqualsInvariantIgnoreCase(fieldName) &&
+                else if (CrsFieldName.EqualsInvariantIgnoreCase(fieldName) &&
                     syntaxNode is IntValueNode node &&
                     !node.IsNull())
                 {
@@ -175,6 +176,8 @@ namespace HotChocolate.Types
                                 throw Serializer_Parse_CoordinatesIsInvalid();
                             }
                         }
+
+                        return result;
                     }
                 }
                 else if (

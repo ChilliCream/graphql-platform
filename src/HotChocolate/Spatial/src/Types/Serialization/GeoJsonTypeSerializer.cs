@@ -7,7 +7,7 @@ using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonTypeSerializer : GeoJsonSerializerBase
+    internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
     {
         private static readonly IDictionary<string, GeoJsonGeometryType> _nameLookup =
             new Dictionary<string, GeoJsonGeometryType>

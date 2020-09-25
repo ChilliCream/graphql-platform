@@ -1,31 +1,25 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonPolygonSerializer : GeoJsonInputObjectSerializer<Polygon>
+    internal class GeoJsonPolygonSerializer
+        : GeoJsonInputObjectSerializer<Polygon>
     {
         private GeoJsonPolygonSerializer()
             : base(GeoJsonGeometryType.Polygon)
         {
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
-        {
-            return coordinates is Coordinate[];
-        }
-
-        public override bool TryCreateGeometry(
+        public override Polygon CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out Polygon? geometry)
+            int? crs)
         {
             if (!(coordinates is Coordinate[] coords))
             {
-                geometry = null;
-                return false;
+                throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
             if (crs is { })
@@ -34,13 +28,11 @@ namespace HotChocolate.Types
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
                 LinearRing ringSrid = factory.CreateLinearRing(coords);
-                geometry = factory.CreatePolygon(ringSrid);
-                return true;
+                return factory.CreatePolygon(ringSrid);
             }
 
             var ring = new LinearRing(coords);
-            geometry = new Polygon(ring);
-            return true;
+            return new Polygon(ring);
         }
 
         public static readonly GeoJsonPolygonSerializer Default =

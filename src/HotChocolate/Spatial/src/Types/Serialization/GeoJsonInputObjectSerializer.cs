@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
@@ -9,7 +10,7 @@ using static HotChocolate.Types.Spatial.WellKnownFields;
 
 namespace HotChocolate.Types
 {
-    internal abstract class GeoJsonInputObjectSerializer<T> : GeoJsonSerializerBase
+    internal abstract class GeoJsonInputObjectSerializer<T> : GeoJsonSerializerBase<T>
         where T : Geometry
     {
         private readonly GeoJsonGeometryType _geometryType;
@@ -19,12 +20,7 @@ namespace HotChocolate.Types
             _geometryType = geometryType;
         }
 
-        protected abstract bool IsCoordinateValid(object? coordinates);
-
-        public abstract bool TryCreateGeometry(
-            object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out T? geometry);
+        public abstract T CreateGeometry(object? coordinates, int? crs);
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
@@ -45,10 +41,34 @@ namespace HotChocolate.Types
 
                 if (runtimeValue is T p)
                 {
-                    if (!TrySerializeCoordinates(p.Coordinates, out object? coordinate))
+                    object? coordinate;
+                    if (p is GeometryCollection collection)
                     {
-                        throw Serializer_CouldNotSerialize();
+                        var geometryCoords = new object[collection.Geometries.Length];
+                        for (var i = 0; i < collection.Geometries.Length; i++)
+                        {
+                            if (TrySerializeCoordinates(
+                                collection.Geometries[i].Coordinates,
+                                out object? coords))
+                            {
+                                geometryCoords[i] = coords;
+                            }
+                            else
+                            {
+                                throw Serializer_CouldNotSerialize();
+                            }
+                        }
+
+                        coordinate = geometryCoords;
                     }
+                    else
+                    {
+                        if (!TrySerializeCoordinates(p.Coordinates, out coordinate))
+                        {
+                            throw Serializer_CouldNotSerialize();
+                        }
+                    }
+
 
                     resultValue = new Dictionary<string, object>
                     {
@@ -85,7 +105,11 @@ namespace HotChocolate.Types
 
         public override bool IsInstanceOfType(object? runtimeValue)
         {
-            return runtimeValue is GeoJsonGeometryType t && t == _geometryType;
+            return runtimeValue is T t &&
+                GeoJsonTypeSerializer.Default.TryParseString(
+                    t.GeometryType,
+                    out GeoJsonGeometryType g) &&
+                g == _geometryType;
         }
 
         public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
@@ -104,17 +128,7 @@ namespace HotChocolate.Types
                 throw Serializer_Parse_TypeIsInvalid();
             }
 
-            if (!IsCoordinateValid(coordinates))
-            {
-                throw Serializer_Parse_CoordinatesIsInvalid();
-            }
-
-            if (!TryCreateGeometry(coordinates, crs, out T? geometry))
-            {
-                throw Serializer_CouldNotParseLiteral();
-            }
-
-            return geometry;
+            return CreateGeometry(coordinates, crs);
         }
 
         public override IValueNode ParseResult(object? resultValue)
@@ -134,12 +148,13 @@ namespace HotChocolate.Types
                 };
 
 
-                if (dict.TryGetValue(CoordinatesFieldName, out var value))
+                if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
+                    value is object[] coordinates)
                 {
                     list.Add(
                         new ObjectFieldNode(
                             CoordinatesFieldName,
-                            GeoJsonPositionSerializer.Default.ParseResult(value)));
+                            ParseCoordinates(coordinates)));
                 }
 
                 if (dict.TryGetValue(CrsFieldName, out value) && value is int crs)
@@ -215,17 +230,8 @@ namespace HotChocolate.Types
                         return false;
                     }
 
-                    if (!IsCoordinateValid(coordinates))
-                    {
-                        runtimeValue = null;
-                        return false;
-                    }
-
-                    if (TryCreateGeometry(coordinates, crs, out T? ofT))
-                    {
-                        runtimeValue = ofT;
-                        return true;
-                    }
+                    runtimeValue = CreateGeometry(coordinates, crs);
+                    return true;
                 }
 
                 if (resultValue is T)
@@ -269,12 +275,19 @@ namespace HotChocolate.Types
             return true;
         }
 
-        protected virtual IValueNode ParseCoordinates(Coordinate[] runtimeValue)
+        protected virtual IValueNode ParseCoordinates(IList runtimeValue)
         {
-            var result = new IValueNode[runtimeValue.Length];
+            var result = new IValueNode[runtimeValue.Count];
             for (var i = 0; i < result.Length; i++)
             {
-                if (GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[i]) is {} parsed)
+                if (runtimeValue[i] is IList nested &&
+                    nested.Count > 0 &&
+                    nested[0] is IList)
+                {
+                    result[i] = ParseCoordinates(nested);
+                }
+                else if (GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[i]) is {} parsed
+                )
                 {
                     result[i] = parsed;
                 }
