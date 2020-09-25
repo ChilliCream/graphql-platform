@@ -576,20 +576,20 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
                     },
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     }
                 });
 
@@ -609,18 +609,17 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                            @"query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman");
 
@@ -671,19 +670,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=[" + s);
@@ -703,19 +701,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=" + s);

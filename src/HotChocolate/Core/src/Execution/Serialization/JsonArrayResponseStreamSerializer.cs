@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -19,6 +20,16 @@ namespace HotChocolate.Execution.Serialization
             Stream outputStream,
             CancellationToken cancellationToken = default)
         {
+            if (responseStream == null)
+            {
+                throw new ArgumentNullException(nameof(responseStream));
+            }
+
+            if (outputStream == null)
+            {
+                throw new ArgumentNullException(nameof(outputStream));
+            }
+
             var delimiter = false;
 
             await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1).ConfigureAwait(false);
