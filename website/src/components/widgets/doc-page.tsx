@@ -60,7 +60,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
       />
       <ArticleWrapper>
         <Article>
-          <DocPageLegacy />
+          {false && <DocPageLegacy />}
           <ArticleHeader>
             <ResponsiveMenu>
               <Button onClick={handleToggleTOC} className="toc-toggle">

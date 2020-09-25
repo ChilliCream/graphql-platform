@@ -17,7 +17,7 @@ Since, with the new version of _Strawberry Shake_ our initial blog has become ki
 
 ## Getting Started
 
-Let us have a look at how we want to tackle things with _Strawberry Shake_. For this little walkthrough I will use our [_Star Wars_ server example](https://github.com/ChilliCream/hotchocolate/tree/master/examples/AspNetCore.StarWars).
+Let us have a look at how we want to tackle things with _Strawberry Shake_. For this little walk-through I will use our [_Star Wars_ server example](https://github.com/ChilliCream/hotchocolate/tree/master/examples/AspNetCore.StarWars).
 
 If you want to follow along then install the [.NET Core 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0) . We are also supporting other .NET variants but for this example you will need the .NET Core 3 SDK.
 

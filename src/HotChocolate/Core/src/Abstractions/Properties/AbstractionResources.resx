@@ -147,9 +147,6 @@
   <data name="Error_WithMessage_Message_Cannot_Be_Empty" xml:space="preserve">
     <value>Message cannot be null or empty.</value>
   </data>
-  <data name="Path_WithPath_Path_Cannot_Be_Empty" xml:space="preserve">
-    <value>The path mustn't be empty.</value>
-  </data>
   <data name="Path_WithPath_Path_Value_NotSupported" xml:space="preserve">
     <value>Only string or int is allowed as path segment.</value>
   </data>

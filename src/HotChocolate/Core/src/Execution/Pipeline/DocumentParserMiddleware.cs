@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Pipeline

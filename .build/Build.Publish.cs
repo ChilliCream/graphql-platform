@@ -110,7 +110,7 @@ partial class Build : NukeBuild
                     .SetApiKey(NuGetApiKey)
                     .CombineWith(packages, (_, v) => _
                         .SetTargetPath(v)),
-                degreeOfParallelism: 5,
+                degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
 }

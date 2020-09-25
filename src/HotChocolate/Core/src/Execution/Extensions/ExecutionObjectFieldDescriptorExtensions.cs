@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Utilities.SelectionSetOptimizerHelper;
+using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
 
 namespace HotChocolate.Execution
 {
@@ -9,7 +9,7 @@ namespace HotChocolate.Execution
     {
         public static IObjectFieldDescriptor UseOptimizer(
             this IObjectFieldDescriptor descriptor,
-            ISelectionSetOptimizer optimizer)
+            ISelectionOptimizer optimizer)
         {
             if (descriptor is null)
             {

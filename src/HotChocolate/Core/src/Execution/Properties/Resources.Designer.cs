@@ -80,5 +80,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("MiddlewareContext_ReportErrorCannotBeNull", resourceCulture);
             }
         }
+        
+        internal static string DeferredResult_ReadResultsAsync_ReadOnlyOnce {
+            get {
+                return ResourceManager.GetString("DeferredResult_ReadResultsAsync_ReadOnlyOnce", resourceCulture);
+            }
+        }
     }
 }

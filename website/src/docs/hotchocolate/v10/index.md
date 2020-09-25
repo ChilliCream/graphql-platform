@@ -146,7 +146,7 @@ type Employee @json {
 }
 ```
 
-[Learn more](/docs/hotchocolate/v10/schema/directive)
+[Learn more](/docs/hotchocolate/v10/schema/directives)
 
 ## Built-in Authorization Directives
 
@@ -237,7 +237,7 @@ query filterPersons {
 
 Subscriptions allow GraphQL clients to observe specific events and receive updates from the server in real-time.
 
-[Learn more](/docs/hotchocolate/v10/execution-engine/subscription)
+[Learn more](/docs/hotchocolate/v10/execution-engine/subscriptions)
 
 ## Schema Stitching
 

@@ -1,0 +1,19 @@
+﻿{
+  "data": {
+    "hero": {
+      "id": "2001"
+    }
+  },
+  "hasNext": true
+}
+
+{
+  "path": [
+    "hero"
+  ],
+  "data": {
+    "name": "R2-D2"
+  },
+  "hasNext": false
+}
+
