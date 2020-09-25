@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Execution.Pipeline;
 using System.Collections.Generic;
 

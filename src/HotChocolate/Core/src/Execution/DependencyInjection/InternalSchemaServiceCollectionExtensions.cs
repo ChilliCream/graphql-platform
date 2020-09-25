@@ -5,6 +5,7 @@ using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Processing;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
-using static HotChocolate.Execution.Utilities.SelectionOptimizerHelper;
+using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
 
 namespace HotChocolate.Execution
 {

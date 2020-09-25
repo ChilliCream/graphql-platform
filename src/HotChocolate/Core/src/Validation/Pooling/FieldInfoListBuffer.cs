@@ -6,7 +6,7 @@ namespace HotChocolate.Validation
 {
     internal sealed class FieldInfoListBuffer
     {
-        private readonly List<FieldInfo>[] _buffer = new List<FieldInfo>[]
+        private readonly List<FieldInfo>[] _buffer =
         {
             new List<FieldInfo>(),
             new List<FieldInfo>(),
@@ -49,11 +49,11 @@ namespace HotChocolate.Validation
             return false;
         }
 
-        public void Reset()
+        public void Clear()
         {
             if (_index > 0)
             {
-                for (int i = 0; i < _index; i++)
+                for (var i = 0; i < _index; i++)
                 {
                     _buffer[i].Clear();
                 }
