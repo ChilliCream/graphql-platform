@@ -11,7 +11,7 @@ namespace HotChocolate.AspNetCore.Utilities
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
         private const string _multiPartContentType =
-            "content-type: multipart/mixed; boundary=\"-\"";
+            "multipart/mixed; boundary=\"-\"";
         private const string _jsonContentType =
             "application/json; charset=utf-8";
 
@@ -51,7 +51,7 @@ namespace HotChocolate.AspNetCore.Utilities
                         : _multiPartContentType;
 
                 case BatchQueryResult:
-                    return _deferSerialization == HttpResultSerialization.JsonArray
+                    return _batchSerialization == HttpResultSerialization.JsonArray
                         ? _jsonContentType
                         : _multiPartContentType;
 

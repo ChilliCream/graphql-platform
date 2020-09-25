@@ -141,6 +141,33 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Defer_Results()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    { 
+                        hero(episode: NEW_HOPE) 
+                        { 
+                            name 
+                            ... on Droid @defer(label: ""my_id"")
+                            { 
+                                id 
+                            } 
+                        } 
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange
