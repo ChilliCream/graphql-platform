@@ -1022,5 +1022,47 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("RegisteredType_CompletionContext_Already_Set", resourceCulture);
             }
         }
+        
+        internal static string DeferDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string DeferDirectiveType_Label_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_Label_Description", resourceCulture);
+            }
+        }
+        
+        internal static string DeferDirectiveType_If_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_If_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_Label_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_Label_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_InitialCount_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_InitialCount_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_If_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_If_Description", resourceCulture);
+            }
+        }
     }
 }

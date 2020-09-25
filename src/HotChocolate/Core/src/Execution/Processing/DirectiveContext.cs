@@ -86,8 +86,8 @@ namespace HotChocolate.Execution.Processing
         }
         public IType? ValueType
         {
-            get => middlewareContext.ValueType;
-            set => middlewareContext.ValueType = value;
+            get => _middlewareContext.ValueType;
+            set => _middlewareContext.ValueType = value;
         }
 
         [Obsolete]
@@ -95,7 +95,6 @@ namespace HotChocolate.Execution.Processing
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
-        [return: MaybeNull]
         public T Parent<T>() => _middlewareContext.Parent<T>();
 
         public void ReportError(string errorMessage) =>
