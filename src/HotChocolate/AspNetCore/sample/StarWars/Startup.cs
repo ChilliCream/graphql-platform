@@ -52,7 +52,7 @@ namespace StarWars
     [ExtendObjectType("Droid")]
     public class SlowTypeExtension
     {
-        public async Task<string> Slow()
+        public async Task<string> SlowAsync()
         {
             await Task.Delay(3000);
             return "hello";

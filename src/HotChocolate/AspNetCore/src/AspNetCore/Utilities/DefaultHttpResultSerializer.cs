@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Serialization;
+using static HotChocolate.AspNetCore.Utilities.ErrorHelper;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -89,36 +90,41 @@ namespace HotChocolate.AspNetCore.Utilities
             switch (result)
             {
                 case IQueryResult queryResult:
-                    await _jsonSerializer.SerializeAsync(queryResult, stream, cancellationToken);
+                    await _jsonSerializer
+                        .SerializeAsync(queryResult, stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 case DeferredQueryResult deferredResult
                     when _deferSerialization == HttpResultSerialization.JsonArray:
-                    await _jsonArraySerializer.SerializeAsync(
-                        deferredResult, stream, cancellationToken);
+                    await _jsonArraySerializer
+                        .SerializeAsync(deferredResult, stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 case DeferredQueryResult deferredResult:
-                    await _multiPartSerializer.SerializeAsync(
-                        deferredResult, stream, cancellationToken);
+                    await _multiPartSerializer
+                        .SerializeAsync(deferredResult, stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 case BatchQueryResult batchResult
                     when _batchSerialization == HttpResultSerialization.JsonArray:
-                    await _jsonArraySerializer.SerializeAsync(
-                        batchResult, stream, cancellationToken);
+                    await _jsonArraySerializer
+                        .SerializeAsync(batchResult, stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 case BatchQueryResult batchResult:
-                    await _multiPartSerializer.SerializeAsync(
-                        batchResult, stream, cancellationToken);
+                    await _multiPartSerializer
+                        .SerializeAsync(batchResult, stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
 
                 default:
-                    await _jsonSerializer.SerializeAsync(
-                        ErrorHelper.ResponseTypeNotSupported(),
-                        stream,
-                        cancellationToken);
+                    await _jsonSerializer
+                        .SerializeAsync(ResponseTypeNotSupported(), stream, cancellationToken)
+                        .ConfigureAwait(false);
                     break;
             }
         }

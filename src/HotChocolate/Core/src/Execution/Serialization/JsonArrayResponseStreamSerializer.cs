@@ -15,7 +15,7 @@ namespace HotChocolate.Execution.Serialization
         private readonly JsonQueryResultSerializer _serializer =
             new JsonQueryResultSerializer();
 
-        public async Task SerializeAsync(
+        public Task SerializeAsync(
             IResponseStream responseStream,
             Stream outputStream,
             CancellationToken cancellationToken = default)
@@ -30,20 +30,33 @@ namespace HotChocolate.Execution.Serialization
                 throw new ArgumentNullException(nameof(outputStream));
             }
 
+            return WriteStreamAsync(responseStream, outputStream, cancellationToken);
+        }
+
+        private async Task WriteStreamAsync(
+            IResponseStream responseStream,
+            Stream outputStream,
+            CancellationToken cancellationToken = default)
+        {
             var delimiter = false;
 
-            await outputStream.WriteAsync(new[] { _leftBracket }, 0, 1).ConfigureAwait(false);
+            await outputStream
+                .WriteAsync(new[] { _leftBracket }, 0, 1, cancellationToken)
+                .ConfigureAwait(false);
 
             await foreach (IQueryResult result in responseStream.ReadResultsAsync()
-                .WithCancellation(cancellationToken))
+                .WithCancellation(cancellationToken)
+                .ConfigureAwait(false))
             {
                 await WriteNextResultAsync(
-                    result, outputStream, delimiter, cancellationToken)
+                        result, outputStream, delimiter, cancellationToken)
                     .ConfigureAwait(false);
                 delimiter = true;
             }
 
-            await outputStream.WriteAsync(new[] { _rightBracket }, 0, 1).ConfigureAwait(false);
+            await outputStream
+                .WriteAsync(new[] { _rightBracket }, 0, 1, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task WriteNextResultAsync(

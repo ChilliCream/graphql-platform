@@ -23,7 +23,7 @@ namespace HotChocolate.Execution.Processing
             return ExecuteSelectionsAsync(operationContext, selections, resultMap);
         }
 
-        private async Task<IQueryResult> ExecuteSelectionsAsync(
+        private static async Task<IQueryResult> ExecuteSelectionsAsync(
             IOperationContext operationContext,
             IReadOnlyList<ISelection> selections,
             ResultMap resultMap)
