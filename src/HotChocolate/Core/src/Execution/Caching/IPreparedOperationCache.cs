@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Caching
 {

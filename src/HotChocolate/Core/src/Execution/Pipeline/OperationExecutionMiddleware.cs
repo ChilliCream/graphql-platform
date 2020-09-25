@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -17,8 +17,8 @@ namespace HotChocolate.Execution.Pipeline
         private readonly QueryExecutor _queryExecutor;
         private readonly MutationExecutor _mutationExecutor;
         private readonly SubscriptionExecutor _subscriptionExecutor;
-        private object? _cachedQueryValue = null;
-        private object? _cachedMutation = null;
+        private object? _cachedQueryValue;
+        private object? _cachedMutation;
 
         public OperationExecutionMiddleware(
             RequestDelegate next,
@@ -63,10 +63,12 @@ namespace HotChocolate.Execution.Pipeline
                 }
                 else
                 {
-                    OperationContext operationContext = _operationContextPool.Get();
+                    OperationContext? operationContext = _operationContextPool.Get();
 
                     try
                     {
+                        IQueryResult? result = null;
+
                         if (context.Operation.Definition.Operation == OperationType.Query)
                         {
                             object? query = RootValueResolver.TryResolve(
@@ -83,7 +85,7 @@ namespace HotChocolate.Execution.Pipeline
                                 query,
                                 context.Variables);
 
-                            context.Result = await _queryExecutor
+                            result = await _queryExecutor
                                 .ExecuteAsync(operationContext)
                                 .ConfigureAwait(false);
                         }
@@ -103,16 +105,41 @@ namespace HotChocolate.Execution.Pipeline
                                 mutation,
                                 context.Variables);
 
-                            context.Result = await _mutationExecutor
+                            result = await _mutationExecutor
                                 .ExecuteAsync(operationContext)
                                 .ConfigureAwait(false);
+                        }
+
+                        if (operationContext.Execution.DeferredTaskBacklog.IsEmpty || 
+                            result is null)
+                        {
+                            context.Result = result;
+                        }
+                        else
+                        {
+                            // if we have deferred query task we will take ownership
+                            // of the life time handling and return the operation context
+                            // once we handled all deferred tasks.
+                            var operationContextOwner = new OperationContextOwner(
+                                operationContext, _operationContextPool);
+                            operationContext = null;
+
+                            context.Result = new DeferredQueryResult
+                            (
+                                result,
+                                new DeferredTaskExecutor(operationContextOwner),
+                                session: operationContextOwner
+                            );
                         }
 
                         await _next(context).ConfigureAwait(false);
                     }
                     finally
                     {
-                        _operationContextPool.Return(operationContext);
+                        if (operationContext is not null)
+                        {
+                            _operationContextPool.Return(operationContext);
+                        }
                     }
                 }
             }

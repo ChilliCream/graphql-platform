@@ -19,6 +19,8 @@ namespace HotChocolate.Types
             {
                 typeInspector.GetTypeRef(typeof(SkipDirectiveType), TypeContext.None),
                 typeInspector.GetTypeRef(typeof(IncludeDirectiveType), TypeContext.None),
+                typeInspector.GetTypeRef(typeof(DeferDirectiveType), TypeContext.None),
+                typeInspector.GetTypeRef(typeof(StreamDirectiveType), TypeContext.None),
             };
 
         public static bool IsBuiltIn(NameString typeName)

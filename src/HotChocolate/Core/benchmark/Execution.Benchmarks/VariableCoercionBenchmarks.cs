@@ -1,9 +1,9 @@
 using System;
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using System.Collections.Generic;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Benchmarks
 {
