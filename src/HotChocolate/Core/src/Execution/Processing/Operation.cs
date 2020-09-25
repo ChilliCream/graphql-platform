@@ -82,22 +82,22 @@ namespace HotChocolate.Execution.Processing
 
                     if (selection.IncludeConditions is { })
                     {
-                        foreach (SelectionIncludeCondition visibility in selection.IncludeConditions)
+                        foreach (SelectionIncludeCondition condition in selection.IncludeConditions)
                         {
-                            if (visibility.Skip is { })
+                            if (condition.Skip is { })
                             {
                                 directives.Add(
                                     new DirectiveNode(
                                         "skip",
-                                        new ArgumentNode("if", visibility.Skip)));
+                                        new ArgumentNode("if", condition.Skip)));
                             }
 
-                            if (visibility.Include is { })
+                            if (condition.Include is { })
                             {
                                 directives.Add(
                                     new DirectiveNode(
                                         "include",
-                                        new ArgumentNode("if", visibility.Include)));
+                                        new ArgumentNode("if", condition.Include)));
                             }
                         }
                     }

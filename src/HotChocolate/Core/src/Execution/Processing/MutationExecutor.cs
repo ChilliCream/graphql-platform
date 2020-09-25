@@ -8,7 +8,7 @@ namespace HotChocolate.Execution.Processing
 {
     internal sealed class MutationExecutor
     {
-        public async Task<IQueryResult> ExecuteAsync(
+        public Task<IQueryResult> ExecuteAsync(
             IOperationContext operationContext)
         {
             if (operationContext is null)
@@ -16,16 +16,25 @@ namespace HotChocolate.Execution.Processing
                 throw new ArgumentNullException(nameof(operationContext));
             }
 
-            var responseIndex = 0;
-            ImmutableDictionary<string, object?> scopedContext =
-                ImmutableDictionary<string, object?>.Empty;
             ISelectionSet selectionSet = operationContext.Operation.GetRootSelectionSet();
             IReadOnlyList<ISelection> selections = selectionSet.Selections;
             ResultMap resultMap = operationContext.Result.RentResultMap(selections.Count);
 
+            return ExecuteSelectionsAsync(operationContext, selections, resultMap);
+        }
+
+        private async Task<IQueryResult> ExecuteSelectionsAsync(
+            IOperationContext operationContext,
+            IReadOnlyList<ISelection> selections,
+            ResultMap resultMap)
+        {
+            var responseIndex = 0;
+            ImmutableDictionary<string, object?> scopedContext =
+                ImmutableDictionary<string, object?>.Empty;
+
             for (var i = 0; i < selections.Count; i++)
             {
-                ISelection selection = selectionSet.Selections[i];
+                ISelection selection = selections[i];
                 if (selection.IsIncluded(operationContext.Variables))
                 {
                     operationContext.Execution.TaskBacklog.Register(
@@ -38,7 +47,7 @@ namespace HotChocolate.Execution.Processing
                             Path.New(selection.ResponseName),
                             scopedContext));
 
-                    await ExecuteTasksAsync(operationContext);
+                    await ExecuteTasksAsync(operationContext).ConfigureAwait(false);
                 }
             }
 

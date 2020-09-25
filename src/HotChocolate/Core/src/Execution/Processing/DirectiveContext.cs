@@ -90,7 +90,10 @@ namespace HotChocolate.Execution.Processing
             set => _middlewareContext.ValueType = value;
         }
 
-        [Obsolete]
+        [Obsolete(
+            "Use ArgumentValue<T>(name) or " +
+            "ArgumentLiteral<TValueNode>(name) or " +
+            "ArgumentOptional<T>(name).")]
         [return: MaybeNull]
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
