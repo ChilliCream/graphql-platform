@@ -40,19 +40,18 @@ namespace HotChocolate.Data.Sorting.Expressions
             IRequestExecutor tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                     .Create());
-
-            res1.MatchSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                     .Create());
 
+            // assert
+            res1.MatchSnapshot("ASC");
             res2.MatchSnapshot("DESC");
         }
 
@@ -64,19 +63,18 @@ namespace HotChocolate.Data.Sorting.Expressions
                 _fooNullableEntities);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barEnum: ASC}){ barEnum}}")
                     .Create());
-
-            res1.MatchSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { barEnum: DESC}){ barEnum}}")
                     .Create());
 
+            // assert
+            res1.MatchSnapshot("ASC");
             res2.MatchSnapshot("DESC");
         }
 
