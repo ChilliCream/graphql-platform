@@ -9,13 +9,16 @@ namespace HotChocolate.Data.Sorting
         : IClassFixture<SchemaCache>
     {
         private static readonly Foo[] _fooEntities =
-            new[] {new Foo {Bar = "testatest"}, new Foo {Bar = "testbtest"}};
-
-        private static readonly FooNullable[] _fooNullableEntities = new[]
         {
-            new FooNullable {Bar = "testatest"},
-            new FooNullable {Bar = "testbtest"},
-            new FooNullable {Bar = null}
+            new Foo { Bar = "testatest" },
+            new Foo { Bar = "testbtest" }
+        };
+
+        private static readonly FooNullable[] _fooNullableEntities =
+        {
+            new FooNullable { Bar = "testatest" },
+            new FooNullable { Bar = "testbtest" },
+            new FooNullable { Bar = null }
         };
 
         private readonly SchemaCache _cache;

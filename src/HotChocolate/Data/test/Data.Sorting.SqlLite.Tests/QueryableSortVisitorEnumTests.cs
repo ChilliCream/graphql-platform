@@ -10,19 +10,19 @@ namespace HotChocolate.Data.Sorting.Expressions
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo {BarEnum = FooEnum.BAR},
-            new Foo {BarEnum = FooEnum.BAZ},
-            new Foo {BarEnum = FooEnum.FOO},
-            new Foo {BarEnum = FooEnum.QUX}
+            new Foo { BarEnum = FooEnum.BAR },
+            new Foo { BarEnum = FooEnum.BAZ },
+            new Foo { BarEnum = FooEnum.FOO },
+            new Foo { BarEnum = FooEnum.QUX }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable {BarEnum = FooEnum.BAR},
-            new FooNullable {BarEnum = FooEnum.BAZ},
-            new FooNullable {BarEnum = FooEnum.FOO},
-            new FooNullable {BarEnum = null},
-            new FooNullable {BarEnum = FooEnum.QUX}
+            new FooNullable { BarEnum = FooEnum.BAR },
+            new FooNullable { BarEnum = FooEnum.BAZ },
+            new FooNullable { BarEnum = FooEnum.FOO },
+            new FooNullable { BarEnum = null },
+            new FooNullable { BarEnum = FooEnum.QUX }
         };
 
         private readonly SchemaCache _cache;

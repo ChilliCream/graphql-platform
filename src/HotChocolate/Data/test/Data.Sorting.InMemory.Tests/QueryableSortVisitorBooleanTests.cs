@@ -5,18 +5,21 @@ using Xunit;
 
 namespace HotChocolate.Data.Sorting
 {
-
     public class QueryableSortVisitorBooleanTests
         : IClassFixture<SchemaCache>
     {
-        private static readonly Foo[] _fooEntities = new[]{
+        private static readonly Foo[] _fooEntities =
+        {
             new Foo { Bar = true },
-            new Foo { Bar = false }};
+            new Foo { Bar = false }
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
+        private static readonly FooNullable[] _fooNullableEntities =
+        {
             new FooNullable { Bar = true },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = false }};
+            new FooNullable { Bar = false }
+        };
 
         private readonly SchemaCache _cache;
 

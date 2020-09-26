@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Sorting.Expressions
     public class QueryableSortVisitorObjectTests
         : IClassFixture<SchemaCache>
     {
-        private static readonly Bar[] _barEntities = new[]
+        private static readonly Bar[] _barEntities =
         {
             new Bar
             {
@@ -69,7 +69,7 @@ namespace HotChocolate.Data.Sorting.Expressions
             }
         };
 
-        private static readonly BarNullable?[] _barNullableEntities = new[]
+        private static readonly BarNullable?[] _barNullableEntities =
         {
             new BarNullable
             {
@@ -149,10 +149,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     ObjectArray = null
                 }
             },
-            new BarNullable
-            {
-                Foo =null
-            }
+            new BarNullable { Foo = null }
         };
 
         private readonly SchemaCache _cache;
@@ -272,6 +269,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             res2.MatchSqlSnapshot("13");
         }
+
         [Fact]
         public async Task Create_ObjectString_OrderBy()
         {
@@ -326,6 +324,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             res2.MatchSqlSnapshot("13");
         }
+
         [Fact]
         public async Task Create_ObjectBool_OrderBy()
         {
