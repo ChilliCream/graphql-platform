@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Data.Sorting.Tests</AssemblyName>
+    <AssemblyName>HotChocolate.Data.Sorting.InMemory.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
   </PropertyGroup>
 
@@ -10,9 +10,8 @@
     <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
   </ItemGroup>
 
-  <!--For Visual Studio for Mac Test Explorer we need this reference here-->
   <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
-  
+
 </Project>
