@@ -3,13 +3,14 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Xunit;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data.Filters
 {
     public class FilteringAndPaging
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true }, new Foo { Bar = false }
+            new Foo { Bar = true },
+            new Foo { Bar = false }
         };
 
         private readonly SchemaCache _cache = new SchemaCache();

@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Data.Filters
 {
     public class FilteringAndPaging
     {
@@ -29,14 +30,14 @@ namespace HotChocolate.Data
                     .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
                     .Create());
 
-            res1.MatchSnapshot("true");
+            res1.ToJson().MatchSnapshot(new SnapshotNameExtension("true"));
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
                     .Create());
 
-            res2.MatchSnapshot("false");
+            res2.ToJson().MatchSnapshot(new SnapshotNameExtension("false"));
         }
 
         public class Foo
