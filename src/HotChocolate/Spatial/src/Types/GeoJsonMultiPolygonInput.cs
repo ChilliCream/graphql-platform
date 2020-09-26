@@ -1,6 +1,7 @@
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.Spatial.Properties.Resources;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -13,7 +14,7 @@ namespace HotChocolate.Types.Spatial
 
         protected override void Configure(IInputObjectTypeDescriptor<MultiPolygon> descriptor)
         {
-            descriptor.GeoJsonName(nameof(GeoJsonMultiPolygonInput));
+            descriptor.Name(MultiPolygonInputName);
 
             descriptor.BindFieldsExplicitly();
 

@@ -38,7 +38,10 @@ namespace HotChocolate.Data.Filters.Expressions
 
                 // next we get the filter argument.
                 IInputField argument = context.Field.Arguments[argumentName];
-                IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
+                IValueNode filter = context.ContextData.ContainsKey("filterValueNode")
+                    ? context.ContextData["filterValueNode"] as IValueNode ??
+                        throw new Exception()
+                    : context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no filter is defined we can stop here and yield back control.
                 if (filter.IsNull())
@@ -60,7 +63,8 @@ namespace HotChocolate.Data.Filters.Expressions
                 if (source != null && argument.Type is IFilterInputType filterInput)
                 {
                     var visitorContext = new QueryableFilterContext(
-                        filterInput, source is EnumerableQuery);
+                        filterInput,
+                        source is EnumerableQuery);
 
                     // rewrite GraphQL input object into expression tree.
                     Visitor.Visit(filter, visitorContext);

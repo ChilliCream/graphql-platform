@@ -1,4 +1,5 @@
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -8,7 +9,7 @@ namespace HotChocolate.Types.Spatial
         {
             descriptor.BindValuesExplicitly();
 
-            descriptor.GeoJsonName(nameof(GeoJsonGeometryType));
+            descriptor.Name(EnumTypeTypeName);
 
             descriptor.Value(Point).Name(nameof(Point));
             descriptor.Value(MultiPoint).Name(nameof(MultiPoint));

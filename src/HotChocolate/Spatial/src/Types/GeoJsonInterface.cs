@@ -1,5 +1,6 @@
 using static HotChocolate.Types.Spatial.Properties.Resources;
 using static HotChocolate.Types.Spatial.WellKnownFields;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -7,7 +8,7 @@ namespace HotChocolate.Types.Spatial
     {
         protected override void Configure(IInterfaceTypeDescriptor descriptor)
         {
-            descriptor.GeoJsonName(nameof(GeoJsonInterface));
+            descriptor.Name(InterfaceTypeName);
 
             descriptor
                 .Field(TypeFieldName)

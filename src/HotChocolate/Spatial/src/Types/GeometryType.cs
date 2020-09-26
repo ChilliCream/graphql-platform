@@ -4,14 +4,14 @@ using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 using static HotChocolate.Types.GeoJsonSerializers;
 using static HotChocolate.Types.Spatial.ThrowHelper;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
     public sealed class GeometryType : ScalarType<Geometry>
     {
-        public GeometryType() : base("Geometry")
+        public GeometryType() : base(GeometryTypeName)
         {
-            //    Description = Resources.GeoJsonPositionScalar_Description;
         }
 
         public GeometryType(
