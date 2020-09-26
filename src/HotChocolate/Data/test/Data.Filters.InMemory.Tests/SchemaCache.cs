@@ -5,8 +5,8 @@ using HotChocolate.Execution;
 namespace HotChocolate.Data.Filters
 {
     public class SchemaCache
-        : FilterVisitorTestBase,
-          IDisposable
+        : FilterVisitorTestBase
+        , IDisposable
     {
         private readonly ConcurrentDictionary<(Type, Type, object), IRequestExecutor> _cache =
             new ConcurrentDictionary<(Type, Type, object), IRequestExecutor>();

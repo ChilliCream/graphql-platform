@@ -10,7 +10,8 @@ namespace HotChocolate.Data
     {
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Bar = true }, new Foo { Bar = false }
+            new Foo { Bar = true },
+            new Foo { Bar = false }
         };
 
         private readonly SchemaCache _cache = new SchemaCache();
@@ -37,7 +38,6 @@ namespace HotChocolate.Data
 
             res2.MatchSnapshot("false");
         }
-
 
         public class Foo
         {
