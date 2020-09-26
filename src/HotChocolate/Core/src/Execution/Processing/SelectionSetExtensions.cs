@@ -36,7 +36,6 @@ namespace HotChocolate.Execution.Processing
 
             if (selectionSet.Fragments.Count > 0)
             {
-
                 IReadOnlyList<IFragment> fragments = selectionSet.Fragments;
                 for (var i = 0; i < fragments.Count; i++)
                 {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution
 {
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution
             return new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "Variable `{0}` is not an input type.",
+                        ThrowHelper_VariableIsNotAnInputType_Message,
                         variableDefinition.Variable.Name.Value)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
@@ -28,7 +29,7 @@ namespace HotChocolate.Execution
             return new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        "Variable `{0}` is required.",
+                        ThrowHelper_NonNullVariableIsNull_Message,
                         variableDefinition.Variable.Name.Value)
                     .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
@@ -42,7 +43,7 @@ namespace HotChocolate.Execution
         {
             IErrorBuilder errorBuilder = ErrorBuilder.New()
                 .SetMessage(
-                    "Variable `{0}` got an invalid value.",
+                    ThrowHelper_VariableValueInvalidType_Message,
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.InvalidType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
@@ -62,7 +63,7 @@ namespace HotChocolate.Execution
             return new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        Resources.ThrowHelper_MissingDirectiveIfArgument,
+                        ThrowHelper_MissingDirectiveIfArgument,
                         directive.Name.Value)
                     .AddLocation(directive)
                     .Build());
@@ -73,7 +74,7 @@ namespace HotChocolate.Execution
         {
             return new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    Resources.ThrowHelper_FieldDoesNotExistOnType,
+                    ThrowHelper_FieldDoesNotExistOnType,
                     selection.Name.Value,
                     typeName)
                 .AddLocation(selection)
@@ -81,13 +82,13 @@ namespace HotChocolate.Execution
         }
 
         public static NotSupportedException QueryTypeNotSupported() =>
-            new NotSupportedException("The specified query type is not supported.");
+            new NotSupportedException(ThrowHelper_QueryTypeNotSupported_Message);
 
         public static GraphQLException VariableNotFound(
             NameString variableName) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "The variable with the name `{0}` does not exist.",
+                    ThrowHelper_VariableNotFound_Message,
                     variableName)
                 .Build());
 
@@ -95,7 +96,7 @@ namespace HotChocolate.Execution
             VariableNode variable) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "The variable with the name `{0}` does not exist.",
+                    ThrowHelper_VariableNotFound_Message,
                     variable.Name.Value)
                 .AddLocation(variable)
                 .Build());
@@ -105,7 +106,7 @@ namespace HotChocolate.Execution
             Type type) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "The variable with the name `{0}` is not of the requested type `{1}`.",
+                    ThrowHelper_VariableNotOfType_Message,
                     variableName,
                     type.FullName ?? string.Empty)
                 .Build());
@@ -113,31 +114,28 @@ namespace HotChocolate.Execution
         public static GraphQLException RootTypeNotSupported(
             OperationType operationType) =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage("The root type `{0}` is not supported.", operationType)
+                .SetMessage(ThrowHelper_RootTypeNotSupported_Message, operationType)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_ContextInvalidState() =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage("The request context is in an invalid state for subscriptions.")
+                .SetMessage(ThrowHelper_SubscriptionExecutor_ContextInvalidState_Message)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_SubscriptionsMustHaveOneField() =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage("Subscription queries must have exactly one root field.")
+                .SetMessage(ThrowHelper_SubscriptionExecutor_SubscriptionsMustHaveOneField_Message)
                 .Build());
 
         public static GraphQLException SubscriptionExecutor_NoSubscribeResolver() =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage("You must declare a subscribe resolver for subscription fields.")
+                .SetMessage(ThrowHelper_SubscriptionExecutor_NoSubscribeResolver_Message)
                 .Build());
 
         public static GraphQLException ResolverContext_LiteralsNotSupported(
             FieldNode field, Path path, NameString argumentName, Type requestedType) =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage(
-                    "The ArgumentValue method on the resolver context only allows for runtime " +
-                    "values. If you want to retrieve the argument value as GraphQL literal use " +
-                    "the ArgumentLiteral method instead.")
+                .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
                 .SetPath(path)
                 .AddLocation(field)
                 .SetExtension("fieldName", field.Name)
@@ -149,8 +147,7 @@ namespace HotChocolate.Execution
             FieldNode field, Path path, NameString argumentName, Type requestedType) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "Unable to convert the value if the argument `{0}` to `{1}`. " +
-                    "Check if the requested type is correct or register a custom type converter.",
+                    ThrowHelper_ResolverContext_CannotConvertArgument_Message,
                     argumentName,
                     requestedType.FullName ?? requestedType.Name)
                 .SetPath(path)
@@ -165,8 +162,7 @@ namespace HotChocolate.Execution
             Type requestedType, Type actualType) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "The argument literal representation is `{0}` which is not compatible " +
-                    "with the request literal type `{1}`.",
+                    ThrowHelper_ResolverContext_LiteralNotCompatible_Message,
                     actualType.FullName ?? actualType.Name,
                     requestedType.FullName ?? actualType.Name)
                 .SetPath(path)
@@ -181,7 +177,7 @@ namespace HotChocolate.Execution
             FieldNode field, Path path, NameString argumentName) =>
             new GraphQLException(ErrorBuilder.New()
                 .SetMessage(
-                    "There was no argument with the name `{0}` found on the field `{1}`.",
+                    ThrowHelper_ResolverContext_ArgumentDoesNotExist_Message,
                     argumentName,
                     field.Name.Value)
                 .SetPath(path)
@@ -192,31 +188,31 @@ namespace HotChocolate.Execution
 
         public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
             NameString configurationSchemaName, NameString schemaName) =>
-            throw new InvalidOperationException(
+            new InvalidOperationException(
                 "The schema name must allign with the schema name expected by the configuration.");
 
         public static GraphQLException OperationResolverHelper_NoOperationFound(
             DocumentNode documentNode) =>
-            throw new GraphQLException(ErrorBuilder.New()
-                .SetMessage("There are now operations in the GraphQL document.")
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(ThrowHelper_OperationResolverHelper_NoOperationFound_Message)
                 .AddLocation(documentNode)
                 .Build());
 
         public static GraphQLException OperationResolverHelper_MultipleOperation(
             OperationDefinitionNode firstOperation,
             OperationDefinitionNode secondOperation) =>
-            throw new GraphQLException(ErrorBuilder.New()
-                .SetMessage(
-                    "The operation name can only be omitted if there is just one operation " +
-                    "in a GraphQL document.")
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(ThrowHelper_OperationResolverHelper_MultipleOperation_Message)
                 .AddLocation(firstOperation)
                 .AddLocation(secondOperation)
                 .Build());
 
         public static GraphQLException OperationResolverHelper_InvalidOperationName(
             DocumentNode documentNode, string operationName) =>
-            throw new GraphQLException(ErrorBuilder.New()
-                .SetMessage("The specified operation `{0}` cannot be found.", operationName)
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_OperationResolverHelper_InvalidOperationName_Message,
+                    operationName)
                 .AddLocation(documentNode)
                 .SetExtension("operationName", operationName)
                 .Build());
@@ -224,15 +220,17 @@ namespace HotChocolate.Execution
         public static GraphQLException BatchExecutor_CannotSerializeVariable(
             string variableName) =>
             new GraphQLException(ErrorBuilder.New()
-                .SetMessage("Could not serialize the specified variable `{0}`.", variableName)
+                .SetMessage(
+                    ThrowHelper_BatchExecutor_CannotSerializeVariable_Message,
+                    variableName)
                 .SetCode(ErrorCodes.Execution.CannotSerialize)
                 .Build());
 
         public static GraphQLException CollectVariablesVisitor_NoCompatibleType(
             ISyntaxNode node,
             IReadOnlyList<object> path) =>
-            throw new GraphQLException(ErrorBuilder.New()
-                .SetMessage("Unable to find a compatible input type for the exported object type.")
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(ThrowHelper_CollectVariablesVisitor_NoCompatibleType_Message)
                 .SetCode(ErrorCodes.Execution.AutoMapVarError)
                 .SetPath(path)
                 .AddLocation(node)
@@ -241,7 +239,7 @@ namespace HotChocolate.Execution
         public static GraphQLException FieldVisibility_ValueNotSupported(IValueNode value) =>
             new GraphQLException(
                 ErrorBuilder.New()
-                    .SetMessage("The skip/include if-argument value has to be a 'Boolean'.")
+                    .SetMessage(ThrowHelper_FieldVisibility_ValueNotSupported_Message)
                     .AddLocation(value)
                     .Build());
 
@@ -249,13 +247,12 @@ namespace HotChocolate.Execution
             FieldNode selection) =>
             new GraphQLException(
                 ErrorBuilder.New()
-                    .SetMessage("A composite type always needs to specify a selection set.")
+                    .SetMessage(ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message)
                     .AddLocation(selection)
                     .Build());
 
         public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
-            throw new GraphQLException(
-                "Make sure that you have registered an IBatchDispatcher " +
-                "with your scoped request services.");
+            new GraphQLException(
+                ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
     }
 }

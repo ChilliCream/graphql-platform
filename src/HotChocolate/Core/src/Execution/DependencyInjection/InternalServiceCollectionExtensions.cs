@@ -108,7 +108,7 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddIdSerializer(
             this IServiceCollection services)
         {
-            services.TryAddScoped<IIdSerializer, IdSerializer>();
+            services.TryAddSingleton<IIdSerializer, IdSerializer>();
             return services;
         }
     }

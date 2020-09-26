@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -29,18 +30,23 @@ namespace HotChocolate.Execution.Serialization
             _options = new JsonWriterOptions { Indented = indented };
         }
 
-        public unsafe string Serialize(IReadOnlyQueryResult result)
+        public unsafe string Serialize(IQueryResult result)
         {
             using var buffer = new ArrayWriter();
 
-            using var writer = new Utf8JsonWriter(buffer, _options);
-            WriteResult(writer, result);
-            writer.Flush();
+            Serialize(result, buffer);
 
             fixed (byte* b = buffer.GetInternalBuffer())
             {
                 return Encoding.UTF8.GetString(b, buffer.Length);
             }
+        }
+
+        internal void Serialize(IQueryResult result, IBufferWriter<byte> writer)
+        {
+            using var jsonWriter = new Utf8JsonWriter(writer, _options);
+            WriteResult(jsonWriter, result);
+            jsonWriter.Flush();
         }
 
         public async Task SerializeAsync(
