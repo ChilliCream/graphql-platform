@@ -1,3 +1,5 @@
+using HotChocolate.Types.Spatial;
+
 namespace HotChocolate.Types
 {
     public static class GeoJsonSerializationExceptionExtensions

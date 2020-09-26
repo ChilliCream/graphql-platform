@@ -1,8 +1,6 @@
-using System;
-
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial
 {
-    public class GeoJsonSerializationException : Exception
+    public class GeoJsonSerializationException : GraphQLException
     {
         public GeoJsonSerializationException(string message) : base(message)
         {

@@ -12,6 +12,30 @@ namespace HotChocolate.Types.Spatial
             _serializer = GeoJsonSerializers.Serializers[geometryType];
         }
 
+        public override bool IsInstanceOfType(IValueNode literal)
+        {
+            try
+            {
+                return _serializer.IsInstanceOfType(literal);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
+
+        public override bool IsInstanceOfType(object? value)
+        {
+            try
+            {
+                return _serializer.IsInstanceOfType(value);
+            }
+            catch (GeoJsonSerializationException ex)
+            {
+                throw ex.ToSerializationException(this);
+            }
+        }
+
         public override object? ParseLiteral(IValueNode valueSyntax, bool withDefaults = true)
         {
             try

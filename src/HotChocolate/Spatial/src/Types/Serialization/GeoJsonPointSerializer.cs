@@ -52,7 +52,13 @@ namespace HotChocolate.Types
 
         protected override IValueNode ParseCoordinates(IList runtimeValue)
         {
-            return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[0]);
+            if ((runtimeValue.Count > 0 && runtimeValue[0] is IList) ||
+                runtimeValue is Coordinate[])
+            {
+                return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[0]);
+            }
+
+            return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue);
         }
 
         public static readonly GeoJsonPointSerializer Default = new GeoJsonPointSerializer();

@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial.Tests
 {
@@ -18,136 +19,176 @@ namespace HotChocolate.Types.Spatial.Tests
 
         private readonly string _geometryType = "Point";
 
-        private readonly object _geometryParsed;
+        private readonly object _geometryParsed = new[] { 30.0, 10.0 };
 
-        private readonly InputObjectType _type;
-
-        public GeoJsonPointSerializerTests()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
-            ISchema schema = CreateSchema();
-
-            _type = schema.GetType<InputObjectType>("GeoJSONPointInput");
-            _geometryParsed = new[] { 30.0, 10.0 };
+            INamedInputType type = CreateInputType(typeName);
+            Assert.Null(type.Serialize(null));
         }
 
-        [Fact]
-        public void Serialize_Should_Pass_When_SerializeNullValue()
-        {
-            Assert.Null(_type.Serialize(null));
-        }
-
-        [Fact]
-        public void Serialize_Should_Pass_When_Dictionary()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Serialize_Should_Pass_When_Dictionary(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var dictionary = new Dictionary<string, object>();
 
             // act
-            object? result = _type.Serialize(dictionary);
+            object? result = type.Serialize(dictionary);
 
             // assert
             Assert.Equal(dictionary, result);
         }
 
-        [Fact]
-        public void Serialize_Should_Pass_When_SerializeGeometry()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
-            object? result = _type.Serialize(_geometry);
+            object? result = type.Serialize(_geometry);
 
             // assert
             result.MatchSnapshot();
         }
 
-        [Fact]
-        public void Serialize_Should_Throw_When_InvalidObjectShouldThrow()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.Serialize(""));
+            Assert.Throws<SerializationException>(() => type.Serialize(""));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Throw_When_Null()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void IsInstanceOfType_Should_Throw_When_Null(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => _type.IsInstanceOfType(null!));
+            Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Pass_When_ObjectValueNode()
+        [Theory]
+        [InlineData(PointInputName)]
+        public void IsInstanceOfType_Should_Pass_When_ObjectValueNode(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.True(_type.IsInstanceOfType(new ObjectValueNode()));
+            Assert.True(type.IsInstanceOfType(new ObjectValueNode()));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Pass_When_NullValueNode()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void IsInstanceOfType_Should_Pass_When_NullValueNode(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.True(_type.IsInstanceOfType(NullValueNode.Default));
+            Assert.True(type.IsInstanceOfType(NullValueNode.Default));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.False(
-                _type.IsInstanceOfType(
+                type.IsInstanceOfType(
                     GeometryFactory.Default.CreateGeometryCollection(
                         new[] { new Point(1, 2) })));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Pass_When_GeometryOfType()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.True(_type.IsInstanceOfType(_geometry));
+            Assert.True(type.IsInstanceOfType(_geometry));
         }
 
-        [Fact]
-        public void IsInstanceOfType_Should_Fail_When_NoGeometry()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.False(_type.IsInstanceOfType("foo"));
+            Assert.False(type.IsInstanceOfType("foo"));
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Pass_When_NullValueNode()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Pass_When_NullValueNode(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Null(_type.ParseLiteral(NullValueNode.Default));
+            Assert.Null(type.ParseLiteral(NullValueNode.Default));
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Throw_When_NotObjectValueNode()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Throw_When_NotObjectValueNode(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(() => _type.ParseLiteral(new ListValueNode()));
+            Assert.Throws<InvalidOperationException>(() => type.ParseLiteral(new ListValueNode()));
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Pass_When_CorrectGeometry()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Pass_When_CorrectGeometry(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -156,16 +197,20 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(typeField, coordField, crsField);
 
             // act
-            object? parsedResult = _type.ParseLiteral(valueNode);
+            object? parsedResult = type.ParseLiteral(valueNode);
 
             // assert
             AssertGeometry(parsedResult, 26912);
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Throw_When_NoGeometryType()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Throw_When_NoGeometryType(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
                 _coordinatesSyntaxNode);
@@ -173,25 +218,33 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
-            Assert.Throws<SerializationException>(() => _type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Throw_When_NoCoordinates()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Throw_When_NoCoordinates(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
-            Assert.Throws<SerializationException>(() => _type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
-        [Fact]
-        public void ParseLiteral_Should_Pass_When_NoCrs()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseLiteral_Should_Pass_When_NoCrs(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -199,139 +252,190 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(typeField, coordField);
 
             // act
-            object? parsedResult = _type.ParseLiteral(valueNode);
+            object? parsedResult = type.ParseLiteral(valueNode);
 
             // assert
             AssertGeometry(parsedResult);
         }
 
-        [Fact]
-        public void ParseResult_Should_Pass_When_NullValue()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseResult_Should_Pass_When_NullValue(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Equal(NullValueNode.Default, _type.ParseValue(null));
+            Assert.Equal(NullValueNode.Default, type.ParseValue(null));
         }
 
-        [Fact]
-        public void ParseResult_Should_Pass_When_Serialized()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseResult_Should_Pass_When_Serialized(string typeName)
         {
             // arrange
-            object? serialized = _type.Serialize(_geometry);
+            INamedInputType type = CreateInputType(typeName);
+
+            object? serialized = type.Serialize(_geometry);
 
             // act
-            IValueNode literal = _type.ParseResult(serialized);
-
-            // assert
-            literal.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void ParseResult_Should_Pass_When_Value()
-        {
-            // arrange
-            // act
-            IValueNode literal = _type.ParseResult(_geometry);
+            IValueNode literal = type.ParseResult(serialized);
 
             // assert
             literal.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void ParseResult_Should_Throw_When_InvalidType()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseResult_Should_Pass_When_Value(string typeName)
         {
             // arrange
-            // act
-            // assert
-            Assert.Throws<SerializationException>(() => _type.ParseResult(""));
-        }
-
-        [Fact]
-        public void ParseValue_Should_Pass_When_NullValue()
-        {
-            // arrange
-            // act
-            // assert
-            Assert.Equal(NullValueNode.Default, _type.ParseValue(null));
-        }
-
-        [Fact]
-        public void ParseValue_Should_Pass_When_Serialized()
-        {
-            // arrange
-            object? serialized = _type.Serialize(_geometry);
+            INamedInputType type = CreateInputType(typeName);
 
             // act
-            IValueNode literal = _type.ParseValue(serialized);
+            IValueNode literal = type.ParseResult(_geometry);
 
             // assert
             literal.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void ParseValue_Should_Pass_When_Value()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseResult_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
-            IValueNode literal = _type.ParseValue(_geometry);
+            // assert
+            Assert.Throws<SerializationException>(() => type.ParseResult(""));
+        }
+
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseValue_Should_Pass_When_NullValue(string typeName)
+        {
+            // arrange
+            INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
+            Assert.Equal(NullValueNode.Default, type.ParseValue(null));
+        }
+
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseValue_Should_Pass_When_Serialized(string typeName)
+        {
+            // arrange
+            INamedInputType type = CreateInputType(typeName);
+
+            object? serialized = type.Serialize(_geometry);
+
+            // act
+            IValueNode literal = type.ParseValue(serialized);
 
             // assert
             literal.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void ParseValue_Should_Throw_When_InvalidType()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseValue_Should_Pass_When_Value(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
+            // act
+            IValueNode literal = type.ParseValue(_geometry);
+
+            // assert
+            literal.ToString().MatchSnapshot();
+        }
+
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void ParseValue_Should_Throw_When_InvalidType(string typeName)
+        {
+            // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.ParseValue(""));
+            Assert.Throws<SerializationException>(() => type.ParseValue(""));
         }
 
-        [Fact]
-        public void Deserialize_Should_Pass_When_SerializeNullValue()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
-            Assert.Null(_type.Deserialize(null));
+            INamedInputType type = CreateInputType(typeName);
+            Assert.Null(type.Deserialize(null));
         }
 
-        [Fact]
-        public void Deserialize_Should_Pass_When_PassedSerializedResult()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
         {
             // arrange
-            object? serialized = _type.Serialize(_geometry);
+            INamedInputType type = CreateInputType(typeName);
+
+            object? serialized = type.Serialize(_geometry);
 
             // act
-            object? result = _type.Deserialize(serialized);
+            object? result = type.Deserialize(serialized);
 
             // assert
             Assert.True(Assert.IsAssignableFrom<Geometry>(result).Equals(_geometry));
         }
 
-        [Fact]
-        public void Deserialize_Should_Pass_When_SerializeGeometry()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
-            object? result = _type.Deserialize(_geometry);
+            object? result = type.Deserialize(_geometry);
 
             // assert
             Assert.Equal(result, _geometry);
         }
 
-        [Fact]
-        public void Deserialize_Should_Throw_When_InvalidType()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Throw_When_InvalidType(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.Deserialize(""));
+            Assert.Throws<SerializationException>(() => type.Deserialize(""));
         }
 
-        [Fact]
-        public void Deserialize_Should_Pass_When_AllFieldsInDictionary()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Pass_When_AllFieldsInDictionary(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -340,16 +444,20 @@ namespace HotChocolate.Types.Spatial.Tests
             };
 
             // act
-            object? result = _type.Deserialize(serialized);
+            object? result = type.Deserialize(serialized);
 
             // assert
             AssertGeometry(result, 26912);
         }
 
-        [Fact]
-        public void Deserialize_Should_Pass_When_CrsIsMissing()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Pass_When_CrsIsMissing(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -357,16 +465,20 @@ namespace HotChocolate.Types.Spatial.Tests
             };
 
             // act
-            object? result = _type.Deserialize(serialized);
+            object? result = type.Deserialize(serialized);
 
             // assert
             AssertGeometry(result);
         }
 
-        [Fact]
-        public void Deserialize_Should_Fail_When_TypeNameIsMissing()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_Fail_WhentypeNameIsMissing(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -375,13 +487,17 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
         }
 
-        [Fact]
-        public void Deserialize_Should_When_CoordinatesAreMissing()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Deserialize_Should_When_CoordinatesAreMissing(string typeName)
         {
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -390,12 +506,15 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.Deserialize(serialized));
+            Assert.Throws<SerializationException>(() => type.Deserialize(serialized));
         }
 
-        [Fact]
-        public void Point_IsCoordinateValid_Should_Fail_When_MultiArray()
+        [Theory]
+        [InlineData(PointInputName)]
+        [InlineData(GeometryTypeName)]
+        public void Point_IsCoordinateValid_Should_Fail_When_MultiArray(string typeName)
         {
+            INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new ListValueNode(
                     new IntValueNode(30),
@@ -406,7 +525,7 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             // assert
-            Assert.Throws<SerializationException>(() => _type.ParseLiteral(valueNode));
+            Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
         private ISchema CreateSchema() => SchemaBuilder.New()
@@ -428,6 +547,13 @@ namespace HotChocolate.Types.Spatial.Tests
             {
                 Assert.Equal(crs, Assert.IsType<Point>(obj).SRID);
             }
+        }
+
+        private INamedInputType CreateInputType(string typeName)
+        {
+            ISchema schema = CreateSchema();
+
+            return schema.GetType<INamedInputType>(typeName);
         }
     }
 }

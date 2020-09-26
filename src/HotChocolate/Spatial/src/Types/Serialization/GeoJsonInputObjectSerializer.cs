@@ -149,7 +149,7 @@ namespace HotChocolate.Types
 
 
                 if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
-                    value is object[] coordinates)
+                    value is IList coordinates)
                 {
                     list.Add(
                         new ObjectFieldNode(

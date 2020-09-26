@@ -1,1 +1,1 @@
-﻿{ type: Point, crs: 0 }
+﻿{ type: Point, coordinates: [ 30, 10 ], crs: 0 }
