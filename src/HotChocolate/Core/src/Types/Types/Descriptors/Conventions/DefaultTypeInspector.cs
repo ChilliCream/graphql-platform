@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Internal;
+using HotChocolate.Utilities;
 using CompDefaultValueAttribute = System.ComponentModel.DefaultValueAttribute;
 using TypeInfo = HotChocolate.Internal.TypeInfo;
 
@@ -20,11 +21,14 @@ namespace HotChocolate.Types.Descriptors
         private const string _toString = "ToString";
         private const string _getHashCode = "GetHashCode";
         private const string _equals = "Equals";
+        private const string _clone = "<Clone>$";
 
         private readonly TypeCache _typeCache = new TypeCache();
 
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
+        private readonly Dictionary<Type, bool> _records =
+            new Dictionary<Type, bool>();
 
         public DefaultTypeInspector(bool ignoreRequiredAttribute = false)
         {
@@ -213,7 +217,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (enumType != typeof(object) && enumType.IsEnum)
             {
-                return Enum.GetValues(enumType).Cast<object>();
+                return Enum.GetValues(enumType).Cast<object>()!;
             }
 
             return Enumerable.Empty<object>();
@@ -270,8 +274,8 @@ namespace HotChocolate.Types.Descriptors
             IDescriptor descriptor,
             ICustomAttributeProvider attributeProvider)
         {
-            foreach (var attribute in attributeProvider.GetCustomAttributes(true)
-                .OfType<DescriptorAttribute>())
+            foreach (var attribute in
+                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
             {
                 attribute.TryConfigure(context, descriptor, attributeProvider);
             }
@@ -288,7 +292,7 @@ namespace HotChocolate.Types.Descriptors
 
             if (parameter.HasDefaultValue)
             {
-                defaultValue = parameter.RawDefaultValue;
+                defaultValue = parameter.DefaultValue;
                 return true;
             }
 
@@ -299,9 +303,9 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public virtual bool TryGetDefaultValue(PropertyInfo property, out object? defaultValue)
         {
-            if (property.IsDefined(typeof(CompDefaultValueAttribute)))
+            if (TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
             {
-                defaultValue = property.GetCustomAttribute<CompDefaultValueAttribute>()!.Value;
+                defaultValue = attribute.Value;
                 return true;
             }
 
@@ -471,12 +475,22 @@ namespace HotChocolate.Types.Descriptors
             return type;
         }
 
-        private static bool TryGetAttribute<T>(
+        private bool TryGetAttribute<T>(
             ICustomAttributeProvider attributeProvider,
             [NotNullWhen(true)] out T? attribute)
             where T : Attribute
         {
-            if (attributeProvider.IsDefined(typeof(T), true))
+            if (attributeProvider is PropertyInfo p &&
+                p.DeclaringType is not null &&
+                IsRecord(p.DeclaringType))
+            {
+                if (IsDefinedOnRecord<T>(p, true))
+                {
+                    attribute = GetCustomAttributeFromRecord<T>(p, true)!;
+                    return true;
+                }
+            }
+            else if (attributeProvider.IsDefined(typeof(T), true))
             {
                 attribute = attributeProvider
                     .GetCustomAttributes(typeof(T), true)
@@ -552,7 +566,10 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsIgnored(MemberInfo member)
         {
-            if (IsToString(member) || IsGetHashCode(member) || IsEquals(member))
+            if (IsCloneMember(member) || 
+                IsToString(member) || 
+                IsGetHashCode(member) || 
+                IsEquals(member))
             {
                 return true;
             }
@@ -572,5 +589,127 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsEquals(MemberInfo member) =>
             member is MethodInfo m
             && m.Name.Equals(_equals);
+
+        private bool IsRecord(Type type)
+        {
+            if (!_records.TryGetValue(type, out bool isRecord))
+            {
+                isRecord = IsRecord(type.GetMembers());
+                _records[type] = isRecord;
+            }
+            return isRecord;
+        }
+
+        private static bool IsRecord(IReadOnlyList<MemberInfo> members)
+        {
+            for (int i = 0; i < members.Count; i++)
+            {
+                if (IsCloneMember(members[i]))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool IsCloneMember(MemberInfo member) =>
+            member.Name.EqualsOrdinal(_clone);
+
+        private IEnumerable<T> GetCustomAttributes<T>(
+            ICustomAttributeProvider attributeProvider,
+            bool inherit)
+            where T : Attribute
+        {
+            if (attributeProvider is PropertyInfo p &&
+                p.DeclaringType is not null &&
+                IsRecord(p.DeclaringType))
+            {
+                return GetCustomAttributesFromRecord<T>(p, inherit);
+            }
+            else
+            {
+                return attributeProvider.GetCustomAttributes(true).OfType<T>();
+            }
+        }
+
+        private IEnumerable<T> GetCustomAttributesFromRecord<T>(
+            PropertyInfo property, bool inherit)
+            where T : Attribute
+        {
+            Type recordType = property.DeclaringType!;
+            ConstructorInfo[] constructors = recordType.GetConstructors();
+
+            IEnumerable<T> attributes = Enumerable.Empty<T>();
+
+            if (property.IsDefined(typeof(T)))
+            {
+                attributes = attributes.Concat(property.GetCustomAttributes<T>(inherit));
+            }
+
+            if (constructors.Length == 1)
+            {
+                foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                {
+                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    {
+                        attributes = attributes.Concat(parameter.GetCustomAttributes<T>(inherit));
+                    }
+                }
+            }
+
+            return attributes;
+        }
+
+        private T? GetCustomAttributeFromRecord<T>(
+            PropertyInfo property, bool inherit)
+            where T : Attribute
+        {
+            Type recordType = property.DeclaringType!;
+            ConstructorInfo[] constructors = recordType.GetConstructors();
+
+            if (property.IsDefined(typeof(T)))
+            {
+                return property.GetCustomAttribute<T>(inherit);
+            }
+
+            if (constructors.Length == 1)
+            {
+                foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                {
+                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    {
+                        return parameter.GetCustomAttribute<T>(inherit);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsDefinedOnRecord<T>(
+            PropertyInfo property, bool inherit)
+            where T : Attribute
+        {
+            Type recordType = property.DeclaringType!;
+            ConstructorInfo[] constructors = recordType.GetConstructors();
+
+            if (property.IsDefined(typeof(T), inherit))
+            {
+                return true;
+            }
+
+            if (constructors.Length == 1)
+            {
+                foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                {
+                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    {
+                        return parameter.IsDefined(typeof(T));
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 }

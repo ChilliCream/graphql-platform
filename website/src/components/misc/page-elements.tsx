@@ -29,7 +29,7 @@ export const Hero = styled.h1`
   max-width: 800px;
   font-size: 2.222em;
   text-align: center;
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: 0px 3px 6px rgba(0, 0, 0, 0.25);
   color: #fff;
 `;
 
@@ -39,6 +39,6 @@ export const Teaser = styled.p`
   max-width: 800px;
   font-size: 1.222em;
   text-align: center;
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.25);
+  text-shadow: 0px 3px 6px rgba(0, 0, 0, 0.25);
   color: #fff;
 `;

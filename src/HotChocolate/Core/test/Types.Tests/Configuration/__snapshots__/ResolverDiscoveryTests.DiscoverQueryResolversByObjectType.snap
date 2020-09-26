@@ -1,8 +1,11 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "f": "QueryResolvers5"
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }

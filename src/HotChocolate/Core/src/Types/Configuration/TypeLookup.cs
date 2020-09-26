@@ -55,9 +55,8 @@ namespace HotChocolate.Configuration
                     break;
 
                 case SchemaTypeReference r:
-                    namedTypeRef = _typeInspector.GetTypeRef(
-                        r.Type.GetType(), r.Context, typeRef.Scope);
-                    _refs[typeRef] = namedTypeRef;
+                    _refs[typeRef] = r;
+                    namedTypeRef = r;
                     return true;
 
                 case SyntaxTypeReference r:
@@ -113,7 +112,7 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(typeRef));
             }
-            
+
             // if the typeRef refers to a schema type base class we skip since such a type is not
             // resolvable.
             if (typeRef.Type.Type.IsNonGenericSchemaType() ||

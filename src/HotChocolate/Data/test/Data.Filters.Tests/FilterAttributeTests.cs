@@ -22,6 +22,20 @@ namespace HotChocolate.Data.Filters
         }
 
         [Fact]
+        public void Create_Schema_With_FilterType_With_Fluent_API_Ctor_Param()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query3>()
+                .AddFiltering()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_Schema_With_FilterType_With_Fluent_API()
         {
             // arrange
@@ -46,7 +60,7 @@ namespace HotChocolate.Data.Filters
                 new Foo { Bar = "ab", Baz = 2 },
                 new Foo { Bar = "ac", Baz = 2 },
                 new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null, Baz = 0 }
+                new Foo { Bar = null!, Baz = 0 }
             };
         }
 
@@ -61,7 +75,22 @@ namespace HotChocolate.Data.Filters
                 new Foo { Bar = "ab", Baz = 2 },
                 new Foo { Bar = "ac", Baz = 2 },
                 new Foo { Bar = "ad", Baz = 2 },
-                new Foo { Bar = null, Baz = 0 }
+                new Foo { Bar = null!, Baz = 0 }
+            };
+        }
+
+        public class Query3
+        {
+            [UseFiltering(typeof(FooFilterType))]
+            public IEnumerable<Foo> Foos { get; } = new[]
+            {
+                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
+                new Foo { Bar = "ba", Baz = 1 },
+                new Foo { Bar = "ca", Baz = 2 },
+                new Foo { Bar = "ab", Baz = 2 },
+                new Foo { Bar = "ac", Baz = 2 },
+                new Foo { Bar = "ad", Baz = 2 },
+                new Foo { Bar = null!, Baz = 0 }
             };
         }
 

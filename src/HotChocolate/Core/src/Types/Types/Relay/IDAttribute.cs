@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -5,6 +6,10 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Relay
 {
+    [AttributeUsage(
+        AttributeTargets.Parameter |
+        AttributeTargets.Property |
+        AttributeTargets.Method)]
     public class IDAttribute : DescriptorAttribute
     {
         public IDAttribute(string? typeName = null)

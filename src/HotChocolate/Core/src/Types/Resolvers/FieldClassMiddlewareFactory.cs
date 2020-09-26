@@ -18,7 +18,8 @@ namespace HotChocolate.Resolvers
         private static readonly PropertyInfo _services =
             typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services));
 
-        public static FieldMiddleware Create<TMiddleware>(params object[] services)
+        public static FieldMiddleware Create<TMiddleware>(
+            params (Type Service, object Instance)[] services)
             where TMiddleware : class
         {
             if (services is null)
@@ -30,14 +31,11 @@ namespace HotChocolate.Resolvers
             {
                 var parameters = new List<IParameterHandler>();
 
-                foreach (object service in services)
+                foreach ((Type Service, object Instance) service in services)
                 {
-                    if (service is { })
-                    {
-                        parameters.Add(new TypeParameterHandler(
-                            service.GetType(),
-                            Expression.Constant(service)));
-                    }
+                    parameters.Add(new TypeParameterHandler(
+                        service.Service,
+                        Expression.Constant(service.Instance)));
                 }
 
                 MiddlewareFactory<TMiddleware, IServiceProvider, FieldDelegate> factory =
@@ -52,7 +50,9 @@ namespace HotChocolate.Resolvers
             };
         }
 
-        public static FieldMiddleware Create(Type middlewareType, params object[] services)
+        public static FieldMiddleware Create(
+            Type middlewareType,
+            params (Type Service, object Instance)[] services)
         {
             return (FieldMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)

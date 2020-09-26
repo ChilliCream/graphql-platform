@@ -21,7 +21,12 @@ export const Link: FunctionComponent<GatsbyLinkProps<unknown>> = ({
       {children}
     </GatsbyLink>
   ) : (
-    <OutboundLink href={to} target="_blank" className={className}>
+    <OutboundLink
+      href={to}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+    >
       {children}
     </OutboundLink>
   );

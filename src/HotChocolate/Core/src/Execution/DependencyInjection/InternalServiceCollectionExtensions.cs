@@ -3,11 +3,12 @@ using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Caching;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.DataLoader;
+using HotChocolate.Types.Relay;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -101,6 +102,13 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services)
         {
             services.TryAddScoped<IDataLoaderRegistry, DefaultDataLoaderRegistry>();
+            return services;
+        }
+
+        internal static IServiceCollection TryAddIdSerializer(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IIdSerializer, IdSerializer>();
             return services;
         }
     }

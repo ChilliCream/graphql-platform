@@ -69,8 +69,8 @@ namespace HotChocolate.AspNetCore
             {
                 // next we parse the GraphQL request.
                 IReadOnlyList<GraphQLRequest> requests =
-                        await _requestParser.ReadJsonRequestAsync(
-                            context.Request.Body, context.RequestAborted);
+                    await _requestParser.ReadJsonRequestAsync(
+                        context.Request.Body, context.RequestAborted);
 
                 switch (requests.Count)
                 {

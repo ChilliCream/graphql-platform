@@ -1,3 +1,0 @@
-﻿For more details look at the `Errors` property.
-
-1. The argument `b` of the implemented field `a` must be defined. The field `a` must include an argument of the same name for every argument defined on the implemented field of the interface type `B`.

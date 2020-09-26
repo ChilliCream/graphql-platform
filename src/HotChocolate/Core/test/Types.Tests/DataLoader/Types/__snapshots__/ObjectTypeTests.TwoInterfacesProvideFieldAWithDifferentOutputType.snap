@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. Field `a` must return a type which is equal to or a sub‐type of (covariant) the return type `Int` of the interface field. (HotChocolate.Types.ObjectType)

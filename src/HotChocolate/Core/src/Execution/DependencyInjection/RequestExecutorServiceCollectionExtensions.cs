@@ -28,23 +28,27 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions();
 
             // core services
-            services.TryAddTypeConverter();
-            services.TryAddDefaultCaches();
-            services.TryAddDefaultDocumentHashProvider();
-            services.TryAddDefaultBatchDispatcher();
-            services.TryAddDefaultDataLoaderRegistry();
+            services
+                .TryAddTypeConverter()
+                .TryAddDefaultCaches()
+                .TryAddDefaultDocumentHashProvider()
+                .TryAddDefaultBatchDispatcher()
+                .TryAddDefaultDataLoaderRegistry()
+                .TryAddIdSerializer();
 
             // pools
-            services.TryAddResultPool();
-            services.TryAddResolverTaskPool();
-            services.TryAddOperationContextPool();
+            services
+                .TryAddResultPool()
+                .TryAddResolverTaskPool()
+                .TryAddOperationContextPool();
 
             // global executor services
-            services.TryAddVariableCoercion();
-            services.TryAddRequestExecutorResolver();
+            services
+                .TryAddVariableCoercion()
+                .TryAddRequestExecutorResolver();
 
             // parser
-            services.TryAddSingleton<ParserOptions>(ParserOptions.Default);
+            services.TryAddSingleton(ParserOptions.Default);
 
             return services;
         }

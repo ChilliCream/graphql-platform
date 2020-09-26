@@ -19,7 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddGraphQLCore();
-            services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
+            services.TryAddSingleton<IHttpResultSerializer>(
+                new DefaultHttpResultSerializer());
             services.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),
@@ -45,21 +46,51 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddGraphQLServer(schemaName);
 
         [Obsolete(
-            "Use the new configuration API -> " + 
-            "services.AddGraphQLServer().AddQueryType<Query>().",
-            true)]
+            "Use the new configuration API -> " +
+            "services.AddGraphQLServer().AddQueryType<Query>()...")]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,
-            ISchema schema) =>
-            throw new NotSupportedException();
+            ISchema schema,
+            int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+            RequestExecutorBuilderLegacyHelper.SetSchema(
+                services
+                    .AddGraphQLServerCore(maxAllowedRequestSize)
+                    .AddGraphQL()
+                    .AddHttpRequestInterceptor()
+                    .AddSubscriptionServices(),
+                schema)
+                .Services;
 
         [Obsolete(
-            "Use the new configuration API -> " + 
-            "services.AddGraphQLServer().AddQueryType<Query>().",
-            true)]
+            "Use the new configuration API -> " +
+            "services.AddGraphQLServer().AddQueryType<Query>()...")]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection services,
-            ISchemaBuilder schema) =>
-            throw new NotSupportedException();
+            Func<IServiceProvider, ISchema> schemaFactory,
+            int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+            RequestExecutorBuilderLegacyHelper.SetSchema(
+                    services
+                        .AddGraphQLServerCore(maxAllowedRequestSize)
+                        .AddGraphQL()
+                        .AddHttpRequestInterceptor()
+                        .AddSubscriptionServices(),
+                    schemaFactory)
+                .Services;
+
+        [Obsolete(
+            "Use the new configuration API -> " +
+            "services.AddGraphQLServer().AddQueryType<Query>()...")]
+        public static IServiceCollection AddGraphQL(
+            this IServiceCollection services,
+            ISchemaBuilder schemaBuilder,
+            int maxAllowedRequestSize = 20 * 1000 * 1000) =>
+            RequestExecutorBuilderLegacyHelper.SetSchemaBuilder(
+                services
+                    .AddGraphQLServerCore(maxAllowedRequestSize)
+                    .AddGraphQL()
+                    .AddHttpRequestInterceptor()
+                    .AddSubscriptionServices(),
+                schemaBuilder)
+                .Services;
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using Snapshooter.Xunit;
 using Xunit;
 

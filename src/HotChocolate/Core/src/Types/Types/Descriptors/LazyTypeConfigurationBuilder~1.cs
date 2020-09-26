@@ -29,23 +29,13 @@ namespace HotChocolate.Types.Descriptors
         public LazyTypeConfigurationBuilder<T> Configure(
             Action<ITypeCompletionContext, T> configure)
         {
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            _configure = configure;
+            _configure = configure ?? throw new ArgumentNullException(nameof(configure));
             return this;
         }
 
         public LazyTypeConfigurationBuilder<T> Definition(T definition)
         {
-            if (definition is null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            _definition = definition;
+            _definition = definition ?? throw new ArgumentNullException(nameof(definition));
             return this;
         }
 
@@ -86,14 +76,12 @@ namespace HotChocolate.Types.Descriptors
                 Definition = _definition
             };
 
-            foreach (var dependency in _dependencies)
+            foreach ((ITypeReference r, bool c) dependency in _dependencies)
             {
                 configuration.Dependencies.Add(new TypeDependency
                 (
                     dependency.r,
-                    dependency.c
-                        ? _completeKind
-                        : TypeDependencyKind.Default
+                    dependency.c ? _completeKind : TypeDependencyKind.Default
                 ));
             }
 

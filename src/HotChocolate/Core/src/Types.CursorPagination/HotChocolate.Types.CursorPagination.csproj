@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Types.CursorPagination</PackageId>
+    <AssemblyName>HotChocolate.Types.CursorPagination</AssemblyName>
+    <RootNamespace>HHotChocolate.Types.Pagination</RootNamespace>
+    <Description>Contains middleware and types for cursor based pagination.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Execution\HotChocolate.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference-->
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CursorResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CursorResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CursorResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CursorResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>  
+
+</Project>

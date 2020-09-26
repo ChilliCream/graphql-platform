@@ -56,7 +56,6 @@ namespace HotChocolate.Types
                 { ScalarNames.Date, typeof(DateType) },
                 { ScalarNames.MultiplierPath, typeof(MultiplierPathType) },
                 { ScalarNames.Name, typeof(NameType) },
-                { ScalarNames.PaginationAmount, typeof(PaginationAmountType) },
                 { ScalarNames.ByteArray, typeof(ByteArrayType) },
            };
 
@@ -92,14 +91,14 @@ namespace HotChocolate.Types
             Type clrType,
             [NotNullWhen(true)] out Type? schemaType) =>
             _lookup.TryGetValue(
-                clrType ?? throw new ArgumentNullException(nameof(clrType)), 
+                clrType ?? throw new ArgumentNullException(nameof(clrType)),
                 out schemaType);
 
         internal static bool TryGetScalar(
             NameString typeName,
             [NotNullWhen(true)] out Type? schemaType) =>
             _nameLookup.TryGetValue(
-                typeName.EnsureNotEmpty(nameof(typeName)), 
+                typeName.EnsureNotEmpty(nameof(typeName)),
                 out schemaType);
 
         /// <summary>
@@ -109,11 +108,11 @@ namespace HotChocolate.Types
         /// A GraphQL type name.
         /// </param>
         /// <returns>
-        /// Returns <c>true</c> if the specified name represents a built-in scalar type; 
+        /// Returns <c>true</c> if the specified name represents a built-in scalar type;
         /// otherwise, <c>false</c>.
         /// </returns>
         public static bool IsBuiltIn(NameString typeName) =>
-            typeName.HasValue && 
+            typeName.HasValue &&
             _nameLookup.ContainsKey(typeName);
 
         /// <summary>

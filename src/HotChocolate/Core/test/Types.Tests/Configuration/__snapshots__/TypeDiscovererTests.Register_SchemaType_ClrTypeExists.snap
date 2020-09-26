@@ -88,6 +88,22 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.DeferDirectiveType",
+      "runtimeType": "HotChocolate.Types.DeferDirective",
+      "references": [
+        "None: HotChocolate.Types.DeferDirectiveType",
+        "None: DeferDirectiveType"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.StreamDirectiveType",
+      "runtimeType": "System.Object",
+      "references": [
+        "None: HotChocolate.Types.StreamDirectiveType",
+        "None: StreamDirectiveType"
+      ]
+    },
+    {
       "type": "HotChocolate.Configuration.TypeDiscovererTests.FooType",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
       "references": [
@@ -121,6 +137,14 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.IntType",
+      "runtimeType": "System.Int32",
+      "references": [
+        "None: HotChocolate.Types.IntType",
+        "None: IntType"
+      ]
+    },
+    {
       "type": "HotChocolate.Configuration.TypeDiscovererTests.BarType",
       "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
       "references": [
@@ -138,10 +162,12 @@
     "Output: ISchema": "Output: HotChocolate.Types.Introspection.__Schema",
     "Output: IType": "Output: HotChocolate.Types.Introspection.__Type",
     "None: TypeKind!": "None: HotChocolate.Types.Introspection.__TypeKind",
+    "None: DeferDirective": "None: HotChocolate.Types.DeferDirectiveType",
     "Output: Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
     "None: String": "None: HotChocolate.Types.StringType",
     "None: Boolean!": "None: HotChocolate.Types.BooleanType",
     "None: DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
+    "None: Int32!": "None: HotChocolate.Types.IntType",
     "Output: Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType"
   }
 }

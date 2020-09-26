@@ -1,6 +1,7 @@
-using BenchmarkDotNet.Attributes;
-using System.Collections.Generic;
 using System.Buffers;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Benchmarks
 {

@@ -57,4 +57,4 @@ namespace HotChocolate.Data.Filters
             [NotNullWhen(true)] out T combined) =>
             _combinator.TryCombineOperations(context, operations, combinator, out combined);
     }
-}
+    }

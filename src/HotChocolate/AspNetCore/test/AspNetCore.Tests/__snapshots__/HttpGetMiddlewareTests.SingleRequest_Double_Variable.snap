@@ -1,0 +1,9 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "double_arg": 1.539
+  },
+  "Errors": null,
+  "Extensions": null
+}

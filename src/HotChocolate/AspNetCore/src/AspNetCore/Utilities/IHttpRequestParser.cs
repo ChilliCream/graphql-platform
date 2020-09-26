@@ -13,6 +13,7 @@ namespace HotChocolate.AspNetCore.Utilities
             Stream stream,
             CancellationToken cancellationToken);
 
-        GraphQLRequest ReadParamsRequest(IQueryCollection parameters);
+        GraphQLRequest ReadParamsRequest(
+            IQueryCollection parameters);
     }
 }

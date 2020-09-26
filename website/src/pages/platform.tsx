@@ -13,6 +13,8 @@ import { Hero, Intro, Teaser, Title } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+import UnderConstructionSvg from "../images/under-construction.svg";
+
 const PlatformPage: FunctionComponent = () => {
   return (
     <Layout>
@@ -37,12 +39,11 @@ const PlatformPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Hot Chocolate</SectionTitle>
             <p>
-              Hot Chocolate is the GraphQL server, but also provides core
-              libraries for Strawberry Shake, which is our GraphQL client, and
-              our GraphQL tools. No wonder why Hot Chocolate is the
-              ChilliCream's platform core.
+              Hot Chocolate is the GraphQL server and provides core libraries
+              for Strawberry Shake, our GraphQL client, and our GraphQL tools.
+              No wonder why Hot Chocolate is the ChilliCream's platform core.
             </p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -64,25 +65,30 @@ const PlatformPage: FunctionComponent = () => {
       </Section>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <HotChocolate />
+          <ImageContainer>
+            <UnderConstructionSvg />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Strawberry Shake</SectionTitle>
-            <p>...</p>
+            <p>
+              Strawberry Shake is our client tool to generates custom .Net
+              clients for any GraphQL endpoint.
+            </p>
             <Link to="/docs/strawberryshake">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
       <Section>
         <SectionRow>
-          <ImageContainer large>
-            <HotChocolate />
+          <ImageContainer>
+            <UnderConstructionSvg />
           </ImageContainer>
           <ContentContainer>
             <SectionTitle>Marshmallow Pie</SectionTitle>
-            <p>...</p>
-            <Link to="/docs/marshmellowpie">Learn more</Link>
+            <p>
+              Keep track of all clients that depend on your GraphQL endpoints.
+            </p>
+            <Link to="/docs/marshmallowpie">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>

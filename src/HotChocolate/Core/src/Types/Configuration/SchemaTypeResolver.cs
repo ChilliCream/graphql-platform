@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
-    internal static class SchemaTypeResolver
+    public static class SchemaTypeResolver
     {
         private static readonly Type _keyValuePair = typeof(KeyValuePair<,>);
 
@@ -14,6 +14,16 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference unresolvedType,
             out ExtendedTypeReference schemaType)
         {
+            if (typeInspector is null)
+            {
+                throw new ArgumentNullException(nameof(typeInspector));
+            }
+
+            if (unresolvedType is null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedType));
+            }
+
             if (IsObjectTypeExtension(unresolvedType))
             {
                 schemaType = unresolvedType.With(
@@ -50,6 +60,10 @@ namespace HotChocolate.Configuration
                     type: typeInspector.GetType(
                         typeof(EnumType<>).MakeGenericType(unresolvedType.Type.Type)));
             }
+            else if (Scalars.TryGetScalar(unresolvedType.Type.Type, out Type scalarType))
+            {
+                schemaType = unresolvedType.With(type: typeInspector.GetType(scalarType));
+            }
             else
             {
                 schemaType = null;
@@ -62,6 +76,11 @@ namespace HotChocolate.Configuration
             ExtendedTypeReference unresolvedType,
             out TypeKind kind)
         {
+            if (unresolvedType == null)
+            {
+                throw new ArgumentNullException(nameof(unresolvedType));
+            }
+
             if (IsObjectTypeExtension(unresolvedType))
             {
                 kind = TypeKind.Object;
@@ -97,7 +116,13 @@ namespace HotChocolate.Configuration
                 kind = TypeKind.Enum;
                 return true;
             }
-            
+
+            if (Scalars.TryGetScalar(unresolvedType.Type.Type, out _))
+            {
+                kind = TypeKind.Scalar;
+                return true;
+            }
+
             kind = default;
             return false;
         }

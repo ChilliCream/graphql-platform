@@ -5,7 +5,9 @@ import { Carousel } from "react-responsive-carousel";
 import styled from "styled-components";
 import { GetIndexPageDataQuery } from "../../graphql-types";
 import { BananaCakePop } from "../components/images/banana-cake-pop";
-import { EFMeetsGraphQL } from "../components/images/ef-meets-graphql";
+import { BlogPostEFMeetsGraphQL } from "../components/images/blog-post-ef-meets-graphql";
+import { BlogPostStrawberryShake } from "../components/images/blog-post-strawberry-shake";
+import { BlogPostVersion11 } from "../components/images/blog-post-version-11";
 import { Link } from "../components/misc/link";
 import {
   ContentContainer,
@@ -20,9 +22,12 @@ import { Hero, Intro } from "../components/misc/page-elements";
 import { SEO } from "../components/misc/seo";
 import { Layout } from "../components/structure/layout";
 
+import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
+import MotiviewLogoSvg from "../images/companies/motiview.svg";
+import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
 import ContactUsSvg from "../images/contact-us.svg";
@@ -87,17 +92,6 @@ const IndexPage: FunctionComponent = () => {
           showThumbs={false}
         >
           <Slide>
-            <Link to="/blog/2020/03/18/entity-framework">
-              <EFMeetsGraphQL />
-              <SlideContent>
-                <SlideTitle>Entity Frameworks meets GraphQL</SlideTitle>
-                <SlideDescription>
-                  Get started with Hot Chocolate and Entity Framework
-                </SlideDescription>
-              </SlideContent>
-            </Link>
-          </Slide>
-          <Slide>
             <Link to="/docs/bananacakepop">
               <BananaCakePop />
               <SlideContent>
@@ -107,6 +101,27 @@ const IndexPage: FunctionComponent = () => {
                   deep performance insights.
                 </SlideDescription>
               </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2020/03/18/entity-framework">
+              <BlogPostEFMeetsGraphQL />
+              <SlideContent>
+                <SlideTitle>Entity Framework meets GraphQL</SlideTitle>
+                <SlideDescription>
+                  Get started with Hot Chocolate and Entity Framework
+                </SlideDescription>
+              </SlideContent>
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2020/07/16/version-11">
+              <BlogPostVersion11 />
+            </Link>
+          </Slide>
+          <Slide>
+            <Link to="/blog/2019/11/25/strawberry-shake_2">
+              <BlogPostStrawberryShake />
             </Link>
           </Slide>
         </Slideshow>
@@ -137,11 +152,11 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer>
             <SectionTitle>Get Started</SectionTitle>
             <p>
-              Creating a GraphQL API with Hot Chocolate is very easy. Checkout
-              our startup guide and see how simple it's to create your first
+              Creating a GraphQL API with Hot Chocolate is very easy. Check out
+              our startup guide and see how simple it is to create your first
               API.
             </p>
-            <Link to="/docs/hotchocolate">Learn more</Link>
+            <Link to="/docs/hotchocolate/v10/">Learn more</Link>
           </ContentContainer>
         </SectionRow>
       </Section>
@@ -176,21 +191,46 @@ const IndexPage: FunctionComponent = () => {
           <ContentContainer noImage>
             <SectionTitle centerAlways>Companies who trust us</SectionTitle>
             <Logos>
-              <Logo width={180}>
-                <AutoguruLogoSvg />
+              <Logo width={160}>
+                <Link to="https://aeieng.com">
+                  <AeiLogoSvg />
+                </Link>
               </Logo>
               <Logo width={100}>
-                <AtminaLogoSvg />
+                <Link to="https://atmina.de">
+                  <AtminaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://www.autoguru.com.au">
+                  <AutoguruLogoSvg />
+                </Link>
               </Logo>
               <Logo width={120}>
-                <GiaLogoSvg />
+                <Link to="https://gia.ch">
+                  <GiaLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={160}>
+                <Link to="https://motitech.co.uk">
+                  <MotiviewLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={180}>
+                <Link to="https://pushpay.com">
+                  <PushpayLogoSvg />
+                </Link>
               </Logo>
               <Logo width={120}>
-                <Seven2OneLogoSvg />
+                <Link to="https://www.seven2one.de">
+                  <Seven2OneLogoSvg />
+                </Link>
               </Logo>
               {false && (
                 <Logo width={100}>
-                  <SwissLifeLogoSvg />
+                  <Link to="https://www.swisslife.ch">
+                    <SwissLifeLogoSvg />
+                  </Link>
                 </Logo>
               )}
             </Logos>
@@ -334,6 +374,8 @@ const SlideContent = styled.div`
   @media only screen and (min-width: 1200px) {
     right: 30%;
     left: 30%;
+    margin: 0 auto;
+    max-width: 700px;
   }
 `;
 
@@ -425,7 +467,7 @@ const Logo = styled.div<{ width?: number }>`
   margin: 30px;
   width: ${({ width }) => width || 160}px;
 
-  > svg {
+  > a > svg {
     fill: #667;
     transition: fill 0.2s ease-in-out;
 

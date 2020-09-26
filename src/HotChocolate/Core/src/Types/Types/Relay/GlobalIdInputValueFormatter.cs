@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Relay
         {
             if (resultType.IsArrayOrList)
             {
-                Type listType = typeof(List<>).MakeGenericType(resultType.ElementType.Source);
+                Type listType = typeof(List<>).MakeGenericType(resultType.ElementType!.Source);
                 ConstructorInfo constructor = listType.GetConstructors().Single(t => t.GetParameters().Length == 0);
                 Expression create = Expression.New(constructor);
                 return Expression.Lambda<Func<IList>>(create).Compile();

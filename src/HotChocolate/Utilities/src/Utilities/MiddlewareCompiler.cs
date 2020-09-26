@@ -98,7 +98,8 @@ namespace HotChocolate.Utilities
                 return Expression.Call(_awaitHelper,
                     Expression.Call(middleware, method, arguments));
             }
-            else if (method.ReturnType == typeof(ValueTask))
+
+            if (method.ReturnType == typeof(ValueTask))
             {
                 return Expression.Call(middleware, method, arguments);
             }

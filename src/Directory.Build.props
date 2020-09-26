@@ -16,7 +16,7 @@
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIconUrl>https://chillicream.com/img/projects/hotchocolate-signet.png</PackageIconUrl>
+    <PackageIconUrl>https://chillicream.com/resources/hotchocolate-signet.png</PackageIconUrl>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,6 +31,11 @@
   <PropertyGroup>
     <LibraryTargetFrameworks>netcoreapp5.0; netcoreapp3.1; netstandard2.0</LibraryTargetFrameworks>
     <TestTargetFrameworks>netcoreapp5.0; netcoreapp3.1; netcoreapp2.1</TestTargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>

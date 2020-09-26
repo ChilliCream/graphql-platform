@@ -8,15 +8,22 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class HotChocolateAuthorizeRequestExecutorBuilder
     {
-        public static IRequestExecutorBuilder AddAuthorizeDirectiveType(
-            this IRequestExecutorBuilder builder)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
+        /// <summary>
+        /// Adds the authorization types to the schema.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/> for chaining in more configurations.
+        /// </returns>
+        public static IRequestExecutorBuilder AddAuthorization(
+            this IRequestExecutorBuilder builder) =>
+            builder.ConfigureSchema(sb => sb.AddAuthorizeDirectiveType());
 
-            return builder.ConfigureSchema(sb => sb.AddDirectiveType<AuthorizeDirectiveType>());
-        }
+        [Obsolete("Use AddAuthorization()")]
+        public static IRequestExecutorBuilder AddAuthorizeDirectiveType(
+            this IRequestExecutorBuilder builder) =>
+            AddAuthorization(builder);
     }
 }
