@@ -1,24 +1,33 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data.Spatial.Filters
 {
     public abstract class QueryableSpatialMethodHandler
         : FilterFieldHandler<QueryableFilterContext, Expression>
     {
+        private readonly IExtendedType _runtimeType;
+
         protected abstract int Operation { get; }
 
         protected string GeometryFieldName { get; }
         protected string BufferFieldName { get; }
 
-        protected QueryableSpatialMethodHandler(IFilterConvention convention)
+        protected QueryableSpatialMethodHandler(
+            IFilterConvention convention,
+            ITypeInspector inspector,
+            MethodInfo method)
         {
+            _runtimeType = inspector.GetReturnType(method);
             GeometryFieldName = convention.GetOperationName(SpatialFilterOperations.Geometry);
             BufferFieldName = convention.GetOperationName(SpatialFilterOperations.Buffer);
         }
@@ -60,6 +69,7 @@ namespace HotChocolate.Data.Spatial.Filters
                     return true;
                 }
 
+                context.RuntimeTypes.Push(_runtimeType);
                 context.PushInstance(nestedProperty);
                 action = SyntaxVisitor.Continue;
             }
@@ -87,6 +97,7 @@ namespace HotChocolate.Data.Spatial.Filters
             Expression condition = context.GetLevel().Dequeue();
 
             context.PopInstance();
+            context.RuntimeTypes.Pop();
 
             if (context.InMemory)
             {

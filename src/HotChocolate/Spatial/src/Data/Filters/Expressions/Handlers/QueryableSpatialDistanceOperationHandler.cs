@@ -1,8 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Spatial.Filters
@@ -10,8 +12,13 @@ namespace HotChocolate.Data.Spatial.Filters
     public class QueryableSpatialDistanceOperationHandler
         : QueryableSpatialMethodHandler
     {
+        private static readonly MethodInfo _distance =
+            typeof(Geometry).GetMethod(nameof(Geometry.Distance))!;
+
         public QueryableSpatialDistanceOperationHandler(
-            IFilterConvention convention) : base(convention)
+            IFilterConvention convention,
+            ITypeInspector inspector)
+            : base(convention, inspector, _distance)
         {
         }
 
