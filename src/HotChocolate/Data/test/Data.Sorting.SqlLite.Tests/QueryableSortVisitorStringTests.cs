@@ -36,19 +36,18 @@ namespace HotChocolate.Data.Sorting
             IRequestExecutor tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { bar: ASC}){ bar}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("ASC");
+                    .Create());            
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchSqlSnapshot("ASC");
             res2.MatchSqlSnapshot("DESC");
         }
 
@@ -59,20 +58,19 @@ namespace HotChocolate.Data.Sorting
             IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableSortType>(
                 _fooNullableEntities);
 
-            // act
-            // assert
+            // act            
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                     .Create());
-
-            res1.MatchSqlSnapshot("ASC");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                     .Create());
 
+            // assert
+            res1.MatchSqlSnapshot("ASC");
             res2.MatchSqlSnapshot("DESC");
         }
 
