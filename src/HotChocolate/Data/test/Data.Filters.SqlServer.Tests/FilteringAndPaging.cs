@@ -22,19 +22,18 @@ namespace HotChocolate.Data.Filters
             IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities, true);
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { eq: true}}){ nodes { bar } }}")
                     .Create());
-
-            res1.MatchSqlSnapshot("true");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
                     .SetQuery("{ root(where: { bar: { eq: false}}){ nodes { bar }}}")
                     .Create());
 
+            // assert
+            res1.MatchSqlSnapshot("true");
             res2.MatchSqlSnapshot("false");
         }
 
