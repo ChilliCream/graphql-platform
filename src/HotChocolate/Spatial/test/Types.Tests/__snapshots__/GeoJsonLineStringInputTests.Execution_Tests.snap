@@ -1,8 +1,11 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "test": "LINESTRING (30 10, 10 30, 40 40)"
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }
