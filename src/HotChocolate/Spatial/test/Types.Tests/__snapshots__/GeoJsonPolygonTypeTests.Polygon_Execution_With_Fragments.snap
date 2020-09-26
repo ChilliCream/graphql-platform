@@ -1,4 +1,6 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": null,
   "Errors": [
     {
@@ -25,5 +27,6 @@
   "Extensions": null,
   "ContextData": {
     "ValidationErrors": true
-  }
+  },
+  "HasNext": null
 }

@@ -1,4 +1,6 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "test": {
       "type": "LineString",
@@ -27,5 +29,6 @@
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }

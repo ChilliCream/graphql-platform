@@ -1,4 +1,6 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "test": {
       "type": "Polygon",
@@ -35,5 +37,6 @@
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }
