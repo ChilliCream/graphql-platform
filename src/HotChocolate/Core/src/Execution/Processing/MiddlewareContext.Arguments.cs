@@ -91,7 +91,9 @@ namespace HotChocolate.Execution.Processing
             if (!argument.IsFinal)
             {
                 value = argument.Type.ParseLiteral(argument.ValueLiteral!);
-                value = argument.Formatter is not null ? argument.Formatter.OnAfterDeserialize(value) : value;
+                value = argument.Formatter is not null
+                    ? argument.Formatter.OnAfterDeserialize(value)
+                    : value;
             }
 
             if (value is null)
@@ -101,7 +103,7 @@ namespace HotChocolate.Execution.Processing
             }
 
             if (value is T castedValue ||
-                _operationContext.Converter.TryConvert<object, T>(value, out castedValue))
+                _operationContext.Converter.TryConvert(value, out castedValue))
             {
                 return castedValue;
             }
@@ -119,7 +121,9 @@ namespace HotChocolate.Execution.Processing
             // and creating from this the object.
             if (value is IReadOnlyDictionary<string, object> || value is IReadOnlyList<object>)
             {
-                var dictToObjConverter = new DictionaryToObjectConverter(_operationContext.Converter);
+                var dictToObjConverter = new DictionaryToObjectConverter(
+                    _operationContext.Converter);
+
                 if (typeof(T).IsInterface)
                 {
                     object o = dictToObjConverter.Convert(value, argument.Type.RuntimeType);

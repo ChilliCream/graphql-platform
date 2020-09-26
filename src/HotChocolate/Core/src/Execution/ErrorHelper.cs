@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution
 {
@@ -13,7 +14,7 @@ namespace HotChocolate.Execution
         {
             return ErrorBuilder.New()
                 .SetMessage(
-                    "Detected a non-null violation in argument `{0}`.",
+                    ErrorHelper_ArgumentNonNullError_Message,
                     argument.Name.Value)
                 .AddLocation(argument)
                 .SetExtension("responseName", responseName)
@@ -73,7 +74,7 @@ namespace HotChocolate.Execution
             Path path)
         {
             return ErrorBuilder.New()
-                .SetMessage("Unable to resolve the abstract type `{0}`.", typeName)
+                .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
@@ -87,7 +88,7 @@ namespace HotChocolate.Execution
             Path path)
         {
             return ErrorBuilder.New()
-                .SetMessage("Unable to resolve the abstract type `{0}`.", typeName)
+                .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
@@ -101,7 +102,7 @@ namespace HotChocolate.Execution
             Path path)
         {
             return ErrorBuilder.New()
-                .SetMessage("The type `{0}` is not supported as list value.", listType.FullName!)
+                .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName!)
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
@@ -113,65 +114,50 @@ namespace HotChocolate.Execution
             Path path)
         {
             return ErrorBuilder.New()
-                .SetMessage("Unexpected error during value completion.")
+                .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
                 .AddLocation(field)
                 .SetPath(path)
                 .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
                 .Build();
         }
 
-        public static IQueryResult ParserExpectedQuery() =>
-            QueryResultBuilder.CreateError(
-                ErrorBuilder.New()
-                    .SetMessage("The parse query middleware expects a valid query request.")
-                    .SetCode(ErrorCodes.Execution.Incomplete)
-                    .Build());
-
         public static IQueryResult RootTypeNotFound(OperationType operationType) =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
-                    .SetMessage(
-                        "The specified root type `{0}` is not supported by this server.",
-                        operationType)
+                    .SetMessage(ErrorHelper_RootTypeNotFound_Message, operationType)
                     .Build());
 
         public static IQueryResult StateInvalidForOperationResolver() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
-                    .SetMessage(
-                        "Either no query document exists or the document " +
-                        "validation result is invalid.")
+                    .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                     .Build());
 
         public static IQueryResult StateInvalidForOperationVariableCoercion() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
-                    .SetMessage(
-                        "There is no operation on the context which can be used to coerce " +
-                        "variables.")
+                    .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
                     .Build());
 
         public static IQueryResult StateInvalidForOperationExecution() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
-                    .SetMessage(
-                        "Either now compiled operation was found or the variables " +
-                        "have not been coerced.")
+                    .SetMessage(ErrorHelper_StateInvalidForOperationExecution_Message)
                     .Build());
 
         public static IError ValueCompletion_CouldNotResolveAbstractType(
             FieldNode field,
             Path path) =>
-             ErrorBuilder.New()
-                    .SetMessage("Could not resolve the actual object type from `System.String` for the abstract type `Bar`.")
-                    .SetPath(path)
-                    .AddLocation(field)
-                    .Build();
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message)
+                .SetPath(path)
+                .AddLocation(field)
+                .Build();
 
         public static IQueryResult StateInvalidForDocumentValidation() =>
             QueryResultBuilder.CreateError(
                 ErrorBuilder.New()
-                    .SetMessage("The query request contains no document.")
+                    .SetMessage(ErrorHelper_StateInvalidForDocumentValidation_Message)
                     .SetCode(ErrorCodes.Execution.QueryNotFound)
                     .Build());
     }
