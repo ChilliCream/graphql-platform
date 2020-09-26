@@ -2,30 +2,39 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonMultiPointSerializer : GeoJsonInputObjectSerializer<MultiPoint>
+    internal class GeoJsonMultiPointSerializer
+        : GeoJsonInputObjectSerializer<MultiPoint>
     {
         private GeoJsonMultiPointSerializer()
             : base(GeoJsonGeometryType.MultiPoint)
         {
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
+        protected override bool TrySerializeCoordinates(
+            Coordinate[] runtimeValue,
+            [NotNullWhen(true)] out object? resultValue)
         {
-            return coordinates is Coordinate[];
+            if (runtimeValue.Length == 1)
+            {
+                resultValue = GeoJsonPositionSerializer.Default.Serialize(runtimeValue[0]);
+                return resultValue is {};
+            }
+
+            resultValue = null;
+            return false;
         }
 
-        public override bool TryCreateGeometry(
+        public override MultiPoint CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out MultiPoint? geometry)
+            int? crs)
         {
             if (!(coordinates is Coordinate[] parts))
             {
-                geometry = null;
-                return false;
+                throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
             var lineCount = parts.Length;
@@ -33,13 +42,8 @@ namespace HotChocolate.Types
 
             for (var i = 0; i < lineCount; i++)
             {
-                if (GeoJsonPointSerializer.Default.TryCreateGeometry(
-                    parts[i],
-                    crs,
-                    out Point? point))
-                {
-                    geometries[i] = point;
-                }
+                geometries[i] = GeoJsonPointSerializer.Default
+                    .CreateGeometry(parts[i], crs);
             }
 
             if (crs is { })
@@ -47,12 +51,10 @@ namespace HotChocolate.Types
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-                geometry = factory.CreateMultiPoint(geometries);
-                return true;
+                return factory.CreateMultiPoint(geometries);
             }
 
-            geometry = new MultiPoint(geometries);
-            return true;
+            return new MultiPoint(geometries);
         }
 
         public static readonly GeoJsonMultiPointSerializer Default =

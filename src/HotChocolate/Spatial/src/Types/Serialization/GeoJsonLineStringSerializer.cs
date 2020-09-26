@@ -13,23 +13,12 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
-        {
-            return coordinates is Coordinate[] c && c.Length > 1;
-        }
-
-        public override bool TryCreateGeometry(
+        public override LineString CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out LineString? geometry)
+            int? crs)
         {
-            if (!(coordinates is Coordinate[] coords))
-            {
-                geometry = null;
-                return false;
-            }
-
-            if (coords.Length < 2)
+            if (!(coordinates is Coordinate[] coords) ||
+                coords.Length < 2)
             {
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }
@@ -39,12 +28,10 @@ namespace HotChocolate.Types
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-                geometry = factory.CreateLineString(coords);
-                return true;
+                return factory.CreateLineString(coords);
             }
 
-            geometry = new LineString(coords);
-            return true;
+            return new LineString(coords);
         }
 
         public static readonly GeoJsonLineStringSerializer Default =

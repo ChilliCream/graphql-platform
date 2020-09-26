@@ -7,7 +7,7 @@ using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonTypeSerializer : GeoJsonSerializerBase
+    internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
     {
         private static readonly IDictionary<string, GeoJsonGeometryType> _nameLookup =
             new Dictionary<string, GeoJsonGeometryType>
@@ -129,15 +129,15 @@ namespace HotChocolate.Types
             }
 
             if (resultValue is string s &&
-                _nameLookup.TryGetValue(s, out GeoJsonGeometryType enumValue))
+                _nameLookup.ContainsKey(s))
             {
-                return new EnumValueNode(enumValue);
+                return new EnumValueNode(s);
             }
 
             if (resultValue is NameString n &&
-                _nameLookup.TryGetValue(n.Value, out enumValue))
+                _nameLookup.ContainsKey(n.Value))
             {
-                return new EnumValueNode(enumValue);
+                return new EnumValueNode(n.Value);
             }
 
             if (resultValue is GeoJsonGeometryType value &&
@@ -187,7 +187,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            runtimeValue = false;
+            runtimeValue = null;
             return false;
         }
 

@@ -1,5 +1,6 @@
 ﻿using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.Properties.Resources;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -7,7 +8,7 @@ namespace HotChocolate.Types.Spatial
     {
         protected override void Configure(IObjectTypeDescriptor<LineString> descriptor)
         {
-            descriptor.GeoJsonName(nameof(GeoJsonLineStringType));
+            descriptor.Name(LineStringTypeName);
 
             descriptor.BindFieldsExplicitly();
 

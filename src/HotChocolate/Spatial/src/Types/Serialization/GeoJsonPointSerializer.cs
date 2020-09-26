@@ -1,12 +1,15 @@
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonPointSerializer : GeoJsonInputObjectSerializer<Point>
+    internal class GeoJsonPointSerializer
+        : GeoJsonInputObjectSerializer<Point>
     {
         private GeoJsonPointSerializer()
             : base(GeoJsonGeometryType.Point)
@@ -27,20 +30,13 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
-        {
-            return coordinates is Coordinate;
-        }
-
-        public override bool TryCreateGeometry(
+        public override Point CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out Point? geometry)
+            int? crs)
         {
             if (!(coordinates is Coordinate coordinate))
             {
-                geometry = null;
-                return false;
+                throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
             if (crs is { })
@@ -48,17 +44,21 @@ namespace HotChocolate.Types
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-                geometry = factory.CreatePoint(coordinate);
-                return true;
+                return factory.CreatePoint(coordinate);
             }
 
-            geometry = new Point(coordinate);
-            return true;
+            return new Point(coordinate);
         }
 
-        protected override IValueNode ParseCoordinates(Coordinate[] runtimeValue)
+        protected override IValueNode ParseCoordinates(IList runtimeValue)
         {
-            return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[0]);
+            if ((runtimeValue.Count > 0 && runtimeValue[0] is IList) ||
+                runtimeValue is Coordinate[])
+            {
+                return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue[0]);
+            }
+
+            return GeoJsonPositionSerializer.Default.ParseResult(runtimeValue);
         }
 
         public static readonly GeoJsonPointSerializer Default = new GeoJsonPointSerializer();

@@ -1,31 +1,25 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonMultiLineStringSerializer : GeoJsonInputObjectSerializer<MultiLineString>
+    internal class GeoJsonMultiLineStringSerializer
+        : GeoJsonInputObjectSerializer<MultiLineString>
     {
         private GeoJsonMultiLineStringSerializer()
             : base(GeoJsonGeometryType.MultiLineString)
         {
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
-        {
-            return coordinates is Coordinate[][];
-        }
-
-        public override bool TryCreateGeometry(
+        public override MultiLineString CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out MultiLineString? geometry)
+            int? crs)
         {
             if (!(coordinates is Coordinate[][] parts))
             {
-                geometry = null;
-                return false;
+                throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
             var lineCount = parts.Length;
@@ -33,13 +27,8 @@ namespace HotChocolate.Types
 
             for (var i = 0; i < lineCount; i++)
             {
-                if (GeoJsonLineStringSerializer.Default.TryCreateGeometry(
-                    parts[i],
-                    crs,
-                    out LineString? line))
-                {
-                    geometries[i] = line;
-                }
+                geometries[i] = GeoJsonLineStringSerializer.Default
+                    .CreateGeometry(parts[i], crs);
             }
 
             if (crs is { })
@@ -47,12 +36,10 @@ namespace HotChocolate.Types
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-                geometry = factory.CreateMultiLineString(geometries);
-                return true;
+                return factory.CreateMultiLineString(geometries);
             }
 
-            geometry = new MultiLineString(geometries);
-            return true;
+            return new MultiLineString(geometries);
         }
 
         public static readonly GeoJsonMultiLineStringSerializer Default =

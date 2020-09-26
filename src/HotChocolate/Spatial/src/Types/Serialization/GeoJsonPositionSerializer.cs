@@ -6,7 +6,7 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonPositionSerializer : GeoJsonSerializerBase
+    internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
     {
         public override bool IsInstanceOfType(IValueNode valueSyntax)
         {
@@ -110,6 +110,21 @@ namespace HotChocolate.Types
             if (resultValue is null)
             {
                 return NullValueNode.Default;
+            }
+
+            if (resultValue is Coordinate coords)
+            {
+                if (coords.Z is double.NaN)
+                {
+                    return new ListValueNode(
+                        new FloatValueNode(coords.X),
+                        new FloatValueNode(coords.Y));
+                }
+
+                return new ListValueNode(
+                    new FloatValueNode(coords.X),
+                    new FloatValueNode(coords.Y),
+                    new FloatValueNode(coords.Z));
             }
 
             if (!(resultValue is double[] coordinate))

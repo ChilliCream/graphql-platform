@@ -209,3 +209,4 @@ namespace HotChocolate.Types.Spatial.Tests
         }
     }
 }
+

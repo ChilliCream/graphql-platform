@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using NetTopologySuite.Geometries;
 using HotChocolate.Types.Spatial.Properties;
+using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Spatial
     /// </summary>
     public sealed class GeoJsonPositionType : ScalarType<Coordinate>
     {
-        public GeoJsonPositionType() : base("Position")
+        public GeoJsonPositionType() : base(PositionTypeName)
         {
             Description = Resources.GeoJsonPositionScalar_Description;
         }

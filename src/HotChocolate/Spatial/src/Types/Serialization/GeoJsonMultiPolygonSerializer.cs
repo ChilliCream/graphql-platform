@@ -1,31 +1,25 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
+using static HotChocolate.Types.Spatial.ThrowHelper;
 
 namespace HotChocolate.Types
 {
-    internal class GeoJsonMultiPolygonSerializer : GeoJsonInputObjectSerializer<MultiPolygon>
+    internal class GeoJsonMultiPolygonSerializer
+        : GeoJsonInputObjectSerializer<MultiPolygon>
     {
         private GeoJsonMultiPolygonSerializer()
             : base(GeoJsonGeometryType.MultiPolygon)
         {
         }
 
-        protected override bool IsCoordinateValid(object? coordinates)
-        {
-            return coordinates is Coordinate[][];
-        }
-
-        public override bool TryCreateGeometry(
+        public override MultiPolygon CreateGeometry(
             object? coordinates,
-            int? crs,
-            [NotNullWhen(true)] out MultiPolygon? geometry)
+            int? crs)
         {
             if (!(coordinates is Coordinate[][] parts))
             {
-                geometry = null;
-                return false;
+                throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
             var lineCount = parts.Length;
@@ -33,13 +27,8 @@ namespace HotChocolate.Types
 
             for (var i = 0; i < lineCount; i++)
             {
-                if (GeoJsonPolygonSerializer.Default.TryCreateGeometry(
-                    parts[i],
-                    crs,
-                    out Polygon? line))
-                {
-                    geometries[i] = line;
-                }
+                geometries[i] = GeoJsonPolygonSerializer.Default
+                    .CreateGeometry(parts[i], crs);
             }
 
             if (crs is { })
@@ -47,12 +36,10 @@ namespace HotChocolate.Types
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);
 
-                geometry = factory.CreateMultiPolygon(geometries);
-                return true;
+                return factory.CreateMultiPolygon(geometries);
             }
 
-            geometry = new MultiPolygon(geometries);
-            return true;
+            return new MultiPolygon(geometries);
         }
 
         public static readonly GeoJsonMultiPolygonSerializer Default =
