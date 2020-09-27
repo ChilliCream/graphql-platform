@@ -27,17 +27,17 @@ namespace HotChocolate.Types.Relay
             IExecutionResult result =
                 await executor.ExecuteAsync(
                     @"{
-                        foosAsIConnectionAndIEnumerable {
+                        foosAsIConnectionAndIEnumerable(first: 2) {
                             totalCount
                             pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
                             nodes { id string }
                         }
-                        foosAsIEnumerable {
+                        foosAsIEnumerable(first: 2) {
                             totalCount
                             pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
                             nodes { id string }
                         }
-                        foosAsIQueryable {
+                        foosAsIQueryable(first: 2) {
                             totalCount
                             pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
                             nodes { id string }
@@ -53,6 +53,8 @@ namespace HotChocolate.Types.Relay
             [UsePaging(SchemaType = typeof(FooType))]
             public FooConnection GetFoosAsIConnectionAndIEnumerable()
             {
+                // Values returned here in this resolver should be considered as-is
+
                 var edges = Foos.Select(f => new Edge<Foo>(f, f.Id.ToString())).ToList();
 
                 var pageInfo = new PageInfo(

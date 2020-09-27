@@ -30,10 +30,10 @@
     "foosAsIEnumerable": {
       "totalCount": 4,
       "pageInfo": {
-        "hasNextPage": false,
+        "hasNextPage": true,
         "hasPreviousPage": false,
         "startCursor": "MA==",
-        "endCursor": "Mw=="
+        "endCursor": "MQ=="
       },
       "nodes": [
         {
@@ -42,14 +42,6 @@
         },
         {
           "id": "Rm9vCmky",
-          "string": "Hello"
-        },
-        {
-          "id": "Rm9vCmkz",
-          "string": "Hello"
-        },
-        {
-          "id": "Rm9vCmk0",
           "string": "Hello"
         }
       ]
@@ -57,10 +49,10 @@
     "foosAsIQueryable": {
       "totalCount": 4,
       "pageInfo": {
-        "hasNextPage": false,
+        "hasNextPage": true,
         "hasPreviousPage": false,
         "startCursor": "MA==",
-        "endCursor": "Mw=="
+        "endCursor": "MQ=="
       },
       "nodes": [
         {
@@ -69,14 +61,6 @@
         },
         {
           "id": "Rm9vCmky",
-          "string": "Hello"
-        },
-        {
-          "id": "Rm9vCmkz",
-          "string": "Hello"
-        },
-        {
-          "id": "Rm9vCmk0",
           "string": "Hello"
         }
       ]
