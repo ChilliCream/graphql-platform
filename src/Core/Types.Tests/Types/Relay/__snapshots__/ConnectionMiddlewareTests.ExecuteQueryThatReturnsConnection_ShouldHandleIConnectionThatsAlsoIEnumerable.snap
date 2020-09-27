@@ -1,0 +1,34 @@
+﻿{
+  "Data": {
+    "foos": {
+      "totalCount": 100,
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true,
+        "startCursor": "11",
+        "endCursor": "14"
+      },
+      "nodes": [
+        {
+          "id": "Rm9vCmkxMQ==",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkxMg==",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkxMw==",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkxNA==",
+          "string": "Hello"
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}
