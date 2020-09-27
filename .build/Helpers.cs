@@ -16,7 +16,8 @@ class Helpers
         Path.Combine("HotChocolate", "PersistedQueries"),
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
-        Path.Combine("HotChocolate", "Filters")
+        Path.Combine("HotChocolate", "Filters"),
+        Path.Combine("HotChocolate", "Stitching2")
     };
 
     public static IEnumerable<string> GetAllProjects(string sourceDirectory)
