@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay
     public class ConnectionMiddlewareTests
     {
         [Fact]
-        public async Task ExecuteQueryThatReturnsConnection_ShouldHandleIConnectionThatsAlsoIEnumerable()
+        public async Task ExecuteQueryWithConnectionMiddleware_ShouldHandleVariousReturnTypes()
         {
             // arrange
             var schema = Schema.Create(t =>
@@ -27,7 +27,17 @@ namespace HotChocolate.Types.Relay
             IExecutionResult result =
                 await executor.ExecuteAsync(
                     @"{
-                        foos {
+                        foosAsIConnectionAndIEnumerable {
+                            totalCount
+                            pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+                            nodes { id string }
+                        }
+                        foosAsIEnumerable {
+                            totalCount
+                            pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
+                            nodes { id string }
+                        }
+                        foosAsIQueryable {
                             totalCount
                             pageInfo { hasNextPage hasPreviousPage startCursor endCursor }
                             nodes { id string }
@@ -41,16 +51,9 @@ namespace HotChocolate.Types.Relay
         public class SomeQuery
         {
             [UsePaging(SchemaType = typeof(FooType))]
-            public FooConnection GetFoos()
+            public FooConnection GetFoosAsIConnectionAndIEnumerable()
             {
-                var i = 10;
-                var edges = new List<Edge<Foo>>
-                {
-                    new Edge<Foo>(new Foo(++i), i.ToString()),
-                    new Edge<Foo>(new Foo(++i), i.ToString()),
-                    new Edge<Foo>(new Foo(++i), i.ToString()),
-                    new Edge<Foo>(new Foo(++i), i.ToString()),
-                };
+                var edges = Foos.Select(f => new Edge<Foo>(f, f.Id.ToString())).ToList();
 
                 var pageInfo = new PageInfo(
                     hasNextPage: true,
@@ -61,7 +64,23 @@ namespace HotChocolate.Types.Relay
 
                 return new FooConnection(pageInfo, edges);
             }
+
+            [UsePaging(SchemaType = typeof(FooType))]
+            public IEnumerable<Foo> GetFoosAsIEnumerable()
+                => Foos;
+
+            [UsePaging(SchemaType = typeof(FooType))]
+            public IQueryable<Foo> GetFoosAsIQueryable()
+                => Foos.AsQueryable();
         }
+
+        private static IEnumerable<Foo> Foos => new List<Foo>
+        {
+            new Foo(1),
+            new Foo(2),
+            new Foo(3),
+            new Foo(4)
+        };
 
         public class FooConnection : IConnection, IEnumerable<Foo>
         {

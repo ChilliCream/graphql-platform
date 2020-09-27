@@ -1,0 +1,88 @@
+﻿{
+  "Data": {
+    "foosAsIConnectionAndIEnumerable": {
+      "totalCount": 100,
+      "pageInfo": {
+        "hasNextPage": true,
+        "hasPreviousPage": true,
+        "startCursor": "1",
+        "endCursor": "4"
+      },
+      "nodes": [
+        {
+          "id": "Rm9vCmkx",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmky",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkz",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmk0",
+          "string": "Hello"
+        }
+      ]
+    },
+    "foosAsIEnumerable": {
+      "totalCount": 4,
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "Mw=="
+      },
+      "nodes": [
+        {
+          "id": "Rm9vCmkx",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmky",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkz",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmk0",
+          "string": "Hello"
+        }
+      ]
+    },
+    "foosAsIQueryable": {
+      "totalCount": 4,
+      "pageInfo": {
+        "hasNextPage": false,
+        "hasPreviousPage": false,
+        "startCursor": "MA==",
+        "endCursor": "Mw=="
+      },
+      "nodes": [
+        {
+          "id": "Rm9vCmkx",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmky",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmkz",
+          "string": "Hello"
+        },
+        {
+          "id": "Rm9vCmk0",
+          "string": "Hello"
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}
