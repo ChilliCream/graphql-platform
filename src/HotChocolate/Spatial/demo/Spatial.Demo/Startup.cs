@@ -7,17 +7,22 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Spatial.Demo
 {
     public class Startup
     {
+        public static readonly ILoggerFactory loggerFactory = LoggerFactory.Create(x => x.AddConsole());
+        private const string connectionString =
+            "Database=opensgid;Host=opensgid.agrc.utah.gov;Username=agrc;Password=agrc";
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContextPool<ApplicationDbContext>(
-                    options => options.UseNpgsql(
-                        "Database=opensgid;Host=opensgid.agrc.utah.gov;Username=agrc;Password=agrc",
-                        o => o.UseNetTopologySuite()))
+            services.AddDbContextPool<ApplicationDbContext>(options =>
+                    options.UseNpgsql(connectionString, o =>
+                        o.UseNetTopologySuite())
+                    .UseLoggerFactory(loggerFactory)
+                )
                 .AddGraphQLServer()
                 .AddSpatialTypes()
                 .AddFiltering(
