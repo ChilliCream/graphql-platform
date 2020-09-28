@@ -28,7 +28,7 @@ namespace HotChocolate
         }
 
         protected sealed override SchemaTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = SchemaTypeDescriptor.New(
                 context.DescriptorContext,
@@ -40,7 +40,7 @@ namespace HotChocolate
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             SchemaTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -54,7 +54,7 @@ namespace HotChocolate
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             SchemaTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -69,7 +69,7 @@ namespace HotChocolate
         internal void CompleteSchema(
             SchemaTypesDefinition schemaTypesDefinition)
         {
-            if (schemaTypesDefinition == null)
+            if (schemaTypesDefinition is null)
             {
                 throw new ArgumentNullException(nameof(schemaTypesDefinition));
             }

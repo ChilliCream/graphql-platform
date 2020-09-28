@@ -15,7 +15,7 @@ namespace HotChocolate
 
         public GraphQLResolverAttribute(Type resolverType)
         {
-            if (resolverType == null)
+            if (resolverType is null)
             {
                 throw new ArgumentNullException(nameof(resolverType));
             }

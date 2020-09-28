@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Subscriptions;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 #nullable enable
 
@@ -26,23 +30,24 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => new List<string> { "a", "b", "c" }))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(queryResult.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -56,24 +61,25 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IEnumerable<string>>(
                         new List<string> { "a", "b", "c" })))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -88,24 +94,26 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => observable))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
             }
 
             Assert.True(observable.DisposeRaised);
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -120,24 +128,25 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IObservable<string>>(observable)))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
             Assert.True(observable.DisposeRaised);
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -151,23 +160,24 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => new TestAsyncEnumerable()))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -181,24 +191,25 @@ namespace HotChocolate.Types
                 .AddSubscriptionType(t => t
                     .Field("test")
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.CustomProperty<string>(WellKnownContextData.EventMessage))
+                    .Resolver(ctx => ctx.GetEventMessage<string>())
                     .Subscribe(ctx => Task.FromResult<IAsyncEnumerable<string>>(
                         new TestAsyncEnumerable())))
                 .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { test }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot();
+            results.ToString().MatchSnapshot();
         }
 
         [InlineData("onSomething")]
@@ -208,7 +219,7 @@ namespace HotChocolate.Types
         [InlineData("onSomethingObjTask")]
         [InlineData("onSomethingObjValueTask")]
         [Theory]
-        public async Task Subscribe_Attribute_AsyncEnumerable(string field)
+        public async Task SubscribeAndResolve_Attribute_AsyncEnumerable(string field)
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
@@ -220,17 +231,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -240,7 +252,7 @@ namespace HotChocolate.Types
         [InlineData("onSomethingObjTask")]
         [InlineData("onSomethingObjValueTask")]
         [Theory]
-        public async Task Subscribe_Attribute_Enumerable(string field)
+        public async Task SubscribeAndResolve_Attribute_Enumerable(string field)
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
@@ -252,17 +264,19 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -272,7 +286,7 @@ namespace HotChocolate.Types
         [InlineData("onSomethingObjTask")]
         [InlineData("onSomethingObjValueTask")]
         [Theory]
-        public async Task Subscribe_Attribute_Queryable(string field)
+        public async Task SubscribeAndResolve_Attribute_Queryable(string field)
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
@@ -284,17 +298,18 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult result in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
         }
 
         [InlineData("onSomething")]
@@ -304,7 +319,7 @@ namespace HotChocolate.Types
         [InlineData("onSomethingObjTask")]
         [InlineData("onSomethingObjValueTask")]
         [Theory]
-        public async Task Subscribe_Attribute_Observable(string field)
+        public async Task SubscribeAndResolve_Attribute_Observable(string field)
         {
             // arrange
             using var cts = new CancellationTokenSource(30000);
@@ -316,17 +331,248 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             var stream = (IResponseStream)await executor.ExecuteAsync(
                 "subscription { " + field + " }", cts.Token);
 
-            var results = new List<IReadOnlyQueryResult>();
-            await foreach (IReadOnlyQueryResult result in stream.WithCancellation(cts.Token))
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
             {
-                results.Add(result);
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
             }
 
-            results.MatchSnapshot(new SnapshotNameExtension(field));
+            results.ToString().MatchSnapshot(new SnapshotNameExtension(field));
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Argument_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onMessage(userId: \"abc\") }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeMessage(userId: \"abc\" message: \"def\") }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            await stream.DisposeAsync();
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic_Defined_On_Attribute()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onFixedMessage }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeFixedMessage(message: \"def\") }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            await stream.DisposeAsync();
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onSysMessage }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeSysMessage(message: \"def\") }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            await stream.DisposeAsync();
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Static_Topic_Infer_Topic()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onInferTopic }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeOnInferTopic(message: \"def\") }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            await stream.DisposeAsync();
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Explicitly_Defined_Subscribe()
+        {
+            // arrange
+            using var cts = new CancellationTokenSource(30000);
+
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // act
+            var stream = (IResponseStream)await executor.ExecuteAsync(
+                "subscription { onExplicit }",
+                cts.Token);
+
+            // assert
+            IExecutionResult mutationResult = await executor.ExecuteAsync(
+                "mutation { writeOnExplicit(message: \"def\") }",
+                cts.Token);
+            Assert.Null(mutationResult.Errors);
+
+            var results = new StringBuilder();
+            await foreach (IQueryResult queryResult in
+                stream.ReadResultsAsync().WithCancellation(cts.Token))
+            {
+                var result = (IQueryResult)queryResult;
+                results.AppendLine(result.ToJson());
+                break;
+            }
+
+            await stream.DisposeAsync();
+
+            results.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly()
+        {
+            // arrange
+            // act
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddMutationType<MyMutation>()
+                .AddSubscriptionType<MySubscription>());
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_Schema_Is_Generated_Correctly_2()
+        {
+            // arrange
+            // act
+            IRequestExecutor executor = await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddSubscriptionType(d => d.Name("Subscription"))
+                .AddTypeExtension<MySubscriptionExtension>());
+
+            // assert
+            executor.Schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Subscribe_Attribute_With_Two_Topic_Attributes_Error()
+        {
+            // arrange
+            // act
+            Func<Task> error = async () => await CreateExecutorAsync(r => r
+                .AddInMemorySubscriptions()
+                .AddQueryType(c => c.Name("Query").Field("a").Resolver("b"))
+                .AddSubscriptionType<InvalidSubscription_TwoTopicAttributes>());
+
+            // assert
+            (await Assert.ThrowsAsync<SchemaException>(error)).Message.MatchSnapshot();
         }
 
         public class TestObservable
@@ -374,7 +620,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstAsyncEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<string?> OnSomething()
             {
                 await Task.Delay(50);
@@ -383,20 +629,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IAsyncEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public async IAsyncEnumerable<object?> OnSomethingObj()
             {
                 await Task.Delay(50);
@@ -406,14 +652,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IAsyncEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IAsyncEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IAsyncEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IAsyncEnumerable<object?>>(OnSomethingObj());
@@ -422,7 +668,7 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstEnumerable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<string?> OnSomething()
             {
                 yield return "a";
@@ -430,20 +676,20 @@ namespace HotChocolate.Types
                 yield return "c";
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IEnumerable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IEnumerable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IEnumerable<object?> OnSomethingObj()
             {
                 yield return "a";
@@ -452,14 +698,14 @@ namespace HotChocolate.Types
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IEnumerable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IEnumerable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IEnumerable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IEnumerable<object?>>(OnSomethingObj());
@@ -475,34 +721,34 @@ namespace HotChocolate.Types
                 "c"
             };
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<string?> OnSomething() => _strings.AsQueryable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IQueryable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IQueryable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IQueryable<object?> OnSomethingObj() => _strings.Cast<object>().AsQueryable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IQueryable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IQueryable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IQueryable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IQueryable<object?>>(OnSomethingObj());
@@ -511,34 +757,34 @@ namespace HotChocolate.Types
 
         public class PureCodeFirstObservable
         {
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<string?> OnSomething() => new StringObservable();
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<string?>> OnSomethingTask()
             {
                 return Task.FromResult<IObservable<string?>>(OnSomething());
             }
 
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<string?>> OnSomethingValueTask()
             {
                 return new ValueTask<IObservable<string?>>(OnSomething());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public IObservable<object?> OnSomethingObj() => new StringObservable();
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public Task<IObservable<object?>> OnSomethingObjTask()
             {
                 return Task.FromResult<IObservable<object?>>(OnSomethingObj());
             }
 
             [GraphQLType(typeof(StringType))]
-            [Subscribe]
+            [SubscribeAndResolve]
             public ValueTask<IObservable<object?>> OnSomethingObjValueTask()
             {
                 return new ValueTask<IObservable<object?>>(OnSomethingObj());
@@ -588,6 +834,135 @@ namespace HotChocolate.Types
                     }
                 }
             }
+        }
+
+        public class MyMutation
+        {
+            public string WriteMessage(
+                string userId,
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync(userId, message);
+                return message;
+            }
+
+            public string WriteSysMessage(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("OnSysMessage", message);
+                return message;
+            }
+
+            public string WriteFixedMessage(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("Fixed", message);
+                return message;
+            }
+
+            public string WriteOnInferTopic(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("OnInferTopic", message);
+                return message;
+            }
+
+            public string WriteOnExplicit(
+                string message,
+                [Service] ITopicEventSender eventSender)
+            {
+                eventSender.SendAsync("explicit", message);
+                return message;
+            }
+        }
+
+        public class MySubscription
+        {
+            [Subscribe]
+            public string OnMessage(
+                [Topic] string userId,
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            [Topic]
+            public string OnSysMessage(
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            [Topic("Fixed")]
+            public string OnFixedMessage(
+                [EventMessage] string message) =>
+                message;
+
+            [Subscribe]
+            public string OnInferTopic(
+                [EventMessage] string message) =>
+                message;
+
+            public ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                eventReceiver.SubscribeAsync<string, string>("explicit");
+
+            [Subscribe(With = nameof(SubscribeToOnExplicit))]
+            public string OnExplicit(
+                [EventMessage] string message) =>
+                message;
+
+            public ValueTask<ISourceStream> SubscribeToOnExplicitNonGeneric(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                default;
+
+            [Subscribe(With = nameof(SubscribeToOnExplicitNonGeneric))]
+            public string OnExplicitNonGeneric(
+                [EventMessage] string message) =>
+                message;
+
+            public ISourceStream SubscribeToOnExplicitNonGenericSync(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                default!;
+
+            [Subscribe(With = nameof(SubscribeToOnExplicitNonGenericSync))]
+            public string OnExplicitNonGenericSync(
+                [EventMessage] string message) =>
+                message;
+
+            public ISourceStream<string> SubscribeToOnExplicitSync(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                default!;
+
+            [Subscribe(With = nameof(SubscribeToOnExplicitSync))]
+            public string OnExplicitSync(
+                [EventMessage] string message) =>
+                message;
+        }
+
+        public class InvalidSubscription_TwoTopicAttributes
+        {
+            [Subscribe]
+            [Topic]
+            public string OnMessage(
+                [Topic] string userId,
+                [EventMessage] string message) =>
+                message;
+        }
+
+        [ExtendObjectType(Name = "Subscription")]
+        public class MySubscriptionExtension
+        {
+            public async ValueTask<ISourceStream<string>> SubscribeToOnExplicit(
+                [Service] ITopicEventReceiver eventReceiver) =>
+                await eventReceiver.SubscribeAsync<string, string>("explicit");
+
+            [Subscribe(With = nameof(SubscribeToOnExplicit))]
+            public string OnExplicit(
+                [EventMessage] string message) =>
+                message;
         }
     }
 }

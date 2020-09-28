@@ -10,28 +10,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
     public class ServiceCollectionTests
     {
         [Fact]
-        public void AddFileSystemQueryStorage_1_Services_Is_Null()
+        public void AddFileSystemQueryStorage_Services_Is_Null()
         {
             // arrange
             // act
             Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddFileSystemQueryStorage(null, string.Empty);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void AddFileSystemQueryStorage_1_Directory_Is_Null()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
-            Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddFileSystemQueryStorage(services, null);
+                HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+                    .AddFileSystemQueryStorage(null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -44,7 +29,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             var services = new ServiceCollection();
 
             // act
-            FileSystemQueryStorageServiceCollectionExtensions
+            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
                 .AddFileSystemQueryStorage(services, "foo");
 
             // assert
@@ -55,25 +40,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         [Fact]
-        public void AddFileSystemQueryStorage_2_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddFileSystemQueryStorage(null);
-
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
         public void AddFileSystemQueryStorage_2_Services()
         {
             // arrange
             var services = new ServiceCollection();
 
             // act
-            FileSystemQueryStorageServiceCollectionExtensions
+            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
                 .AddFileSystemQueryStorage(services);
 
             // assert
@@ -84,28 +57,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_1_Services_Is_Null()
+        public void AddReadOnlyFileSystemQueryStorage_Services_Is_Null()
         {
             // arrange
             // act
             Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddReadOnlyFileSystemQueryStorage(null, string.Empty);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_1_Directory_Is_Null()
-        {
-            // arrange
-            var services = new ServiceCollection();
-
-            // act
-            Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddReadOnlyFileSystemQueryStorage(services, null);
+                HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
+                    .AddReadOnlyFileSystemQueryStorage(null!);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -118,7 +76,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             var services = new ServiceCollection();
 
             // act
-            FileSystemQueryStorageServiceCollectionExtensions
+            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
                 .AddReadOnlyFileSystemQueryStorage(services, "foo");
 
             // assert
@@ -130,25 +88,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         [Fact]
-        public void AddReadOnlyFileSystemQueryStorage_2_Services_Is_Null()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                FileSystemQueryStorageServiceCollectionExtensions
-                    .AddReadOnlyFileSystemQueryStorage(null);
-
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
         public void AddReadOnlyFileSystemQueryStorage_2_Services()
         {
             // arrange
             var services = new ServiceCollection();
 
             // act
-            FileSystemQueryStorageServiceCollectionExtensions
+            HotChocolateFileSystemPersistedQueriesServiceCollectionExtensions
                 .AddReadOnlyFileSystemQueryStorage(services);
 
             // assert

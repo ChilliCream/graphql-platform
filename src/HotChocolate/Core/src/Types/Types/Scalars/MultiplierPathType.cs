@@ -1,6 +1,8 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -36,67 +38,89 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool IsInstanceOfType(StringValueNode literal)
+        protected override bool IsInstanceOfType(StringValueNode valueSyntax)
         {
-            return MultiplierPathString.IsValidPath(literal.AsSpan());
+            return MultiplierPathString.IsValidPath(valueSyntax.AsSpan());
         }
 
-        protected override MultiplierPathString ParseLiteral(StringValueNode literal)
+        protected override MultiplierPathString ParseLiteral(StringValueNode valueSyntax)
         {
-            if (IsInstanceOfType(literal))
+            if (IsInstanceOfType(valueSyntax))
             {
-                return new MultiplierPathString(literal.Value);
+                return new MultiplierPathString(valueSyntax.Value);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(MultiplierPathString value)
+        protected override StringValueNode ParseValue(MultiplierPathString runtimeValue)
         {
-            return new StringValueNode(value.Value);
+            return new StringValueNode(runtimeValue.Value);
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is MultiplierPathString p)
+            {
+                return new StringValueNode(p.Value);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is MultiplierPathString path)
+            if (runtimeValue is MultiplierPathString path)
             {
-                serialized = path.Value;
+                resultValue = path.Value;
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s)
+            if (resultValue is string s)
             {
-                value = new MultiplierPathString(s);
+                runtimeValue = new MultiplierPathString(s);
                 return true;
             }
 
-            if (serialized is MultiplierPathString p)
+            if (resultValue is MultiplierPathString p)
             {
-                value = p;
+                runtimeValue = p;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

@@ -1,0 +1,381 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: FooFilterInput): String
+}
+
+input BazFilterInput {
+  and: [BazFilterInput!]
+  or: [BazFilterInput!]
+  stringProp: StringOperationFilterInput
+}
+
+input BooleanOperationFilterInput {
+  eq: Boolean
+  neq: Boolean
+}
+
+input ComparableOperationFilterInputOfDecimalFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal!]
+  nin: [Decimal!]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ComparableOperationFilterInputOfDoubleFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input ComparableOperationFilterInputOfInt16FilterInput {
+  eq: Short
+  neq: Short
+  in: [Short!]
+  nin: [Short!]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
+}
+
+input ComparableOperationFilterInputOfInt32FilterInput {
+  eq: Int
+  neq: Int
+  in: [Int!]
+  nin: [Int!]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ComparableOperationFilterInputOfInt64FilterInput {
+  eq: Long
+  neq: Long
+  in: [Long!]
+  nin: [Long!]
+  gt: Long
+  ngt: Long
+  gte: Long
+  ngte: Long
+  lt: Long
+  nlt: Long
+  lte: Long
+  nlte: Long
+}
+
+input ComparableOperationFilterInputOfNullableOfDecimalFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal]
+  nin: [Decimal]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+input ComparableOperationFilterInputOfNullableOfDoubleFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float]
+  nin: [Float]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input ComparableOperationFilterInputOfNullableOfInt16FilterInput {
+  eq: Short
+  neq: Short
+  in: [Short]
+  nin: [Short]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
+}
+
+input ComparableOperationFilterInputOfNullableOfInt32FilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input ComparableOperationFilterInputOfNullableOfInt64FilterInput {
+  eq: Long
+  neq: Long
+  in: [Long]
+  nin: [Long]
+  gt: Long
+  ngt: Long
+  gte: Long
+  ngte: Long
+  lt: Long
+  nlt: Long
+  lte: Long
+  nlte: Long
+}
+
+input ComparableOperationFilterInputOfNullableOfSingleFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float]
+  nin: [Float]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input ComparableOperationFilterInputOfSingleFilterInput {
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
+}
+
+input EnumOperationFilterInputOfFooBarFilterInput {
+  eq: FooBar
+  neq: FooBar
+  in: [FooBar!]
+  nin: [FooBar!]
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  baz: ListFilterInputOfFilterInputTypeOfBazFilterInput
+  stringArray: ListFilterInputOfStringOperationFilterInput
+  stringNullableArray: ListFilterInputOfStringOperationFilterInput
+  booleanArray: ListFilterInputOfBooleanOperationFilterInput
+  booleanNullableArray: ListFilterInputOfBooleanOperationFilterInput
+  barShortArray: ListFilterInputOfComparableOperationFilterInputOfInt16FilterInput
+  barIntArray: ListFilterInputOfComparableOperationFilterInputOfInt32FilterInput
+  barLongArray: ListFilterInputOfComparableOperationFilterInputOfInt64FilterInput
+  barFloatArray: ListFilterInputOfComparableOperationFilterInputOfSingleFilterInput
+  barDoubleArray: ListFilterInputOfComparableOperationFilterInputOfDoubleFilterInput
+  barDecimalArray: ListFilterInputOfComparableOperationFilterInputOfDecimalFilterInput
+  barShortNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfInt16FilterInput
+  barIntNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfInt32FilterInput
+  barLongNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfInt64FilterInput
+  barFloatNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfSingleFilterInput
+  barDoubleNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfDoubleFilterInput
+  barDecimalNullableArray: ListFilterInputOfComparableOperationFilterInputOfNullableOfDecimalFilterInput
+  fooBarArray: ListFilterInputOfEnumOperationFilterInputOfFooBarFilterInput
+}
+
+input ListFilterInputOfBooleanOperationFilterInput {
+  all: BooleanOperationFilterInput
+  none: BooleanOperationFilterInput
+  some: BooleanOperationFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfDecimalFilterInput {
+  all: ComparableOperationFilterInputOfDecimalFilterInput
+  none: ComparableOperationFilterInputOfDecimalFilterInput
+  some: ComparableOperationFilterInputOfDecimalFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfDoubleFilterInput {
+  all: ComparableOperationFilterInputOfDoubleFilterInput
+  none: ComparableOperationFilterInputOfDoubleFilterInput
+  some: ComparableOperationFilterInputOfDoubleFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfInt16FilterInput {
+  all: ComparableOperationFilterInputOfInt16FilterInput
+  none: ComparableOperationFilterInputOfInt16FilterInput
+  some: ComparableOperationFilterInputOfInt16FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfInt32FilterInput {
+  all: ComparableOperationFilterInputOfInt32FilterInput
+  none: ComparableOperationFilterInputOfInt32FilterInput
+  some: ComparableOperationFilterInputOfInt32FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfInt64FilterInput {
+  all: ComparableOperationFilterInputOfInt64FilterInput
+  none: ComparableOperationFilterInputOfInt64FilterInput
+  some: ComparableOperationFilterInputOfInt64FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfDecimalFilterInput {
+  all: ComparableOperationFilterInputOfNullableOfDecimalFilterInput
+  none: ComparableOperationFilterInputOfNullableOfDecimalFilterInput
+  some: ComparableOperationFilterInputOfNullableOfDecimalFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfDoubleFilterInput {
+  all: ComparableOperationFilterInputOfNullableOfDoubleFilterInput
+  none: ComparableOperationFilterInputOfNullableOfDoubleFilterInput
+  some: ComparableOperationFilterInputOfNullableOfDoubleFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfInt16FilterInput {
+  all: ComparableOperationFilterInputOfNullableOfInt16FilterInput
+  none: ComparableOperationFilterInputOfNullableOfInt16FilterInput
+  some: ComparableOperationFilterInputOfNullableOfInt16FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfInt32FilterInput {
+  all: ComparableOperationFilterInputOfNullableOfInt32FilterInput
+  none: ComparableOperationFilterInputOfNullableOfInt32FilterInput
+  some: ComparableOperationFilterInputOfNullableOfInt32FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfInt64FilterInput {
+  all: ComparableOperationFilterInputOfNullableOfInt64FilterInput
+  none: ComparableOperationFilterInputOfNullableOfInt64FilterInput
+  some: ComparableOperationFilterInputOfNullableOfInt64FilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfNullableOfSingleFilterInput {
+  all: ComparableOperationFilterInputOfNullableOfSingleFilterInput
+  none: ComparableOperationFilterInputOfNullableOfSingleFilterInput
+  some: ComparableOperationFilterInputOfNullableOfSingleFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfComparableOperationFilterInputOfSingleFilterInput {
+  all: ComparableOperationFilterInputOfSingleFilterInput
+  none: ComparableOperationFilterInputOfSingleFilterInput
+  some: ComparableOperationFilterInputOfSingleFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfEnumOperationFilterInputOfFooBarFilterInput {
+  all: EnumOperationFilterInputOfFooBarFilterInput
+  none: EnumOperationFilterInputOfFooBarFilterInput
+  some: EnumOperationFilterInputOfFooBarFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfFilterInputTypeOfBazFilterInput {
+  all: BazFilterInput
+  none: BazFilterInput
+  some: BazFilterInput
+  any: Boolean
+}
+
+input ListFilterInputOfStringOperationFilterInput {
+  all: StringOperationFilterInput
+  none: StringOperationFilterInput
+  some: StringOperationFilterInput
+  any: Boolean
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

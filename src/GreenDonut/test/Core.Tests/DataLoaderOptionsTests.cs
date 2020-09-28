@@ -1,12 +1,11 @@
 using System;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace GreenDonut
 {
     public class DataLoaderOptionsTests
     {
-        #region Constructor
-
         [Fact(DisplayName = "Constructor: Should not throw any exception")]
         public void ConstructorNoException()
         {
@@ -23,25 +22,18 @@ namespace GreenDonut
             // act
             var options = new DataLoaderOptions<string>
             {
-                AutoDispatching = true,
-                Batching = false,
-                BatchRequestDelay = TimeSpan.FromSeconds(1),
+                Batch = false,
+                Cache = new TaskCache(1),
                 CacheKeyResolver = k => k,
                 CacheSize = 1,
                 Caching = false,
-                MaxBatchSize = 1,
-                SlidingExpiration = TimeSpan.FromSeconds(10)
+                MaxBatchSize = 1
             };
 
             // assert
-            Assert.True(options.AutoDispatching);
-            Assert.False(options.Batching);
-            Assert.Equal(TimeSpan.FromSeconds(1), options.BatchRequestDelay);
-            Assert.NotNull(options.CacheKeyResolver);
-            Assert.Equal(1, options.CacheSize);
-            Assert.False(options.Caching);
-            Assert.Equal(1, options.MaxBatchSize);
-            Assert.Equal(TimeSpan.FromSeconds(10), options.SlidingExpiration);
+            options.MatchSnapshot(matchOptions => matchOptions
+                .Assert(fieldOption =>
+                    Assert.NotNull(fieldOption.Field<object>("CacheKeyResolver"))));
         }
 
         [Fact(DisplayName = "Constructor: Should result in defaults")]
@@ -51,17 +43,7 @@ namespace GreenDonut
             var options = new DataLoaderOptions<string>();
 
             // assert
-            Assert.False(options.AutoDispatching);
-            Assert.True(options.Batching);
-            Assert.Equal(TimeSpan.FromMilliseconds(50),
-                options.BatchRequestDelay);
-            Assert.Null(options.CacheKeyResolver);
-            Assert.Equal(1000, options.CacheSize);
-            Assert.True(options.Caching);
-            Assert.Equal(0, options.MaxBatchSize);
-            Assert.Equal(TimeSpan.Zero, options.SlidingExpiration);
+            options.MatchSnapshot();
         }
-
-        #endregion
     }
 }

@@ -8,17 +8,17 @@ type Query {
 
 input BarFilter {
   AND: [BarFilter!]
-  baz: String
   OR: [BarFilter!]
+  baz: String
 }
 
 input FooFilter {
   AND: [FooFilter!]
+  OR: [FooFilter!]
+  barNested_some: BarFilter
+  barNested_none: BarFilter
   barNested_all: BarFilter
   barNested_any: Boolean
-  barNested_none: BarFilter
-  barNested_some: BarFilter
-  OR: [FooFilter!]
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

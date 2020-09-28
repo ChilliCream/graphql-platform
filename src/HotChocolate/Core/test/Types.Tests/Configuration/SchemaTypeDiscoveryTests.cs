@@ -214,14 +214,14 @@ namespace HotChocolate.Discovery
             {
             }
 
-            public override Type ClrType => typeof(byte[]);
+            public override Type RuntimeType => typeof(byte[]);
 
             public override bool IsInstanceOfType(IValueNode literal)
             {
                 throw new NotSupportedException();
             }
 
-            public override object ParseLiteral(IValueNode literal)
+            public override object ParseLiteral(IValueNode literal, bool withDefaults = true)
             {
                 throw new NotSupportedException();
             }
@@ -231,24 +231,29 @@ namespace HotChocolate.Discovery
                 throw new NotSupportedException();
             }
 
-            public override object Serialize(object value)
+            public override IValueNode ParseResult(object resultValue)
             {
                 throw new NotSupportedException();
             }
 
-            public override object Deserialize(object value)
+            public override object Serialize(object runtimeValue)
+            {
+                throw new NotSupportedException();
+            }
+
+            public override object Deserialize(object resultValue)
             {
                 throw new NotSupportedException();
             }
 
             public override bool TryDeserialize(
-                object serialized, out object value)
+                object resultValue, out object runtimeValue)
             {
                 throw new NotSupportedException();
             }
 
             public override bool TrySerialize(
-                object value, out object serialized)
+                object runtimeValue, out object resultValue)
             {
                 throw new NotSupportedException();
             }

@@ -1,0 +1,33 @@
+﻿schema {
+  query: Query1
+}
+
+type Foo {
+  bar: String!
+}
+
+type Query1 {
+  foos(order: FooSortInput): [Foo!]!
+  foosBar(order: Bar_FooSortInput): [Foo!]!
+}
+
+input Bar_FooSortInput {
+  bar: Bar_DefaultSortEnumType
+}
+
+input FooSortInput {
+  bar: DefaultSortEnumType
+}
+
+enum Bar_DefaultSortEnumType {
+  Different
+  DESC
+}
+
+enum DefaultSortEnumType {
+  ASC
+  DESC
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

@@ -107,7 +107,7 @@ namespace HotChocolate.Validation.Rules
             DirectiveNode node,
             IDocumentValidatorContext context)
         {
-            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType d))
+            if (context.Schema.TryGetDirectiveType(node.Name.Value, out DirectiveType? d))
             {
                 context.Directives.Push(d);
                 return Continue;
@@ -312,14 +312,14 @@ namespace HotChocolate.Validation.Rules
         {
             error = node.Kind switch
             {
-                NodeKind.ObjectField =>
+                SyntaxKind.ObjectField =>
                     context.InputFields.TryPeek(out IInputField field)
                         ? context.FieldValueIsNotCompatible(field, locationType, valueNode)
                         : null,
-                NodeKind.VariableDefinition =>
+                SyntaxKind.VariableDefinition =>
                     context.VariableDefaultValueIsNotCompatible(
                         (VariableDefinitionNode)node, locationType, valueNode),
-                NodeKind.Argument =>
+                SyntaxKind.Argument =>
                     context.ArgumentValueIsNotCompatible(
                         (ArgumentNode)node, locationType, valueNode),
                 _ => null
@@ -333,9 +333,9 @@ namespace HotChocolate.Validation.Rules
         {
             for (var i = context.Path.Count - 1; i > 0; i--)
             {
-                if (context.Path[i].Kind == NodeKind.Argument ||
-                    context.Path[i].Kind == NodeKind.ObjectField ||
-                    context.Path[i].Kind == NodeKind.VariableDefinition)
+                if (context.Path[i].Kind == SyntaxKind.Argument ||
+                    context.Path[i].Kind == SyntaxKind.ObjectField ||
+                    context.Path[i].Kind == SyntaxKind.VariableDefinition)
                 {
                     node = context.Path[i];
                     return true;

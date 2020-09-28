@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
 }
 
@@ -8,8 +8,8 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  foo_eq: String
   OR: [FooFilter!]
+  foo_eq: String
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

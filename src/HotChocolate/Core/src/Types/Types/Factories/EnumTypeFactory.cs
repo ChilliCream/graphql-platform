@@ -12,12 +12,12 @@ namespace HotChocolate.Types.Factories
             IBindingLookup bindingLookup,
             EnumTypeDefinitionNode node)
         {
-            if (bindingLookup == null)
+            if (bindingLookup is null)
             {
                 throw new ArgumentNullException(nameof(bindingLookup));
             }
 
-            if (node == null)
+            if (node is null)
             {
                 throw new ArgumentNullException(nameof(node));
             }
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Factories
                 if (bindingInfo.SourceType != null)
                 {
                     d.Extend().OnBeforeCreate(
-                        t => t.ClrType = bindingInfo.SourceType);
+                        t => t.RuntimeType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)

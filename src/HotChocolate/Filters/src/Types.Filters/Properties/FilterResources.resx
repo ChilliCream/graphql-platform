@@ -120,9 +120,6 @@
   <data name="FilterArrayFieldDescriptor_InvalidType" xml:space="preserve">
     <value>Cannot handle the specified type.</value>
   </data>
-  <data name="FilterConvention_NoOperationNameFound" xml:space="preserve">
-    <value>No operation name for {0} in filter type {1} found. Add operation name to filter conventions.</value>
-  </data>
   <data name="FilterFieldOperationDescriptor_InvalidDescriptorType" xml:space="preserve">
     <value>The operation descriptor type {0} does not match the requested type {1}.</value>
   </data>

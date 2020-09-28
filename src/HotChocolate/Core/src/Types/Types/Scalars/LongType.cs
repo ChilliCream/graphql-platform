@@ -33,14 +33,14 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override long ParseLiteral(IntValueNode literal)
+        protected override long ParseLiteral(IntValueNode valueSyntax)
         {
-            return literal.ToInt64();
+            return valueSyntax.ToInt64();
         }
 
-        protected override IntValueNode ParseValue(long value)
+        protected override IntValueNode ParseValue(long runtimeValue)
         {
-            return new IntValueNode(value);
+            return new IntValueNode(runtimeValue);
         }
     }
 }

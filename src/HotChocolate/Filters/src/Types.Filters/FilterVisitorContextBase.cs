@@ -21,8 +21,5 @@ namespace HotChocolate.Types.Filters
 
         public Stack<IInputField> Operations { get; } =
             new Stack<IInputField>();
-
-        public IList<IError> Errors { get; } =
-            new List<IError>();
     }
 }

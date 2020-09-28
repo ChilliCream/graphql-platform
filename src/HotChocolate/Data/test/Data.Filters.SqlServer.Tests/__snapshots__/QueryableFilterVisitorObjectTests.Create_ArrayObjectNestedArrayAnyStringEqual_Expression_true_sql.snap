@@ -1,0 +1,7 @@
+﻿SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE EXISTS (
+    SELECT 1
+    FROM "Data" AS "d0"
+    WHERE "f"."Id" IS NOT NULL AND ("f"."Id" = "d0"."FooId"))

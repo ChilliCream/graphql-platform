@@ -20,5 +20,10 @@ namespace HotChocolate.Types
         /// Gets the default value literal of this field.
         /// </summary>
         IValueNode? DefaultValue { get; }
+
+        /// <summary>
+        /// Gets a formatter that shall intercept deserialized values and reformat them.
+        /// </summary>
+        IInputValueFormatter? Formatter { get; }
     }
 }

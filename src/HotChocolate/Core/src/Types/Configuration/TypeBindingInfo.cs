@@ -27,12 +27,12 @@ namespace HotChocolate.Configuration
             IDictionary<NameString, RegisteredResolver> resolvers,
             IDictionary<NameString, MemberInfo> members)
         {
-            if (resolvers == null)
+            if (resolvers is null)
             {
                 throw new ArgumentNullException(nameof(resolvers));
             }
 
-            if (members == null)
+            if (members is null)
             {
                 throw new ArgumentNullException(nameof(members));
             }
@@ -147,12 +147,12 @@ namespace HotChocolate.Configuration
 
         private void InitializeAllMembers()
         {
-            if (_allMembers == null)
+            if (_allMembers is null)
             {
-                _allMembers = SourceType == null
+                _allMembers = SourceType is null
                     || _bindingBehavior == BindingBehavior.Explicit
                     ? new List<MemberInfo>()
-                    : _context.Inspector.GetMembers(SourceType).ToList();
+                    : _context.TypeInspector.GetMembers(SourceType).ToList();
             }
         }
     }

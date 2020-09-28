@@ -235,13 +235,13 @@ namespace HotChocolate.Stitching.Utilities
                         break;
 
                     case IntValueNode i:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, i.Value);
+                        jsonWriter.WriteStringValue(i.Value);
+                        RemoveQuotes(writer, jsonWriter, i.Value.Length);
                         break;
 
                     case FloatValueNode f:
-                        jsonWriter.Flush();
-                        WriteNumberValue(writer, f.Value);
+                        jsonWriter.WriteStringValue(f.Value);
+                        RemoveQuotes(writer, jsonWriter, f.Value.Length);
                         break;
 
                     case BooleanValueNode b:
@@ -255,16 +255,13 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private static void WriteNumberValue(IBufferWriter<byte> writer, string value)
+        private static void RemoveQuotes(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter, int length)
         {
-            Span<byte> span = writer.GetSpan(value.Length);
-
-            for (int i = 0; i < value.Length; i++)
-            {
-                span[i] = (byte)value[i];
-            }
-
-            writer.Advance(value.Length);
+            jsonWriter.Flush();
+            writer.Advance(-(length + 2));
+            Span<byte> span = writer.GetSpan(length + 2);
+            span.Slice(1, length + 1).CopyTo(span);
+            writer.Advance(length);
         }
     }
 }

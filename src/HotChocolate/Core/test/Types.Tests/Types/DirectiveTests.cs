@@ -1,5 +1,7 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -7,6 +9,8 @@ namespace HotChocolate.Types
     public class DirectiveTests
         : TypeTestBase
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
         [Fact]
         public void ConvertCustomDirectiveToDirectiveNode()
         {
@@ -25,7 +29,9 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
             DirectiveNode directiveNode = directive.ToNode();
 
@@ -68,7 +74,9 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
             FooChild mappedObject = directive.ToObject<FooChild>();
 
@@ -94,12 +102,29 @@ namespace HotChocolate.Types
             // act
             var directive = Directive.FromDescription(
                 directiveType,
-                new DirectiveDefinition(fooDirective),
+                new DirectiveDefinition(
+                    fooDirective,
+                    _typeInspector.GetTypeRef(fooDirective.GetType())),
                 new object());
-            string barValue = directive.GetArgument<string>("bar");
+            var barValue = directive.GetArgument<string>("bar");
 
             // assert
             Assert.Equal("123", barValue);
+        }
+
+        [Fact]
+        public void ExplicitArguments()
+        {
+            SchemaBuilder.New()
+                .AddDirectiveType<FooDirectiveTypeExplicit>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("abc")
+                    .Resolve("def")
+                    .Directive(new FooDirective()))
+                .Create()
+                .Print()
+                .MatchSnapshot();
         }
 
         private static ISchema CreateSchema()
@@ -119,6 +144,18 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("Foo");
                 descriptor.Location(DirectiveLocation.Schema);
+            }
+        }
+
+        public class FooDirectiveTypeExplicit
+            : DirectiveType<FooDirective>
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("Foo");
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.BindArgumentsExplicitly();
             }
         }
 

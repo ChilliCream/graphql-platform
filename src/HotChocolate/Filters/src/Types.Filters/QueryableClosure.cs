@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableClosure
     {
+        private readonly bool _inMemory;
+
         public QueryableClosure(
             Type type,
             string parameterName,
@@ -17,7 +20,7 @@ namespace HotChocolate.Types.Filters
 
             Level.Push(new Queue<Expression>());
             Instance.Push(Parameter);
-            InMemory = inMemory;
+            _inMemory = inMemory;
         }
 
         public ParameterExpression Parameter { get; }
@@ -26,6 +29,27 @@ namespace HotChocolate.Types.Filters
 
         public Stack<Expression> Instance { get; }
 
-        public bool InMemory { get; }
+
+        public LambdaExpression CreateLambda()
+        {
+            if (_inMemory)
+            {
+                return Expression.Lambda(GetExpressionBodyWithNullCheck(), Parameter);
+
+            }
+            return Expression.Lambda(Level.Peek().Peek(), Parameter);
+        }
+
+        public Expression<T> CreateLambda<T>()
+        {
+            if (_inMemory)
+            {
+                return Expression.Lambda<T>(GetExpressionBodyWithNullCheck(), Parameter);
+            }
+            return Expression.Lambda<T>(Level.Peek().Peek(), Parameter);
+        }
+
+        private Expression GetExpressionBodyWithNullCheck()
+            => FilterExpressionBuilder.NotNullAndAlso(Parameter, Level.Peek().Peek());
     }
 }

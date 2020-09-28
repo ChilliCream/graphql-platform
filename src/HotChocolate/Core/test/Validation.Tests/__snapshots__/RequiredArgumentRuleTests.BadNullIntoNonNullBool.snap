@@ -2,21 +2,23 @@
   {
     "Message": "The argument `nonNullBooleanArg` is required.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 48
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "nonNullBooleanArgField",
       "argument": "nonNullBooleanArg",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   }
 ]

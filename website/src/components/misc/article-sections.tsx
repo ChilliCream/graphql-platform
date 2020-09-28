@@ -27,7 +27,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
         return {
           id: `toc-${id}`,
-          position: document.getElementById(id)!.offsetTop - 60,
+          position: document.getElementById(id)!.offsetTop - 80,
         };
       })
       .reverse();
@@ -91,7 +91,7 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
 
 export const ArticleSectionsGraphQLFragment = graphql`
   fragment ArticleSections on MarkdownRemark {
-    tableOfContents(maxDepth: 1)
+    tableOfContents(maxDepth: 2)
   }
 `;
 
@@ -103,30 +103,41 @@ const Title = styled.h6`
   padding: 0 25px;
   font-size: 0.833em;
 
-  @media only screen and (min-width: 1300px) {
+  @media only screen and (min-width: 1320px) {
     padding: 0 20px;
   }
 `;
 
 const Content = styled.div`
-  > ul {
+  ul {
     display: flex;
     flex-direction: column;
     margin: 0;
     padding: 0 25px 10px;
     list-style-type: none;
 
-    > li {
+    li {
       flex: 0 0 auto;
       margin: 5px 0;
       padding: 0;
       line-height: initial;
 
-      &.active > a {
+      > p {
+        margin: 0;
+        padding: 0;
+      }
+
+      > ul {
+        padding-right: 0;
+      }
+
+      &.active > a,
+      > p.active > a {
         font-weight: bold;
       }
 
-      > a {
+      > a,
+      > p > a {
         font-size: 0.833em;
         color: #666;
 
@@ -136,7 +147,7 @@ const Content = styled.div`
       }
     }
 
-    @media only screen and (min-width: 1300px) {
+    @media only screen and (min-width: 1320px) {
       padding: 0 20px 10px;
     }
   }

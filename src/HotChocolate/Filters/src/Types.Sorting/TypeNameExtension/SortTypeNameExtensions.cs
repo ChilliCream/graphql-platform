@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -10,12 +8,12 @@ namespace HotChocolate.Types.Sorting
           this ISortInputTypeDescriptor<T> descriptor,
           Func<INamedType, NameString> createName)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (createName == null)
+            if (createName is null)
             {
                 throw new ArgumentNullException(nameof(createName));
             }

@@ -25,7 +25,7 @@ namespace HotChocolate.Language
                 arguments, locations);
 
             // assert
-            Assert.Equal(NodeKind.DirectiveDefinition,
+            Assert.Equal(SyntaxKind.DirectiveDefinition,
                 directiveDefinition.Kind);
             Assert.Equal(location, directiveDefinition.Location);
             Assert.Equal(name, directiveDefinition.Name);
@@ -51,7 +51,7 @@ namespace HotChocolate.Language
                 arguments, locations);
 
             // assert
-            Assert.Equal(NodeKind.DirectiveDefinition,
+            Assert.Equal(SyntaxKind.DirectiveDefinition,
                 directiveDefinition.Kind);
             Assert.Null(directiveDefinition.Location);
             Assert.Equal(name, directiveDefinition.Name);

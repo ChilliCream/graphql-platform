@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language.Utilities
 {
     public sealed partial class SyntaxSerializer
@@ -15,115 +13,115 @@ namespace HotChocolate.Language.Utilities
         {
             switch (node.Kind)
             {
-                case NodeKind.Name:
+                case SyntaxKind.Name:
                     writer.WriteName((NameNode)node);
                     break;
-                case NodeKind.Document:
+                case SyntaxKind.Document:
                     VisitDocument((DocumentNode)node, writer);
                     break;
-                case NodeKind.OperationDefinition:
+                case SyntaxKind.OperationDefinition:
                     VisitOperationDefinition((OperationDefinitionNode)node, writer);
                     break;
-                case NodeKind.VariableDefinition:
+                case SyntaxKind.VariableDefinition:
                     VisitVariableDefinition((VariableDefinitionNode)node, writer);
                     break;
-                case NodeKind.Variable:
+                case SyntaxKind.Variable:
                     writer.WriteVariable((VariableNode)node);
                     break;
-                case NodeKind.SelectionSet:
+                case SyntaxKind.SelectionSet:
                     VisitSelectionSet((SelectionSetNode)node, writer);
                     break;
-                case NodeKind.Field:
+                case SyntaxKind.Field:
                     VisitField((FieldNode)node, writer);
                     break;
-                case NodeKind.Argument:
+                case SyntaxKind.Argument:
                     writer.WriteArgument((ArgumentNode)node);
                     break;
-                case NodeKind.FragmentSpread:
+                case SyntaxKind.FragmentSpread:
                     VisitFragmentSpread((FragmentSpreadNode)node, writer);
                     break;
-                case NodeKind.InlineFragment:
+                case SyntaxKind.InlineFragment:
                     VisitInlineFragment((InlineFragmentNode)node, writer);
                     break;
-                case NodeKind.FragmentDefinition:
+                case SyntaxKind.FragmentDefinition:
                     VisitFragmentDefinition((FragmentDefinitionNode)node, writer);
                     break;
-                case NodeKind.Directive:
+                case SyntaxKind.Directive:
                     writer.WriteDirective((DirectiveNode)node);
                     break;
-                case NodeKind.NamedType:
-                case NodeKind.ListType:
-                case NodeKind.NonNullType:
+                case SyntaxKind.NamedType:
+                case SyntaxKind.ListType:
+                case SyntaxKind.NonNullType:
                     writer.WriteType((ITypeNode)node);
                     break;
-                case NodeKind.ListValue:
-                case NodeKind.ObjectValue:
-                case NodeKind.BooleanValue:
-                case NodeKind.EnumValue:
-                case NodeKind.FloatValue:
-                case NodeKind.IntValue:
-                case NodeKind.NullValue:
-                case NodeKind.StringValue:
+                case SyntaxKind.ListValue:
+                case SyntaxKind.ObjectValue:
+                case SyntaxKind.BooleanValue:
+                case SyntaxKind.EnumValue:
+                case SyntaxKind.FloatValue:
+                case SyntaxKind.IntValue:
+                case SyntaxKind.NullValue:
+                case SyntaxKind.StringValue:
                     writer.WriteValue((IValueNode)node);
                     break;
-                case NodeKind.ObjectField:
+                case SyntaxKind.ObjectField:
                     writer.WriteObjectField((ObjectFieldNode)node);
                     break;
-                case NodeKind.SchemaDefinition:
+                case SyntaxKind.SchemaDefinition:
                     VisitSchemaDefinition((SchemaDefinitionNode)node, writer);
                     break;
-                case NodeKind.OperationTypeDefinition:
+                case SyntaxKind.OperationTypeDefinition:
                     VisitOperationTypeDefinition((OperationTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.ScalarTypeDefinition:
+                case SyntaxKind.ScalarTypeDefinition:
                     VisitScalarTypeDefinition((ScalarTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.ObjectTypeDefinition:
+                case SyntaxKind.ObjectTypeDefinition:
                     VisitObjectTypeDefinition((ObjectTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.FieldDefinition:
+                case SyntaxKind.FieldDefinition:
                     VisitFieldDefinition((FieldDefinitionNode)node, writer);
                     break;
-                case NodeKind.InputValueDefinition:
+                case SyntaxKind.InputValueDefinition:
                     VisitInputValueDefinition((InputValueDefinitionNode)node, writer);
                     break;
-                case NodeKind.InterfaceTypeDefinition:
+                case SyntaxKind.InterfaceTypeDefinition:
                     VisitInterfaceTypeDefinition((InterfaceTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.UnionTypeDefinition:
+                case SyntaxKind.UnionTypeDefinition:
                     VisitUnionTypeDefinition((UnionTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.EnumTypeDefinition:
+                case SyntaxKind.EnumTypeDefinition:
                     VisitEnumTypeDefinition((EnumTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.EnumValueDefinition:
+                case SyntaxKind.EnumValueDefinition:
                     VisitEnumValueDefinition((EnumValueDefinitionNode)node, writer);
                     break;
-                case NodeKind.InputObjectTypeDefinition:
+                case SyntaxKind.InputObjectTypeDefinition:
                     VisitInputObjectTypeDefinition((InputObjectTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.DirectiveDefinition:
+                case SyntaxKind.DirectiveDefinition:
                     VisitDirectiveDefinition((DirectiveDefinitionNode)node, writer);
                     break;
-                case NodeKind.SchemaExtension:
+                case SyntaxKind.SchemaExtension:
                     VisitSchemaExtension((SchemaExtensionNode)node, writer);
                     break;
-                case NodeKind.ScalarTypeExtension:
+                case SyntaxKind.ScalarTypeExtension:
                     VisitScalarTypeExtension((ScalarTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.ObjectTypeExtension:
+                case SyntaxKind.ObjectTypeExtension:
                     VisitObjectTypeExtension((ObjectTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.InterfaceTypeExtension:
+                case SyntaxKind.InterfaceTypeExtension:
                     VisitInterfaceTypeExtension((InterfaceTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.UnionTypeExtension:
+                case SyntaxKind.UnionTypeExtension:
                     VisitUnionTypeExtension((UnionTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.EnumTypeExtension:
+                case SyntaxKind.EnumTypeExtension:
                     VisitEnumTypeExtension((EnumTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.InputObjectTypeExtension:
+                case SyntaxKind.InputObjectTypeExtension:
                     VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
                     break;
                 default:
@@ -159,55 +157,55 @@ namespace HotChocolate.Language.Utilities
         {
             switch (node.Kind)
             {
-                case NodeKind.OperationDefinition:
+                case SyntaxKind.OperationDefinition:
                     VisitOperationDefinition((OperationDefinitionNode)node, writer);
                     break;
-                case NodeKind.FragmentDefinition:
+                case SyntaxKind.FragmentDefinition:
                     VisitFragmentDefinition((FragmentDefinitionNode)node, writer);
                     break;
-                case NodeKind.SchemaDefinition:
+                case SyntaxKind.SchemaDefinition:
                     VisitSchemaDefinition((SchemaDefinitionNode)node, writer);
                     break;
-                case NodeKind.DirectiveDefinition:
+                case SyntaxKind.DirectiveDefinition:
                     VisitDirectiveDefinition((DirectiveDefinitionNode)node, writer);
                     break;
-                case NodeKind.ScalarTypeDefinition:
+                case SyntaxKind.ScalarTypeDefinition:
                     VisitScalarTypeDefinition((ScalarTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.ObjectTypeDefinition:
+                case SyntaxKind.ObjectTypeDefinition:
                     VisitObjectTypeDefinition((ObjectTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.InputObjectTypeDefinition:
+                case SyntaxKind.InputObjectTypeDefinition:
                     VisitInputObjectTypeDefinition((InputObjectTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.InterfaceTypeDefinition:
+                case SyntaxKind.InterfaceTypeDefinition:
                     VisitInterfaceTypeDefinition((InterfaceTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.UnionTypeDefinition:
+                case SyntaxKind.UnionTypeDefinition:
                     VisitUnionTypeDefinition((UnionTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.EnumTypeDefinition:
+                case SyntaxKind.EnumTypeDefinition:
                     VisitEnumTypeDefinition((EnumTypeDefinitionNode)node, writer);
                     break;
-                case NodeKind.SchemaExtension:
+                case SyntaxKind.SchemaExtension:
                     VisitSchemaExtension((SchemaExtensionNode)node, writer);
                     break;
-                case NodeKind.ScalarTypeExtension:
+                case SyntaxKind.ScalarTypeExtension:
                     VisitScalarTypeExtension((ScalarTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.ObjectTypeExtension:
+                case SyntaxKind.ObjectTypeExtension:
                     VisitObjectTypeExtension((ObjectTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.InterfaceTypeExtension:
+                case SyntaxKind.InterfaceTypeExtension:
                     VisitInterfaceTypeExtension((InterfaceTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.UnionTypeExtension:
+                case SyntaxKind.UnionTypeExtension:
                     VisitUnionTypeExtension((UnionTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.EnumTypeExtension:
+                case SyntaxKind.EnumTypeExtension:
                     VisitEnumTypeExtension((EnumTypeExtensionNode)node, writer);
                     break;
-                case NodeKind.InputObjectTypeExtension:
+                case SyntaxKind.InputObjectTypeExtension:
                     VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
                     break;
                 default:

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -40,7 +39,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new ObjectValueToInputObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             var converted = converter.Convert(foo, type);
 
             // assert
@@ -71,7 +70,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new ObjectValueToInputObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(foo, type);
 
             // assert

@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -9,15 +10,17 @@ namespace HotChocolate
             if (line < 1)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(line), line,
-                    "line is a 1-base index and cannot be less than one.");
+                    nameof(line),
+                    line,
+                    AbstractionResources.Location_Line_Is_1_Based);
             }
 
             if (column < 1)
             {
                 throw new ArgumentOutOfRangeException(
-                    nameof(column), column,
-                    "column is a 1-base index and cannot be less than one.");
+                    nameof(column),
+                    column,
+                    AbstractionResources.Location_Column_Is_1_Based);
             }
 
             Line = line;

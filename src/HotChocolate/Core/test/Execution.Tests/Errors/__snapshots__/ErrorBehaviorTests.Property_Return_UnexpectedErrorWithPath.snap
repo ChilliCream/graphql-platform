@@ -1,0 +1,20 @@
+﻿{
+  "errors": [
+    {
+      "message": "\u0060error13\u0060 is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "declaringType": "Query",
+        "field": "error13",
+        "type": "Foo",
+        "responseName": "error13",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

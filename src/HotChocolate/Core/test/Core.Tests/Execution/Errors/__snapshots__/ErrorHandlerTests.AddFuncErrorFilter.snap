@@ -6,15 +6,19 @@
     {
       "Message": "Unexpected Execution Error",
       "Code": "Foo123",
-      "Path": [
-        "foo"
-      ],
+      "Path": {
+        "Parent": null,
+        "Name": "foo",
+        "Index": null,
+        "Depth": 0
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 3
         }
       ],
+      "Extensions": {},
       "Exception": {
         "ClassName": "System.Exception",
         "Message": "Foo",
@@ -28,9 +32,6 @@
         "HResult": -2146233088,
         "Source": "HotChocolate.Core.Tests",
         "WatsonBuckets": null
-      },
-      "Extensions": {
-        "code": "Foo123"
       }
     }
   ],

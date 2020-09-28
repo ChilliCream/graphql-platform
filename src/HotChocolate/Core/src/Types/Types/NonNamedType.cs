@@ -15,7 +15,7 @@ namespace HotChocolate.Types
 
         protected NonNamedType(IType innerType)
         {
-            if (innerType == null)
+            if (innerType is null)
             {
                 throw new ArgumentNullException(nameof(innerType));
             }
@@ -39,26 +39,26 @@ namespace HotChocolate.Types
             {
                 if (_innerClrType is null)
                 {
-                    _innerClrType = InnerType.ToClrType();
+                    _innerClrType = InnerType.ToRuntimeType();
                 }
                 return _innerClrType;
             }
         }
-        public Type ClrType
+        public Type RuntimeType
         {
             get
             {
                 if (_clrType is null)
                 {
-                    _clrType = this.ToClrType();
+                    _clrType = this.ToRuntimeType();
                 }
                 return _clrType;
             }
         }
 
-        bool IInputType.IsInstanceOfType(IValueNode literal)
+        bool IParsableType.IsInstanceOfType(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
@@ -68,118 +68,121 @@ namespace HotChocolate.Types
                 return IsInstanceOfType(literal);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract bool IsInstanceOfType(IValueNode literal);
 
-        object IInputType.ParseLiteral(IValueNode literal)
+        object? IParsableType.ParseLiteral(IValueNode literal, bool withDefaults)
         {
-            if (literal == null)
+            if (literal is null)
             {
                 throw new ArgumentNullException(nameof(literal));
             }
 
             if (IsInputType)
             {
-                return ParseLiteral(literal);
+                return ParseLiteral(literal, withDefaults);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract object ParseLiteral(IValueNode literal);
+        protected abstract object? ParseLiteral(IValueNode literal, bool withDefaults);
 
-        bool IInputType.IsInstanceOfType(object value)
+        bool IParsableType.IsInstanceOfType(object? runtimeValue)
         {
             if (IsInputType)
             {
-                return IsInstanceOfType(value);
+                return IsInstanceOfType(runtimeValue);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract bool IsInstanceOfType(object value);
+        protected abstract bool IsInstanceOfType(object? runtimeValue);
 
-        IValueNode IInputType.ParseValue(object value)
+        IValueNode IParsableType.ParseValue(object? runtimeValue)
         {
             if (IsInputType)
             {
-                return ParseValue(value);
+                return ParseValue(runtimeValue);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract IValueNode ParseValue(object value);
+        protected abstract IValueNode ParseValue(object? runtimeValue);
 
-        object ISerializableType.Serialize(object value)
+        IValueNode IParsableType.ParseResult(object? resultValue)
         {
             if (IsInputType)
             {
-                if (TrySerialize(value, out var serialized))
+                return ParseResult(resultValue);
+            }
+
+            throw new InvalidOperationException(
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
+        }
+
+        protected abstract IValueNode ParseResult(object? resultValue);
+
+        object? ISerializableType.Serialize(object? runtimeValue)
+        {
+            if (IsInputType)
+            {
+                if (TrySerialize(runtimeValue, out object? serialized))
                 {
                     return serialized;
                 }
 
-                // TODO : resources
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Serialize(
-                        this.Visualize()));
+                throw new SerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Serialize(this.Visualize()),
+                    this);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         protected abstract bool TrySerialize(
-            object value,
-            out object serialized);
+            object? runtimeValue,
+            out object? resultValue);
 
-        object ISerializableType.Deserialize(object serialized)
+        object? ISerializableType.Deserialize(object? resultValue)
         {
             if (IsInputType)
             {
-                if (TryDeserialize(serialized, out var value))
+                if (TryDeserialize(resultValue, out object? runtimeValue))
                 {
-                    return value;
+                    return runtimeValue;
                 }
 
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Deserialize(
-                        this.Visualize()));
+                throw new SerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Deserialize(this.Print()),
+                    this);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
         bool ISerializableType.TryDeserialize(
-            object serialized, out object value)
+            object? resultValue, out object? runtimeValue)
         {
             if (IsInputType)
             {
-                return TryDeserialize(serialized, out value);
+                return TryDeserialize(resultValue, out runtimeValue);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNamedType_IsInstanceOfType_NotAnInputType);
         }
 
-        protected abstract bool TryDeserialize(
-            object serialized,
-            out object value);
+        protected abstract bool TryDeserialize(object? resultValue, out object? runtimeValue);
     }
 }

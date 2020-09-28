@@ -1,17 +1,17 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Types;
-using Xunit;
-using Snapshooter.Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using System;
-using HotChocolate.Execution;
-using Moq;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using Moq;
+using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate
 {
@@ -410,7 +410,7 @@ namespace HotChocolate
                 .Use(next => context =>
                 {
                     context.Result = "foo";
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 })
                 .Create();
 
@@ -444,7 +444,7 @@ namespace HotChocolate
                 .Use(next => context =>
                 {
                     context.Result = "foo";
-                    return Task.CompletedTask;
+                    return default(ValueTask);
                 })
                 .Create();
 
@@ -828,7 +828,7 @@ namespace HotChocolate
                 .Type<StringType>());
 
             FieldResolverDelegate resolverDelegate =
-                c => Task.FromResult<object>(null);
+                c => new ValueTask<object>(null);
             var resolverDescriptor =
                 new FieldResolver("TestMe", "foo", resolverDelegate);
 
@@ -1049,7 +1049,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public async Task Execute_Agains_Interface_Without_Impl_Field()
+        public async Task Execute_Against_Interface_Without_Impl_Field()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -1064,7 +1064,7 @@ namespace HotChocolate
                 .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result =
@@ -1093,7 +1093,19 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddTypeInterceptor(null);
+                .AddTypeInterceptor((Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterceptor_InterceptorIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddTypeInterceptor((ITypeInitializationInterceptor)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -1268,9 +1280,11 @@ namespace HotChocolate
         public void AddConvention_WithImplementation_Generic()
         {
             // arrange
+            var convention = TestConvention.New();
+
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddConvention<ITestConvention>(TestConvention.Default)
+                .AddConvention<ITestConvention>(convention)
                 .AddType<ConventionTestType>()
                 .AddQueryType(d => d
                     .Name("Query")
@@ -1280,18 +1294,20 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+            var retrieved = testType.Context.GetConventionOrDefault<ITestConvention>(
                 new TestConvention());
-            Assert.Equal(TestConvention.Default, convention);
+            Assert.Equal(convention, retrieved);
         }
 
         [Fact]
         public void AddConvention_WithImplementation()
         {
             // arrange
+            var convention = TestConvention.New();
+
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddConvention(typeof(ITestConvention), TestConvention.Default)
+                .AddConvention(typeof(ITestConvention), convention)
                 .AddType<ConventionTestType>()
                 .AddQueryType(d => d
                     .Name("Query")
@@ -1301,10 +1317,10 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+            var retrieved = testType.Context.GetConventionOrDefault<ITestConvention>(
                 new TestConvention2());
             Assert.NotNull(convention);
-            Assert.Equal(TestConvention.Default, convention);
+            Assert.Equal(convention, retrieved);
         }
 
         [Fact]
@@ -1531,6 +1547,47 @@ namespace HotChocolate
             Assert.IsType<TestConvention2>(convention);
         }
 
+        [Fact]
+        public void AggregateState()
+        {
+            int sum = 0;
+            ISchema schema = SchemaBuilder.New()
+                .SetContextData("abc", o => 1)
+                .SetContextData("abc", o => ((int)o) + 1)
+                .SetContextData("abc", o => sum = (int)o)
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+            Assert.Equal(2, sum);
+        }
+
+        [Fact]
+        public void UseStateAndDelayedConfiguration()
+        {
+            SchemaBuilder.New()
+                .SetContextData("name", "QueryRoot")
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .OnBeforeCreate(c => c.ContextData["name"] = c.ContextData["name"] + "1")
+                .AddTypeInterceptor(new DelegateTypeInterceptor(
+                    onAfterRegisterDependencies: (c, d, cd) =>
+                    {
+                        if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
+                        {
+                            ObjectTypeDescriptor
+                                .From(c.DescriptorContext, def)
+                                .Name(c.ContextData["name"].ToString());
+                        }
+                    }))
+                .Create()
+                .Print()
+                .MatchSnapshot();
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1556,15 +1613,15 @@ namespace HotChocolate
         {
 
         }
-        public class TestConvention2 : ITestConvention
+        public class TestConvention2 : Convention, ITestConvention
         {
         }
-        public class TestConvention : ITestConvention
+        public class TestConvention : Convention, ITestConvention
         {
+            public static TestConvention New () => new TestConvention();
+        }
 
-            public static TestConvention Default = new TestConvention();
-        }
-        public class TestConventionServiceDependency : ITestConvention
+        public class TestConventionServiceDependency : Convention, ITestConvention
         {
             public TestConventionServiceDependency(MyInterceptor dependency)
             {
@@ -1583,7 +1640,7 @@ namespace HotChocolate
                 descriptor.Name("ConventionTestType");
                 base.Configure(descriptor);
             }
-            protected override void OnCompleteName(ICompletionContext context, ObjectTypeDefinition definition)
+            protected override void OnCompleteName(ITypeCompletionContext context, ObjectTypeDefinition definition)
             {
                 base.OnCompleteName(context, definition);
                 Context = context.DescriptorContext;
@@ -1651,7 +1708,7 @@ namespace HotChocolate
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolverOnType
         {
-            public string GetFoo([Parent]object o) => "QueryResolverOnType";
+            public string GetFoo([Parent] object o) => "QueryResolverOnType";
         }
 
         [GraphQLResolverOf("Query")]
@@ -1691,10 +1748,10 @@ namespace HotChocolate
         }
 
         public class MyInterceptor
-            : TypeInitializationInterceptor
+            : TypeInterceptor
         {
             public override void OnAfterCompleteType(
-                ICompletionContext context,
+                ITypeCompletionContext completionContext,
                 DefinitionBase definition,
                 IDictionary<string, object> contextData)
             {

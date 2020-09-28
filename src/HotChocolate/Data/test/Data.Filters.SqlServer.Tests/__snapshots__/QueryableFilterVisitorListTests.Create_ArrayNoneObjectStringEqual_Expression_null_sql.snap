@@ -1,0 +1,6 @@
+﻿SELECT "d"."Id"
+FROM "Data" AS "d"
+WHERE NOT (EXISTS (
+    SELECT 1
+    FROM "FooNested" AS "f"
+    WHERE ("d"."Id" = "f"."FooId") AND (("f"."Bar" = @__p_0) OR ("f"."Bar" IS NULL AND @__p_0 IS NULL))))

@@ -7,27 +7,15 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
-        private readonly ParserOptions _options;
         private readonly bool _createLocation;
         private readonly bool _allowFragmentVars;
         private Utf8GraphQLReader _reader;
         private StringValueNode? _description;
 
         public Utf8GraphQLParser(
-            ReadOnlySpan<byte> graphQLData)
-            : this(graphQLData, ParserOptions.Default)
-        {
-        }
-
-        public Utf8GraphQLParser(
             ReadOnlySpan<byte> graphQLData,
-            ParserOptions options)
+            ParserOptions? options = null)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (graphQLData.Length == 0)
             {
                 throw new ArgumentException(
@@ -35,7 +23,7 @@ namespace HotChocolate.Language
                     nameof(graphQLData));
             }
 
-            _options = options;
+            options ??= ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new Utf8GraphQLReader(graphQLData);
@@ -44,13 +32,8 @@ namespace HotChocolate.Language
 
         internal Utf8GraphQLParser(
             Utf8GraphQLReader reader,
-            ParserOptions options)
+            ParserOptions? options = null)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             if (reader.Kind == TokenKind.EndOfFile)
             {
                 throw new ArgumentException(
@@ -58,7 +41,7 @@ namespace HotChocolate.Language
                     nameof(reader));
             }
 
-            _options = options;
+            options ??= ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = reader;
@@ -81,12 +64,6 @@ namespace HotChocolate.Language
             Location? location = CreateLocation(in start);
 
             return new DocumentNode(location, definitions);
-        }
-
-        internal IReadOnlyList<ArgumentNode> ParseArguments()
-        {
-            MoveNext();
-            return ParseArguments(false);
         }
 
         private IDefinitionNode ParseDefinition()
@@ -192,13 +169,10 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(options));
             }
 
-            int length = checked(sourceText.Length * 4);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
+            var length = checked(sourceText.Length * 4);
             byte[]? source = null;
 
-            Span<byte> sourceSpan = useStackalloc
+            Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : (source = ArrayPool<byte>.Shared.Rent(length));
 
@@ -218,7 +192,7 @@ namespace HotChocolate.Language
             }
         }
 
-        internal unsafe static int ConvertToBytes(
+        internal static unsafe int ConvertToBytes(
             string text,
             ref Span<byte> buffer)
         {
@@ -226,7 +200,7 @@ namespace HotChocolate.Language
             {
                 fixed (char* stringPtr = text)
                 {
-                    int length = StringHelper.UTF8Encoding.GetBytes(
+                    var length = StringHelper.UTF8Encoding.GetBytes(
                         stringPtr, text.Length,
                         bytePtr, buffer.Length);
                     buffer = buffer.Slice(0, length);

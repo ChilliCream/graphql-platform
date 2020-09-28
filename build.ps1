@@ -55,6 +55,10 @@ else {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     (New-Object System.Net.WebClient).DownloadFile($DotNetInstallUrl, $DotNetInstallFile)
 
+    ExecSafe { & $DotNetInstallFile -InstallDir $DotNetDirectory -Version "2.1.809" -NoPath }
+    ExecSafe { & $DotNetInstallFile -InstallDir $DotNetDirectory -Version "3.0.103" -NoPath }
+    ExecSafe { & $DotNetInstallFile -InstallDir $DotNetDirectory -Version "3.1.401" -NoPath }
+
     # Install by channel or version
     if (!(Test-Path variable:DotNetVersion)) {
         ExecSafe { & $DotNetInstallFile -InstallDir $DotNetDirectory -Channel $DotNetChannel -NoPath }

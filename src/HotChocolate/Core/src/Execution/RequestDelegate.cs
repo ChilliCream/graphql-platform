@@ -7,5 +7,5 @@ namespace HotChocolate.Execution
     /// </summary>
     /// <param name="context">The <see cref="IRequestContext"/> for the request.</param>
     /// <returns>A task that represents the completion of request processing.</returns>
-    public delegate Task RequestDelegate(IRequestContext context);
+    public delegate ValueTask RequestDelegate(IRequestContext context);
 }

@@ -24,7 +24,7 @@ namespace HotChocolate.Language
             Type = type;
         }
 
-        public NodeKind Kind { get; } = NodeKind.ListType;
+        public SyntaxKind Kind { get; } = SyntaxKind.ListType;
 
         public Location? Location { get; }
 

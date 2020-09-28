@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         public override TypeKind Kind => TypeKind.Interface;
 
         protected override InterfaceTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             var descriptor = InterfaceTypeDescriptor.New(
                 context.DescriptorContext);
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         { }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InterfaceTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
         }
 
         internal override void Merge(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             INamedType type)
         {
             if (type is InterfaceType interfaceType)

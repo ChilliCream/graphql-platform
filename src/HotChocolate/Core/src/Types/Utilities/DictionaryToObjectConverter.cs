@@ -3,28 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities
 {
-    internal class DictionaryToObjectConverter
+    public sealed class DictionaryToObjectConverter
         : DictionaryVisitor<ConverterContext>
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public DictionaryToObjectConverter(ITypeConversion converter)
+        public DictionaryToObjectConverter(ITypeConverter converter)
         {
-            _converter = converter
-                ?? throw new ArgumentNullException(nameof(converter));
+            _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public object Convert(object from, Type to)
         {
-            if (from == null)
+            if (from is null)
             {
                 throw new ArgumentNullException(nameof(from));
             }
 
-            if (to == null)
+            if (to is null)
             {
                 throw new ArgumentNullException(nameof(to));
             }
@@ -35,11 +35,11 @@ namespace HotChocolate.Utilities
         }
 
         protected override void VisitObject(
-            IDictionary<string, object> dictionary,
+            IReadOnlyDictionary<string, object> dictionary,
             ConverterContext context)
         {
-            if (!context.ClrType.IsValueType
-                && context.ClrType != typeof(string))
+            if (!context.ClrType.IsValueType &&
+                context.ClrType != typeof(string))
             {
                 ILookup<string, PropertyInfo> properties =
                     context.ClrType.CreatePropertyLookup();
@@ -69,24 +69,21 @@ namespace HotChocolate.Utilities
         }
 
         protected override void VisitList(
-            IList<object> list,
+            IReadOnlyList<object> list,
             ConverterContext context)
         {
-            Type elementType = DotNetTypeInfoFactory
-                .GetInnerListType(context.ClrType);
+            Type elementType = ExtendedType.Tools.GetElementType(context.ClrType);
 
-            if (elementType != null)
+            if (elementType is not null)
             {
                 Type listType = typeof(List<>).MakeGenericType(elementType);
                 var temp = (IList)Activator.CreateInstance(listType);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
-                    var valueContext = new ConverterContext();
-                    valueContext.ClrType = elementType;
+                    var valueContext = new ConverterContext { ClrType = elementType };
                     Visit(list[i], valueContext);
-
-                    temp.Add(valueContext.Object);
+                    temp!.Add(valueContext.Object);
                 }
 
                 context.Object = context.ClrType.IsAssignableFrom(listType)
@@ -99,8 +96,7 @@ namespace HotChocolate.Utilities
             object value,
             ConverterContext context)
         {
-            context.Object = _converter.Convert(
-                typeof(object), context.ClrType, value);
+            context.Object = _converter.Convert(typeof(object), context.ClrType, value);
         }
     }
 }

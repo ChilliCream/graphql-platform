@@ -1,0 +1,24 @@
+﻿{
+  "errors": [
+    {
+      "message": "Name cannot serialize the given value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "stringToName"
+      ],
+      "extensions": {
+        "actualValue": "  ",
+        "actualType": "System.String",
+        "code": "EXEC_INVALID_LEAF_VALUE"
+      }
+    }
+  ],
+  "data": {
+    "stringToName": null
+  }
+}

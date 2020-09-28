@@ -1,5 +1,3 @@
-using System;
-
 namespace HotChocolate.Language
 {
     public interface IFloatValueLiteral

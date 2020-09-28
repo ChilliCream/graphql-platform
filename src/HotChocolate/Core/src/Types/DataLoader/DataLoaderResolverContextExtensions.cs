@@ -1,41 +1,54 @@
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using GreenDonut;
 using HotChocolate.DataLoader;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
+
+#nullable enable
 
 namespace HotChocolate.Resolvers
 {
     public static class DataLoaderResolverContextExtensions
     {
-        private static IDataLoader<TKey, TValue> BatchDataLoaderFactory<TKey, TValue>(
+        public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
             this IResolverContext context,
-            string key,
-            FetchBatchFactory<TKey, TValue> factory)
+            FetchBatch<TKey, TValue> fetch,
+            string? key = null)
+            where TKey : notnull
         {
-            if (TryGetDataLoader(context, key,
-                out IDataLoader<TKey, TValue> dataLoader,
-                out IDataLoaderRegistry registry))
+            if (context is null)
             {
-                return dataLoader;
+                throw new ArgumentNullException(nameof(context));
             }
 
-            return GetOrCreate<IDataLoader<TKey, TValue>>(
-                key, registry, r => r.Register(key, factory));
+            if (fetch is null)
+            {
+                throw new ArgumentNullException(nameof(fetch));
+            }
+
+            IServiceProvider services = context.Services;
+            IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+            Func<FetchBatchDataLoader<TKey, TValue>> createDataLoader =
+                () => new FetchBatchDataLoader<TKey, TValue>(
+                    services.GetRequiredService<IBatchScheduler>(),
+                    fetch);
+
+            return key is null
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
+        [Obsolete]
         public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchBatch<TKey, TValue> fetch)
+            where TKey : notnull
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
@@ -43,68 +56,44 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (fetch == null)
-            {
-                throw new ArgumentNullException(nameof(fetch));
-            }
-
-            return BatchDataLoaderFactory(context, key, services => fetch);
+            return BatchDataLoader(context, fetch, key);
         }
 
-        public static IDataLoader<TKey, TValue> BatchDataLoader<TKey, TValue>(
+        public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
             this IResolverContext context,
-            string key,
-            FetchBatchCt<TKey, TValue> fetch)
+            FetchGroup<TKey, TValue> fetch,
+            string? key = null)
+            where TKey : notnull
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
-            }
-
-            if (fetch == null)
+            if (fetch is null)
             {
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return BatchDataLoader<TKey, TValue>(
-                context,
-                key,
-                keys => fetch(keys, context.RequestAborted));
+            IServiceProvider services = context.Services;
+            IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+            Func<FetchGroupedDataLoader<TKey, TValue>> createDataLoader =
+                () => new FetchGroupedDataLoader<TKey, TValue>(
+                    services.GetRequiredService<IBatchScheduler>(),
+                    fetch);
+
+            return key is null
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
-        private static IDataLoader<TKey, TValue[]> GroupDataLoaderFactory<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchGroupeFactory<TKey, TValue> factory)
-        {
-            if (TryGetDataLoader(context, key,
-                out IDataLoader<TKey, TValue[]> dataLoader,
-                out IDataLoaderRegistry registry))
-            {
-                return dataLoader;
-            }
-
-            return GetOrCreate<IDataLoader<TKey, TValue[]>>(
-                key, registry, r => r.Register(key, factory));
-        }
-
+        [Obsolete]
         public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
             FetchGroup<TKey, TValue> fetch)
+            where TKey : notnull
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
@@ -112,93 +101,46 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (fetch == null)
-            {
-                throw new ArgumentNullException(nameof(fetch));
-            }
-
-            return GroupDataLoaderFactory(context, key, services => fetch);
-        }
-
-        public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchGroupCt<TKey, TValue> fetch)
-        {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
-            }
-
-            if (fetch == null)
-            {
-                throw new ArgumentNullException(nameof(fetch));
-            }
-
-            return GroupDataLoader<TKey, TValue>(
-                context,
-                key,
-                keys => fetch(keys, context.RequestAborted));
-        }
-
-        private static IDataLoader<TKey, TValue> CacheDataLoaderFactory<TKey, TValue>(
-            this IResolverContext context,
-            string key,
-            FetchCacheFactory<TKey, TValue> factory)
-        {
-            if (TryGetDataLoader(context, key,
-                out IDataLoader<TKey, TValue> dataLoader,
-                out IDataLoaderRegistry registry))
-            {
-                return dataLoader;
-            }
-
-            return GetOrCreate<IDataLoader<TKey, TValue>>(
-                key, registry, r => r.Register(key, factory));
+            return GroupDataLoader(context, fetch, key);
         }
 
         public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
-            string key,
-            FetchCache<TKey, TValue> fetch)
+            FetchCacheCt<TKey, TValue> fetch,
+            string? key = null,
+            int cacheSize = DataLoaderDefaults.CacheSize)
+            where TKey : notnull
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
-            }
-
-            if (fetch == null)
+            if (fetch is null)
             {
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return CacheDataLoaderFactory(context, key, services => fetch);
+            IServiceProvider services = context.Services;
+            IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+            Func<FetchCacheDataLoader<TKey, TValue>> createDataLoader =
+                () => new FetchCacheDataLoader<TKey, TValue>(
+                    fetch,
+                    cacheSize);
+
+            return key is null
+                ? reg.GetOrRegister(createDataLoader)
+                : reg.GetOrRegister(key, createDataLoader);
         }
 
+        [Obsolete]
         public static IDataLoader<TKey, TValue> CacheDataLoader<TKey, TValue>(
             this IResolverContext context,
             string key,
-            FetchCacheCt<TKey, TValue> fetch)
+            FetchCacheCt<TKey, TValue> fetch,
+            int cacheSize = DataLoaderDefaults.CacheSize)
+            where TKey : notnull
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
@@ -206,68 +148,38 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (fetch == null)
-            {
-                throw new ArgumentNullException(nameof(fetch));
-            }
-
-            return CacheDataLoader<TKey, TValue>(
-                context,
-                key,
-                keys => fetch(keys, context.RequestAborted));
-        }
-
-        private static Func<Task<TValue>> FetchOnceFactory<TValue>(
-            this IResolverContext context,
-            string key,
-            FetchOnceFactory<TValue> factory)
-        {
-            if (!TryGetDataLoader(context, key,
-                out IDataLoader<string, TValue> dataLoader,
-                out IDataLoaderRegistry registry))
-            {
-                dataLoader = GetOrCreate<IDataLoader<string, TValue>>(
-                    key, registry, r => r.Register(key, factory));
-            }
-
-            return () => dataLoader.LoadAsync("none");
+            return CacheDataLoader(context, fetch, key, cacheSize);
         }
 
         public static Task<TValue> FetchOnceAsync<TValue>(
             this IResolverContext context,
-            string key,
-            FetchOnce<TValue> fetch)
+            Func<CancellationToken, Task<TValue>> fetch,
+            string? key = null)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (string.IsNullOrEmpty(key))
-            {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
-            }
-
-            if (fetch == null)
+            if (fetch is null)
             {
                 throw new ArgumentNullException(nameof(fetch));
             }
 
-            return FetchOnceFactory(context, key, services => fetch)();
+            return CacheDataLoader<string, TValue>(
+                context,
+                (k, ct) => fetch(ct),
+                key,
+                cacheSize: 1)
+                .LoadAsync("default", context.RequestAborted);
         }
 
+        [Obsolete]
         public static Task<TValue> FetchOnceAsync<TValue>(
             this IResolverContext context,
             string key,
-            FetchOnceCt<TValue> fetch)
+            Func<CancellationToken, Task<TValue>> fetch)
         {
-            if (context == null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
             if (string.IsNullOrEmpty(key))
             {
                 throw new ArgumentException(
@@ -275,108 +187,68 @@ namespace HotChocolate.Resolvers
                     nameof(key));
             }
 
-            if (fetch == null)
-            {
-                throw new ArgumentNullException(nameof(fetch));
-            }
-
-            return FetchOnceAsync(
-                context,
-                key,
-                () => fetch(context.RequestAborted));
+            return FetchOnceAsync(context, fetch, key);
         }
 
-        public static T DataLoader<T>(
-            this IResolverContext context,
-            string key)
-            where T : class, IDataLoader
+        public static T DataLoader<T>(this IResolverContext context, string key)
+            where T : notnull, IDataLoader
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (string.IsNullOrEmpty(key))
+            if (key is null)
             {
-                throw new ArgumentException(
-                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
-                    nameof(key));
+                throw new ArgumentNullException(nameof(key));
             }
 
-            if (TryGetDataLoader(context, key,
-                out T dataLoader,
-                out IDataLoaderRegistry registry))
-            {
-                return dataLoader;
-            }
-
-            return GetOrCreate<T>
-            (
-                key,
-                registry,
-                r => r.Register(key, services =>
-                {
-                    var instance = (T)services.GetService(typeof(T));
-                    return instance is null
-                        ? ActivatorHelper.CompileFactory<T>().Invoke(services)
-                        : instance;
-                })
-            );
+            IServiceProvider services = context.Services;
+            IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+            return reg.GetOrRegister(key, () => CreateDataLoader<T>(services));
         }
 
-        public static T DataLoader<T>(
-            this IResolverContext context)
-            where T : class, IDataLoader =>
-            DataLoader<T>(context, typeof(T).FullName);
-
-        private static bool TryGetDataLoader<T>(
-            IResolverContext context,
-            string key,
-            out T dataLoader,
-            out IDataLoaderRegistry registry)
-            where T : IDataLoader
+        public static T DataLoader<T>(this IResolverContext context)
+            where T : notnull, IDataLoader
         {
-            registry = null;
-
-            foreach (IDataLoaderRegistry current in
-                context.Service<IEnumerable<IDataLoaderRegistry>>())
+            if (context is null)
             {
-                registry = current;
-
-                if (current.TryGet(key, out dataLoader))
-                {
-                    return true;
-                }
+                throw new ArgumentNullException(nameof(context));
             }
 
-            dataLoader = default;
-            return false;
+            IServiceProvider services = context.Services;
+            IDataLoaderRegistry reg = services.GetRequiredService<IDataLoaderRegistry>();
+            return reg.GetOrRegister(() => CreateDataLoader<T>(services));
         }
 
-        private static T GetOrCreate<T>(
-            string key,
-            IDataLoaderRegistry registry,
-            Action<IDataLoaderRegistry> register)
+        private static T CreateDataLoader<T>(IServiceProvider services)
             where T : IDataLoader
         {
-            if (registry == null)
-            {
-                throw new InvalidOperationException(TypeResources
-                    .DataLoaderResolverContextExtensions_RegistryIsNull);
-            }
+            T registeredDataLoader = services.GetService<T>();
 
-            if (!registry.TryGet(key, out T dataLoader))
+            if (registeredDataLoader is null)
             {
-                register(registry);
-
-                if (!registry.TryGet(key, out dataLoader))
+                if (typeof(T).IsInterface || typeof(T).IsAbstract)
                 {
-                    throw new InvalidOperationException(TypeResources
-                        .DataLoaderResolverContextExtensions_UnableToRegister);
+                    throw new RegisterDataLoaderException(
+                        string.Format(
+                            DataLoaderResolverContextExtensions_CreateDataLoader_AbstractType,
+                            typeof(T).FullName ?? typeof(T).Name));
                 }
+
+                var factory = new ServiceFactory { Services = services };
+                if (factory.CreateInstance(typeof(T)) is T dataLoader)
+                {
+                    return dataLoader;
+                }
+
+                throw new RegisterDataLoaderException(
+                    string.Format(
+                        DataLoaderResolverContextExtensions_CreateDataLoader_UnableToCreate,
+                        typeof(T).FullName ?? typeof(T).Name));
             }
 
-            return dataLoader;
+            return registeredDataLoader;
         }
     }
 }

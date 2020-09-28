@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
+  "data": {
     "a": "a_123",
     "b": "b_456",
     "c": "c_789"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

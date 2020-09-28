@@ -12,15 +12,15 @@ namespace HotChocolate.Types.Sorting.Extensions
             PropertyInfo propertyInfo,
             Func<T> valueFactory) where T : SortOperationDescriptorBase
         {
-            if (fields == null)
+            if (fields is null)
             {
                 throw new ArgumentNullException(nameof(fields));
             }
-            if (propertyInfo == null)
+            if (propertyInfo is null)
             {
                 throw new ArgumentNullException(nameof(propertyInfo));
             }
-            if (valueFactory == null)
+            if (valueFactory is null)
             {
                 throw new ArgumentNullException(nameof(valueFactory));
             }

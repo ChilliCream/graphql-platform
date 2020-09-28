@@ -11,10 +11,10 @@ namespace HotChocolate.Types.Descriptors
         private bool _deprecatedDependencySet;
         private DirectiveDefinition _deprecatedDirective;
 
-        public EnumValueDescriptor(IDescriptorContext context, object value)
+        protected EnumValueDescriptor(IDescriptorContext context, object value)
             : base(context)
         {
-            if (value == null)
+            if (value is null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
@@ -22,22 +22,28 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
             Definition.Description = context.Naming.GetEnumValueDescription(value);
-            Definition.Member = context.Inspector.GetEnumValueMember(value);
+            Definition.Member = context.TypeInspector.GetEnumValueMember(value);
 
-            if (context.Naming.IsDeprecated(value, out string reason))
+            if (context.Naming.IsDeprecated(value, out var reason))
             {
                 Deprecated(reason);
             }
         }
 
-        internal protected override EnumValueDefinition Definition { get; } =
+        protected EnumValueDescriptor(IDescriptorContext context, EnumValueDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        }
+
+        protected internal override EnumValueDefinition Definition { get; protected set; } =
             new EnumValueDefinition();
 
         protected override void OnCreateDefinition(EnumValueDefinition definition)
         {
             if (Definition.Member is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Member);
@@ -78,7 +84,7 @@ namespace HotChocolate.Types.Descriptors
             else
             {
                 Definition.DeprecationReason = reason;
-                AddDeprectedDirective(reason);
+                AddDeprecatedDirective(reason);
                 return this;
             }
         }
@@ -87,11 +93,11 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprectedDirective(null);
+            AddDeprecatedDirective(null);
             return this;
         }
 
-        private void AddDeprectedDirective(string reason)
+        private void AddDeprecatedDirective(string reason)
         {
             if (_deprecatedDirective != null)
             {
@@ -99,15 +105,14 @@ namespace HotChocolate.Types.Descriptors
             }
 
             _deprecatedDirective = new DirectiveDefinition(
-                new DeprecatedDirective(reason));
+                new DeprecatedDirective(reason),
+                Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirective)));
             Definition.Directives.Add(_deprecatedDirective);
 
             if (!_deprecatedDependencySet)
             {
                 Definition.Dependencies.Add(new TypeDependency(
-                    new ClrTypeReference(
-                        typeof(DeprecatedDirectiveType),
-                        TypeContext.None),
+                    Context.TypeInspector.GetTypeRef(typeof(DeprecatedDirectiveType)),
                     TypeDependencyKind.Completed));
                 _deprecatedDependencySet = true;
             }
@@ -116,14 +121,14 @@ namespace HotChocolate.Types.Descriptors
         public IEnumValueDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directiveInstance);
+            Definition.AddDirective(directiveInstance, Context.TypeInspector);
             return this;
         }
 
         public IEnumValueDescriptor Directive<T>()
             where T : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new T(), Context.TypeInspector);
             return this;
         }
 
@@ -138,5 +143,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             object value) =>
             new EnumValueDescriptor(context, value);
+
+        public static EnumValueDescriptor From(
+            IDescriptorContext context,
+            EnumValueDefinition definition) =>
+            new EnumValueDescriptor(context, definition);
     }
 }

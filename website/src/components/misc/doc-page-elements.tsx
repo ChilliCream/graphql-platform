@@ -13,7 +13,7 @@ const PaneBase = css`
 const FullSize = css`
   position: fixed;
   display: initial;
-  padding: 25px 0;
+  padding: 40px 0;
   width: 250px;
   height: initial;
   background-color: initial;
@@ -52,7 +52,7 @@ export const Aside = styled.aside`
     right: 0;
   }
 
-  @media only screen and (min-width: 1300px) {
+  @media only screen and (min-width: 1320px) {
     position: relative;
     right: initial;
     flex: 0 0 250px;
@@ -73,7 +73,7 @@ export const Navigation = styled.nav`
     left: 0;
   }
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     position: relative;
     left: initial;
     flex: 0 0 250px;

@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using Snapshooter;
+using HotChocolate.Types.Introspection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -16,20 +15,18 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(FooType),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is FooType);
 
@@ -37,45 +34,45 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(FooType), TypeContext.Output),
+            var exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+            var fooType =
+                Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(BarType), TypeContext.Output),
+            exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(BarType), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            var barType =
+                Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => t.Type.Print());
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -83,85 +80,79 @@ namespace HotChocolate.Configuration
             typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
-            bool exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(
-                    typeof(ObjectType<Foo>),
-                    TypeContext.Output),
+            var exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                 out RegisteredType type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
+            var fooType =
+                Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+                t => t.Type.Print());
 
-            exists = typeInitializer.DiscoveredTypes.TryGetType(
-                new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
+            exists = typeRegistry.TryGetType(
+                context.TypeInspector.GetTypeRef(typeof(ObjectType<Bar>), TypeContext.Output),
                 out type);
 
             Assert.True(exists);
-            Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
-                t => t.Name.ToString(),
-                t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot(new SnapshotNameExtension("BarType"));
+            var barType =
+                Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
+                    t => t.Name.ToString(),
+                    t => t.Type.Print());
+
+            new { fooType, barType }.MatchSnapshot();
         }
 
         [Fact]
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
-                null,
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
+                null!,
                 t => t is ObjectType<Foo>);
 
             // act
-            Action action =
-                () => typeInitializer.Initialize(null, new SchemaOptions());
+            void Action() => typeInitializer.Initialize(null!, new SchemaOptions());
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         [Fact]
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
-            var initialTypes = new List<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
+            IDescriptorContext context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
-                serviceProvider,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                initialTypes,
+                context,
+                typeRegistry,
+                new List<ITypeReference>
+                {
+                    context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(),
-                null,
+                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
+                null!,
                 t => t is ObjectType<Foo>);
 
             // act
-            Action action =
-                () => typeInitializer.Initialize(() => null, null);
+            void Action() => typeInitializer.Initialize(() => null, null!);
 
             // assert
-            Assert.Throws<ArgumentNullException>(action);
+            Assert.Throws<ArgumentNullException>(Action);
         }
 
         public class FooType

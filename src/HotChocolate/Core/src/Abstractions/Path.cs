@@ -1,63 +1,105 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate
 {
-    public sealed class Path
-        : IEquatable<Path>
+    public abstract class Path : IEquatable<Path>
     {
-        private Path(Path parent, NameString name)
-        {
-            Parent = parent;
-            Name = name;
-            Index = -1;
-            IsIndexer = false;
-            Depth = parent == null ? 0 : parent.Depth + 1;
-        }
+        internal Path() { }
 
-        private Path(Path parent, NameString name, int index)
-        {
-            Parent = parent;
-            Name = name;
-            Index = index;
-            IsIndexer = true;
-            Depth = parent == null ? 0 : parent.Depth + 1;
-        }
+        /// <summary>
+        /// Gets the parent path segment.
+        /// </summary>
+        public abstract Path? Parent { get; }
 
-        public Path Parent { get; }
-        public NameString Name { get; }
-        public int Index { get; }
-        public bool IsIndexer { get; }
-        public int Depth { get; }
+        /// <summary>
+        /// Gets the count of segments this path contains.
+        /// </summary>
+        public abstract int Depth { get; }
 
-        public Path Append(int index)
+        /// <summary>
+        /// Appends an element.
+        /// </summary>
+        /// <param name="index">The index of the element.</param>
+        /// <returns>Returns a new path segment pointing to an element in a list.</returns>
+        public virtual IndexerPathSegment Append(int index)
         {
-            return new Path(Parent, Name, index);
-        }
-
-        public Path Append(NameString name)
-        {
-            return new Path(this, name);
-        }
-
-        public bool Equals(Path other)
-        {
-            if (ReferenceEquals(this, other))
+            if (index < 0)
             {
-                return true;
+                // TODO : ThrowHelper
+                throw new ArgumentException();
             }
 
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
-            return ((Parent == null && other.Parent == null) || other.Parent.Equals(Parent))
-                && string.Equals(other.Name, Name, StringComparison.Ordinal)
-                && other.Index.Equals(Index);
+            return new IndexerPathSegment(this, index);
         }
 
-        public override bool Equals(object obj)
+        /// <summary>
+        /// Appends a new path segment.
+        /// </summary>
+        /// <param name="name">The name of the path segment.</param>
+        /// <returns>Returns a new path segment.</returns>
+        public virtual NamePathSegment Append(NameString name)
+        {
+            name.EnsureNotEmpty(nameof(name));
+            return new NamePathSegment(this, name);
+        }
+
+        /// <summary>
+        /// Generates a string that represents the current path.
+        /// </summary>
+        /// <returns>
+        /// Returns a string that represents the current path.
+        /// </returns>
+        public abstract string Print();
+
+        /// <summary>
+        /// Creates a new list representing the current <see cref="Path"/>.
+        /// </summary>
+        /// <returns>
+        /// Returns a new list representing the current <see cref="Path"/>.
+        /// </returns>
+        public IReadOnlyList<object> ToList()
+        {
+            if (this is RootPathSegment)
+            {
+                return Array.Empty<object>();
+            }
+
+            var stack = new List<object>();
+            Path? current = this;
+
+            while (current != null)
+            {
+                switch (current)
+                {
+                    case IndexerPathSegment indexer:
+                        stack.Insert(0, indexer.Index);
+                        break;
+
+                    case NamePathSegment name:
+                        stack.Insert(0, name.Name);
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                current = current.Parent;
+            }
+
+            return stack;
+        }
+
+        /// <summary>Returns a string that represents the current <see cref="Path"/>.</summary>
+        /// <returns>A string that represents the current <see cref="Path"/>.</returns>
+        public override string ToString() => Print();
+
+        public abstract bool Equals(Path? other);
+
+        public sealed override bool Equals(object? obj)
         {
             if (ReferenceEquals(obj, null))
             {
@@ -72,54 +114,55 @@ namespace HotChocolate
             return false;
         }
 
-        public override int GetHashCode()
+        /// <summary>
+        /// Serves as the default hash function.
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="Path"/>.
+        /// </returns>
+        public abstract override int GetHashCode();
+
+        /// <summary>
+        /// Creates a root segment.
+        /// </summary>
+        /// <param name="name">The name of the root segment.</param>
+        /// <returns>
+        /// Returns a new root segment.
+        /// </returns>
+        public static NamePathSegment New(NameString name)
         {
-            unchecked
-            {
-                int hash = (Parent?.GetHashCode() ?? 0) * 3;
-                hash = hash ^ (Name.GetHashCode() * 7);
-                hash = hash ^ (Index.GetHashCode() * 11);
-                return hash;
-            }
+            return new NamePathSegment(null, name);
         }
 
-        public override string ToString()
+        public static RootPathSegment Root { get; } = RootPathSegment.Instance;
+
+        internal static Path FromList(IReadOnlyList<object> path)
         {
-            string path = (Parent == null)
-                ? string.Empty
-                : Parent.ToString();
-
-            if (IsIndexer)
+            if (path is null)
             {
-                return $"{path}/{Name}[{Index}]";
+                throw new ArgumentNullException(nameof(path));
             }
-            else
+
+            if (path.Count == 0)
             {
-                return $"{path}/{Name}";
+                return Root;
             }
-        }
 
-        public IReadOnlyList<object> ToCollection()
-        {
-            var stack = new List<object>();
-            Path current = this;
+            Path segment = New((string)path[0]);
 
-            while (current != null)
+            for (var i = 1; i < path.Count; i++)
             {
-                if (current.IsIndexer)
+                segment = path[i] switch
                 {
-                    stack.Insert(0, current.Index);
-                }
-                stack.Insert(0, current.Name);
-                current = current.Parent;
+                    NameString n => segment.Append(n),
+                    string s => segment.Append(s),
+                    int n => segment.Append(n),
+                    _ => throw new NotSupportedException(
+                        AbstractionResources.Path_WithPath_Path_Value_NotSupported)
+                };
             }
 
-            return stack;
-        }
-
-        public static Path New(NameString name)
-        {
-            return new Path(null, name);
+            return segment;
         }
     }
 }

@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
 
         public ISchemaConfiguration Use(FieldMiddleware middleware)
         {
-            if (middleware == null)
+            if (middleware is null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
@@ -52,7 +52,7 @@ namespace HotChocolate.Configuration
         ISchemaConfiguration ISchemaConfigurationExtension.OnBeforeBuild(
             Action<ISchemaBuilder> build)
         {
-            if (build == null)
+            if (build is null)
             {
                 throw new ArgumentNullException(nameof(build));
             }

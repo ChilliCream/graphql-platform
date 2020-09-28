@@ -7,9 +7,9 @@ namespace HotChocolate.Utilities
 {
     internal class InputObjectToDictionaryConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public InputObjectToDictionaryConverter(ITypeConversion converter)
+        public InputObjectToDictionaryConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -18,12 +18,12 @@ namespace HotChocolate.Utilities
         public Dictionary<string, object> Convert(
             InputObjectType type, object obj)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
@@ -109,12 +109,12 @@ namespace HotChocolate.Utilities
             INamedInputType type, object obj,
             Action<object> setValue, ISet<object> processed)
         {
-            if (type is IHasClrType hasClrType)
+            if (type is IHasRuntimeType hasClrType)
             {
                 Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.ClrType
+                object normalized = currentType == hasClrType.RuntimeType
                     ? obj
-                    : _converter.Convert(currentType, hasClrType.ClrType, obj);
+                    : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
                 setValue(obj);
             }
         }

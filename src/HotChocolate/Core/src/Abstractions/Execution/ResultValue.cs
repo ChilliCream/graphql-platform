@@ -6,16 +6,19 @@ namespace HotChocolate.Execution
 {
     public readonly struct ResultValue : IEquatable<ResultValue?>
     {
-        public ResultValue(string name, object value)
+        public ResultValue(string name, object? value, bool isNullable)
         {
             Name = name;
             Value = value;
+            IsNullable = isNullable;
             HasValue = true;
         }
 
         public string Name { get; }
 
-        public object Value { get; }
+        public object? Value { get; }
+
+        public bool IsNullable { get; }
 
         public bool HasValue { get; }
 

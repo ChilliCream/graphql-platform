@@ -1,5 +1,8 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -14,55 +17,77 @@ namespace HotChocolate.Types
         {
         }
 
-        protected override byte[] ParseLiteral(StringValueNode literal)
+        protected override byte[] ParseLiteral(StringValueNode valueSyntax)
         {
-            return Convert.FromBase64String(literal.Value);
+            return Convert.FromBase64String(valueSyntax.Value);
         }
 
-        protected override StringValueNode ParseValue(byte[] value)
+        protected override StringValueNode ParseValue(byte[] runtimeValue)
         {
-            return new StringValueNode(Convert.ToBase64String(value));
+            return new StringValueNode(Convert.ToBase64String(runtimeValue));
         }
 
-        public override bool TrySerialize(object value, out object serialized)
+        public override IValueNode ParseResult(object? resultValue)
         {
-            if (value is null)
+            if (resultValue is null)
             {
-                serialized = null;
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is string s)
+            {
+                return new StringValueNode(s);
+            }
+
+            if (resultValue is byte[] b)
+            {
+                return ParseValue(b);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
+        }
+
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue is null)
+            {
+                resultValue = null;
                 return true;
             }
 
-            if (value is byte[] b)
+            if (runtimeValue is byte[] b)
             {
-                serialized = Convert.ToBase64String(b);
+                resultValue = Convert.ToBase64String(b);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s)
+            if (resultValue is string s)
             {
-                value = Convert.FromBase64String(s);
+                runtimeValue = Convert.FromBase64String(s);
                 return true;
             }
 
-            if (serialized is byte[] b)
+            if (resultValue is byte[] b)
             {
-                value = b;
+                runtimeValue = b;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

@@ -6,26 +6,29 @@ namespace HotChocolate.Execution.Instrumentation
 {
     internal class ApolloTracingResolverRecord
     {
-        internal ApolloTracingResolverRecord() { }
-
-        public ApolloTracingResolverRecord(IResolverContext context)
+        public ApolloTracingResolverRecord(
+            IResolverContext context, 
+            long startTimestamp, 
+            long endTimestamp)
         {
-            Path = context.Path.ToCollection();
+            Path = context.Path.ToList();
             ParentType = context.ObjectType.Name;
             FieldName = context.Field.Name;
             ReturnType = context.Field.Type.TypeName();
+            StartTimestamp = startTimestamp;
+            EndTimestamp = endTimestamp;
         }
 
-        public IReadOnlyCollection<object> Path { get; internal set; }
+        public IReadOnlyList<object> Path { get; }
 
-        public string ParentType { get; internal set; }
+        public string ParentType { get; }
 
-        public string FieldName { get; internal set; }
+        public string FieldName { get; }
 
-        public string ReturnType { get; internal set; }
+        public string ReturnType { get; }
 
-        public long StartTimestamp { get; set; }
+        public long StartTimestamp { get; }
 
-        public long EndTimestamp { get; set; }
+        public long EndTimestamp { get; }
     }
 }

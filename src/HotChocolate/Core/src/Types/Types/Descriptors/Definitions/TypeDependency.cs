@@ -1,22 +1,19 @@
 using System;
+using HotChocolate.Internal;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class TypeDependency
     {
-        public TypeDependency(ITypeReference typeReference)
-            : this(typeReference, TypeDependencyKind.Default)
-        {
-        }
-
         public TypeDependency(
             ITypeReference typeReference,
-            TypeDependencyKind kind)
+            TypeDependencyKind kind = TypeDependencyKind.Default)
         {
-            TypeReference = typeReference
-                ?? throw new ArgumentNullException(nameof(typeReference));
+            TypeReference = typeReference ??
+                throw new ArgumentNullException(nameof(typeReference));
             Kind = kind;
         }
 
@@ -24,28 +21,34 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public ITypeReference TypeReference { get; }
 
-        public static TypeDependency FromSchemaType(Type type) =>
-            FromSchemaType(type, TypeDependencyKind.Default);
+        public TypeDependency With(
+            ITypeReference? typeReference = null,
+            TypeDependencyKind? kind = null)
+        {
+            return new TypeDependency(
+                typeReference ?? TypeReference,
+                kind ?? Kind);
+        }
 
         public static TypeDependency FromSchemaType(
-            Type type,
-            TypeDependencyKind kind)
+            IExtendedType type,
+            TypeDependencyKind kind = TypeDependencyKind.Default)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (BaseTypes.IsSchemaType(type))
+            if (!type.IsSchemaType)
             {
-                TypeContext context = SchemaTypeReference.InferTypeContext(type);
-                var reference = new ClrTypeReference(type, context);
-                return new TypeDependency(reference, kind);
+                throw new ArgumentException(
+                    TypeResources.TypeDependency_MustBeSchemaType,
+                    nameof(type));
             }
 
-            throw new ArgumentException(
-                TypeResources.TypeDependency_MustBeSchemaType,
-                nameof(type));
+            return new TypeDependency(
+                Descriptors.TypeReference.Create(type),
+                kind);
         }
     }
 }

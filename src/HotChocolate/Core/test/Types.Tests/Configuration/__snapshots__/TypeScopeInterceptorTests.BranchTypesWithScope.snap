@@ -1,0 +1,25 @@
+﻿schema {
+  query: Foo
+}
+
+type A_Bar {
+  baz: C_Baz
+  someString: String
+}
+
+type B_Bar {
+  baz: C_Baz
+  someString: String
+}
+
+type C_Baz {
+  someString: String
+}
+
+type Foo {
+  bar1: A_Bar
+  bar2: B_Bar
+}
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

@@ -5,8 +5,8 @@ namespace HotChocolate.Types
     public class InterfaceField
         : OutputFieldBase<InterfaceFieldDefinition>
     {
-        public InterfaceField(InterfaceFieldDefinition definition)
-            : base(definition)
+        public InterfaceField(InterfaceFieldDefinition definition, bool sortArgumentsByName = false)
+            : base(definition, sortArgumentsByName)
         {
         }
     }

@@ -97,7 +97,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-                fooType.Fields.Where(t => !t.IsIntrospectionField),
+                fooType.Fields.Where(t => !t.IsIntrospectionField).OrderBy(t => t.Name),
                 t =>
                 {
                     Assert.Equal("bar", t.Name);

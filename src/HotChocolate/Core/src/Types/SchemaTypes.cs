@@ -12,7 +12,7 @@ namespace HotChocolate
 
         public SchemaTypes(SchemaTypesDefinition definition)
         {
-            if (definition == null)
+            if (definition is null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
@@ -25,7 +25,9 @@ namespace HotChocolate
         }
 
         public ObjectType QueryType { get; }
+
         public ObjectType MutationType { get; }
+        
         public ObjectType SubscriptionType { get; }
 
         public T GetType<T>(NameString typeName) where T : IType
@@ -65,10 +67,10 @@ namespace HotChocolate
         public bool TryGetClrType(NameString typeName, out Type clrType)
         {
             if (_types.TryGetValue(typeName, out INamedType type)
-                && type is IHasClrType ct
-                && ct.ClrType != typeof(object))
+                && type is IHasRuntimeType ct
+                && ct.RuntimeType != typeof(object))
             {
-                clrType = ct.ClrType;
+                clrType = ct.RuntimeType;
                 return true;
             }
 

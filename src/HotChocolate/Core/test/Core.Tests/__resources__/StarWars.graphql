@@ -1,5 +1,5 @@
 enum Episode {
-  NEWHOPE
+  NEW_HOPE
   EMPIRE
   JEDI
 }

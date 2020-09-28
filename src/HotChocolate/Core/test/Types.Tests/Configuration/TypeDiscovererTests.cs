@@ -1,9 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -11,137 +11,253 @@ namespace HotChocolate.Configuration
 {
     public class TypeDiscovererTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
+        [Fact]
+        public void Register_SchemaType_ClrTypeExists_NoSystemTypes()
+        {
+            // arrange
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+            var typeDiscoverer = new TypeDiscoverer(
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor(),
+                false);
+
+            // act
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Empty(errors);
+
+            new
+            {
+                registered = typeRegistry.Types
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
+
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+
+            }.MatchSnapshot();
+        }
+
         [Fact]
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(FooType),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
+            new
+            {
+                registered = typeRegistry.Types
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
 
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+
+            }.MatchSnapshot();
         }
 
         [Fact]
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(Foo),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
+            new
+            {
+                registered = typeRegistry.Types
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
 
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+
+            }.MatchSnapshot();
         }
 
         [Fact]
         public void Upgrade_Type_From_GenericType()
         {
             // arrange
-            var initialTypes = new HashSet<ITypeReference>();
-            initialTypes.Add(new ClrTypeReference(
-                typeof(ObjectType<Foo>),
-                TypeContext.Output));
-            initialTypes.Add(new ClrTypeReference(
-                typeof(FooType),
-                TypeContext.Output));
-
-            var serviceProvider = new EmptyServiceProvider();
-
-            var clrTypeReferences = new Dictionary<IClrTypeReference, ITypeReference>();
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
 
             var typeDiscoverer = new TypeDiscoverer(
-                initialTypes,
-                clrTypeReferences,
-                DescriptorContext.Create(),
-                new Dictionary<string, object>(),
-                new AggregateTypeInitializationInterceptor(),
-                serviceProvider);
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
+                    _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
+                },
+                new AggregateTypeInitializationInterceptor());
 
             // act
-            DiscoveredTypes result = typeDiscoverer.DiscoverTypes();
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
 
             // assert
-            Assert.Empty(result.Errors);
+            Assert.Empty(errors);
 
-            result.Types
-                .Select(t => t.Type)
-                .OfType<IHasClrType>()
-                .ToDictionary(
-                    t => t.GetType().GetTypeName(),
-                    t => t.ClrType.GetTypeName())
-                .MatchSnapshot(new SnapshotNameExtension("registered"));
+            new
+            {
+                registered = typeRegistry.Types
+                    .Select(t => new
+                    {
+                        type = t.Type.GetType().GetTypeName(),
+                        runtimeType = t.Type is IHasRuntimeType hr
+                            ? hr.RuntimeType.GetTypeName()
+                            : null,
+                        references = t.References.Select(t => t.ToString()).ToList()
+                    }).ToList(),
 
-            clrTypeReferences.ToDictionary(
-                t => t.Key.ToString(),
-                t => t.Value.ToString())
-                .MatchSnapshot(new SnapshotNameExtension("clr"));
+                runtimeTypeRefs = typeRegistry.RuntimeTypeRefs.ToDictionary(
+                    t => t.Key.ToString(),
+                    t => t.Value.ToString())
+
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Cannot_Infer_Input_Type()
+        {
+            // arrange
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+            var typeDiscoverer = new TypeDiscoverer(
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
+                },
+                new AggregateTypeInitializationInterceptor());
+
+            // act
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Collection(
+                errors,
+                error => 
+                {
+                    Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
+                    Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
+                    Assert.False(error.Extensions.ContainsKey("involvedTypes"));
+                });
+
+            new SchemaException(errors).Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Cannot_Infer_Multiple_Input_Type()
+        {
+            // arrange
+            var context = DescriptorContext.Create();
+            var typeRegistry = new TypeRegistry();
+            var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+            var typeDiscoverer = new TypeDiscoverer(
+                context,
+                typeRegistry,
+                typeLookup,
+                new HashSet<ITypeReference>
+                {
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
+                    _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output),
+                },
+                new AggregateTypeInitializationInterceptor());
+
+            // act
+            IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
+
+            // assert
+            Assert.Collection(
+                errors,
+                error => 
+                {
+                    Assert.Equal(ErrorCodes.Schema.UnresolvedTypes, error.Code);
+                    Assert.IsType<ObjectType<QueryWithInferError>>(error.TypeSystemObject);
+                    Assert.True(error.Extensions.ContainsKey("involvedTypes"));
+                });
         }
 
         public class FooType
             : ObjectType<Foo>
         {
-            protected override void Configure(
-                IObjectTypeDescriptor<Foo> descriptor)
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
             }
@@ -161,5 +277,17 @@ namespace HotChocolate.Configuration
         {
             public string Baz { get; }
         }
+
+        public class QueryWithInferError
+        {
+            public string Foo(IMyArg o) => throw new NotImplementedException();
+        }
+
+        public class QueryWithInferError2
+        {
+            public string Foo(IMyArg o) => throw new NotImplementedException();
+        }
+
+        public interface IMyArg { }
     }
 }

@@ -14,12 +14,14 @@ namespace HotChocolate.Configuration
             ITypeRegistrar typeRegistrar,
             IEnumerable<ITypeReference> typeReferences)
         {
-            foreach (ISchemaTypeReference typeReference in
-                typeReferences.OfType<ISchemaTypeReference>())
+            foreach (SchemaTypeReference typeReference in
+                typeReferences.OfType<SchemaTypeReference>())
             {
                 if (!typeRegistrar.IsResolved(typeReference))
                 {
-                    typeRegistrar.Register((TypeSystemObjectBase)typeReference.Type);
+                    typeRegistrar.Register(
+                        (TypeSystemObjectBase)typeReference.Type,
+                        typeReference.Scope);
                 }
             }
         }

@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -13,18 +11,11 @@ namespace HotChocolate.Types.Filters
     {
         public ArrayFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property,
-            IFilterConvention filterConventions)
-            : base(context, property, typeof(TArray), filterConventions)
+            PropertyInfo property)
+            : base(context, property, typeof(TArray))
         {
         }
 
-        /// <inheritdoc/>
-        public new IArrayFilterFieldDescriptor<TArray> Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
 
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor<TArray> BindFilters(
@@ -41,6 +32,7 @@ namespace HotChocolate.Types.Filters
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor<TArray> BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
+
 
         public IArrayFilterOperationDescriptor<TArray> AllowSome(
             Action<IFilterInputTypeDescriptor<TArray>> descriptor)
@@ -136,15 +128,14 @@ namespace HotChocolate.Types.Filters
         private ArrayFilterOperationDescriptor<TArray> CreateOperation(
             FilterOperationKind operationKind)
         {
-            FilterOperation? operation = GetFilterOperation(operationKind);
-            ClrTypeReference? typeReference = GetTypeReference();
+            var operation = GetFilterOperation(operationKind);
+            var typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor<TArray>.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
                 typeReference,
-                operation,
-                FilterConvention);
+                operation);
         }
     }
 }

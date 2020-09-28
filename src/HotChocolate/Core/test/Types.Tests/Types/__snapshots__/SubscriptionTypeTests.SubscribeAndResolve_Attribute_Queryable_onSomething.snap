@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "onSomething": "a"
+  }
+}
+{
+  "data": {
+    "onSomething": "b"
+  }
+}
+{
+  "data": {
+    "onSomething": "c"
+  }
+}

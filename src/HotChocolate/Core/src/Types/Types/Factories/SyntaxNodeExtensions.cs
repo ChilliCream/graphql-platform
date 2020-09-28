@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Factories
             DirectiveNode directive = syntaxNode.Directives.FirstOrDefault(t =>
                 t.Name.Value == WellKnownDirectives.Deprecated);
 
-            if (directive == null)
+            if (directive is null)
             {
                 return null;
             }
@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Factories
 
         public static bool IsDeprecationReason(this DirectiveNode directiveNode)
         {
-            if (directiveNode == null)
+            if (directiveNode is null)
             {
                 throw new System.ArgumentNullException(nameof(directiveNode));
             }

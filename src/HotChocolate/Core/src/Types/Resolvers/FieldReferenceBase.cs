@@ -13,7 +13,7 @@ namespace HotChocolate.Resolvers
 
         protected FieldReferenceBase(FieldReferenceBase fieldReference)
         {
-            if (fieldReference == null)
+            if (fieldReference is null)
             {
                 throw new ArgumentNullException(nameof(fieldReference));
             }

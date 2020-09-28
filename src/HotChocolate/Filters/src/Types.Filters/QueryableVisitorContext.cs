@@ -1,20 +1,35 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Filters.Conventions;
+using HotChocolate.Types.Filters.Expressions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public class QueryableFilterVisitorContext
-        : FilterVisitorContextBase
-        , IQueryableFilterVisitorContext
+        : FilterVisitorContextBase, IQueryableFilterVisitorContext
     {
+
         public QueryableFilterVisitorContext(
             InputObjectType initialType,
             Type source,
-            FilterExpressionVisitorDefinition defintion,
-            ITypeConversion typeConverter,
+            ITypeConverter converter,
+            bool inMemory)
+            : this(
+                initialType,
+                source,
+                ExpressionOperationHandlers.All,
+                ExpressionFieldHandlers.All,
+                converter,
+                inMemory)
+        {
+        }
+
+        public QueryableFilterVisitorContext(
+            InputObjectType initialType,
+            Type source,
+            IReadOnlyList<IExpressionOperationHandler> operationHandlers,
+            IReadOnlyList<IExpressionFieldHandler> fieldHandlers,
+            ITypeConverter typeConverter,
             bool inMemory)
             : base(initialType)
         {
@@ -22,8 +37,10 @@ namespace HotChocolate.Types.Filters
             {
                 throw new ArgumentNullException(nameof(source));
             }
-            Defintion = defintion ??
-                throw new ArgumentNullException(nameof(defintion));
+            OperationHandlers = operationHandlers ??
+                throw new ArgumentNullException(nameof(operationHandlers));
+            FieldHandlers = fieldHandlers ??
+                throw new ArgumentNullException(nameof(fieldHandlers));
             TypeConverter = typeConverter ??
                 throw new ArgumentNullException(nameof(typeConverter));
             InMemory = inMemory;
@@ -31,57 +48,14 @@ namespace HotChocolate.Types.Filters
             Closures.Push(new QueryableClosure(source, "r", inMemory));
         }
 
-        protected FilterExpressionVisitorDefinition Defintion { get; }
+        public IReadOnlyList<IExpressionOperationHandler> OperationHandlers { get; }
 
-        public ITypeConversion TypeConverter { get; }
+        public IReadOnlyList<IExpressionFieldHandler> FieldHandlers { get; }
+
+        public ITypeConverter TypeConverter { get; }
 
         public bool InMemory { get; }
 
         public Stack<QueryableClosure> Closures { get; }
-
-        public bool TryGetEnterHandler(
-            FilterKind kind,
-            [NotNullWhen(true)] out FilterFieldEnter? enter)
-        {
-            if (Defintion.FieldHandler.TryGetValue(
-                kind, out (FilterFieldEnter? enter, FilterFieldLeave? leave) val) &&
-                val.enter is FilterFieldEnter)
-            {
-                enter = val.enter;
-                return true;
-            }
-            enter = null;
-            return false;
-        }
-
-        public bool TryGetLeaveHandler(
-            FilterKind kind,
-            [NotNullWhen(true)] out FilterFieldLeave? leave)
-        {
-            if (Defintion.FieldHandler.TryGetValue(
-                kind, out (FilterFieldEnter? enter, FilterFieldLeave? leave) val) &&
-                val.leave is FilterFieldLeave)
-            {
-                leave = val.leave;
-                return true;
-            }
-            leave = null;
-            return false;
-        }
-
-        public bool TryGetOperation(
-            FilterKind kind,
-            FilterOperationKind operationKind,
-            [NotNullWhen(true)] out FilterOperationHandler? handler)
-        {
-            if (Defintion.OperationHandler.TryGetValue(
-                (kind, operationKind), out FilterOperationHandler? operationHandler))
-            {
-                handler = operationHandler;
-                return true;
-            }
-            handler = null;
-            return false;
-        }
     }
 }

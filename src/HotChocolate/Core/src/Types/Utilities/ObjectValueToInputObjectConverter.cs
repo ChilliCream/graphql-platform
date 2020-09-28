@@ -9,9 +9,9 @@ namespace HotChocolate.Utilities
     internal class ObjectValueToInputObjectConverter
         : SyntaxWalkerBase<IValueNode, ConverterContext>
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public ObjectValueToInputObjectConverter(ITypeConversion converter)
+        public ObjectValueToInputObjectConverter(ITypeConverter converter)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -19,12 +19,12 @@ namespace HotChocolate.Utilities
 
         public object Convert(ObjectValueNode from, InputObjectType to)
         {
-            if (from == null)
+            if (from is null)
             {
                 throw new ArgumentNullException(nameof(from));
             }
 
-            if (to == null)
+            if (to is null)
             {
                 throw new ArgumentNullException(nameof(to));
             }
@@ -32,7 +32,7 @@ namespace HotChocolate.Utilities
             var context = new ConverterContext
             {
                 InputType = to,
-                ClrType = to.ToClrType()
+                ClrType = to.ToRuntimeType()
             };
 
             VisitObjectValue(from, context);
@@ -46,9 +46,9 @@ namespace HotChocolate.Utilities
         {
             if (context.InputType.NamedType() is InputObjectType type)
             {
-                Type clrType = type.ClrType == typeof(object)
+                Type clrType = type.RuntimeType == typeof(object)
                     ? typeof(Dictionary<string, object>)
-                    : type.ClrType;
+                    : type.RuntimeType;
 
                 context.Object = Activator.CreateInstance(clrType);
                 context.InputFields = type.Fields;
@@ -69,15 +69,15 @@ namespace HotChocolate.Utilities
             {
                 var valueContext = new ConverterContext();
                 valueContext.InputType = inputField.Type;
-                valueContext.ClrType = inputField.ClrType;
+                valueContext.ClrType = inputField.RuntimeType;
 
                 VisitValue(node.Value, valueContext);
 
-                object value = (inputField.ClrType != null
-                    && !inputField.ClrType
+                object value = (inputField.RuntimeType != null
+                    && !inputField.RuntimeType
                         .IsInstanceOfType(valueContext.Object)
                     && _converter.TryConvert(
-                        typeof(object), inputField.ClrType,
+                        typeof(object), inputField.RuntimeType,
                         valueContext.Object, out object obj))
                     ? obj
                     : valueContext.Object;
@@ -93,14 +93,14 @@ namespace HotChocolate.Utilities
             if (context.InputType.IsListType())
             {
                 ListType listType = context.InputType.ListType();
-                Type tempType = listType.ToClrType();
+                Type tempType = listType.ToRuntimeType();
                 var temp = (IList)Activator.CreateInstance(tempType);
 
                 for (int i = 0; i < node.Items.Count; i++)
                 {
                     var valueContext = new ConverterContext();
                     valueContext.InputType = (IInputType)listType.ElementType;
-                    valueContext.ClrType = listType.ElementType.ToClrType();
+                    valueContext.ClrType = listType.ElementType.ToRuntimeType();
 
                     VisitValue(node.Items[i], valueContext);
 

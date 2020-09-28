@@ -30,10 +30,11 @@ stages:
       vmImage: 'ubuntu-latest'
     jobs:
       - job: Test
+        continueOnError: true
         displayName: 'Test'
         dependsOn: [ ]
         strategy:
-          parallel: 6
+          parallel: 8
         steps:
           - task: CmdLine@2
             inputs:

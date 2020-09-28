@@ -1,8 +1,5 @@
 ﻿{
-  "Data": {
+  "data": {
     "case4": "abc"
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

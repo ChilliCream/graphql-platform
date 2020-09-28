@@ -1,4 +1,5 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Xunit;
@@ -7,25 +8,29 @@ namespace HotChocolate
 {
     public class SchemaTypeResolverTests
     {
+        private readonly ITypeInspector _typeInspector = new DefaultTypeInspector();
+
+        private IExtendedType TypeOf<T>() =>
+            _typeInspector.GetType(typeof(T));
+
         [InlineData(TypeContext.Output)]
         [InlineData(TypeContext.None)]
         [Theory]
         public void InferObjectType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
-                typeof(Bar),
-                context);
+            ExtendedTypeReference typeReference = TypeReference.Create(TypeOf<Bar>(), context);
 
             // act
-            bool success = SchemaTypeResolver.TryInferSchemaType(
+            var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ExtendedTypeReference schemaType);
 
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Output, schemaType.Context);
-            Assert.Equal(typeof(ObjectType<Bar>), schemaType.Type);
+            Assert.Equal(typeof(ObjectType<Bar>), schemaType.Type.Source);
         }
 
         [InlineData(TypeContext.Output)]
@@ -34,38 +39,36 @@ namespace HotChocolate
         public void InferInterfaceType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
-                typeof(IBar),
-                context);
+            ExtendedTypeReference typeReference = TypeReference.Create(TypeOf<IBar>(), context);
 
             // act
-            bool success = SchemaTypeResolver.TryInferSchemaType(
+            var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ExtendedTypeReference schemaType);
 
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Output, schemaType.Context);
-            Assert.Equal(typeof(InterfaceType<IBar>), schemaType.Type);
+            Assert.Equal(typeof(InterfaceType<IBar>), schemaType.Type.Source);
         }
 
         [Fact]
         public void InferInputObjectType()
         {
             // arrange
-            var typeReference = new ClrTypeReference(
-                typeof(Bar),
-                TypeContext.Input);
+            ExtendedTypeReference typeReference = TypeReference.Create(TypeOf<Bar>(), TypeContext.Input);
 
             // act
-            bool success = SchemaTypeResolver.TryInferSchemaType(
+            var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ExtendedTypeReference schemaType);
 
             // assert
             Assert.True(success);
             Assert.Equal(TypeContext.Input, schemaType.Context);
-            Assert.Equal(typeof(InputObjectType<Bar>), schemaType.Type);
+            Assert.Equal(typeof(InputObjectType<Bar>), schemaType.Type.Source);
         }
 
         [InlineData(TypeContext.Output)]
@@ -75,19 +78,18 @@ namespace HotChocolate
         public void InferEnumType(TypeContext context)
         {
             // arrange
-            var typeReference = new ClrTypeReference(
-                typeof(Foo),
-                context);
+            ExtendedTypeReference typeReference = TypeReference.Create(TypeOf<Foo>(), context);
 
             // act
-            bool success = SchemaTypeResolver.TryInferSchemaType(
+            var success = SchemaTypeResolver.TryInferSchemaType(
+                _typeInspector,
                 typeReference,
-                out IClrTypeReference schemaType);
+                out ExtendedTypeReference schemaType);
 
             // assert
             Assert.True(success);
-            Assert.Equal(context, schemaType.Context);
-            Assert.Equal(typeof(EnumType<Foo>), schemaType.Type);
+            Assert.Equal(TypeContext.None, schemaType.Context);
+            Assert.Equal(typeof(EnumType<Foo>), schemaType.Type.Source);
         }
 
         public class Bar

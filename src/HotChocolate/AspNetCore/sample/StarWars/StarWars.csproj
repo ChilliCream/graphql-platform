@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\StarWars\HotChocolate.StarWars.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+  </ItemGroup>
+
+</Project>

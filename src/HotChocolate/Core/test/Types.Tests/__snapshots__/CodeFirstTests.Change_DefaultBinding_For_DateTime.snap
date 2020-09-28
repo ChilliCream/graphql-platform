@@ -3,8 +3,8 @@
 }
 
 type ModelWithDateTime {
-  bar: DateTime!
   foo: Date
+  bar: DateTime!
 }
 
 type QueryWithDateTime {

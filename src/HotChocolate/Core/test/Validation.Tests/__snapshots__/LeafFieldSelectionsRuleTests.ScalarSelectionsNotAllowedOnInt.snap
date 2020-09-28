@@ -2,22 +2,24 @@
   {
     "Message": "`barkVolume` returns a scalar value. Selections on scalars or enums are never allowed, because they are the leaf nodes of any GraphQL query.",
     "Code": null,
-    "Path": [
-      "dog"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "dog"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "declaringType": "Dog",
       "field": "barkVolume",
       "type": "Int",
       "responseName": "barkVolume",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Leaf-Field-Selections"
-    }
+    },
+    "Exception": null
   }
 ]

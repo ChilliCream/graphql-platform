@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
@@ -24,13 +21,13 @@ namespace HotChocolate.Types.Relay
                         Task.FromResult(new Bar { Id = id })))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ bar { id } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -44,8 +41,7 @@ namespace HotChocolate.Types.Relay
                 .AddObjectType<Bar>(d => d
                     .AsNode()
                     .IdField(t => t.Id)
-                    .NodeResolver((ctx, id) =>
-                        Task.FromResult(new Bar { Id = id })))
+                    .NodeResolver((ctx, id) => Task.FromResult(new Bar { Id = id })))
                 .Use(next => async ctx =>
                 {
                     await next(ctx);
@@ -59,7 +55,7 @@ namespace HotChocolate.Types.Relay
                 })
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ node(id: \"QmFyCmQxMjM=\") { id } }");

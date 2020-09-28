@@ -118,7 +118,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
             await storage.WriteQueryAsync(hash, query);
 
             // act
@@ -241,7 +241,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
             await storage.WriteQueryAsync(hash, query);
 
             // act
@@ -287,7 +287,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -341,7 +341,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act and assert
             IExecutionResult result = await executor.ExecuteAsync(
@@ -417,7 +417,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act and assert
             IExecutionResult result = await executor.ExecuteAsync(
@@ -493,7 +493,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act and assert
             IExecutionResult result = await executor.ExecuteAsync(
@@ -566,7 +566,7 @@ namespace HotChocolate.Execution
             InMemoryQueryStorage storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            var hash = hashProvider.ComputeHash(query.ToSpan());
+            var hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -617,7 +617,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -668,7 +668,7 @@ namespace HotChocolate.Execution
             var storage = services.GetRequiredService<InMemoryQueryStorage>();
 
             var query = new QuerySourceText("{ foo }");
-            string hash = hashProvider.ComputeHash(query.ToSpan());
+            string hash = hashProvider.ComputeHash(query.AsSpan());
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -720,7 +720,7 @@ namespace HotChocolate.Execution
                 IQuery query,
                 CancellationToken cancellationToken)
             {
-                _store[queryId] = query.ToSpan().ToArray();
+                _store[queryId] = query.AsSpan().ToArray();
                 WrittenQuery = true;
                 return Task.CompletedTask;
             }

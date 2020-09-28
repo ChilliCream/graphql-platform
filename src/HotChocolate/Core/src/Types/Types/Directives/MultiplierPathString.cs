@@ -248,7 +248,7 @@ namespace HotChocolate.Types
 
         public static bool IsValidPath(string name)
         {
-            if (name == null || name.Length == 0)
+            if (name is null || name.Length == 0)
             {
                 return false;
             }
@@ -257,7 +257,7 @@ namespace HotChocolate.Types
             {
                 if (name.Length > 1)
                 {
-                    for (int i = 1; i < name.Length; i++)
+                    for (var i = 1; i < name.Length; i++)
                     {
                         if (!name[i].IsLetterOrDigitOrUnderscore()
                             && name[i] != GraphQLConstants.Dot)
@@ -275,7 +275,7 @@ namespace HotChocolate.Types
 
         public static bool IsValidPath(ReadOnlySpan<byte> name)
         {
-            if (name == null || name.Length == 0)
+            if (name.Length == 0)
             {
                 return false;
             }
@@ -284,7 +284,7 @@ namespace HotChocolate.Types
             {
                 if (name.Length > 1)
                 {
-                    for (int i = 1; i < name.Length; i++)
+                    for (var i = 1; i < name.Length; i++)
                     {
                         if (!name[i].IsLetterOrDigitOrUnderscore()
                             && name[i] != GraphQLConstants.Dot)

@@ -15,7 +15,7 @@ namespace HotChocolate
 
         public static string GetGraphQLName(this Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -57,7 +57,7 @@ namespace HotChocolate
 
         public static string GetGraphQLName(this MemberInfo member)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }

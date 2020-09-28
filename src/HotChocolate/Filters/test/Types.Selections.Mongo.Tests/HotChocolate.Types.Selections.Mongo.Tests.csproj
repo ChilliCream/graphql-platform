@@ -8,7 +8,7 @@
   <ItemGroup>
     <!--For Visual Studio for Mac Test Explorer we need this reference here-->
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+    <PackageReference Include="Squadron.Mongo" Version="0.8.1" />
   </ItemGroup>
 
   <ItemGroup>

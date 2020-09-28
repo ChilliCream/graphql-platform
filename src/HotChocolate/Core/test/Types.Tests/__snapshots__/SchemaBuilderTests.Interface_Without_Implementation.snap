@@ -1,3 +1,3 @@
 ﻿For more details look at the `Errors` property.
 
-1. There is no object type implementing interface `Bar`.
+1. There is no object type implementing interface `Bar`. (HotChocolate.Types.InterfaceType)

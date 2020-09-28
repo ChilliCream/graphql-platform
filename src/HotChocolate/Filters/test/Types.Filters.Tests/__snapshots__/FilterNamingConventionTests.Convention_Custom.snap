@@ -3,9 +3,9 @@
 }
 
 type Foo {
-  bool: Boolean!
   comparable: Short!
   comparableEnumerable: [Short!]
+  bool: Boolean!
   object: FooBar
 }
 
@@ -23,57 +23,57 @@ type Test {
 
 input FooBarFilterTest {
   AND: [FooBarFilterTest!]
-  nested: String
-  nested_contains: String
-  nested_ends_with: String
-  nested_in: [String]
-  nested_not: String
-  nested_not_contains: String
-  nested_not_ends_with: String
-  nested_not_in: [String]
-  nested_not_starts_with: String
-  nested_starts_with: String
   OR: [FooBarFilterTest!]
+  nested: String
+  nested_not: String
+  nested_contains: String
+  nested_not_contains: String
+  nested_starts_with: String
+  nested_not_starts_with: String
+  nested_ends_with: String
+  nested_not_ends_with: String
+  nested_in: [String]
+  nested_not_in: [String]
 }
 
 input FooFilterTest {
   AND: [FooFilterTest!]
-  bool: Boolean
-  bool_not: Boolean
+  OR: [FooFilterTest!]
   comparable: Short
+  comparable_not: Short
+  comparable_in: [Short!]
+  comparable_not_in: [Short!]
+  comparable_gt: Short
+  comparable_not_gt: Short
+  comparable_gte: Short
+  comparable_not_gte: Short
+  comparable_lt: Short
+  comparable_not_lt: Short
+  comparable_lte: Short
+  comparable_not_lte: Short
+  comparableEnumerable_some: ISingleFilterOfInt16FilterTest
+  comparableEnumerable_none: ISingleFilterOfInt16FilterTest
   comparableEnumerable_all: ISingleFilterOfInt16FilterTest
   comparableEnumerable_any: Boolean
-  comparableEnumerable_none: ISingleFilterOfInt16FilterTest
-  comparableEnumerable_some: ISingleFilterOfInt16FilterTest
-  comparable_gt: Short
-  comparable_gte: Short
-  comparable_in: [Short!]
-  comparable_lt: Short
-  comparable_lte: Short
-  comparable_not: Short
-  comparable_not_gt: Short
-  comparable_not_gte: Short
-  comparable_not_in: [Short!]
-  comparable_not_lt: Short
-  comparable_not_lte: Short
+  bool: Boolean
+  bool_not: Boolean
   object: FooBarFilterTest
-  OR: [FooFilterTest!]
 }
 
 input ISingleFilterOfInt16FilterTest {
   AND: [ISingleFilterOfInt16FilterTest!]
   OR: [ISingleFilterOfInt16FilterTest!]
   TESTelement: Short
-  TESTelement_gt: Short
-  TESTelement_gte: Short
-  TESTelement_in: [Short!]
-  TESTelement_lt: Short
-  TESTelement_lte: Short
   TESTelement_not: Short
-  TESTelement_not_gt: Short
-  TESTelement_not_gte: Short
+  TESTelement_in: [Short!]
   TESTelement_not_in: [Short!]
+  TESTelement_gt: Short
+  TESTelement_not_gt: Short
+  TESTelement_gte: Short
+  TESTelement_not_gte: Short
+  TESTelement_lt: Short
   TESTelement_not_lt: Short
+  TESTelement_lte: Short
   TESTelement_not_lte: Short
 }
 

@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
-using Snapshooter.Xunit;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Validation

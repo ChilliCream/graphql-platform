@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -30,7 +31,7 @@ namespace HotChocolate.Execution
                     cnf.BindResolver(() => state)
                         .To("CurrentState", "theNumber");
                     cnf.BindResolver(
-                        ctx => state = ctx.Argument<int>("newNumber"))
+                        ctx => state = ctx.ArgumentValue<int>("newNumber"))
                         .To("Mutation", "changeTheNumber");
                 });
 

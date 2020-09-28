@@ -8,17 +8,17 @@ type Query {
 
 input FooStringFilter {
   AND: [FooStringFilter!]
+  OR: [FooStringFilter!]
+  barString_some: ISingleFilterOfStringFilter
+  barString_none: ISingleFilterOfStringFilter
   barString_all: ISingleFilterOfStringFilter
   barString_any: Boolean
-  barString_none: ISingleFilterOfStringFilter
-  barString_some: ISingleFilterOfStringFilter
-  OR: [FooStringFilter!]
 }
 
 input ISingleFilterOfStringFilter {
   AND: [ISingleFilterOfStringFilter!]
-  element_contains: String
   OR: [ISingleFilterOfStringFilter!]
+  element_contains: String
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

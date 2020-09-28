@@ -8,14 +8,14 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barInt64Nullable_some: ISingleFilterOfInt64Filter
   OR: [FooSimpleFilter!]
+  barInt64Nullable_some: ISingleFilterOfInt64Filter
 }
 
 input ISingleFilterOfInt64Filter {
   AND: [ISingleFilterOfInt64Filter!]
-  element: Long
   OR: [ISingleFilterOfInt64Filter!]
+  element: Long
 }
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."

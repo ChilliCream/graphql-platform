@@ -1,14 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using Xunit;
-using Snapshooter.Xunit;
-using System;
 using HotChocolate.Language;
 using System.Linq;
-using Moq;
 
 namespace HotChocolate.Types
 {

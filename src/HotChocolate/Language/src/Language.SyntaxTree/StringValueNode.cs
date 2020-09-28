@@ -64,7 +64,7 @@ namespace HotChocolate.Language
             Block = block;
         }
 
-        public NodeKind Kind { get; } = NodeKind.StringValue;
+        public SyntaxKind Kind { get; } = SyntaxKind.StringValue;
 
         public Location? Location { get; }
 

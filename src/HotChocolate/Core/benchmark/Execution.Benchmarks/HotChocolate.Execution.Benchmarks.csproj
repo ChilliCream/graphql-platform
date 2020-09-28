@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Execution\HotChocolate.Execution.csproj" />
-    <ProjectReference Include="..\..\test\StarWars\HotChocolate.StarWars.csproj" />
+    <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>
 
   <ItemGroup>

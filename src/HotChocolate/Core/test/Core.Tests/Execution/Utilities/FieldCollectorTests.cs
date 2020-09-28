@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
 
             var schema = Schema.Create(
                 FileResource.Open("MergeSchema.graphql"),
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             var fragments = new FragmentCollection(schema, query);
 
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
 
             var schema = Schema.Create(
                 FileResource.Open("MergeSchema.graphql"),
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
 
             var fragments = new FragmentCollection(schema, query);
 
@@ -225,7 +225,7 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(
                 FileResource.Open("ArgumentValueBuilder.graphql"),
-                c => c.Use(next => context => Task.CompletedTask));
+                c => c.Use(next => context => default(ValueTask)));
         }
 
         private static FieldNode CreateField(string field)

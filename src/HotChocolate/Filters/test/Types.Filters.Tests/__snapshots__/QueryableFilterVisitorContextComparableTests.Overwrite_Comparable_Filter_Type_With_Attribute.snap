@@ -8,19 +8,19 @@ type Query {
 
 input EntityWithTypeAttributeFilter {
   AND: [EntityWithTypeAttributeFilter!]
-  barShort: Int
-  barShort_gt: Int
-  barShort_gte: Int
-  barShort_in: [Int]
-  barShort_lt: Int
-  barShort_lte: Int
-  barShort_not: Int
-  barShort_not_gt: Int
-  barShort_not_gte: Int
-  barShort_not_in: [Int]
-  barShort_not_lt: Int
-  barShort_not_lte: Int
   OR: [EntityWithTypeAttributeFilter!]
+  barShort: Int
+  barShort_not: Int
+  barShort_in: [Int]
+  barShort_not_in: [Int]
+  barShort_gt: Int
+  barShort_not_gt: Int
+  barShort_gte: Int
+  barShort_not_gte: Int
+  barShort_lt: Int
+  barShort_not_lt: Int
+  barShort_lte: Int
+  barShort_not_lte: Int
 }
 
 "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."

@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Types;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
@@ -14,12 +13,12 @@ namespace HotChocolate.Types.Relay.Descriptors
             IObjectTypeDescriptor<TNode> typeDescriptor,
             Expression<Func<TNode, TId>> propertyOrMethod)
         {
-            if (typeDescriptor == null)
+            if (typeDescriptor is null)
             {
                 throw new ArgumentNullException(nameof(typeDescriptor));
             }
 
-            if (propertyOrMethod == null)
+            if (propertyOrMethod is null)
             {
                 throw new ArgumentNullException(nameof(propertyOrMethod));
             }
@@ -45,6 +44,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             return _typeDescriptor.Field(_propertyOrMethod)
                 .Type<NonNullType<IdType>>()
+                .Use<IdMiddleware>()
                 .Name("id");
         }
     }

@@ -30,12 +30,14 @@ interface DocPageNavigationProperties {
   data: DocPageNavigationFragment;
   selectedPath: string;
   selectedProduct: string;
+  selectedVersion: string;
 }
 
 export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> = ({
   data,
   selectedPath,
   selectedProduct,
+  selectedVersion,
 }) => {
   const { containerRef, elementRef } = useStickyElement<
     HTMLElement,
@@ -47,9 +49,12 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   const showTOC = useSelector<State, boolean>((state) => state.common.showTOC);
   const dispatch = useDispatch();
   const [productSwitcherOpen, setProductSwitcherOpen] = useState(false);
-  const activeProduct =
-    data.config?.products &&
-    data.config.products.find((product) => product?.path === selectedProduct);
+  const activeProduct = data.config?.products?.find(
+    (product) => product?.path === selectedProduct
+  );
+  const activeVersion = activeProduct?.versions?.find(
+    (version) => version?.path === selectedVersion
+  );
 
   const handleClickDialog = useCallback((event: MouseEvent<HTMLDivElement>) => {
     event.stopPropagation();
@@ -85,7 +90,7 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
   );
 
   const buildNavigationStructure = (items: Item[], basePath: string) => (
-    <NavigationList open={!productSwitcherOpen}>
+    <NavigationList>
       {items.map(({ path, title, items: subItems }) => {
         const itemPath =
           !subItems && path === "index" ? basePath : basePath + "/" + path;
@@ -142,16 +147,21 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
     /*
       Ensures that all groups along the selected path are expanded on page load.
     */
-    if (activeProduct && activeProduct.items) {
+    if (activeVersion?.items) {
+      const selectedVersionLength =
+        selectedVersion.length > 0 ? selectedVersion.length + 1 : 0;
       const index =
-        selectedPath.indexOf(selectedProduct) + selectedProduct.length + 1;
+        selectedPath.indexOf(selectedProduct) +
+        selectedProduct.length +
+        1 +
+        selectedVersionLength;
       const parts = selectedPath
         .substring(index)
         .split("/")
         .filter((part) => part.length > 0);
 
       if (parts.length > 0) {
-        const rootFolder = activeProduct.items.find(
+        const rootFolder = activeVersion.items.find(
           (item) => item!.path === parts[0] && item!.items
         );
 
@@ -191,35 +201,59 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
             open={productSwitcherOpen}
             onClick={handleClickDialog}
           >
-            {data.config?.products &&
-              data.config.products.map((product) =>
-                product === activeProduct ? (
-                  <ActiveProduct
-                    key={product!.path!}
-                    onClick={handleCloseClick}
-                  >
-                    <ProductTitle>{product!.title!}</ProductTitle>
-                    <ProductDescription>
-                      {product!.description!}
-                    </ProductDescription>
-                  </ActiveProduct>
-                ) : (
-                  <ProductLink
-                    key={product!.path!}
-                    to={`/docs/${product!.path!}/`}
-                  >
-                    <ProductTitle>{product!.title!}</ProductTitle>
-                    <ProductDescription>
-                      {product!.description!}
-                    </ProductDescription>
-                  </ProductLink>
-                )
-              )}
+            {data.config?.products?.map((product) =>
+              product === activeProduct ? (
+                <ActiveProduct key={product!.path!} onClick={handleCloseClick}>
+                  <ProductTitle>{product!.title!}</ProductTitle>
+                  <ProductDescription>
+                    {product!.description!}
+                  </ProductDescription>
+                </ActiveProduct>
+              ) : (
+                <ProductLink
+                  key={product!.path!}
+                  to={
+                    product!.versions![0]!.path! === ""
+                      ? `/docs/${product!.path!}/`
+                      : `/docs/${product!.path!}/${product!.versions![0]!
+                          .path!}/`
+                  }
+                >
+                  <ProductTitle>{product!.title!}</ProductTitle>
+                  <ProductDescription>
+                    {product!.description!}
+                  </ProductDescription>
+                </ProductLink>
+              )
+            )}
           </ProductSwitcherDialog>
         </ProductSwitcher>
-        {activeProduct?.items &&
+        {!productSwitcherOpen && activeProduct!.versions!.length > 1 && (
+          <ProductVersions>
+            {activeProduct!.versions!.map((version, index) => (
+              <ProductVersion
+                key={version!.path! + index}
+                className={
+                  activeVersion!.path! === version!.path! ? "active" : undefined
+                }
+              >
+                <ProductVersionLink
+                  to={
+                    version!.path! === ""
+                      ? `/docs/${activeProduct!.path!}/`
+                      : `/docs/${activeProduct!.path!}/${version!.path!}/`
+                  }
+                >
+                  {version!.title}
+                </ProductVersionLink>
+              </ProductVersion>
+            ))}
+          </ProductVersions>
+        )}
+        {!productSwitcherOpen &&
+          activeVersion?.items &&
           buildNavigationStructure(
-            activeProduct.items
+            activeVersion.items
               .filter((item) => !!item)
               .map<Item>((item) => ({
                 path: item!.path!,
@@ -233,7 +267,11 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
                       }))
                   : undefined,
               })),
-            `/docs/${activeProduct.path!}`
+            `/docs/${activeProduct!.path!}${
+              activeVersion?.path?.length && activeVersion.path.length > 0
+                ? "/" + activeVersion.path!
+                : ""
+            }`
           )}
       </FixedContainer>
     </Navigation>
@@ -241,7 +279,9 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
 };
 
 function containsActiveItem(selectedPath: string, itemPath: string) {
-  return selectedPath.startsWith(itemPath);
+  const itemPathWithSlash = itemPath.endsWith("/") ? itemPath : itemPath + "/";
+
+  return selectedPath.startsWith(itemPathWithSlash);
 }
 
 function isActive(selectedPath: string, itemPath: string) {
@@ -258,12 +298,16 @@ export const DocPageNavigationGraphQLFragment = graphql`
         path
         title
         description
-        items {
+        versions {
           path
           title
           items {
             path
             title
+            items {
+              path
+              title
+            }
           }
         }
       }
@@ -282,7 +326,7 @@ const ProductSwitcher = styled.div`
   flex-wrap: wrap;
   align-items: center;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     position: relative;
     flex-wrap: initial;
     overflow-y: initial;
@@ -315,7 +359,7 @@ const ProductSwitcherButton = styled.button`
     background-color: #ddd;
   }
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     margin-bottom: 20px;
     padding: 7px 5px;
     width: calc(100% - 28px);
@@ -330,10 +374,10 @@ const ProductSwitcherDialog = styled.div<{ open: boolean }>`
   padding: 0 10px;
   background-color: #fff;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     position: fixed;
     z-index: 10;
-    top: 130px;
+    top: 150px;
     flex-direction: row;
     flex-wrap: wrap;
     margin: 0 14px;
@@ -355,7 +399,7 @@ const ProductBase = css`
   color: #666;
   cursor: pointer;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     flex: 0 0 calc(50% - 32px);
   }
 `;
@@ -382,14 +426,49 @@ const ProductDescription = styled.p`
   margin-bottom: 0;
 `;
 
-const NavigationList = styled.ol<{ open: boolean }>`
-  display: ${({ open }) => (open ? "flex" : "none")};
+const ProductVersions = styled.ol`
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0 25px 10px;
+  list-style-type: none;
+
+  @media only screen and (min-width: 1070px) {
+    padding: 0 20px 10px;
+  }
+`;
+
+const ProductVersionLink = styled(Link)`
+  font-size: 0.833em;
+  color: #666;
+
+  :hover {
+    color: #000;
+  }
+`;
+
+const ProductVersion = styled.li`
+  flex: 0 0 auto;
+  margin: 5px 20px 5px 0;
+  padding: 0;
+  min-height: 20px;
+  line-height: initial;
+
+  &.active {
+    > ${ProductVersionLink} {
+      font-weight: bold;
+    }
+  }
+`;
+
+const NavigationList = styled.ol`
+  display: flex;
   flex-direction: column;
   margin: 0;
   padding: 0 25px 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 1050px) {
+  @media only screen and (min-width: 1070px) {
     display: flex;
     padding: 0 20px 20px;
   }

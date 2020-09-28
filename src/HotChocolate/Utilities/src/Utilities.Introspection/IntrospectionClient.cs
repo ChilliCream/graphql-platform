@@ -103,7 +103,7 @@ namespace HotChocolate.Utilities.Introspection
             {
                 var message = new StringBuilder();
 
-                for (int i = 0; i < result.Errors.Count; i++)
+                for (var i = 0; i < result.Errors.Count; i++)
                 {
                     if (i > 0)
                     {
@@ -127,21 +127,23 @@ namespace HotChocolate.Utilities.Introspection
             var content = new ByteArrayContent(serializedRequest);
             content.Headers.ContentType = new MediaTypeHeaderValue(_jsonContentType);
 
-            using var httpRequest = new HttpRequestMessage(
-                HttpMethod.Post, client.BaseAddress);
-            httpRequest.Content = content;
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, client.BaseAddress)
+            {
+                Content = content
+            };
 
-            using HttpResponseMessage httpResponse = await client.SendAsync(
-                httpRequest, cancellationToken)
-                .ConfigureAwait(false);
+            using HttpResponseMessage httpResponse =
+                await client.SendAsync(httpRequest, cancellationToken)
+                    .ConfigureAwait(false);
             httpResponse.EnsureSuccessStatusCode();
 
-            using Stream stream = await httpResponse.Content.ReadAsStreamAsync()
-                .ConfigureAwait(false);
+            using Stream stream =
+                await httpResponse.Content.ReadAsStreamAsync()
+                    .ConfigureAwait(false);
 
-            return await JsonSerializer.DeserializeAsync<IntrospectionResult>(
+            return (await JsonSerializer.DeserializeAsync<IntrospectionResult>(
                 stream, _serializerOptions, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false))!;
         }
     }
 }

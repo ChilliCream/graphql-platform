@@ -1,10 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <AssemblyName>HotChocolate.Utilities.Introspection</AssemblyName>
     <RootNamespace>HotChocolate.Utilities.Introspection</RootNamespace>
     <PackageId>HotChocolate.Utilities.Introspection</PackageId>
@@ -13,13 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="4.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

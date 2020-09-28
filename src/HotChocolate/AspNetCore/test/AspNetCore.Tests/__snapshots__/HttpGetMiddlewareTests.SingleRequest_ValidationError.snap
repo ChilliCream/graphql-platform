@@ -1,0 +1,20 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The following variables were not declared: episode.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 21
+        }
+      ],
+      "extensions": {
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-All-Variable-Uses-Defined"
+      }
+    }
+  ],
+  "Extensions": null
+}

@@ -1,0 +1,54 @@
+﻿{
+  "Kind": "Field",
+  "Alias": null,
+  "Arguments": [
+    {
+      "Kind": "Argument",
+      "Location": {
+        "Start": 4,
+        "End": 13,
+        "Line": 1,
+        "Column": 5
+      },
+      "Name": {
+        "Kind": "Name",
+        "Location": {
+          "Start": 4,
+          "End": 6,
+          "Line": 1,
+          "Column": 5
+        },
+        "Value": "a"
+      },
+      "Value": {
+        "Kind": "StringValue",
+        "Location": {
+          "Start": 7,
+          "End": 13,
+          "Line": 1,
+          "Column": 8
+        },
+        "Value": "baz",
+        "Block": false
+      }
+    }
+  ],
+  "SelectionSet": null,
+  "Location": {
+    "Start": 0,
+    "End": 13,
+    "Line": 1,
+    "Column": 1
+  },
+  "Name": {
+    "Kind": "Name",
+    "Location": {
+      "Start": 0,
+      "End": 4,
+      "Line": 1,
+      "Column": 1
+    },
+    "Value": "foo"
+  },
+  "Directives": []
+}

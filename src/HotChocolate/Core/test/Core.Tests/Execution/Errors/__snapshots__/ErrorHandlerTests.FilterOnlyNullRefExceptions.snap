@@ -7,15 +7,19 @@
     {
       "Message": "Unexpected Execution Error",
       "Code": null,
-      "Path": [
-        "foo"
-      ],
+      "Path": {
+        "Parent": null,
+        "Name": "foo",
+        "Index": null,
+        "Depth": 0
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 3
         }
       ],
+      "Extensions": null,
       "Exception": {
         "ClassName": "System.Exception",
         "Message": "Foo",
@@ -29,21 +33,24 @@
         "HResult": -2146233088,
         "Source": "HotChocolate.Core.Tests",
         "WatsonBuckets": null
-      },
-      "Extensions": {}
+      }
     },
     {
       "Message": "Unexpected Execution Error",
       "Code": "NullRef",
-      "Path": [
-        "bar"
-      ],
+      "Path": {
+        "Parent": null,
+        "Name": "bar",
+        "Index": null,
+        "Depth": 0
+      },
       "Locations": [
         {
           "Line": 1,
           "Column": 7
         }
       ],
+      "Extensions": {},
       "Exception": {
         "ClassName": "System.NullReferenceException",
         "Message": "Foo",
@@ -57,9 +64,6 @@
         "HResult": -2147467261,
         "Source": "HotChocolate.Core.Tests",
         "WatsonBuckets": null
-      },
-      "Extensions": {
-        "code": "NullRef"
       }
     }
   ],

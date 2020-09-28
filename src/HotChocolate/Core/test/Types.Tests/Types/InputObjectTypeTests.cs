@@ -6,6 +6,10 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+#if NETCOREAPP2_1
+using Snapshooter;
+#endif
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -412,8 +416,14 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
+            #if NETCOREAPP2_1
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot(
+                    new SnapshotNameExtension("NETCOREAPP2_1"));
+            #else
             Assert.Throws<SchemaException>(a)
                 .Errors.First().Message.MatchSnapshot();
+            #endif
         }
 
         [Fact]
@@ -491,29 +501,25 @@ namespace HotChocolate.Types
         public void Convert_Parts_Of_The_Input_Graph()
         {
             // arrange
-            var typeConversion = new TypeConversion();
-            typeConversion.Register<Baz, Bar>(from =>
-                new Bar { Text = from.Text });
-            typeConversion.Register<Bar, Baz>(from =>
-                new Baz { Text = from.Text });
-
-            var services = new DictionaryServiceProvider(
-                typeof(ITypeConversion),
-                typeConversion);
+            var services = new ServiceCollection()
+                .AddSingleton<ITypeConverter, DefaultTypeConverter>()
+                .AddTypeConverter<Baz, Bar>(from => new Bar { Text = from.Text })
+                .AddTypeConverter<Bar, Baz>(from => new Baz { Text = from.Text })
+                .BuildServiceProvider();
 
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryType>()
                 .AddServices(services)
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = executor.Execute(
                 "{ foo(a: { bar: { text: \"abc\" } }) }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -832,7 +838,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseLiteral(new StringValueNode("foo"));
 
             // assert
-            Assert.Throws<InputObjectSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -1026,14 +1032,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { baz: \"abc\" }) { isBarSet bar baz } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [InlineData("null")]
@@ -1046,14 +1052,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithOptionals>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: " + value + " }) { isBarSet } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1064,14 +1070,14 @@ namespace HotChocolate.Types
                 .AddQueryType<QueryWithImmutables>()
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ do(input: { bar: \"abc\" baz: \"def\" qux: \"ghi\" }) { bar baz qux } }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -1135,7 +1141,7 @@ namespace HotChocolate.Types
                 descriptor.Field("foo")
                     .Argument("a", a => a.Type<FooInputType>())
                     .Type<StringType>()
-                    .Resolver(ctx => ctx.Argument<Foo>("a").Bar.Text);
+                    .Resolver(ctx => ctx.ArgumentValue<Foo>("a").Bar.Text);
             }
         }
 

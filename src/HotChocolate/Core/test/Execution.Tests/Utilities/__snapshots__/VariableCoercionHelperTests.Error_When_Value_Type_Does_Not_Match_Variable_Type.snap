@@ -3,12 +3,11 @@
     "Message": "Variable `abc` got an invalid value.",
     "Code": "EXEC_INVALID_TYPE",
     "Path": null,
-    "Locations": [],
-    "Exception": null,
+    "Locations": null,
     "Extensions": {
       "code": "EXEC_INVALID_TYPE",
-      "variable": "abc",
-      "scalarError": "String cannot parse the given literal of type `IntValueNode`."
-    }
+      "variable": "abc"
+    },
+    "Exception": null
   }
 ]

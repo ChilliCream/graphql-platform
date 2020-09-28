@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "The field \u0060foo\u0060 does not exist on the type \u0060Mutation\u0060.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 12
+        }
+      ],
+      "extensions": {
+        "type": "Mutation",
+        "field": "foo",
+        "responseName": "foo",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+      }
+    }
+  ]
+}

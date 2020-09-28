@@ -67,7 +67,7 @@ namespace HotChocolate.Language
             Format = format;
         }
 
-        public NodeKind Kind { get; } = NodeKind.FloatValue;
+        public SyntaxKind Kind { get; } = SyntaxKind.FloatValue;
 
         public Location? Location { get; }
 
@@ -247,7 +247,7 @@ namespace HotChocolate.Language
                 return _floatValue.Value;
             }
 
-            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            char format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
             if (Utf8Parser.TryParse(AsSpan(), out float value, out _, format))
             {
                 _floatValue = value;
@@ -264,7 +264,7 @@ namespace HotChocolate.Language
                 return _doubleValue.Value;
             }
 
-            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            char format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
             if (Utf8Parser.TryParse(AsSpan(), out double value, out _, format))
             {
                 _doubleValue = value;
@@ -281,7 +281,7 @@ namespace HotChocolate.Language
                 return _decimalValue.Value;
             }
 
-            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            char format = Format == FloatFormat.FixedPoint ? 'g' : 'e';
             if (Utf8Parser.TryParse(AsSpan(), out decimal value, out _, format))
             {
                 _decimalValue = value;
@@ -300,15 +300,15 @@ namespace HotChocolate.Language
 
                 if (_floatValue.HasValue)
                 {
-                    Utf8Formatter.TryFormat(_floatValue.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_floatValue.Value, buffer, out written, 'g');
                 }
                 else if (_doubleValue.HasValue)
                 {
-                    Utf8Formatter.TryFormat(_doubleValue.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_doubleValue.Value, buffer, out written, 'g');
                 }
                 else
                 {
-                    Utf8Formatter.TryFormat(_decimalValue!.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_decimalValue!.Value, buffer, out written, 'g');
                 }
 
                 var memory = new Memory<byte>(new byte[written]);

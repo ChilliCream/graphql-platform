@@ -1,46 +1,26 @@
 using System;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class SyntaxTypeReference
-        : TypeReferenceBase
-        , ISyntaxTypeReference
+        : TypeReference
         , IEquatable<SyntaxTypeReference>
-        , IEquatable<ISyntaxTypeReference>
     {
-        public SyntaxTypeReference(ITypeNode type, TypeContext context)
-            : this(type, context, null, null)
-        {
-        }
-
         public SyntaxTypeReference(
             ITypeNode type,
             TypeContext context,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-            : base(context, isTypeNullable, isElementTypeNullable)
+            string? scope = null)
+            : base(context, scope)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITypeNode Type { get; }
 
-        public ISyntaxTypeReference WithType(ITypeNode type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-            return new SyntaxTypeReference(type, Context);
-        }
-
-        public bool Equals(SyntaxTypeReference other)
+        public bool Equals(SyntaxTypeReference? other)
         {
             if (other is null)
             {
@@ -52,13 +32,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return Type.IsEqualTo(other.Type)
-                && Context == other.Context
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            if (!IsEqual(other))
+            {
+                return false;
+            }
+
+            return Type.IsEqualTo(other.Type);
         }
 
-        public bool Equals(ISyntaxTypeReference other)
+        public override bool Equals(ITypeReference? other)
         {
             if (other is null)
             {
@@ -70,13 +52,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return Type.IsEqualTo(other.Type)
-                && Context == other.Context
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            if (other is SyntaxTypeReference c)
+            {
+                return Equals(c);
+            }
+
+            return false;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -88,14 +72,9 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (obj is SyntaxTypeReference str)
+            if (obj is SyntaxTypeReference c)
             {
-                return Equals(str);
-            }
-
-            if (obj is ISyntaxTypeReference istr)
-            {
-                return Equals(istr);
+                return Equals(c);
             }
 
             return false;
@@ -105,17 +84,49 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = Type.GetHashCode() * 397;
-                hash = hash ^ (Context.GetHashCode() * 7);
-                hash = hash ^ (IsTypeNullable?.GetHashCode() ?? 0 * 11);
-                hash = hash ^ (IsElementTypeNullable?.GetHashCode() ?? 0 * 13);
-                return hash;
+                return base.GetHashCode() ^ Type.GetHashCode() * 397;
             }
         }
 
         public override string ToString()
         {
             return $"{Context}: {Type}";
+        }
+
+        public SyntaxTypeReference WithType(ITypeNode type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new SyntaxTypeReference(type, Context, Scope);
+        }
+
+        public SyntaxTypeReference WithContext(TypeContext context = TypeContext.None)
+        {
+            return new SyntaxTypeReference(Type, context, Scope);
+        }
+
+        public SyntaxTypeReference WithScope(string? scope = null)
+        {
+            return new SyntaxTypeReference(Type, Context, scope);
+        }
+
+        public SyntaxTypeReference With(
+            Optional<ITypeNode> type = default,
+            Optional<TypeContext> context = default,
+            Optional<string?> scope = default)
+        {
+            if (type.HasValue && type.Value is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new SyntaxTypeReference(
+                type.HasValue ? type.Value! : Type,
+                context.HasValue ? context.Value : Context,
+                scope.HasValue ? scope.Value : Scope);
         }
     }
 }

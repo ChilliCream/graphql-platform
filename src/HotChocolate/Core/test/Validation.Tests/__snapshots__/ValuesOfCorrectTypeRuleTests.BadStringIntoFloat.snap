@@ -2,22 +2,27 @@
   {
     "Message": "The specified argument value does not match the argument type.",
     "Code": null,
-    "Path": [
-      "arguments",
-      "floatArgField"
-    ],
+    "Path": {
+      "Parent": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "arguments"
+      },
+      "Depth": 1,
+      "Name": "floatArgField"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 49
       }
     ],
-    "Exception": null,
     "Extensions": {
       "argument": "floatArg",
       "argumentValue": "\"3.333\"",
       "locationType": "Float",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    }
+    },
+    "Exception": null
   }
 ]

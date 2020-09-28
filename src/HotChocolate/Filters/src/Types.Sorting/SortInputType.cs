@@ -26,10 +26,8 @@ namespace HotChocolate.Types.Sorting
 
         public Type EntityType { get; private set; } = typeof(object);
 
-        #region Configuration
-
         protected override InputObjectTypeDefinition CreateDefinition(
-            IInitializationContext context)
+            ITypeDiscoveryContext context)
         {
             SortInputTypeDescriptor<T> descriptor =
                 SortInputTypeDescriptor<T>.New(
@@ -40,7 +38,7 @@ namespace HotChocolate.Types.Sorting
         }
 
         protected override void OnRegisterDependencies(
-            IInitializationContext context,
+            ITypeDiscoveryContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
@@ -54,7 +52,7 @@ namespace HotChocolate.Types.Sorting
         }
 
         protected override void OnCompleteType(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
@@ -67,7 +65,7 @@ namespace HotChocolate.Types.Sorting
         }
 
         protected override void OnCompleteFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputObjectTypeDefinition definition,
             ICollection<InputField> fields)
         {
@@ -78,10 +76,6 @@ namespace HotChocolate.Types.Sorting
             }
         }
 
-        #endregion
-
-        #region Disabled
-
         // we are disabling the default configure method so
         // that this does not lead to confusion.
         protected sealed override void Configure(
@@ -89,7 +83,5 @@ namespace HotChocolate.Types.Sorting
         {
             throw new NotSupportedException();
         }
-
-        #endregion
     }
 }

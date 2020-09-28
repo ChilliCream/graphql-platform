@@ -12,6 +12,9 @@ namespace HotChocolate.StarWars.Types
                 .Type<CharacterType>()
                 .Argument("episode", a => a.DefaultValue(Episode.NewHope));
 
+            descriptor.Field(t => t.GetHeroes(default))
+                .Type<ListType<NonNullType<CharacterType>>>();
+
             descriptor.Field(t => t.GetCharacter(default, default))
                 .Type<NonNullType<ListType<NonNullType<CharacterType>>>>();
 

@@ -129,8 +129,8 @@ namespace HotChocolate.Validation.Rules
 
             if (context.Path.TryPeek(out ISyntaxNode parent))
             {
-                if (parent.Kind == NodeKind.OperationDefinition ||
-                    parent.Kind == NodeKind.Field)
+                if (parent.Kind == SyntaxKind.OperationDefinition ||
+                    parent.Kind == SyntaxKind.Field)
                 {
                     context.SelectionSets.Push(node);
                 }
@@ -145,8 +145,8 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Path.TryPeek(out ISyntaxNode parent))
             {
-                if (parent.Kind == NodeKind.OperationDefinition ||
-                    parent.Kind == NodeKind.Field)
+                if (parent.Kind == SyntaxKind.OperationDefinition ||
+                    parent.Kind == SyntaxKind.Field)
                 {
                     context.SelectionSets.Pop();
                 }
@@ -180,7 +180,7 @@ namespace HotChocolate.Validation.Rules
             for (int i = 0; i < selectionSet.Selections.Count; i++)
             {
                 ISelectionNode selection = selectionSet.Selections[i];
-                if (selection.Kind == NodeKind.Field)
+                if (selection.Kind == SyntaxKind.Field)
                 {
                     if (!IsTypeNameField(((FieldNode)selection).Name.Value))
                     {
@@ -218,8 +218,8 @@ namespace HotChocolate.Validation.Rules
                         FieldInfo fieldB = fields[j];
                         if (!object.ReferenceEquals(fieldA.Field, fieldB.Field) &&
                             string.Equals(
-                                fieldA.ResponseName, 
-                                fieldB.ResponseName, 
+                                fieldA.ResponseName,
+                                fieldB.ResponseName,
                                 StringComparison.Ordinal))
                         {
                             if (SameResponseShape(fieldA.Type, fieldB.Type))

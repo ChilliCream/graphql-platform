@@ -24,10 +24,36 @@ namespace HotChocolate.PersistedQueries.FileSystem
             var map = new DefaultQueryFileMap();
 
             // act
-            string path = map.MapToFilePath("/+=");
+            var path = map.MapToFilePath("/+=");
 
             // assert
-            Assert.Equal(IOPath.Combine(map.Root, "-_"), path);
+            Assert.Equal(IOPath.Combine(map.Root, "-_.graphql"), path);
+        }
+
+        [Fact]
+        public void MapToFilePath_Convert_Base64_To_UrlCompatibleBase64_2()
+        {
+            // arrange
+            var map = new DefaultQueryFileMap();
+
+            // act
+            var path = map.MapToFilePath("/+=========");
+
+            // assert
+            Assert.Equal(IOPath.Combine(map.Root, "-_.graphql"), path);
+        }
+
+        [Fact]
+        public void MapToFilePath()
+        {
+            // arrange
+            var map = new DefaultQueryFileMap();
+
+            // act
+            var path = map.MapToFilePath("abc_def");
+
+            // assert
+            Assert.Equal(IOPath.Combine(map.Root, "abc_def.graphql"), path);
         }
 
         [InlineData(null)]

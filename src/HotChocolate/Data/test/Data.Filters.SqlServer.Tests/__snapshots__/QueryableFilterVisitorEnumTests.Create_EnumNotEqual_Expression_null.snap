@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060neq\u0060 of type EnumOperationFilterInputOfFooEnumFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 33
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "expectedType": "FooEnum!",
+        "filterType": "EnumOperationFilterInputOfFooEnumFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}

@@ -11,7 +11,7 @@ namespace HotChocolate
         public void WithCode()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             error = error.WithCode("foo");
@@ -21,14 +21,45 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void RemoveCode()
+        {
+            // arrange
+            IError error = new Error("123", code: "foo");
+
+            // act
+            error = error.RemoveCode();
+
+            // assert
+            Assert.Null(error.Code);
+        }
+
+        [Fact]
         public void WithException()
         {
             // arrange
             IError error = new Error
-            {
-                Message = "123",
-                Exception = new Exception()
-            };
+            (
+                "123"
+            );
+
+            var exception = new Exception();
+
+            // act
+            error = error.WithException(exception);
+
+            // assert
+            Assert.Equal(exception, error.Exception);
+        }
+
+        [Fact]
+        public void RemoveException()
+        {
+            // arrange
+            IError error = new Error
+            (
+                "123",
+                exception: new Exception()
+            );
 
             Assert.NotNull(error.Exception);
 
@@ -43,7 +74,7 @@ namespace HotChocolate
         public void WithExtensions()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             error = error.WithExtensions(
@@ -62,10 +93,10 @@ namespace HotChocolate
         public void AddExtensions()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
-            error = error.AddExtension("a", "b").AddExtension("c", "d");
+            error = error.SetExtension("a", "b").SetExtension("c", "d");
 
             // assert
             Assert.Collection(error.Extensions.OrderBy(t => t.Key),
@@ -85,7 +116,7 @@ namespace HotChocolate
         public void RemoveExtensions()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
             error = error.WithExtensions(
                 new Dictionary<string, object>
                 {
@@ -109,7 +140,7 @@ namespace HotChocolate
         public void WithLocations()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             error = error.WithLocations(
@@ -128,7 +159,7 @@ namespace HotChocolate
         public void WithMessage()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             error = error.WithMessage("456");
@@ -141,7 +172,7 @@ namespace HotChocolate
         public void WithMessage_MessageNull_ArgumentException()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             Action action = () => error.WithMessage(null);
@@ -154,7 +185,7 @@ namespace HotChocolate
         public void WithMessage_MessageEmpty_ArgumentException()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             Action action = () => error.WithMessage(string.Empty);
@@ -167,14 +198,13 @@ namespace HotChocolate
         public void WithPath()
         {
             // arrange
-            IError error = new Error { Message = "123" };
+            IError error = new Error("123");
 
             // act
             error = error.WithPath(Path.New("foo"));
 
             // assert
-            Assert.Collection(error.Path,
-                t => Assert.Equal("foo", t.ToString()));
+            Assert.Equal("/foo", error.Path.Print());
         }
     }
 }

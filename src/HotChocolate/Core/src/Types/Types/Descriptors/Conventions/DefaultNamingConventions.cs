@@ -1,14 +1,18 @@
 using System;
+using System.Buffers;
 using System.Linq;
 using System.Reflection;
-using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventions
-        : INamingConventions
+        : Convention
+        , INamingConventions
     {
-        private IDocumentationProvider _documentation;
+        private const string _inputPostfix = "Input";
+        private readonly IDocumentationProvider _documentation;
 
         public DefaultNamingConventions(IDocumentationProvider documentation)
         {
@@ -32,112 +36,26 @@ namespace HotChocolate.Types.Descriptors
         protected IDocumentationProvider DocumentationProvider =>
             _documentation;
 
-        public virtual NameString GetArgumentName(ParameterInfo parameter)
-        {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-            return parameter.GetGraphQLName();
-        }
-
-        public virtual string GetArgumentDescription(ParameterInfo parameter)
-        {
-            if (parameter == null)
-            {
-                throw new ArgumentNullException(nameof(parameter));
-            }
-
-            var description = parameter.GetGraphQLDescription();
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                description = _documentation.GetDescription(parameter);
-            }
-
-            return description;
-        }
-
-        public virtual NameString GetEnumValueName(object value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            return value.ToString().ToUpperInvariant();
-        }
-
-        public virtual string GetEnumValueDescription(object value)
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
-            Type enumType = value.GetType();
-            if (enumType.IsEnum)
-            {
-                MemberInfo enumMember = enumType
-                    .GetMember(value.ToString())
-                    .FirstOrDefault();
-
-                if (enumMember != null)
-                {
-                    string description = enumMember.GetGraphQLDescription();
-                    if (string.IsNullOrEmpty(description))
-                    {
-                        return _documentation.GetDescription(enumMember);
-                    }
-                    return description;
-                }
-            }
-
-            return null;
-        }
-
-        public virtual NameString GetMemberName(
-            MemberInfo member,
-            MemberKind kind)
-        {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            return member.GetGraphQLName();
-        }
-
-        public virtual string GetMemberDescription(
-            MemberInfo member,
-            MemberKind kind)
-        {
-            if (member == null)
-            {
-                throw new ArgumentNullException(nameof(member));
-            }
-
-            var description = member.GetGraphQLDescription();
-            if (string.IsNullOrWhiteSpace(description))
-            {
-                description = _documentation.GetDescription(member);
-            }
-
-            return description;
-        }
-
+        /// <inheritdoc />
         public virtual NameString GetTypeName(Type type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type == typeof(Schema))
+            {
+                return Schema.DefaultName;
             }
 
             return type.GetGraphQLName();
         }
 
+        /// <inheritdoc />
         public virtual NameString GetTypeName(Type type, TypeKind kind)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
@@ -145,22 +63,24 @@ namespace HotChocolate.Types.Descriptors
             string name = type.GetGraphQLName();
 
             if (kind == TypeKind.InputObject
-                && !name.EndsWith("Input", StringComparison.Ordinal))
+                && !name.EndsWith(_inputPostfix, StringComparison.Ordinal))
             {
-                name = name + "Input";
+                name += _inputPostfix;
             }
 
             return name;
         }
 
-        public virtual string GetTypeDescription(Type type, TypeKind kind)
+        /// <inheritdoc />
+        public virtual string? GetTypeDescription(Type type, TypeKind kind)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
             var description = type.GetGraphQLDescription();
+
             if (string.IsNullOrWhiteSpace(description))
             {
                 description = _documentation.GetDescription(type);
@@ -169,9 +89,178 @@ namespace HotChocolate.Types.Descriptors
             return description;
         }
 
+        /// <inheritdoc />
+        public virtual NameString GetMemberName(
+            MemberInfo member,
+            MemberKind kind)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.GetGraphQLName();
+        }
+
+        /// <inheritdoc />
+        public virtual string? GetMemberDescription(
+            MemberInfo member,
+            MemberKind kind)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            var description = member.GetGraphQLDescription();
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = _documentation.GetDescription(member);
+            }
+
+            return description;
+        }
+
+        /// <inheritdoc />
+        public virtual NameString GetArgumentName(ParameterInfo parameter)
+        {
+            if (parameter is null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+            return parameter.GetGraphQLName();
+        }
+
+        /// <inheritdoc />
+        public virtual string? GetArgumentDescription(ParameterInfo parameter)
+        {
+            if (parameter is null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            var description = parameter.GetGraphQLDescription();
+
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = _documentation.GetDescription(parameter);
+            }
+
+            return description;
+        }
+
+        /// <inheritdoc />
+        public virtual unsafe NameString GetEnumValueName(object value)
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                MemberInfo? enumMember = enumType
+                    .GetMember(value.ToString()!)
+                    .FirstOrDefault();
+
+                if (enumMember is not null && 
+                    enumMember.IsDefined(typeof(GraphQLNameAttribute)))
+                {
+                    return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
+                }
+            }
+
+            var underscores = 0;
+            ReadOnlySpan<char> name = value.ToString().AsSpan();
+
+            if (name.Length == 1)
+            {
+                return char.ToUpper(name[0]).ToString();
+            }
+
+            for (var i = 0; i < name.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(name[i]))
+                {
+                    underscores++;
+                }
+            }
+
+            if (underscores == name.Length - 1 && char.IsUpper(name[0]))
+            {
+                fixed (char* charPtr = name)
+                {
+                    return new string(charPtr);
+                }
+            }
+
+            var size = underscores + name.Length;
+            char[]? rented = null;
+            Span<char> buffer = size <= 128
+                ? stackalloc char[size]
+                : rented = ArrayPool<char>.Shared.Rent(size);
+
+            try
+            {
+                var p = 0;
+                buffer[p++] = char.ToUpper(name[0]);
+
+                for (var i = 1; i < name.Length; i++)
+                {
+                    if (char.IsUpper(name[i]))
+                    {
+                        buffer[p++] = '_';
+                    }
+                    buffer[p++] = char.ToUpper(name[i]);
+                }
+
+                fixed (char* charPtr = buffer)
+                {
+                    return new string(charPtr, 0, p);
+                }
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    ArrayPool<char>.Shared.Return(rented);
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public virtual string? GetEnumValueDescription(object value)
+        {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            if (enumType.IsEnum)
+            {
+                MemberInfo? enumMember = enumType
+                    .GetMember(value.ToString()!)
+                    .FirstOrDefault();
+
+                if (enumMember != null)
+                {
+                    string description = enumMember.GetGraphQLDescription();
+                    return string.IsNullOrEmpty(description)
+                        ? _documentation.GetDescription(enumMember)
+                        : description;
+                }
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
         public virtual bool IsDeprecated(MemberInfo member, out string reason)
         {
-            if (member == null)
+            if (member is null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
@@ -179,14 +268,20 @@ namespace HotChocolate.Types.Descriptors
             return member.IsDeprecated(out reason);
         }
 
-        public virtual bool IsDeprecated(object value, out string reason)
+        /// <inheritdoc />
+        public virtual bool IsDeprecated(object value, out string? reason)
         {
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
             Type enumType = value.GetType();
 
             if (enumType.IsEnum)
             {
-                MemberInfo enumMember = enumType
-                    .GetMember(value.ToString())
+                MemberInfo? enumMember = enumType
+                    .GetMember(value.ToString()!)
                     .FirstOrDefault();
 
                 if (enumMember != null)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate
 {
     /// <summary>
@@ -19,30 +21,30 @@ namespace HotChocolate
         /// process an error.
         /// This property is optional and can be null.
         /// </summary>
-        string Code { get; }
+        string? Code { get; }
 
         /// <summary>
         /// Gets the path to the object that caused the error.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyList<object> Path { get; }
+        Path? Path { get; }
 
         /// <summary>
         /// Gets the source text positions to which this error refers to.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyList<Location> Locations { get; }
-
-        /// <summary>
-        /// Gets the exception associated with this error.
-        /// </summary>
-        Exception Exception { get; }
+        IReadOnlyList<Location>? Locations { get; }
 
         /// <summary>
         /// Gets non-spec error properties.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyDictionary<string, object> Extensions { get; }
+        IReadOnlyDictionary<string, object?>? Extensions { get; }
+
+        /// <summary>
+        /// Gets the exception associated with this error.
+        /// </summary>
+        Exception? Exception { get; }
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -71,7 +73,17 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="code" />.
         /// </returns>
-        IError WithCode(string code);
+        IError WithCode(string? code);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with <see cref="Code"/> removed.
+        /// </summary>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with <see cref="Code"/> removed.
+        /// </returns>
+        IError RemoveCode();
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -84,7 +96,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="path" />.
         /// </returns>
-        IError WithPath(Path path);
+        IError WithPath(Path? path);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -97,7 +109,17 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="path" />.
         /// </returns>
-        IError WithPath(IReadOnlyList<object> path);
+        IError WithPath(IReadOnlyList<object>? path);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the <see cref="Path"/> removed.
+        /// </summary>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the <see cref="Path"/> removed.
+        /// </returns>
+        IError RemovePath();
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -111,30 +133,17 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="locations" />.
         /// </returns>
-        IError WithLocations(IReadOnlyList<Location> locations);
+        IError WithLocations(IReadOnlyList<Location>? locations);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
-        /// but with the specified <paramref name="exception" />.
-        /// </summary>
-        /// <param name="exception">
-        /// The .net exception that caused this error.
-        /// </param>
-        /// <returns>
-        /// Returns a new error that contains all properties of this error
-        /// but with the specified <paramref name="exception" />.
-        /// </returns>
-        IError WithException(Exception exception);
-
-        /// <summary>
-        /// Creates a new error that contains all properties of this error
-        /// but removed the exception from it.
+        /// but with the <see cref="Locations"/> removed.
         /// </summary>
         /// <returns>
         /// Returns a new error that contains all properties of this error
-        /// but without any exception details.
+        /// but with the <see cref="Locations"/> removed.
         /// </returns>
-        IError RemoveException();
+        IError RemoveLocations();
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -147,7 +156,17 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="extensions" />.
         /// </returns>
-        IError WithExtensions(IReadOnlyDictionary<string, object> extensions);
+        IError WithExtensions(IReadOnlyDictionary<string, object?> extensions);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the <see cref="Extensions"/> removed.
+        /// </summary>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the <see cref="Extensions"/> removed.
+        /// </returns>
+        IError RemoveExtensions();
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -162,7 +181,7 @@ namespace HotChocolate
         /// <exception cref="ArgumentNullException">
         /// The <paramref name="key" /> is null or empty.
         /// </exception>
-        IError AddExtension(string key, object value);
+        IError SetExtension(string key, object? value);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -177,5 +196,28 @@ namespace HotChocolate
         /// The <paramref name="key" /> is null or empty.
         /// </exception>
         IError RemoveExtension(string key);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but with the specified <paramref name="exception" />.
+        /// </summary>
+        /// <param name="exception">
+        /// The .net exception that caused this error.
+        /// </param>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but with the specified <paramref name="exception" />.
+        /// </returns>
+        IError WithException(Exception? exception);
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
+        /// but removed the exception from it.
+        /// </summary>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but without any exception details.
+        /// </returns>
+        IError RemoveException();
     }
 }

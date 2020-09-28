@@ -14,7 +14,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, booleanValueNode.Value);
-            Assert.Equal(NodeKind.BooleanValue, booleanValueNode.Kind);
+            Assert.Equal(SyntaxKind.BooleanValue, booleanValueNode.Kind);
             Assert.Null(booleanValueNode.Location);
         }
 
@@ -31,7 +31,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, booleanValueNode.Value);
-            Assert.Equal(NodeKind.BooleanValue, booleanValueNode.Kind);
+            Assert.Equal(SyntaxKind.BooleanValue, booleanValueNode.Kind);
             Assert.Equal(location, booleanValueNode.Location);
         }
 

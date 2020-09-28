@@ -1,6 +1,3 @@
-using System;
-using System.Linq.Expressions;
-
 namespace HotChocolate.Types.Relay.Descriptors
 {
     public interface INodeDescriptor

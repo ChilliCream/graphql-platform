@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -34,7 +33,6 @@ namespace HotChocolate.Types.Sorting
             }
 
             IQueryable<T>? source = null;
-            PageableData<T>? p = null;
 
             if (context.Result is IQueryable<T> q)
             {
@@ -45,13 +43,7 @@ namespace HotChocolate.Types.Sorting
                 source = e.AsQueryable();
             }
 
-            if (context.Result is PageableData<T> pb)
-            {
-                source = pb.Source;
-                p = pb;
-            }
-
-            if (source != null &&
+            if (source is not null &&
                 context.Field.Arguments[_contextData.ArgumentName].Type is InputObjectType iot &&
                 iot is ISortInputType fit &&
                 fit.EntityType is { })
@@ -64,9 +56,7 @@ namespace HotChocolate.Types.Sorting
                 QueryableSortVisitor.Default.Visit(sortArgument, visitorCtx);
 
                 source = visitorCtx.Sort(source);
-                context.Result = p is null
-                    ? (object)source
-                    : new PageableData<T>(source, p.Properties);
+                context.Result = source;
             }
         }
     }

@@ -1,17 +1,23 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace HotChocolate
 {
     public interface IErrorBuilder
     {
         IErrorBuilder SetMessage(string message);
 
-        IErrorBuilder SetCode(string code);
+        IErrorBuilder SetCode(string? code);
 
-        IErrorBuilder SetPath(IReadOnlyList<object> path);
+        IErrorBuilder RemoveCode();
 
-        IErrorBuilder SetPath(Path path);
+        IErrorBuilder SetPath(IReadOnlyList<object>? path);
+
+        IErrorBuilder SetPath(Path? path);
+
+        IErrorBuilder RemovePath();
 
         IErrorBuilder AddLocation(Location location);
 
@@ -19,9 +25,11 @@ namespace HotChocolate
 
         IErrorBuilder ClearLocations();
 
-        IErrorBuilder SetException(Exception exception);
+        IErrorBuilder SetException(Exception? exception);
 
-        IErrorBuilder SetExtension(string key, object value);
+        IErrorBuilder RemoveException();
+
+        IErrorBuilder SetExtension(string key, object? value);
 
         IErrorBuilder RemoveExtension(string key);
 

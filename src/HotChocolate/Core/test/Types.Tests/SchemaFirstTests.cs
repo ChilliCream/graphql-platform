@@ -26,16 +26,16 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
         public async Task Interfaces_Impl_Interfaces_Are_Correctly_Exposed_Through_Introspection()
         {
             // arrange
-            string source = @"
+            var source = @"
                 type Query {
                     c: C
                 }
@@ -52,7 +52,7 @@ namespace HotChocolate
                     a: String
                 }
             ";
-            string query = FileResource.Open("IntrospectionQuery.graphql");
+            var query = FileResource.Open("IntrospectionQuery.graphql");
 
             // act
             ISchema schema = Schema.Create(
@@ -64,9 +64,9 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(query);
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -87,10 +87,10 @@ namespace HotChocolate
                 });
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ __schema { description } }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -106,10 +106,29 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
+        }
+        
+        [Fact]
+        public async Task SchemaBuilder_AddResolver()
+        {
+            // arrange
+            string sourceText = "type Query { hello: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "hello", () => "World")
+                .Create();
+
+            // assert
+            IRequestExecutor executor = schema.MakeExecutable();
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ hello }");
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -128,10 +147,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -151,10 +170,10 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
@@ -174,12 +193,11 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
-
 
         [Fact]
         public async Task SchemaBuilder_BindType_And_Resolver_Implicit()
@@ -194,17 +212,17 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]
         public void DirectiveArgumentsAreValidated()
         {
             // arrange
-            string sourceText = @"
+            var sourceText = @"
                 type Query {
                     foo: String @a(b:1 e:true)
                 }
@@ -213,14 +231,15 @@ namespace HotChocolate
             ";
 
             // act
-            Action action = () => SchemaBuilder.New()
-                .AddDocumentFromString(sourceText)
-                .AddResolver("Query", "foo", "bar")
-                .Create();
+            void Action() =>
+                SchemaBuilder.New()
+                    .AddDocumentFromString(sourceText)
+                    .AddResolver("Query", "foo", "bar")
+                    .Create();
 
             // assert
             Assert.Collection(
-                Assert.Throws<SchemaException>(action).Errors,
+                Assert.Throws<SchemaException>((Action) Action).Errors,
                     error => Assert.Equal(
                         ErrorCodes.Schema.InvalidArgument,
                         error.Code),
@@ -252,7 +271,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             // assert
@@ -283,7 +302,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(sourceText)
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             // assert

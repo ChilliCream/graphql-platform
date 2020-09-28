@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate
 {
-    internal class MapMiddleware
+    internal sealed class MapMiddleware
     {
         private readonly FieldDelegate _next;
         private readonly FieldReference _fieldReference;
@@ -23,14 +23,14 @@ namespace HotChocolate
                 ?? throw new ArgumentNullException(nameof(fieldDelegate));
         }
 
-        public Task InvokeAsync(IMiddlewareContext context)
+        public ValueTask InvokeAsync(IMiddlewareContext context)
         {
             return IsField(context.ObjectType.Name, context.Field.Name)
                 ? _fieldDelegate(context)
                 : _next(context);
         }
 
-        protected bool IsField(NameString typeName, NameString fieldName)
+        private bool IsField(NameString typeName, NameString fieldName)
         {
             return _fieldReference.TypeName.Equals(typeName)
                 && _fieldReference.FieldName.Equals(fieldName);

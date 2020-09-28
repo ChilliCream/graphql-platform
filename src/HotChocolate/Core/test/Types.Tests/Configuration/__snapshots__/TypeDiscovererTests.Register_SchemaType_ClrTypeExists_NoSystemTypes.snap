@@ -1,0 +1,35 @@
+﻿{
+  "registered": [
+    {
+      "type": "HotChocolate.Configuration.TypeDiscovererTests.FooType",
+      "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Foo",
+      "references": [
+        "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
+        "Output: FooType",
+        "Output: ObjectType<Foo>"
+      ]
+    },
+    {
+      "type": "HotChocolate.Configuration.TypeDiscovererTests.BarType",
+      "runtimeType": "HotChocolate.Configuration.TypeDiscovererTests.Bar",
+      "references": [
+        "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType",
+        "Output: BarType",
+        "Output: ObjectType<Bar>"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.StringType",
+      "runtimeType": "System.String",
+      "references": [
+        "None: HotChocolate.Types.StringType",
+        "None: StringType"
+      ]
+    }
+  ],
+  "runtimeTypeRefs": {
+    "Output: Foo": "Output: HotChocolate.Configuration.TypeDiscovererTests+FooType",
+    "Output: Bar": "Output: HotChocolate.Configuration.TypeDiscovererTests+BarType",
+    "Output: String": "None: StringType"
+  }
+}

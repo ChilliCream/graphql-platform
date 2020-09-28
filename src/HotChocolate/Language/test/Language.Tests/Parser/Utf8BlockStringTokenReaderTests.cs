@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Headers;
-using System;
+﻿using System;
 using System.Text;
 using Xunit;
 using Snapshooter.Xunit;

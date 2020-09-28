@@ -24,7 +24,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             ObjectType query = schema.GetType<ObjectType>("Query");
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             ObjectType query = schema.GetType<ObjectType>("Query");
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             ObjectType query = schema.GetType<ObjectType>("Query");
@@ -116,7 +116,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
@@ -149,7 +149,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
@@ -183,7 +183,7 @@ namespace HotChocolate.Types
 
                     t.RegisterDirective<CostDirectiveType>();
 
-                    t.Use(next => context => Task.CompletedTask);
+                    t.Use(next => context => default(ValueTask));
                 });
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
@@ -208,7 +208,7 @@ namespace HotChocolate.Types
                             @cost(complexity: 5 multipliers: [""a""])
                     }")
                 .AddDirectiveType<CostDirectiveType>()
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             ObjectType query = schema.GetType<ObjectType>("Query");
@@ -239,7 +239,7 @@ namespace HotChocolate.Types
                     }
                     ")
                 .AddDirectiveType<CostDirectiveType>()
-                .Use(next => context => Task.CompletedTask)
+                .Use(next => context => default(ValueTask))
                 .Create();
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");

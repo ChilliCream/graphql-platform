@@ -10,8 +10,6 @@ namespace HotChocolate.Types
 {
     public abstract class FieldBase<TType, TDefinition>
         : IField
-        , IHasDirectives
-        , IHasClrType
         where TType : IType
         where TDefinition : FieldDefinitionBase, IHasSyntaxNode
     {
@@ -20,12 +18,7 @@ namespace HotChocolate.Types
 
         protected FieldBase(TDefinition definition)
         {
-            if (definition == null)
-            {
-                throw new ArgumentNullException(nameof(definition));
-            }
-
-            _definition = definition;
+            _definition = definition ?? throw new ArgumentNullException(nameof(definition));
             _syntaxNode = definition.SyntaxNode;
 
             Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
@@ -35,7 +28,7 @@ namespace HotChocolate.Types
             Type = default!;
             ContextData = default!;
             Directives = default!;
-            ClrType = default!;
+            RuntimeType = default!;
         }
 
         ISyntaxNode? IHasSyntaxNode.SyntaxNode => _syntaxNode;
@@ -50,11 +43,11 @@ namespace HotChocolate.Types
 
         public IDirectiveCollection Directives { get; private set; }
 
-        public virtual Type ClrType { get; private set; }
+        public virtual Type RuntimeType { get; private set; }
 
         public IReadOnlyDictionary<string, object?> ContextData { get; private set; }
 
-        internal void CompleteField(ICompletionContext context)
+        internal void CompleteField(ITypeCompletionContext context)
         {
             OnCompleteField(context, _definition!);
 
@@ -63,12 +56,12 @@ namespace HotChocolate.Types
         }
 
         protected virtual void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             TDefinition definition)
         {
             DeclaringType = context.Type;
             Type = context.GetType<TType>(definition.Type);
-            ClrType = Type is IHasClrType hasClrType ? hasClrType.ClrType : typeof(object);
+            RuntimeType = Type is IHasRuntimeType hasClrType ? hasClrType.RuntimeType : typeof(object);
 
             var directives = new DirectiveCollection(this, definition.Directives);
             directives.CompleteCollection(context);

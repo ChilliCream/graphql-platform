@@ -5,9 +5,9 @@
       "Message": "The specified root type `Mutation` does not exist.",
       "Code": null,
       "Path": null,
-      "Locations": [],
-      "Exception": null,
-      "Extensions": {}
+      "Locations": null,
+      "Extensions": null,
+      "Exception": null
     }
   ],
   "Extensions": null,

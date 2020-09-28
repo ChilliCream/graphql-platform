@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(input);
+            var schema = CreateSchema(input);
 
             // assert
             schema.ToString().MatchSnapshot();

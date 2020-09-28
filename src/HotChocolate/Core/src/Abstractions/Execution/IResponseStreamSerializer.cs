@@ -2,19 +2,15 @@ using System.Threading;
 using System.IO;
 using System.Threading.Tasks;
 
+#nullable enable
+
 namespace HotChocolate.Execution
 {
     public interface IResponseStreamSerializer
     {
-        string ContentType { get; }
-
-        Task SerializeAsync(
-            IResponseStream responseStream,
-            Stream outputStream);
-
         Task SerializeAsync(
             IResponseStream responseStream,
             Stream outputStream,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

@@ -5,12 +5,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
-    <RootNamespace>HotChocolate</RootNamespace>
+    <AssemblyName>HotChocolate.Tests.Utilities</AssemblyName>
+    <RootNamespace>HotChocolate.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\HotChocolate.Core.csproj" />
     <ProjectReference Include="..\..\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\StarWars\HotChocolate.StarWars.csproj" />
   </ItemGroup>

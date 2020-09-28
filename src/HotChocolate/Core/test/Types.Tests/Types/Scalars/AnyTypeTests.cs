@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using static HotChocolate.Tests.TestHelper;
 
 namespace HotChocolate.Types
 {
@@ -22,7 +25,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => new Foo()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -43,7 +46,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => new List<Foo> { new Foo() }))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -66,7 +69,7 @@ namespace HotChocolate.Types
                         TimeSpan.Zero)))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -87,7 +90,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => "abc"))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -108,7 +111,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => 123))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -129,7 +132,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => 1.2))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -150,7 +153,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => true))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
@@ -169,10 +172,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -192,10 +195,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -215,10 +218,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -238,10 +241,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<Foo>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<Foo>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -261,10 +264,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -284,10 +287,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -307,10 +310,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -330,10 +333,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -353,10 +356,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -376,10 +379,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -402,10 +405,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -434,10 +437,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -460,10 +463,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -486,10 +489,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -512,10 +515,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
+                    .Resolver(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -538,10 +541,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
+                    .Resolver(ctx => ctx.ArgumentLiteral<ObjectValueNode>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -567,7 +570,7 @@ namespace HotChocolate.Types
                     .Resolver(ctx => ctx.ArgumentKind("input").ToString()))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -590,10 +593,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -616,10 +619,10 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -642,7 +645,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -664,7 +667,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -688,7 +691,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -712,7 +715,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -734,7 +737,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -756,7 +759,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -778,7 +781,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -800,7 +803,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -822,7 +825,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -852,7 +855,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -874,7 +877,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -896,7 +899,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -918,7 +921,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -940,7 +943,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -962,7 +965,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -984,7 +987,7 @@ namespace HotChocolate.Types
                     .Field("foo")
                     .Type<AnyType>()
                     .Argument("input", a => a.Type<AnyType>())
-                    .Resolver(ctx => ctx.Argument<object>("input")))
+                    .Resolver(ctx => ctx.ArgumentValue<object>("input")))
                 .Create();
 
             AnyType type = schema.GetType<AnyType>("Any");
@@ -997,6 +1000,16 @@ namespace HotChocolate.Types
             Assert.IsType<ObjectValueNode>(literal);
         }
 
+        [Fact]
+        public async Task Dictionary_Is_Handled_As_Object()
+        {
+            Snapshot.FullName();
+            await ExpectValid(
+                "{ someObject }",
+                configure: c => c.AddQueryType<QueryWithDictionary>())
+                .MatchSnapshotAsync();
+        }
+
         public class Foo
         {
             public Bar Bar { get; set; } = new Bar();
@@ -1005,6 +1018,13 @@ namespace HotChocolate.Types
         public class Bar
         {
             public string Baz { get; set; } = "Baz";
+        }
+
+        public class QueryWithDictionary
+        {
+            [GraphQLType(typeof(AnyType))]
+            public IDictionary<string, object> SomeObject =>
+                new Dictionary<string, object> { { "a", "b" } };
         }
     }
 }

@@ -108,7 +108,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(input));
         }
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.Serialize(value));
         }
 
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(input));
         }
 
@@ -233,7 +233,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseValue(input);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
         [Fact]
@@ -261,7 +261,7 @@ namespace HotChocolate.Types
             Action action = () => type.ParseValue(input);
 
             // assert
-            Assert.Throws<ScalarSerializationException>(action);
+            Assert.Throws<SerializationException>(action);
         }
 
 
@@ -274,7 +274,7 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ScalarSerializationException>(
+            Assert.Throws<SerializationException>(
                 () => type.ParseValue(value));
         }
 

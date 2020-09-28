@@ -1,0 +1,13 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "person": {
+      "phone": "PhoneFoo"
+    }
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

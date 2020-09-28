@@ -31,9 +31,15 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IList<TypeDependency> Dependencies { get; } =
             new List<TypeDependency>();
 
+        /// <summary>
+        /// Gets configurations that shall be applied at a later point.
+        /// </summary>
         public IList<ILazyTypeConfiguration> Configurations { get; } =
             new List<ILazyTypeConfiguration>();
 
+        /// <summary>
+        /// Gets lazy configuration of this definition and all dependent definitions.
+        /// </summary>
         internal virtual IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
             return Configurations;

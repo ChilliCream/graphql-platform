@@ -58,7 +58,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void GetOrAddDescriptor_Argument_Factory()
         {
-            //arrange 
+            //arrange
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
 
             //act
@@ -74,7 +74,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void GetOrAddDescriptor_Should_AddDescriptorIfNotExists()
         {
-            //arrange 
+            //arrange
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptor =
                 SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
@@ -93,7 +93,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void GetOrAddDescriptor_Should_ReturnDescriptorIfAlreadyExists()
         {
-            //arrange 
+            //arrange
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptorShouldNotBeRemoved =
                 SortOperationDescriptor.CreateOperation(_propertyInfo, _descriptorContext);
@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Sorting
         [Fact]
         public void GetOrAddDescriptor_Should_ReplaceDescriptorIfDifferentType()
         {
-            //arrange 
+            //arrange
             IList<SortOperationDescriptorBase> list = new List<SortOperationDescriptorBase>();
             var descriptorToRemove =
                 IgnoredSortingFieldDescriptor.CreateOperation(_propertyInfo, _descriptorContext);

@@ -33,7 +33,7 @@ namespace HotChocolate.Utilities
             foo["bar"] = bar;
 
             // assert
-            var converter = new DictionaryToInputObjectConverter(TypeConversion.Default);
+            var converter = new DictionaryToInputObjectConverter(DefaultTypeConverter.Default);
             object converted = converter.Convert(foo, type);
 
             // assert
@@ -60,7 +60,7 @@ namespace HotChocolate.Utilities
 
             // assert
             var converter = new DictionaryToInputObjectConverter(
-                TypeConversion.Default);
+                DefaultTypeConverter.Default);
             object converted = converter.Convert(foo, type);
 
             // assert

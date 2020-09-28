@@ -8,14 +8,14 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barDecimal_some: ISingleFilterOfDecimalFilter
   OR: [FooSimpleFilter!]
+  barDecimal_some: ISingleFilterOfDecimalFilter
 }
 
 input ISingleFilterOfDecimalFilter {
   AND: [ISingleFilterOfDecimalFilter!]
-  element: Decimal
   OR: [ISingleFilterOfDecimalFilter!]
+  element: Decimal
 }
 
 "The built-in `Decimal` scalar type."

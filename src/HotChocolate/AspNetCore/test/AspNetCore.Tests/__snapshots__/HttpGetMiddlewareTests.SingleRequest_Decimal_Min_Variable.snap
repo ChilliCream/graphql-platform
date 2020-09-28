@@ -1,0 +1,12 @@
+﻿{
+  "MinValue": -79228162514264337593543950335.0,
+  "result": {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "decimal_arg": -79228162514264337593543950335
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+}

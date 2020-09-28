@@ -1,34 +1,33 @@
 using System;
 using HotChocolate.Language;
 
+#nullable enable
+
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class DirectiveDefinition
     {
         public DirectiveDefinition(DirectiveNode parsedDirective)
         {
-            ParsedDirective = parsedDirective
-                ?? throw new ArgumentNullException(nameof(parsedDirective));
+            ParsedDirective = parsedDirective ??
+                throw new ArgumentNullException(nameof(parsedDirective));
+            TypeReference = Descriptors.TypeReference.Create(
+                parsedDirective.Name.Value, TypeContext.None);
             Reference = new NameDirectiveReference(parsedDirective.Name.Value);
-            TypeReference = new SyntaxTypeReference(
-                new NamedTypeNode(parsedDirective.Name),
-                TypeContext.None);
         }
 
-        public DirectiveDefinition(object customDirective)
+        public DirectiveDefinition(object customDirective, ITypeReference typeReference)
         {
-            CustomDirective = customDirective
-                ?? throw new ArgumentNullException(nameof(customDirective));
-            Reference = new ClrTypeDirectiveReference(
-                customDirective.GetType());
-            TypeReference = new ClrTypeReference(
-                customDirective.GetType(),
-                TypeContext.None);
+            CustomDirective = customDirective ??
+                throw new ArgumentNullException(nameof(customDirective));
+            TypeReference = typeReference ??
+                throw new ArgumentNullException(nameof(typeReference));
+            Reference = new ClrTypeDirectiveReference(customDirective.GetType());
         }
 
-        public DirectiveNode ParsedDirective { get; }
+        public DirectiveNode? ParsedDirective { get; }
 
-        public object CustomDirective { get; }
+        public object? CustomDirective { get; }
 
         public IDirectiveReference Reference { get; }
 
