@@ -10,6 +10,7 @@ namespace HotChocolate.ApolloFederation
     public sealed class KeyDirectiveType
         : DirectiveType
     {
+        public const string ContextDataMarkerName = "HotChocolate.ApolloFederation.Key";
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor

@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.ApolloFederation
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property)]
     public class KeyAttribute : DescriptorAttribute
     {
         public KeyAttribute(string fieldSet = default)
@@ -17,7 +17,10 @@ namespace HotChocolate.ApolloFederation
 
         public string FieldSet { get; }
 
-        protected override void TryConfigure(IDescriptorContext context, IDescriptor descriptor, ICustomAttributeProvider element)
+        protected override void TryConfigure(
+            IDescriptorContext context,
+            IDescriptor descriptor,
+            ICustomAttributeProvider element)
         {
             if (descriptor is IInterfaceTypeDescriptor ifd)
             {
@@ -34,8 +37,9 @@ namespace HotChocolate.ApolloFederation
                 ofd.Extend().OnBeforeCreate(
                     d =>
                     {
-                        d.ContextData[FederationResources.KeyDirective_ContextDataMarkerName] = true;
-                    });
+                        d.ContextData[KeyDirectiveType.ContextDataMarkerName] = true;
+                    }
+                );
             }
         }
     }

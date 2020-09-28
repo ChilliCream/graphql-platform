@@ -1,11 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HotChocolate.ApolloFederation.Extensions;
-using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -16,7 +13,7 @@ namespace HotChocolate.ApolloFederation
     {
         protected override void Configure(IUnionTypeDescriptor descriptor)
         {
-            descriptor.Name("_Entity");
+            descriptor.Name(TypeNames.Entity);
         }
     }
 
@@ -30,24 +27,12 @@ namespace HotChocolate.ApolloFederation
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            // Add types to union if they contain a key directive
-            if (discoveryContext.Type is ObjectType objectType  &&
-                definition is ObjectTypeDefinition objectTypeDefinition)
-            {
-                var containsObjectLevelKeyDirective = objectTypeDefinition.Directives.Any(
-                    directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}
-                );
+            AddToUnionIfHasTypeLevelKeyDirective(
+                discoveryContext,
+                definition
+            );
 
-                var containsFieldLevelKeyDirective =
-                    objectTypeDefinition.Fields.Any(field => field.ContextData.ContainsKey("key"));
-
-                if (containsObjectLevelKeyDirective || containsFieldLevelKeyDirective)
-                {
-                    typesToBeUnioned.Add(objectType);
-                }
-            }
-
-            AggregatePropertyLevelKeyDefinitions(
+            AggregatePropertyLevelKeyDirectives(
                 discoveryContext,
                 definition
             );
@@ -64,21 +49,43 @@ namespace HotChocolate.ApolloFederation
             );
         }
 
-        private void AggregatePropertyLevelKeyDefinitions(
-            ITypeDiscoveryContext completionContext,
+        private void AddToUnionIfHasTypeLevelKeyDirective(
+            ITypeDiscoveryContext discoveryContext,
             DefinitionBase definition)
         {
-            if (completionContext.Type is ObjectType objectType && definition is ObjectTypeDefinition objectTypeDefinition)
+            if (discoveryContext.Type is ObjectType objectType &&
+                definition is ObjectTypeDefinition objectTypeDefinition)
+            {
+                var containsObjectLevelKeyDirective = objectTypeDefinition.Directives.Any(
+                    directive => directive.Reference is NameDirectiveReference {Name: {Value: "key"}}
+                );
+
+                var containsFieldLevelKeyDirective =
+                    objectTypeDefinition.Fields.Any(field => field.ContextData.ContainsKey("key"));
+
+                if (containsObjectLevelKeyDirective || containsFieldLevelKeyDirective)
+                {
+                    typesToBeUnioned.Add(objectType);
+                }
+            }
+        }
+
+        private void AggregatePropertyLevelKeyDirectives(
+            ITypeDiscoveryContext discoveryContext,
+            DefinitionBase definition)
+        {
+            if (discoveryContext.Type is ObjectType objectType &&
+                definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Fields.Any(
-                    field => field.ContextData.ContainsKey(FederationResources.KeyDirective_ContextDataMarkerName)
+                    field => field.ContextData.ContainsKey(KeyDirectiveType.ContextDataMarkerName)
                 ))
                 {
                     var strBuilder = new StringBuilder();
                     foreach (ObjectFieldDefinition objectFieldDefinition in objectTypeDefinition.Fields)
                     {
                         if (objectFieldDefinition.ContextData.ContainsKey(
-                            FederationResources.KeyDirective_ContextDataMarkerName
+                            KeyDirectiveType.ContextDataMarkerName
                         ))
                         {
                             strBuilder.Append(objectFieldDefinition.Name);
@@ -86,7 +93,20 @@ namespace HotChocolate.ApolloFederation
                         }
                     }
 
-                    objectTypeDefinition.Key(strBuilder.ToString());
+                    // Remove last space
+                    strBuilder.Length--;
+
+                    objectTypeDefinition.Key(
+                        strBuilder.ToString(),
+                        discoveryContext.TypeInspector
+                    );
+                    discoveryContext.RegisterDependencyRange(
+                        objectTypeDefinition.Directives.Select(dir => dir.Reference)
+                    );
+                    discoveryContext.RegisterDependencyRange(
+                        objectTypeDefinition.Directives.Select(dir => dir.TypeReference),
+                        TypeDependencyKind.Completed
+                    );
                     typesToBeUnioned.Add(objectType);
                 }
             }

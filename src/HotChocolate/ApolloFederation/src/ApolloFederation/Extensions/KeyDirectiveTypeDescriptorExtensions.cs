@@ -47,7 +47,8 @@ namespace HotChocolate.ApolloFederation.Extensions
 
         public static void Key(
             this ObjectTypeDefinition objectTypeDefinition,
-            string fieldSet)
+            string fieldSet,
+            ITypeInspector typeInspector)
         {
             if (objectTypeDefinition is null)
             {
@@ -64,8 +65,7 @@ namespace HotChocolate.ApolloFederation.Extensions
 
             objectTypeDefinition.Directives.Add(
                 new DirectiveDefinition(
-                    directiveNode,
-                    new SchemaTypeReference(new KeyDirectiveType())
+                    directiveNode
                 )
             );
         }

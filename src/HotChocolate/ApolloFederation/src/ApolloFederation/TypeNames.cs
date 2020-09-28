@@ -7,5 +7,6 @@ namespace HotChocolate.ApolloFederation
         public const string Provides = "provides";
         public const string Key = "key";
         public const string FieldSet = "_FieldSet";
+        public const string Entity = "_Entity";
     }
 }

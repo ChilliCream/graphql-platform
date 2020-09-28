@@ -74,11 +74,5 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("RequiresDirective_Description", resourceCulture);
             }
         }
-        
-        internal static string KeyDirective_ContextDataMarkerName {
-            get {
-                return ResourceManager.GetString("KeyDirective_ContextDataMarkerName", resourceCulture);
-            }
-        }
     }
 }

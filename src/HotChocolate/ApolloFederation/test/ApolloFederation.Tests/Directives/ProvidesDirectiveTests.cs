@@ -2,7 +2,7 @@ using System.Linq;
 using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation.Directives
 {
     public class ProvidesDirectiveTests
         : FederationTypesTestBase
@@ -19,12 +19,12 @@ namespace HotChocolate.ApolloFederation
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals("provides"));
+                    t => t.Name.Equals(TypeNames.Provides));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<ProvidesDirectiveType>(directive);
-            Assert.Equal("provides", directive!.Name);
+            Assert.Equal(TypeNames.Provides, directive!.Name);
             Assert.Single(directive.Arguments);
             this.AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,

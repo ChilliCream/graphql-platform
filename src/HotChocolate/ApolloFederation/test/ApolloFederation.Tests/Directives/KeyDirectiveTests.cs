@@ -2,8 +2,9 @@ using System.Linq;
 using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using Xunit;
+using Snapshooter.Xunit;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation.Directives
 {
     public class KeyDirectiveTests
         : FederationTypesTestBase
@@ -37,6 +38,8 @@ namespace HotChocolate.ApolloFederation
         [Fact]
         public void AnnotateKeyToObjectTypeCodeFirst()
         {
+            Snapshot.FullName();
+
             // arrange
             var schema = Schema.Create(
                 t =>
@@ -79,11 +82,14 @@ namespace HotChocolate.ApolloFederation
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
                 }
             );
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
         public void AnnotateKeyToObjectTypeSchemaFirst()
         {
+            Snapshot.FullName();
+
             // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
@@ -120,19 +126,22 @@ namespace HotChocolate.ApolloFederation
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
                 }
             );
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
         public void AnnotateKeyToObjectTypePureCodeFirst()
         {
+            Snapshot.FullName();
+
             // arrange
             var schema = SchemaBuilder.New()
                 .AddApolloFederation()
-                .AddQueryType<Query>()
+                .AddQueryType<Query<TestTypeClassDirective>>()
                 .Create();
 
             // act
-            ObjectType testType = schema.GetType<ObjectType>("TestType");
+            ObjectType testType = schema.GetType<ObjectType>("TestTypeClassDirective");
 
             // assert
             Assert.Collection(testType.Directives,
@@ -146,20 +155,89 @@ namespace HotChocolate.ApolloFederation
                     Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
                 }
             );
+            schema.ToString().MatchSnapshot();
         }
 
-        public class Query
+        [Fact]
+        public void AnnotateKeyToClassAttributePureCodeFirst()
         {
-            public TestType someField(int id)
-            {
-                return new TestType();
-            }
+            Snapshot.FullName();
+
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<TestTypePropertyDirective>>()
+                .Create();
+
+            // act
+            ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirective");
+
+            // assert
+            Assert.Collection(testType.Directives,
+                item =>
+                {
+                    Assert.Equal(
+                        TypeNames.Key,
+                        item.Name
+                    );
+                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal("\"id\"", item.ToNode().Arguments[0].Value.ToString());
+                }
+            );
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AnnotateKeyToClassAttributesPureCodeFirst()
+        {
+            Snapshot.FullName();
+
+            // arrange
+            var schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query<TestTypePropertyDirectives>>()
+                .Create();
+
+            // act
+            ObjectType testType = schema.GetType<ObjectType>("TestTypePropertyDirectives");
+
+            // assert
+            Assert.Collection(testType.Directives,
+                item =>
+                {
+                    Assert.Equal(
+                        TypeNames.Key,
+                        item.Name
+                    );
+                    Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
+                    Assert.Equal("\"id name\"", item.ToNode().Arguments[0].Value.ToString());
+                }
+            );
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class Query<T>
+        {
+            public T someField(int id) => default;
         }
 
         [Key("id")]
-        public class TestType
+        public class TestTypeClassDirective
         {
             public int Id { get; set; }
+        }
+
+        public class TestTypePropertyDirective
+        {
+            [Key]
+            public int Id { get; set; }
+        }
+
+        public class TestTypePropertyDirectives
+        {
+            [Key]
+            public int Id { get; set; }
+            [Key]
             public string Name { get; set; }
         }
     }
