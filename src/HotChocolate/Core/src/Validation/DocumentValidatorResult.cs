@@ -14,7 +14,7 @@ namespace HotChocolate.Validation
 
         public DocumentValidatorResult(IEnumerable<IError> errors)
         {
-            if (errors == null)
+            if (errors is null)
             {
                 throw new ArgumentNullException(nameof(errors));
             }

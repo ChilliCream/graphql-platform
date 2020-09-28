@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Types.Filters
@@ -8,8 +8,6 @@ namespace HotChocolate.Types.Filters
     {
         Stack<IType> Types { get; }
 
-        Stack<IInputField> Operations { get; }
-
-        IList<IError> Errors { get; }
+        Stack<IInputField> Operations { get; } 
     }
 }

@@ -1,44 +1,26 @@
 using System;
+using HotChocolate.Internal;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class SchemaTypeReference
-        : TypeReferenceBase
-        , ISchemaTypeReference
+        : TypeReference
+        , IEquatable<SchemaTypeReference>
     {
-        public SchemaTypeReference(ITypeSystemMember type)
-            : this(type, null, null)
-        {
-        }
-
         public SchemaTypeReference(
             ITypeSystemMember type,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-            : base(InferTypeContext(type),
-                isTypeNullable,
-                isElementTypeNullable)
+            TypeContext? context = null,
+            string? scope = null)
+            : base(context ?? InferTypeContext(type), scope)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
 
         public ITypeSystemMember Type { get; }
 
-        public ISchemaTypeReference WithType(ITypeSystemMember type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-            return new SchemaTypeReference(type);
-        }
-
-        public bool Equals(SchemaTypeReference other)
+        public bool Equals(SchemaTypeReference? other)
         {
             if (other is null)
             {
@@ -50,19 +32,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (Type == other.Type
-                || (Type is IType a && other.Type is IType b && a.IsEqualTo(b)))
+            if (!IsEqual(other))
             {
-                return Context == other.Context
-                    && IsTypeNullable.Equals(other.IsTypeNullable)
-                    && IsElementTypeNullable.Equals(
-                        other.IsElementTypeNullable);
+                return false;
             }
 
-            return false;
+            return Type.Equals(other.Type);
         }
 
-        public bool Equals(ISchemaTypeReference other)
+        public override bool Equals(ITypeReference? other)
         {
             if (other is null)
             {
@@ -74,18 +52,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (Type == other.Type
-                || (Type is IType a && other.Type is IType b && a.IsEqualTo(b)))
+            if (other is SchemaTypeReference str)
             {
-                return Context == other.Context
-                    && IsTypeNullable.Equals(other.IsTypeNullable)
-                    && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+                return Equals(str);
             }
 
             return false;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -102,11 +77,6 @@ namespace HotChocolate.Types.Descriptors
                 return Equals(str);
             }
 
-            if (obj is ISchemaTypeReference istr)
-            {
-                return Equals(istr);
-            }
-
             return false;
         }
 
@@ -114,11 +84,7 @@ namespace HotChocolate.Types.Descriptors
         {
             unchecked
             {
-                int hash = Type.GetHashCode() * 397;
-                hash = hash ^ (Context.GetHashCode() * 7);
-                hash = hash ^ (IsTypeNullable?.GetHashCode() ?? 0 * 11);
-                hash = hash ^ (IsElementTypeNullable?.GetHashCode() ?? 0 * 13);
-                return hash;
+                return base.GetHashCode() ^ Type.GetHashCode() * 397;
             }
         }
 
@@ -127,7 +93,43 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type}";
         }
 
-        internal static TypeContext InferTypeContext(object type)
+        public SchemaTypeReference WithType(ITypeSystemMember type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new SchemaTypeReference(type, Context, Scope);
+        }
+
+        public SchemaTypeReference WithContext(TypeContext context = TypeContext.None)
+        {
+            return new SchemaTypeReference(Type, context, Scope);
+        }
+
+        public SchemaTypeReference WithScope(string? scope = null)
+        {
+            return new SchemaTypeReference(Type, Context, scope);
+        }
+
+        public SchemaTypeReference With(
+            Optional<ITypeSystemMember> type = default,
+            Optional<TypeContext> context = default,
+            Optional<string?> scope = default)
+        {
+            if (type.HasValue && type.Value is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new SchemaTypeReference(
+                type.HasValue ? type.Value! : Type,
+                context.HasValue ? context.Value : Context,
+                scope.HasValue ? scope.Value : Scope);
+        }
+
+        internal static TypeContext InferTypeContext(object? type)
         {
             if (type is IType t)
             {
@@ -137,49 +139,66 @@ namespace HotChocolate.Types.Descriptors
                 {
                     return TypeContext.None;
                 }
-                else if (namedType.IsOutputType())
+
+                if (namedType.IsOutputType())
                 {
                     return TypeContext.Output;
                 }
-                else if (namedType.IsInputType())
+
+                if (namedType.IsInputType())
                 {
                     return TypeContext.Input;
                 }
             }
 
+            if (type is Type ts)
+            {
+                return InferTypeContext(ts);
+            }
+
             return TypeContext.None;
         }
 
-        internal static TypeContext InferTypeContext(Type type)
+        internal static TypeContext InferTypeContext(IExtendedType type)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
+            return InferTypeContext(type.Type);
+        }
+
+        internal static TypeContext InferTypeContext(Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            Type? namedType = ExtendedType.Tools.GetNamedType(type);
+            return InferTypeContextInternal(namedType ?? type);
+        }
+
+        private static TypeContext InferTypeContextInternal(Type type)
+        {
             if (typeof(IInputType).IsAssignableFrom(type)
                 && typeof(IOutputType).IsAssignableFrom(type))
             {
                 return TypeContext.None;
             }
-            else if (typeof(IOutputType).IsAssignableFrom(type))
+
+            if (typeof(IOutputType).IsAssignableFrom(type))
             {
                 return TypeContext.Output;
             }
-            else if (typeof(IInputType).IsAssignableFrom(type))
+
+            if (typeof(IInputType).IsAssignableFrom(type))
             {
                 return TypeContext.Input;
             }
-            else
-            {
-                return TypeContext.None;
-            }
-        }
 
-        internal static SchemaTypeReference Create<T>(T type)
-            where T : ITypeSystemMember
-        {
-            return new SchemaTypeReference(type);
+            return TypeContext.None;
         }
     }
 }

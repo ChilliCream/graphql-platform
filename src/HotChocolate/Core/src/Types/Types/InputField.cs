@@ -15,7 +15,6 @@ namespace HotChocolate.Types
     public class InputField
         : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
-        , IHasClrType
     {
         public InputField(InputFieldDefinition definition)
             : base(definition)
@@ -23,6 +22,19 @@ namespace HotChocolate.Types
             SyntaxNode = definition.SyntaxNode;
             DefaultValue = definition.DefaultValue;
             Property = definition.Property;
+            
+            if (definition.Formatters.Count == 0)
+            {
+                Formatter = null;
+            }
+            else if (definition.Formatters.Count == 1)
+            {
+                Formatter = definition.Formatters[0];
+            }
+            else
+            {
+                Formatter = new AggregateInputValueFormatter(definition.Formatters);
+            }
 
             Type? propertyType = definition.Property?.PropertyType;
 
@@ -34,35 +46,42 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// The associated syntax node from the GraphQL SDL.
+        /// </summary>
         public InputValueDefinitionNode? SyntaxNode { get; }
 
+        /// <inheritdoc />
         public IValueNode? DefaultValue { get; private set; }
 
-        internal protected PropertyInfo? Property { get; }
+        /// <inheritdoc />
+        public IInputValueFormatter? Formatter { get; }
 
-        internal protected bool IsOptional { get; }
+        protected internal PropertyInfo? Property { get; }
+
+        protected internal bool IsOptional { get; }
 
         public new InputObjectType DeclaringType =>
             (InputObjectType)base.DeclaringType;
 
-        public override Type ClrType
+        public override Type RuntimeType
         {
             get
             {
-                return Property == null
-                    ? base.ClrType
+                return Property is null
+                    ? base.RuntimeType
                     : Property.PropertyType;
             }
         }
 
         public void SetValue(object obj, object? value)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            bool success = Property == null
+            var success = Property is null
                 ? TrySetValueOnUnknownType(obj, value)
                 : TrySetValueOnKnownType(obj, value);
 
@@ -83,11 +102,10 @@ namespace HotChocolate.Types
 
             ILookup<string, PropertyInfo> properties =
                 ReflectionUtils.CreatePropertyLookup(obj.GetType());
-            PropertyInfo property = properties[Name].FirstOrDefault();
 
-            if (property != null)
+            if (properties[Name].FirstOrDefault() is { } p)
             {
-                property.SetValue(obj, value);
+                p.SetValue(obj, value);
                 return true;
             }
 
@@ -102,12 +120,12 @@ namespace HotChocolate.Types
 
         public object? GetValue(object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            bool success = Property == null
+            bool success = Property is null
                 ? TryGetValueOnUnknownType(obj, out object? value)
                 : TryGetValueOnKnownType(obj, out value);
 
@@ -116,12 +134,12 @@ namespace HotChocolate.Types
 
         public bool TryGetValue(object obj, out object? value)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            return Property == null
+            return Property is null
                 ? TryGetValueOnUnknownType(obj, out value)
                 : TryGetValueOnKnownType(obj, out value);
         }
@@ -135,11 +153,10 @@ namespace HotChocolate.Types
 
             ILookup<string, PropertyInfo> properties =
                 ReflectionUtils.CreatePropertyLookup(obj.GetType());
-            PropertyInfo property = properties[Name].FirstOrDefault();
 
-            if (property != null)
+            if (properties[Name].FirstOrDefault() is { } p)
             {
-                value = property.GetValue(obj);
+                value = p.GetValue(obj);
                 return true;
             }
 
@@ -154,7 +171,7 @@ namespace HotChocolate.Types
         }
 
         protected override void OnCompleteField(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             InputFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);

@@ -48,7 +48,7 @@ namespace HotChocolate.Types
                     "The complexity cannot be below one.");
             }
 
-            if (multipliers == null)
+            if (multipliers is null)
             {
                 throw new ArgumentNullException(nameof(multipliers));
             }
@@ -66,7 +66,7 @@ namespace HotChocolate.Types
                 typeof(DirectiveNode))
                 as DirectiveNode;
 
-            if (node == null)
+            if (node is null)
             {
                 _complexity = info.GetInt32(nameof(Complexity));
                 _multipliers = ((string[])info

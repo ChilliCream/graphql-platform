@@ -5,13 +5,13 @@ using SysConv = System.Convert;
 
 namespace HotChocolate.Utilities
 {
-    public partial class TypeConversion
+    public partial class DefaultTypeConverter
     {
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
         private static void RegisterConverters(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             RegisterDateTimeConversions(registry);
             RegisterGuidConversions(registry);
@@ -38,7 +38,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterDateTimeConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<DateTimeOffset, DateTime>(
                 from => from.UtcDateTime);
@@ -88,19 +88,19 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterGuidConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<Guid, string>(from => from.ToString("N"));
         }
 
         private static void RegisterUriConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<Uri, string>(from => from.ToString());
         }
 
         private static void RegisterBooleanConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<bool, string>(from =>
                 from.ToString(CultureInfo.InvariantCulture));
@@ -113,7 +113,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterStringConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<string, Guid>(from => Guid.Parse(from));
             registry.Register<string, Uri>(from =>
@@ -151,13 +151,13 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterNameStringConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<NameString, string>(from => from);
         }
 
         private static void RegisterByteConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<byte, short>(from => SysConv.ToInt16(from));
             registry.Register<byte, int>(from => SysConv.ToInt32(from));
@@ -173,7 +173,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterUInt16Conversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<ushort, byte>(from => SysConv.ToByte(from));
             registry.Register<ushort, short>(from => SysConv.ToInt16(from));
@@ -189,7 +189,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterUInt32Conversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<uint, byte>(from => SysConv.ToByte(from));
             registry.Register<uint, short>(from => SysConv.ToInt16(from));
@@ -205,7 +205,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterUInt64Conversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<ulong, byte>(from => SysConv.ToByte(from));
             registry.Register<ulong, short>(from => SysConv.ToInt16(from));
@@ -221,7 +221,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterInt16Conversions(
-           ITypeConverterRegistry registry)
+           DefaultTypeConverter registry)
         {
             registry.Register<short, byte>(from => SysConv.ToByte(from));
             registry.Register<short, int>(from => SysConv.ToInt32(from));
@@ -237,7 +237,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterInt32Conversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<int, byte>(from => SysConv.ToByte(from));
             registry.Register<int, short>(from => SysConv.ToInt16(from));
@@ -253,7 +253,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterInt64Conversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<long, byte>(from => SysConv.ToByte(from));
             registry.Register<long, short>(from => SysConv.ToInt16(from));
@@ -269,7 +269,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterSingleConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<float, byte>(from => SysConv.ToByte(from));
             registry.Register<float, short>(from => SysConv.ToInt16(from));
@@ -285,7 +285,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterDoubleConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<double, byte>(from => SysConv.ToByte(from));
             registry.Register<double, short>(from => SysConv.ToInt16(from));
@@ -301,7 +301,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterDecimalConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<decimal, short>(from => SysConv.ToInt16(from));
             registry.Register<decimal, int>(from => SysConv.ToInt32(from));
@@ -316,7 +316,7 @@ namespace HotChocolate.Utilities
         }
 
         private static void RegisterStringListConversions(
-            ITypeConverterRegistry registry)
+            DefaultTypeConverter registry)
         {
             registry.Register<IEnumerable<string>, string>(
                 from => string.Join(",", from));

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -9,65 +10,59 @@ namespace HotChocolate.Types.Selections
 {
     public class SelectionVisitorContext
     {
-        private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
-        private readonly IResolverContext _context;
+        private readonly IReadOnlyDictionary<NameString, PreparedArgument> _arguments;
 
         public SelectionVisitorContext(
             IResolverContext context,
-            ITypeConversion conversion,
-            FieldSelection fieldSelection,
+            ITypeConverter conversion,
+            IPreparedSelection fieldSelection,
             SelectionMiddlewareContext selectionMiddlewareContext)
         {
             Conversion = conversion;
             FieldSelection = fieldSelection;
             SelectionContext = selectionMiddlewareContext;
-            _context = context;
-            _arguments = fieldSelection.CoerceArguments(context.Variables, conversion);
-
+            _arguments = CoerceArguments(
+                fieldSelection.Arguments,
+                context.Variables);
         }
 
-        public ITypeConversion Conversion { get; }
+        public ITypeConverter Conversion { get; }
 
-        public FieldSelection FieldSelection { get; }
+        public IPreparedSelection FieldSelection { get; }
 
         public SelectionMiddlewareContext SelectionContext { get; }
 
-        public bool TryGetValueNode(string key, [NotNullWhen(true)] out IValueNode? arg)
+        public bool TryGetValueNode(string key, [NotNullWhen(true)]out IValueNode? value)
         {
-            if (_arguments.TryGetValue(key, out ArgumentValue argumentValue) &&
-                argumentValue.Literal != null &&
-                !(argumentValue.Literal is NullValueNode))
+            if (_arguments.TryGetValue(key, out PreparedArgument? argument) &&
+                argument.ValueLiteral is { } &&
+                argument.ValueLiteral.Kind != SyntaxKind.NullValue)
             {
-                EnsureNoError(argumentValue);
-
-                IValueNode literal = argumentValue.Literal;
-
-                arg = VariableToValueRewriter.Rewrite(
-                    literal,
-                    argumentValue.Type,
-                     _context.Variables, Conversion);
-
+                value = argument.ValueLiteral;
                 return true;
             }
-            arg = null;
+            value = null;
             return false;
         }
 
-        protected void EnsureNoError(ArgumentValue argumentValue)
+        private static IReadOnlyDictionary<NameString, PreparedArgument> CoerceArguments(
+            IPreparedArgumentMap arguments,
+            IVariableValueCollection variables)
         {
-            if (argumentValue.Error != null)
-            {
-                throw new QueryException(argumentValue.Error);
-            }
-        }
+            List<IError>? errors = null;
 
-        public void ReportErrors(IList<IError> errors)
-        {
-            foreach (IError error in errors)
+            void ReportError(IError c) =>
+                (errors ??= new List<IError>()).Add(c);
+
+            if (arguments.TryCoerceArguments(
+                variables,
+                ReportError,
+                out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs))
             {
-                SelectionContext.Errors.Add(
-                    error.WithPath(_context.Path));
+                return coercedArgs;
             }
+
+            throw new GraphQLException(errors);
         }
     }
 }

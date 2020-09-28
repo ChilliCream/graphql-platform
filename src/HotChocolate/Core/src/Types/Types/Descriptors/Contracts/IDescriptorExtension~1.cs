@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -11,10 +12,12 @@ namespace HotChocolate.Types
     {
         void OnBeforeCreate(Action<T> configure);
 
+        void OnBeforeCreate(Action<IDescriptorContext, T> configure);
+
         INamedDependencyDescriptor OnBeforeNaming(
-            Action<ICompletionContext, T> configure);
+            Action<ITypeCompletionContext, T> configure);
 
         ICompletedDependencyDescriptor OnBeforeCompletion(
-            Action<ICompletionContext, T> configure);
+            Action<ITypeCompletionContext, T> configure);
     }
 }

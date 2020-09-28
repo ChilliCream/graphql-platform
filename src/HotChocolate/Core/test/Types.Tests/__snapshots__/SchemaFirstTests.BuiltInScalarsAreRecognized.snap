@@ -3,14 +3,14 @@
 }
 
 type Query {
-  bool_field: Boolean
-  bool_non_null_field: Boolean!
-  float_field: Float
-  float_non_null_field: Float!
-  int_field: Int
-  int_non_null_field: Int!
   string_field: String
   string_non_null_field: String!
+  int_field: Int
+  int_non_null_field: Int!
+  float_field: Float
+  float_non_null_field: Float!
+  bool_field: Boolean
+  bool_non_null_field: Boolean!
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

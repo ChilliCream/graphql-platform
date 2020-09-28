@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
         public NodeDescriptor(IObjectTypeDescriptor typeDescriptor)
         {
-            if (typeDescriptor == null)
+            if (typeDescriptor is null)
             {
                 throw new ArgumentNullException(nameof(typeDescriptor));
             }
@@ -35,12 +34,12 @@ namespace HotChocolate.Types.Relay.Descriptors
                 .Extend()
                 .OnBeforeCreate(c =>
                 {
-                    c.ContextData[RelayConstants.NodeResolverFactory] =
-                        nodeResolverFactory;
+                    c.ContextData[RelayConstants.NodeResolverFactory] = nodeResolverFactory;
                 });
 
             return _typeDescriptor.Field("id")
-                .Type<NonNullType<IdType>>();
+                .Type<NonNullType<IdType>>()
+                .Use<IdMiddleware>();
         }
     }
 }

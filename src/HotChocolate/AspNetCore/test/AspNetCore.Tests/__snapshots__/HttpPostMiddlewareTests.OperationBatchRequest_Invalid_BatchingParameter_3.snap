@@ -1,0 +1,16 @@
+﻿[
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "BadRequest",
+    "Data": null,
+    "Errors": [
+      {
+        "message": "Invalid GraphQL Request.",
+        "extensions": {
+          "code": "INVALID_REQUEST"
+        }
+      }
+    ],
+    "Extensions": null
+  }
+]

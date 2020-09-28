@@ -1,101 +1,237 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
-		Microsoft ResX Schema
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
-		Version 1.3
-
-		The primary goals of this format is to allow a simple XML format 
-		that is mostly human readable. The generation and parsing of the 
-		various data types are done through the TypeConverter classes 
-		associated with the data types.
-
-		Example:
-
-		... ado.net/XML headers & schema ...
-		<resheader name="resmimetype">text/microsoft-resx</resheader>
-		<resheader name="version">1.3</resheader>
-		<resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-		<resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-		<data name="Name1">this is my long string</data>
-		<data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-		<data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-			[base64 mime encoded serialized .NET Framework object]
-		</data>
-		<data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-			[base64 mime encoded string representing a byte array form of the .NET Framework object]
-		</data>
-
-		There are any number of "resheader" rows that contain simple 
-		name/value pairs.
-
-		Each data row contains a name, and value. The row also contains a 
-		type or mimetype. Type corresponds to a .NET class that support 
-		text/value conversion through the TypeConverter architecture. 
-		Classes that don't support this are serialized and stored with the 
-		mimetype set.
-
-		The mimetype is used for serialized objects, and tells the 
-		ResXResourceReader how to depersist the object. This is currently not 
-		extensible. For a given mimetype the value must be set accordingly:
-
-		Note - application/x-microsoft.net.object.binary.base64 is the format 
-		that the ResXResourceWriter will generate, however the reader can 
-		read any of the formats listed below.
-
-		mimetype: application/x-microsoft.net.object.binary.base64
-		value   : The object must be serialized with 
-			: System.Serialization.Formatters.Binary.BinaryFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.soap.base64
-		value   : The object must be serialized with 
-			: System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-			: and then encoded with base64 encoding.
-
-		mimetype: application/x-microsoft.net.object.bytearray.base64
-		value   : The object must be serialized into a byte array 
-			: using a System.ComponentModel.TypeConverter
-			: and then encoded with base64 encoding.
-	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ThrowHelper_MissingDirectiveIfArgument" xml:space="preserve">
+    <value>The {0}-directive is missing the if-argument.</value>
+  </data>
+  <data name="ThrowHelper_FieldDoesNotExistOnType" xml:space="preserve">
+    <value>Field `{0}` does not exist on type `{1}`.</value>
+  </data>
+  <data name="ObjectBuffer_IsEmpty" xml:space="preserve">
+    <value>Buffer is full.</value>
+  </data>
+  <data name="ObjectBuffer_IsUsedUp" xml:space="preserve">
+    <value>Buffer is used up.</value>
+  </data>
+  <data name="PreparedSelection_ReadOnly" xml:space="preserve">
+    <value>The selection is read-only.</value>
+  </data>
+  <data name="MiddlewareContext_ReportErrorCannotBeNull" xml:space="preserve">
+    <value>errorMessage mustn't be null or empty.</value>
+  </data>
+  <data name="DeferredResult_ReadResultsAsync_ReadOnlyOnce" xml:space="preserve">
+    <value>You can only read a response stream once.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentNonNullError_Message" xml:space="preserve">
+    <value>Detected a non-null violation in argument `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_UnableToResolveTheAbstractType_Message" xml:space="preserve">
+    <value>Unable to resolve the abstract type `{0}`.</value>
+  </data>
+  <data name="ErrorHelper_ListValueIsNotSupported_Message" xml:space="preserve">
+    <value>The type `{0}` is not supported as list value.</value>
+  </data>
+  <data name="ErrorHelper_UnexpectedValueCompletionError_Message" xml:space="preserve">
+    <value>Unexpected error during value completion.</value>
+  </data>
+  <data name="ErrorHelper_RootTypeNotFound_Message" xml:space="preserve">
+    <value>The specified root type `{0}` is not supported by this server.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForOperationResolver_Message" xml:space="preserve">
+    <value>Either no query document exists or the document validation result is invalid.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForOperationVariableCoercion_Message" xml:space="preserve">
+    <value>There is no operation on the context which can be used to coerce variables.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForOperationExecution_Message" xml:space="preserve">
+    <value>Either now compiled operation was found or the variables have not been coerced.</value>
+  </data>
+  <data name="ErrorHelper_ValueCompletion_CouldNotResolveAbstractType_Message" xml:space="preserve">
+    <value>Could not resolve the actual object type from `System.String` for the abstract type `Bar`.</value>
+  </data>
+  <data name="ErrorHelper_StateInvalidForDocumentValidation_Message" xml:space="preserve">
+    <value>The query request contains no document.</value>
+  </data>
+  <data name="ThrowHelper_VariableIsNotAnInputType_Message" xml:space="preserve">
+    <value>Variable `{0}` is not an input type.</value>
+  </data>
+  <data name="ThrowHelper_NonNullVariableIsNull_Message" xml:space="preserve">
+    <value>Variable `{0}` is required.</value>
+  </data>
+  <data name="ThrowHelper_VariableValueInvalidType_Message" xml:space="preserve">
+    <value>Variable `{0}` got an invalid value.</value>
+  </data>
+  <data name="ThrowHelper_QueryTypeNotSupported_Message" xml:space="preserve">
+    <value>The specified query type is not supported.</value>
+  </data>
+  <data name="ThrowHelper_VariableNotFound_Message" xml:space="preserve">
+    <value>The variable with the name `{0}` does not exist.</value>
+  </data>
+  <data name="ThrowHelper_VariableNotOfType_Message" xml:space="preserve">
+    <value>The variable with the name `{0}` is not of the requested type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_RootTypeNotSupported_Message" xml:space="preserve">
+    <value>The root type `{0}` is not supported.</value>
+  </data>
+  <data name="ThrowHelper_SubscriptionExecutor_ContextInvalidState_Message" xml:space="preserve">
+    <value>The request context is in an invalid state for subscriptions.</value>
+  </data>
+  <data name="ThrowHelper_SubscriptionExecutor_SubscriptionsMustHaveOneField_Message" xml:space="preserve">
+    <value>Subscription queries must have exactly one root field.</value>
+  </data>
+  <data name="ThrowHelper_SubscriptionExecutor_NoSubscribeResolver_Message" xml:space="preserve">
+    <value>You must declare a subscribe resolver for subscription fields.</value>
+  </data>
+  <data name="ThrowHelper_ResolverContext_LiteralsNotSupported_Message" xml:space="preserve">
+    <value>The ArgumentValue method on the resolver context only allows for runtime values. If you want to retrieve the argument value as GraphQL literal use the ArgumentLiteral method instead.</value>
+  </data>
+  <data name="ThrowHelper_ResolverContext_CannotConvertArgument_Message" xml:space="preserve">
+    <value>Unable to convert the value if the argument `{0}` to `{1}`. Check if the requested type is correct or register a custom type converter.</value>
+  </data>
+  <data name="ThrowHelper_ResolverContext_LiteralNotCompatible_Message" xml:space="preserve">
+    <value>The argument literal representation is `{0}` which is not compatible with the request literal type `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_ResolverContext_ArgumentDoesNotExist_Message" xml:space="preserve">
+    <value>There was no argument with the name `{0}` found on the field `{1}`.</value>
+  </data>
+  <data name="ThrowHelper_OperationResolverHelper_NoOperationFound_Message" xml:space="preserve">
+    <value>There are now operations in the GraphQL document.</value>
+  </data>
+  <data name="ThrowHelper_OperationResolverHelper_MultipleOperation_Message" xml:space="preserve">
+    <value>The operation name can only be omitted if there is just one operation in a GraphQL document.</value>
+  </data>
+  <data name="ThrowHelper_OperationResolverHelper_InvalidOperationName_Message" xml:space="preserve">
+    <value>The specified operation `{0}` cannot be found.</value>
+  </data>
+  <data name="ThrowHelper_BatchExecutor_CannotSerializeVariable_Message" xml:space="preserve">
+    <value>Could not serialize the specified variable `{0}`.</value>
+  </data>
+  <data name="ThrowHelper_CollectVariablesVisitor_NoCompatibleType_Message" xml:space="preserve">
+    <value>Unable to find a compatible input type for the exported object type.</value>
+  </data>
+  <data name="ThrowHelper_FieldVisibility_ValueNotSupported_Message" xml:space="preserve">
+    <value>The skip/include if-argument value has to be a 'Boolean'.</value>
+  </data>
+  <data name="ThrowHelper_QueryCompiler_CompositeTypeSelectionSet_Message" xml:space="preserve">
+    <value>A composite type always needs to specify a selection set.</value>
+  </data>
+  <data name="ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message" xml:space="preserve">
+    <value>Make sure that you have registered an IBatchDispatcher with your scoped request services.</value>
+  </data>
 </root>

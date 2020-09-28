@@ -2,7 +2,6 @@ using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -10,7 +9,7 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<ArgumentDefinition>
         , IArgumentDescriptor
     {
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName)
             : base(context)
@@ -18,42 +17,50 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
         }
 
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             NameString argumentName,
             Type argumentType)
             : this(context, argumentName)
         {
-            if (argumentType == null)
+            if (argumentType is null)
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
             Definition.Name = argumentName;
-            Definition.Type = argumentType.GetInputType();
+            Definition.Type = context.TypeInspector.GetTypeRef(argumentType, TypeContext.Input);
         }
 
-        public ArgumentDescriptor(
+        protected internal ArgumentDescriptor(
             IDescriptorContext context,
             ParameterInfo parameter)
             : base(context)
         {
             Definition.Name = context.Naming.GetArgumentName(parameter);
             Definition.Description = context.Naming.GetArgumentDescription(parameter);
-            Definition.Type = context.Inspector.GetArgumentType(parameter);
+            Definition.Type = context.TypeInspector.GetArgumentTypeRef(parameter);
             Definition.Parameter = parameter;
 
-            if (context.Inspector.TryGetDefaultValue(parameter, out object defaultValue))
+            if (context.TypeInspector.TryGetDefaultValue(parameter, out object defaultValue))
             {
                 Definition.NativeDefaultValue = defaultValue;
             }
+        }
+
+        protected internal ArgumentDescriptor(
+            IDescriptorContext context,
+            ArgumentDefinition definition)
+            : base(context)
+        {
+            Definition = definition ?? throw new ArgumentNullException(nameof(definition));
         }
 
         protected override void OnCreateDefinition(ArgumentDefinition definition)
         {
             if (Definition.Parameter is { })
             {
-                Context.Inspector.ApplyAttributes(
+                Context.TypeInspector.ApplyAttributes(
                     Context,
                     this,
                     Definition.Parameter);
@@ -154,5 +161,10 @@ namespace HotChocolate.Types.Descriptors
             IDescriptorContext context,
             ParameterInfo parameter) =>
             new ArgumentDescriptor(context, parameter);
+
+        public static ArgumentDescriptor From(
+            IDescriptorContext context,
+            ArgumentDefinition argumentDefinition) =>
+            new ArgumentDescriptor(context, argumentDefinition);
     }
 }

@@ -1,6 +1,7 @@
-using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+
+#nullable enable
 
 namespace HotChocolate.Types
 {
@@ -40,14 +41,31 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override bool ParseLiteral(BooleanValueNode literal)
+        protected override bool ParseLiteral(BooleanValueNode valueSyntax)
         {
-            return literal.Value;
+            return valueSyntax.Value;
         }
 
-        protected override BooleanValueNode ParseValue(bool value)
+        protected override BooleanValueNode ParseValue(bool runtimeValue)
         {
-            return value ? BooleanValueNode.True : BooleanValueNode.False;
+            return runtimeValue ? BooleanValueNode.True : BooleanValueNode.False;
+        }
+
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            if (resultValue is bool b)
+            {
+                return b ? BooleanValueNode.True : BooleanValueNode.False;
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
         }
     }
 }

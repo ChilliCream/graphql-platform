@@ -203,4 +203,7 @@
   <data name="ErrorHelper_MaxOperationComplexity" xml:space="preserve">
     <value>The GraphQL document has an operation complexity of {0} which exceeds the max allowed operation complexity of {1}.</value>
   </data>
+  <data name="HotChocolateValidationBuilderExtensions_MinimumAllowedValue" xml:space="preserve">
+    <value>The minimum allowed value is 1.</value>
+  </data>
 </root>

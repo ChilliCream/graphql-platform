@@ -8,14 +8,14 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barSingle_some: ISingleFilterOfSingleFilter
   OR: [FooSimpleFilter!]
+  barSingle_some: ISingleFilterOfSingleFilter
 }
 
 input ISingleFilterOfSingleFilter {
   AND: [ISingleFilterOfSingleFilter!]
-  element: Float
   OR: [ISingleFilterOfSingleFilter!]
+  element: Float
 }
 
 "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."

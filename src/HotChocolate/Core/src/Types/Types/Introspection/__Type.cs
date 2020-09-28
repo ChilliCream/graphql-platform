@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Introspection
                 .Argument("includeDeprecated",
                     a => a.Type<BooleanType>().DefaultValue(false))
                 .Resolver(c => GetFields(c.Parent<IType>(),
-                    c.Argument<bool>("includeDeprecated")));
+                    c.ArgumentValue<bool>("includeDeprecated")));
 
             descriptor.Field("interfaces")
                 .Type<ListType<NonNullType<__Type>>>()
@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Introspection
                 .Argument("includeDeprecated",
                     a => a.Type<BooleanType>().DefaultValue(false))
                 .Resolver(c => GetEnumValues(c.Parent<IType>(),
-                    c.Argument<bool>("includeDeprecated")));
+                    c.ArgumentValue<bool>("includeDeprecated")));
 
             descriptor.Field("inputFields")
                 .Type<ListType<NonNullType<__InputValue>>>()
@@ -111,11 +111,11 @@ namespace HotChocolate.Types.Introspection
             return null;
         }
 
-        private IEnumerable<EnumValue> GetEnumValues(IType type, bool includeDeprecated)
+        private IEnumerable<IEnumValue> GetEnumValues(IType type, bool includeDeprecated)
         {
             if (type is EnumType et)
             {
-                IReadOnlyCollection<EnumValue> values = et.Values;
+                IReadOnlyCollection<IEnumValue> values = et.Values;
                 if (!includeDeprecated)
                 {
                     return values.Where(t => !t.IsDeprecated);
@@ -136,18 +136,12 @@ namespace HotChocolate.Types.Introspection
 
         private IType GetOfType(IType type)
         {
-            if (type is ListType lt)
+            return type switch
             {
-                return lt.ElementType;
-            }
-            else if (type is NonNullType nnt)
-            {
-                return nnt.Type;
-            }
-            else
-            {
-                return null;
-            }
+                ListType lt => lt.ElementType,
+                NonNullType nnt => nnt.Type,
+                _ => null
+            };
         }
     }
 }

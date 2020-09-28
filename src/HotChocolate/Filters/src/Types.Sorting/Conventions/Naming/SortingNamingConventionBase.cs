@@ -25,5 +25,7 @@ namespace HotChocolate.Types.Sorting
 
         public static ISortingNamingConvention Default { get; } =
             new SortingNamingConventionSnakeCase();
+
+        public string? Scope { get; }
     }
 }

@@ -18,7 +18,7 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            EnumValue value = schema.GetType<EnumType>("Enum1").Values.First();
+            IEnumValue value = schema.GetType<EnumType>("Enum1").Values.First();
             Assert.Equal("ABC", value.Name);
         }
 

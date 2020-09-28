@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     /// <summary>
@@ -9,8 +11,8 @@ namespace HotChocolate.Types
     /// GraphQL responses take the form of a hierarchical tree;
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
-    public abstract class ScalarType<TClrType, TLiteral>
-        : ScalarType<TClrType>
+    public abstract class ScalarType<TRuntimeType, TLiteral>
+        : ScalarType<TRuntimeType>
         where TLiteral : IValueNode
     {
         protected ScalarType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
@@ -18,54 +20,30 @@ namespace HotChocolate.Types
         {
         }
 
-        public sealed override bool IsInstanceOfType(IValueNode literal)
+        public sealed override bool IsInstanceOfType(IValueNode valueSyntax)
         {
-            if (literal == null)
+            if (valueSyntax is null)
             {
-                throw new ArgumentNullException(nameof(literal));
+                throw new ArgumentNullException(nameof(valueSyntax));
             }
 
-            return (literal is TLiteral casted && IsInstanceOfType(casted))
-                || literal is NullValueNode;
+            return (valueSyntax is TLiteral casted && IsInstanceOfType(casted))
+                || valueSyntax is NullValueNode;
         }
 
-        protected virtual bool IsInstanceOfType(TLiteral literal)
+        protected virtual bool IsInstanceOfType(TLiteral valueSyntax)
         {
             return true;
         }
 
-        public sealed override object ParseLiteral(IValueNode literal)
+        public sealed override bool IsInstanceOfType(object? runtimeValue)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is TLiteral casted && IsInstanceOfType(casted))
-            {
-                return ParseLiteral(casted);
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
-        }
-
-        protected abstract TClrType ParseLiteral(TLiteral literal);
-
-        public sealed override bool IsInstanceOfType(object value)
-        {
-            if (value is null)
+            if (runtimeValue is null)
             {
                 return true;
             }
 
-            if (value is TClrType t)
+            if (runtimeValue is TRuntimeType t)
             {
                 return IsInstanceOfType(t);
             }
@@ -73,28 +51,53 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected virtual bool IsInstanceOfType(TClrType value)
+        protected virtual bool IsInstanceOfType(TRuntimeType runtimeValue)
         {
             return true;
         }
 
-        public sealed override IValueNode ParseValue(object value)
+        public sealed override object? ParseLiteral(
+            IValueNode valueSyntax, bool withDefaults = true)
         {
-            if (value is null)
+            if (valueSyntax is null)
+            {
+                throw new ArgumentNullException(nameof(valueSyntax));
+            }
+
+            if (valueSyntax is TLiteral casted && IsInstanceOfType(casted))
+            {
+                return ParseLiteral(casted);
+            }
+
+            if (valueSyntax is NullValueNode)
+            {
+                return null;
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
+        }
+
+        protected abstract TRuntimeType ParseLiteral(TLiteral valueSyntax);
+
+        public sealed override IValueNode ParseValue(object? runtimeValue)
+        {
+            if (runtimeValue is null)
             {
                 return NullValueNode.Default;
             }
 
-            if (value is TClrType t && IsInstanceOfType(t))
+            if (runtimeValue is TRuntimeType t && IsInstanceOfType(t))
             {
                 return ParseValue(t);
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(Name, runtimeValue.GetType()),
+                this);
         }
 
-        protected abstract TLiteral ParseValue(TClrType value);
+        protected abstract TLiteral ParseValue(TRuntimeType runtimeValue);
     }
 }

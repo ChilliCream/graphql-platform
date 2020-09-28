@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Relay;
-using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types.Selections
 {
@@ -20,8 +19,8 @@ namespace HotChocolate.Types.Selections
                 ?? throw new ArgumentNullException(nameof(context));
         }
 
-        protected Stack<ObjectField> Fields { get; } =
-            new Stack<ObjectField>();
+        protected Stack<IObjectField> Fields { get; } =
+            new Stack<IObjectField>();
 
         protected readonly IResolverContext Context;
 
@@ -41,7 +40,7 @@ namespace HotChocolate.Types.Selections
                     }
                 }
             }
-            else if (selectionSet == null)
+            else if (selectionSet is null)
             {
                 throw new QueryException(
                     ErrorBuilder.New()
@@ -82,9 +81,9 @@ namespace HotChocolate.Types.Selections
                 }
             }
             else if (selection.Field.Type.IsListType() ||
-              selection.Field.Type.ToClrType() == typeof(IConnection) ||
+              selection.Field.Type.ToRuntimeType() == typeof(IConnection) ||
               (selection.Field.Member is PropertyInfo propertyInfo &&
-                  IsListType(propertyInfo.PropertyType)))
+                ExtendedType.Tools.GetElementType(propertyInfo.PropertyType) is not null))
             {
                 if (EnterList(selection))
                 {
@@ -173,20 +172,20 @@ namespace HotChocolate.Types.Selections
         {
             (IOutputType?, SelectionSetNode?) nullableResult = (null, null);
 
-            if (outputType.ToClrType() == typeof(IConnection) &&
+            if (outputType.ToRuntimeType() == typeof(IConnection) &&
                outputType.NamedType() is ObjectType type)
             {
-                foreach (IFieldSelection selection in Context.CollectFields(type, selectionSet))
+                foreach (IFieldSelection selection in Context.GetSelections(type, selectionSet))
                 {
                     IFieldSelection? currentSelection = GetPagingFieldOrDefault(selection);
 
-                    if (currentSelection != null)
+                    if (currentSelection is not null)
                     {
                         nullableResult = MergeSelection(nullableResult.Item2, currentSelection);
                     }
                 }
             }
-            if (nullableResult.Item1 != null && nullableResult.Item2 != null)
+            if (nullableResult.Item1 is not null && nullableResult.Item2 is not null)
             {
                 result = (nullableResult.Item1, nullableResult.Item2);
                 return true;
@@ -209,7 +208,7 @@ namespace HotChocolate.Types.Selections
                 selection.Field.Type.NamedType() is ObjectType edgeType)
             {
                 return Context
-                    .CollectFields(edgeType, selection.Selection.SelectionSet)
+                    .GetSelections(edgeType, selection.Selection.SelectionSet)
                     .FirstOrDefault(x => x.Field.Name == "node");
             }
             return default;
@@ -219,7 +218,7 @@ namespace HotChocolate.Types.Selections
             SelectionSetNode? selectionSet,
             IFieldSelection selection)
         {
-            if (selectionSet == null)
+            if (selectionSet is null)
             {
                 selectionSet = selection.Selection.SelectionSet;
             }
@@ -237,7 +236,7 @@ namespace HotChocolate.Types.Selections
             ObjectType type,
             SelectionSetNode selectionSet)
         {
-            IReadOnlyList<IFieldSelection> selections = Context.CollectFields(type, selectionSet);
+            IReadOnlyList<IFieldSelection> selections = Context.GetSelections(type, selectionSet);
             if (HasNonProjectableField(selections))
             {
                 var fieldSelections = new List<ISelectionNode>();
@@ -249,17 +248,16 @@ namespace HotChocolate.Types.Selections
                     }
                 }
                 selectionSet = selectionSet.AddSelections(fieldSelections.ToArray());
-                selections = Context.CollectFields(type, selectionSet);
+                selections = Context.GetSelections(type, selectionSet);
             }
             return selections;
         }
 
         private static bool HasNonProjectableField(IReadOnlyList<IFieldSelection> selections)
         {
-            for (int i = 0; i < selections.Count; i++)
+            for (var i = 0; i < selections.Count; i++)
             {
-                if (!(selections[i].Field.Member is PropertyInfo) &&
-                    !IntrospectionFields.TypeName.Equals(selections[i].Field.Name))
+                if (!(selections[i].Field.Member is PropertyInfo))
                 {
                     return true;
                 }

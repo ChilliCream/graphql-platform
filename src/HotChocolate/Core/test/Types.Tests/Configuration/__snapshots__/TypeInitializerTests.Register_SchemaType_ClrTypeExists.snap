@@ -1,0 +1,12 @@
+﻿{
+  "fooType": {
+    "__schema": "__Schema!",
+    "__type": "__Type",
+    "__typename": "String!",
+    "bar": "Bar!"
+  },
+  "barType": {
+    "__typename": "String!",
+    "baz": "String"
+  }
+}

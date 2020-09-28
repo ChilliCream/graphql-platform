@@ -1,0 +1,11 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The GraphQL request is empty."
+    }
+  ],
+  "Extensions": null
+}

@@ -39,75 +39,95 @@ namespace HotChocolate.Types
             Description = description;
         }
 
-        protected override TimeSpan ParseLiteral(StringValueNode literal)
+        protected override TimeSpan ParseLiteral(StringValueNode valueSyntax)
         {
-            if (TryDeserializeFromString(literal.Value, _format, out TimeSpan? value) &&
+            if (TryDeserializeFromString(valueSyntax.Value, _format, out TimeSpan? value) &&
                 value != null)
             {
                 return value.Value;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(Name, valueSyntax.GetType()),
+                this);
         }
 
-        protected override StringValueNode ParseValue(TimeSpan value)
+        protected override StringValueNode ParseValue(TimeSpan runtimeValue)
         {
-            if (_format == TimeSpanFormat.Iso8601)
+            return _format == TimeSpanFormat.Iso8601
+                ? new StringValueNode(XmlConvert.ToString(runtimeValue))
+                : new StringValueNode(runtimeValue.ToString("c"));
+        }
+
+        public override IValueNode ParseResult(object? resultValue)
+        {
+            if (resultValue is null)
             {
-                return new StringValueNode(XmlConvert.ToString(value));
+                return NullValueNode.Default;
             }
 
-            return new StringValueNode(value.ToString("c"));
+            if (resultValue is string s &&
+                TryDeserializeFromString(s, _format, out TimeSpan? timeSpan))
+            {
+                return ParseValue(timeSpan);
+            }
+
+            if (resultValue is TimeSpan ts)
+            {
+                return ParseValue(ts);
+            }
+
+            throw new SerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseResult(Name, resultValue.GetType()),
+                this);
         }
 
-        public override bool TrySerialize(object value, out object? serialized)
+        public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
-                serialized = null;
+                resultValue = null;
                 return true;
             }
 
-            if (value is TimeSpan timeSpan)
+            if (runtimeValue is TimeSpan timeSpan)
             {
                 if (_format == TimeSpanFormat.Iso8601)
                 {
-                    serialized = XmlConvert.ToString(timeSpan);
+                    resultValue = XmlConvert.ToString(timeSpan);
                     return true;
                 }
 
-                serialized = timeSpan.ToString("c");
+                resultValue = timeSpan.ToString("c");
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        public override bool TryDeserialize(object serialized, out object? value)
+        public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized is null)
+            if (resultValue is null)
             {
-                value = null;
+                runtimeValue = null;
                 return true;
             }
 
-            if (serialized is string s &&
+            if (resultValue is string s &&
                 TryDeserializeFromString(s, _format, out TimeSpan? timeSpan))
             {
-                value = timeSpan;
+                runtimeValue = timeSpan;
                 return true;
             }
 
-            if (serialized is TimeSpan ts)
+            if (resultValue is TimeSpan ts)
             {
-                value = ts;
+                runtimeValue = ts;
                 return true;
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
 
@@ -116,12 +136,9 @@ namespace HotChocolate.Types
             TimeSpanFormat format,
             out TimeSpan? value)
         {
-            if (format == TimeSpanFormat.Iso8601)
-            {
-                return TryDeserializeIso8601(serialized, out value);
-            }
-
-            return TryDeserializeDotNet(serialized, out value);
+            return format == TimeSpanFormat.Iso8601
+                ? TryDeserializeIso8601(serialized, out value)
+                : TryDeserializeDotNet(serialized, out value);
         }
 
         private static bool TryDeserializeIso8601(string serialized, out TimeSpan? value)

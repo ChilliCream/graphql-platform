@@ -1,0 +1,3 @@
+﻿SELECT "d"."Id", "d"."Bar"
+FROM "Data" AS "d"
+WHERE "d"."Bar" IS NULL OR (((@__p_0 <> '') OR @__p_0 IS NULL) AND ("d"."Bar" IS NULL OR (@__p_0 IS NULL OR ((NOT ("d"."Bar" LIKE "d"."Bar" || '%') OR (((substr("d"."Bar", 1, length(@__p_0)) <> @__p_0) OR (substr("d"."Bar", 1, length(@__p_0)) IS NULL OR @__p_0 IS NULL)) AND (substr("d"."Bar", 1, length(@__p_0)) IS NOT NULL OR @__p_0 IS NOT NULL))) AND ((@__p_0 <> '') OR @__p_0 IS NULL)))))

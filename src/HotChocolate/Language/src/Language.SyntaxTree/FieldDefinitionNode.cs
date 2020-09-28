@@ -23,7 +23,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(type));
         }
 
-        public override NodeKind Kind { get; } = NodeKind.FieldDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.FieldDefinition;
 
         public StringValueNode? Description { get; }
 

@@ -25,7 +25,7 @@ namespace HotChocolate.Configuration.Bindings
             Expression<Func<TObjectType, object>> resolver)
             where TObjectType : class
         {
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }

@@ -8,8 +8,8 @@ type Query {
 
 input Test {
   bar: SortOperationKind
-  baz: SortOperationKind
   nullableBoolean: SortOperationKind
+  baz: SortOperationKind
 }
 
 enum SortOperationKind {

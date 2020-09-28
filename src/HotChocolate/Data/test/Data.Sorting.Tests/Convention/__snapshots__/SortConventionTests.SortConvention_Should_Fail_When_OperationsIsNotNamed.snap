@@ -1,0 +1,6 @@
+﻿For more details look at the `Errors` property.
+
+1. For more details look at the `Errors` property.
+
+1. Unable to create field handler `0` for sort provider `HotChocolate.Data.Sorting.SortConvention`.
+ (HotChocolate.Data.Sorting.SortConventionTests.FooSortType)

@@ -12,7 +12,8 @@ trim_trailing_whitespace = true
 trim_trailing_whitespace = false
 
 # CSharp code style settings:
-[*.cs]root = true
+[*.cs]
+root = true
 
 [*]
 charset = utf-8
@@ -45,7 +46,7 @@ dotnet_style_predefined_type_for_member_access = true:error
 
 # Modifier preferences
 dotnet_style_require_accessibility_modifiers = always
-csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async
+csharp_preferred_modifier_order = public, private, protected, internal, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, volatile, async
 
 # Suggest more modern language features when available
 dotnet_style_object_initializer = true:suggestion

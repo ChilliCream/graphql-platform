@@ -2,53 +2,57 @@
   {
     "Message": "The specified fragment `UnknownFragment1` does not exist.",
     "Code": null,
-    "Path": [
-      "human"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "human"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "UnknownFragment1",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified fragment `UnknownFragment2` does not exist.",
     "Code": null,
-    "Path": [
-      "human"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "human"
+    },
     "Locations": [
       {
         "Line": 6,
         "Column": 29
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "UnknownFragment2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-spread-target-defined"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The specified fragment `HumanFields` is not used within the current document.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 10,
         "Column": 17
       }
     ],
-    "Exception": null,
     "Extensions": {
       "fragment": "HumanFields",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragments-Must-Be-Used"
-    }
+    },
+    "Exception": null
   }
 ]

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.Mongo" Version="0.5.0" />
+    <PackageReference Include="Squadron.Mongo" Version="0.8.1" />
   </ItemGroup>
 
   <ItemGroup>

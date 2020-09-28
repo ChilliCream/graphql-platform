@@ -7,7 +7,6 @@ namespace HotChocolate.Language
     public sealed class FragmentDefinitionNode
         : NamedSyntaxNode
         , IExecutableDefinitionNode
-        , INamedSyntaxNode
     {
         public FragmentDefinitionNode(
             Location? location,
@@ -26,7 +25,7 @@ namespace HotChocolate.Language
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
-        public override NodeKind Kind { get; } = NodeKind.FragmentDefinition;
+        public override SyntaxKind Kind { get; } = SyntaxKind.FragmentDefinition;
 
         public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 

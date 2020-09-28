@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-#nullable enable
+﻿#nullable enable
 
 namespace HotChocolate.Execution
 {
+    // todo : deprecate this interface and use IQueryResult
     public interface IReadOnlyQueryResult
-        : IExecutionResult
-        , IDisposable
+        : IQueryResult
     {
-        IReadOnlyDictionary<string, object?>? Data { get; }
-
-        IReadOnlyDictionary<string, object?> ToDictionary();
     }
 }

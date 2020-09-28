@@ -133,13 +133,13 @@ namespace HotChocolate.Language.Utilities
         {
             switch (node.Kind)
             {
-                case NodeKind.Field:
+                case SyntaxKind.Field:
                     VisitField((FieldNode)node, context);
                     break;
-                case NodeKind.FragmentSpread:
+                case SyntaxKind.FragmentSpread:
                     VisitFragmentSpread((FragmentSpreadNode)node, context);
                     break;
-                case NodeKind.InlineFragment:
+                case SyntaxKind.InlineFragment:
                     VisitInlineFragment((InlineFragmentNode)node, context);
                     break;
                 default:

@@ -2,6 +2,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public class NonNullType
@@ -29,10 +31,10 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            return InnerInputType.IsInstanceOfType(literal);
+            return InnerInputType!.IsInstanceOfType(literal);
         }
 
-        protected sealed override object ParseLiteral(IValueNode literal)
+        protected sealed override object? ParseLiteral(IValueNode literal, bool withDefaults)
         {
             if (literal is NullValueNode)
             {
@@ -41,53 +43,63 @@ namespace HotChocolate.Types
                     nameof(literal));
             }
 
-            return InnerInputType.ParseLiteral(literal);
+            return InnerInputType!.ParseLiteral(literal, withDefaults);
         }
 
-        protected sealed override bool IsInstanceOfType(object value)
+        protected sealed override bool IsInstanceOfType(object? runtimeValue)
         {
-            if (value is null)
+            if (runtimeValue is null)
             {
                 return false;
             }
 
-            return InnerInputType.IsInstanceOfType(value);
+            return InnerInputType!.IsInstanceOfType(runtimeValue);
         }
 
-        protected sealed override IValueNode ParseValue(object value)
+        protected sealed override IValueNode ParseValue(object? runtimeValue)
         {
-            if (value == null)
+            if (runtimeValue is null)
             {
                 throw new ArgumentException(
                     TypeResources.NonNullType_ValueIsNull,
-                    nameof(value));
+                    nameof(runtimeValue));
             }
 
-            return InnerInputType.ParseValue(value);
+            return InnerInputType!.ParseValue(runtimeValue);
         }
 
-        protected sealed override bool TrySerialize(
-            object value, out object serialized)
+        protected override IValueNode ParseResult(object? resultValue)
         {
-            if (value != null)
+            if (resultValue is null)
             {
-                serialized = InnerInputType.Serialize(value);
+                throw new ArgumentException(
+                    TypeResources.NonNullType_ValueIsNull,
+                    nameof(resultValue));
+            }
+
+            return InnerInputType!.ParseResult(resultValue);
+        }
+
+        protected sealed override bool TrySerialize(object? runtimeValue, out object? resultValue)
+        {
+            if (runtimeValue != null)
+            {
+                resultValue = InnerInputType!.Serialize(runtimeValue);
                 return true;
             }
 
-            serialized = null;
+            resultValue = null;
             return false;
         }
 
-        protected sealed override bool TryDeserialize(
-            object serialized, out object value)
+        protected sealed override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
-            if (serialized != null)
+            if (resultValue != null)
             {
-                return InnerInputType.TryDeserialize(serialized, out value);
+                return InnerInputType!.TryDeserialize(resultValue, out runtimeValue);
             }
 
-            value = null;
+            runtimeValue = null;
             return false;
         }
     }

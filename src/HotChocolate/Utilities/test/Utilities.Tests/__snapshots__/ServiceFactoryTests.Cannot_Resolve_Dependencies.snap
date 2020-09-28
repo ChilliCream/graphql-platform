@@ -1,1 +1,1 @@
-﻿Unable to find a constructor on type `HotChocolate.Utilities.ServiceFactoryTests+ClassWithDependencies` that can be fulfilled with the currently available set of services. Check if all dependent services for this type are registered.
+﻿Could not create an instance of `HotChocolate.Utilities.ServiceFactoryTests+ClassWithDependencies`

@@ -2,61 +2,67 @@
   {
     "Message": "The argument `req2` does not exist.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 38
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "req2",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The argument `x` is required.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "x",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   },
   {
     "Message": "The argument `y` is required.",
     "Code": null,
-    "Path": [
-      "arguments"
-    ],
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "arguments"
+    },
     "Locations": [
       {
         "Line": 4,
         "Column": 25
       }
     ],
-    "Exception": null,
     "Extensions": {
       "type": "Arguments",
       "field": "multipleReqs",
       "argument": "y",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
-    }
+    },
+    "Exception": null
   }
 ]

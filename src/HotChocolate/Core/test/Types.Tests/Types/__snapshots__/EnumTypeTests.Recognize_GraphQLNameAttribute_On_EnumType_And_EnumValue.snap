@@ -1,0 +1,4 @@
+﻿enum Foo {
+  BAR1
+  BAR_2
+}

@@ -14,7 +14,7 @@ namespace HotChocolate.Resolvers
             var objectType = new ObjectType<Foo>(
                 t => t.Field<FooResolver>(f => f.GetParent(default)).Name("desc"));
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -24,7 +24,7 @@ namespace HotChocolate.Resolvers
                     .Create());
 
             // assert
-            var queryResult = result as ReadOnlyQueryResult;
+            var queryResult = result as QueryResult;
             Assert.NotNull(queryResult);
             Assert.Null(queryResult.Errors);
             Assert.Equal("hello", queryResult.Data["desc"]);
@@ -39,7 +39,7 @@ namespace HotChocolate.Resolvers
                 .Name("desc")
                 .Type<StringType>());
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -49,7 +49,7 @@ namespace HotChocolate.Resolvers
                     .Create());
 
             // assert
-            var queryResult = result as ReadOnlyQueryResult;
+            var queryResult = result as QueryResult;
             Assert.NotNull(queryResult);
             Assert.Null(queryResult.Errors);
             Assert.Equal("hello", queryResult.Data["desc"]);
@@ -61,7 +61,7 @@ namespace HotChocolate.Resolvers
             // arrange  
             var schema = Schema.Create(
                 t => t.RegisterQueryType<Foo>().RegisterType<FooWorkingResolvers>());
-            IQueryExecutor executor = schema.MakeExecutable();
+            IRequestExecutor executor = schema.MakeExecutable();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
@@ -71,7 +71,7 @@ namespace HotChocolate.Resolvers
                     .Create());
 
             // assert
-            var queryResult = result as ReadOnlyQueryResult;
+            var queryResult = result as QueryResult;
             Assert.NotNull(queryResult);
             Assert.Null(queryResult.Errors);
             Assert.Equal("hellocustom", queryResult.Data["description"]);

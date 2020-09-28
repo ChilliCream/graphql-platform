@@ -1,10 +1,7 @@
 ﻿{
-  "Data": {
+  "data": {
     "__schema": {
       "description": "My Schema Description"
     }
-  },
-  "Errors": null,
-  "Extensions": null,
-  "ContextData": null
+  }
 }

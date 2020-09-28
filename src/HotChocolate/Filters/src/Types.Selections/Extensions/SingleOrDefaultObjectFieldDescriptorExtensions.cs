@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Selections;
-using HotChocolate.Utilities;
-using static HotChocolate.Utilities.DotNetTypeInfoFactory;
 
 namespace HotChocolate.Types
 {
@@ -32,26 +31,27 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            FieldMiddleware placeholder = next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((context, definition) =>
                 {
                     definition.ContextData[optionName] = null;
 
-                    if (!TypeInspector.Default.TryCreate(
-                        definition.ResultType, out TypeInfo typeInfo))
+
+                    if (definition.ResultType is null ||
+                        !context.TypeInspector.TryCreateTypeInfo(
+                            definition.ResultType, out ITypeInfo? typeInfo))
                     {
                         Type resultType = definition.ResolverType ?? typeof(object);
-                        // TODO : resources
                         throw new ArgumentException(
                             $"Cannot handle the specified type `{resultType.FullName}`.",
                             nameof(descriptor));
                     }
 
-                    Type selectionType = typeInfo.ClrType;
+                    Type selectionType = typeInfo.NamedType;
                     definition.ResultType = selectionType;
                     definition.Type = RewriteToNonNullableType(definition.Type);
 
@@ -84,34 +84,45 @@ namespace HotChocolate.Types
         {
             Type middlewareType = middlewareDefinition.MakeGenericType(type);
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
-            int index = definition.MiddlewareComponents.IndexOf(placeholder);
+            var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
         }
 
         private static ITypeReference RewriteToNonNullableType(ITypeReference type)
         {
-            if (type is IClrTypeReference clrTypeRef)
+            if (type is ExtendedTypeReference extendedTypeRef)
             {
-                Type rewritten = Unwrap(UnwrapNonNull(Unwrap(clrTypeRef.Type)));
-
-                rewritten = IsListType(rewritten) ?
-                    GetInnerListType(rewritten) :
-                    clrTypeRef.Type;
-
-                if (rewritten is null)
-                {
-                    throw new SchemaException(
-                        SchemaErrorBuilder.New()
-                            .SetMessage(
-                               "The specified type `{0}` is not valid for SingleOrDefault.",
-                                clrTypeRef.Type.ToString())
-                            .Build());
-                }
-
-                return new ClrTypeReference(rewritten, TypeContext.Output);
+                IExtendedType rewritten = Unwrap(extendedTypeRef.Type);
+                rewritten = rewritten.ElementType ?? extendedTypeRef.Type;
+                return extendedTypeRef.WithType(rewritten);
             }
 
             throw new NotSupportedException();
         }
+
+        private static IExtendedType Unwrap(IExtendedType type)
+        {
+            IExtendedType current = type;
+
+            while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current))
+            {
+                current = type.TypeArguments[0];
+            }
+
+            return current;
+        }
+
+        private static bool IsWrapperType(IExtendedType type) =>
+            type.IsGeneric &&
+            typeof(NativeType<>) == type.Definition;
+
+        private static bool IsTaskType(IExtendedType type) =>
+            type.IsGeneric &&
+            (typeof(Task<>) == type.Definition ||
+             typeof(ValueTask<>) == type.Definition);
+
+        private static bool IsOptional(IExtendedType type) =>
+            type.IsGeneric &&
+            typeof(Optional<>) == type.Definition;
     }
 }

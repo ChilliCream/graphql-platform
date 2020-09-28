@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.DataLoader;
 using Moq;
@@ -14,35 +15,54 @@ namespace HotChocolate.Resolvers
         public void BatchDataLoader_1_ContextNull_ArgNullException()
         {
             // arrange
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
                     null,
-                    "abc",
-                    new FetchBatch<string, string>(keys => Task
+                    new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(
-                            null)));
+                            null)),
+                    key: "abc");
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void BatchDataLoader_1_KeyNull_ArgNullException()
+        [Obsolete]
+        public void BatchDataLoader_2_ContextNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .BatchDataLoader(
+                    null,
+                    "abc",
+                    new FetchBatch<string, string>((keys, ct) => Task
+                        .FromResult<IReadOnlyDictionary<string, string>>(
+                            null)));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void BatchDataLoader_2_KeyNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
                     resolverContext.Object,
                     null,
-                    new FetchBatch<string, string>(keys => Task
+                    new FetchBatch<string, string>((keys, ct) => Task
                         .FromResult<IReadOnlyDictionary<string, string>>(
                             null)));
 
-            // act
+            // assert
             Assert.Throws<ArgumentException>(a);
         }
 
@@ -52,67 +72,32 @@ namespace HotChocolate.Resolvers
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .BatchDataLoader(
+                    resolverContext.Object,
+                    default(FetchBatch<string, string>),
+                    key: "123");
+
             // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void BatchDataLoader_2_FetchNull_ArgNullException()
+        {
+            // arrange
+            var resolverContext = new Mock<IResolverContext>();
+
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .BatchDataLoader(
                     resolverContext.Object,
                     "123",
                     default(FetchBatch<string, string>));
 
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void BatchDataLoader_2_ContextNull_ArgNullException()
-        {
-            // arrange
             // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .BatchDataLoader(
-                    null,
-                    "abc",
-                    new FetchBatchCt<string, string>((keys, ct) => Task
-                        .FromResult<IReadOnlyDictionary<string, string>>(
-                            null)));
-
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void BatchDataLoader_2_KeyNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .BatchDataLoader(
-                    resolverContext.Object,
-                    null,
-                    new FetchBatchCt<string, string>((keys, ct) => Task
-                        .FromResult<IReadOnlyDictionary<string, string>>(
-                            null)));
-
-            // act
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
-        public void BatchDataLoader_2_FetchNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .BatchDataLoader(
-                    resolverContext.Object,
-                    "123",
-                    default(FetchBatchCt<string, string>));
-
-            // act
             Assert.Throws<ArgumentNullException>(a);
         }
 
@@ -122,34 +107,54 @@ namespace HotChocolate.Resolvers
             // arrange
             var lookup = new Mock<ILookup<string, string>>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .GroupDataLoader(
                     null,
-                    "abc",
-                    new FetchGroup<string, string>(keys =>
-                        Task.FromResult(lookup.Object)));
+                    new FetchGroup<string, string>((keys, ct) =>
+                        Task.FromResult(lookup.Object)),
+                    key: "abc");
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void GroupDataLoader_1_KeyNull_ArgNullException()
+        [Obsolete]
+        public void GroupDataLoader_2_ContextNull_ArgNullException()
+        {
+            // arrange
+            var lookup = new Mock<ILookup<string, string>>();
+
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .GroupDataLoader(
+                    null,
+                    "abc",
+                    new FetchGroup<string, string>((keys, ct) =>
+                        Task.FromResult(lookup.Object)));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void GroupDataLoader_2_KeyNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
             var lookup = new Mock<ILookup<string, string>>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .GroupDataLoader(
                     resolverContext.Object,
                     null,
-                    new FetchGroup<string, string>(keys =>
+                    new FetchGroup<string, string>((keys, ct) =>
                             Task.FromResult(lookup.Object)));
 
-            // act
+            // assert
             Assert.Throws<ArgumentException>(a);
         }
 
@@ -159,68 +164,32 @@ namespace HotChocolate.Resolvers
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .GroupDataLoader(
+                    resolverContext.Object,
+                    default(FetchGroup<string, string>),
+                    key: "123");
+
             // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void GroupDataLoader_2_FetchNull_ArgNullException()
+        {
+            // arrange
+            var resolverContext = new Mock<IResolverContext>();
+
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .GroupDataLoader(
                     resolverContext.Object,
                     "123",
                     default(FetchGroup<string, string>));
 
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void GroupDataLoader_2_ContextNull_ArgNullException()
-        {
-            // arrange
-            var lookup = new Mock<ILookup<string, string>>();
-
             // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .GroupDataLoader(
-                    null,
-                    "abc",
-                    new FetchGroupCt<string, string>((keys, ct) =>
-                        Task.FromResult(lookup.Object)));
-
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void GroupDataLoader_2_KeyNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-            var lookup = new Mock<ILookup<string, string>>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .GroupDataLoader(
-                    resolverContext.Object,
-                    null,
-                    new FetchGroupCt<string, string>((keys, ct) =>
-                            Task.FromResult(lookup.Object)));
-
-            // act
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
-        public void GroupDataLoader_2_FetchNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .GroupDataLoader(
-                    resolverContext.Object,
-                    "123",
-                    default(FetchGroupCt<string, string>));
-
-            // act
             Assert.Throws<ArgumentNullException>(a);
         }
 
@@ -228,33 +197,51 @@ namespace HotChocolate.Resolvers
         public void CacheDataLoader_1_ContextNull_ArgNullException()
         {
             // arrange
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     null,
-                    "abc",
-                    new FetchCache<string, string>(keys =>
-                        Task.FromResult(string.Empty)));
+                    new FetchCacheCt<string, string>((keys, ct) =>
+                        Task.FromResult(string.Empty)),
+                    key: "abc");
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void CacheDataLoader_1_KeyNull_ArgNullException()
+        [Obsolete]
+        public void CacheDataLoader_2_ContextNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .CacheDataLoader(
+                    null,
+                    "abc",
+                    new FetchCacheCt<string, string>((keys, ct) =>
+                        Task.FromResult(string.Empty)));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void CacheDataLoader_2_KeyNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     resolverContext.Object,
                     null,
-                    new FetchCache<string, string>(keys =>
-                        Task.FromResult(string.Empty)));
+                    new FetchCacheCt<string, string>((keys, ct) =>
+                            Task.FromResult(string.Empty)));
 
-            // act
+            // assert
             Assert.Throws<ArgumentException>(a);
         }
 
@@ -264,65 +251,32 @@ namespace HotChocolate.Resolvers
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     resolverContext.Object,
-                    "123",
-                    default(FetchCache<string, string>));
+                    default(FetchCacheCt<string, string>),
+                    key: "123");
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void CacheDataLoader_2_ContextNull_ArgNullException()
-        {
-            // arrange
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .CacheDataLoader(
-                    null,
-                    "abc",
-                    new FetchCacheCt<string, string>((keys, ct) =>
-                        Task.FromResult(string.Empty)));
-
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void CacheDataLoader_2_KeyNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .CacheDataLoader(
-                    resolverContext.Object,
-                    null,
-                    new FetchCacheCt<string, string>((keys, ct) =>
-                            Task.FromResult(string.Empty)));
-
-            // act
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
+        [Obsolete]
         public void CacheDataLoader_2_FetchNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .CacheDataLoader(
                     resolverContext.Object,
                     "123",
                     default(FetchCacheCt<string, string>));
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
@@ -334,27 +288,47 @@ namespace HotChocolate.Resolvers
             Action a = () => DataLoaderResolverContextExtensions
                 .FetchOnceAsync(
                     null,
-                    "abc",
-                    new FetchOnce<string>(() => Task.FromResult(string.Empty)));
+                    new Func<CancellationToken, Task<string>>(ct =>
+                        Task.FromResult(string.Empty)),
+                    key: "abc");
 
             // act
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void FetchOnceAsync_1_KeyNull_ArgNullException()
+        [Obsolete]
+        public void FetchOnceAsync_2_ContextNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action a = () => DataLoaderResolverContextExtensions
+                .FetchOnceAsync(
+                    null,
+                    "abc",
+                    new Func<CancellationToken, Task<string>>(ct =>
+                        Task.FromResult(string.Empty)));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        [Obsolete]
+        public void FetchOnceAsync_2_KeyNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .FetchOnceAsync(
                     resolverContext.Object,
                     null,
-                    new FetchOnce<string>(() => Task.FromResult(string.Empty)));
+                    new Func<CancellationToken, Task<string>>(ct =>
+                        Task.FromResult(string.Empty)));
 
-            // act
+            // assert
             Assert.Throws<ArgumentException>(a);
         }
 
@@ -364,65 +338,32 @@ namespace HotChocolate.Resolvers
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .FetchOnceAsync(
                     resolverContext.Object,
-                    "123",
-                    default(FetchOnce<string>));
+                    default(Func<CancellationToken, Task<string>>),
+                    key: "123");
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
 
         [Fact]
-        public void FetchOnceAsync_2_ContextNull_ArgNullException()
-        {
-            // arrange
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .FetchOnceAsync(
-                    null,
-                    "abc",
-                    new FetchOnceCt<string>(ct =>
-                        Task.FromResult(string.Empty)));
-
-            // act
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void FetchOnceAsync_2_KeyNull_ArgNullException()
-        {
-            // arrange
-            var resolverContext = new Mock<IResolverContext>();
-
-            // assert
-            Action a = () => DataLoaderResolverContextExtensions
-                .FetchOnceAsync(
-                    resolverContext.Object,
-                    null,
-                    new FetchOnceCt<string>(ct =>
-                        Task.FromResult(string.Empty)));
-
-            // act
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
+        [Obsolete]
         public void FetchOnceAsync_2_FetchNull_ArgNullException()
         {
             // arrange
             var resolverContext = new Mock<IResolverContext>();
 
-            // assert
+            // act
             Action a = () => DataLoaderResolverContextExtensions
                 .FetchOnceAsync(
                     resolverContext.Object,
                     "123",
-                    default(FetchOnceCt<string>));
+                    default(Func<CancellationToken, Task<string>>));
 
-            // act
+            // assert
             Assert.Throws<ArgumentNullException>(a);
         }
     }

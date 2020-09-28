@@ -10,7 +10,7 @@ namespace HotChocolate.Validation
             DeclaringType = declaringType;
             Type = type;
             Field = field;
-            ResponseName = Field.Alias == null
+            ResponseName = Field.Alias is null
                 ? Field.Name.Value
                 : Field.Alias.Value;
         }

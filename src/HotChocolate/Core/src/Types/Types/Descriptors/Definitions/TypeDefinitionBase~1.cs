@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class TypeDefinitionBase<T>
         : DefinitionBase<T>
-        , IHasClrType
+        , IHasRuntimeType
         , IHasDirectiveDefinition
         where T : class, ISyntaxNode
     {
@@ -17,12 +17,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Gets or sets the .net type representation of this type.
         /// </summary>
-        public virtual Type ClrType
+        public virtual Type RuntimeType
         {
             get => _clrType;
             set
             {
-                if (value == null)
+                if (value is null)
                 {
                     throw new ArgumentNullException(nameof(value));
                 }

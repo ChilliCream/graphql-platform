@@ -17,6 +17,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
         : IReadStoredQueries
         , IWriteStoredQueries
     {
+        private static readonly Task<QueryDocument?> _null = Task.FromResult<QueryDocument?>(null);
         private readonly IQueryFileMap _queryMap;
 
         /// <summary>
@@ -35,13 +36,9 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(string queryId) =>
-            TryReadQueryAsync(queryId, CancellationToken.None);
-
-        /// <inheritdoc />
-        public Task<QueryDocument> TryReadQueryAsync(
+        public Task<QueryDocument?> TryReadQueryAsync(
             string queryId,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
@@ -52,43 +49,37 @@ namespace HotChocolate.PersistedQueries.FileSystem
 
             if (!File.Exists(filePath))
             {
-                return Task.FromResult<QueryDocument>(null);
+                return _null;
             }
 
-            return TryReadQueryInternalAsync(
-                queryId, filePath, cancellationToken);
+            return TryReadQueryInternalAsync(queryId, filePath, cancellationToken);
         }
 
-        private async Task<QueryDocument> TryReadQueryInternalAsync(
+        private async Task<QueryDocument?> TryReadQueryInternalAsync(
             string queryId,
             string filePath,
             CancellationToken cancellationToken)
         {
-            using (var stream = new FileStream(
-                filePath, FileMode.Open, FileAccess.Read))
-            {
-                DocumentNode document = await BufferHelper.ReadAsync(
-                    stream,
-                    (buffer, buffered) =>
-                    {
-                        var span = buffer.AsSpan().Slice(0, buffered);
-                        return Utf8GraphQLParser.Parse(span);
-                    },
-                    cancellationToken)
-                    .ConfigureAwait(false);
-                return new QueryDocument(document);
-            }
-        }
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 
-        /// <inheritdoc />
-        public Task WriteQueryAsync(string queryId, IQuery query) =>
-            WriteQueryAsync(queryId, query, CancellationToken.None);
+            DocumentNode document = await BufferHelper.ReadAsync(
+                stream,
+                (buffer, buffered) =>
+                {
+                    Span<byte> span = buffer.AsSpan().Slice(0, buffered);
+                    return Utf8GraphQLParser.Parse(span);
+                },
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            return new QueryDocument(document);
+        }
 
         /// <inheritdoc />
         public Task WriteQueryAsync(
             string queryId,
             IQuery query,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
@@ -101,9 +92,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             }
 
             var filePath = _queryMap.MapToFilePath(queryId);
-
-            return WriteQueryInternalAsync(
-                queryId, query, filePath, cancellationToken);
+            return WriteQueryInternalAsync(queryId, query, filePath, cancellationToken);
         }
 
         private async Task WriteQueryInternalAsync(
@@ -114,12 +103,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
         {
             if (!File.Exists(filePath))
             {
-                using (var stream = new FileStream(
-                    filePath, FileMode.CreateNew, FileAccess.Write))
-                {
-                    await query.WriteToAsync(stream, cancellationToken)
-                        .ConfigureAwait(false);
-                }
+                using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
+                await query.WriteToAsync(stream, cancellationToken).ConfigureAwait(false);
             }
         }
     }

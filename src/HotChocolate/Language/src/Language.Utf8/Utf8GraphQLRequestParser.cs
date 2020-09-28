@@ -11,40 +11,20 @@ namespace HotChocolate.Language
         private readonly IDocumentHashProvider? _hashProvider;
         private readonly IDocumentCache? _cache;
         private readonly bool _useCache;
+        private readonly ParserOptions _options;
         private Utf8GraphQLReader _reader;
-        private ParserOptions _options;
 
         public Utf8GraphQLRequestParser(
             ReadOnlySpan<byte> requestData,
-            ParserOptions options,
-            IDocumentCache cache,
-            IDocumentHashProvider hashProvider)
+            ParserOptions? options = null,
+            IDocumentCache? cache = null,
+            IDocumentHashProvider? hashProvider = null)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _reader = new Utf8GraphQLReader(requestData);
+            _options = options ?? ParserOptions.Default;
             _cache = cache;
             _hashProvider = hashProvider;
-            _reader = new Utf8GraphQLReader(requestData);
-            _useCache = cache != null;
-        }
-
-        public Utf8GraphQLRequestParser(
-            ReadOnlySpan<byte> requestData,
-            ParserOptions options)
-        {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _reader = new Utf8GraphQLReader(requestData);
-            _cache = null;
-            _hashProvider = null;
-            _useCache = false;
-        }
-
-        public Utf8GraphQLRequestParser(ReadOnlySpan<byte> requestData)
-        {
-            _options = ParserOptions.Default;
-            _reader = new Utf8GraphQLReader(requestData);
-            _cache = null;
-            _hashProvider = null;
-            _useCache = false;
+            _useCache = cache is not null;
         }
 
         public IReadOnlyList<GraphQLRequest> Parse()
@@ -62,8 +42,7 @@ namespace HotChocolate.Language
                 return ParseBatchRequest();
             }
 
-            ThrowHelper.InvalidRequestStructure(_reader);
-            return default!;
+            throw ThrowHelper.InvalidRequestStructure(_reader);
         }
 
         public GraphQLSocketMessage ParseMessage()
@@ -88,8 +67,7 @@ namespace HotChocolate.Language
             (
                 message.Type,
                 message.Id,
-                message.Payload,
-                message.HasPayload
+                message.Payload
             );
         }
 
@@ -138,8 +116,7 @@ namespace HotChocolate.Language
                 }
                 else
                 {
-                    ThrowHelper.NoIdAndNoQuery(_reader);
-                    return default!;
+                    throw ThrowHelper.NoIdAndNoQuery(_reader);
                 }
             }
 
@@ -150,8 +127,7 @@ namespace HotChocolate.Language
 
             if (request.Document is null && request.QueryId is null)
             {
-                ThrowHelper.NoIdAndNoQuery(_reader);
-                return default!;
+                throw ThrowHelper.NoIdAndNoQuery(_reader);
             }
 
             return new GraphQLRequest
@@ -176,37 +152,13 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(OperationName))
                     {
                         request.OperationName = ParseStringOrNull();
-                        return;
-                    }
-                    break;
-
-                case _n:
-                    if (fieldName.SequenceEqual(QueryName))
-                    {
-                        if (request.QueryId is null)
-                        {
-                            request.QueryId = ParseStringOrNull();
-                        }
-                        else
-                        {
-                            SkipValue();
-                        }
-                        return;
                     }
                     break;
 
                 case _i:
                     if (fieldName.SequenceEqual(Id))
                     {
-                        if (request.QueryId is null)
-                        {
-                            request.QueryId = ParseStringOrNull();
-                        }
-                        else
-                        {
-                            SkipValue();
-                        }
-                        return;
+                        request.QueryId = ParseStringOrNull();
                     }
                     break;
 
@@ -217,21 +169,18 @@ namespace HotChocolate.Language
 
                         if (request.HasQuery && _reader.Kind != TokenKind.String)
                         {
-                            ThrowHelper.QueryMustBeStringOrNull(_reader);
-                            return;
+                            throw ThrowHelper.QueryMustBeStringOrNull(_reader);
                         }
 
                         request.Query = _reader.Value;
                         _reader.MoveNext();
-                        return;
                     }
                     break;
 
                 case _v:
                     if (fieldName.SequenceEqual(Variables))
                     {
-                        request.Variables = ParseObjectOrNull();
-                        return;
+                        request.Variables = ParseVariables();
                     }
                     break;
 
@@ -239,7 +188,6 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(Extensions))
                     {
                         request.Extensions = ParseObjectOrNull();
-                        return;
                     }
                     break;
 
@@ -260,7 +208,6 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(Type))
                     {
                         message.Type = ParseStringOrNull();
-                        return;
                     }
                     break;
 
@@ -268,52 +215,45 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(Id))
                     {
                         message.Id = ParseStringOrNull();
-                        return;
                     }
                     break;
 
                 case _p:
                     if (fieldName.SequenceEqual(Payload))
                     {
-                        int start = _reader.Start;
-                        message.HasPayload = !IsNullToken();
-                        int end = SkipValue();
-                        message.Payload = _reader.GraphQLData.Slice(
-                            start, end - start);
-                        return;
+                        var start = _reader.Start;
+                        var hasPayload = !IsNullToken();
+                        var end = SkipValue();
+                        message.Payload = hasPayload
+                            ? _reader.GraphQLData.Slice(start, end - start)
+                            : default;
                     }
                     break;
 
                 default:
-                    ThrowHelper.UnexpectedProperty(_reader, fieldName);
-                    return;
+                    throw ThrowHelper.UnexpectedProperty(_reader, fieldName);
             }
         }
 
         private void ParseQuery(ref Request request)
         {
-            int length = checked(request.Query.Length);
-            bool useStackalloc = length <= GraphQLConstants.StackallocThreshold;
+            var length = request.Query.Length;
 
             byte[]? unescapedArray = null;
 
-            Span<byte> unescapedSpan = useStackalloc
+            Span<byte> unescapedSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
                 : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
-
-            DocumentNode? document = null;
 
             try
             {
                 Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
-                string? queryId = request.QueryId;
+                var queryId = request.QueryId;
+                DocumentNode? document;
 
                 if (_useCache)
                 {
-                    if (queryId is null)
-                    {
-                        queryId = request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
-                    }
+                    queryId ??= request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
 
                     if (!_cache!.TryGetDocument(queryId, out document))
                     {
@@ -321,10 +261,7 @@ namespace HotChocolate.Language
                             ? null
                             : Utf8GraphQLParser.Parse(unescapedSpan, _options);
 
-                        if (request.QueryHash is null)
-                        {
-                            request.QueryHash = _hashProvider!.ComputeHash(unescapedSpan);
-                        }
+                        request.QueryHash ??= _hashProvider!.ComputeHash(unescapedSpan);
                     }
                 }
                 else
@@ -332,10 +269,10 @@ namespace HotChocolate.Language
                     document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
                 }
 
-                if (document is { })
+                if (document is not null)
                 {
                     request.Document = document;
-                    if (queryId is { } && request.QueryId is null)
+                    if (queryId is not null && request.QueryId is null)
                     {
                         request.QueryId = queryId;
                     }
@@ -352,21 +289,16 @@ namespace HotChocolate.Language
         }
 
         public static IReadOnlyList<GraphQLRequest> Parse(
-           ReadOnlySpan<byte> requestData) =>
-           new Utf8GraphQLRequestParser(requestData).Parse();
-
-        public static IReadOnlyList<GraphQLRequest> Parse(
             ReadOnlySpan<byte> requestData,
-            ParserOptions options) =>
-            new Utf8GraphQLRequestParser(requestData, options).Parse();
-
-        public static IReadOnlyList<GraphQLRequest> Parse(
-            string sourceText) =>
-            Parse(sourceText, ParserOptions.Default);
+            ParserOptions? options = null)
+        {
+            options ??= ParserOptions.Default;
+            return new Utf8GraphQLRequestParser(requestData, options).Parse();
+        }
 
         public static unsafe IReadOnlyList<GraphQLRequest> Parse(
             string sourceText,
-            ParserOptions options)
+            ParserOptions? options = null)
         {
             if (string.IsNullOrEmpty(sourceText))
             {
@@ -375,20 +307,14 @@ namespace HotChocolate.Language
                     nameof(sourceText));
             }
 
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
+            options ??= ParserOptions.Default;
 
-            int length = checked(sourceText.Length * 4);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
+            var length = checked(sourceText.Length * 4);
             byte[]? source = null;
 
-            Span<byte> sourceSpan = useStackalloc
+            Span<byte> sourceSpan = length <= GraphQLConstants.StackallocThreshold
                 ? stackalloc byte[length]
-                : (source = ArrayPool<byte>.Shared.Rent(length));
+                : source = ArrayPool<byte>.Shared.Rent(length);
 
             try
             {
@@ -409,61 +335,5 @@ namespace HotChocolate.Language
         public static GraphQLSocketMessage ParseMessage(
             ReadOnlySpan<byte> messageData) =>
             new Utf8GraphQLRequestParser(messageData).ParseMessage();
-
-        public static object? ParseJson(
-            ReadOnlySpan<byte> jsonData) =>
-            new Utf8GraphQLRequestParser(jsonData).ParseJson();
-
-        public static object? ParseJson(
-            ReadOnlySpan<byte> jsonData,
-            ParserOptions options) =>
-            new Utf8GraphQLRequestParser(jsonData, options).ParseJson();
-
-        public static object? ParseJson(string sourceText) =>
-            ParseJson(sourceText, ParserOptions.Default);
-
-        public static unsafe object? ParseJson(
-            string sourceText,
-            ParserOptions options)
-        {
-            if (string.IsNullOrEmpty(sourceText))
-            {
-                throw new ArgumentException(
-                    LangResources.SourceText_Empty,
-                    nameof(sourceText));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            int length = checked(sourceText.Length * 4);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
-            byte[]? source = null;
-
-            Span<byte> sourceSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (source = ArrayPool<byte>.Shared.Rent(length));
-
-            try
-            {
-                Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
-                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
-                return parser.ParseJson();
-            }
-            finally
-            {
-                if (source != null)
-                {
-                    sourceSpan.Clear();
-                    ArrayPool<byte>.Shared.Return(source);
-                }
-            }
-        }
     }
-
-
 }

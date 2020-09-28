@@ -15,7 +15,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -27,12 +27,12 @@ namespace HotChocolate
             DocumentNode schemaDocument,
             Action<ISchemaConfiguration> configure)
         {
-            if (schemaDocument == null)
+            if (schemaDocument is null)
             {
                 throw new ArgumentNullException(nameof(schemaDocument));
             }
 
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -45,7 +45,7 @@ namespace HotChocolate
         public static Schema Create(
             Action<ISchemaConfiguration> configure)
         {
-            if (configure == null)
+            if (configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }

@@ -3,6 +3,7 @@ module.exports = {
     title: `ChilliCream GraphQL Platform`,
     description: `We're building the ultimate GraphQL platform`,
     author: `Chilli_Cream`,
+    company: "ChilliCream",
     siteUrl: `https://chillicream.com`,
     repositoryUrl: `https://github.com/ChilliCream/hotchocolate`,
     topnav: [
@@ -12,7 +13,7 @@ module.exports = {
       },
       {
         name: `Docs`,
-        link: `/docs/hotchocolate`,
+        link: `/docs/hotchocolate/v10/`,
       },
       {
         name: `Support`,
@@ -33,7 +34,6 @@ module.exports = {
       twitter: `https://twitter.com/Chilli_Cream`,
     },
   },
-  pathPrefix: "/hotchocolate", // todo: must be removed before we go online
   plugins: [
     `gatsby-plugin-ts`,
     `gatsby-plugin-styled-components`,
@@ -84,21 +84,26 @@ module.exports = {
       resolve: `gatsby-transformer-remark`,
       options: {
         plugins: [
-          `gatsby-remark-autolink-headers`,
+          {
+            resolve: `gatsby-remark-autolink-headers`,
+            options: {
+              offsetY: 60,
+            },
+          },
           `gatsby-remark-reading-time`,
+          {
+            resolve: `gatsby-remark-code-buttons`,
+            options: {
+              tooltipText: `Copy`,
+              toasterText: "Copied code example",
+            },
+          },
           {
             resolve: `gatsby-remark-mermaid`,
             options: {
               mermaidOptions: {
                 fontFamily: "sans-serif",
               },
-            },
-          },
-          {
-            resolve: `gatsby-remark-code-buttons`,
-            options: {
-              tooltipText: `Copy`,
-              toasterText: "Copied code example",
             },
           },
           {
@@ -155,6 +160,132 @@ module.exports = {
       },
     },
     `gatsby-plugin-sitemap`,
+    {
+      resolve: `@darth-knoppix/gatsby-plugin-feed`,
+      options: {
+        baseUrl: `https://chillicream.com`,
+        query: `{
+          site {
+            siteMetadata {
+              title
+              description
+              siteUrl
+              author
+              company
+            }
+            pathPrefix
+          }
+        }`,
+        setup: (options) => {
+          const { pathPrefix } = options.query.site;
+          const {
+            author,
+            company,
+            description,
+            siteUrl,
+            title,
+          } = options.query.site.siteMetadata;
+          const baseUrl = siteUrl + pathPrefix;
+          const currentYear = new Date().getUTCFullYear();
+
+          return {
+            ...options,
+            id: baseUrl,
+            title,
+            link: baseUrl,
+            description,
+            copyright: `All rights reserved ${currentYear}, ${company}`,
+            author: {
+              name: author,
+              link: "https://twitter.com/Chilli_Cream",
+            },
+            generator: "ChilliCream",
+            image: `${baseUrl}/favicon-32x32.png`,
+            favicon: `${baseUrl}/favicon-32x32.png`,
+            feedLinks: {
+              atom: `${baseUrl}/atom.xml`,
+              json: `${baseUrl}/feed.json`,
+              rss: `${baseUrl}/rss.xml`,
+            },
+            categories: ["GraphQL", "Products", "Services"],
+          };
+        },
+        feeds: [
+          {
+            query: `{
+              allMarkdownRemark(
+                limit: 100
+                filter: { frontmatter: { path: { regex: "//blog(/.*)?/" } } }
+                sort: { order: DESC, fields: [frontmatter___date] },
+              ) {
+                edges {
+                  node {
+                    excerpt
+                    html
+                    frontmatter {
+                      title
+                      author
+                      authorUrl
+                      date
+                      path
+                      featuredImage {
+                        childImageSharp {
+                          fluid(maxWidth: 800) {
+                            src
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }`,
+            serialize: ({
+              query: {
+                allMarkdownRemark,
+                site: {
+                  pathPrefix,
+                  siteMetadata: { siteUrl },
+                },
+              },
+            }) =>
+              allMarkdownRemark.edges.map(({ node }) => {
+                const date = new Date(Date.parse(node.frontmatter.date));
+                const imgSrcPattern = new RegExp(
+                  `(${pathPrefix})?/static/`,
+                  "g"
+                );
+                const link = siteUrl + pathPrefix + node.frontmatter.path;
+                let image = node.frontmatter.featuredImage
+                  ? siteUrl +
+                    node.frontmatter.featuredImage.childImageSharp.fluid.src
+                  : null;
+
+                return {
+                  id: node.frontmatter.path,
+                  link,
+                  title: node.frontmatter.title,
+                  date,
+                  published: date,
+                  description: node.excerpt,
+                  content: node.html.replace(
+                    imgSrcPattern,
+                    `${siteUrl}/static/`
+                  ),
+                  image,
+                  author: [
+                    {
+                      name: node.frontmatter.author,
+                      link: node.frontmatter.authorUrl,
+                    },
+                  ],
+                };
+              }),
+            title: "ChilliCream Blog",
+          },
+        ],
+      },
+    },
     // this (optional) plugin enables Progressive Web App + Offline functionality
     // To learn more, visit: https://gatsby.dev/offline
     // `gatsby-plugin-offline`,

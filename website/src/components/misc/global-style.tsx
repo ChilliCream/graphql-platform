@@ -12,7 +12,7 @@ export const GlobalStyle = createGlobalStyle`
     height: 100vh;
     font-size: 18px;
     line-height: 30px;
-    background-color: #efefef;
+    background-color: #252d3c;
     color: #667;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -316,26 +316,32 @@ export const GlobalStyle = createGlobalStyle`
 
     > pre[class="language-graphql"]::before {
       content: "GraphQL";
-      color: #ffffff;
+      color: #fff;
       background: #e535ab;
     }
 
     > pre[class="language-json"]::before {
       content: "JSON";
-      color: #ffffff;
+      color: #fff;
       background: #1da0f2;
     }
 
     > pre[class="language-sdl"]::before {
       content: "SDL";
-      color: #ffffff;
+      color: #fff;
       background: #e535ab;
     }
 
     > pre[class="language-sql"]::before {
       content: "SQL";
-      color: #ffffff;
+      color: #fff;
       background: #80f;
+    }
+
+    > pre[class="language-xml"]::before {
+      content: "XML";
+      color: #fff;
+      background: #999;
     }
   }
 

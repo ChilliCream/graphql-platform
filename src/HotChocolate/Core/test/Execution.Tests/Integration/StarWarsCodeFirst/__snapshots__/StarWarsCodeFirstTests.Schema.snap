@@ -1,0 +1,123 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+interface Character {
+  id: ID!
+  name: String
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  appearsIn: [Episode]
+  height(unit: Unit): Float
+}
+
+"A connection to a list of items."
+type CharacterConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CharacterEdge!]
+  "A flattened list of the nodes."
+  nodes: [Character]
+}
+
+"An edge in a connection."
+type CharacterEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Character
+}
+
+type Droid implements Character {
+  id: ID!
+  appearsIn: [Episode]
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  height(unit: Unit): Float
+  name: String
+  primaryFunction: String
+}
+
+type Human implements Character {
+  id: ID!
+  appearsIn: [Episode]
+  friends(first: Int after: String last: Int before: String): CharacterConnection
+  otherHuman: Human
+  height(unit: Unit): Float
+  name: String
+  homePlanet: String
+}
+
+type Mutation {
+  createReview(episode: Episode! review: ReviewInput!): Review!
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  hero(episode: Episode! = NEW_HOPE): Character
+  heroes(episodes: [Episode!]): [Character!]
+  character(characterIds: [String]): [Character!]!
+  search(text: String): [SearchResult]
+  human(id: String): Human
+  droid(id: String): Droid
+}
+
+type Review {
+  stars: Int!
+  commentary: String
+}
+
+type Starship {
+  id: String
+  name: String
+  length: Float!
+}
+
+type Subscription {
+  onReview(episode: Episode!): Review!
+}
+
+union SearchResult = Starship | Human | Droid
+
+input ReviewInput {
+  stars: Int!
+  commentary: String
+}
+
+enum Episode {
+  NEW_HOPE
+  EMPIRE
+  JEDI
+}
+
+enum Unit {
+  FOOT
+  METERS
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
+scalar ID
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

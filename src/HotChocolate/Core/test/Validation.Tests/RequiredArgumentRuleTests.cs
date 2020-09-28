@@ -173,7 +173,8 @@ namespace HotChocolate.Validation
                 }
             ");
         }
-        
+
+        [Fact]
         public void ArgOnOptionalArg()
         {
             ExpectValid(@"

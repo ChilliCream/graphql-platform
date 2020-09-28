@@ -2,11 +2,16 @@
 {
     public class Query
     {
-        public Greetings GetGreetings() => new Greetings();
+        public Person GetPerson() => new Person("Luke Skywalker");
     }
 
-    public class Greetings
+    public class Person
     {
-        public string Hello() => "World";
+        public Person(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
     }
 }

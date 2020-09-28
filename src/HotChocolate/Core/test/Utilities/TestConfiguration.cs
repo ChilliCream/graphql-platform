@@ -1,13 +1,15 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Tests
 {
     public class TestConfiguration
     {
-        public Action<ISchemaBuilder>? CreateSchema { get; set; }
-        public Func<ISchema, IQueryExecutor>? CreateExecutor { get; set; }
-        public IServiceProvider? Service { get; set; }
-        public Action<IQueryRequestBuilder>? ModifyRequest { get; set; }
+        public Action<IRequestExecutorBuilder>? Configure { get; set; }
+
+        public Action<IQueryRequestBuilder>? ConfigureRequest { get; set; }
+
+        public IServiceProvider? Services { get; set; }
     }
 }

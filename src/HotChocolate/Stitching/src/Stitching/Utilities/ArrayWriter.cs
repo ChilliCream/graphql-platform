@@ -30,10 +30,6 @@ namespace HotChocolate.Stitching.Utilities
 
         public void Advance(int count)
         {
-            if (count < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(count));
-            }
             _start += count;
             _capacity -= count;
         }

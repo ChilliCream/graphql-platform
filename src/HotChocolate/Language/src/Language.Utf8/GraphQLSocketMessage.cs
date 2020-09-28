@@ -4,11 +4,7 @@ namespace HotChocolate.Language
 {
     public readonly ref struct GraphQLSocketMessage
     {
-        public GraphQLSocketMessage(
-            string type,
-            string? id,
-            ReadOnlySpan<byte> payload,
-            bool hasPayload)
+        public GraphQLSocketMessage(string type, string? id, ReadOnlySpan<byte> payload)
         {
             if (type is null)
             {
@@ -18,7 +14,6 @@ namespace HotChocolate.Language
             Type = type;
             Id = id;
             Payload = payload;
-            HasPayload = hasPayload;
         }
 
         public string? Id { get; }
@@ -26,7 +21,5 @@ namespace HotChocolate.Language
         public string Type { get; }
 
         public ReadOnlySpan<byte> Payload { get; }
-
-        public bool HasPayload { get; }
     }
 }

@@ -25,7 +25,7 @@ namespace HotChocolate.Language
             Assert.Equal("b", def.Fields[0].Name.Value);
             Assert.Empty(def.Directives);
             Assert.Empty(def.Interfaces);
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
             Assert.Equal("b", def.Fields[0].Name.Value);
             Assert.Empty(def.Directives);
             Assert.Empty(def.Interfaces);
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace HotChocolate.Language
             Assert.Equal("a", def.Directives[0].Arguments[0].Name.Value);
             Assert.Equal("123", def.Directives[0].Arguments[0].Value.Value);
             Assert.Empty(def.Interfaces);
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace HotChocolate.Language
                     Assert.Equal("321", d.Arguments[0].Value.Value);
                 });
             Assert.Empty(def.Interfaces);
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace HotChocolate.Language
             Assert.Empty(def.Directives);
             Assert.Single(def.Interfaces);
             Assert.Equal("e", def.Interfaces[0].Name.Value);
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -164,7 +164,7 @@ namespace HotChocolate.Language
                 {
                     Assert.Equal("f", i.Name.Value);
                 });
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
         [Fact]
@@ -209,7 +209,7 @@ namespace HotChocolate.Language
                     Assert.Equal("b", d.Arguments[0].Name.Value);
                     Assert.Equal("321", d.Arguments[0].Value.Value);
                 });
-            Assert.Equal(NodeKind.InterfaceTypeDefinition, def.Kind);
+            Assert.Equal(SyntaxKind.InterfaceTypeDefinition, def.Kind);
         }
 
 

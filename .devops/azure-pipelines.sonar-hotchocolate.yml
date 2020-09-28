@@ -33,7 +33,7 @@ stages:
         displayName: 'Cover'
         dependsOn: [ ]
         strategy:
-          parallel: 6
+          parallel: 8
         steps:
           - task: CmdLine@2
             inputs:
@@ -42,10 +42,27 @@ stages:
             inputs:
               artifactName: test-results
               pathtoPublish: 'output/test-results'
+      - job: ReportCoverage
+        displayName: 'ReportCoverage'
+        dependsOn: [ Cover ]
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              artifactName: 'test-results'
+              downloadPath: '$(Build.Repository.LocalPath)/output'
+          - task: CmdLine@2
+            inputs:
+              script: './build.cmd ReportCoverage --skip'
       - job: Sonar
         displayName: 'Sonar'
         dependsOn: [ Cover ]
         steps:
+          - task: JavaToolInstaller@0
+            inputs:
+              versionSpec: '11'
+              jdkArchitectureOption: 'x64'
+              jdkSourceOption: 'PreInstalled'
+              jdkDestinationDirectory: ./.java
           - task: DownloadBuildArtifacts@0
             inputs:
               artifactName: 'test-results'

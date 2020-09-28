@@ -1,0 +1,24 @@
+﻿[
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "hero": {
+        "id": "1000"
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  },
+  {
+    "ContentType": "application/json; charset=utf-8",
+    "StatusCode": "OK",
+    "Data": {
+      "hero": {
+        "id": "1000"
+      }
+    },
+    "Errors": null,
+    "Extensions": null
+  }
+]

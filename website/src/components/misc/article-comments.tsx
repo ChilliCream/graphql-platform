@@ -35,9 +35,9 @@ export const ArticleCommentsGraphQLFragment = graphql`
 `;
 
 const DisqusWrapper = styled(Disqus)`
-  margin: 0 20px;
+  margin: 0 20px 60px;
 
-  @media only screen and (min-width: 800px) {
-    margin: 0 50px;
+  @media only screen and (min-width: 820px) {
+    margin: 0 50px 60px;
   }
 `;

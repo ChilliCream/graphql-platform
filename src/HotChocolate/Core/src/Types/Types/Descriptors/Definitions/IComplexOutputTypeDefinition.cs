@@ -7,7 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public interface IComplexOutputTypeDefinition
     {
-        Type ClrType { get; }
+        Type RuntimeType { get; }
 
         IList<Type> KnownClrTypes { get; }
 

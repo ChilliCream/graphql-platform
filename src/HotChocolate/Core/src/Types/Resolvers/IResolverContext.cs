@@ -1,23 +1,27 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
+#nullable enable
+
 namespace HotChocolate.Resolvers
 {
-    public delegate IImmutableDictionary<string, object> ModifyScopedContext(
-        IImmutableDictionary<string, object> contextData);
-
     /// <summary>
     /// The resolver context represent the execution context for a specific
     /// field that is being resolved.
     /// </summary>
-    public interface IResolverContext
-        : IHasContextData
+    public interface IResolverContext : IHasContextData
     {
+        /// <summary>
+        /// Gets the scoped request service provider.
+        /// </summary>
+        IServiceProvider Services { get; }
+
         /// <summary>
         /// Gets the GraphQL schema on which the query is executed.
         /// </summary>
@@ -26,17 +30,17 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets the root object type of the currently execution operation.
         /// </summary>
-        ObjectType RootType { get; }
+        IObjectType RootType { get; }
 
         /// <summary>
         /// Gets the object type on which the field resolver is being executed.
         /// </summary>
-        ObjectType ObjectType { get; }
+        IObjectType ObjectType { get; }
 
         /// <summary>
         /// Gets the field on which the field resolver is being executed.
         /// </summary>
-        ObjectField Field { get; }
+        IObjectField Field { get; }
 
         /// <summary>
         /// Gets the parsed query document that is being executed.
@@ -61,12 +65,6 @@ namespace HotChocolate.Resolvers
         NameString ResponseName { get; }
 
         /// <summary>
-        /// Gets the source stack containing all previous resolver results
-        /// of the current execution path.
-        /// </summary>
-        IImmutableStack<object> Source { get; }
-
-        /// <summary>
         /// Gets the current execution path.
         /// </summary>
         Path Path { get; }
@@ -76,14 +74,14 @@ namespace HotChocolate.Resolvers
         /// resolvers to store and retrieve data during execution scoped to the
         /// hierarchy
         /// </summary>
-        IImmutableDictionary<string, object> ScopedContextData { get; set; }
+        IImmutableDictionary<string, object?> ScopedContextData { get; set; }
 
         /// <summary>
         /// The local context data dictionary can be used by middlewares and
         /// resolvers to store and retrieve data during execution scoped to the
         /// field
         /// </summary>
-        IImmutableDictionary<string, object> LocalContextData { get; set; }
+        IImmutableDictionary<string, object?> LocalContextData { get; set; }
 
         /// <summary>
         /// Gets access to the coerced variable values of the request.
@@ -119,7 +117,53 @@ namespace HotChocolate.Resolvers
         /// <returns>
         /// Returns the value of the specified field argument.
         /// </returns>
+        [Obsolete("Use ArgumentValue<T>(name) or " +
+            "ArgumentLiteral<TValueNode>(name) or " +
+            "ArgumentOptional<T>(name).")]
+        [return: MaybeNull]
         T Argument<T>(NameString name);
+
+        /// <summary>
+        /// Gets a specific field argument value.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as literal.
+        /// </returns>
+        T ArgumentValue<T>(NameString name);
+
+        /// <summary>
+        /// Gets a specific field argument as literal.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="TValueNode">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as literal.
+        /// </returns>
+        TValueNode ArgumentLiteral<TValueNode>(NameString name) where TValueNode : IValueNode;
+
+        /// <summary>
+        /// Gets a specific field argument as optional.
+        /// </summary>
+        /// <param name="name">
+        /// The argument name.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type to which the argument shall be casted to.
+        /// </typeparam>
+        /// <returns>
+        /// Returns the value of the specified field argument as optional.
+        /// </returns>
+        Optional<T> ArgumentOptional<T>(NameString name);
 
         /// <summary>
         /// Gets the value kind of a specific field argument.
@@ -133,7 +177,7 @@ namespace HotChocolate.Resolvers
         ValueKind ArgumentKind(NameString name);
 
         /// <summary>
-        /// Gets as specific service from the dependency injection container.
+        /// Gets as required service from the dependency injection container.
         /// </summary>
         /// <typeparam name="T">
         /// The service type.
@@ -144,24 +188,13 @@ namespace HotChocolate.Resolvers
         T Service<T>();
 
         /// <summary>
-        /// Gets as specific service from the dependency injection container.
+        /// Gets as required service from the dependency injection container.
         /// </summary>
         /// <param name="service">The service type.</param>
         /// <returns>
         /// Returns the specified service.
         /// </returns>
         object Service(Type service);
-
-        /// <summary>
-        /// Gets a custom request property that was provided with the request.
-        /// </summary>
-        /// <typeparam name="T">
-        /// The property value type.
-        /// </typeparam>
-        /// <returns>
-        /// Returns the value of the custom request property.
-        /// </returns>
-        T CustomProperty<T>(string key);
 
         /// <summary>
         /// Gets a resolver object containing one or more resolvers.
@@ -191,62 +224,32 @@ namespace HotChocolate.Resolvers
         /// the field selection that is associated with the current
         /// resolver context.
         /// </summary>
-        /// <param name="errorMessage">
-        /// The error message.
+        /// <param name="error">
+        /// The error.
         /// </param>
         void ReportError(IError error);
 
         /// <summary>
-        /// Collects the fields of the next level with the specified
+        /// Gets the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// with the specified <paramref name="typeContext" />.
         /// type context.
         /// </summary>
-        /// <param name="typeContext">The object type context.</param>
-        /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
-        /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext);
-
-        /// <summary>
-        /// Collects the fields of a selection set with the specified
-        /// type context.
-        /// </summary>
-        /// <param name="typeContext">The object type context.</param>
+        /// <param name="typeContext">
+        /// The object type context.
+        /// </param>
         /// <param name="selectionSet">
-        /// The selection set that shall be analyzed.
+        /// The selection-set for which the pre-compiled selections shall be returned.
+        /// </param>
+        /// <param name="allowInternals">
+        /// Include also internal selections that shall not be included into the result set.
         /// </param>
         /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
+        /// Returns the pre-compiled selections for the <paramref name="selectionSet" /> 
+        /// with the specified <paramref name="typeContext" />.
         /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
+        IReadOnlyList<IFieldSelection> GetSelections(
             ObjectType typeContext,
-            SelectionSetNode selectionSet);
-
-        /// <summary>
-        /// Collects the fields of a selection set with the specified
-        /// type context.
-        /// </summary>
-        /// <param name="typeContext">The object type context.</param>
-        /// <param name="selectionSet">
-        /// The selection set that shall be analyzed.
-        /// </param>
-        /// <param name="path">
-        /// The field path.
-        /// </param>
-        /// <returns>
-        /// Returns the fields that would be selected if this resolver
-        /// returns an object of the specified typeContext.
-        /// </returns>
-        IReadOnlyList<IFieldSelection> CollectFields(
-            ObjectType typeContext,
-            SelectionSetNode selectionSet,
-            Path path);
-
-        /// <summary>
-        /// Helper method to modify the scoped context data.
-        /// </summary>
-        void ModifyScopedContext(ModifyScopedContext modify);
+            SelectionSetNode? selectionSet = null,
+            bool allowInternals = false);
     }
 }

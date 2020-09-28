@@ -8,32 +8,30 @@ namespace HotChocolate.Utilities
 {
     internal class InputObjectToObjectValueConverter
     {
-        private readonly ITypeConversion _converter;
+        private readonly ITypeConverter _converter;
 
-        public InputObjectToObjectValueConverter(ITypeConversion converter)
+        public InputObjectToObjectValueConverter(ITypeConverter converter)
         {
-            _converter = converter
-                ?? throw new ArgumentNullException(nameof(converter));
+            _converter = converter ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public ObjectValueNode Convert(
             InputObjectType type,
             object obj)
         {
-            if (type == null)
+            if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(nameof(obj));
             }
 
             ObjectValueNode objectValueNode = null;
-            Action<IValueNode> setValue =
-                value => objectValueNode = (ObjectValueNode)value;
-            VisitInputObject(type, obj, setValue, new HashSet<object>());
+            void SetValue(IValueNode value) => objectValueNode = (ObjectValueNode)value;
+            VisitInputObject(type, obj, SetValue, new HashSet<object>());
             return objectValueNode;
         }
 
@@ -48,21 +46,15 @@ namespace HotChocolate.Utilities
             }
             else if (type.IsListType())
             {
-                VisitList(
-                    (ListType)type.ListType(),
-                    obj, setValue, processed);
+                VisitList(type.ListType(), obj, setValue, processed);
             }
             else if (type.IsLeafType())
             {
-                VisitLeaf(
-                    (INamedInputType)type.NamedType(),
-                    obj, setValue, processed);
+                VisitLeaf((INamedInputType)type.NamedType(), obj, setValue);
             }
             else if (type.IsInputObjectType())
             {
-                VisitInputObject(
-                    (InputObjectType)type.NamedType(),
-                    obj, setValue, processed);
+                VisitInputObject((InputObjectType)type.NamedType(), obj, setValue, processed);
             }
             else
             {
@@ -83,9 +75,9 @@ namespace HotChocolate.Utilities
                 {
                     if(field.TryGetValue(obj, out object fieldValue))
                     {
-                        Action<IValueNode> setField = value =>
+                        void SetField(IValueNode value) =>
                             fields.Add(new ObjectFieldNode(field.Name, value));
-                        VisitValue(field.Type, fieldValue, setField, processed);
+                        VisitValue(field.Type, fieldValue, SetField, processed);
                     }
                 }
 
@@ -102,11 +94,11 @@ namespace HotChocolate.Utilities
             {
                 var list = new List<IValueNode>();
                 var itemType = (IInputType)type.ElementType;
-                Action<IValueNode> addItem = item => list.Add(item);
+                void AddItem(IValueNode item) => list.Add(item);
 
                 foreach (object item in sourceList)
                 {
-                    VisitValue(itemType, item, addItem, processed);
+                    VisitValue(itemType, item, AddItem, processed);
                 }
 
                 setValue(new ListValueNode(list));
@@ -115,15 +107,14 @@ namespace HotChocolate.Utilities
 
         private void VisitLeaf(
             INamedInputType type, object obj,
-            Action<IValueNode> setValue,
-            ISet<object> processed)
+            Action<IValueNode> setValue)
         {
-            if (type is IHasClrType hasClrType)
+            if (type is IHasRuntimeType hasClrType)
             {
                 Type currentType = obj.GetType();
-                object normalized = currentType == hasClrType.ClrType
+                object normalized = currentType == hasClrType.RuntimeType
                     ? obj
-                    : _converter.Convert(currentType, hasClrType.ClrType, obj);
+                    : _converter.Convert(currentType, hasClrType.RuntimeType, obj);
 
                 setValue(type.ParseValue(normalized));
             }

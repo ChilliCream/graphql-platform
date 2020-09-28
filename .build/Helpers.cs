@@ -7,9 +7,36 @@ using Nuke.Common.Tools.DotNet;
 
 class Helpers
 {
-    public static IEnumerable<string> GetAllProjects(string sourceDirectory) =>
-        Directory.EnumerateFiles(sourceDirectory, "*.csproj", SearchOption.AllDirectories)
-            .Where(s => !s.Contains("VisualStudio"));
+    static readonly string[] _directories = new string[]
+    {
+        "GreenDonut",
+        Path.Combine("HotChocolate", "AspNetCore"),
+        Path.Combine("HotChocolate", "Core"),
+        Path.Combine("HotChocolate", "Language"),
+        Path.Combine("HotChocolate", "PersistedQueries"),
+        Path.Combine("HotChocolate", "Utilities"),
+        Path.Combine("HotChocolate", "Data"),
+        Path.Combine("HotChocolate", "Filters")
+    };
+
+    public static IEnumerable<string> GetAllProjects(string sourceDirectory)
+    {
+        foreach (var directory in _directories)
+        {
+            var fullDirectory = Path.Combine(sourceDirectory, directory);
+            foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
+            {
+                if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("HotChocolate.Types.Selection", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                yield return file;
+            }
+        }
+    }
 
     public static IReadOnlyCollection<Output> DotNetBuildSonarSolution(
         string solutionFile)
@@ -27,7 +54,7 @@ class Helpers
 
         var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
 
-        list.AddRange(DotNetTasks.DotNet($"sln add {projectsArg}", workingDirectory));
+        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
 
         return list;
     }

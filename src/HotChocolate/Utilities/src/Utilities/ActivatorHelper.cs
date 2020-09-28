@@ -1,101 +1,99 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Utilities.Properties;
 
 namespace HotChocolate.Utilities
 {
+    /// <summary>
+    /// The activator helper compiles a factory delegate for types to resolver their 
+    /// dependencies against a <see cref="IServiceProvider" />.
+    /// </summary>
     internal static class ActivatorHelper
     {
-        private static readonly ConcurrentDictionary<TypeInfo, Func<IServiceProvider, object>>
-            _factories = new ConcurrentDictionary<TypeInfo, Func<IServiceProvider, object>>();
+        private static readonly MethodInfo _getService =
+            typeof(IServiceProvider).GetMethod(nameof(IServiceProvider.GetService))!;
 
-        public static Func<IServiceProvider, object> CompileFactory(
-            TypeInfo typeInfo)
+        private static readonly ConcurrentDictionary<Type, CreateServiceDelegate> _factories =
+            new ConcurrentDictionary<Type, CreateServiceDelegate>();
+
+        public static CreateServiceDelegate<TService> CompileFactory<TService>() =>
+            CompileFactory<TService>(typeof(TService));
+
+        public static CreateServiceDelegate<TService> CompileFactory<TService>(Type implementation)
         {
-            if (typeInfo == null)
+            if (implementation == null)
             {
-                throw new ArgumentNullException(nameof(typeInfo));
+                throw new ArgumentNullException(nameof(implementation));
             }
 
-            Func<IServiceProvider, object> factory;
-
-            if (!_factories.TryGetValue(typeInfo, out factory))
-            {
-                ParameterExpression services =
-                    Expression.Parameter(typeof(IServiceProvider));
-                NewExpression newInstance = CreateNewInstance(typeInfo, services);
-                factory = Expression.Lambda<Func<IServiceProvider, object>>(
-                    newInstance, services).Compile();
-                _factories.TryAdd(typeInfo, factory);
-            }
-
-            return factory;
+            return s => (TService)CompileFactory(implementation).Invoke(s)!;
         }
 
-        public static Func<IServiceProvider, T> CompileFactory<T>(
-            TypeInfo typeInfo)
+        public static CreateServiceDelegate CompileFactory(Type type)
         {
-            if (typeInfo == null)
+            if (type is null)
             {
-                throw new ArgumentNullException(nameof(typeInfo));
+                throw new ArgumentNullException(nameof(type));
             }
 
-            return s => (T)CompileFactory(typeInfo).Invoke(s);
+            return _factories.GetOrAdd(type, _ =>
+            {
+                ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+                NewExpression newInstance = CreateNewInstance(type, services);
+                return Expression.Lambda<CreateServiceDelegate>(newInstance, services).Compile();
+            });
         }
-
-        public static Func<IServiceProvider, T> CompileFactory<T>() =>
-            CompileFactory<T>(typeof(T).GetTypeInfo());
 
         private static NewExpression CreateNewInstance(
-            TypeInfo typeInfo,
+            Type type,
             ParameterExpression services)
         {
-            ConstructorInfo constructor = ResolveCunstructor(typeInfo);
+            ConstructorInfo constructor = ResolveConstructor(type);
             IEnumerable<Expression> arguments = CreateParameters(
                 constructor.GetParameters(), services);
             return Expression.New(constructor, arguments);
         }
 
-        private static ConstructorInfo ResolveCunstructor(TypeInfo typeInfo)
+        private static ConstructorInfo ResolveConstructor(Type type)
         {
-            if (!typeInfo.IsClass || typeInfo.IsAbstract)
+            if ((!type.IsClass && !type.IsValueType) || type.IsAbstract)
             {
-                // TODO : resources
                 throw new InvalidOperationException(
-                    $"The type {typeInfo.FullName} is abstract and we cannot " +
-                    "use it to compile a service factory from it.");
+                    string.Format(
+                        UtilityResources.ActivatorHelper_AbstractTypeError,
+                        type.FullName,
+                        CultureInfo.InvariantCulture));
             }
 
-            ConstructorInfo[] constructors = typeInfo.DeclaredConstructors
-                .Where(t => t.IsPublic).ToArray();
+            ConstructorInfo[] constructors = type
+                .GetConstructors()
+                .Where(t => t.IsPublic)
+                .ToArray();
 
             if (constructors.Length == 1)
             {
                 return constructors[0];
             }
 
-            // TODO : resources
-            throw new InvalidOperationException(
-                $"The specified class {typeInfo.FullName} must have exactly " +
-                "one public constructor.");
+            return constructors
+                .OrderBy(c => c.GetParameters().Length)
+                .First();
         }
 
         private static IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,
             Expression services)
         {
-            MethodInfo getService = typeof(IServiceProvider)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetService");
-
             foreach (ParameterInfo parameter in parameters)
             {
                 yield return Expression.Convert(Expression.Call(
                     services,
-                    getService,
+                    _getService,
                     Expression.Constant(parameter.ParameterType)),
                     parameter.ParameterType);
             }

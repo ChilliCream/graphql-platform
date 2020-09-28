@@ -11,7 +11,7 @@ namespace HotChocolate.Types
     internal static class TypeExtensionHelper
     {
         public static void MergeObjectFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             Type sourceType,
             IList<ObjectFieldDefinition> extensionFields,
             IList<ObjectFieldDefinition> typeFields)
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         }
 
         public static void MergeInterfaceFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<InterfaceFieldDefinition> extensionFields,
             IList<InterfaceFieldDefinition> typeFields)
         {
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
         }
 
         public static void MergeInputObjectFields(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<InputFieldDefinition> extensionFields,
             IList<InputFieldDefinition> typeFields)
         {
@@ -55,7 +55,7 @@ namespace HotChocolate.Types
         }
 
         private static void MergeOutputFields<T>(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
@@ -83,7 +83,7 @@ namespace HotChocolate.Types
         }
 
         private static void MergeFields<T>(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<T> extensionFields,
             IList<T> typeFields,
             Action<IList<T>, T, T> action,
@@ -92,10 +92,10 @@ namespace HotChocolate.Types
         {
             foreach (T extensionField in extensionFields)
             {
-                T typeField = typeFields.FirstOrDefault(t =>
-                    t.Name.Equals(extensionField.Name));
+                T typeField = typeFields.FirstOrDefault(
+                    t => t.Name.Equals(extensionField.Name));
 
-                if (typeField == null)
+                if (typeField is null)
                 {
                     onBeforeAdd?.Invoke(extensionField);
                     typeFields.Add(extensionField);
@@ -115,7 +115,7 @@ namespace HotChocolate.Types
         }
 
         public static void MergeDirectives(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<DirectiveDefinition> extension,
             IList<DirectiveDefinition> type)
         {
@@ -144,7 +144,7 @@ namespace HotChocolate.Types
         }
 
         private static void MergeDirective(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             IList<(DirectiveType type, DirectiveDefinition def)> directives,
             DirectiveDefinition directive)
         {

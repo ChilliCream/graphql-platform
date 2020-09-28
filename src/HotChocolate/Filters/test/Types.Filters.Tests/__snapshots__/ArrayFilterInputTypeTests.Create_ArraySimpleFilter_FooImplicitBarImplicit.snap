@@ -8,266 +8,446 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barBoolNullable_all: ISingleFilterOfBooleanFilter
-  barBoolNullable_any: Boolean
-  barBoolNullable_none: ISingleFilterOfBooleanFilter
-  barBoolNullable_some: ISingleFilterOfBooleanFilter
-  barBool_all: ISingleFilterOfBooleanFilter
-  barBool_any: Boolean
-  barBool_none: ISingleFilterOfBooleanFilter
-  barBool_some: ISingleFilterOfBooleanFilter
-  barDatetimeNullable_all: ISingleFilterOfDateTimeFilter
-  barDatetimeNullable_any: Boolean
-  barDatetimeNullable_none: ISingleFilterOfDateTimeFilter
-  barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
-  barDatetimeOffsetNullable_all: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffsetNullable_any: Boolean
-  barDatetimeOffsetNullable_none: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffsetNullable_some: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffset_any: Boolean
-  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
-  barDatetime_all: ISingleFilterOfDateTimeFilter
-  barDatetime_any: Boolean
-  barDatetime_none: ISingleFilterOfDateTimeFilter
-  barDatetime_some: ISingleFilterOfDateTimeFilter
-  barDecimalNullable_all: ISingleFilterOfDecimalFilter
-  barDecimalNullable_any: Boolean
-  barDecimalNullable_none: ISingleFilterOfDecimalFilter
-  barDecimalNullable_some: ISingleFilterOfDecimalFilter
-  barDecimal_all: ISingleFilterOfDecimalFilter
-  barDecimal_any: Boolean
-  barDecimal_none: ISingleFilterOfDecimalFilter
-  barDecimal_some: ISingleFilterOfDecimalFilter
-  barDoubleNullable_all: ISingleFilterOfDoubleFilter
-  barDoubleNullable_any: Boolean
-  barDoubleNullable_none: ISingleFilterOfDoubleFilter
-  barDoubleNullable_some: ISingleFilterOfDoubleFilter
-  barDouble_all: ISingleFilterOfDoubleFilter
-  barDouble_any: Boolean
-  barDouble_none: ISingleFilterOfDoubleFilter
-  barDouble_some: ISingleFilterOfDoubleFilter
-  barGuidNullable_all: ISingleFilterOfGuidFilter
-  barGuidNullable_any: Boolean
-  barGuidNullable_none: ISingleFilterOfGuidFilter
-  barGuidNullable_some: ISingleFilterOfGuidFilter
-  barGuid_all: ISingleFilterOfGuidFilter
-  barGuid_any: Boolean
-  barGuid_none: ISingleFilterOfGuidFilter
-  barGuid_some: ISingleFilterOfGuidFilter
-  barInt16Nullable_all: ISingleFilterOfInt16Filter
-  barInt16Nullable_any: Boolean
-  barInt16Nullable_none: ISingleFilterOfInt16Filter
-  barInt16Nullable_some: ISingleFilterOfInt16Filter
-  barInt16_all: ISingleFilterOfInt16Filter
-  barInt16_any: Boolean
-  barInt16_none: ISingleFilterOfInt16Filter
-  barInt16_some: ISingleFilterOfInt16Filter
-  barInt32Nullable_all: ISingleFilterOfInt32Filter
-  barInt32Nullable_any: Boolean
-  barInt32Nullable_none: ISingleFilterOfInt32Filter
-  barInt32Nullable_some: ISingleFilterOfInt32Filter
-  barInt32_all: ISingleFilterOfInt32Filter
-  barInt32_any: Boolean
-  barInt32_none: ISingleFilterOfInt32Filter
-  barInt32_some: ISingleFilterOfInt32Filter
-  barInt64Nullable_all: ISingleFilterOfInt64Filter
-  barInt64Nullable_any: Boolean
-  barInt64Nullable_none: ISingleFilterOfInt64Filter
-  barInt64Nullable_some: ISingleFilterOfInt64Filter
-  barInt64_all: ISingleFilterOfInt64Filter
-  barInt64_any: Boolean
-  barInt64_none: ISingleFilterOfInt64Filter
-  barInt64_some: ISingleFilterOfInt64Filter
-  barSingleNullable_all: ISingleFilterOfSingleFilter
-  barSingleNullable_any: Boolean
-  barSingleNullable_none: ISingleFilterOfSingleFilter
-  barSingleNullable_some: ISingleFilterOfSingleFilter
-  barSingle_all: ISingleFilterOfSingleFilter
-  barSingle_any: Boolean
-  barSingle_none: ISingleFilterOfSingleFilter
-  barSingle_some: ISingleFilterOfSingleFilter
+  OR: [FooSimpleFilter!]
+  barString_some: ISingleFilterOfStringFilter
+  barString_none: ISingleFilterOfStringFilter
   barString_all: ISingleFilterOfStringFilter
   barString_any: Boolean
-  barString_none: ISingleFilterOfStringFilter
-  barString_some: ISingleFilterOfStringFilter
-  OR: [FooSimpleFilter!]
+  barBool_some: ISingleFilterOfBooleanFilter
+  barBool_none: ISingleFilterOfBooleanFilter
+  barBool_all: ISingleFilterOfBooleanFilter
+  barBool_any: Boolean
+  barInt16_some: ISingleFilterOfInt16Filter
+  barInt16_none: ISingleFilterOfInt16Filter
+  barInt16_all: ISingleFilterOfInt16Filter
+  barInt16_any: Boolean
+  barInt32_some: ISingleFilterOfInt32Filter
+  barInt32_none: ISingleFilterOfInt32Filter
+  barInt32_all: ISingleFilterOfInt32Filter
+  barInt32_any: Boolean
+  barInt64_some: ISingleFilterOfInt64Filter
+  barInt64_none: ISingleFilterOfInt64Filter
+  barInt64_all: ISingleFilterOfInt64Filter
+  barInt64_any: Boolean
+  barDouble_some: ISingleFilterOfDoubleFilter
+  barDouble_none: ISingleFilterOfDoubleFilter
+  barDouble_all: ISingleFilterOfDoubleFilter
+  barDouble_any: Boolean
+  barSingle_some: ISingleFilterOfSingleFilter
+  barSingle_none: ISingleFilterOfSingleFilter
+  barSingle_all: ISingleFilterOfSingleFilter
+  barSingle_any: Boolean
+  barDecimal_some: ISingleFilterOfDecimalFilter
+  barDecimal_none: ISingleFilterOfDecimalFilter
+  barDecimal_all: ISingleFilterOfDecimalFilter
+  barDecimal_any: Boolean
+  barGuid_some: ISingleFilterOfGuidFilter
+  barGuid_none: ISingleFilterOfGuidFilter
+  barGuid_all: ISingleFilterOfGuidFilter
+  barGuid_any: Boolean
+  barDatetime_some: ISingleFilterOfDateTimeFilter
+  barDatetime_none: ISingleFilterOfDateTimeFilter
+  barDatetime_all: ISingleFilterOfDateTimeFilter
+  barDatetime_any: Boolean
+  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_any: Boolean
+  barBoolNullable_some: NullableOfBooleanFilter
+  barBoolNullable_none: NullableOfBooleanFilter
+  barBoolNullable_all: NullableOfBooleanFilter
+  barBoolNullable_any: Boolean
+  barInt16Nullable_some: NullableOfInt16Filter
+  barInt16Nullable_none: NullableOfInt16Filter
+  barInt16Nullable_all: NullableOfInt16Filter
+  barInt16Nullable_any: Boolean
+  barInt32Nullable_some: NullableOfInt32Filter
+  barInt32Nullable_none: NullableOfInt32Filter
+  barInt32Nullable_all: NullableOfInt32Filter
+  barInt32Nullable_any: Boolean
+  barInt64Nullable_some: NullableOfInt64Filter
+  barInt64Nullable_none: NullableOfInt64Filter
+  barInt64Nullable_all: NullableOfInt64Filter
+  barInt64Nullable_any: Boolean
+  barDoubleNullable_some: NullableOfDoubleFilter
+  barDoubleNullable_none: NullableOfDoubleFilter
+  barDoubleNullable_all: NullableOfDoubleFilter
+  barDoubleNullable_any: Boolean
+  barSingleNullable_some: NullableOfSingleFilter
+  barSingleNullable_none: NullableOfSingleFilter
+  barSingleNullable_all: NullableOfSingleFilter
+  barSingleNullable_any: Boolean
+  barDecimalNullable_some: NullableOfDecimalFilter
+  barDecimalNullable_none: NullableOfDecimalFilter
+  barDecimalNullable_all: NullableOfDecimalFilter
+  barDecimalNullable_any: Boolean
+  barGuidNullable_some: NullableOfGuidFilter
+  barGuidNullable_none: NullableOfGuidFilter
+  barGuidNullable_all: NullableOfGuidFilter
+  barGuidNullable_any: Boolean
+  barDatetimeNullable_some: NullableOfDateTimeFilter
+  barDatetimeNullable_none: NullableOfDateTimeFilter
+  barDatetimeNullable_all: NullableOfDateTimeFilter
+  barDatetimeNullable_any: Boolean
+  barDatetimeOffsetNullable_some: NullableOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_none: NullableOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_all: NullableOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_any: Boolean
 }
 
 input ISingleFilterOfBooleanFilter {
   AND: [ISingleFilterOfBooleanFilter!]
+  OR: [ISingleFilterOfBooleanFilter!]
   element: Boolean
   element_not: Boolean
-  OR: [ISingleFilterOfBooleanFilter!]
 }
 
 input ISingleFilterOfDateTimeFilter {
   AND: [ISingleFilterOfDateTimeFilter!]
-  element: DateTime
-  element_gt: DateTime
-  element_gte: DateTime
-  element_in: [DateTime!]
-  element_lt: DateTime
-  element_lte: DateTime
-  element_not: DateTime
-  element_not_gt: DateTime
-  element_not_gte: DateTime
-  element_not_in: [DateTime!]
-  element_not_lt: DateTime
-  element_not_lte: DateTime
   OR: [ISingleFilterOfDateTimeFilter!]
+  element: DateTime
+  element_not: DateTime
+  element_in: [DateTime!]
+  element_not_in: [DateTime!]
+  element_gt: DateTime
+  element_not_gt: DateTime
+  element_gte: DateTime
+  element_not_gte: DateTime
+  element_lt: DateTime
+  element_not_lt: DateTime
+  element_lte: DateTime
+  element_not_lte: DateTime
 }
 
 input ISingleFilterOfDateTimeOffsetFilter {
   AND: [ISingleFilterOfDateTimeOffsetFilter!]
-  element: DateTime
-  element_gt: DateTime
-  element_gte: DateTime
-  element_in: [DateTime!]
-  element_lt: DateTime
-  element_lte: DateTime
-  element_not: DateTime
-  element_not_gt: DateTime
-  element_not_gte: DateTime
-  element_not_in: [DateTime!]
-  element_not_lt: DateTime
-  element_not_lte: DateTime
   OR: [ISingleFilterOfDateTimeOffsetFilter!]
+  element: DateTime
+  element_not: DateTime
+  element_in: [DateTime!]
+  element_not_in: [DateTime!]
+  element_gt: DateTime
+  element_not_gt: DateTime
+  element_gte: DateTime
+  element_not_gte: DateTime
+  element_lt: DateTime
+  element_not_lt: DateTime
+  element_lte: DateTime
+  element_not_lte: DateTime
 }
 
 input ISingleFilterOfDecimalFilter {
   AND: [ISingleFilterOfDecimalFilter!]
-  element: Decimal
-  element_gt: Decimal
-  element_gte: Decimal
-  element_in: [Decimal!]
-  element_lt: Decimal
-  element_lte: Decimal
-  element_not: Decimal
-  element_not_gt: Decimal
-  element_not_gte: Decimal
-  element_not_in: [Decimal!]
-  element_not_lt: Decimal
-  element_not_lte: Decimal
   OR: [ISingleFilterOfDecimalFilter!]
+  element: Decimal
+  element_not: Decimal
+  element_in: [Decimal!]
+  element_not_in: [Decimal!]
+  element_gt: Decimal
+  element_not_gt: Decimal
+  element_gte: Decimal
+  element_not_gte: Decimal
+  element_lt: Decimal
+  element_not_lt: Decimal
+  element_lte: Decimal
+  element_not_lte: Decimal
 }
 
 input ISingleFilterOfDoubleFilter {
   AND: [ISingleFilterOfDoubleFilter!]
-  element: Float
-  element_gt: Float
-  element_gte: Float
-  element_in: [Float!]
-  element_lt: Float
-  element_lte: Float
-  element_not: Float
-  element_not_gt: Float
-  element_not_gte: Float
-  element_not_in: [Float!]
-  element_not_lt: Float
-  element_not_lte: Float
   OR: [ISingleFilterOfDoubleFilter!]
+  element: Float
+  element_not: Float
+  element_in: [Float!]
+  element_not_in: [Float!]
+  element_gt: Float
+  element_not_gt: Float
+  element_gte: Float
+  element_not_gte: Float
+  element_lt: Float
+  element_not_lt: Float
+  element_lte: Float
+  element_not_lte: Float
 }
 
 input ISingleFilterOfGuidFilter {
   AND: [ISingleFilterOfGuidFilter!]
-  element: Uuid
-  element_gt: Uuid
-  element_gte: Uuid
-  element_in: [Uuid!]
-  element_lt: Uuid
-  element_lte: Uuid
-  element_not: Uuid
-  element_not_gt: Uuid
-  element_not_gte: Uuid
-  element_not_in: [Uuid!]
-  element_not_lt: Uuid
-  element_not_lte: Uuid
   OR: [ISingleFilterOfGuidFilter!]
+  element: Uuid
+  element_not: Uuid
+  element_in: [Uuid!]
+  element_not_in: [Uuid!]
+  element_gt: Uuid
+  element_not_gt: Uuid
+  element_gte: Uuid
+  element_not_gte: Uuid
+  element_lt: Uuid
+  element_not_lt: Uuid
+  element_lte: Uuid
+  element_not_lte: Uuid
 }
 
 input ISingleFilterOfInt16Filter {
   AND: [ISingleFilterOfInt16Filter!]
-  element: Short
-  element_gt: Short
-  element_gte: Short
-  element_in: [Short!]
-  element_lt: Short
-  element_lte: Short
-  element_not: Short
-  element_not_gt: Short
-  element_not_gte: Short
-  element_not_in: [Short!]
-  element_not_lt: Short
-  element_not_lte: Short
   OR: [ISingleFilterOfInt16Filter!]
+  element: Short
+  element_not: Short
+  element_in: [Short!]
+  element_not_in: [Short!]
+  element_gt: Short
+  element_not_gt: Short
+  element_gte: Short
+  element_not_gte: Short
+  element_lt: Short
+  element_not_lt: Short
+  element_lte: Short
+  element_not_lte: Short
 }
 
 input ISingleFilterOfInt32Filter {
   AND: [ISingleFilterOfInt32Filter!]
-  element: Int
-  element_gt: Int
-  element_gte: Int
-  element_in: [Int!]
-  element_lt: Int
-  element_lte: Int
-  element_not: Int
-  element_not_gt: Int
-  element_not_gte: Int
-  element_not_in: [Int!]
-  element_not_lt: Int
-  element_not_lte: Int
   OR: [ISingleFilterOfInt32Filter!]
+  element: Int
+  element_not: Int
+  element_in: [Int!]
+  element_not_in: [Int!]
+  element_gt: Int
+  element_not_gt: Int
+  element_gte: Int
+  element_not_gte: Int
+  element_lt: Int
+  element_not_lt: Int
+  element_lte: Int
+  element_not_lte: Int
 }
 
 input ISingleFilterOfInt64Filter {
   AND: [ISingleFilterOfInt64Filter!]
-  element: Long
-  element_gt: Long
-  element_gte: Long
-  element_in: [Long!]
-  element_lt: Long
-  element_lte: Long
-  element_not: Long
-  element_not_gt: Long
-  element_not_gte: Long
-  element_not_in: [Long!]
-  element_not_lt: Long
-  element_not_lte: Long
   OR: [ISingleFilterOfInt64Filter!]
+  element: Long
+  element_not: Long
+  element_in: [Long!]
+  element_not_in: [Long!]
+  element_gt: Long
+  element_not_gt: Long
+  element_gte: Long
+  element_not_gte: Long
+  element_lt: Long
+  element_not_lt: Long
+  element_lte: Long
+  element_not_lte: Long
 }
 
 input ISingleFilterOfSingleFilter {
   AND: [ISingleFilterOfSingleFilter!]
-  element: Float
-  element_gt: Float
-  element_gte: Float
-  element_in: [Float!]
-  element_lt: Float
-  element_lte: Float
-  element_not: Float
-  element_not_gt: Float
-  element_not_gte: Float
-  element_not_in: [Float!]
-  element_not_lt: Float
-  element_not_lte: Float
   OR: [ISingleFilterOfSingleFilter!]
+  element: Float
+  element_not: Float
+  element_in: [Float!]
+  element_not_in: [Float!]
+  element_gt: Float
+  element_not_gt: Float
+  element_gte: Float
+  element_not_gte: Float
+  element_lt: Float
+  element_not_lt: Float
+  element_lte: Float
+  element_not_lte: Float
 }
 
 input ISingleFilterOfStringFilter {
   AND: [ISingleFilterOfStringFilter!]
-  element: String
-  element_contains: String
-  element_ends_with: String
-  element_in: [String!]
-  element_not: String
-  element_not_contains: String
-  element_not_ends_with: String
-  element_not_in: [String!]
-  element_not_starts_with: String
-  element_starts_with: String
   OR: [ISingleFilterOfStringFilter!]
+  element: String
+  element_not: String
+  element_contains: String
+  element_not_contains: String
+  element_starts_with: String
+  element_not_starts_with: String
+  element_ends_with: String
+  element_not_ends_with: String
+  element_in: [String!]
+  element_not_in: [String!]
+}
+
+input NullableOfBooleanFilter {
+  AND: [NullableOfBooleanFilter!]
+  OR: [NullableOfBooleanFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Boolean
+  value_not: Boolean
+}
+
+input NullableOfDateTimeFilter {
+  AND: [NullableOfDateTimeFilter!]
+  OR: [NullableOfDateTimeFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: DateTime
+  value_not: DateTime
+  value_in: [DateTime!]
+  value_not_in: [DateTime!]
+  value_gt: DateTime
+  value_not_gt: DateTime
+  value_gte: DateTime
+  value_not_gte: DateTime
+  value_lt: DateTime
+  value_not_lt: DateTime
+  value_lte: DateTime
+  value_not_lte: DateTime
+}
+
+input NullableOfDateTimeOffsetFilter {
+  AND: [NullableOfDateTimeOffsetFilter!]
+  OR: [NullableOfDateTimeOffsetFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: DateTime
+  value_not: DateTime
+  value_in: [DateTime!]
+  value_not_in: [DateTime!]
+  value_gt: DateTime
+  value_not_gt: DateTime
+  value_gte: DateTime
+  value_not_gte: DateTime
+  value_lt: DateTime
+  value_not_lt: DateTime
+  value_lte: DateTime
+  value_not_lte: DateTime
+}
+
+input NullableOfDecimalFilter {
+  AND: [NullableOfDecimalFilter!]
+  OR: [NullableOfDecimalFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Decimal
+  value_not: Decimal
+  value_in: [Decimal!]
+  value_not_in: [Decimal!]
+  value_gt: Decimal
+  value_not_gt: Decimal
+  value_gte: Decimal
+  value_not_gte: Decimal
+  value_lt: Decimal
+  value_not_lt: Decimal
+  value_lte: Decimal
+  value_not_lte: Decimal
+}
+
+input NullableOfDoubleFilter {
+  AND: [NullableOfDoubleFilter!]
+  OR: [NullableOfDoubleFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Float
+  value_not: Float
+  value_in: [Float!]
+  value_not_in: [Float!]
+  value_gt: Float
+  value_not_gt: Float
+  value_gte: Float
+  value_not_gte: Float
+  value_lt: Float
+  value_not_lt: Float
+  value_lte: Float
+  value_not_lte: Float
+}
+
+input NullableOfGuidFilter {
+  AND: [NullableOfGuidFilter!]
+  OR: [NullableOfGuidFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Uuid
+  value_not: Uuid
+  value_in: [Uuid!]
+  value_not_in: [Uuid!]
+  value_gt: Uuid
+  value_not_gt: Uuid
+  value_gte: Uuid
+  value_not_gte: Uuid
+  value_lt: Uuid
+  value_not_lt: Uuid
+  value_lte: Uuid
+  value_not_lte: Uuid
+}
+
+input NullableOfInt16Filter {
+  AND: [NullableOfInt16Filter!]
+  OR: [NullableOfInt16Filter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Short
+  value_not: Short
+  value_in: [Short!]
+  value_not_in: [Short!]
+  value_gt: Short
+  value_not_gt: Short
+  value_gte: Short
+  value_not_gte: Short
+  value_lt: Short
+  value_not_lt: Short
+  value_lte: Short
+  value_not_lte: Short
+}
+
+input NullableOfInt32Filter {
+  AND: [NullableOfInt32Filter!]
+  OR: [NullableOfInt32Filter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Int
+  value_not: Int
+  value_in: [Int!]
+  value_not_in: [Int!]
+  value_gt: Int
+  value_not_gt: Int
+  value_gte: Int
+  value_not_gte: Int
+  value_lt: Int
+  value_not_lt: Int
+  value_lte: Int
+  value_not_lte: Int
+}
+
+input NullableOfInt64Filter {
+  AND: [NullableOfInt64Filter!]
+  OR: [NullableOfInt64Filter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Long
+  value_not: Long
+  value_in: [Long!]
+  value_not_in: [Long!]
+  value_gt: Long
+  value_not_gt: Long
+  value_gte: Long
+  value_not_gte: Long
+  value_lt: Long
+  value_not_lt: Long
+  value_lte: Long
+  value_not_lte: Long
+}
+
+input NullableOfSingleFilter {
+  AND: [NullableOfSingleFilter!]
+  OR: [NullableOfSingleFilter!]
+  hasValue: Boolean
+  hasValue_not: Boolean
+  value: Float
+  value_not: Float
+  value_in: [Float!]
+  value_not_in: [Float!]
+  value_gt: Float
+  value_not_gt: Float
+  value_gte: Float
+  value_not_gte: Float
+  value_lt: Float
+  value_not_lt: Float
+  value_lte: Float
+  value_not_lte: Float
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

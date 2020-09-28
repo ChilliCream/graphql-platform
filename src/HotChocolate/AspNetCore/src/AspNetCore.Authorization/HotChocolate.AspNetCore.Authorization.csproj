@@ -1,34 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
+  </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>HotChocolate.AspNetCore.Authorization</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>
-    <Description>Contains authorization extensions for the Hot Chocolate ASP .Net classic GraphQL middleware.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\AuthResources.Designer.cs">
-      <DependentUpon>AuthResources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\AuthResources.resx">
-      <LastGenOutput>AuthResources.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

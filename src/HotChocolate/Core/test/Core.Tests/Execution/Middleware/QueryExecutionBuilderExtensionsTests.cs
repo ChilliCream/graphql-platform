@@ -221,7 +221,7 @@ namespace HotChocolate.Execution
                 .MapField(
                     null,
                     new FieldReference("a", "b"),
-                    next => context => Task.CompletedTask);
+                    next => context => default(ValueTask));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -236,7 +236,7 @@ namespace HotChocolate.Execution
                 .MapField(
                     QueryExecutionBuilder.New(),
                     null,
-                    next => context => Task.CompletedTask);
+                    next => context => default(ValueTask));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

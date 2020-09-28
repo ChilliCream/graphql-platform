@@ -2,16 +2,16 @@
   {
     "Message": "The specified directive is not valid the current location.",
     "Code": null,
-    "Path": [],
+    "Path": null,
     "Locations": [
       {
         "Line": 3,
         "Column": 29
       }
     ],
-    "Exception": null,
     "Extensions": {
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations"
-    }
+    },
+    "Exception": null
   }
 ]

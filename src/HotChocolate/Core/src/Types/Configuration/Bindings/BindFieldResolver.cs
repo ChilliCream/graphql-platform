@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration.Bindings
         public IBoundResolver<TResolver> With<TPropertyType>(
             Expression<Func<TResolver, TPropertyType>> resolver)
         {
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }
@@ -57,7 +57,7 @@ namespace HotChocolate.Configuration.Bindings
         public IBoundResolver<TResolver, TObjectType> With<TPropertyType>(
             Expression<Func<TResolver, TPropertyType>> resolver)
         {
-            if (resolver == null)
+            if (resolver is null)
             {
                 throw new ArgumentNullException(nameof(resolver));
             }

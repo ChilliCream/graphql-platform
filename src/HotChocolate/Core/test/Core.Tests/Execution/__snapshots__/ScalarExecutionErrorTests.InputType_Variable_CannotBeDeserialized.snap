@@ -11,11 +11,11 @@
           "Column": 9
         }
       ],
-      "Exception": null,
       "Extensions": {
         "code": "EXEC_INVALID_TYPE",
         "variable_name": "a"
-      }
+      },
+      "Exception": null
     }
   ],
   "Extensions": null,

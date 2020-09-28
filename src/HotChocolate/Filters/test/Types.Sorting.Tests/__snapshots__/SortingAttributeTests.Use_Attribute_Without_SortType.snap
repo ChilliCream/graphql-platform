@@ -3,8 +3,8 @@
 }
 
 type Model {
-  bar: Int!
   foo: String
+  bar: Int!
 }
 
 type Query1 {
@@ -12,8 +12,8 @@ type Query1 {
 }
 
 input ModelSort {
-  bar: SortOperationKind
   foo: SortOperationKind
+  bar: SortOperationKind
 }
 
 enum SortOperationKind {

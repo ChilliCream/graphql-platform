@@ -1,0 +1,46 @@
+query getHero {
+  a: hero(episode: EMPIRE) {
+    ...Hero
+  }
+  b: hero(episode: NEW_HOPE) {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...Human
+  ...Droid
+}
+
+fragment Human on Human {
+  ...HasName
+  ...HasFriends
+  height
+}
+
+fragment Droid on Droid {
+  ...HasName
+  ...HasFriends
+  height
+}
+
+fragment Friend on CharacterConnection {
+  nodes {
+    ...HasName
+    friends {
+      nodes {
+        ...HasName
+      }
+    }
+  }
+}
+
+fragment HasName on Character {
+  name
+}
+
+fragment HasFriends on Character {
+  friends {
+    ...Friend
+  }
+}

@@ -238,7 +238,7 @@ namespace HotChocolate.Execution
                     .Name("Query")
                     .Field("bar")
                     .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+                    .Resolver(ctx => ctx.ArgumentValue<string>("baz"))));
 
             QueryExecutionBuilder
                 .New()
@@ -267,7 +267,7 @@ namespace HotChocolate.Execution
                     .Name("Query")
                     .Field("bar")
                     .Argument("baz", a => a.Type<StringType>().DefaultValue("abc"))
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+                    .Resolver(ctx => ctx.ArgumentValue<string>("baz"))));
 
             QueryExecutionBuilder
                 .New()
@@ -301,7 +301,7 @@ namespace HotChocolate.Execution
                     next => ctx =>
                     {
                         ctx.Result = "Foo";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -334,7 +334,7 @@ namespace HotChocolate.Execution
                     .Name("Query")
                     .Field("bar")
                     .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+                    .Resolver(ctx => ctx.ArgumentValue<string>("baz"))));
 
             QueryExecutionBuilder
                 .New()
@@ -367,7 +367,7 @@ namespace HotChocolate.Execution
                     .Name("Query")
                     .Field("bar")
                     .Argument("baz", a => a.Type<InputObjectType<Foo>>())
-                    .Resolver(ctx => ctx.Argument<Foo>("baz").Bar)));
+                    .Resolver(ctx => ctx.ArgumentValue<Foo>("baz").Bar)));
 
             QueryExecutionBuilder
                 .New()
@@ -409,7 +409,7 @@ namespace HotChocolate.Execution
                     next => ctx =>
                     {
                         ctx.Result = "Foo";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -446,7 +446,7 @@ namespace HotChocolate.Execution
                     .Name("Query")
                     .Field("bar")
                     .Argument("baz", a => a.Type<StringType>())
-                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+                    .Resolver(ctx => ctx.ArgumentValue<string>("baz"))));
 
             QueryExecutionBuilder
                 .New()
@@ -483,7 +483,7 @@ namespace HotChocolate.Execution
                     next => ctx =>
                     {
                         ctx.Result = "Foo";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -558,7 +558,7 @@ namespace HotChocolate.Execution
                     next => ctx =>
                     {
                         ctx.Result = "Foo";
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -605,7 +605,7 @@ namespace HotChocolate.Execution
                     {
                         ctx.Result = QuerySyntaxSerializer.Serialize(
                             ctx.Argument<IValueNode>("arg"));
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -641,7 +641,7 @@ namespace HotChocolate.Execution
                     {
                         ctx.Result = QuerySyntaxSerializer.Serialize(
                             ctx.Argument<IValueNode>("arg"));
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -681,7 +681,7 @@ namespace HotChocolate.Execution
                     {
                         ctx.Result = QuerySyntaxSerializer.Serialize(
                             ctx.Argument<IValueNode>("arg"));
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -717,7 +717,7 @@ namespace HotChocolate.Execution
                     {
                         ctx.Result = QuerySyntaxSerializer.Serialize(
                             ctx.Argument<IValueNode>("arg"));
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 
@@ -750,7 +750,7 @@ namespace HotChocolate.Execution
                     {
                         ctx.Result = QuerySyntaxSerializer.Serialize(
                             ctx.Argument<IValueNode>("arg"));
-                        return Task.CompletedTask;
+                        return default(ValueTask);
                     })
                 .Create();
 

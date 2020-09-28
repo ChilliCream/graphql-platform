@@ -1,28 +1,42 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
+
+#nullable enable
 
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class DescriptorContext
         : IDescriptorContext
     {
+        private readonly Dictionary<(Type, string?), IConvention> _conventions =
+            new Dictionary<(Type, string?), IConvention>();
+        private readonly IReadOnlyDictionary<(Type, string?), CreateConvention> _convFactories;
         private readonly IServiceProvider _services;
-        private readonly Dictionary<Type, IConvention> _conventions;
-        private INamingConventions _naming;
-        private ITypeInspector _inspector;
+
+        private INamingConventions? _naming;
+        private ITypeInspector? _inspector;
+
+        public event EventHandler<SchemaCompletedEventArgs>? SchemaCompleted;
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<Type, IConvention> conventions,
-            IServiceProvider services)
+            IReadOnlyDictionary<(Type, string?), CreateConvention> convFactories,
+            IServiceProvider services,
+            IDictionary<string, object?> contextData,
+            SchemaBuilder.LazySchema schema)
         {
             Options = options;
-            _conventions = conventions.ToDictionary(t => t.Key, t => t.Value);
+            _convFactories = convFactories;
             _services = services;
+            ContextData = contextData;
+            schema.Completed += (sender, args) =>
+                SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
         }
+
+        public IServiceProvider Services => _services;
 
         public IReadOnlySchemaOptions Options { get; }
 
@@ -39,24 +53,24 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public ITypeInspector Inspector
+        public ITypeInspector TypeInspector
         {
             get
             {
                 if (_inspector is null)
                 {
-                    _inspector = GetConventionOrDefault<ITypeInspector>(
-                        DefaultTypeInspector.Default);
+                    _inspector = this.GetConventionOrDefault<ITypeInspector>(
+                        new DefaultTypeInspector());
                 }
                 return _inspector;
             }
         }
 
-        public T GetConventionOrDefault<T>(T defaultConvention)
-            where T : class, IConvention =>
-            GetConventionOrDefault<T>(() => defaultConvention);
+        public IDictionary<string, object?> ContextData { get; }
 
-        public T GetConventionOrDefault<T>(Func<T> defaultConvention)
+        public T GetConventionOrDefault<T>(
+            Func<T> defaultConvention,
+            string? scope = null)
             where T : class, IConvention
         {
             if (defaultConvention is null)
@@ -64,7 +78,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention<T>(out T convention))
+            if (!TryGetConvention(scope, out T? convention))
             {
                 convention = _services.GetService(typeof(T)) as T;
             }
@@ -72,57 +86,82 @@ namespace HotChocolate.Types.Descriptors
             if (convention is null)
             {
                 convention = defaultConvention();
-                _conventions[typeof(T)] = convention;
             }
 
             return convention;
         }
 
-        private bool TryGetConvention<T>(out T convention)
-            where T : IConvention
+        private bool TryGetConvention<T>(
+            string? scope,
+            [NotNullWhen(true)] out T? convention)
+            where T : class, IConvention
         {
-            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
-                && outConvetion is T conventionOfT)
+            if (_conventions.TryGetValue(
+                (typeof(T), scope), out IConvention? conv))
             {
-                convention = conventionOfT;
-                return true;
+                if (conv is T casted)
+                {
+                    convention = casted;
+                    return true;
+                }
             }
+
+            if (_convFactories.TryGetValue(
+                (typeof(T), scope),
+                out CreateConvention? factory))
+            {
+                conv = factory(_services);
+                if (conv is Convention init)
+                {
+                    var conventionContext = new ConventionContext(init, scope, _services, this);
+                    init.Initialize(conventionContext);
+                    _conventions[(typeof(T), scope)] = init;
+                }
+
+                if (conv is T casted)
+                {
+                    convention = casted;
+                    return true;
+                }
+            }
+
             convention = default;
             return false;
         }
 
-        public static DescriptorContext Create(
+        internal static DescriptorContext Create(
             IReadOnlySchemaOptions options,
             IServiceProvider services,
-            IReadOnlyDictionary<Type, IConvention> conventions)
+            IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
+            IDictionary<string, object?> contextData,
+            SchemaBuilder.LazySchema schema)
         {
-            if (options == null)
+            if (options is null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
 
-            if (conventions == null)
+            if (conventions is null)
             {
                 throw new ArgumentNullException(nameof(conventions));
             }
 
-            return new DescriptorContext(
-                options,
-                conventions,
-                services);
+            return new DescriptorContext(options, conventions, services, contextData, schema);
         }
 
-        public static DescriptorContext Create()
+        internal static DescriptorContext Create()
         {
             return new DescriptorContext(
                 new SchemaOptions(),
-                new Dictionary<Type, IConvention>(),
-                new EmptyServiceProvider());
+                new Dictionary<(Type, string?), CreateConvention>(),
+                new EmptyServiceProvider(),
+                new Dictionary<string, object?>(),
+                new SchemaBuilder.LazySchema());
         }
     }
 }

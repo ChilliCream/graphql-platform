@@ -1,0 +1,41 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo(test: BarFilterInput): String
+}
+
+input BarFilterInput {
+  and: [BarFilterInput!]
+  or: [BarFilterInput!]
+  foo: FooFilterInput
+  fooNullable: FooFilterInput
+}
+
+input ComparableOperationFilterInputOfInt16FilterInput {
+  eq: Short
+  neq: Short
+  in: [Short!]
+  nin: [Short!]
+  gt: Short
+  ngt: Short
+  gte: Short
+  ngte: Short
+  lt: Short
+  nlt: Short
+  lte: Short
+  nlte: Short
+}
+
+input FooFilterInput {
+  and: [FooFilterInput!]
+  or: [FooFilterInput!]
+  barShort: ComparableOperationFilterInputOfInt16FilterInput
+}
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

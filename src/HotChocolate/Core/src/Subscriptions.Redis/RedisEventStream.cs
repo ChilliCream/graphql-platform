@@ -2,112 +2,100 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis
 {
-    public class RedisEventStream
-        : IEventStream
+    public class RedisEventStream<TMessage>
+        : ISourceStream<TMessage>
     {
-        private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
-        private readonly IPayloadSerializer _serializer;
-        private RedisEventStreamEnumerator _enumerator;
-        private bool _isCompleted;
+        private readonly IMessageSerializer _messageSerializer;
+        private bool _read;
+        private bool _disposed;
 
-        public RedisEventStream(
-            IEventDescription eventDescription,
-            ChannelMessageQueue channel,
-            IPayloadSerializer serializer)
+        public RedisEventStream(ChannelMessageQueue channel, IMessageSerializer messageSerializer)
         {
-            _eventDescription = eventDescription;
             _channel = channel;
-            _serializer = serializer;
+            _messageSerializer = messageSerializer;
         }
 
-        public IAsyncEnumerator<IEventMessage> GetAsyncEnumerator(
-            CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<TMessage> ReadEventsAsync()
         {
-            if (_isCompleted || (_enumerator is { IsCompleted: true }))
+            if (_read)
             {
-                throw new InvalidOperationException(
-                    "The stream has been completed and cannot be replayed.");
+                throw new InvalidOperationException("This stream can only be read once.");
             }
 
-            if (_enumerator is null)
+            if (_disposed || _channel.Completion.IsCompleted)
             {
-                _enumerator = new RedisEventStreamEnumerator(
-                    _eventDescription,
-                    _channel,
-                    _serializer,
-                    cancellationToken);
+                throw new ObjectDisposedException(nameof(RedisEventStream<TMessage>));
             }
 
-            return _enumerator;
+            _read = true;
+            return new EnumerateMessages<TMessage>(
+                _channel,
+                _messageSerializer.Deserialize<TMessage>);
         }
 
-        public async ValueTask CompleteAsync(
-            CancellationToken cancellationToken = default)
+        IAsyncEnumerable<object> ISourceStream.ReadEventsAsync()
         {
-            if (!_isCompleted)
+            if (_read)
+            {
+                throw new InvalidOperationException("This stream can only be read once.");
+            }
+
+            if (_disposed || _channel.Completion.IsCompleted)
+            {
+                throw new ObjectDisposedException(nameof(RedisEventStream<TMessage>));
+            }
+
+            _read = true;
+            return new EnumerateMessages<object>(
+                _channel,
+                s => _messageSerializer.Deserialize<TMessage>(s));
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (!_disposed)
             {
                 await _channel.UnsubscribeAsync().ConfigureAwait(false);
-                _isCompleted = true;
+                _disposed = true;
             }
         }
 
-        private class RedisEventStreamEnumerator
-            : IAsyncEnumerator<IEventMessage>
+        private class EnumerateMessages<T>
+            : IAsyncEnumerable<T>
         {
-            private readonly IEventDescription _eventDescription;
             private readonly ChannelMessageQueue _channel;
-            private readonly IPayloadSerializer _serializer;
-            private readonly CancellationToken _cancellationToken;
-            private bool _isCompleted;
+            private readonly Func<string, T> _messageSerializer;
 
-            public RedisEventStreamEnumerator(
-                IEventDescription eventDescription,
+            public EnumerateMessages(
                 ChannelMessageQueue channel,
-                IPayloadSerializer serializer,
-                CancellationToken cancellationToken)
+                Func<string, T> messageSerializer)
             {
-                _eventDescription = eventDescription;
                 _channel = channel;
-                _serializer = serializer;
-                _cancellationToken = cancellationToken;
+                _messageSerializer = messageSerializer;
             }
 
-            public IEventMessage Current { get; private set; }
-
-            internal bool IsCompleted => _isCompleted;
-
-            public async ValueTask<bool> MoveNextAsync()
+            public async IAsyncEnumerator<T> GetAsyncEnumerator(
+                CancellationToken cancellationToken = default)
             {
-                if (_isCompleted || _channel.Completion.IsCompleted)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    Current = null;
-                    return false;
-                }
+                    ChannelMessage message = await _channel.ReadAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    string body = message.Message;
 
-                try
-                {
-                    ChannelMessage message =
-                        await _channel.ReadAsync(_cancellationToken).ConfigureAwait(false);
-                    object payload = _serializer.Deserialize(message.Message);
-                    Current = new EventMessage(message.Channel, payload);
-                    return true;
-                }
-                catch
-                {
-                    Current = null;
-                    return false;
-                }
-            }
+                    if (body.Equals(RedisPubSub.Completed, StringComparison.Ordinal))
+                    {
+                        yield break;
+                    }
 
-            public async ValueTask DisposeAsync()
-            {
-                await _channel.UnsubscribeAsync().ConfigureAwait(false);
-                _isCompleted = true;
+                    yield return _messageSerializer(message.Message);
+                }
             }
         }
     }

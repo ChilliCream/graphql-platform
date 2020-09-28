@@ -9,7 +9,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
     /// </summary>
     public class DefaultQueryFileMap : IQueryFileMap
     {
-        private const int _maxStackSize = 256;
+        private const int _maxStackSize = 128;
         private readonly string _cacheDirectory;
         private const char _forwardSlash = '/';
         private const char _dash = '-';
@@ -30,7 +30,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
         /// </summary>
         public DefaultQueryFileMap(string cacheDirectory)
         {
-            _cacheDirectory = cacheDirectory;
+            _cacheDirectory = cacheDirectory ??
+                throw new ArgumentNullException(nameof(cacheDirectory));
         }
 
         /// <inheritdoc />
@@ -44,51 +45,56 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(queryId));
             }
 
-            string fileName = EncodeQueryId(queryId);
-
-            if (_cacheDirectory != null)
-            {
-                fileName = IOPath.Combine(_cacheDirectory, fileName);
-            }
-
-            return fileName;
+            return IOPath.Combine(_cacheDirectory, EncodeQueryId(queryId));
         }
 
         private static unsafe string EncodeQueryId(string queryId)
         {
-            char[] encodedBuffer = null;
+            char[]? encodedBuffer = null;
+            var queryIdLength = queryId.Length + 8;
 
-            Span<char> encoded = queryId.Length <= _maxStackSize
-                ? stackalloc char[queryId.Length]
-                : (encodedBuffer = ArrayPool<char>.Shared.Rent(queryId.Length));
+            Span<char> encoded = queryIdLength <= _maxStackSize
+                ? stackalloc char[queryIdLength]
+                : (encodedBuffer = ArrayPool<char>.Shared.Rent(queryIdLength));
 
             try
             {
-                for (var i = 0; i < encoded.Length; i++)
+                var i = 0;
+
+                for (; i < queryId.Length; i++)
                 {
-                    switch (queryId[i])
+                    if (queryId[i] == _forwardSlash)
                     {
-                        case _forwardSlash:
-                            encoded[i] = _dash;
-                            break;
-
-                        case _plus:
-                            encoded[i] = _underscore;
-                            break;
-
-                        case _equals:
-                            encoded = encoded.Slice(0, i);
-                            break;
-
-                        default:
-                            encoded[i] = queryId[i];
-                            break;
+                        encoded[i] = _dash;
+                    }
+                    else if (queryId[i] == _plus)
+                    {
+                        encoded[i] = _underscore;
+                    }
+                    else if (queryId[i] == _equals)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        encoded[i] = queryId[i];
                     }
                 }
 
+                encoded[i++] = '.';
+                encoded[i++] = 'g';
+                encoded[i++] = 'r';
+                encoded[i++] = 'a';
+                encoded[i++] = 'p';
+                encoded[i++] = 'h';
+                encoded[i++] = 'q';
+                encoded[i++] = 'l';
+
+                encoded = encoded.Slice(0, i);
+
                 fixed (char* charPtr = encoded)
                 {
-                    return new string(charPtr, 0, encoded.Length);
+                    return new string(charPtr, 0, i);
                 }
             }
             finally

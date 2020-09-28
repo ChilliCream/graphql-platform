@@ -1,0 +1,11 @@
+﻿{
+  "payload": {
+    "data": {
+      "onReview": {
+        "stars": 5
+      }
+    }
+  },
+  "id": "abc",
+  "type": "data"
+}

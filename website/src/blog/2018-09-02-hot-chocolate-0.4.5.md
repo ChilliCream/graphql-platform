@@ -42,7 +42,7 @@ public IEnumerable<ICharacter> GetCharacter(string[] characterIds, IResolverCont
         if (character == null)
         {
             context.ReportError(
-                "Could not resolve a charachter for the " +
+                "Could not resolve a character for the " +
                 $"character-id {characterId}.");
         }
         else

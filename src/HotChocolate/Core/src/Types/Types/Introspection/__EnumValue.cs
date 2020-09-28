@@ -6,10 +6,10 @@ namespace HotChocolate.Types.Introspection
 #pragma warning disable IDE1006 // Naming Styles
     internal sealed class __EnumValue
 #pragma warning restore IDE1006 // Naming Styles
-        : ObjectType<EnumValue>
+        : ObjectType<IEnumValue>
     {
         protected override void Configure(
-            IObjectTypeDescriptor<EnumValue> descriptor)
+            IObjectTypeDescriptor<IEnumValue> descriptor)
         {
             descriptor.Name("__EnumValue");
 

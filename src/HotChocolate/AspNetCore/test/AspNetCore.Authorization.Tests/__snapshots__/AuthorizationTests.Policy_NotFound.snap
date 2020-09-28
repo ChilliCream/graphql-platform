@@ -1,0 +1,25 @@
+﻿{
+  "ContentType": "application/json; charset=utf-8",
+  "StatusCode": "OK",
+  "Data": {
+    "age": null
+  },
+  "Errors": [
+    {
+      "message": "The `HasAgeDefined` authorization policy does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "age"
+      ],
+      "extensions": {
+        "code": "AUTH_POLICY_NOT_FOUND"
+      }
+    }
+  ],
+  "Extensions": null
+}

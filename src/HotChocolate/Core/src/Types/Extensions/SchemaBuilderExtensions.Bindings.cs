@@ -29,13 +29,13 @@ namespace HotChocolate
             Action<IBindResolver<TResolver>> configure)
             where TResolver : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
             if (bindingBehavior == BindingBehavior.Explicit
-                && configure == null)
+                && configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }
@@ -76,13 +76,13 @@ namespace HotChocolate
             Action<IBindType<T>> configure)
             where T : class
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
             if (bindingBehavior == BindingBehavior.Explicit
-                && configure == null)
+                && configure is null)
             {
                 throw new ArgumentNullException(nameof(configure));
             }

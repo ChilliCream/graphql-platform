@@ -8,14 +8,14 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barGuidNullable_some: ISingleFilterOfGuidFilter
   OR: [FooSimpleFilter!]
+  barGuidNullable_some: ISingleFilterOfGuidFilter
 }
 
 input ISingleFilterOfGuidFilter {
   AND: [ISingleFilterOfGuidFilter!]
-  element: Uuid
   OR: [ISingleFilterOfGuidFilter!]
+  element: Uuid
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

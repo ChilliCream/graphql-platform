@@ -1,11 +1,11 @@
 using System;
-using System.Threading.Tasks;
+using System.Globalization;
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Sorting;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -64,26 +64,27 @@ namespace HotChocolate.Types
             Type? sortType,
             ITypeSystemMember? sortTypeInstance = null)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
+            FieldMiddleware placeholder = next => context => default;
+            string argumentPlaceholder =
+                "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate(definition =>
+                .OnBeforeCreate((c,definition) =>
                 {
-                    Type argumentType = GetArgumentType(definition, sortType);
+                    Type argumentType = GetArgumentType(definition, sortType, c.TypeInspector);
 
-                    ITypeReference argumentTypeReference =
-                        sortTypeInstance is null
-                            ? (ITypeReference)new ClrTypeReference(
-                                argumentType, TypeContext.Input)
-                            : new SchemaTypeReference(sortTypeInstance);
+                    ITypeReference argumentTypeReference = sortTypeInstance is null
+                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                            argumentType,
+                            TypeContext.Input)
+                        : TypeReference.Create(sortTypeInstance);
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Type = new ClrTypeReference(
-                            argumentType, TypeContext.Input)
+                        Name = argumentPlaceholder,
+                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input)
                     };
 
                     ILazyTypeConfiguration lazyArgumentConfiguration =
@@ -123,24 +124,26 @@ namespace HotChocolate.Types
 
         private static Type GetArgumentType(
             ObjectFieldDefinition definition,
-            Type? filterType)
+            Type? filterType,
+            ITypeInspector typeInspector)
         {
             Type? argumentType = filterType;
 
-            if (argumentType == null)
+            if (argumentType is null)
             {
-                if (!TypeInspector.Default.TryCreate(
-                    definition.ResultType, out TypeInfo typeInfo))
+                if (definition.ResultType is null ||
+                    definition.ResultType == typeof(object) ||
+                    !typeInspector.TryCreateTypeInfo(
+                        definition.ResultType, out ITypeInfo? typeInfo))
                 {
-                    // TODO : resources
-                    throw new ArgumentException(
-                        "Cannot handle the specified type.",
-                        definition.ResultType.FullName);
+                    throw new SchemaException(
+                        SchemaErrorBuilder.New()
+                            .SetMessage("Cannot handle the specified type.")
+                            .SetExtension("fieldName", definition.Name)
+                            .Build());
                 }
 
-                argumentType =
-                    typeof(SortInputType<>).MakeGenericType(
-                        typeInfo.ClrType);
+                argumentType = typeof(SortInputType<>).MakeGenericType(typeInfo.NamedType);
             }
 
             if (argumentType == typeof(object))
@@ -159,7 +162,7 @@ namespace HotChocolate.Types
         }
 
         private static void CompileMiddleware(
-            ICompletionContext context,
+            ITypeCompletionContext context,
             ObjectFieldDefinition definition,
             ITypeReference argumentTypeReference,
             FieldMiddleware placeholder)
@@ -173,7 +176,10 @@ namespace HotChocolate.Types
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(
                     middlewareType,
-                    SortMiddlewareContext.Create(convention.ArgumentName));
+                    (
+                        typeof(SortMiddlewareContext),
+                        SortMiddlewareContext.Create(convention.ArgumentName
+                    )));
 
             int index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;

@@ -1,0 +1,24 @@
+﻿{
+  "errors": [
+    {
+      "message": "Foo cannot serialize the given value.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "stringToFoo"
+      ],
+      "extensions": {
+        "actualValue": "  ",
+        "actualType": "System.String",
+        "code": "EXEC_INVALID_LEAF_VALUE"
+      }
+    }
+  ],
+  "data": {
+    "stringToFoo": null
+  }
+}

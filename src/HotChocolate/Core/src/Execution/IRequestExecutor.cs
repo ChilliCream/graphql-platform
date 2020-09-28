@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,16 +7,19 @@ namespace HotChocolate.Execution
 {
     /// <summary>
     /// This executor processes GraphQL query, mutation and subscription requests for the
-    /// <see cref="Schema" /> to which it is bound to.
+    /// <see cref="IRequestExecutor.Schema" /> to which it is bound to.
     /// </summary>
     public interface IRequestExecutor
-        : IDisposable
     {
         /// <summary>
         /// Gets the schema to which this executor is bound to.
         /// </summary>
-        /// <value></value>
         ISchema Schema { get; }
+
+        /// <summary>
+        /// Gets the services that are bound to this executor.
+        /// </summary>
+        IServiceProvider Services { get; }
 
         /// <summary>
         /// Executes the given GraphQL <paramref name="request" />.
@@ -30,19 +34,39 @@ namespace HotChocolate.Execution
         /// Returns the execution result of the given GraphQL <paramref name="request" />.
         ///
         /// If the request operation is a simple query or mutation the result is a
-        /// <see cref="IReadOnlyQueryResult" />.
+        /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
         ///
         /// If the request operation is a query or mutation where data is deferred, streamed or
-        /// includes live data the result is a <see cref="IResponseStream" /> where each result
-        /// that the <see cref="IResponseStream" /> yields is a <see cref="IReadOnlyQueryResult" />.
+        /// includes live data the result is a <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result
+        /// that the <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
         ///
         /// If the request operation is a subscription the result is a
-        /// <see cref="IResponseStream" /> where each result that the
-        /// <see cref="IResponseStream" /> yields is a
-        /// <see cref="IReadOnlyQueryResult" />.
+        /// <see cref="global::HotChocolate.Execution.IResponseStream" /> where each result that the
+        /// <see cref="global::HotChocolate.Execution.IResponseStream" /> yields is a
+        /// <see cref="global::HotChocolate.Execution.IReadOnlyQueryResult" />.
         /// </returns>
         Task<IExecutionResult> ExecuteAsync(
-            IReadOnlyQueryRequest request,
+            IQueryRequest request,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Executes the given GraphQL <paramref name="requestBatch" />.
+        /// </summary>
+        /// <param name="requestBatch">
+        /// The GraphQL request batch.
+        /// </param>
+        /// <param name="allowParallelExecution">
+        /// Defines if the executor is allowed to execute the batch in parallel.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The cancellation token.
+        /// </param>
+        /// <returns>
+        /// Returns a stream of query results.
+        /// </returns>
+        Task<IBatchQueryResult> ExecuteBatchAsync(
+            IEnumerable<IQueryRequest> requestBatch,
+            bool allowParallelExecution = false,
             CancellationToken cancellationToken = default);
     }
 }

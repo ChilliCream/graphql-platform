@@ -18,6 +18,7 @@ namespace HotChocolate
                 MutationTypeName = "B",
                 SubscriptionTypeName = "C",
                 StrictValidation = false,
+                SortFieldsByName = true,
                 UseXmlDocumentation = false,
                 DefaultBindingBehavior = BindingBehavior.Explicit,
                 FieldMiddleware = FieldMiddlewareApplication.AllFields

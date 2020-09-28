@@ -8,20 +8,6 @@
       "Name": {
         "Kind": "Name",
         "Location": null,
-        "Value": "bar"
-      },
-      "Value": {
-        "Kind": "NullValue",
-        "Location": null,
-        "Value": null
-      }
-    },
-    {
-      "Kind": "ObjectField",
-      "Location": null,
-      "Name": {
-        "Kind": "Name",
-        "Location": null,
         "Value": "bars"
       },
       "Value": {
@@ -38,12 +24,12 @@
                 "Name": {
                   "Kind": "Name",
                   "Location": null,
-                  "Value": "baz"
+                  "Value": "number"
                 },
                 "Value": {
-                  "Kind": "EnumValue",
+                  "Kind": "IntValue",
                   "Location": null,
-                  "Value": "BAR"
+                  "Value": "2"
                 }
               },
               {
@@ -52,12 +38,12 @@
                 "Name": {
                   "Kind": "Name",
                   "Location": null,
-                  "Value": "number"
+                  "Value": "baz"
                 },
                 "Value": {
-                  "Kind": "IntValue",
+                  "Kind": "EnumValue",
                   "Location": null,
-                  "Value": "2"
+                  "Value": "BAR"
                 }
               }
             ]
@@ -72,12 +58,12 @@
                 "Name": {
                   "Kind": "Name",
                   "Location": null,
-                  "Value": "baz"
+                  "Value": "number"
                 },
                 "Value": {
-                  "Kind": "EnumValue",
+                  "Kind": "IntValue",
                   "Location": null,
-                  "Value": "FOO"
+                  "Value": "3"
                 }
               },
               {
@@ -86,17 +72,31 @@
                 "Name": {
                   "Kind": "Name",
                   "Location": null,
-                  "Value": "number"
+                  "Value": "baz"
                 },
                 "Value": {
-                  "Kind": "IntValue",
+                  "Kind": "EnumValue",
                   "Location": null,
-                  "Value": "3"
+                  "Value": "FOO"
                 }
               }
             ]
           }
         ]
+      }
+    },
+    {
+      "Kind": "ObjectField",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "bar"
+      },
+      "Value": {
+        "Kind": "NullValue",
+        "Location": null,
+        "Value": null
       }
     }
   ]

@@ -8,25 +8,25 @@ type Query {
 
 input BarFilter {
   AND: [BarFilter!]
-  baz: String
-  baz_contains: String
-  baz_ends_with: String
-  baz_in: [String]
-  baz_not: String
-  baz_not_contains: String
-  baz_not_ends_with: String
-  baz_not_in: [String]
-  baz_not_starts_with: String
-  baz_starts_with: String
   OR: [BarFilter!]
+  baz: String
+  baz_not: String
+  baz_contains: String
+  baz_not_contains: String
+  baz_starts_with: String
+  baz_not_starts_with: String
+  baz_ends_with: String
+  baz_not_ends_with: String
+  baz_in: [String]
+  baz_not_in: [String]
 }
 
 input FooFilter {
   AND: [FooFilter!]
+  OR: [FooFilter!]
   bar: String @Bar
   barNested: BarFilter
   barNestedSecond: BarFilter
-  OR: [FooFilter!]
 }
 
 directive @Bar(baz: String) on INPUT_FIELD_DEFINITION

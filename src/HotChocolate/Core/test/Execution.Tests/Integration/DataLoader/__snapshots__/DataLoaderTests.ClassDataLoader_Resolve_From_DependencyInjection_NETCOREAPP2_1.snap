@@ -1,0 +1,46 @@
+﻿[
+  {
+    "Data": {
+      "a": "a",
+      "b": "b"
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "a",
+          "b"
+        ]
+      ]
+    },
+    "ContextData": null
+  },
+  {
+    "Data": {
+      "a": "a"
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "a"
+        ]
+      ]
+    },
+    "ContextData": null
+  },
+  {
+    "Data": {
+      "c": "c"
+    },
+    "Errors": null,
+    "Extensions": {
+      "loads": [
+        [
+          "c"
+        ]
+      ]
+    },
+    "ContextData": null
+  }
+]

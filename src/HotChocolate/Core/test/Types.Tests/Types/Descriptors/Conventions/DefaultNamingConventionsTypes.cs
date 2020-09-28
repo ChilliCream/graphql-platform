@@ -4,6 +4,26 @@ namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventionsTests
     {
+        [InlineData("Foo", "FOO")]
+        [InlineData("FooBar", "FOO_BAR")]
+        [InlineData("FooBarBaz", "FOO_BAR_BAZ")]
+        [InlineData("FOOBAR", "FOOBAR")]
+        [InlineData("F", "F")]
+        [InlineData("f", "F")]
+        [Theory]
+        public void GetEnumName(string runtimeName, string expectedSchemaName)
+        {
+            // arrange
+            var namingConventions = new DefaultNamingConventions();
+
+            // act
+            NameString schemaName = namingConventions.GetEnumValueName(runtimeName);
+
+            // assert
+            Assert.Equal(expectedSchemaName, schemaName.Value);
+        }
+
+
         [InlineData(true)]
         [InlineData(1)]
         [InlineData("abc")]
@@ -15,7 +35,7 @@ namespace HotChocolate.Types.Descriptors
             var namingConventions = new DefaultNamingConventions();
 
             // act
-            string result = namingConventions.GetEnumValueDescription(value);
+            var result = namingConventions.GetEnumValueDescription(value);
 
             // assert
             Assert.Null(result);
@@ -28,8 +48,7 @@ namespace HotChocolate.Types.Descriptors
             var namingConventions = new DefaultNamingConventions();
 
             // act
-            string result = namingConventions.GetEnumValueDescription(
-                EnumWithDocEnum.Value1);
+            var result = namingConventions.GetEnumValueDescription(EnumWithDocEnum.Value1);
 
             // assert
             Assert.Equal("Value1 Documentation", result);

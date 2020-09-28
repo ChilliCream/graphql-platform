@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HotChocolate.Internal;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
@@ -6,10 +7,24 @@ namespace HotChocolate.Types.Descriptors.Definitions
         : DefinitionBase
         , IHasDirectiveDefinition
     {
+        private ITypeReference type;
+
         /// <summary>
         /// Gets the field type.
         /// </summary>
-        public ITypeReference Type { get; set; }
+        public ITypeReference Type
+        {
+            get => type;
+            set
+            {
+                if(type is ExtendedTypeReference r && 
+                    r.Type.Kind == ExtendedTypeKind.Extended) 
+                {
+                    
+                }
+                type = value;
+            }
+        }
 
         /// <summary>
         /// Defines if this field is ignored and will

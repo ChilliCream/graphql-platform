@@ -22,7 +22,7 @@ namespace HotChocolate.Types
                     return DirectiveLocation.InputObject;
                 case EnumType type:
                     return DirectiveLocation.Enum;
-                case EnumValue value:
+                case IEnumValue value:
                     return DirectiveLocation.EnumValue;
                 case IOutputField field:
                     return DirectiveLocation.FieldDefinition;

@@ -123,4 +123,16 @@
   <data name="MiddlewareActivator_OneConstructor" xml:space="preserve">
     <value>Middleware classes must have exactly one public constructor.</value>
   </data>
+  <data name="ActivatorHelper_AbstractTypeError" xml:space="preserve">
+    <value>The type {0} is abstract and we cannot use it to compile a service factory from it.</value>
+  </data>
+  <data name="MiddlewareActivator_ParameterNotSupported" xml:space="preserve">
+    <value>The specified parameter `{0}` is not supported</value>
+  </data>
+  <data name="ServiceFactory_CreateInstanceFailed" xml:space="preserve">
+    <value>Could not create an instance of `{0}`</value>
+  </data>
+  <data name="MiddlewareCompiler_ReturnTypeNotSupported" xml:space="preserve">
+    <value>The return type of the invoke method has to be ValueTask or Task.</value>
+  </data>
 </root>

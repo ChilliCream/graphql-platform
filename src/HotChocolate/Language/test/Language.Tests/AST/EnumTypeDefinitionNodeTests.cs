@@ -26,7 +26,7 @@ namespace HotChocolate.Language
                 values);
 
             // assert
-            Assert.Equal(NodeKind.EnumTypeDefinition, type.Kind);
+            Assert.Equal(SyntaxKind.EnumTypeDefinition, type.Kind);
             Assert.Equal(location, type.Location);
             Assert.Equal(name, type.Name);
             Assert.Equal(description, type.Description);
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
                 values);
 
             // assert
-            Assert.Equal(NodeKind.EnumTypeDefinition, type.Kind);
+            Assert.Equal(SyntaxKind.EnumTypeDefinition, type.Kind);
             Assert.Null(type.Location);
             Assert.Equal(name, type.Name);
             Assert.Equal(description, type.Description);

@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Filters.Conventions;
 using HotChocolate.Types.Filters.Extensions;
 
 namespace HotChocolate.Types.Filters
@@ -11,18 +11,29 @@ namespace HotChocolate.Types.Filters
     {
         public StringFilterFieldDescriptor(
             IDescriptorContext context,
-            PropertyInfo property,
-            IFilterConvention filterConventions)
-            : base(FilterKind.String, context, property, filterConventions)
+            PropertyInfo property)
+            : base(context, property)
         {
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Equals,
+                FilterOperationKind.NotEquals,
+
+                FilterOperationKind.Contains,
+                FilterOperationKind.NotContains,
+
+                FilterOperationKind.StartsWith,
+                FilterOperationKind.NotStartsWith,
+
+                FilterOperationKind.EndsWith,
+                FilterOperationKind.NotEndsWith,
+
+                FilterOperationKind.In,
+                FilterOperationKind.NotIn
+            };
         }
 
-        /// <inheritdoc/>
-        public new IStringFilterFieldDescriptor Name(NameString value)
-        {
-            base.Name(value);
-            return this;
-        }
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IStringFilterFieldDescriptor BindFilters(
@@ -145,7 +156,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             return Filters.GetOrAddOperation(operationKind,
-                    () => CreateOperation(operationKind));
+                () => CreateOperation(operationKind));
         }
 
         private StringFilterOperationDescriptor CreateOperation(
@@ -153,7 +164,6 @@ namespace HotChocolate.Types.Filters
         {
             var operation = new FilterOperation(
                 typeof(string),
-                Definition.Kind,
                 operationKind,
                 Definition.Property);
 
@@ -162,8 +172,7 @@ namespace HotChocolate.Types.Filters
                 this,
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
-                operation,
-                FilterConvention);
+                operation);
         }
     }
 }

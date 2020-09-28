@@ -19,7 +19,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
-            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Equal(SyntaxKind.FloatValue, floatValueNode.Kind);
             Assert.Null(floatValueNode.Location);
         }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
-            Assert.Equal(NodeKind.FloatValue, floatValueNode.Kind);
+            Assert.Equal(SyntaxKind.FloatValue, floatValueNode.Kind);
             Assert.Equal(location, floatValueNode.Location);
         }
 
@@ -254,12 +254,12 @@ namespace HotChocolate.Language
             var b = new FloatValueNode(2.0);
 
             // act
-            string astring = a.ToString();
-            string bstring = b.ToString();
+            var astring = a.ToString();
+            var bstring = b.ToString();
 
             // assert
-            Assert.Equal("1.00", astring);
-            Assert.Equal("2.00", bstring);
+            Assert.Equal("1", astring);
+            Assert.Equal("2", bstring);
         }
 
         [Fact]
@@ -273,11 +273,11 @@ namespace HotChocolate.Language
         {
             // act
             var a = new FloatValueNode(2.5);
-            var b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
-            string c = b.Value;
+            FloatValueNode b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
+            var c = b.Value;
 
             // assert
-            Assert.Equal("2.50", c);
+            Assert.Equal("2.5", c);
         }
     }
 }

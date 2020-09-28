@@ -8,7 +8,7 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             int complexity)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -21,7 +21,7 @@ namespace HotChocolate.Types
             int complexity,
             MultiplierPathString multiplier)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
             int complexity,
             params MultiplierPathString[] multipliers)
         {
-            if (descriptor == null)
+            if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }

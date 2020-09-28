@@ -35,7 +35,7 @@ const Tags = styled.ul`
   margin: 0 20px 20px;
   list-style-type: none;
 
-  @media only screen and (min-width: 800px) {
+  @media only screen and (min-width: 820px) {
     margin: 0 50px 20px;
   }
 `;

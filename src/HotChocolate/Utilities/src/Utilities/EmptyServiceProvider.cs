@@ -2,9 +2,8 @@
 
 namespace HotChocolate.Utilities
 {
-    public sealed class EmptyServiceProvider
-        : IServiceProvider
+    public sealed class EmptyServiceProvider : IServiceProvider
     {
-        public object GetService(Type serviceType) => null;
+        public object? GetService(Type serviceType) => null;
     }
 }

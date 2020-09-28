@@ -38,6 +38,9 @@ namespace HotChocolate.Types
                 case NullValueNode _:
                     kind = ValueKind.Null;
                     return true;
+                case VariableNode _:
+                    kind = ValueKind.Unknown;
+                    return true;
                 default:
                     kind = default;
                     return false;
