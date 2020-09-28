@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Stitching</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -44,16 +44,26 @@ namespace HotChocolate.Execution.Processing
 
         public int ProposedTaskCount { get; }
 
+        public IEnumerable<ISelectionVariants> SelectionVariants =>
+            _selectionSets.Values;
+
         public ISelectionSet GetRootSelectionSet() =>
             RootSelectionVariants.GetSelectionSet(RootType);
 
         public ISelectionSet GetSelectionSet(
             SelectionSetNode selectionSet,
-            ObjectType typeContext)
+            IObjectType typeContext)
         {
             return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
                 ? variants.GetSelectionSet(typeContext)
                 : SelectionSet.Empty;
+        }
+
+        public IEnumerable<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
+        {
+            return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
+                ? variants.GetPossibleTypes()
+                : Enumerable.Empty<IObjectType>();
         }
 
         public string Print()
