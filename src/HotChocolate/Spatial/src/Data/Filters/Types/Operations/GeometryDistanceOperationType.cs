@@ -10,8 +10,6 @@ namespace HotChocolate.Data.Spatial.Filters
         protected override void Configure(IFilterInputTypeDescriptor descriptor)
         {
             descriptor.Operation(Geometry).Type<NonNullType<GeometryType>>();
-
-            // TODO: Not sure if this makes sense
             descriptor.Operation(Buffer).Type<FloatType>();
 
             base.Configure(descriptor);

@@ -93,7 +93,7 @@ namespace HotChocolate.Data.Spatial.Filters
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            // Deque last
+            // Dequeue last
             Expression condition = context.GetLevel().Dequeue();
 
             context.PopInstance();

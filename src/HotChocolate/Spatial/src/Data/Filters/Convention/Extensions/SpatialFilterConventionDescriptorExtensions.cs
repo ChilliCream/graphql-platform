@@ -18,8 +18,14 @@ namespace HotChocolate.Data.Spatial.Filters
 
             descriptor.Operation(SpatialFilterOperations.Contains).Name("contains");
             descriptor.Operation(SpatialFilterOperations.Distance).Name("distance");
+            descriptor.Operation(SpatialFilterOperations.Intersects).Name("intersects");
+            descriptor.Operation(SpatialFilterOperations.Overlaps).Name("overlaps");
+            descriptor.Operation(SpatialFilterOperations.Touches).Name("touches");
+            descriptor.Operation(SpatialFilterOperations.Within).Name("within");
+
             descriptor.Operation(SpatialFilterOperations.Buffer).Name("buffer");
             descriptor.Operation(SpatialFilterOperations.Geometry).Name("geometry");
+
             return descriptor;
         }
 

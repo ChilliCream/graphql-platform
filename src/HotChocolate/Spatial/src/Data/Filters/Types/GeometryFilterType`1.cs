@@ -28,6 +28,10 @@ namespace HotChocolate.Data.Spatial.Filters
 
             descriptor.Operation(Contains).Type<GeometryContainsOperationType>();
             descriptor.Operation(Distance).Type<GeometryDistanceOperationType>();
+            descriptor.Operation(Intersects).Type<GeometryIntersectsOperationType>();
+            descriptor.Operation(Overlaps).Type<GeometryOverlapsOperationType>();
+            descriptor.Operation(Touches).Type<GeometryTouchesOperationType>();
+            descriptor.Operation(Within).Type<GeometryWithinOperationType>();
         }
     }
 }
