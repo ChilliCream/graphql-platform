@@ -4,18 +4,20 @@ using HotChocolate.Language;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 using Xunit;
+using static HotChocolate.Data.Spatial.Filters.Expressions.QueryableFilterVisitorGeometryTests.TestModels;
 
 namespace HotChocolate.Data.Spatial.Filters.Expressions
 {
     public class QueryableFilterVisitorGeometryTests
-        : FilterVisitorTestBase
     {
-        [Fact]
-        public void Create_Contains()
+        public class ContainsTests : FilterVisitorTestBase
         {
-            // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                @"
+            [Fact]
+            public void Line_Contains_Point()
+            {
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
                 {
                     bar: {
                         contains: {
@@ -27,105 +29,530 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                         }
                     }
                 }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
-            // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
 
-            // assert
-            var a = new Foo
-            {
-                Bar = new LineString(
-                    new[]
-                    {
+                // assert
+                var a = new Foo
+                {
+                    Bar = new LineString(
+                        new[]
+                        {
                         new Coordinate(10, 20), new Coordinate(20, 20), new Coordinate(30, 20)
-                    })
-            };
-            Assert.True(func(a));
+                        })
+                };
+                Assert.True(func(a));
 
-            var b = new Foo
-            {
-                Bar = new LineString(
-                    new[]
-                    {
+                var b = new Foo
+                {
+                    Bar = new LineString(
+                        new[]
+                        {
                         new Coordinate(10, 10), new Coordinate(20, 10), new Coordinate(30, 10)
-                    })
-            };
-            Assert.False(func(b));
-        }
+                        })
+                };
+                Assert.False(func(b));
+            }
 
-        [Fact]
-        public void Create_Contains_Buffer()
-        {
-            // arrange
-            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                @"
+            [Fact]
+            public void Polygon_Contains_Buffered_Point()
+            {
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
                 {
                     bar: {
                         contains: {
                             geometry: {
                                 type: Point
-                                coordinates: [20, 20]
+                                coordinates: [3, 3]
                             }
-                            buffer: 10
+                            buffer: 2
                             eq: true
                         }
                     }
                 }");
-            ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
-            // act
-            Func<Foo, bool> func = tester.Build<Foo>(value);
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
-            // assert
-            var a = new Foo
-            {
-                Bar = new LineString(
-                    new[]
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(new []
                     {
-                        new Coordinate(10, 20), new Coordinate(20, 20), new Coordinate(30, 20)
-                    })
-            };
-            Assert.True(func(a));
+                        new Coordinate(0, 0),
+                        new Coordinate(0, 6),
+                        new Coordinate(6, 6),
+                        new Coordinate(6, 0),
+                        new Coordinate(0, 0)
+                    }))
+                };
+                Assert.True(func(a), "polygon a does not contain the buffered point");
 
-            var b = new Foo
-            {
-                Bar = new LineString(
-                    new[]
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(new[]
                     {
-                        new Coordinate(10, 10), new Coordinate(20, 10), new Coordinate(30, 10)
-                    })
-            };
-            Assert.True(func(b));
+                        new Coordinate(0, 0),
+                        new Coordinate(0, 6),
+                        new Coordinate(6, 6),
+                        new Coordinate(4, 4),
+                        new Coordinate(6, 0),
+                        new Coordinate(0, 0)
+                    }))
+                };
+                Assert.False(func(b), "polygon c contains the buffered point");
+            }
+        }
 
-            var c = new Foo
+        public class DistanceTests : FilterVisitorTestBase
+        {
+            [Fact]
+            // https://github.com/NetTopologySuite/NetTopologySuite/blob/d0dde923299674e3320e256775b1336e72379e2b/test/NetTopologySuite.Tests.NUnit/Algorithm/DistanceComputerTest.cs#L22-L28
+            public void Point_to_Line()
             {
-                Bar = new LineString(
-                    new[] { new Coordinate(10, 0), new Coordinate(20, 0), new Coordinate(30, 0) })
-            };
-            Assert.False(func(c));
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        distance: {
+                            geometry: {
+                                type: Point
+                                coordinates: [1, 1]
+                            }
+                            eq: 1
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new LineString(
+                        new[]
+                        {
+                        new Coordinate(2, 0), new Coordinate(0, 0), new Coordinate(1, 0)
+                        })
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new LineString(
+                        new[]
+                        {
+                        new Coordinate(0.5, 0.5), new Coordinate(0, 0), new Coordinate(1, 0)
+                        })
+                };
+                Assert.False(func(b));
+            }
+
+            [Fact]
+            public void Line_to_Line()
+            {
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        distance: {
+                            geometry: {
+                                type: LineString
+                                coordinates: [[0, 1], [1, 1], [2, 1]]
+                            }
+                            eq: 1
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new LineString(
+                        new[]
+                        {
+                        new Coordinate(0, 0), new Coordinate(1, 0)
+                        })
+                };
+                Assert.True(func(a));
+            }
         }
 
-        public class Foo
-        {
-            [GraphQLType(typeof(GeometryType))]
-            public Geometry Bar { get; set; }
+        public class IntersectTests: FilterVisitorTestBase {
+            [Fact]
+            public void Point_in_Poly() {
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        intersects: {
+                            geometry: {
+                                type: Point
+                                coordinates: [1, 1]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, 2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, -2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.False(func(b));
+            }
+
+            [Fact]
+            public void Line_in_Poly()
+            {
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        intersects: {
+                            geometry: {
+                                type: LineString
+                                coordinates: [[1, 1], [3, 1]]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, 2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, -2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.False(func(b));
+            }
+
+            [Fact]
+            public void Poly_in_Poly()
+            {
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        intersects: {
+                            geometry: {
+                                type: Polygon
+                                coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, 2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, -2),
+                            new Coordinate(2, -1),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.False(func(b));
+            }
         }
 
-        public class FooNullable
+        public class OverlapTests : FilterVisitorTestBase
         {
-            [GraphQLType(typeof(GeometryType))]
-            public Geometry Bar { get; set; }
+            [Fact]
+            public void Line_and_Line()
+            {
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        overlaps: {
+                            geometry: {
+                                type: LineString
+                                coordinates: [[0, 0], [1, 2], [3, 1]]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new LineString(new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, 2),
+                            new Coordinate(2, 0)
+                        }
+                    )
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new LineString(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, -2),
+                            new Coordinate(2, 0)
+                        }
+                    )
+                };
+                Assert.False(func(b));
+            }
+
+            [Fact]
+            public void Poly_and_Poly()
+            {
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        overlaps: {
+                            geometry: {
+                                type: Polygon
+                                coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, 2),
+                            new Coordinate(2, 0),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(
+                        new[] {
+                            new Coordinate(0, 0),
+                            new Coordinate(1, -2),
+                            new Coordinate(2, -1),
+                            new Coordinate(0, 0)
+                        }
+                    ))
+                };
+                Assert.False(func(b));
+            }
         }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
+        public class WithinTests : FilterVisitorTestBase
         {
+            [Fact]
+            public void Point_Within_Line()
+            {
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        within: {
+                            geometry: {
+                                type: LineString
+                                coordinates: [[10, 20], [20, 20], [30, 20]]
+                            }
+                            eq: true
+                        }
+                    }
+                }");
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Point(20, 20)
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Point(20, 30)
+                };
+                Assert.False(func(b));
+            }
+
+            [Fact]
+            public void Polygon_Within_Buffered_Point()
+            {
+                // arrange
+                IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+                    @"
+                {
+                    bar: {
+                        within: {
+                            geometry: {
+                                type: Point
+                                coordinates: [3, 3]
+                            }
+                            buffer: 5
+                            eq: true
+                        }
+                    }
+                }");
+
+                ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
+
+                // act
+                Func<Foo, bool> func = tester.Build<Foo>(value);
+
+                // assert
+                var a = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(0, 2),
+                        new Coordinate(2, 2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
+                };
+                Assert.True(func(a));
+
+                var b = new Foo
+                {
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(0, 9),
+                        new Coordinate(9, 9),
+                        new Coordinate(3, 3),
+                        new Coordinate(9, 0),
+                        new Coordinate(0, 0)
+                    }))
+                };
+                Assert.False(func(b));
+            }
         }
 
-        public class FooNullableFilterType
-            : FilterInputType<FooNullable>
+        public class TestModels
         {
+            public class Foo
+            {
+                [GraphQLType(typeof(GeometryType))]
+                public Geometry Bar { get; set; }
+            }
+
+            public class FooNullable
+            {
+                [GraphQLType(typeof(GeometryType))]
+                public Geometry Bar { get; set; }
+            }
+
+            public class FooFilterType
+                : FilterInputType<Foo>
+            {
+            }
+
+            public class FooNullableFilterType
+                : FilterInputType<FooNullable>
+            {
+            }
         }
     }
 }
