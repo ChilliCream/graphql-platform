@@ -156,4 +156,7 @@
   <data name="FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
 </root>

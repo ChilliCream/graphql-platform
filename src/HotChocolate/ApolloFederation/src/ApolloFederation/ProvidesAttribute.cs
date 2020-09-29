@@ -39,7 +39,7 @@ namespace HotChocolate.ApolloFederation
         }
 
         /// <summary>
-        /// Gets the fields that is guaranteed to be selectable by the gateway.
+        /// Gets the fields that are guaranteed to be selectable by the gateway.
         /// Grammatically, a field set is a selection set minus the braces.
         /// </summary>
         public string FieldSet { get; }

@@ -148,9 +148,9 @@ namespace HotChocolate.Types
         }
 
         /// <summary>
-        /// The @provides directive is used to annotate the expected returned
-        /// fieldset from a field on a base type that is guaranteed to be
-        /// selectable by the gateway.
+        /// Adds the @provides directive which is used to annotate the expected returned
+        /// fieldset from a field on a base type that is guaranteed to be selectable by
+        /// the gateway.
         ///
         /// <example>
         /// # extended from the Users service
@@ -167,11 +167,18 @@ namespace HotChocolate.Types
         /// <param name="descriptor">
         /// The object field descriptor on which this directive shall be annotated.
         /// </param>
+        /// <param name="fieldSet">
+        /// The fields that are guaranteed to be selectable by the gateway.
+        /// Grammatically, a field set is a selection set minus the braces.
+        /// </param>
         /// <returns>
         /// Returns the object field descriptor.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// The <paramref name="descriptor"/> is <c>null</c>.
+        /// <paramref name="descriptor"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="fieldSet"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
         public static IObjectFieldDescriptor Provides(
             this IObjectFieldDescriptor descriptor,
@@ -182,13 +189,18 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            if (string.IsNullOrEmpty(fieldSet))
+            {
+                throw new ArgumentException(
+                    FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty,
+                    nameof(fieldSet));
+            }
+
             return descriptor.Directive(
                 WellKnownTypeNames.Provides,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)
-                )
-            );
+                    new FieldSetType().ParseResult(fieldSet)));
         }
     }
 }
