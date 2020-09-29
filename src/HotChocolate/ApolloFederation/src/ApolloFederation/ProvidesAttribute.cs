@@ -21,10 +21,7 @@ namespace HotChocolate.ApolloFederation
     /// }
     /// </example>
     /// </summary>
-    [AttributeUsage(
-        AttributeTargets.Property |
-        AttributeTargets.Method)]
-    public sealed class ProvidesAttribute : DescriptorAttribute
+    public sealed class ProvidesAttribute : ObjectFieldDescriptorAttribute
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ProvidesAttribute"/>.
@@ -44,21 +41,17 @@ namespace HotChocolate.ApolloFederation
         /// </summary>
         public string FieldSet { get; }
 
-        protected override void TryConfigure(
+        public override void OnConfigure(
             IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider element)
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
-            if (descriptor is IObjectFieldDescriptor ofd &&
-                element is MemberInfo member)
+            if (FieldSet is null!)
             {
-                if (FieldSet is null!)
-                {
-                    throw Provides_FieldSet_CannotBeEmpty(member);
-                }
-
-                ofd.Provides(FieldSet);
+                throw Provides_FieldSet_CannotBeEmpty(member);
             }
+
+            descriptor.Provides(FieldSet);
         }
     }
 }

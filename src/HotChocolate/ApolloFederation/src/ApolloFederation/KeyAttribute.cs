@@ -18,6 +18,7 @@ namespace HotChocolate.ApolloFederation
     /// </summary>
     [AttributeUsage(
         AttributeTargets.Class |
+        AttributeTargets.Struct |
         AttributeTargets.Interface |
         AttributeTargets.Property |
         AttributeTargets.Method)]

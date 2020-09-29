@@ -21,7 +21,6 @@ namespace HotChocolate.ApolloFederation
     /// }
     /// </example>
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property)]
     public sealed class RequiresAttribute : ObjectFieldDescriptorAttribute
     {
         /// <summary>
