@@ -34,9 +34,9 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateExternalToTypeFieldCodeFirst()
         {
-            Snapshot.FullName();
-
             // arrange
+            Snapshot.FullName();
+            
             var schema = Schema.Create(
                 t =>
                 {
@@ -76,9 +76,9 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateExternalToTypeFieldSchemaFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
@@ -109,10 +109,10 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateExternalToTypeFieldPureCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query>()
                 .Create();

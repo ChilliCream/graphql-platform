@@ -33,6 +33,7 @@ namespace HotChocolate.ApolloFederation
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("Review", t.Name),
@@ -62,6 +63,7 @@ namespace HotChocolate.ApolloFederation
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("User", t.Name));
@@ -87,13 +89,13 @@ namespace HotChocolate.ApolloFederation
                     type Address {
                         matchCode: String!
                     }
-                "
-                )
+                ")
                 .Use(next => context => default)
                 .Create();
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("User", t.Name));
@@ -103,13 +105,14 @@ namespace HotChocolate.ApolloFederation
         public void TestEntityTypeCodeFirstClassKeyAttributeSingleKey()
         {
             // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<Review>>()
                 .Create();
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("Review", t.Name));
@@ -119,13 +122,14 @@ namespace HotChocolate.ApolloFederation
         public void TestEntityTypeCodeFirstClassKeyAttributeMultiKey()
         {
             // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<UserWithClassAttribute>>()
                 .Create();
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("UserWithClassAttribute", t.Name),
@@ -136,13 +140,14 @@ namespace HotChocolate.ApolloFederation
         public void TestEntityTypeCodeFirstPropertyKeyAttributes()
         {
             // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<UserWithPropertyAttributes>>()
                 .Create();
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("UserWithPropertyAttributes", t.Name));
@@ -152,13 +157,14 @@ namespace HotChocolate.ApolloFederation
         public void TestEntityTypeCodeFirstClassKeyAttributeNestedKey()
         {
             // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<UserWithNestesKeyClassAttribute>>()
                 .Create();
 
             // act
             EntityType entityType = schema.GetType<EntityType>("_Entity");
+
             // assert
             Assert.Collection(entityType.Types.Values,
                 t => Assert.Equal("UserWithNestesKeyClassAttribute", t.Name));
@@ -167,7 +173,7 @@ namespace HotChocolate.ApolloFederation
 
     public class Query<T>
     {
-        public T GetEntity(int id) => default;
+        public T GetEntity(int id) => default!;
     }
 
     [Key("id idCode")]

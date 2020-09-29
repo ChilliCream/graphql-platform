@@ -37,9 +37,9 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateKeyToObjectTypeCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
             var schema = Schema.Create(
                 t =>
                 {
@@ -69,6 +69,7 @@ namespace HotChocolate.ApolloFederation.Directives
 
             // act
             ObjectType testType = schema.GetType<ObjectType>("TestType");
+
             // assert
             Assert.Collection(testType.Directives,
                 item =>
@@ -87,9 +88,9 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateKeyToObjectTypeSchemaFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
@@ -131,10 +132,10 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateKeyToObjectTypePureCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<TestTypeClassDirective>>()
                 .Create();
@@ -160,10 +161,10 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateKeyToClassAttributePureCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<TestTypePropertyDirective>>()
                 .Create();
@@ -189,10 +190,10 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateKeyToClassAttributesPureCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query<TestTypePropertyDirectives>>()
                 .Create();

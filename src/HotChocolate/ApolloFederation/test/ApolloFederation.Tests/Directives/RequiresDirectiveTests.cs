@@ -32,12 +32,13 @@ namespace HotChocolate.ApolloFederation.Directives
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
 
         }
-                [Fact]
+
+        [Fact]
         public void AnnotateProvidesToFieldSchemaFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
@@ -81,9 +82,9 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateProvidesToFieldCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
             var schema = Schema.Create(
                 t =>
                 {
@@ -143,10 +144,10 @@ namespace HotChocolate.ApolloFederation.Directives
         [Fact]
         public void AnnotateProvidesToClassAttributePureCodeFirst()
         {
+            // arrange
             Snapshot.FullName();
 
-            // arrange
-            var schema = SchemaBuilder.New()
+            ISchema schema = SchemaBuilder.New()
                 .AddApolloFederation()
                 .AddQueryType<Query>()
                 .Create();
