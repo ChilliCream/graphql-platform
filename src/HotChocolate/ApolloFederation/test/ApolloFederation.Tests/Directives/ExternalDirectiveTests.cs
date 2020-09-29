@@ -1,9 +1,9 @@
 using System.Linq;
-using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.ApolloFederation
+namespace HotChocolate.ApolloFederation.Directives
 {
     public class ExternalDirectiveTests
         : FederationTypesTestBase
@@ -20,48 +20,65 @@ namespace HotChocolate.ApolloFederation
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals("external"));
+                    t => t.Name.Equals(WellKnownTypeNames.External));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<ExternalDirectiveType>(directive);
-            Assert.Equal("external", directive!.Name);
+            Assert.Equal(WellKnownTypeNames.External, directive!.Name);
             Assert.Empty(directive!.Arguments);
             Assert.Collection(directive!.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
         }
 
         [Fact]
-        public void AnnotateExternalToObjectFieldCodeFirst()
+        public void AnnotateExternalToTypeFieldCodeFirst()
         {
             // arrange
-            // act
+            Snapshot.FullName();
+            
             var schema = Schema.Create(
                 t =>
                 {
-                    t.RegisterQueryType(new ObjectType(
-                        o => o.Name("Query")
-                            .Field("field")
-                            .Argument("a", a => a.Type<StringType>())
-                            .Type<StringType>()
-                            .External()
-                    ));
+                    t.RegisterQueryType(
+                        new ObjectType(
+                            o => o.Name("Query")
+                                .Field("field")
+                                .Argument(
+                                    "a",
+                                    a => a.Type<StringType>()
+                                )
+                                .Type<StringType>()
+                                .External()
+                        )
+                    );
 
                     t.RegisterDirective<ExternalDirectiveType>();
                     t.Use(next => context => default);
-                });
+                }
+            );
+
+            // act
+            ObjectType query = schema.GetType<ObjectType>("Query");
 
             // assert
-            ObjectType query = schema.GetType<ObjectType>("Query");
-            Assert.Collection(query.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name));
+            Assert.Collection(
+                query.Fields["field"].Directives,
+                item => Assert.Equal(
+                    WellKnownTypeNames.External,
+                    item.Name
+                )
+            );
+            schema.ToString().MatchSnapshot();
         }
 
+
         [Fact]
-        public void AnnotateExternalToInterfaceFieldSchemaFirst()
+        public void AnnotateExternalToTypeFieldSchemaFirst()
         {
             // arrange
-            // act
+            Snapshot.FullName();
+
             ISchema schema = SchemaBuilder.New()
                 .AddDocumentFromString(
                     @"
@@ -69,19 +86,62 @@ namespace HotChocolate.ApolloFederation
                         field(a: Int): String
                             @external
                     }
-
-                    interface IQuery {
-                        field(a: Int): String
-                            @external
-                    }")
+                    "
+                )
                 .AddDirectiveType<ExternalDirectiveType>()
                 .Use(next => context => default)
                 .Create();
 
+            // act
+            ObjectType queryInterface = schema.GetType<ObjectType>("Query");
+
             // assert
-            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
-            Assert.Collection(queryInterface.Fields["field"].Directives,
-                item => Assert.Equal("external", item.Name));
+            Assert.Collection(
+                queryInterface.Fields["field"].Directives,
+                item => Assert.Equal(
+                    WellKnownTypeNames.External,
+                    item.Name
+                )
+            );
+            schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public void AnnotateExternalToTypeFieldPureCodeFirst()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            ISchema schema = SchemaBuilder.New()
+                .AddApolloFederation()
+                .AddQueryType<Query>()
+                .Create();
+
+            // act
+            ObjectType query = schema.GetType<ObjectType>("User");
+
+            // assert
+            Assert.Collection(
+                query.Fields["idCode"].Directives,
+                item => Assert.Equal(
+                    WellKnownTypeNames.External,
+                    item.Name
+                )
+            );
+            schema.ToString().MatchSnapshot();
+        }
+    }
+
+    public class Query
+    {
+        public User GetEntity(int id) => default;
+    }
+
+    public class User
+    {
+        [Key]
+        public int Id { get; set; }
+        [External]
+        public string IdCode { get; set; }
     }
 }

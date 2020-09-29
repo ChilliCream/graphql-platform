@@ -1,5 +1,6 @@
-using HotChocolate.ApolloFederation.Properties;
+using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -16,15 +17,12 @@ namespace HotChocolate.ApolloFederation
     /// }
     /// </example>
     /// </summary>
-    public sealed class ExternalDirectiveType
-        : DirectiveType
+    public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
     {
-        protected override void Configure(IDirectiveTypeDescriptor descriptor)
-        {
-            descriptor
-                .Name(WellKnownTypeNames.External)
-                .Description(FederationResources.ExternalDirective_Description)
-                .Location(DirectiveLocation.FieldDefinition);
-        }
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member) =>
+            descriptor.External();
     }
 }

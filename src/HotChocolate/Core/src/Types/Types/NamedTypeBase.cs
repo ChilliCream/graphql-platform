@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Introspection;
 
 #nullable enable
 

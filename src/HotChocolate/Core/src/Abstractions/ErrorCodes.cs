@@ -40,6 +40,44 @@ namespace HotChocolate
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         }
 
+        public static class Scalars
+        {
+            /// <summary>
+            /// The runtime type is not supported by the scalars ParseValue method.
+            /// </summary>
+            public const string InvalidRuntimeType = "HC0001";
+
+            /// <summary>
+            /// Either the syntax node is invalid when parsing the literal or the syntax
+            /// node value has an invalid format.
+            /// </summary>
+            public const string InvalidSyntaxFormat = "HC0002";
+        }
+
+        public static class Apollo
+        {
+            public static class Federation
+            {
+                /// <summary>
+                /// The key attribute is used on the type level without specifying the the
+                /// fieldset.
+                /// </summary>
+                public const string KeyFieldSetNullOrEmpty = "HC0003";
+
+                /// <summary>
+                /// The provides attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string ProvidesFieldSetNullOrEmpty = "HC0004";
+
+                /// <summary>
+                /// The requires attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string RequiresFieldSetNullOrEmpty = "HC0005";
+            }
+        }
+
         public static class Filtering
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";

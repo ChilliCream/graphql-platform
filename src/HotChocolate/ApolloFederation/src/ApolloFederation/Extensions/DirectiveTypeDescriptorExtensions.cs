@@ -1,16 +1,15 @@
 using HotChocolate.Types;
+using static HotChocolate.ApolloFederation.WellKnownArgumentNames;
 
 namespace HotChocolate.ApolloFederation
 {
     internal static class DirectiveTypeDescriptorExtensions
     {
-        private const string _fieldsArgument = "fields";
-
         public static IDirectiveTypeDescriptor FieldsArgument(
             this IDirectiveTypeDescriptor descriptor)
         {
             descriptor
-                .Argument(_fieldsArgument)
+                .Argument(Fields)
                 .Type<NonNullType<FieldSetType>>();
 
             return descriptor;
