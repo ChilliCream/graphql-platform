@@ -21,12 +21,12 @@ namespace HotChocolate.ApolloFederation.Directives
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals(TypeNames.External));
+                    t => t.Name.Equals(WellKnownTypeNames.External));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<ExternalDirectiveType>(directive);
-            Assert.Equal(TypeNames.External, directive!.Name);
+            Assert.Equal(WellKnownTypeNames.External, directive!.Name);
             Assert.Empty(directive!.Arguments);
             Assert.Collection(directive!.Locations,
                 t => Assert.Equal(DirectiveLocation.FieldDefinition, t));
@@ -66,7 +66,7 @@ namespace HotChocolate.ApolloFederation.Directives
             Assert.Collection(
                 query.Fields["field"].Directives,
                 item => Assert.Equal(
-                    TypeNames.External,
+                    WellKnownTypeNames.External,
                     item.Name
                 )
             );
@@ -100,7 +100,7 @@ namespace HotChocolate.ApolloFederation.Directives
             Assert.Collection(
                 queryInterface.Fields["field"].Directives,
                 item => Assert.Equal(
-                    TypeNames.External,
+                    WellKnownTypeNames.External,
                     item.Name
                 )
             );
@@ -125,7 +125,7 @@ namespace HotChocolate.ApolloFederation.Directives
             Assert.Collection(
                 query.Fields["idCode"].Directives,
                 item => Assert.Equal(
-                    TypeNames.External,
+                    WellKnownTypeNames.External,
                     item.Name
                 )
             );

@@ -9,12 +9,12 @@ namespace HotChocolate.ApolloFederation
     [AttributeUsage(AttributeTargets.Property)]
     public class RequiresAttribute : DescriptorAttribute
     {
-        public string FieldSet { get; }
-
         public RequiresAttribute(string fieldSet)
         {
             FieldSet = fieldSet;
         }
+
+        public string FieldSet { get; }
 
         protected override void TryConfigure(
             IDescriptorContext context,

@@ -14,7 +14,7 @@ namespace HotChocolate.ApolloFederation
             var type = new FieldSetType();
 
             // assert
-            Assert.Equal(TypeNames.FieldSet, type.Name);
+            Assert.Equal(WellKnownTypeNames.FieldSet, type.Name);
         }
 
         [Fact]

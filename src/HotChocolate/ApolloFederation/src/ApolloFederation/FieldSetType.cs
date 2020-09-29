@@ -14,11 +14,11 @@ namespace HotChocolate.ApolloFederation
     /// This means it can represent a single field "upc", multiple fields "id countryCode",
     /// and even nested selection sets "id organization { id }".
     /// </summary>
-    public class FieldSetType
+    public sealed class FieldSetType
         : ScalarType<SelectionSetNode, StringValueNode>
     {
         public FieldSetType()
-            : base(TypeNames.FieldSet, BindingBehavior.Explicit)
+            : base(WellKnownTypeNames.FieldSet, BindingBehavior.Explicit)
         {
             Description = FederationResources.FieldsetType_Description;
         }

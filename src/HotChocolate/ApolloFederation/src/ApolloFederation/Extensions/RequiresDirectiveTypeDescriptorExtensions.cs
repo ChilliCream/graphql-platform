@@ -16,7 +16,7 @@ namespace HotChocolate.ApolloFederation.Extensions
             }
 
             return descriptor.Directive(
-                TypeNames.Requires,
+                WellKnownTypeNames.Requires,
                 new ArgumentNode(
                     "fields",
                     new FieldSetType().ParseResult(fieldSet)

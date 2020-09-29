@@ -1,6 +1,6 @@
 namespace HotChocolate.ApolloFederation
 {
-    internal static class TypeNames
+    internal static class WellKnownTypeNames
     {
         public const string External = "external";
         public const string Requires = "requires";

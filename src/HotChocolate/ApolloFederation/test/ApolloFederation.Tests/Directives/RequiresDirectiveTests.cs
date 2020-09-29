@@ -21,12 +21,12 @@ namespace HotChocolate.ApolloFederation.Directives
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals(TypeNames.Requires));
+                    t => t.Name.Equals(WellKnownTypeNames.Requires));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<RequiresDirectiveType>(directive);
-            Assert.Equal(TypeNames.Requires, directive!.Name);
+            Assert.Equal(WellKnownTypeNames.Requires, directive!.Name);
             Assert.Single(directive.Arguments);
             this.AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,
@@ -69,7 +69,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 providesDirective =>
                 {
                     Assert.Equal(
-                        TypeNames.Requires,
+                        WellKnownTypeNames.Requires,
                         providesDirective.Name
                     );
                     Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
@@ -131,7 +131,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 providesDirective =>
                 {
                     Assert.Equal(
-                        TypeNames.Requires,
+                        WellKnownTypeNames.Requires,
                         providesDirective.Name
                     );
                     Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());
@@ -160,7 +160,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 providesDirective =>
                 {
                     Assert.Equal(
-                        TypeNames.Requires,
+                        WellKnownTypeNames.Requires,
                         providesDirective.Name
                     );
                     Assert.Equal("fields", providesDirective.ToNode().Arguments[0].Name.ToString());

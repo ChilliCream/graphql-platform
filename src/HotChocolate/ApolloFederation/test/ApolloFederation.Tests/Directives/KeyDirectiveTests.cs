@@ -21,12 +21,12 @@ namespace HotChocolate.ApolloFederation.Directives
             // act
             DirectiveType? directive =
                 schema.DirectiveTypes.FirstOrDefault(
-                    t => t.Name.Equals(TypeNames.Key));
+                    t => t.Name.Equals(WellKnownTypeNames.Key));
 
             // assert
             Assert.NotNull(directive);
             Assert.IsType<KeyDirectiveType>(directive);
-            Assert.Equal(TypeNames.Key, directive!.Name);
+            Assert.Equal(WellKnownTypeNames.Key, directive!.Name);
             Assert.Single(directive.Arguments);
             AssertDirectiveHasFieldsArgument(directive);
             Assert.Collection(directive.Locations,
@@ -75,7 +75,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 item =>
                 {
                     Assert.Equal(
-                        TypeNames.Key,
+                        WellKnownTypeNames.Key,
                         item.Name
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
@@ -119,7 +119,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 item =>
                 {
                     Assert.Equal(
-                        TypeNames.Key,
+                        WellKnownTypeNames.Key,
                         item.Name
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
@@ -148,7 +148,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 item =>
                 {
                     Assert.Equal(
-                        TypeNames.Key,
+                        WellKnownTypeNames.Key,
                         item.Name
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
@@ -177,7 +177,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 item =>
                 {
                     Assert.Equal(
-                        TypeNames.Key,
+                        WellKnownTypeNames.Key,
                         item.Name
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());
@@ -206,7 +206,7 @@ namespace HotChocolate.ApolloFederation.Directives
                 item =>
                 {
                     Assert.Equal(
-                        TypeNames.Key,
+                        WellKnownTypeNames.Key,
                         item.Name
                     );
                     Assert.Equal("fields", item.ToNode().Arguments[0].Name.ToString());

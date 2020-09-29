@@ -9,7 +9,7 @@ namespace HotChocolate.ApolloFederation
       protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor
-                .Name(TypeNames.Requires)
+                .Name(WellKnownTypeNames.Requires)
                 .Description(FederationResources.RequiresDirective_Description)
                 .Location(DirectiveLocation.FieldDefinition)
                 .FieldsArgument();
