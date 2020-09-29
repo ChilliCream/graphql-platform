@@ -147,6 +147,9 @@
   <data name="ThrowHelper_Provides_FieldSet_CannotBeEmpty" xml:space="preserve">
     <value>FieldSet is null or empty on type</value>
   </data>
+  <data name="ThrowHelper_Requires_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>FieldSet is null or empty on type</value>
+  </data>
   <data name="FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>

@@ -60,15 +60,21 @@ namespace HotChocolate
             {
                 /// <summary>
                 /// The key attribute is used on the type level without specifying the the
-                /// field set.
+                /// fieldset.
                 /// </summary>
                 public const string KeyFieldSetNullOrEmpty = "HC0003";
 
                 /// <summary>
-                /// The provides attribute is used and the field set is set to <c>null</c> or
+                /// The provides attribute is used and the fieldset is set to <c>null</c> or
                 /// <see cref="string.Empty"/>.
                 /// </summary>
                 public const string ProvidesFieldSetNullOrEmpty = "HC0004";
+
+                /// <summary>
+                /// The requires attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string RequiresFieldSetNullOrEmpty = "HC0005";
             }
         }
 

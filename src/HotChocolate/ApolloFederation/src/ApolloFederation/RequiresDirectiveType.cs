@@ -21,7 +21,7 @@ namespace HotChocolate.ApolloFederation
     public sealed class RequiresDirectiveType
         : DirectiveType
     {
-      protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor
                 .Name(WellKnownTypeNames.Requires)

@@ -42,7 +42,7 @@ namespace HotChocolate.ApolloFederation
 
         /// <summary>
         /// The key attribute is used on the type level without specifying the the
-        /// field set.
+        /// fieldset.
         /// </summary>
         public static SchemaException Key_FieldSet_CannotBeEmpty(
             Type type) =>
@@ -55,7 +55,7 @@ namespace HotChocolate.ApolloFederation
                     .Build());
 
         /// <summary>
-        /// The provides attribute is used and the field set is set to <c>null</c> or
+        /// The provides attribute is used and the fieldset is set to <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </summary>
         public static SchemaException Provides_FieldSet_CannotBeEmpty(
@@ -64,6 +64,19 @@ namespace HotChocolate.ApolloFederation
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_Provides_FieldSet_CannotBeEmpty)
                     .SetCode(ErrorCodes.Apollo.Federation.ProvidesFieldSetNullOrEmpty)
+                    .SetExtension(nameof(member), member)
+                    .Build());
+
+        /// <summary>
+        /// The requires attribute is used and the fieldset is set to <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </summary>
+        public static SchemaException Requires_FieldSet_CannotBeEmpty(
+            MemberInfo member) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(ThrowHelper_Requires_FieldSet_CannotBeEmpty)
+                    .SetCode(ErrorCodes.Apollo.Federation.RequiresFieldSetNullOrEmpty)
                     .SetExtension(nameof(member), member)
                     .Build());
     }
