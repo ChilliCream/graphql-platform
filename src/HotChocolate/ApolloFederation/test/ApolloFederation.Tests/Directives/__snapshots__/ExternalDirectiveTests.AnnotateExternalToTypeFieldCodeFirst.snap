@@ -1,0 +1,13 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  field(a: String): String @external
+}
+
+"Directive to indicate that a field is owned by another service, for example via Apollo federation."
+directive @external on FIELD_DEFINITION
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
