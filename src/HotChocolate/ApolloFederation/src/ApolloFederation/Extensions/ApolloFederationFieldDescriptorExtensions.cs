@@ -88,7 +88,7 @@ namespace HotChocolate.Types
                 WellKnownTypeNames.Key,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)));
+                    new StringValueNode(fieldSet)));
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace HotChocolate.Types
                 WellKnownTypeNames.Requires,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)));
+                    new StringValueNode(fieldSet)));
         }
 
         /// <summary>
@@ -200,7 +200,7 @@ namespace HotChocolate.Types
                 WellKnownTypeNames.Provides,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)));
+                    new StringValueNode(fieldSet)));
         }
     }
 }
