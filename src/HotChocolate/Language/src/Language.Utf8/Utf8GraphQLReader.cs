@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         private ReadOnlySpan<byte> _graphQLData;
         private ReadOnlySpan<byte> _value;
         private FloatFormat? _floatFormat;
-        private int _length;
+        private readonly int _length;
         private int _position;
         private TokenKind _kind;
         private int _start;

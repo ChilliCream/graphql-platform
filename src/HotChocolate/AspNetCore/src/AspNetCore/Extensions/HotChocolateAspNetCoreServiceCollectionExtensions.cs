@@ -19,7 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddGraphQLCore();
-            services.TryAddSingleton<IHttpResultSerializer, DefaultHttpResultSerializer>();
+            services.TryAddSingleton<IHttpResultSerializer>(
+                new DefaultHttpResultSerializer());
             services.TryAddSingleton<IHttpRequestParser>(
                 sp => new DefaultHttpRequestParser(
                     sp.GetRequiredService<IDocumentCache>(),

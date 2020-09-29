@@ -9,7 +9,6 @@
     <PackageId>HotChocolate.Execution</PackageId>
     <AssemblyName>HotChocolate.Execution</AssemblyName>
     <RootNamespace>HotChocolate.Execution</RootNamespace>
-    <Description></Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,3 +1,5 @@
+using HotChocolate.Execution;
+
 namespace HotChocolate.AspNetCore.Utilities
 {
     internal static class ErrorHelper
@@ -13,5 +15,11 @@ namespace HotChocolate.AspNetCore.Utilities
                 .SetMessage("The GraphQL batch request has no elements.")
                 .SetCode(ErrorCodes.Server.RequestInvalid)
                 .Build();
+
+        public static IQueryResult ResponseTypeNotSupported() =>
+            QueryResultBuilder.CreateError(
+                ErrorBuilder.New()
+                    .SetMessage("The response type is not supported.")
+                    .Build());
     }
 }

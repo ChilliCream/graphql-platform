@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
 
             public bool Return(FieldInfoListBuffer obj)
             {
-                obj.Reset();
+                obj.Clear();
                 return true;
             }
         }

@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Batching;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -86,10 +86,18 @@ namespace HotChocolate.Execution
                     throw new InvalidOperationException();
                 }
 
-                if(scope is not null && context.Result is SubscriptionResult result)
+                if (scope is not null)
                 {
-                    context.Result = new SubscriptionResult(result, scope);
-                    scope = null;
+                    if (context.Result is DeferredQueryResult deferred)
+                    {
+                        context.Result = new DeferredQueryResult(deferred, scope);
+                        scope = null;
+                    }
+                    else if (context.Result is SubscriptionResult result)
+                    {
+                        context.Result = new SubscriptionResult(result, scope);
+                        scope = null;
+                    }
                 }
 
                 return context.Result;

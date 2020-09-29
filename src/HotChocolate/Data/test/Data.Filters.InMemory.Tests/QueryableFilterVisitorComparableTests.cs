@@ -8,16 +8,20 @@ namespace HotChocolate.Data.Filters
     public class QueryableFilterVisitorComparableTests
         : IClassFixture<SchemaCache>
     {
-        private static readonly Foo[] _fooEntities = new[]{
+        private static readonly Foo[] _fooEntities = new[]
+        {
             new Foo { BarShort = 12 },
             new Foo { BarShort = 14 },
-            new Foo { BarShort = 13 }};
+            new Foo { BarShort = 13 }
+        };
 
-        private static readonly FooNullable[] _fooNullableEntities = new[]{
+        private static readonly FooNullable[] _fooNullableEntities = new[]
+        {
             new FooNullable { BarShort = 12 },
             new FooNullable { BarShort = null },
             new FooNullable { BarShort = 14 },
-            new FooNullable { BarShort = 13 }};
+            new FooNullable { BarShort = 13 }
+        };
 
         private readonly SchemaCache _cache;
 
