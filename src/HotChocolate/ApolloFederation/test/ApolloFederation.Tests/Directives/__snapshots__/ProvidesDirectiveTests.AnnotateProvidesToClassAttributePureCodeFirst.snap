@@ -15,6 +15,7 @@ type Review @key(fields: "id") {
   product: Product! @provides(fields: "name")
 }
 
+"Union of all types that key directive applied. This information is needed by the Apollo federation gateway."
 union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
