@@ -18,18 +18,12 @@ namespace HotChocolate.ApolloFederation
     /// }
     /// </example>
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
-    public sealed class ExternalAttribute : DescriptorAttribute
+    public sealed class ExternalAttribute : ObjectFieldDescriptorAttribute
     {
-        protected override void TryConfigure(
+        public override void OnConfigure(
             IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider element)
-        {
-            if (descriptor is IObjectFieldDescriptor ofd)
-            {
-                ofd.External();
-            }
-        }
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member) =>
+            descriptor.External();
     }
 }
