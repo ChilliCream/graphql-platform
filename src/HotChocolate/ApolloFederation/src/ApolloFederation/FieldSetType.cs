@@ -1,7 +1,7 @@
-using System;
 using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -17,18 +17,30 @@ namespace HotChocolate.ApolloFederation
     public sealed class FieldSetType
         : ScalarType<SelectionSetNode, StringValueNode>
     {
+        /// <summary>
+        /// Initializes a new instance of <see cref="FieldSetType"/>.
+        /// </summary>
         public FieldSetType()
-            : base(WellKnownTypeNames.FieldSet, BindingBehavior.Explicit)
+            : this(WellKnownTypeNames.FieldSet)
         {
-            Description = FederationResources.FieldsetType_Description;
         }
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="FieldSetType"/>.
+        /// </summary>
+        /// <param name="name">
+        /// The name the scalar shall have.
+        /// </param>
+        /// <param name="bind">
+        /// Defines if this scalar shall bind implicitly to <see cref="SelectionSetNode"/>.
+        /// </param>
         public FieldSetType(NameString name, BindingBehavior bind = BindingBehavior.Explicit)
             : base(name, bind)
         {
             Description = FederationResources.FieldsetType_Description;
         }
 
+        /// <inheritdoc />
         protected override SelectionSetNode ParseLiteral(StringValueNode valueSyntax)
         {
             try
@@ -37,14 +49,15 @@ namespace HotChocolate.ApolloFederation
             }
             catch (SyntaxException)
             {
-                // TODO : ThrowHelper
-                throw new SerializationException("The fieldset has an invalid format.", this);
+                throw FieldSet_InvalidFormat(this);
             }
         }
 
+        /// <inheritdoc />
         protected override StringValueNode ParseValue(SelectionSetNode runtimeValue) =>
             new StringValueNode(SerializeSelectionSet(runtimeValue));
 
+        /// <inheritdoc />
         public override IValueNode ParseResult(object? resultValue)
         {
             if (resultValue is null)
@@ -62,10 +75,10 @@ namespace HotChocolate.ApolloFederation
                 return new StringValueNode(SerializeSelectionSet(selectionSet));
             }
 
-            // TODO : throw helper
-            throw new SerializationException("Unable to serialize...", this);
+            throw FieldSet_CannotParseValue(this, resultValue.GetType());
         }
 
+        /// <inheritdoc />
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)
         {
             if (runtimeValue is null)
@@ -84,6 +97,7 @@ namespace HotChocolate.ApolloFederation
             return false;
         }
 
+        /// <inheritdoc />
         public override bool TryDeserialize(object? resultValue, out object? runtimeValue)
         {
             if (resultValue is null)

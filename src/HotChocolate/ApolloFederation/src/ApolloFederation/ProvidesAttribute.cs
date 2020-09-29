@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -48,12 +49,12 @@ namespace HotChocolate.ApolloFederation
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (descriptor is IObjectFieldDescriptor ofd)
+            if (descriptor is IObjectFieldDescriptor ofd &&
+                element is MemberInfo member)
             {
                 if (FieldSet is null!)
                 {
-                    // TODO : throw helper
-                    throw new SchemaException();
+                    throw Provides_FieldSet_CannotBeEmpty(member);
                 }
 
                 ofd.Provides(FieldSet);

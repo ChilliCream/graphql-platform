@@ -1,10 +1,11 @@
 using System;
 using HotChocolate.ApolloFederation;
+using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
+using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Types
 {
@@ -43,6 +44,30 @@ namespace HotChocolate.Types
             return descriptor.Directive(new ExternalDirectiveType());
         }
 
+        /// <summary>
+        /// Adds the @key directive which is used to indicate a combination of fields that
+        /// can be used to uniquely identify and fetch an object or interface.
+        /// <example>
+        /// type Product @key(fields: "upc") {
+        ///   upc: UPC!
+        ///   name: String
+        /// }
+        /// </example>
+        /// </summary>
+        /// <param name="descriptor">
+        /// The object type descriptor on which this directive shall be annotated.
+        /// </param>
+        /// <param name="fieldSet">
+        /// The field set that describes the key.
+        /// Grammatically, a field set is a selection set minus the braces.
+        /// </param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="descriptor"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="fieldSet"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// </exception>
         public static IObjectTypeDescriptor Key(
             this IObjectTypeDescriptor descriptor,
             string fieldSet)
@@ -52,62 +77,24 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return descriptor.Directive(
-                WellKnownTypeNames.Key,
-                new ArgumentNode(
-                    WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)
-                )
-            );
-        }
-
-        public static IInterfaceTypeDescriptor Key(
-            this IInterfaceTypeDescriptor descriptor,
-            string fieldSet)
-        {
-            if (descriptor is null)
+            if (string.IsNullOrEmpty(fieldSet))
             {
-                throw new ArgumentNullException(nameof(descriptor));
+                throw new ArgumentException(
+                    FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty,
+                    nameof(fieldSet));
             }
 
             return descriptor.Directive(
                 WellKnownTypeNames.Key,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)
-                )
-            );
-        }
-
-        public static void Key(
-            this ObjectTypeDefinition objectTypeDefinition,
-            string fieldSet,
-            ITypeInspector typeInspector)
-        {
-            if (objectTypeDefinition is null)
-            {
-                throw new ArgumentNullException(nameof(objectTypeDefinition));
-            }
-
-            var directiveNode = new DirectiveNode(
-                WellKnownTypeNames.Key,
-                new ArgumentNode(
-                    WellKnownArgumentNames.Fields,
-                    fieldSet
-                )
-            );
-
-            objectTypeDefinition.Directives.Add(
-                new DirectiveDefinition(
-                    directiveNode
-                )
-            );
+                    new FieldSetType().ParseResult(fieldSet)));
         }
 
         /// <summary>
-        /// The @requires directive is used to annotate the required input fieldset
-        /// from a base type for a resolver. It is used to develop a query plan
-        /// where the required fields may not be needed by the client, but the
+        /// Adds the @requires directive which is used to annotate the required
+        /// input fieldset from a base type for a resolver. It is used to develop
+        /// a query plan where the required fields may not be needed by the client, but the
         /// service may need additional information from other services.
         ///
         /// <example>
@@ -122,11 +109,20 @@ namespace HotChocolate.Types
         /// <param name="descriptor">
         /// The object field descriptor on which this directive shall be annotated.
         /// </param>
+        /// <param name="fieldSet">
+        /// The <paramref name="fieldSet"/> describes which fields may
+        /// not be needed by the client, but are required by
+        /// this service as additional information from other services.
+        /// Grammatically, a field set is a selection set minus the braces.
+        /// </param>
         /// <returns>
         /// Returns the object field descriptor.
         /// </returns>
         /// <exception cref="ArgumentNullException">
-        /// The <paramref name="descriptor"/> is <c>null</c>.
+        /// <paramref name="descriptor"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="fieldSet"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
         public static IObjectFieldDescriptor Requires(
             this IObjectFieldDescriptor descriptor,
@@ -137,15 +133,19 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            if (string.IsNullOrEmpty(fieldSet))
+            {
+                throw new ArgumentException(
+                    FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty,
+                    nameof(fieldSet));
+            }
+
             return descriptor.Directive(
                 WellKnownTypeNames.Requires,
                 new ArgumentNode(
                     WellKnownArgumentNames.Fields,
-                    new FieldSetType().ParseResult(fieldSet)
-                )
-            );
+                    new FieldSetType().ParseResult(fieldSet)));
         }
-
 
         /// <summary>
         /// The @provides directive is used to annotate the expected returned

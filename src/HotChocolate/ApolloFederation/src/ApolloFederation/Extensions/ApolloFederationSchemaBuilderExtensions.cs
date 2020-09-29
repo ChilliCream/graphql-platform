@@ -3,10 +3,10 @@ using HotChocolate.ApolloFederation;
 
 namespace HotChocolate
 {
-    public static class SchemaBuilderExtensions
+    public static class ApolloFederationSchemaBuilderExtensions
     {
         /// <summary>
-        /// Adds support to connect to service to an apollo federation gateway.
+        /// Adds support for Apollo Federation to the schema.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.

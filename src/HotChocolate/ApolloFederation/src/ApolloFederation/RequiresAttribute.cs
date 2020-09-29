@@ -27,8 +27,10 @@ namespace HotChocolate.ApolloFederation
         /// Initializes a new instance of <see cref="RequiresAttribute"/>.
         /// </summary>
         /// <param name="fieldSet">
-        /// Which fields may not be needed by the client, but are required by
+        /// The <paramref name="fieldSet"/> describes which fields may
+        /// not be needed by the client, but are required by
         /// this service as additional information from other services.
+        /// Grammatically, a field set is a selection set minus the braces.
         /// </param>
         public RequiresAttribute(string fieldSet)
         {
@@ -36,12 +38,16 @@ namespace HotChocolate.ApolloFederation
         }
 
         /// <summary>
-        /// Which fields may not be needed by the client, but are required by
-        /// this service as additional information from other services.
+        /// Gets the fieldset which describes fields that may not be needed by the client,
+        /// but are required by this service as additional information from other services.
+        /// Grammatically, a field set is a selection set minus the braces.
         /// </summary>
         public string FieldSet { get; }
 
-        public override void OnConfigure(IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member)
+        public override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo member)
         {
             if (FieldSet is null!)
             {

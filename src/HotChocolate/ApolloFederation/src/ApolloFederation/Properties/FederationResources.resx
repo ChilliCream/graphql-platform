@@ -135,4 +135,22 @@
   <data name="EntityType_Description" xml:space="preserve">
     <value>Union of all types that key directive applied. This information is needed by the Apollo federation gateway.</value>
   </data>
+  <data name="ThrowHelper_FieldSet_HasInvalidFormat" xml:space="preserve">
+    <value>The fieldset has an invalid format.</value>
+  </data>
+  <data name="ThrowHelper_FieldSet_CannotParseValue" xml:space="preserve">
+    <value>{0} cannot parse the given value of type `{1}`</value>
+  </data>
+  <data name="ThrowHelper_Key_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>The key attribute is used on `{0}` without specifying the the field set.</value>
+  </data>
+  <data name="ThrowHelper_Provides_FieldSet_CannotBeEmpty" xml:space="preserve">
+    <value>FieldSet is null or empty on type</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Key_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
+  <data name="FieldDescriptorExtensions_Requires_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or empty.</value>
+  </data>
 </root>

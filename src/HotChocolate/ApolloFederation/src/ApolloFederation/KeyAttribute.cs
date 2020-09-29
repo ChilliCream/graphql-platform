@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -26,7 +27,7 @@ namespace HotChocolate.ApolloFederation
         /// Initializes a new instance of <see cref="KeyAttribute"/>.
         /// </summary>
         /// <param name="fieldSet">
-        /// Gets the field set that describes the key.
+        /// The field set that describes the key.
         /// Grammatically, a field set is a selection set minus the braces.
         /// </param>
         public KeyAttribute(string? fieldSet = default)
@@ -45,36 +46,23 @@ namespace HotChocolate.ApolloFederation
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (descriptor is IInterfaceTypeDescriptor ifd)
+            if (descriptor is IObjectTypeDescriptor objectTypeDescriptor &&
+                element is Type objectType)
             {
-                if (FieldSet is null)
+                if (string.IsNullOrEmpty(FieldSet))
                 {
-                    // TODO : throw helper
-                    throw new SchemaException();
+                    throw Key_FieldSet_CannotBeEmpty(objectType);
                 }
 
-                ifd.Key(FieldSet);
+                objectTypeDescriptor.Key(FieldSet!);
             }
 
-            if (descriptor is IObjectTypeDescriptor ad)
+            if (descriptor is IObjectFieldDescriptor objectFieldDescriptor &&
+                element is MemberInfo)
             {
-                if (FieldSet is null)
-                {
-                    // TODO : throw helper
-                    throw new SchemaException();
-                }
-
-                ad.Key(FieldSet);
-            }
-
-            if (descriptor is IObjectFieldDescriptor ofd)
-            {
-                ofd.Extend().OnBeforeCreate(
-                    d =>
-                    {
-                        d.ContextData[WellKnownContextData.KeyMarker] = true;
-                    }
-                );
+                objectFieldDescriptor
+                    .Extend()
+                    .OnBeforeCreate(d => d.ContextData[WellKnownContextData.KeyMarker] = true);
             }
         }
     }

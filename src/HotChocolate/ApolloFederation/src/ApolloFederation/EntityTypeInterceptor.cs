@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -83,7 +84,7 @@ namespace HotChocolate.ApolloFederation
                     }
 
                     // add the key directive with the dynamically generated field set.
-                    objectTypeDefinition.Key(fieldSet.ToString(), discoveryContext.TypeInspector);
+                    AddKeyDirective(objectTypeDefinition, fieldSet.ToString());
 
                     // register dependency to the key directive so that it is completed before
                     // we complete this type.
@@ -112,6 +113,20 @@ namespace HotChocolate.ApolloFederation
                     unionTypeDefinition.Types.Add(TypeReference.Create(objectType));
                 }
             }
+        }
+
+        private static void AddKeyDirective(
+            ObjectTypeDefinition objectTypeDefinition,
+            string fieldSet)
+        {
+            var directiveNode = new DirectiveNode(
+                WellKnownTypeNames.Key,
+                new ArgumentNode(
+                    WellKnownArgumentNames.Fields,
+                    fieldSet));
+
+            objectTypeDefinition.Directives.Add(
+                new DirectiveDefinition(directiveNode));
         }
     }
 }
