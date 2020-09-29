@@ -1,6 +1,6 @@
 namespace HotChocolate.ApolloFederation
 {
-    public static class WellKnownArgumentNames
+    internal static class WellKnownArgumentNames
     {
         public const string Fields = "fields";
     }

@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -24,7 +23,7 @@ namespace HotChocolate.ApolloFederation
     [AttributeUsage(
         AttributeTargets.Property |
         AttributeTargets.Method)]
-    public class ProvidesAttribute : DescriptorAttribute
+    public sealed class ProvidesAttribute : DescriptorAttribute
     {
         /// <summary>
         /// Initializes a new instance of <see cref="ProvidesAttribute"/>.
