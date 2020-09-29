@@ -1,3 +1,4 @@
+using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Types;
 using static HotChocolate.ApolloFederation.WellKnownTypeNames;
 
@@ -11,7 +12,9 @@ namespace HotChocolate.ApolloFederation
     {
         protected override void Configure(IUnionTypeDescriptor descriptor)
         {
-            descriptor.Name(Entity);
+            descriptor
+                .Name(Entity)
+                .Description(FederationResources.EntityType_Description);
         }
     }
 }

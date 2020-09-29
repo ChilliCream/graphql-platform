@@ -1,8 +1,7 @@
 using System.Linq;
-using HotChocolate.ApolloFederation.Extensions;
 using HotChocolate.Types;
-using Xunit;
 using Snapshooter.Xunit;
+using Xunit;
 
 namespace HotChocolate.ApolloFederation.Directives
 {

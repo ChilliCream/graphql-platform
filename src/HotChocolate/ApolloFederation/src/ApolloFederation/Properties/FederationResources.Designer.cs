@@ -74,5 +74,11 @@ namespace HotChocolate.ApolloFederation.Properties {
                 return ResourceManager.GetString("RequiresDirective_Description", resourceCulture);
             }
         }
+        
+        internal static string EntityType_Description {
+            get {
+                return ResourceManager.GetString("EntityType_Description", resourceCulture);
+            }
+        }
     }
 }

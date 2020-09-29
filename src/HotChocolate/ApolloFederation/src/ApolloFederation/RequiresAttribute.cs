@@ -21,7 +21,7 @@ namespace HotChocolate.ApolloFederation
     /// </example>
     /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    public sealed class RequiresAttribute : DescriptorAttribute
+    public sealed class RequiresAttribute : ObjectFieldDescriptorAttribute
     {
         /// <summary>
         /// Initializes a new instance of <see cref="RequiresAttribute"/>.
@@ -41,10 +41,7 @@ namespace HotChocolate.ApolloFederation
         /// </summary>
         public string FieldSet { get; }
 
-        protected override void TryConfigure(
-            IDescriptorContext context,
-            IDescriptor descriptor,
-            ICustomAttributeProvider element)
+        public override void OnConfigure(IDescriptorContext context, IObjectFieldDescriptor descriptor, MemberInfo member)
         {
             if (FieldSet is null!)
             {
@@ -52,10 +49,7 @@ namespace HotChocolate.ApolloFederation
                 throw new SchemaException();
             }
 
-            if (descriptor is IObjectFieldDescriptor ofd)
-            {
-                ofd.Requires(FieldSet);
-            }
+            descriptor.Requires(FieldSet);
         }
     }
 }
