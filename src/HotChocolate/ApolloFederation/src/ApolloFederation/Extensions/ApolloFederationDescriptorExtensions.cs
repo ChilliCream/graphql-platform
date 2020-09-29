@@ -1,15 +1,14 @@
 using System;
 using HotChocolate.ApolloFederation;
-using HotChocolate.ApolloFederation.Properties;
 using HotChocolate.Language;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
-using DirectiveLocation = HotChocolate.Types.DirectiveLocation;
 using static HotChocolate.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Types
 {
-    public static class ApolloFederationFieldDescriptorExtensions
+    /// <summary>
+    /// Provides extensions for type system descriptors.
+    /// </summary>
+    public static class ApolloFederationDescriptorExtensions
     {
         /// <summary>
         /// Adds the @external directive which is used to mark a field as owned by another service.

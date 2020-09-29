@@ -4,6 +4,9 @@ using HotChocolate.Execution.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Provides extensions to <see cref="IRequestExecutorBuilder"/>.
+    /// </summary>
     public static class ApolloFederationRequestExecutorBuilderExtensions
     {
         /// <summary>

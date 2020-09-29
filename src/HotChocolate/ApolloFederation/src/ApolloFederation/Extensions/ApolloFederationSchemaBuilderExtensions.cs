@@ -3,6 +3,9 @@ using HotChocolate.ApolloFederation;
 
 namespace HotChocolate
 {
+    /// <summary>
+    /// Provides extensions to <see cref="ISchemaBuilder"/>.
+    /// </summary>
     public static class ApolloFederationSchemaBuilderExtensions
     {
         /// <summary>
