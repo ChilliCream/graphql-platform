@@ -69,12 +69,11 @@ namespace HotChocolate.ApolloFederation
                     IReadOnlyList<ObjectFieldDefinition> fields = objectTypeDefinition.Fields;
                     var fieldSet = new StringBuilder();
 
-                    for (var i = 0; i < fields.Count; i++)
+                    foreach (var fieldDefinition in fields)
                     {
-                        ObjectFieldDefinition fieldDefinition = fields[i];
                         if (fieldDefinition.ContextData.ContainsKey(KeyMarker))
                         {
-                            if (i > 0)
+                            if (fieldSet.Length > 0)
                             {
                                 fieldSet.Append(' ');
                             }
