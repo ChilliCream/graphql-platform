@@ -12,6 +12,8 @@ namespace HotChocolate.Data.Filters.Expressions
     public class QueryableFilterProvider
         : FilterProvider<QueryableFilterContext>
     {
+        public static readonly string ContextDataKeys = nameof(QueryableFilterProvider);
+
         public QueryableFilterProvider()
         {
         }
@@ -36,12 +38,13 @@ namespace HotChocolate.Data.Filters.Expressions
                 // first we let the pipeline run and produce a result.
                 await next(context).ConfigureAwait(false);
 
-                // next we get the filter argument.
+                // next we get the filter argument. If the filter argument is already on the context
+                // we use this. This enabled overriding the context with LocalContextData
                 IInputField argument = context.Field.Arguments[argumentName];
-                IValueNode filter = context.ContextData.ContainsKey("filterValueNode")
-                    ? context.ContextData["filterValueNode"] as IValueNode ??
-                        throw new Exception()
-                    : context.ArgumentLiteral<IValueNode>(argumentName);
+                IValueNode filter = context.LocalContextData.ContainsKey(ContextDataKeys) &&
+                    context.LocalContextData[ContextDataKeys] is IValueNode node
+                        ? node
+                        : context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no filter is defined we can stop here and yield back control.
                 if (filter.IsNull())
