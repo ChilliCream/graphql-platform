@@ -59,8 +59,4 @@ namespace HotChocolate.Stitching.Processing
             public int Count { get; set; }
         }
     }
-
-
-
-
 }

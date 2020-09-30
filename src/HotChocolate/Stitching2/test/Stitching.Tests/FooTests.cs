@@ -11,6 +11,7 @@ using Xunit;
 
 namespace HotChocolate.Stitching.Processing
 {
+
     public class FooTests
     {
         [Fact]
@@ -100,7 +101,7 @@ namespace HotChocolate.Stitching.Processing
             var context = new MatchSelectionsContext(
                 schema,
                 operation,
-                selectionSet.Selections.ToDictionary(t => t.Field.Name.Value),
+                selectionSet,
                 ImmutableStack<IOutputType>.Empty.Push(customer));
 
             var visitor = new MatchSelectionsVisitor();
