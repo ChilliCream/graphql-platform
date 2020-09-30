@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data
@@ -100,5 +102,25 @@ namespace HotChocolate.Data
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
         }
+
+        public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
+            IProjectionConvention convention,
+            Type fieldHandler) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.FilterProvider_UnableToCreateFieldHandler,
+                    fieldHandler.FullName ?? fieldHandler.Name,
+                    convention.GetType().FullName ?? convention.GetType().Name)
+                .SetExtension(nameof(convention), convention)
+                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .Build();
+
+        public static IError CreateMoreThanOneError(IResolverContext context) =>
+            ErrorBuilder.New()
+                .SetMessage("Sequence contains more than one element.")
+                .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
+                .SetPath(context.Path)
+                .AddLocation(context.FieldSelection)
+                .Build();
     }
 }

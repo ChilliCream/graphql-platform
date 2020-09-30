@@ -62,6 +62,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Sorting.Tests", "test\Data.Sorting.Tests\HotChocolate.Data.Sorting.Tests.csproj", "{A7269FAC-8C91-46BA-B292-221E8DE32BD3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.SqlServer.Tests", "test\Data.Projections.SqlServer.Tests\HotChocolate.Data.Filters.SqlServer.Tests.csproj", "{F9223FFE-BEA4-4C68-BF92-339FD9643084}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,7 @@ Global
 		{CCCD4A40-EA4F-4AF7-91A7-3D8DC14D186C} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{9B858A08-741A-4C11-A243-3739C4E57B15} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{A7269FAC-8C91-46BA-B292-221E8DE32BD3} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D68A0AB9-871A-487B-8D12-1A7544D81B9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -350,5 +353,17 @@ Global
 		{A7269FAC-8C91-46BA-B292-221E8DE32BD3}.Release|x64.Build.0 = Release|Any CPU
 		{A7269FAC-8C91-46BA-B292-221E8DE32BD3}.Release|x86.ActiveCfg = Release|Any CPU
 		{A7269FAC-8C91-46BA-B292-221E8DE32BD3}.Release|x86.Build.0 = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|x64.Build.0 = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Debug|x86.Build.0 = Debug|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|x64.ActiveCfg = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|x64.Build.0 = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|x86.ActiveCfg = Release|Any CPU
+		{F9223FFE-BEA4-4C68-BF92-339FD9643084}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

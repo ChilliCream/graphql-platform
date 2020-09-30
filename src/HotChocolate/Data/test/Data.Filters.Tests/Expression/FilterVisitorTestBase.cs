@@ -10,7 +10,7 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             convention ??=
                 new FilterConvention(
-                    x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
+                   x => x.AddDefaults().BindRuntimeType(typeof(TRuntimeType), type.GetType()));
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)

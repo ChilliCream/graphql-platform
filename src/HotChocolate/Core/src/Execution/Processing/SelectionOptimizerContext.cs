@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Processing
             IImmutableStack<IObjectField> path,
             IObjectType type,
             SelectionSetNode selectionSet,
-            IDictionary<string, Selection> fields,
+            IDictionary<string, ISelection> fields,
             CompileResolverPipeline compileResolverPipeline)
         {
             Schema = schema;
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution.Processing
         /// Gets the field set representing the compiled selection-set.
         /// </summary>
         /// <value></value>
-        public IDictionary<string, Selection> Fields { get; }
+        public IDictionary<string, ISelection> Fields { get; }
 
         /// <summary>
         /// Allows to compile the field resolver pipeline for a field.

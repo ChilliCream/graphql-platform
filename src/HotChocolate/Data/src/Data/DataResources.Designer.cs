@@ -326,5 +326,23 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("FilterVisitor_InvalidField", resourceCulture);
             }
         }
+        
+        internal static string ProjectionConvention_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_NoHandlersConfigured {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoHandlersConfigured", resourceCulture);
+            }
+        }
     }
 }

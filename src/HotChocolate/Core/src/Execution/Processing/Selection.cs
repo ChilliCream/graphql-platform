@@ -9,7 +9,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Processing
 {
-    public sealed class Selection : ISelection
+    public class Selection : ISelection
     {
         private static readonly ArgumentMap _emptyArguments =
             new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
