@@ -7,6 +7,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.ApolloFederation.WellKnownContextData;
+using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
@@ -30,13 +31,45 @@ namespace HotChocolate.ApolloFederation
                 definition);
         }
 
+        public override void OnTypesInitialized(
+            IReadOnlyCollection<ITypeDiscoveryContext> discoveryContexts)
+        {
+            if (_entityTypes.Count == 0)
+            {
+                throw EntityType_NoEntities();
+            }
+        }
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
-            IDictionary<string, object> contextData) =>
+            IDictionary<string, object> contextData)
+        {
             AddMemberTypesToTheEntityUnionType(
                 completionContext,
                 definition);
+
+            AddServiceTypeToQueryType(
+                completionContext,
+                definition);
+        }
+
+        private void AddServiceTypeToQueryType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition)
+        {
+            if (completionContext.IsQueryType == true &&
+                definition is ObjectTypeDefinition objectTypeDefinition)
+            {
+                var fieldDescriptor = ObjectFieldDescriptor.New(
+                    completionContext.DescriptorContext,
+                    WellKnownFieldNames.Service);
+                fieldDescriptor
+                    .Type<NonNullType<ServiceType>>()
+                    .Resolver(default(object));
+                objectTypeDefinition.Fields.Add(fieldDescriptor.CreateDefinition());
+            }
+        }
 
         private void AddToUnionIfHasTypeLevelKeyDirective(
             ITypeDiscoveryContext discoveryContext,
@@ -46,9 +79,10 @@ namespace HotChocolate.ApolloFederation
                 definition is ObjectTypeDefinition objectTypeDefinition)
             {
                 if (objectTypeDefinition.Directives.Any(
-                        d => d.Reference is NameDirectiveReference { Name: { Value: "key" }}) ||
+                        d => d.Reference is NameDirectiveReference
+                            { Name: { Value: WellKnownTypeNames.Key }}) ||
                     objectTypeDefinition.Fields.Any(
-                        f => f.ContextData.ContainsKey("key")))
+                        f => f.ContextData.ContainsKey(WellKnownTypeNames.Key)))
                 {
                     _entityTypes.Add(objectType);
                 }

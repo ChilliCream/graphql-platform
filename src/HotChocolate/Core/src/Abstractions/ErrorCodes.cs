@@ -85,6 +85,7 @@ namespace HotChocolate
                 /// <see cref="string.Empty"/>.
                 /// </summary>
                 public const string RequiresFieldSetNullOrEmpty = "HC0005";
+                public const string NoEntitiesDeclared = "HC0006";
             }
         }
 

@@ -8,5 +8,10 @@ namespace HotChocolate.ApolloFederation
         public const string Key = "key";
         public const string FieldSet = "_FieldSet";
         public const string Entity = "_Entity";
+        public const string Service = "_Service";
+
+        public const string Query = "Query";
+        public const string Mutation = "Mutation";
+        public const string Subscription = "Subscription";
     }
 }

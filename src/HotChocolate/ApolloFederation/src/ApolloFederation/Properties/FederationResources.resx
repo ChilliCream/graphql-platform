@@ -159,4 +159,10 @@
   <data name="FieldDescriptorExtensions_Provides_FieldSet_CannotBeNullOrEmpty" xml:space="preserve">
     <value>Value cannot be null or empty.</value>
   </data>
+  <data name="ThrowHelper_EntityType_NoEntities" xml:space="preserve">
+    <value>The schema has no types with a KeyDirective and therefor no entities. Apollo federation requires at least on entity.</value>
+  </data>
+  <data name="ServiceType_Description" xml:space="preserve">
+    <value>This type provides a field named sdl: String! which exposes the SDL of the service's schema. This SDL (schema definition language) is a printed version of the service's schema including the annotations of federation directives. This SDL does not include the additions of the federation spec.</value>
+  </data>
 </root>

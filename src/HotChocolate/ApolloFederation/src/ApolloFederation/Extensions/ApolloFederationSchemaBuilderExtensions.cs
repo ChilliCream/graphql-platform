@@ -29,6 +29,7 @@ namespace HotChocolate
             }
 
             builder.AddType<EntityType>();
+            builder.AddType<ServiceType>();
             builder.AddType<ExternalDirectiveType>();
             builder.AddType<ProvidesDirectiveType>();
             builder.AddType<KeyDirectiveType>();

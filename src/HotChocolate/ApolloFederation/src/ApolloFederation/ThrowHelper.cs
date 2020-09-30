@@ -41,6 +41,18 @@ namespace HotChocolate.ApolloFederation
                 fieldSetType);
 
         /// <summary>
+        /// The schema doesn't contain any types with a key directive
+        /// and therefore no entities. An Apollo federation service
+        /// needs at least one entity.
+        /// </summary>
+        public static SchemaException EntityType_NoEntities() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(ThrowHelper_EntityType_NoEntities)
+                    .SetCode(ErrorCodes.Apollo.Federation.NoEntitiesDeclared)
+                    .Build());
+
+        /// <summary>
         /// The key attribute is used on the type level without specifying the the
         /// fieldset.
         /// </summary>

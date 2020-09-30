@@ -18,6 +18,4 @@
 | HC0016 | Execution         | Variable `xyz` got an invalid value.                                                                       |
 | HC0017 | Execution         | Variable `xyz` is not an input type.                                                                       |
 | HC0018 | Execution         | Variable `xyz` is required.                                                                                |
-
-
-
+| HC0019 | Apollo Federation | No entity types were declared.                                                                             |
