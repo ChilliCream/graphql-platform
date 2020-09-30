@@ -91,7 +91,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Serialize(null));
         }
 
@@ -100,8 +104,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_Dictionary(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var dictionary = new Dictionary<string, object>();
 
             // act
@@ -116,8 +120,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             object? result = type.Serialize(_geometry);
 
@@ -130,8 +135,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Throw_When_InvalidObjectShouldThrow(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.Serialize(""));
@@ -142,8 +148,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Throw_When_Null(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
@@ -153,8 +160,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(MultiPolygonInputName)]
         public void IsInstanceOfType_Should_Pass_When_ObjectValueNode(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(new ObjectValueNode()));
@@ -165,8 +173,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Pass_When_NullValueNode(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(NullValueNode.Default));
@@ -177,8 +186,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Fail_When_DifferentGeoJsonObject(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.False(
@@ -191,8 +201,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Pass_When_GeometryOfType(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(_geometry));
@@ -203,8 +214,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void IsInstanceOfType_Should_Fail_When_NoGeometry(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.False(type.IsInstanceOfType("foo"));
@@ -215,8 +227,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Pass_When_NullValueNode(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Null(type.ParseLiteral(NullValueNode.Default));
@@ -239,8 +252,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Pass_When_CorrectGeometry(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -260,8 +273,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Throw_When_NoGeometryType(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
                 _coordinatesSyntaxNode);
@@ -277,8 +290,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Throw_When_NoCoordinates(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
             var valueNode = new ObjectValueNode(typeField, crsField);
@@ -292,8 +305,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseLiteral_Should_Pass_When_NoCrs(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -312,8 +325,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseResult_Should_Pass_When_NullValue(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Equal(NullValueNode.Default, type.ParseValue(null));
@@ -324,8 +338,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseResult_Should_Pass_When_Serialized(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -340,8 +354,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseResult_Should_Pass_When_Value(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             IValueNode literal = type.ParseResult(_geometry);
 
@@ -354,8 +369,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseResult_Should_Throw_When_InvalidType(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.ParseResult(""));
@@ -366,8 +382,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseValue_Should_Pass_When_NullValue(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Equal(NullValueNode.Default, type.ParseValue(null));
@@ -378,8 +395,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseValue_Should_Pass_When_Serialized(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -394,8 +411,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseValue_Should_Pass_When_Value(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             IValueNode literal = type.ParseValue(_geometry);
 
@@ -408,8 +426,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void ParseValue_Should_Throw_When_InvalidType(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.ParseValue(""));
@@ -429,8 +448,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_PassedSerializedResult(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -445,8 +464,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeGeometry(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             object? result = type.Deserialize(_geometry);
 
@@ -459,8 +479,9 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Throw_When_InvalidType(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.Deserialize(""));
@@ -471,8 +492,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_AllFieldsInDictionary(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -492,8 +513,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_CrsIsMissing(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -512,8 +533,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Fail_WhentypeNameIsMissing(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -530,8 +551,8 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_When_CoordinatesAreMissing(string typeName)
         {
-            INamedInputType type = CreateInputType(typeName);
             // arrange
+            INamedInputType type = CreateInputType(typeName);
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },

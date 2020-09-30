@@ -23,7 +23,7 @@ namespace HotChocolate.Types
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
-            if (crs is { })
+            if (crs is not null)
             {
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);

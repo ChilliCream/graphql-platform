@@ -10,11 +10,12 @@ namespace HotChocolate.Types.Spatial.Tests
     public class GeoJsonLineStringTypeTests
     {
         private readonly LineString _geom = new LineString(
-            new[] {new Coordinate(30, 10), new Coordinate(10, 30), new Coordinate(40, 40)});
+            new[] { new Coordinate(30, 10), new Coordinate(10, 30), new Coordinate(40, 40) });
 
         [Fact]
         public async Task LineString_Execution_Output()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -31,6 +32,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { type coordinates bbox crs }}");
+
             // assert
             result.MatchSnapshot();
         }
@@ -38,6 +40,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task LineString_Execution_With_Fragments()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .AddSpatialTypes()
@@ -49,9 +52,11 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { ... on LineString { type coordinates bbox crs }}}");
+
             // assert
             result.MatchSnapshot();
         }
@@ -76,6 +81,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task LineString_Execution_With_CRS()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -87,6 +93,7 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
 
+            // act
             IRequestExecutor executor = schema.MakeExecutable();
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { crs }}");

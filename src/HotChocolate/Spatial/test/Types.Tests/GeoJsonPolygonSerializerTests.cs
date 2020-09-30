@@ -54,7 +54,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Serialize(null));
         }
 
@@ -65,7 +69,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var dictionary = new Dictionary<string, object>();
 
             // act
@@ -216,7 +219,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -238,7 +240,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
                 _coordinatesSyntaxNode);
@@ -246,6 +247,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -256,12 +258,12 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -280,6 +282,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(typeField, coordField);
 
             // act
+            // assert
             object? parsedResult = type.ParseLiteral(valueNode);
 
             // assert
@@ -306,7 +309,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -418,7 +420,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -463,7 +464,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -485,7 +485,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -506,7 +505,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -525,7 +523,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },

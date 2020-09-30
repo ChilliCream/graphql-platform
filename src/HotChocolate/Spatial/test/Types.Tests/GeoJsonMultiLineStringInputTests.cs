@@ -37,23 +37,6 @@ namespace HotChocolate.Types.Spatial.Tests
                     new IntValueNode(10))
             ));
 
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
-                    .Resolver("ghi"))
-            .Create();
-
-        private InputObjectType CreateInputType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
-        }
-
         [Fact]
         public void ParseLiteral_MultiLineString_With_Valid_Coordinates()
         {
@@ -116,8 +99,10 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
@@ -127,6 +112,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -137,6 +124,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -150,6 +139,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -165,6 +156,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -206,6 +199,23 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        private ISchema CreateSchema() => SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
+                    .Resolver("ghi"))
+            .Create();
+
+        private InputObjectType CreateInputType()
+        {
+            ISchema schema = CreateSchema();
+
+            return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
         }
     }
 }

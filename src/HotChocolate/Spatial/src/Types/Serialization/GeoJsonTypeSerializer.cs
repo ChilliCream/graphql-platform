@@ -22,8 +22,7 @@ namespace HotChocolate.Types
             };
 
         private static readonly IDictionary<GeoJsonGeometryType, string> _valueLookup =
-            new Dictionary<GeoJsonGeometryType,
-                string>
+            new Dictionary<GeoJsonGeometryType, string>
             {
                 { Point, nameof(Point) },
                 { MultiPoint, nameof(MultiPoint) },

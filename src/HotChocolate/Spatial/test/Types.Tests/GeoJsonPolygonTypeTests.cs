@@ -23,6 +23,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task Polygon_Execution_Output()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -39,7 +40,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { type coordinates bbox crs }}");
-            
+
             // assert
             result.MatchSnapshot();
         }
@@ -47,6 +48,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task Polygon_Execution_With_Fragments()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .AddSpatialTypes()
@@ -58,11 +60,11 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
-            
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { ... on Polygon { type coordinates bbox crs }}}");
-            
+
             // assert
             result.MatchSnapshot();
         }
@@ -70,6 +72,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void Polygon_Execution_Tests()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -81,6 +84,8 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
 
+            // act
+            // assert
             schema.ToString().MatchSnapshot();
         }
     }

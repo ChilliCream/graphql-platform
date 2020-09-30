@@ -13,7 +13,10 @@ namespace HotChocolate.Types.Spatial.Tests
             new[]
             {
                 new LineString(
-                    new[] {new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(10, 40)}),
+                    new[]
+                    {
+                        new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(10, 40)
+                    }),
                 new LineString(
                     new[]
                     {
@@ -27,6 +30,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task MultiLineString_Execution_Output()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -43,6 +47,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { type coordinates bbox crs }}");
+
             // assert
             result.MatchSnapshot();
         }
@@ -50,6 +55,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task MultiLineString_Execution_With_Fragments()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .AddSpatialTypes()
@@ -61,9 +67,11 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { ... on MultiLineString { type coordinates bbox crs }}}");
+
             // assert
             result.MatchSnapshot();
         }
@@ -71,6 +79,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void MultiLineString_Execution_Tests()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -82,6 +91,8 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
 
+            // act
+            // assert
             schema.ToString().MatchSnapshot();
         }
     }

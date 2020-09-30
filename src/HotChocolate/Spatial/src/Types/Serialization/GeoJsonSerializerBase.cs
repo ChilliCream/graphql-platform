@@ -83,12 +83,12 @@ namespace HotChocolate.Types
                 crs = crsInt;
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }
 
-            if (coordinates == null)
+            if (coordinates is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }
@@ -124,12 +124,12 @@ namespace HotChocolate.Types
                 }
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw Serializer_TypeIsMissing();
             }
 
-            if (coordinates == null)
+            if (coordinates is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }

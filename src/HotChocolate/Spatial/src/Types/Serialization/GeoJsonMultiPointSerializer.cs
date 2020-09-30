@@ -46,7 +46,7 @@ namespace HotChocolate.Types
                     .CreateGeometry(parts[i], crs);
             }
 
-            if (crs is { })
+            if (crs is not null)
             {
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);

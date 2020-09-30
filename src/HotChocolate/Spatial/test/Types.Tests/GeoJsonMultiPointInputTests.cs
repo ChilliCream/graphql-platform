@@ -29,27 +29,10 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(10)
             ));
 
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddType<MockObjectType>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiPointInput>())
-                    .Resolver("ghi"))
-            .Create();
-
-        private InputObjectType CreateInputType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
-        }
-
         [Fact]
         public void ParseLiteral_MultiPoint_With_Valid_Coordinates()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -60,7 +43,6 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // assert
             Assert.Equal(4, Assert.IsType<MultiPoint>(result).NumPoints);
-
             Assert.Equal(10, Assert.IsType<MultiPoint>(result).Coordinates[0].X);
             Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[0].Y);
             Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[1].X);
@@ -74,6 +56,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_MultiPoint_With_Valid_Coordinates_And_CRS()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -85,7 +68,6 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // assert
             Assert.Equal(4, Assert.IsType<MultiPoint>(result).NumPoints);
-
             Assert.Equal(10, Assert.IsType<MultiPoint>(result).Coordinates[0].X);
             Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[0].Y);
             Assert.Equal(40, Assert.IsType<MultiPoint>(result).Coordinates[1].X);
@@ -100,18 +82,24 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_MultiPoint_Is_Null()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
         [Fact]
         public void ParseLiteral_MultiPoint_Is_Not_ObjectType_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -119,8 +107,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_MultiPoint_With_Missing_Fields_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -131,8 +122,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_MultiPoint_With_Empty_Coordinates_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -158,7 +152,6 @@ namespace HotChocolate.Types.Spatial.Tests
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
@@ -182,11 +175,29 @@ namespace HotChocolate.Types.Spatial.Tests
         public void Schema_Tests()
         {
             // arrange
-            // act
             ISchema schema = CreateSchema();
 
+            // act
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        private ISchema CreateSchema() => SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddType<MockObjectType>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonMultiPointInput>())
+                    .Resolver("ghi"))
+            .Create();
+
+        private InputObjectType CreateInputType()
+        {
+            ISchema schema = CreateSchema();
+
+            return schema.GetType<InputObjectType>("GeoJSONMultiPointInput");
         }
     }
 }

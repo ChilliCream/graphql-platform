@@ -33,8 +33,28 @@ namespace HotChocolate.Types
         /// </returns>
         object? Deserialize(object? resultValue);
 
+        /// <summary>
+        /// Try to deserialize a result value of this type to the runtime value format.
+        /// </summary>
+        /// <param name="resultValue">
+        /// A result value representation of this type.
+        /// </param>
+        /// <param name="runtimeValue">
+        /// Returns a runtime value representation of this type.
+        /// </param>
+        /// <returns>True if deserializing was successful</returns>
         bool TryDeserialize(object? resultValue, out object? runtimeValue);
 
+        /// <summary>
+        /// Serializes a runtime value of this type to the result value format.
+        /// </summary>
+        /// <param name="resultValue">
+        /// A runtime value representation of this type.
+        /// </param>
+        /// <param name="runtimeValue">
+        /// Returns a result value representation of this type.
+        /// </param>
+        /// <returns>True if serializing was successful</returns>
         bool TrySerialize(object? runtimeValue, out object? resultValue);
 
         /// <summary>
