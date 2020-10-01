@@ -2110,10 +2110,10 @@
   dependencies:
     "@types/algoliasearch" "*"
 
-"@types/algoliasearch@*", "@types/algoliasearch@^3.34.10":
-  version "3.34.10"
-  resolved "https://registry.yarnpkg.com/@types/algoliasearch/-/algoliasearch-3.34.10.tgz#08cd8f7018451197d7a51c21e1305794aca187b9"
-  integrity sha512-P6OKrRClvlVIF645zmRdGt3pK/IlBeFMAqB/OqM5Z/iYVFp8mSYMFR+uAdADsv0X/8AC6bIPAfj2x+mjslBuFg==
+"@types/algoliasearch@*", "@types/algoliasearch@^3.34.11":
+  version "3.34.11"
+  resolved "https://registry.yarnpkg.com/@types/algoliasearch/-/algoliasearch-3.34.11.tgz#a7f3b89a95578be3acd972167bdbadb5dcf71660"
+  integrity sha512-FFMbpmXCHcgbypnOUY98SDEoiLc2bXO51gxgX02ypb8srZZnZCPV/8VKknuEtgr1VkgYLrqLi5BoYzZRVni6Fw==
 
 "@types/cacheable-request@^6.0.1":
   version "6.0.1"
