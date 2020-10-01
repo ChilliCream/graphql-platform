@@ -71,7 +71,7 @@
     "babel-plugin-styled-components": "^1.11.1",
     "gh-pages": "^3.1.0",
     "husky": "^4.3.0",
-    "prettier": "^2.1.1",
+    "prettier": "^2.1.2",
     "pretty-quick": "^3.0.2",
     "typescript": "^3.9.7",
     "typescript-styled-plugin": "^0.15.0"
