@@ -38,7 +38,7 @@
     "gatsby-plugin-styled-components": "^3.3.11",
     "gatsby-plugin-ts": "^2.2.3",
     "gatsby-plugin-web-font-loader": "^1.0.4",
-    "gatsby-remark-autolink-headers": "^2.3.13",
+    "gatsby-remark-autolink-headers": "^2.3.14",
     "gatsby-remark-code-buttons": "^2.0.4",
     "gatsby-remark-images": "^3.3.30",
     "gatsby-remark-mermaid": "^2.1.0",
