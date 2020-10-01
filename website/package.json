@@ -49,7 +49,7 @@
     "gatsby-transformer-remark": "^2.8.35",
     "gatsby-transformer-sharp": "^2.5.15",
     "prismjs": "^1.21.0",
-    "puppeteer": "^5.2.0",
+    "puppeteer": "^5.3.1",
     "react": "^16.13.0",
     "react-cookie": "^4.0.3",
     "react-dom": "^16.13.0",
