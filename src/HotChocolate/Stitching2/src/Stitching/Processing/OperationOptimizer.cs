@@ -11,64 +11,32 @@ namespace HotChocolate.Stitching.Processing
         public void Optimize(IPreparedOperation operation, ObjectType objectType)
         {
             Visit(
-                new OptimizerContext(operation), 
-                operation.GetRootSelectionSet(), 
+                new OptimizerContext(operation),
+                operation.GetRootSelectionSet(),
                 null);
         }
 
         private void Visit(
             OptimizerContext context,
             ISelectionSet selectionSet,
+            IObjectType objectType,
             FetchTask? parent)
         {
-            foreach (ISelection selection in selectionSet.Selections)
+            if (!context.Processed.IsSupersetOf(selectionSet.Selections))
             {
-                Visit(context, selectionSet, parent);
-            }
-        }
+                IReadOnlyList<IFetchConfiguration> configurations =
+                    GetFetchConfigurations(objectType);
 
-        private void Visit(
-            OptimizerContext context,
-            ISelection selection,
-            FetchTask? parent)
-        {
-            IReadOnlyList<IFetchConfiguration> configurations =
-                GetFetchConfigurations(selection);
-
-            if (configurations.Count == 0)
-            {
-                // todo: throw helper.
-                throw new Exception();
-            }
-
-            IReadOnlyList<ISelection>? handledSelections = null;
-            FetchTask? task = null;
-
-            if (configurations.Count == 1)
-            {
-                IFetchConfiguration? configuration = configurations[0];
-                if (!configuration.CanHandleSelections(
-                    context.Operation,
-                    selection,
-                    out handledSelections))
-                {
-                    task = new FetchTask(
-                        new HashSet<ISelection>(handledSelections),
-                        configuration,
-                        parent?.Path.Push(parent) ?? ImmutableStack<FetchTask>.Empty,
-                        Array.Empty<FetchTask>());
-                }
-            }
-            else
-            {
                 var tasks = new List<FetchTask>();
+                FetchTask? task = null;
 
                 foreach (IFetchConfiguration configuration in configurations)
                 {
-                    if (!configuration.CanHandleSelections(
+                    if (configuration.CanHandleSelections(
                         context.Operation,
-                        selection,
-                        out handledSelections))
+                        selectionSet,
+                        objectType,
+                        out IReadOnlyList<ISelection> handledSelections))
                     {
                         var current = new FetchTask(
                             new HashSet<ISelection>(handledSelections),
@@ -83,41 +51,56 @@ namespace HotChocolate.Stitching.Processing
 
                         tasks.Add(current);
                     }
+                }
 
-                    if (task is not null)
+                if (task is not null)
+                {
+                    tasks.Remove(task);
+
+                    foreach (ISelection handledSelection in task.Selections)
                     {
-                        tasks.Remove(task);
+                        context.Processed.Add(handledSelection);
                     }
+
+                    if (parent is null)
+                    {
+                        context.QueryPlan.Add(task);
+                    }
+                    else
+                    {
+                        parent.Children.Add(task);
+                    }
+
+                    parent = task;
                 }
             }
 
-            if (task is not null)
+            foreach (ISelection selection in selectionSet.Selections)
             {
-                if (parent is null)
-                {
-                    context.QueryPlan.Add(task);
-                }
-                else
-                {
-                    parent.Children.Add(task);
-                }
+                Visit(context, selection, parent);
+            }
+        }
 
-                if (selection.SelectionSet is not null)
+        private void Visit(
+            OptimizerContext context,
+            ISelection selection,
+            FetchTask? parent)
+        {
+            if (selection.SelectionSet is not null)
+            {
+                foreach (IObjectType objectType in
+                    context.Operation.GetPossibleTypes(selection.SelectionSet))
                 {
-                    foreach (IObjectType selectionType in
-                        context.Operation.GetPossibleTypes(selection.SelectionSet))
-                    {
-                        ISelectionSet selectionSet = context.Operation.GetSelectionSet(
-                            selection.SelectionSet, selectionType);
-                        Visit(context, selectionSet, task);
-                    }
+                    ISelectionSet selectionSet = 
+                        context.Operation.GetSelectionSet(selection.SelectionSet, objectType);
+                    Visit(context, selectionSet, objectType, parent);
                 }
             }
         }
 
         private IReadOnlyList<IFetchConfiguration> GetFetchConfigurations(
-            ISelection selection) =>
-            (IReadOnlyList<IFetchConfiguration>)selection.Field.ContextData["fetch"]!;
+            IObjectType objectType) =>
+            (IReadOnlyList<IFetchConfiguration>)objectType.ContextData["fetch"]!;
 
         private class OptimizerContext
         {

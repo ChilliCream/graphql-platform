@@ -14,20 +14,22 @@ namespace HotChocolate.Stitching.Processing
         public MatchSelectionsContext(
             ISchema schema,
             IPreparedOperation operation,
-            ISelectionSet selectionSet,
-            IOutputType type)
+            ISelectionSet selection,
+            IObjectType objectType)
         {
             Schema = schema;
             Operation = operation;
-            Selections = selectionSet.Selections.ToDictionary(t => t.Field.Name.Value);
-            Types = ImmutableStack<IOutputType>.Empty.Push(type);
+            Selections = selection.Selections
+                .GroupBy(t => t.Field.Name.Value)
+                .ToDictionary(t => t.Key, t => t.ToArray());
+            Types = ImmutableStack<IOutputType>.Empty.Push(objectType);
             _counter = new Counter();
         }
 
         private MatchSelectionsContext(
             ISchema schema,
             IPreparedOperation operation,
-            IReadOnlyDictionary<string, ISelection> selections,
+            IReadOnlyDictionary<string, ISelection[]> selections,
             IImmutableStack<IOutputType> types,
             Counter counter)
         {
@@ -39,9 +41,13 @@ namespace HotChocolate.Stitching.Processing
         }
 
         public ISchema Schema { get; }
+
         public IPreparedOperation Operation { get; }
-        public IReadOnlyDictionary<string, ISelection> Selections { get; }
+
+        public IReadOnlyDictionary<string, ISelection[]> Selections { get; }
+
         public IImmutableStack<IOutputType> Types { get; }
+
         public int Count { get => _counter.Count; set => _counter.Count = value; }
 
         public MatchSelectionsContext Branch(IOutputType type, ISelectionSet selectionSet)
@@ -49,7 +55,9 @@ namespace HotChocolate.Stitching.Processing
             return new MatchSelectionsContext(
                 Schema,
                 Operation,
-                selectionSet.Selections.ToDictionary(t => t.Field.Name.Value),
+                selectionSet.Selections
+                    .GroupBy(t => t.Field.Name.Value)
+                    .ToDictionary(t => t.Key, t => t.ToArray()),
                 Types.Push(type),
                 _counter);
         }

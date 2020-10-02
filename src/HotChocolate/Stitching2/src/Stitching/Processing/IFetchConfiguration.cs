@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Processing
 {
@@ -19,7 +20,8 @@ namespace HotChocolate.Stitching.Processing
 
         bool CanHandleSelections(
             IPreparedOperation operation,
-            ISelection selection,
+            ISelectionSet selectionSet,
+            IObjectType objectType,
             out IReadOnlyList<ISelection> handledSelections);
     }
 }

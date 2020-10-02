@@ -1,17 +1,23 @@
 using System.Collections.Generic;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Processing
 {
     public class DefaultFetchConfiguration : IFetchConfiguration
     {
+        private readonly MatchSelectionsVisitor _matchSelections = new MatchSelectionsVisitor();
+        private readonly ISchema _schema;
+
         public DefaultFetchConfiguration(
-            NameString schemaName, 
-            NameString typeName, 
-            IReadOnlyList<Field> requires, 
+            ISchema schema,
+            NameString schemaName,
+            NameString typeName,
+            IReadOnlyList<Field> requires,
             SelectionSetNode provides)
         {
+            _schema = schema;
             SchemaName = schemaName;
             TypeName = typeName;
             Requires = requires;
@@ -27,11 +33,13 @@ namespace HotChocolate.Stitching.Processing
         public SelectionSetNode Provides { get; }
 
         public bool CanHandleSelections(
-            IPreparedOperation operation, 
-            ISelection selection, 
+            IPreparedOperation operation,
+            ISelectionSet selectionSet,
+            IObjectType objectType,
             out IReadOnlyList<ISelection> handledSelections)
         {
-            throw new System.Exception();
+            var context = new MatchSelectionsContext(_schema, operation, selection);
+            _matchSelections.Visit(Provides, context);
         }
     }
 }

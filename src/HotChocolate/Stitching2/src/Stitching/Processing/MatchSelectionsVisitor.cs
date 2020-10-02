@@ -10,7 +10,9 @@ namespace HotChocolate.Stitching.Processing
 {
     public class MatchSelectionsVisitor : SyntaxWalker<MatchSelectionsContext>
     {
-        protected override ISyntaxVisitorAction Enter(FieldNode node, MatchSelectionsContext context)
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            MatchSelectionsContext context)
         {
             IOutputType outputType = context.Types.Peek();
             Field field = GetField(context, node, outputType);
@@ -38,7 +40,10 @@ namespace HotChocolate.Stitching.Processing
             return Skip;
         }
 
-        private IOutputType GetReturnType(MatchSelectionsContext context, FieldNode node, IOutputType type)
+        private IOutputType GetReturnType(
+            MatchSelectionsContext context, 
+            FieldNode node, 
+            IOutputType type)
         {
             if (GetDirective(node, "_return") is DirectiveNode directive &&
                 directive.Arguments.Count == 1 &&
@@ -54,7 +59,10 @@ namespace HotChocolate.Stitching.Processing
             return type;
         }
 
-        private Field GetField(MatchSelectionsContext context, FieldNode node, IOutputType type)
+        private Field GetField(
+            MatchSelectionsContext context, 
+            FieldNode node, 
+            IOutputType type)
         {
             if (GetDirective(node, "_field") is DirectiveNode directive &&
                 directive.Arguments.Count == 2 &&
@@ -72,8 +80,4 @@ namespace HotChocolate.Stitching.Processing
             return field.Directives.FirstOrDefault(t => t.Name.Value.EqualsOrdinal(directiveName));
         }
     }
-
-
-
-
 }
