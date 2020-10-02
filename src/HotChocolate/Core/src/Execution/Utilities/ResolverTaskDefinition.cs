@@ -6,7 +6,7 @@ namespace HotChocolate.Execution.Utilities
     {
         public ResolverTaskDefinition(
             IOperationContext operationContext, 
-            IPreparedSelection selection, 
+            ISelection selection, 
             int responseIndex, 
             ResultMap resultMap, 
             object? parent, 
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Utilities
 
         public IOperationContext OperationContext { get; }
 
-        public IPreparedSelection Selection { get; }
+        public ISelection Selection { get; }
 
         public int ResponseIndex { get; }
 

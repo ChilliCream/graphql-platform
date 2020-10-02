@@ -9,16 +9,16 @@ namespace HotChocolate.Execution.Utilities
     public static class ArgumentCoercionHelper
     {
         public static bool TryCoerceArguments(
-            this IPreparedArgumentMap arguments,
+            this IArgumentMap arguments,
             IVariableValueCollection variables,
             Action<IError> reportError,
-            [NotNullWhen(true)] out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs)
+            [NotNullWhen(true)] out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs)
         {
             // if we have errors on the compiled execution plan we will report the errors and
             // signal that this resolver task has errors and shall end.
             if (arguments.HasErrors)
             {
-                foreach (PreparedArgument argument in arguments.Values)
+                foreach (ArgumentValue argument in arguments.Values)
                 {
                     if (argument.HasError)
                     {
@@ -38,9 +38,9 @@ namespace HotChocolate.Execution.Utilities
 
             // if there are arguments that have variables and need variable replacement we will
             // rewrite the arguments that need variable replacement.
-            var args = new Dictionary<NameString, PreparedArgument>();
+            var args = new Dictionary<NameString, ArgumentValue>();
 
-            foreach (PreparedArgument argument in arguments.Values)
+            foreach (ArgumentValue argument in arguments.Values)
             {
                 if (argument.IsFinal)
                 {
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution.Utilities
                     IValueNode literal = VariableRewriter.Rewrite(
                         argument.ValueLiteral!, variables);
 
-                    args.Add(argument.Argument.Name, new PreparedArgument(
+                    args.Add(argument.Argument.Name, new ArgumentValue(
                         argument.Argument,
                         literal.TryGetValueKind(out ValueKind kind)
                             ? kind

@@ -4,16 +4,16 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedArgumentMap : IPreparedArgumentMap
+    internal sealed class ArgumentMap : IArgumentMap
     {
-        private readonly IReadOnlyDictionary<NameString, PreparedArgument> _arguments;
+        private readonly IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
 
-        public PreparedArgumentMap(IReadOnlyDictionary<NameString, PreparedArgument> arguments)
+        public ArgumentMap(IReadOnlyDictionary<NameString, ArgumentValue> arguments)
         {
             _arguments = arguments;
             if (_arguments.Count > 0)
             {
-                foreach (PreparedArgument argument in arguments.Values)
+                foreach (ArgumentValue argument in arguments.Values)
                 {
                     if (!argument.IsFinal)
                     {
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public PreparedArgument this[NameString key] => _arguments[key];
+        public ArgumentValue this[NameString key] => _arguments[key];
 
         public bool IsFinal { get; } = true;
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Execution.Utilities
 
         public IEnumerable<NameString> Keys => _arguments.Keys;
 
-        public IEnumerable<PreparedArgument> Values => _arguments.Values;
+        public IEnumerable<ArgumentValue> Values => _arguments.Values;
 
         public int Count => _arguments.Count;
 
@@ -44,10 +44,10 @@ namespace HotChocolate.Execution.Utilities
 
         public bool TryGetValue(
             NameString key,
-            [MaybeNullWhen(false)] out PreparedArgument value) =>
+            [MaybeNullWhen(false)] out ArgumentValue value) =>
             _arguments.TryGetValue(key, out value);
 
-        public IEnumerator<KeyValuePair<NameString, PreparedArgument>> GetEnumerator() =>
+        public IEnumerator<KeyValuePair<NameString, ArgumentValue>> GetEnumerator() =>
             _arguments.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }

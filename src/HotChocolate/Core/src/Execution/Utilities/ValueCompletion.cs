@@ -90,7 +90,7 @@ namespace HotChocolate.Execution.Utilities
             }
 
             middlewareContext.ReportError(
-                ErrorHelper.UnexpectedValueCompletionError(
+                UnexpectedValueCompletionError(
                     middlewareContext.FieldSelection,
                     path));
 
@@ -114,7 +114,6 @@ namespace HotChocolate.Execution.Utilities
                     operationContext,
                     middlewareContext,
                     path,
-                    fieldType,
                     elementType,
                     result,
                     out ResultMapList? mapList))
@@ -127,7 +126,6 @@ namespace HotChocolate.Execution.Utilities
                 operationContext,
                 middlewareContext,
                 path,
-                fieldType,
                 elementType,
                 result,
                 out ResultList? list))
@@ -144,7 +142,6 @@ namespace HotChocolate.Execution.Utilities
             IOperationContext operationContext,
             IMiddlewareContext middlewareContext,
             Path path,
-            IType fieldType,
             IType elementType,
             object result,
             out ResultMapList? completedResult)
@@ -181,20 +178,21 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else if (result is IList list)
+
+            if (result is IList list)
             {
                 completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(i),
-                        elementType,
-                        list[i],
-                        out object? completedElement) &&
+                            operationContext,
+                            middlewareContext,
+                            path.Append(i),
+                            elementType,
+                            list[i],
+                            out object? completedElement) &&
                         completedElement is ResultMap m)
                     {
                         m.Parent = completedResult;
@@ -213,21 +211,22 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else if (result is IEnumerable enumerable)
+
+            if (result is IEnumerable enumerable)
             {
-                int index = 0;
+                var index = 0;
                 completedResult = operationContext.Result.RentResultMapList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 foreach (object? element in enumerable)
                 {
                     if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(index++),
-                        elementType,
-                        element,
-                        out object? completedElement) &&
+                            operationContext,
+                            middlewareContext,
+                            path.Append(index++),
+                            elementType,
+                            element,
+                            out object? completedElement) &&
                         completedElement is ResultMap m)
                     {
                         m.Parent = completedResult;
@@ -246,23 +245,20 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else
-            {
-                middlewareContext.ReportError(
-                    ErrorHelper.ListValueIsNotSupported(
-                        result.GetType(),
-                        middlewareContext.FieldSelection,
-                        path));
-                completedResult = null;
-                return false;
-            }
+
+            middlewareContext.ReportError(
+                ListValueIsNotSupported(
+                    result.GetType(),
+                    middlewareContext.FieldSelection,
+                    path));
+            completedResult = null;
+            return false;
         }
 
         private static bool TryCompleteResultListValue(
            IOperationContext operationContext,
            IMiddlewareContext middlewareContext,
            Path path,
-           IType fieldType,
            IType elementType,
            object result,
            out ResultList? completedResult)
@@ -304,20 +300,21 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else if (result is IList list)
+
+            if (result is IList list)
             {
                 completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(i),
-                        elementType,
-                        list[i],
-                        out object? completedElement) &&
+                            operationContext,
+                            middlewareContext,
+                            path.Append(i),
+                            elementType,
+                            list[i],
+                            out object? completedElement) &&
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
@@ -339,21 +336,22 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else if (result is IEnumerable enumerable)
+
+            if (result is IEnumerable enumerable)
             {
-                int index = 0;
+                var index = 0;
                 completedResult = operationContext.Result.RentResultList();
                 completedResult.IsNullable = elementType.IsNullableType();
 
                 foreach (object? element in enumerable)
                 {
                     if (TryComplete(
-                        operationContext,
-                        middlewareContext,
-                        path.Append(index++),
-                        elementType,
-                        element,
-                        out object? completedElement) &&
+                            operationContext,
+                            middlewareContext,
+                            path.Append(index++),
+                            elementType,
+                            element,
+                            out object? completedElement) &&
                         completedElement is { } m)
                     {
                         completedResult.Add(m);
@@ -375,16 +373,14 @@ namespace HotChocolate.Execution.Utilities
 
                 return true;
             }
-            else
-            {
-                middlewareContext.ReportError(
-                    ListValueIsNotSupported(
-                        result.GetType(),
-                        middlewareContext.FieldSelection,
-                        path));
-                completedResult = null;
-                return false;
-            }
+
+            middlewareContext.ReportError(
+                ListValueIsNotSupported(
+                    result.GetType(),
+                    middlewareContext.FieldSelection,
+                    path));
+            completedResult = null;
+            return false;
         }
 
         private static void SetParent(object value, IResultData parentList)
@@ -406,7 +402,7 @@ namespace HotChocolate.Execution.Utilities
             try
             {
                 if (!fieldType.RuntimeType.IsInstanceOfType(result) &&
-                    operationContext.Converter.TryConvert(fieldType.RuntimeType, result, out object c))
+                    operationContext.Converter.TryConvert(fieldType.RuntimeType, result, out var c))
                 {
                     result = c;
                 }
@@ -416,7 +412,7 @@ namespace HotChocolate.Execution.Utilities
             catch (SerializationException ex)
             {
                 middlewareContext.ReportError(
-                    ErrorHelper.InvalidLeafValue(
+                    InvalidLeafValue(
                         ex,
                         middlewareContext.FieldSelection,
                         path));
@@ -424,7 +420,7 @@ namespace HotChocolate.Execution.Utilities
             catch (Exception ex)
             {
                 middlewareContext.ReportError(
-                    ErrorHelper.UnexpectedLeafValueSerializationError(
+                    UnexpectedLeafValueSerializationError(
                         ex,
                         operationContext.ErrorHandler,
                         middlewareContext.FieldSelection,
@@ -450,12 +446,12 @@ namespace HotChocolate.Execution.Utilities
                 SelectionSetNode selectionSet =
                     middlewareContext.FieldSelection.SelectionSet!;
 
-                IPreparedSelectionList selections =
+                ISelectionSet selections =
                     operationContext.CollectFields(selectionSet, objectType);
 
                 completedResult = selections.EnqueueResolverTasks(
                     operationContext,
-                    responseName => path.Append(responseName),
+                    path.Append,
                     middlewareContext.ScopedContextData,
                     result);
                 return true;
@@ -483,24 +479,27 @@ namespace HotChocolate.Execution.Utilities
                     objectType = vot;
                     return true;
                 }
-                else if (fieldType is ObjectType ot)
+
+                if (fieldType is ObjectType ot)
                 {
                     objectType = ot;
                     return true;
                 }
-                else if (fieldType is InterfaceType it)
+
+                if (fieldType is InterfaceType it)
                 {
                     objectType = it.ResolveConcreteType(middlewareContext, result);
                     return objectType is { };
                 }
-                else if (fieldType is UnionType ut)
+
+                if (fieldType is UnionType ut)
                 {
                     objectType = ut.ResolveConcreteType(middlewareContext, result);
                     return objectType is { };
                 }
 
                 middlewareContext.ReportError(
-                    ErrorHelper.UnableToResolveTheAbstractType(
+                    UnableToResolveTheAbstractType(
                         fieldType.Print(),
                         middlewareContext.FieldSelection,
                         path));
@@ -508,7 +507,7 @@ namespace HotChocolate.Execution.Utilities
             catch (Exception ex)
             {
                 middlewareContext.ReportError(
-                    ErrorHelper.UnexpectedErrorWhileResolvingAbstractType(
+                    UnexpectedErrorWhileResolvingAbstractType(
                         ex,
                         fieldType.Print(),
                         middlewareContext.FieldSelection,

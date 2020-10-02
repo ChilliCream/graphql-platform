@@ -1,16 +1,15 @@
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
-using PSS = HotChocolate.Execution.Utilities.PreparedSelectionSet;
 using static HotChocolate.Execution.Utilities.ThrowHelper;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class OperationCompiler
+    internal sealed partial class OperationCompiler
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
@@ -23,66 +22,66 @@ namespace HotChocolate.Execution.Utilities
             _fragments = fragments;
         }
 
-        public static IReadOnlyDictionary<SelectionSetNode, PSS> Compile(
+        public static IReadOnlyDictionary<SelectionSetNode, SelectionVariants> Compile(
             ISchema schema,
             FragmentCollection fragments,
             OperationDefinitionNode operation,
-            IEnumerable<ISelectionSetOptimizer>? optimizers = null)
+            IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
-            var selectionSets = new Dictionary<SelectionSetNode, PSS>();
-            void Register(PreparedSelectionSet s) => selectionSets[s.SelectionSet] = s;
+            var compiler = new OperationCompiler(schema, fragments);
+            var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
+            ObjectType rootType = schema.GetOperationType(operation.Operation);
+            var backlog = new Stack<CompilerContext>();
 
-            SelectionSetNode selectionSet = operation.SelectionSet;
-            ObjectType typeContext = schema.GetOperationType(operation.Operation);
-            var root = new PSS(operation.SelectionSet);
-            Register(root);
+            // creates and enqueues the root compiler context.
+            CompilerContext.New(
+                backlog,
+                rootType,
+                operation.SelectionSet,
+                optimizers?.ToImmutableList() ?? ImmutableList<ISelectionOptimizer>.Empty,
+                selectionSetLookup);
 
-            var collector = new OperationCompiler(schema, fragments);
+            // processes the backlog and by doing so traverses the query graph.
+            compiler.Visit(backlog);
 
-            collector.Visit(
-                selectionSet,
-                typeContext,
-                new Stack<IObjectField>(),
-                root,
-                Register,
-                new Dictionary<ISelectionNode, SelectionIncludeCondition>(),
-                optimizers?.ToList() ?? new List<ISelectionSetOptimizer>());
-
-            return selectionSets;
+            return selectionSetLookup;
         }
 
-        private void Visit(
-            SelectionSetNode selectionSet,
-            ObjectType typeContext,
-            Stack<IObjectField> fieldContext,
-            PSS current,
-            Action<PSS> register,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            List<ISelectionSetOptimizer> optimizers,
-            bool internalSelection = false)
+        private void Visit(Stack<CompilerContext> backlog)
         {
-            // we first collect the fields that we find in the selection set ...
-            IDictionary<string, PreparedSelection> fields =
-                CollectFields(typeContext, selectionSet, includeConditionLookup, internalSelection);
-
-            // ... after that is done we will check if there are query optimizer that want
-            // to provide additional fields.
-            OptimizeSelectionSet(fieldContext, typeContext, selectionSet, fields, optimizers);
-
-            var selections = new List<PreparedSelection>();
-            var isConditional = false;
-
-            foreach (PreparedSelection selection in fields.Values)
+            while (backlog.Count > 0)
             {
-                // we now make the selection read-only and add it to the final selection-set.
+                CompileSelectionSet(backlog.Pop());
+            }
+        }
+
+        private void CompileSelectionSet(CompilerContext context)
+        {
+            // We first collect the fields that we find in the selection set ...
+            CollectFields(context, context.SelectionSet, null);
+
+            // next we will call the selection set optimizers to rewrite the 
+            // selection set if necessary.
+            OptimizeSelectionSet(context);
+
+            // after that we start completing the selections and build the SelectionSet from 
+            // the completed selections.
+            CompleteSelectionSet(context);
+        }
+
+        private void CompleteSelectionSet(CompilerContext context)
+        {
+            foreach (Selection selection in context.Fields.Values)
+            {
+                // we now mark the selection read-only and add it to the final selection-set.
                 selection.MakeReadOnly();
-                selections.Add(selection);
+                context.Selections.Add(selection);
 
                 // if one selection of a selection-set is conditional,
-                // then the whole set is conditional.
-                if (!isConditional && (selection.IsConditional || selection.IsInternal))
+                // then the whole set is conditional and has to be post processed during execution.
+                if (!context.IsConditional && (selection.IsConditional || selection.IsInternal))
                 {
-                    isConditional = true;
+                    context.IsConditional = true;
                 }
 
                 // if the field of the selection returns a composite type we will traverse
@@ -94,147 +93,89 @@ namespace HotChocolate.Execution.Utilities
                     {
                         // composite fields always have to have a selection-set
                         // otherwise we need to throw.
-                        throw QueryCompiler_CompositeTypeSelectionSet(selection.Selection);
+                        throw QueryCompiler_CompositeTypeSelectionSet(selection.SyntaxNode);
                     }
 
-                    var next = new PSS(selection.SelectionSet);
-                    register(next);
-
                     IReadOnlyList<ObjectType> possibleTypes = _schema.GetPossibleTypes(fieldType);
-                    for (var i = 0; i < possibleTypes.Count; i++)
+
+                    for (var i = possibleTypes.Count - 1; i >= 0; i--)
                     {
-                        // we prepare the field context and check if there are field specific
-                        // optimizers that we might want to include.
-                        fieldContext.Push(selection.Field);
-                        var initialCount = optimizers.Count;
-                        var registered = RegisterOptimizers(optimizers, selection.Field);
-
-                        Visit(
-                            selection.SelectionSet,
-                            possibleTypes[i],
-                            fieldContext,
-                            next,
-                            register,
-                            includeConditionLookup,
-                            optimizers,
-                            selection.IsInternal);
-
-                        // lets clean up the context again and move on to the next.
-                        UnregisterOptimizers(optimizers, initialCount, registered);
-                        fieldContext.Pop();
+                        // we branch the context which will enqueue the new context 
+                        // to the work backlog.
+                        context.TryBranch(possibleTypes[i], selection);
                     }
                 }
             }
 
-            current.AddSelections(
-                typeContext,
-                new PreparedSelectionList(selections, isConditional));
-        }
-
-        private IDictionary<string, PreparedSelection> CollectFields(
-            ObjectType typeContext,
-            SelectionSetNode selectionSet,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            bool internalSelection)
-        {
-            var fields = new OrderedDictionary<string, PreparedSelection>();
-
-            CollectFields(
-                typeContext,
-                selectionSet,
-                null,
-                includeConditionLookup,
-                fields, internalSelection);
-
-            return fields;
+            context.Complete();
         }
 
         private void CollectFields(
-            ObjectType typeContext,
+            CompilerContext context,
             SelectionSetNode selectionSet,
-            SelectionIncludeCondition? includeCondition,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
-            bool internalSelection)
+            SelectionIncludeCondition? includeCondition)
         {
             for (var i = 0; i < selectionSet.Selections.Count; i++)
             {
                 ISelectionNode selection = selectionSet.Selections[i];
-                SelectionIncludeCondition? selectionVisibility = includeCondition;
+                SelectionIncludeCondition? selectionCondition = includeCondition;
 
-                if (selectionVisibility is null)
+                if (selectionCondition is null)
                 {
-                    includeConditionLookup.TryGetValue(selection, out selectionVisibility);
+                    context.IncludeConditionLookup.TryGetValue(selection, out selectionCondition);
                 }
 
                 ResolveFields(
-                    typeContext,
+                    context,
                     selection,
-                    ExtractVisibility(selection, selectionVisibility),
-                    includeConditionLookup,
-                    fields,
-                    internalSelection);
+                    ExtractVisibility(selection, selectionCondition));
             }
         }
 
+
         private void ResolveFields(
-            ObjectType typeContext,
+            CompilerContext context,
             ISelectionNode selection,
-            SelectionIncludeCondition? includeCondition,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
-            bool internalSelection)
+            SelectionIncludeCondition? includeCondition)
         {
             switch (selection.Kind)
             {
                 case SyntaxKind.Field:
                     ResolveFieldSelection(
-                        typeContext,
+                        context,
                         (FieldNode)selection,
-                        includeCondition,
-                        includeConditionLookup,
-                        fields,
-                        internalSelection);
+                        includeCondition);
                     break;
 
                 case SyntaxKind.InlineFragment:
                     ResolveInlineFragment(
-                        typeContext,
+                        context,
                         (InlineFragmentNode)selection,
-                        includeCondition,
-                        includeConditionLookup,
-                        fields,
-                        internalSelection);
+                        includeCondition);
                     break;
 
                 case SyntaxKind.FragmentSpread:
                     ResolveFragmentSpread(
-                        typeContext,
+                        context,
                         (FragmentSpreadNode)selection,
-                        includeCondition,
-                        includeConditionLookup,
-                        fields,
-                        internalSelection);
+                        includeCondition);
                     break;
             }
         }
 
         private void ResolveFieldSelection(
-            ObjectType typeContext,
+            CompilerContext context,
             FieldNode selection,
-            SelectionIncludeCondition? includeCondition,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
-            bool internalSelection)
+            SelectionIncludeCondition? includeCondition)
         {
             NameString fieldName = selection.Name.Value;
             NameString responseName = selection.Alias is null
                 ? selection.Name.Value
                 : selection.Alias.Value;
 
-            if (typeContext.Fields.TryGetField(fieldName, out ObjectField? field))
+            if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
             {
-                if (fields.TryGetValue(responseName, out PreparedSelection? preparedSelection))
+                if (context.Fields.TryGetValue(responseName, out Selection? preparedSelection))
                 {
                     preparedSelection.AddSelection(selection, includeCondition);
                 }
@@ -242,76 +183,98 @@ namespace HotChocolate.Execution.Utilities
                 {
                     // if this is the first time we find a selection to this field we have to
                     // create a new prepared selection.
-                    preparedSelection = new PreparedSelection(
-                        typeContext,
+                    preparedSelection = new Selection(
+                        context.Type,
                         field,
                         selection,
                         responseName: responseName,
                         resolverPipeline: CreateFieldMiddleware(field, selection),
                         arguments: CoerceArgumentValues(field, selection, responseName),
                         includeCondition: includeCondition,
-                        internalSelection: internalSelection);
+                        internalSelection: context.IsInternalSelection);
 
-                    fields.Add(responseName, preparedSelection);
+                    context.Fields.Add(responseName, preparedSelection);
                 }
 
-                if (includeCondition is { } && selection.SelectionSet is { })
+                if (includeCondition is not null && selection.SelectionSet is not null)
                 {
                     for (var i = 0; i < selection.SelectionSet.Selections.Count; i++)
                     {
                         ISelectionNode child = selection.SelectionSet.Selections[i];
-                        if (!includeConditionLookup.ContainsKey(child))
+                        if (!context.IncludeConditionLookup.ContainsKey(child))
                         {
-                            includeConditionLookup.Add(child, includeCondition);
+                            context.IncludeConditionLookup.Add(child, includeCondition);
                         }
                     }
                 }
             }
             else
             {
-                throw FieldDoesNotExistOnType(selection, typeContext.Name);
+                throw FieldDoesNotExistOnType(selection, context.Type.Name);
             }
         }
 
         private void ResolveFragmentSpread(
-            ObjectType type,
+            CompilerContext context,
             FragmentSpreadNode fragmentSpread,
-            SelectionIncludeCondition? includeCondition,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
-            bool internalSelection)
+            SelectionIncludeCondition? includeCondition)
         {
-            if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragment &&
-                DoesTypeApply(fragment.TypeCondition, type))
+            if (_fragments.GetFragment(fragmentSpread.Name.Value) is { } fragmentInfo &&
+                DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
-                CollectFields(
-                    type,
-                    fragment.SelectionSet,
-                    includeCondition,
-                    includeConditionLookup,
-                    fields,
-                    internalSelection);
+                FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
+
+                if (fragmentSpread.IsDeferrable() &&
+                    AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
+                {
+                    var deferContext = context.Branch(fragmentInfo);
+                    CompileSelectionSet(deferContext);
+
+                    context.RegisterFragment(new Fragment(
+                        context.Type,
+                        fragmentDefinition,
+                        deferContext.GetSelectionSet(),
+                        context.IsInternalSelection,
+                        includeCondition));
+                }
+                else
+                {
+                    CollectFields(
+                        context,
+                        fragmentInfo.SelectionSet,
+                        includeCondition);
+                }
             }
         }
 
         private void ResolveInlineFragment(
-            ObjectType type,
+            CompilerContext context,
             InlineFragmentNode inlineFragment,
-            SelectionIncludeCondition? includeCondition,
-            IDictionary<ISelectionNode, SelectionIncludeCondition> includeConditionLookup,
-            IDictionary<string, PreparedSelection> fields,
-            bool internalSelection)
+            SelectionIncludeCondition? includeCondition)
         {
-            if (_fragments.GetFragment(type, inlineFragment) is { } fragment &&
-                DoesTypeApply(fragment.TypeCondition, type))
+            if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
+                DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {
-                CollectFields(
-                    type,
-                    fragment.SelectionSet,
-                    includeCondition,
-                    includeConditionLookup,
-                    fields,
-                    internalSelection);
+                if (inlineFragment.IsDeferrable() &&
+                    AllowFragmentDeferral(context, inlineFragment))
+                {
+                    var deferContext = context.Branch(fragmentInfo);
+                    CompileSelectionSet(deferContext);
+
+                    context.RegisterFragment(new Fragment(
+                        context.Type,
+                        inlineFragment,
+                        deferContext.GetSelectionSet(),
+                        context.IsInternalSelection,
+                        includeCondition));
+                }
+                else
+                {
+                    CollectFields(
+                        context,
+                        fragmentInfo.SelectionSet,
+                        includeCondition);
+                }
             }
         }
 
@@ -332,7 +295,7 @@ namespace HotChocolate.Execution.Utilities
                 return visibility;
             }
 
-            if (visibility is { } && visibility.Equals(skip, include))
+            if (visibility is not null && visibility.Equals(skip, include))
             {
                 return visibility;
             }
@@ -340,7 +303,7 @@ namespace HotChocolate.Execution.Utilities
             return new SelectionIncludeCondition(skip, include, visibility);
         }
 
-        private static bool DoesTypeApply(IType typeCondition, ObjectType current)
+        private static bool DoesTypeApply(IType typeCondition, IObjectType current)
         {
             switch (typeCondition.Kind)
             {
@@ -358,8 +321,8 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private IReadOnlyDictionary<NameString, PreparedArgument>? CoerceArgumentValues(
-            ObjectField field,
+        private IReadOnlyDictionary<NameString, ArgumentValue>? CoerceArgumentValues(
+            IObjectField field,
             FieldNode selection,
             string responseName)
         {
@@ -368,12 +331,14 @@ namespace HotChocolate.Execution.Utilities
                 return null;
             }
 
-            var arguments = new Dictionary<NameString, PreparedArgument>();
+            var arguments = new Dictionary<NameString, ArgumentValue>();
 
             for (var i = 0; i < selection.Arguments.Count; i++)
             {
                 ArgumentNode argumentValue = selection.Arguments[i];
-                if (field.Arguments.TryGetField(argumentValue.Name.Value, out Argument? argument))
+                if (field.Arguments.TryGetField(
+                    argumentValue.Name.Value,
+                    out IInputField? argument))
                 {
                     arguments[argument.Name.Value] =
                         CreateArgumentValue(
@@ -387,7 +352,7 @@ namespace HotChocolate.Execution.Utilities
 
             for (var i = 0; i < field.Arguments.Count; i++)
             {
-                Argument argument = field.Arguments[i];
+                IInputField argument = field.Arguments[i];
                 if (!arguments.ContainsKey(argument.Name))
                 {
                     arguments[argument.Name.Value] =
@@ -403,9 +368,9 @@ namespace HotChocolate.Execution.Utilities
             return arguments;
         }
 
-        private PreparedArgument CreateArgumentValue(
+        private ArgumentValue CreateArgumentValue(
             string responseName,
-            Argument argument,
+            IInputField argument,
             ArgumentNode? argumentValue,
             IValueNode value,
             bool isDefaultValue)
@@ -413,9 +378,9 @@ namespace HotChocolate.Execution.Utilities
             ArgumentNonNullValidator.ValidationResult validationResult =
                 ArgumentNonNullValidator.Validate(argument, value, Path.New(argument.Name));
 
-            if (argumentValue is { } && validationResult.HasErrors)
+            if (argumentValue is not null && validationResult.HasErrors)
             {
-                return new PreparedArgument(
+                return new ArgumentValue(
                     argument,
                     ErrorHelper.ArgumentNonNullError(
                         argumentValue,
@@ -427,7 +392,7 @@ namespace HotChocolate.Execution.Utilities
             {
                 try
                 {
-                    return new PreparedArgument(
+                    return new ArgumentValue(
                         argument,
                         value.GetValueKind(),
                         true,
@@ -439,18 +404,18 @@ namespace HotChocolate.Execution.Utilities
                 {
                     if (argumentValue is not null)
                     {
-                        return new PreparedArgument(
+                        return new ArgumentValue(
                             argument,
                             ErrorHelper.ArgumentValueIsInvalid(argumentValue, responseName, ex));
                     }
 
-                    return new PreparedArgument(
+                    return new ArgumentValue(
                         argument,
                         ErrorHelper.ArgumentDefaultValueIsInvalid(responseName, ex));
                 }
             }
 
-            return new PreparedArgument(
+            return new ArgumentValue(
                 argument,
                 value.GetValueKind(),
                 false,
@@ -482,9 +447,9 @@ namespace HotChocolate.Execution.Utilities
             return true;
         }
 
-        private static object? ParseLiteral(Argument argument, IValueNode value)
+        private static object? ParseLiteral(IInputField argument, IValueNode value)
         {
-            IInputType type = (argument.Type is NonNullType)
+            IInputType type = argument.Type is NonNullType
                 ? (IInputType)argument.Type.InnerType()
                 : argument.Type;
 
@@ -584,64 +549,106 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        private static int RegisterOptimizers(
-            IList<ISelectionSetOptimizer> optimizers,
-            IObjectField field)
+        private void OptimizeSelectionSet(CompilerContext context)
         {
-            var count = 0;
-
-            if (SelectionSetOptimizerHelper.TryGetOptimizers(
-                field.ContextData,
-                out IReadOnlyList<ISelectionSetOptimizer>? fieldOptimizers))
+            if (context.Optimizers.Count == 0)
             {
-                foreach (ISelectionSetOptimizer optimizer in fieldOptimizers)
-                {
-                    if (!optimizers.Contains(optimizer))
-                    {
-                        optimizers.Add(optimizer);
-                        count++;
-                    }
-                }
+                return;
             }
 
-            return count;
-        }
+            var optimizerContext = new SelectionOptimizerContext
+            (
+                _schema,
+                context.Path,
+                context.Type,
+                context.SelectionSet,
+                context.Fields,
+                CreateFieldMiddleware
+            );
 
-        private static void UnregisterOptimizers(
-            IList<ISelectionSetOptimizer> optimizers,
-            int initialCount,
-            int registeredOptimizers)
-        {
-            var last = initialCount - 1;
-
-            for (var i = last + registeredOptimizers; i > last; i--)
+            if (context.Optimizers.Count == 1)
             {
-                optimizers.RemoveAt(i);
+                context.Optimizers[0].OptimizeSelectionSet(optimizerContext);
+                return;
+            }
+
+            for (var i = 0; i < context.Optimizers.Count; i++)
+            {
+                context.Optimizers[i].OptimizeSelectionSet(optimizerContext);
             }
         }
 
-        private void OptimizeSelectionSet(
-            Stack<IObjectField> fieldContext,
-            IObjectType typeContext,
-            SelectionSetNode selectionSet,
-            IDictionary<string, PreparedSelection> fields,
-            IReadOnlyList<ISelectionSetOptimizer> optimizers)
+        private bool AllowFragmentDeferral(
+            CompilerContext context,
+            InlineFragmentNode fragment)
         {
-            if (optimizers.Count > 0)
+            if (context.Optimizers.Count == 0)
             {
-                var context = new SelectionSetOptimizerContext(
-                    _schema,
-                    fieldContext,
-                    typeContext,
-                    selectionSet,
-                    fields,
-                    CreateFieldMiddleware);
+                return true;
+            }
 
-                for (var i = 0; i < optimizers.Count; i++)
+            var optimizerContext = new SelectionOptimizerContext
+            (
+                _schema,
+                context.Path,
+                context.Type,
+                context.SelectionSet,
+                context.Fields,
+                CreateFieldMiddleware
+            );
+
+            if (context.Optimizers.Count == 1)
+            {
+                return context.Optimizers[0].AllowFragmentDeferral(optimizerContext, fragment);
+            }
+
+            for (var i = 0; i < context.Optimizers.Count; i++)
+            {
+                if (!context.Optimizers[i].AllowFragmentDeferral(optimizerContext, fragment))
                 {
-                    optimizers[i].Optimize(context);
+                    return false;
                 }
             }
+
+            return true;
+        }
+
+        private bool AllowFragmentDeferral(
+            CompilerContext context,
+            FragmentSpreadNode fragmentSpread,
+            FragmentDefinitionNode fragmentDefinition)
+        {
+            if (context.Optimizers.Count == 0)
+            {
+                return true;
+            }
+
+            var optimizerContext = new SelectionOptimizerContext
+            (
+                _schema,
+                context.Path,
+                context.Type,
+                context.SelectionSet,
+                context.Fields,
+                CreateFieldMiddleware
+            );
+
+            if (context.Optimizers.Count == 1)
+            {
+                return context.Optimizers[0].AllowFragmentDeferral(
+                    optimizerContext, fragmentSpread, fragmentDefinition);
+            }
+
+            for (var i = 0; i < context.Optimizers.Count; i++)
+            {
+                if (!context.Optimizers[i].AllowFragmentDeferral(
+                    optimizerContext, fragmentSpread, fragmentDefinition))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static FieldDelegate Compile(

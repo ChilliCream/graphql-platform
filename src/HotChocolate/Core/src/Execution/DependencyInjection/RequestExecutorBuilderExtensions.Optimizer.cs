@@ -8,21 +8,21 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
             this IRequestExecutorBuilder builder)
-            where T : class, ISelectionSetOptimizer
+            where T : class, ISelectionOptimizer
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.ConfigureSchemaServices(s => s.AddSingleton<ISelectionSetOptimizer, T>());
+            builder.ConfigureSchemaServices(s => s.AddSingleton<ISelectionOptimizer, T>());
             return builder;
         }
 
         public static IRequestExecutorBuilder AddSelectionSetOptimizer<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, T> factory)
-            where T : class, ISelectionSetOptimizer
+            where T : class, ISelectionOptimizer
         {
             if (builder is null)
             {
@@ -30,7 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.ConfigureSchemaServices(
-                sc => sc.AddSingleton<ISelectionSetOptimizer>(factory));
+                sc => sc.AddSingleton<ISelectionOptimizer>(factory));
             return builder;
         }
     }

@@ -4,26 +4,26 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal sealed class PreparedSelectionSet : IPreparedSelectionSet
+    internal sealed class SelectionVariants : ISelectionVariants
     {
-        private ObjectType? _firstType;
-        private IPreparedSelectionList? _firstSelections;
-        private ObjectType? _secondType;
-        private IPreparedSelectionList? _secondSelections;
-        private Dictionary<ObjectType, IPreparedSelectionList>? _map;
+        private IObjectType? _firstType;
+        private ISelectionSet? _firstSelections;
+        private IObjectType? _secondType;
+        private ISelectionSet? _secondSelections;
+        private Dictionary<IObjectType, ISelectionSet>? _map;
 
-        public PreparedSelectionSet(SelectionSetNode selectionSet)
+        public SelectionVariants(SelectionSetNode selectionSet)
         {
             SelectionSet = selectionSet;
         }
 
         public SelectionSetNode SelectionSet { get; }
 
-        public IEnumerable<ObjectType> GetPossibleTypes()
+        public IEnumerable<IObjectType> GetPossibleTypes()
         {
             if (_map is { })
             {
-                foreach (ObjectType possibleType in _map.Keys)
+                foreach (IObjectType possibleType in _map.Keys)
                 {
                     yield return possibleType;
                 }
@@ -39,13 +39,13 @@ namespace HotChocolate.Execution.Utilities
             }
         }
 
-        public IPreparedSelectionList GetSelections(ObjectType typeContext)
+        public ISelectionSet GetSelectionSet(IObjectType typeContext)
         {
             if (_map is { })
             {
-                return _map.TryGetValue(typeContext, out IPreparedSelectionList? selections)
+                return _map.TryGetValue(typeContext, out ISelectionSet? selections)
                     ? selections
-                    : PreparedSelectionList.Empty;
+                    : Utilities.SelectionSet.Empty;
             }
 
             if (ReferenceEquals(_firstType, typeContext))
@@ -58,34 +58,40 @@ namespace HotChocolate.Execution.Utilities
                 return _secondSelections!;
             }
 
-            return PreparedSelectionList.Empty;
+            return Utilities.SelectionSet.Empty;
         }
 
-        public void AddSelections(ObjectType typeContext, IPreparedSelectionList selections)
+        public void AddSelectionSet(
+            IObjectType typeContext, 
+            IReadOnlyList<ISelection> selections,
+            IReadOnlyList<IFragment>? fragments,
+            bool isConditional)
         {
+            var selectionSet = new SelectionSet(selections, fragments, isConditional);
+
             if (_map is { })
             {
-                _map[typeContext] = selections;
+                _map[typeContext] = selectionSet;
             }
             else
             {
                 if (_firstType is null)
                 {
                     _firstType = typeContext;
-                    _firstSelections = selections;
+                    _firstSelections = selectionSet;
                 }
                 else if (_secondType is null)
                 {
                     _secondType = typeContext;
-                    _secondSelections = selections;
+                    _secondSelections = selectionSet;
                 }
                 else
                 {
-                    _map = new Dictionary<ObjectType, IPreparedSelectionList>
+                    _map = new Dictionary<IObjectType, ISelectionSet>
                     {
                         { _firstType, _firstSelections! },
                         { _secondType, _secondSelections! },
-                        { typeContext, selections }
+                        { typeContext, selectionSet }
                     };
 
                     _firstType = null;

@@ -4,10 +4,10 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public sealed class PreparedArgument
+    public sealed class ArgumentValue
     {
-        public PreparedArgument(
-            Argument argument,
+        public ArgumentValue(
+            IInputField argument,
             ValueKind kind,
             bool isFinal,
             bool isImplicit,
@@ -24,7 +24,7 @@ namespace HotChocolate.Execution.Utilities
             ValueLiteral = valueLiteral ?? throw new ArgumentNullException(nameof(valueLiteral));
         }
 
-        public PreparedArgument(Argument argument, IError error)
+        public ArgumentValue(IInputField argument, IError error)
         {
             Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Error = error ?? throw new ArgumentNullException(nameof(error));
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution.Utilities
             ValueLiteral = null;
         }
 
-        public Argument Argument { get; }
+        public IInputField Argument { get; }
 
         public IInputType Type => Argument.Type;
 

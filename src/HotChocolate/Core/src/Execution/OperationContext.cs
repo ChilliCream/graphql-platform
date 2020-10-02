@@ -19,9 +19,9 @@ namespace HotChocolate.Execution
 
         public IExecutionContext Execution => _executionContext;
 
-        public IPreparedSelectionList CollectFields(
+        public ISelectionSet CollectFields(
             SelectionSetNode selectionSet,
             ObjectType objectType) =>
-            Operation.GetSelections(selectionSet, objectType);
+            Operation.GetSelectionSet(selectionSet, objectType);
     }
 }

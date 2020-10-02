@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -7,10 +7,10 @@ namespace HotChocolate.Execution.Utilities
 {
     internal sealed class FragmentCollection
     {
-        private readonly ConcurrentDictionary<object, Fragment?> _fragments =
-            new ConcurrentDictionary<object, Fragment?>();
         private readonly ISchema _schema;
         private readonly DocumentNode _document;
+        private Dictionary<string, FragmentInfo?>? _fragments;
+        private Dictionary<(InlineFragmentNode, string?), FragmentInfo>? _inlineFragments;
 
         public FragmentCollection(ISchema schema, DocumentNode document)
         {
@@ -18,23 +18,25 @@ namespace HotChocolate.Execution.Utilities
             _document = document ?? throw new ArgumentNullException(nameof(document));
         }
 
-        public Fragment? GetFragment(string fragmentName)
+        public FragmentInfo? GetFragment(string fragmentName)
         {
             if (fragmentName is null)
             {
                 throw new ArgumentNullException(nameof(fragmentName));
             }
 
-            if (!_fragments.TryGetValue(fragmentName, out Fragment? fragment))
+            _fragments ??= new Dictionary<string, FragmentInfo?>();
+
+            if (!_fragments.TryGetValue(fragmentName, out FragmentInfo? fragment))
             {
                 fragment = CreateFragment(fragmentName);
-                _fragments[fragmentName] = fragment;
+                _fragments.Add(fragmentName, fragment);
             }
 
             return fragment;
         }
 
-        private Fragment? CreateFragment(string fragmentName)
+        private FragmentInfo? CreateFragment(string fragmentName)
         {
             for (var i = 0; i < _document.Definitions.Count; i++)
             {
@@ -43,7 +45,12 @@ namespace HotChocolate.Execution.Utilities
                 {
                     if (_schema.TryGetType(fragment.TypeCondition.Name.Value, out INamedType type))
                     {
-                        return new Fragment(type, fragment.SelectionSet, fragment.Directives);
+                        return new FragmentInfo(
+                            type, 
+                            fragment.SelectionSet, 
+                            fragment.Directives,
+                            null,
+                            fragment);
                     }
                 }
             }
@@ -51,24 +58,41 @@ namespace HotChocolate.Execution.Utilities
             return null;
         }
 
-        public Fragment? GetFragment(ObjectType parentType, InlineFragmentNode inlineFragment)
+        public FragmentInfo? GetFragment(IObjectType parentType, InlineFragmentNode inlineFragment)
         {
-            if (!_fragments.TryGetValue(inlineFragment, out Fragment? fragment))
+            if (parentType is null)
             {
-                fragment = CreateFragment(parentType, inlineFragment);
-                _fragments[inlineFragment] = fragment;
+                throw new ArgumentNullException(nameof(parentType));
+            }
+
+            if (inlineFragment is null)
+            {
+                throw new ArgumentNullException(nameof(inlineFragment));
+            }
+
+            _inlineFragments ??= new Dictionary<(InlineFragmentNode, string?), FragmentInfo>();
+            INamedType typeCondition = ResolveTypeCondition(parentType, inlineFragment);
+            var key = (inlineFragment, typeCondition.Name.Value);
+
+            if (!_inlineFragments.TryGetValue(key, out FragmentInfo? fragment))
+            {
+                fragment = new FragmentInfo(
+                    typeCondition,
+                    inlineFragment.SelectionSet,
+                    inlineFragment.Directives,
+                    inlineFragment,
+                    null);
+                _inlineFragments.Add(key, fragment);
             }
 
             return fragment;
         }
 
-        private Fragment CreateFragment(ObjectType parentType, InlineFragmentNode inlineFragment)
-        {
-            INamedType type = inlineFragment.TypeCondition is null
+        private INamedType ResolveTypeCondition(
+            IObjectType parentType,
+            InlineFragmentNode inlineFragment) =>
+            inlineFragment.TypeCondition is null
                 ? parentType
                 : _schema.GetType<INamedType>(inlineFragment.TypeCondition.Name.Value);
-
-            return new Fragment(type, inlineFragment.SelectionSet, inlineFragment.Directives);
-        }
     }
 }

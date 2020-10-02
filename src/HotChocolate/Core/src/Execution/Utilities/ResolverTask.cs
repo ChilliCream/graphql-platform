@@ -11,7 +11,7 @@ namespace HotChocolate.Execution.Utilities
         private readonly MiddlewareContext _context = new MiddlewareContext();
         private ValueTask _task;
         private IOperationContext _operationContext = default!;
-        private IPreparedSelection _selection = default!;
+        private ISelection _selection = default!;
 
         public bool IsCompleted => _task.IsCompleted;
 
@@ -45,7 +45,7 @@ namespace HotChocolate.Execution.Utilities
                 if (_selection.Arguments.TryCoerceArguments(
                     _context.Variables,
                     _context.ReportError,
-                    out IReadOnlyDictionary<NameString, PreparedArgument>? coercedArgs))
+                    out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                 {
                     _context.Arguments = coercedArgs;
                     await ExecuteResolverPipelineAsync().ConfigureAwait(false);

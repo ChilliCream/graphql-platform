@@ -14,12 +14,12 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private readonly IReadOnlyList<ISelectionSetOptimizer>? _optimizers;
+        private readonly IReadOnlyList<ISelectionOptimizer>? _optimizers;
 
         public OperationResolverMiddleware(
             RequestDelegate next,
             IDiagnosticEvents diagnosticEvents,
-            IEnumerable<ISelectionSetOptimizer> optimizers)
+            IEnumerable<ISelectionOptimizer> optimizers)
         {
             if (optimizers is null)
             {
@@ -54,10 +54,10 @@ namespace HotChocolate.Execution.Pipeline
 
                 var fragments = new FragmentCollection(context.Schema, context.Document);
 
-                IReadOnlyDictionary<SelectionSetNode, PreparedSelectionSet> selectionSets =
+                IReadOnlyDictionary<SelectionSetNode, SelectionVariants> selectionSets =
                     Compile(context.Schema, fragments, operation, _optimizers);
 
-                context.Operation = new PreparedOperation(
+                context.Operation = new Operation(
                     context.OperationId ?? Guid.NewGuid().ToString("N"),
                     context.Document,
                     operation,

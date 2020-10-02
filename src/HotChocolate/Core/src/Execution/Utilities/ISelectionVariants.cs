@@ -4,12 +4,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    internal interface IPreparedSelectionSet
+    public interface ISelectionVariants
     {
         SelectionSetNode SelectionSet { get; }
 
-        IEnumerable<ObjectType> GetPossibleTypes();
+        IEnumerable<IObjectType> GetPossibleTypes();
 
-        IPreparedSelectionList GetSelections(ObjectType typeContext);
+        ISelectionSet GetSelectionSet(IObjectType typeContext);
     }
 }

@@ -9,23 +9,23 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Utilities
 {
-    public sealed class PreparedSelection : IPreparedSelection
+    public sealed class Selection : ISelection
     {
-        private static readonly PreparedArgumentMap _emptyArguments =
-            new PreparedArgumentMap(new Dictionary<NameString, PreparedArgument>());
+        private static readonly ArgumentMap _emptyArguments =
+            new ArgumentMap(new Dictionary<NameString, ArgumentValue>());
 
         private static readonly IReadOnlyList<FieldNode> _emptySelections = new FieldNode[0];
         private List<SelectionIncludeCondition>? _includeConditions;
         private List<FieldNode>? _selections;
         private bool _isReadOnly;
 
-        public PreparedSelection(
+        public Selection(
             IObjectType declaringType,
             IObjectField field,
             FieldNode selection,
             FieldDelegate resolverPipeline,
             NameString? responseName = null,
-            IReadOnlyDictionary<NameString, PreparedArgument>? arguments = null,
+            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
             SelectionIncludeCondition? includeCondition = null,
             bool internalSelection = false)
         {
@@ -33,7 +33,7 @@ namespace HotChocolate.Execution.Utilities
                 ?? throw new ArgumentNullException(nameof(declaringType));
             Field = field
                 ?? throw new ArgumentNullException(nameof(field));
-            Selection = selection
+            SyntaxNode = selection
                 ?? throw new ArgumentNullException(nameof(selection));
             ResponseName = responseName ??
                 (selection.Alias is null
@@ -43,13 +43,13 @@ namespace HotChocolate.Execution.Utilities
                 throw new ArgumentNullException(nameof(resolverPipeline));
             Arguments = arguments is null
                 ? _emptyArguments
-                : new PreparedArgumentMap(arguments);
-            Selections = _emptySelections;
+                : new ArgumentMap(arguments);
+            SyntaxNodes = _emptySelections;
             InclusionKind = internalSelection
                 ? SelectionInclusionKind.Internal
                 : SelectionInclusionKind.Always;
 
-            if (includeCondition is { })
+            if (includeCondition is not null)
             {
                 _includeConditions = new List<SelectionIncludeCondition> { includeCondition };
                 ModifyCondition(true);
@@ -63,14 +63,14 @@ namespace HotChocolate.Execution.Utilities
         public IObjectField Field { get; }
 
         /// <inheritdoc />
-        public FieldNode Selection { get; private set; }
+        public FieldNode SyntaxNode { get; private set; }
 
-        public SelectionSetNode? SelectionSet => Selection.SelectionSet;
+        public SelectionSetNode? SelectionSet => SyntaxNode.SelectionSet;
 
         /// <inheritdoc />
-        public IReadOnlyList<FieldNode> Selections { get; private set; }
+        public IReadOnlyList<FieldNode> SyntaxNodes { get; private set; }
 
-        IReadOnlyList<FieldNode> IFieldSelection.Nodes => Selections;
+        IReadOnlyList<FieldNode> IFieldSelection.Nodes => SyntaxNodes;
 
         /// <inheritdoc />
         public NameString ResponseName { get; }
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution.Utilities
         public FieldDelegate ResolverPipeline { get; }
 
         /// <inheritdoc />
-        public IPreparedArgumentMap Arguments { get; }
+        public IArgumentMap Arguments { get; }
 
         /// <inheritdoc />
         public SelectionInclusionKind InclusionKind { get; private set; }
@@ -132,7 +132,7 @@ namespace HotChocolate.Execution.Utilities
                 throw new NotSupportedException(Resources.PreparedSelection_ReadOnly);
             }
 
-            _selections ??= new List<FieldNode> { Selection };
+            _selections ??= new List<FieldNode> { SyntaxNode };
             _selections.Add(field);
 
             AddVariableVisibility(includeCondition);
@@ -176,8 +176,8 @@ namespace HotChocolate.Execution.Utilities
             }
 
             _isReadOnly = true;
-            Selection = MergeField(Selection, _selections);
-            Selections = _selections ?? _emptySelections;
+            SyntaxNode = MergeField(SyntaxNode, _selections);
+            SyntaxNodes = _selections ?? _emptySelections;
         }
 
         private static FieldNode MergeField(
