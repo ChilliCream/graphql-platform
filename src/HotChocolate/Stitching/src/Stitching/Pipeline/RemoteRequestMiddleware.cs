@@ -2,20 +2,26 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.Delegation
 {
-    public class RemoteQueryMiddleware
+    public class RemoteRequestMiddleware
     {
-        private readonly HttpQueryClient _client = new HttpQueryClient();
-        private readonly QueryDelegate _next;
+        private readonly HttpRequestClient _client = new HttpRequestClient();
+        private readonly RequestDelegate _next;
         private readonly IErrorHandler _errorHandler;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _schemaName;
 
-        public RemoteQueryMiddleware(QueryDelegate next, IErrorHandler errorHandler, string schemaName)
+        public RemoteRequestMiddleware(
+            RequestDelegate next,
+            IErrorHandler errorHandler,
+            IHttpClientFactory httpClientFactory,
+            string schemaName)
         {
             if (string.IsNullOrEmpty(schemaName))
             {
@@ -26,20 +32,18 @@ namespace HotChocolate.Stitching.Delegation
 
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _errorHandler = errorHandler;
+            _httpClientFactory = httpClientFactory;
             _schemaName = schemaName;
         }
 
-        public async Task InvokeAsync(IQueryContext context)
+        public async ValueTask InvokeAsync(IRequestContext context)
         {
             try
             {
-                IHttpClientFactory httpClientFactory =
-                    context.Services.GetRequiredService<IHttpClientFactory>();
-
                 context.Result = await _client.FetchAsync(
                     context.Request,
-                    httpClientFactory.CreateClient(_schemaName),
-                    context.Services.GetServices<IHttpQueryRequestInterceptor>(),
+                    _httpClientFactory.CreateClient(_schemaName),
+                    context.Services.GetServices<IHttpStitchingRequestInterceptor>(),
                     context.RequestAborted)
                     .ConfigureAwait(false);
             }

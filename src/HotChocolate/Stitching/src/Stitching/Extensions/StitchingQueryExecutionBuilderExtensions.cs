@@ -100,7 +100,7 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use((services, next) =>
-                new RemoteQueryMiddleware(next, services.GetRequiredService<IErrorHandler>(), schemaName));
+                new RemoteRequestMiddleware(next, services.GetRequiredService<IErrorHandler>(), schemaName));
         }
 
         public static IQueryExecutionBuilder UsePropagateVariables(

@@ -9,8 +9,8 @@ using HotChocolate.Execution;
 namespace HotChocolate.Stitching.Client
 {
     public sealed class RemoteQueryBatchOperation
-        : IBatchOperation
-        , IObserver<IRemoteQueryClient>
+        // : IBatchOperation
+        : IObserver<IRemoteQueryClient>
         , IDisposable
     {
         private readonly object _sync = new object();

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Pipeline;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -15,11 +16,11 @@ namespace HotChocolate.Stitching.Utilities
 {
     public class HttpQueryClientTests
     {
-        private readonly HttpQueryClient sut;
+        private readonly HttpRequestClient sut;
 
         public HttpQueryClientTests()
         {
-            sut = new HttpQueryClient();
+            sut = new HttpRequestClient();
         }
 
         [Fact]

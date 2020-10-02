@@ -1,5 +1,5 @@
-using System.Buffers;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -8,16 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
+using ArrayWriter = HotChocolate.Stitching.Utilities.ArrayWriter;
 
 #nullable enable
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Pipeline
 {
-    internal class HttpQueryClient
+    internal class HttpRequestClient
     {
-        private static readonly KeyValuePair<string, string> _contentTypeJson =
-            new KeyValuePair<string, string>("Content-Type", "application/json");
+        private static readonly (string Key, string Value) _contentType =
+            ("Content-Type", "application/json; charset=utf-8");
 
         private static readonly JsonSerializerOptions _jsonSerializerOptions =
             new JsonSerializerOptions
@@ -34,22 +36,27 @@ namespace HotChocolate.Stitching.Utilities
                 Indented = false
             };
 
+        private readonly IHttpClientFactory _clientFactory;
+        private readonly IHttpStitchingRequestInterceptor _requestInterceptor;
+
+        public HttpRequestClient(
+            IHttpClientFactory clientFactory,
+            IHttpStitchingRequestInterceptor requestInterceptor)
+        {
+            _clientFactory = clientFactory;
+            _requestInterceptor = requestInterceptor;
+        }
+
         public async Task<IReadOnlyQueryResult> FetchAsync(
-            IReadOnlyQueryRequest request,
-            HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor>? interceptors = default,
+            IQueryRequest request,
+            NameString targetSchema,
+            IHttpStitchingRequestInterceptor requestInterceptor,
             CancellationToken cancellationToken = default)
         {
-            using var writer = new ArrayWriter();
-            using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
-            WriteJsonRequest(writer, jsonWriter, request);
-            jsonWriter.Flush();
+            HttpRequestMessage requestMessage =
+                await CreateRequestAsync(request, targetSchema, cancellationToken)
+                    .ConfigureAwait(false);
 
-            var requestBody = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length);
-            requestBody.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
-
-            // note: this one has to be awaited since byte array content uses a rented buffer
-            // which is released as soon as writer is disposed.
             return await FetchAsync(
                 request,
                 requestBody,
@@ -59,44 +66,87 @@ namespace HotChocolate.Stitching.Utilities
                 .ConfigureAwait(false);
         }
 
-        private async Task<IReadOnlyQueryResult> FetchAsync(
-            IReadOnlyQueryRequest request,
-            HttpContent requestContent,
-            HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor>? interceptors,
+        private async Task<IQueryResult> FetchAsync(
+            IQueryRequest request,
+            HttpRequestMessage requestMessage,
+            NameString targetSchema,
             CancellationToken cancellationToken)
         {
+            try
+            {
+                using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
+                using Http§ await httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false)
+
+                HttpResponseMessage response = await httpClient
+                    .PostAsync(default(Uri), requestContent)
+                    .ConfigureAwait(false);
+
+                response.EnsureSuccessStatusCode();
+                return response;
+            }
+            catch
+            {
+            }
+            finally
+            {
+                requestMessage.Dispose();
+            }
+
             HttpResponseMessage message =
                 await FetchInternalAsync(requestContent, httpClient).ConfigureAwait(false);
 
-            using (Stream stream = await message.Content.ReadAsStreamAsync().ConfigureAwait(false))
-            {
-                object response = await BufferHelper.ReadAsync(
+            using Stream stream = await message.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            object response = await BufferHelper.ReadAsync(
                     stream,
                     (buffer, bytesBuffered) => ParseJson(buffer, bytesBuffered),
                     cancellationToken)
-                    .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
-                IReadOnlyQueryResult queryResult =
-                    response is IReadOnlyDictionary<string, object> d
-                        ? HttpResponseDeserializer.Deserialize(d)
-                        : QueryResultBuilder.CreateError(
-                            ErrorBuilder.New()
-                                .SetMessage("Could not deserialize query response.")
-                                .Build());
+            IReadOnlyQueryResult queryResult =
+                response is IReadOnlyDictionary<string, object> d
+                    ? HttpResponseDeserializer.Deserialize(d)
+                    : QueryResultBuilder.CreateError(
+                        ErrorBuilder.New()
+                            .SetMessage("Could not deserialize query response.")
+                            .Build());
 
-                if (interceptors is { })
+            if (interceptors is { })
+            {
+                foreach (IHttpStitchingRequestInterceptor interceptor in interceptors)
                 {
-                    foreach (IHttpQueryRequestInterceptor interceptor in interceptors)
-                    {
-                        queryResult = await interceptor.OnResponseReceivedAsync(
+                    queryResult = await interceptor.OnReceivedResultAsync(
                             request, message, queryResult)
-                            .ConfigureAwait(false);
-                    }
+                        .ConfigureAwait(false);
                 }
-
-                return queryResult;
             }
+
+            return queryResult;
+        }
+
+        private async ValueTask<HttpRequestMessage> CreateRequestAsync(
+            IQueryRequest request,
+            NameString targetSchema,
+            CancellationToken cancellationToken = default)
+        {
+            using var writer = new ArrayWriter();
+            await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+
+            WriteJsonRequest(writer, jsonWriter, request);
+            await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+            var requestMessage = new HttpRequestMessage
+            {
+                Method = HttpMethod.Post,
+                Headers = { {_contentType.Key, _contentType.Value} },
+                Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length),
+            };
+
+            await _requestInterceptor
+                .OnCreateRequestAsync(targetSchema, request, requestMessage, cancellationToken)
+                .ConfigureAwait(false);
+
+            return requestMessage;
         }
 
         private static object? ParseJson(byte[] buffer, int bytesBuffered)
@@ -128,7 +178,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _jsonSerializerOptions);
             var content = new ByteArrayContent(json, 0, json.Length);
-            content.Headers.Add(_contentTypeJson.Key, _contentTypeJson.Value);
+            content.Headers.Add(_contentType.Key, _contentType.Value);
 
             HttpResponseMessage response =
                 await httpClient.PostAsync(httpClient.BaseAddress, content)
@@ -141,21 +191,17 @@ namespace HotChocolate.Stitching.Utilities
             return (responseContent, response);
         }
 
-        private static async Task<HttpResponseMessage> FetchInternalAsync(
+        private static async Task<HttpResponseMessage> SendRequestAsync(
             HttpContent requestContent,
-            HttpClient httpClient)
+            CancellationToken cancellationToken)
         {
-            HttpResponseMessage response =
-                await httpClient.PostAsync(default(Uri), requestContent)
-                    .ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            return response;
+
         }
 
         private void WriteJsonRequest(
             IBufferWriter<byte> writer,
             Utf8JsonWriter jsonWriter,
-            IReadOnlyQueryRequest request)
+            IQueryRequest request)
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("query", request.Query.ToString());

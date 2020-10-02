@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
+using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types.Introspection;
@@ -84,7 +85,7 @@ namespace HotChocolate.Stitching.Introspection
         private static async Task<DocumentNode> LoadSchemaInternalAsync(
             HttpClient httpClient)
         {
-            var queryClient = new HttpQueryClient();
+            var queryClient = new HttpRequestClient();
 
             SchemaFeatures features =
                 await GetSchemaFeaturesAsync(httpClient, queryClient)
@@ -96,7 +97,7 @@ namespace HotChocolate.Stitching.Introspection
 
         private static async Task<SchemaFeatures> GetSchemaFeaturesAsync(
             HttpClient httpClient,
-            HttpQueryClient queryClient)
+            HttpRequestClient requestClient)
         {
             var features = new SchemaFeatures();
 
@@ -107,7 +108,7 @@ namespace HotChocolate.Stitching.Introspection
             };
 
             (string json, HttpResponseMessage _) response =
-                await queryClient.FetchStringAsync(
+                await requestClient.FetchStringAsync(
                     request, httpClient)
                 .ConfigureAwait(false);
 
@@ -132,7 +133,7 @@ namespace HotChocolate.Stitching.Introspection
 
         private static async Task<DocumentNode> ExecuteIntrospectionAsync(
             HttpClient httpClient,
-            HttpQueryClient queryClient,
+            HttpRequestClient requestClient,
             SchemaFeatures features)
         {
             DocumentNode query = CreateIntrospectionQuery(features);
@@ -144,7 +145,7 @@ namespace HotChocolate.Stitching.Introspection
             };
 
             (string json, HttpResponseMessage _) response =
-                await queryClient.FetchStringAsync(
+                await requestClient.FetchStringAsync(
                     request, httpClient)
                 .ConfigureAwait(false);
 

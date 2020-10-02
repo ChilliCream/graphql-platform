@@ -8,20 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.0" />
-    <PackageReference Include="System.Text.Json" Version="4.7.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="Resources\introspection_phase_1.graphql" />
-    <None Remove="Resources\introspection_phase_2.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
-    <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
-  </ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Utilities\src\Utilities.Introspection\Utilities.Introspection.csproj" />
+  </ItemGroup>  
 
   <ItemGroup>
     <Compile Update="Properties\StitchingResources.Designer.cs">
@@ -36,6 +25,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>StitchingResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Http, Version=5.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60">
+      <HintPath>..\..\..\..\..\..\..\..\..\usr\local\share\dotnet\packs\Microsoft.AspNetCore.App.Ref\5.0.0-preview.8.20414.8\ref\net5.0\Microsoft.Extensions.Http.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

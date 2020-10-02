@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton<IHttpQueryRequestInterceptor>(
+            serviceCollection.AddSingleton<IHttpStitchingRequestInterceptor>(
                 new DummyInterceptor());
             serviceCollection.AddSingleton(CreateRemoteSchemas());
             serviceCollection.AddStitchedSchema(builder =>
@@ -76,7 +76,7 @@ namespace HotChocolate.Stitching
         }
 
         public class DummyInterceptor
-            : IHttpQueryRequestInterceptor
+            : IHttpStitchingRequestInterceptor
         {
             public Task<IReadOnlyQueryResult> OnResponseReceivedAsync(
                 IReadOnlyQueryRequest request,
