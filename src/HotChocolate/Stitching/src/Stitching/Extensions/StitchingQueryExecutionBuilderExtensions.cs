@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution

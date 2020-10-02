@@ -75,53 +75,42 @@ namespace HotChocolate.Stitching.Pipeline
             try
             {
                 using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
-                using Http§ await httpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false)
 
-                HttpResponseMessage response = await httpClient
-                    .PostAsync(default(Uri), requestContent)
+                using HttpResponseMessage responseMessage = await httpClient
+                    .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
-                response.EnsureSuccessStatusCode();
-                return response;
+                responseMessage.EnsureSuccessStatusCode();
+
+                using Stream stream = await responseMessage.Content
+                    .ReadAsStreamAsync()
+                    .ConfigureAwait(false);
+
+                IReadOnlyDictionary<string, object?>? response =
+                    await BufferHelper.ReadAsync(
+                            stream,
+                            ParseResponse,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+
+                IQueryResult result = HttpResponseDeserializer.Deserialize(response);
+
+                return await _requestInterceptor.OnReceivedResultAsync(
+                        targetSchema,
+                        request,
+                        result,
+                        responseMessage,
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch
             {
+                // TODO HTTP ERRORS AND STUFF
             }
             finally
             {
                 requestMessage.Dispose();
             }
-
-            HttpResponseMessage message =
-                await FetchInternalAsync(requestContent, httpClient).ConfigureAwait(false);
-
-            using Stream stream = await message.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-            object response = await BufferHelper.ReadAsync(
-                    stream,
-                    (buffer, bytesBuffered) => ParseJson(buffer, bytesBuffered),
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            IReadOnlyQueryResult queryResult =
-                response is IReadOnlyDictionary<string, object> d
-                    ? HttpResponseDeserializer.Deserialize(d)
-                    : QueryResultBuilder.CreateError(
-                        ErrorBuilder.New()
-                            .SetMessage("Could not deserialize query response.")
-                            .Build());
-
-            if (interceptors is { })
-            {
-                foreach (IHttpStitchingRequestInterceptor interceptor in interceptors)
-                {
-                    queryResult = await interceptor.OnReceivedResultAsync(
-                            request, message, queryResult)
-                        .ConfigureAwait(false);
-                }
-            }
-
-            return queryResult;
         }
 
         private async ValueTask<HttpRequestMessage> CreateRequestAsync(
@@ -149,54 +138,9 @@ namespace HotChocolate.Stitching.Pipeline
             return requestMessage;
         }
 
-        private static object? ParseJson(byte[] buffer, int bytesBuffered)
-        {
-            var json = new ReadOnlySpan<byte>(buffer, 0, bytesBuffered);
-            return Utf8GraphQLRequestParser.ParseJson(json);
-        }
-
-        public Task<(string, HttpResponseMessage)> FetchStringAsync(
-            HttpQueryRequest request,
-            HttpClient httpClient)
-        {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            if (httpClient == null)
-            {
-                throw new ArgumentNullException(nameof(httpClient));
-            }
-
-            return FetchStringInternalAsync(request, httpClient);
-        }
-
-        private async Task<(string, HttpResponseMessage)> FetchStringInternalAsync(
-            HttpQueryRequest request,
-            HttpClient httpClient)
-        {
-            byte[] json = JsonSerializer.SerializeToUtf8Bytes(request, _jsonSerializerOptions);
-            var content = new ByteArrayContent(json, 0, json.Length);
-            content.Headers.Add(_contentType.Key, _contentType.Value);
-
-            HttpResponseMessage response =
-                await httpClient.PostAsync(httpClient.BaseAddress, content)
-                    .ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-
-            string responseContent = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
-
-            return (responseContent, response);
-        }
-
-        private static async Task<HttpResponseMessage> SendRequestAsync(
-            HttpContent requestContent,
-            CancellationToken cancellationToken)
-        {
-
-        }
+        private static IReadOnlyDictionary<string, object?> ParseResponse(
+            byte[] buffer, int bytesBuffered) =>
+            Utf8GraphQLRequestParser.ParseVariables(buffer.AsSpan(0, bytesBuffered));
 
         private void WriteJsonRequest(
             IBufferWriter<byte> writer,
@@ -218,15 +162,15 @@ namespace HotChocolate.Stitching.Pipeline
         private static void WriteJsonRequestVariables(
             IBufferWriter<byte> writer,
             Utf8JsonWriter jsonWriter,
-            IReadOnlyDictionary<string, object> variables)
+            IReadOnlyDictionary<string, object?>? variables)
         {
-            if (variables is { } && variables.Count > 0)
+            if (variables is not null  && variables.Count > 0)
             {
                 jsonWriter.WritePropertyName("variables");
 
                 jsonWriter.WriteStartObject();
 
-                foreach (KeyValuePair<string, object> variable in variables)
+                foreach (KeyValuePair<string, object?> variable in variables)
                 {
                     jsonWriter.WritePropertyName(variable.Key);
                     WriteValue(writer, jsonWriter, variable.Value);
@@ -239,7 +183,7 @@ namespace HotChocolate.Stitching.Pipeline
         private static void WriteValue(
             IBufferWriter<byte> writer,
             Utf8JsonWriter jsonWriter,
-            object value)
+            object? value)
         {
             if (value is null || value is NullValueNode)
             {

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Pipeline
 {
     internal static class HttpResponseDeserializer
     {
@@ -10,7 +10,7 @@ namespace HotChocolate.Stitching.Utilities
         private const string _extensions = "extensions";
         private const string _errors = "errors";
 
-        public static IReadOnlyQueryResult Deserialize(
+        public static IQueryResult Deserialize(
             IReadOnlyDictionary<string, object> serializedResult)
         {
             var result = new QueryResultBuilder();

@@ -8,6 +8,7 @@ using Snapshooter.Xunit;
 using HotChocolate.Language;
 using Snapshooter;
 using System.Linq;
+using HotChocolate.Stitching.Pipeline;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Stitching
