@@ -147,7 +147,7 @@ namespace HotChocolate.Types
 
             // assert
             IRequestExecutor executor = schema.MakeExecutable();
-            executor.Execute("{ description }").MatchSnapshot();
+            executor.Execute("{ description }").ToJson().MatchSnapshot();
         }
 
         [Obsolete]

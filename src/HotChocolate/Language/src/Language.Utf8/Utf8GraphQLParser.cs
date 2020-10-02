@@ -23,7 +23,7 @@ namespace HotChocolate.Language
                     nameof(graphQLData));
             }
 
-             options ??= ParserOptions.Default;
+            options ??= ParserOptions.Default;
             _createLocation = !options.NoLocations;
             _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new Utf8GraphQLReader(graphQLData);
