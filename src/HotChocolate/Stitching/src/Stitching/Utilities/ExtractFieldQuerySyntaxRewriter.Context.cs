@@ -6,7 +6,6 @@ using HotChocolate.Types;
 namespace HotChocolate.Stitching.Utilities
 {
     public partial class ExtractFieldQuerySyntaxRewriter
-        : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
     {
         public class Context
         {
