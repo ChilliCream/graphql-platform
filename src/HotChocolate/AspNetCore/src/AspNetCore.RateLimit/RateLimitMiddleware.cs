@@ -37,7 +37,6 @@ namespace HotChocolate.AspNetCore.RateLimit
             RequestIdentity requestIdentity = await rateLimitContext
                 .CreateRequestIdentityAsync(policy.Identifiers, directiveContext.Path);
 
-            // Add restrictive scope as option, and throw here if no identity was found
             if (requestIdentity.IsEmpty)
             {
                 await _next(directiveContext);
