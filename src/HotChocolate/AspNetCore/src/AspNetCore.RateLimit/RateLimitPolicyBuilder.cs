@@ -18,8 +18,7 @@ namespace HotChocolate.AspNetCore.RateLimit
 
         public RateLimitPolicyBuilder AddHeaderIdentifier(string header)
         {
-            var headerPolicyIdentifier = new HeaderPolicyIdentifier(header);
-            _identifiers.Add(headerPolicyIdentifier);
+            _identifiers.Add(new HeaderPolicyIdentifier(header));
             return this;
         }
 
