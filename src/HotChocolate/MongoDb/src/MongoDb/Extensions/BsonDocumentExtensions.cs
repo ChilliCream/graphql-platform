@@ -4,18 +4,18 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb
 {
-    public static class BsonDocumentExtensions
+    internal static class BsonDocumentExtensions
     {
-        private static readonly IBsonSerializerRegistry _serializerRegistry =
+        private static readonly IBsonSerializerRegistry SerializerRegistry =
             BsonSerializer.SerializerRegistry;
 
-        private static readonly IBsonSerializer<BsonDocument> _documentSerializer =
-            _serializerRegistry.GetSerializer<BsonDocument>();
+        private static readonly IBsonSerializer<BsonDocument> DocumentSerializer =
+            SerializerRegistry.GetSerializer<BsonDocument>();
 
         public static BsonDocument DefaultRender(
             this FilterDefinition<BsonDocument> bsonQuery)
         {
-            return bsonQuery.Render(_documentSerializer, _serializerRegistry);
+            return bsonQuery.Render(DocumentSerializer, SerializerRegistry);
         }
     }
 }

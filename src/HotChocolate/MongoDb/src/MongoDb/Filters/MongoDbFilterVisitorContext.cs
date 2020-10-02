@@ -6,10 +6,10 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class MongoFilterVisitorContext
+    public class MongoDbFilterVisitorContext
         : FilterVisitorContext<FilterDefinition<BsonDocument>>
     {
-        public MongoFilterVisitorContext(IFilterInputType initialType)
+        public MongoDbFilterVisitorContext(IFilterInputType initialType)
             : base(initialType)
         {
             RuntimeTypes = new Stack<IExtendedType>();

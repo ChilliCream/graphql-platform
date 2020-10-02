@@ -9,23 +9,23 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class MongoFilterProvider
-        : FilterProvider<MongoFilterVisitorContext>
+    public class MongoDbFilterProvider
+        : FilterProvider<MongoDbFilterVisitorContext>
     {
-        public MongoFilterProvider()
+        public MongoDbFilterProvider()
         {
         }
 
-        public MongoFilterProvider(
-            Action<IFilterProviderDescriptor<MongoFilterVisitorContext>> configure)
+        public MongoDbFilterProvider(
+            Action<IFilterProviderDescriptor<MongoDbFilterVisitorContext>> configure)
             : base(configure)
         {
         }
 
-        protected virtual FilterVisitor<MongoFilterVisitorContext, FilterDefinition<BsonDocument>>
+        protected virtual FilterVisitor<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
             Visitor { get; } =
-            new FilterVisitor<MongoFilterVisitorContext, FilterDefinition<BsonDocument>>(
-                new FilterMongoCombinator());
+            new FilterVisitor<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>(
+                new MongoDbFilterCombinator());
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
@@ -35,13 +35,13 @@ namespace HotChocolate.MongoDb.Data.Filters
                 FieldDelegate next,
                 IMiddlewareContext context)
             {
-                MongoFilterVisitorContext? visitorContext = null;
+                MongoDbFilterVisitorContext? visitorContext = null;
                 IInputField argument = context.Field.Arguments[argumentName];
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 if (filter is not NullValueNode && argument.Type is IFilterInputType filterInput)
                 {
-                    visitorContext = new MongoFilterVisitorContext(filterInput);
+                    visitorContext = new MongoDbFilterVisitorContext(filterInput);
 
                     Visitor.Visit(filter, visitorContext);
 
@@ -52,16 +52,18 @@ namespace HotChocolate.MongoDb.Data.Filters
                                 nameof(FilterDefinition<TEntityType>),
                                 whereQuery);
                     }
-                }
 
-                await next(context).ConfigureAwait(false);
-
-                if (visitorContext is { } && visitorContext.Errors.Count > 0)
-                {
-                    context.Result = Array.Empty<TEntityType>();
-                    foreach (IError error in visitorContext.Errors)
+                    if (visitorContext.Errors.Count > 0)
                     {
-                        context.ReportError(error.WithPath(context.Path));
+                        context.Result = Array.Empty<TEntityType>();
+                        foreach (IError error in visitorContext.Errors)
+                        {
+                            context.ReportError(error.WithPath(context.Path));
+                        }
+                    }
+                    else
+                    {
+                        await next(context).ConfigureAwait(false);
                     }
                 }
             }

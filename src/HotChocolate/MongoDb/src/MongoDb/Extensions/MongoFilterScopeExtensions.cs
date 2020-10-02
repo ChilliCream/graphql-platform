@@ -1,29 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HotChocolate.Data.Filters;
-using HotChocolate.MongoDb.Filters.Expressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace HotChocolate.MongoDb
+namespace HotChocolate.MongoDb.Data.Filters
 {
-    public static class MongoFilterScopeExtensions
+    internal static class MongoFilterScopeExtensions
     {
-        public static string GetPath(this MongoFilterScope scope) =>
+        public static string GetPath(this MongoDbFilterScope scope) =>
             string.Join(".", scope.Path.Reverse());
 
-        public static string GetPath(
-            this MongoFilterScope scope,
-            IFilterField field)
-        {
-            scope.Path.Push(field.Name);
-            var result = scope.GetPath();
-            scope.Path.Pop();
-            return result;
-        }
-
         public static bool TryCreateQuery(
-            this MongoFilterScope scope,
+            this MongoDbFilterScope scope,
             [NotNullWhen(true)] out FilterDefinition<BsonDocument>? query)
         {
             query = null;

@@ -1,0 +1,1 @@
+﻿{ "Foo.ObjectArray" : { "$exists" : true, "$nin" : [[], null] } }

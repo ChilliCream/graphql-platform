@@ -5,7 +5,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 {
     public static class FilterConventionDescriptorExtensions
     {
-        public static IFilterConventionDescriptor AddDefaults(
+        public static IFilterConventionDescriptor AddMongoDbDefaults(
             this IFilterConventionDescriptor descriptor) =>
             descriptor.AddDefaultOperations().BindDefaultTypes().UseMongoDbProvider();
 

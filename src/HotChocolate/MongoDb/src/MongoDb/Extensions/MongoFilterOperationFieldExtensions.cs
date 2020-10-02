@@ -2,10 +2,10 @@ using HotChocolate.Data.Filters;
 
 namespace HotChocolate.MongoDb
 {
-    public static class MongoFilterOperationFieldExtensions
+    internal static class MongoFilterOperationFieldExtensions
     {
         public static string GetName(
-            this FilterOperationField field)
+            this IFilterField field)
         {
             string fieldName = field.Name;
             if (field.Member is { } p)

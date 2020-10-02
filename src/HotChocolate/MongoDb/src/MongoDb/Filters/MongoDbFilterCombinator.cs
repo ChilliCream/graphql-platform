@@ -7,11 +7,11 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class FilterMongoCombinator
-        : FilterOperationCombinator<MongoFilterVisitorContext, FilterDefinition<BsonDocument>>
+    public class MongoDbFilterCombinator
+        : FilterOperationCombinator<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
     {
         public override bool TryCombineOperations(
-            MongoFilterVisitorContext context,
+            MongoDbFilterVisitorContext context,
             Queue<FilterDefinition<BsonDocument>> operations,
             FilterCombinator combinator,
             [NotNullWhen(true)] out FilterDefinition<BsonDocument> combined)
@@ -25,14 +25,14 @@ namespace HotChocolate.MongoDb.Data.Filters
             {
                 FilterCombinator.And => CombineWithAnd(context, operations),
                 FilterCombinator.Or => CombineWithOr(context, operations),
-                _ => throw new InvalidOperationException(),
+                _ => throw new InvalidOperationException()
             };
 
             return true;
         }
 
         private static FilterDefinition<BsonDocument> CombineWithAnd(
-            MongoFilterVisitorContext context,
+            MongoDbFilterVisitorContext context,
             Queue<FilterDefinition<BsonDocument>> operations)
         {
             if (operations.Count < 0)
@@ -44,7 +44,7 @@ namespace HotChocolate.MongoDb.Data.Filters
         }
 
         private static FilterDefinition<BsonDocument> CombineWithOr(
-            MongoFilterVisitorContext context,
+            MongoDbFilterVisitorContext context,
             Queue<FilterDefinition<BsonDocument>> operations)
         {
             if (operations.Count < 0)

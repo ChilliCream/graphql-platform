@@ -1,19 +1,18 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Data.Filters;
-using HotChocolate.MongoDb.Filters.Expressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace HotChocolate.MongoDb.Data
+namespace HotChocolate.MongoDb.Data.Filters
 {
     public static class MongoFilterVisitorContextExtensions
     {
-        public static MongoFilterScope GetMongoFilterScope(
-            this MongoFilterVisitorContext context) =>
-            (MongoFilterScope)context.GetScope();
+        public static MongoDbFilterScope GetMongoFilterScope(
+            this MongoDbFilterVisitorContext context) =>
+            (MongoDbFilterScope)context.GetScope();
 
         public static bool TryCreateQuery(
-            this MongoFilterVisitorContext context,
+            this MongoDbFilterVisitorContext context,
             [NotNullWhen(true)] out BsonDocument? query)
         {
             if (context.GetMongoFilterScope()

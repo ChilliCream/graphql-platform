@@ -1,5 +1,4 @@
 using HotChocolate.Data.Filters;
-using HotChocolate.MongoDb.Filters.Expressions;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
@@ -7,10 +6,10 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         public static IFilterConventionDescriptor UseMongoDbProvider(
             this IFilterConventionDescriptor descriptor) =>
-            descriptor.Provider(new MongoFilterProvider(x => x.AddDefaultMongoHandler()));
+            descriptor.Provider(new MongoDbFilterProvider(x => x.AddDefaultMongoHandler()));
 
-        public static IFilterProviderDescriptor<MongoFilterVisitorContext> AddDefaultMongoHandler(
-            this IFilterProviderDescriptor<MongoFilterVisitorContext> descriptor)
+        public static IFilterProviderDescriptor<MongoDbFilterVisitorContext> AddDefaultMongoHandler(
+            this IFilterProviderDescriptor<MongoDbFilterVisitorContext> descriptor)
         {
             descriptor.AddFieldHandler<MongoDbEqualsOperationHandler>();
             descriptor.AddFieldHandler<MongoDbNotEqualsOperationHandler>();
@@ -34,12 +33,12 @@ namespace HotChocolate.MongoDb.Data.Filters
             descriptor.AddFieldHandler<MongoDbStringContainsHandler>();
             descriptor.AddFieldHandler<MongoDbStringNotContainsHandler>();
 
-            descriptor.AddFieldHandler<MongoListAllOperationHandler>();
-            descriptor.AddFieldHandler<MongoListAnyOperationHandler>();
-            descriptor.AddFieldHandler<MongoListNoneOperationHandler>();
-            descriptor.AddFieldHandler<MongoListSomeOperationHandler>();
+            descriptor.AddFieldHandler<MongoDbListAllOperationHandler>();
+            descriptor.AddFieldHandler<MongoDbListAnyOperationHandler>();
+            descriptor.AddFieldHandler<MongoDbListNoneOperationHandler>();
+            descriptor.AddFieldHandler<MongoDbListSomeOperationHandler>();
 
-            descriptor.AddFieldHandler<MongoDefaultFieldHandler>();
+            descriptor.AddFieldHandler<MongoDbDefaultFieldHandler>();
 
             return descriptor;
         }

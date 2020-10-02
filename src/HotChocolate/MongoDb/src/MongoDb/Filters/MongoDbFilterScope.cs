@@ -5,15 +5,15 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class MongoFilterScope
+    public class MongoDbFilterScope
         : FilterScope<FilterDefinition<BsonDocument>>
     {
-        public MongoFilterScope(MongoFilterVisitorContext context)
+        public MongoDbFilterScope(MongoDbFilterVisitorContext context)
         {
             Context = context;
         }
 
-        public MongoFilterVisitorContext Context { get; }
+        public MongoDbFilterVisitorContext Context { get; }
 
         public Stack<string> Path { get; } = new Stack<string>();
     }

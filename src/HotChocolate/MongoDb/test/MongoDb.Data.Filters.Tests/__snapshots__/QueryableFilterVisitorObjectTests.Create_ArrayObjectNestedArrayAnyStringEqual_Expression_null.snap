@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "The provided value for filter \u0060any\u0060 of type ListFilterInputOfBarFilterTypeFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 44
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "expectedType": "Boolean!",
+        "filterType": "ListFilterInputOfBarFilterTypeFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": []
+  }
+}

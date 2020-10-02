@@ -1,0 +1,1 @@
+﻿{ "Bar" : { "$in" : ["testatest", "testbtest"] } }
