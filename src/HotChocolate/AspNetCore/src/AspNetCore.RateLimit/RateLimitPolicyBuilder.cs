@@ -10,12 +10,6 @@ namespace HotChocolate.AspNetCore.RateLimit
         private TimeSpan _period;
         private int _limit;
 
-        public RateLimitPolicyBuilder AddIdentifier(IPolicyIdentifier identifier)
-        {
-            _identifiers.Add(identifier);
-            return this;
-        }
-
         public RateLimitPolicyBuilder AddClaimIdentifier(string claimType)
         {
             _identifiers.Add(new ClaimsPolicyIdentifier(claimType));
@@ -24,7 +18,8 @@ namespace HotChocolate.AspNetCore.RateLimit
 
         public RateLimitPolicyBuilder AddHeaderIdentifier(string header)
         {
-            _identifiers.Add(new HeaderPolicyIdentifier(header));
+            var headerPolicyIdentifier = new HeaderPolicyIdentifier(header);
+            _identifiers.Add(headerPolicyIdentifier);
             return this;
         }
 
