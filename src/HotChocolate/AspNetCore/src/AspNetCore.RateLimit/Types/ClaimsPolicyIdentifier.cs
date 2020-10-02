@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate.RateLimit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.RateLimit
 {
@@ -22,9 +23,10 @@ namespace HotChocolate.AspNetCore.RateLimit
 
         public string ClaimType { get; }
 
-        public ValueTask<string> ResolveAsync(IHttpContextAccessor httpContextAccessor)
+        public ValueTask<string> ResolveAsync(IServiceProvider serviceProvider)
         {
-            HttpContext? httpContext = httpContextAccessor.HttpContext;
+            HttpContext? httpContext = serviceProvider
+                .GetService<IHttpContextAccessor>()?.HttpContext;
 
             Claim? claim = httpContext?.User.Claims
                 .FirstOrDefault(c => c.Type == ClaimType);

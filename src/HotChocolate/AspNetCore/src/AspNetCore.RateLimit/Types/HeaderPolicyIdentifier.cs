@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.RateLimit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.RateLimit
 {
@@ -21,9 +22,10 @@ namespace HotChocolate.AspNetCore.RateLimit
 
         public string Header { get; }
 
-        public ValueTask<string> ResolveAsync(IHttpContextAccessor httpContextAccessor)
+        public ValueTask<string> ResolveAsync(IServiceProvider serviceProvider)
         {
-            HttpContext? httpContext = httpContextAccessor.HttpContext;
+            HttpContext? httpContext = serviceProvider
+                .GetService<IHttpContextAccessor>()?.HttpContext;
 
             if (httpContext != null
                 && httpContext.Request.Headers.TryGetValue(Header, out StringValues values))
