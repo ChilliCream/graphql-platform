@@ -22,6 +22,6 @@ namespace HotChocolate.Data.Projections
         /// </returns>
         FieldMiddleware CreateExecutor<TEntityType>();
 
-        ISelection RewriteSelection(ISelection selection);
+        Selection RewriteSelection(Selection selection);
     }
 }

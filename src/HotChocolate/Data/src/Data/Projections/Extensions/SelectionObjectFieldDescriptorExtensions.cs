@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -9,6 +10,7 @@ using HotChocolate.Data.Projections;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
 
 namespace HotChocolate.Types
 {
@@ -24,9 +26,9 @@ namespace HotChocolate.Types
 
         public void OptimizeSelectionSet(SelectionOptimizerContext context)
         {
-            foreach (var (key, selection) in context.Fields)
+            foreach (KeyValuePair<string, Selection> field in context.Fields)
             {
-                context.Fields[key] = _convention.RewriteSelection(selection);
+                context.Fields[field.Key] = _convention.RewriteSelection(field.Value);
             }
         }
 
@@ -135,6 +137,7 @@ namespace HotChocolate.Types
         {
             IProjectionConvention convention =
                 context.DescriptorContext.GetProjectionConvention(scope);
+            RegisterOptimizer(definition.ContextData, new ProjectionOptimizer(convention));
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;

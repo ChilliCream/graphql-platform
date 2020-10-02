@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
@@ -14,41 +15,46 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Projections
 {
     public class ProjectionSelection
-        : IProjectionSelection
+        : Selection,
+          IProjectionSelection
     {
-        private readonly ISelection _selection;
-
         public ProjectionSelection(
-            ISelection selection,
-            IProjectionFieldHandler handler)
+            IProjectionFieldHandler handler,
+            IObjectType declaringType,
+            IObjectField field,
+            FieldNode selection,
+            FieldDelegate resolverPipeline,
+            NameString? responseName = null,
+            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
+            SelectionIncludeCondition? includeCondition = null,
+            bool internalSelection = false) : base(
+            declaringType,
+            field,
+            selection,
+            resolverPipeline,
+            responseName,
+            arguments,
+            includeCondition,
+            internalSelection)
         {
-            _selection = selection;
             Handler = handler;
         }
 
         public IProjectionFieldHandler Handler { get; }
 
         public static ProjectionSelection From(
-            ISelection selection,
+            Selection selection,
             IProjectionFieldHandler handler) =>
-            new ProjectionSelection(selection, handler);
-
-        public NameString ResponseName => _selection.ResponseName;
-        public IObjectField Field => _selection.Field;
-        public FieldNode SyntaxNode => _selection.SyntaxNode;
-        public IReadOnlyList<FieldNode> SyntaxNodes => _selection.SyntaxNodes;
-        public IReadOnlyList<FieldNode> Nodes => _selection.Nodes;
-        public SelectionInclusionKind InclusionKind => _selection.InclusionKind;
-        public bool IsInternal => _selection.IsInternal;
-        public bool IsConditional => _selection.IsConditional;
-
-        public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
-            => IsIncluded(variableValues, allowInternals);
-
-        public IObjectType DeclaringType => _selection.DeclaringType;
-        public SelectionSetNode? SelectionSet => _selection.SelectionSet;
-        public FieldDelegate ResolverPipeline => _selection.ResolverPipeline;
-        public IArgumentMap Arguments => _selection.Arguments;
+            new ProjectionSelection(
+                handler,
+                selection.DeclaringType,
+                selection.Field,
+                selection.SyntaxNode,
+                selection.ResolverPipeline,
+                selection.ResponseName,
+                selection.Arguments,
+                selection.IncludeConditions?.FirstOrDefault(),
+                selection.IsInternal);
     }
 
     /// <summary>
@@ -132,7 +138,7 @@ namespace HotChocolate.Data.Projections
             }
         }
 
-        public ISelection RewriteSelection(ISelection selection)
+        public Selection RewriteSelection(Selection selection)
         {
             for (var i = 0; i < _fieldHandlers.Count; i++)
             {

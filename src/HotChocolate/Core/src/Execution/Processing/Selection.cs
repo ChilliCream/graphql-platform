@@ -92,7 +92,7 @@ namespace HotChocolate.Execution.Processing
             InclusionKind == SelectionInclusionKind.Conditional ||
             InclusionKind == SelectionInclusionKind.InternalConditional;
 
-        internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
+        public IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
 
         /// <inheritdoc />
         public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)

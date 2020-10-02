@@ -78,8 +78,10 @@ namespace HotChocolate.Execution.Processing
 
             public bool IsInternalSelection { get; }
 
-            public IDictionary<ISelectionNode, SelectionIncludeCondition> IncludeConditionLookup 
-            { get; }
+            public IDictionary<ISelectionNode, SelectionIncludeCondition> IncludeConditionLookup
+            {
+                get;
+            }
 
             public IImmutableList<ISelectionOptimizer> Optimizers { get; }
 
@@ -93,6 +95,7 @@ namespace HotChocolate.Execution.Processing
                 {
                     _fragments = new List<IFragment>();
                 }
+
                 _fragments.Add(fragment);
             }
 
@@ -105,7 +108,7 @@ namespace HotChocolate.Execution.Processing
             {
                 SelectionSetNode selectionSet = selection.SelectionSet!;
 
-                if(!_processed.Add((selectionSet, type.Name)))
+                if (!_processed.Add((selectionSet, type.Name)))
                 {
                     return;
                 }
@@ -118,8 +121,7 @@ namespace HotChocolate.Execution.Processing
                     _variantsLookup[selectionSet] = selectionVariants;
                 }
 
-                var context = new CompilerContext
-                (
+                var context = new CompilerContext(
                     type,
                     Path.Push(selection.Field),
                     selectionSet,
@@ -145,8 +147,7 @@ namespace HotChocolate.Execution.Processing
                     _variantsLookup[fragment.SelectionSet] = selectionVariants;
                 }
 
-                var context = new CompilerContext
-                (
+                var context = new CompilerContext(
                     Type,
                     Path,
                     fragment.SelectionSet,
@@ -172,8 +173,7 @@ namespace HotChocolate.Execution.Processing
                 var rootSelections = new SelectionVariants(selectionSet);
                 selectionVariantsLookup[selectionSet] = rootSelections;
 
-                var context = new CompilerContext
-                (
+                var context = new CompilerContext(
                     backlog,
                     type,
                     selectionSet,

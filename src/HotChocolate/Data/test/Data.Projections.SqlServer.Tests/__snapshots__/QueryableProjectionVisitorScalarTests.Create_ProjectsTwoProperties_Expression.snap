@@ -1,0 +1,23 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "message": "Object reference not set to an instance of an object.",
+        "stackTrace": "   at HotChocolate.Data.Projections.SelectionVisitor\u00601.Visit(IOutputField field, TContext context) in /home/sepa/kot/hotchocolate/src/HotChocolate/Data/src/Data/Projections/SelectionVisitor.cs:line 50\n   at HotChocolate.Data.Projections.ProjectionVisitor\u00601.Visit(TContext context) in /home/sepa/kot/hotchocolate/src/HotChocolate/Data/src/Data/Projections/ProjectionVisitor.cs:line 22\n   at HotChocolate.Data.Projections.Expressions.QueryableProjectionConvention.\u003CCreateExecutor\u003Eg__ExecuteAsync|2_1[TEntityType](FieldDelegate next, IMiddlewareContext context) in /home/sepa/kot/hotchocolate/src/HotChocolate/Data/src/Data/Projections/Expressions/QueryableProjectionConvention.cs:line 50\n   at HotChocolate.Data.Projections.ProjectionVisitorTestBase.\u003C\u003Ec__DisplayClass6_1\u00601.\u003C\u003CCreateSchema\u003Eb__5\u003Ed.MoveNext() in /home/sepa/kot/hotchocolate/src/HotChocolate/Data/test/Data.Projections.SqlServer.Tests/ProjectionVisitorTestBase.cs:line 65\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync() in /home/sepa/kot/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 65\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync() in /home/sepa/kot/hotchocolate/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 51"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}

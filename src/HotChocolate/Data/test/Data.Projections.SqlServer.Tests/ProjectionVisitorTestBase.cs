@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -41,7 +42,7 @@ namespace HotChocolate.Data.Projections
 
         protected T[] CreateEntity<T>(params T[] entities) => entities;
 
-        protected IRequestExecutor CreateSchema<TEntity>(
+        public IRequestExecutor CreateSchema<TEntity>(
             TEntity[] entities,
             ProjectionConvention? convention = null)
             where TEntity : class
@@ -55,29 +56,30 @@ namespace HotChocolate.Data.Projections
                 .AddConvention<IProjectionConvention>(convention)
                 .AddProjections()
                 .AddQueryType(
-                    c => c
-                        .Name("Query")
-                        .Field("root")
-                        .Resolver(resolver)
-                        .Use(
-                            next => async context =>
-                            {
-                                await next(context);
-
-                                if (context.Result is IQueryable<TEntity> queryable)
+                    new ObjectType<StubObject<TEntity>>(
+                        c => c
+                            .Name("Query")
+                            .Field(x => x.Root)
+                            .Resolver(resolver)
+                            .Use(
+                                next => async context =>
                                 {
-                                    try
+                                    await next(context);
+
+                                    if (context.Result is IQueryable<TEntity> queryable)
                                     {
-                                        context.ContextData["sql"] = queryable.ToQueryString();
+                                        try
+                                        {
+                                            context.ContextData["sql"] = queryable.ToQueryString();
+                                        }
+                                        catch (Exception)
+                                        {
+                                            context.ContextData["sql"] =
+                                                "EF Core 3.1 does not support ToQuerString offically";
+                                        }
                                     }
-                                    catch (Exception)
-                                    {
-                                        context.ContextData["sql"] =
-                                            "EF Core 3.1 does not support ToQuerString offically";
-                                    }
-                                }
-                            })
-                        .UseProjection());
+                                })
+                            .UseProjection()));
 
             ISchema? schema = builder.Create();
 
@@ -106,6 +108,11 @@ namespace HotChocolate.Data.Projections
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
                 .Result;
+        }
+
+        public class StubObject<T>
+        {
+            public T Root { get; set; }
         }
     }
 }

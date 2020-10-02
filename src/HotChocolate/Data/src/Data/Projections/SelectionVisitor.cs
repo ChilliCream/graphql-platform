@@ -12,7 +12,7 @@ namespace HotChocolate.Data.Projections
         /// The visitor default action.
         /// </summary>
         /// <value></value>
-        protected virtual ISelectionVisitorAction DefaultAction { get; }
+        protected virtual ISelectionVisitorAction DefaultAction { get; } = Continue;
 
         /// <summary>
         /// Ends traversing the graph.
@@ -95,7 +95,14 @@ namespace HotChocolate.Data.Projections
             SelectionSetNode? selectionSet =
                 context.SelectionSetNodes.Peek();
 
-            if (type is ObjectType objectType &&
+            ObjectType? objectType = type switch
+            {
+                ObjectType objType => objType,
+                ListType listType => listType.InnerType() as ObjectType,
+                _ => null
+            };
+
+            if (objectType is not null &&
                 selectionSet is not null)
             {
                 IReadOnlyList<IFieldSelection> selections = context.Context.GetSelections(

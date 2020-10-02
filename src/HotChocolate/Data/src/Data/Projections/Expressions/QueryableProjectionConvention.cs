@@ -42,7 +42,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     source = e.AsQueryable();
                 }
 
-                if (source is { })
+                if (source is not null)
                 {
                     var visitorContext =
                         new QueryableProjectionContext(context, context.ObjectType);

@@ -62,7 +62,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Sorting.Tests", "test\Data.Sorting.Tests\HotChocolate.Data.Sorting.Tests.csproj", "{A7269FAC-8C91-46BA-B292-221E8DE32BD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.SqlServer.Tests", "test\Data.Projections.SqlServer.Tests\HotChocolate.Data.Filters.SqlServer.Tests.csproj", "{F9223FFE-BEA4-4C68-BF92-339FD9643084}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Projections.SqlServer.Tests", "test\Data.Projections.SqlServer.Tests\HotChocolate.Data.Projections.SqlServer.Tests.csproj", "{F9223FFE-BEA4-4C68-BF92-339FD9643084}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

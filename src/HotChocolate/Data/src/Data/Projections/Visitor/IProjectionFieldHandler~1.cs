@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language.Visitors;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections
 {
