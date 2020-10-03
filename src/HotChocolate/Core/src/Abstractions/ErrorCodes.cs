@@ -63,6 +63,13 @@ namespace HotChocolate
             public const string MaxRequestSize = "MAX_REQUEST_SIZE";
         }
 
+        public static class Stitching
+        {
+            public const string HttpRequestException = "HCXXXX";
+
+            public const string UnknownRequestException = "HCXXXX";
+        }
+
         public static class Validation
         {
             public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";

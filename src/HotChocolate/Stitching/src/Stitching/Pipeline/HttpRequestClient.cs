@@ -8,9 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
-using ArrayWriter = HotChocolate.Stitching.Utilities.ArrayWriter;
 
 #nullable enable
 
@@ -21,14 +19,6 @@ namespace HotChocolate.Stitching.Pipeline
         private static readonly (string Key, string Value) _contentType =
             ("Content-Type", "application/json; charset=utf-8");
 
-        private static readonly JsonSerializerOptions _jsonSerializerOptions =
-            new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IgnoreNullValues = true,
-                IgnoreReadOnlyProperties = false
-            };
-
         private static readonly JsonWriterOptions _jsonWriterOptions =
             new JsonWriterOptions
             {
@@ -37,20 +27,22 @@ namespace HotChocolate.Stitching.Pipeline
             };
 
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IErrorHandler _errorHandler;
         private readonly IHttpStitchingRequestInterceptor _requestInterceptor;
 
         public HttpRequestClient(
             IHttpClientFactory clientFactory,
+            IErrorHandler errorHandler,
             IHttpStitchingRequestInterceptor requestInterceptor)
         {
             _clientFactory = clientFactory;
+            _errorHandler = errorHandler;
             _requestInterceptor = requestInterceptor;
         }
 
-        public async Task<IReadOnlyQueryResult> FetchAsync(
+        public async Task<IQueryResult> FetchAsync(
             IQueryRequest request,
             NameString targetSchema,
-            IHttpStitchingRequestInterceptor requestInterceptor,
             CancellationToken cancellationToken = default)
         {
             HttpRequestMessage requestMessage =
@@ -59,9 +51,8 @@ namespace HotChocolate.Stitching.Pipeline
 
             return await FetchAsync(
                 request,
-                requestBody,
-                httpClient,
-                interceptors,
+                requestMessage,
+                targetSchema,
                 cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -103,9 +94,21 @@ namespace HotChocolate.Stitching.Pipeline
                         cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch
+            catch (HttpRequestException ex)
             {
-                // TODO HTTP ERRORS AND STUFF
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetCode(ErrorCodes.Stitching.HttpRequestException)
+                    .Build();
+
+                return QueryResultBuilder.CreateError(error);
+            }
+            catch(Exception ex)
+            {
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetCode(ErrorCodes.Stitching.UnknownRequestException)
+                    .Build();
+
+                return QueryResultBuilder.CreateError(error);
             }
             finally
             {
@@ -142,7 +145,7 @@ namespace HotChocolate.Stitching.Pipeline
             byte[] buffer, int bytesBuffered) =>
             Utf8GraphQLRequestParser.ParseVariables(buffer.AsSpan(0, bytesBuffered));
 
-        private void WriteJsonRequest(
+        private static void WriteJsonRequest(
             IBufferWriter<byte> writer,
             Utf8JsonWriter jsonWriter,
             IQueryRequest request)
@@ -245,7 +248,10 @@ namespace HotChocolate.Stitching.Pipeline
             }
         }
 
-        private static void RemoveQuotes(IBufferWriter<byte> writer, Utf8JsonWriter jsonWriter, int length)
+        private static void RemoveQuotes(
+            IBufferWriter<byte> writer,
+            Utf8JsonWriter jsonWriter,
+            int length)
         {
             jsonWriter.Flush();
             writer.Advance(-(length + 2));
