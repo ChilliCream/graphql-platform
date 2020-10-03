@@ -182,7 +182,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonMultiPolygonInput>())
+                        .Argument("arg", a => a.Type<GeoJsonMultiPolygonInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<MultiPolygon>("arg").ToString()))
                 .Create();
 
@@ -215,7 +215,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiPolygonInput>())
+                    .Argument("arg", a => a.Type<GeoJsonMultiPolygonInputType>())
                     .Resolver("ghi"))
             .Create();
 

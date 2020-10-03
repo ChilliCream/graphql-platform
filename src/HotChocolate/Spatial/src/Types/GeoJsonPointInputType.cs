@@ -5,26 +5,25 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonMultiLineStringInput
-        : GeoJsonInputObjectType<MultiLineString>
+    public sealed class GeoJsonPointInputType : GeoJsonInputType<Point>
     {
-        public GeoJsonMultiLineStringInput() : base(GeoJsonGeometryType.MultiLineString)
+        public GeoJsonPointInputType() : base(GeoJsonGeometryType.Point)
         {
         }
 
-        protected override void Configure(IInputObjectTypeDescriptor<MultiLineString> descriptor)
+        protected override void Configure(IInputObjectTypeDescriptor<Point> descriptor)
         {
-            descriptor.Name(MultiLineStringInputName);
-
-            descriptor.BindFieldsExplicitly();
+            descriptor
+                .Name(PointInputName)
+                .BindFieldsExplicitly();
 
             descriptor.Field(TypeFieldName)
                 .Type<GeoJsonGeometryEnumType>()
                 .Description(GeoJson_Field_Type_Description);
 
             descriptor.Field(CoordinatesFieldName)
-                .Type<ListType<ListType<GeoJsonPositionType>>>()
-                .Description(GeoJson_Field_Coordinates_Description_MultiLineString);
+                .Type<GeoJsonPositionType>()
+                .Description(GeoJson_Field_Coordinates_Description_Point);
 
             descriptor.Field(CrsFieldName)
                 .Type<IntType>()

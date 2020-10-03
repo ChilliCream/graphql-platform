@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
+                        .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
                 .Create();
 
@@ -207,7 +207,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
+                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
                     .Resolver("ghi"))
             .Create();
 

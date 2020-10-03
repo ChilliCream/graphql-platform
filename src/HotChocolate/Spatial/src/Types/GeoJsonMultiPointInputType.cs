@@ -5,17 +5,17 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonMultiPointInput : GeoJsonInputObjectType<MultiPoint>
+    public sealed class GeoJsonMultiPointInputType : GeoJsonInputType<MultiPoint>
     {
-        public GeoJsonMultiPointInput() : base(GeoJsonGeometryType.MultiPoint)
+        public GeoJsonMultiPointInputType() : base(GeoJsonGeometryType.MultiPoint)
         {
         }
 
         protected override void Configure(IInputObjectTypeDescriptor<MultiPoint> descriptor)
         {
-            descriptor.Name(MultiPointInputName);
-
-            descriptor.BindFieldsExplicitly();
+            descriptor
+                .Name(MultiPointInputName)
+                .BindFieldsExplicitly();
 
             descriptor
                 .Field(TypeFieldName)

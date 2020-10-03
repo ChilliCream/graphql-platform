@@ -154,7 +154,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonPointInput>())
+                        .Argument("arg", a => a.Type<GeoJsonPointInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<Point>("arg").ToString()))
                 .Create();
 
@@ -186,7 +186,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonPointInput>())
+                    .Argument("arg", a => a.Type<GeoJsonPointInputType>())
                     .Resolver("ghi"))
             .Create();
 

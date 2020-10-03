@@ -5,17 +5,17 @@ using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial
 {
-    public sealed class GeoJsonPolygonInput : GeoJsonInputObjectType<Polygon>
+    public sealed class GeoJsonLineStringInputType : GeoJsonInputType<LineString>
     {
-        public GeoJsonPolygonInput() : base(GeoJsonGeometryType.Polygon)
+        public GeoJsonLineStringInputType() : base(GeoJsonGeometryType.LineString)
         {
         }
 
-        protected override void Configure(IInputObjectTypeDescriptor<Polygon> descriptor)
+        protected override void Configure(IInputObjectTypeDescriptor<LineString> descriptor)
         {
-            descriptor.Name(PolygonInputName);
-
-            descriptor.BindFieldsExplicitly();
+            descriptor
+                .Name(LineStringInputName)
+                .BindFieldsExplicitly();
 
             descriptor
                 .Field(TypeFieldName)
@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Spatial
             descriptor
                 .Field(CoordinatesFieldName)
                 .Type<ListType<GeoJsonPositionType>>()
-                .Description(GeoJson_Field_Coordinates_Description_Polygon);
+                .Description(GeoJson_Field_Coordinates_Description_LineString);
 
             descriptor
                 .Field(CrsFieldName)

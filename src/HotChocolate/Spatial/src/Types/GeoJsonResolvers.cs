@@ -6,9 +6,8 @@ namespace HotChocolate.Types.Spatial
 {
     internal class GeoJsonResolvers
     {
-        public GeoJsonGeometryType GetType([Parent] Geometry geometry)
-        {
-            return geometry.OgcGeometryType switch
+        public GeoJsonGeometryType GetType([Parent] Geometry geometry) =>
+            geometry.OgcGeometryType switch
             {
                 OgcGeometryType.Point => GeoJsonGeometryType.Point,
                 OgcGeometryType.LineString => GeoJsonGeometryType.LineString,
@@ -18,7 +17,6 @@ namespace HotChocolate.Types.Spatial
                 OgcGeometryType.MultiPolygon => GeoJsonGeometryType.MultiPolygon,
                 _ => throw Resolver_Type_InvalidGeometryType()
             };
-        }
 
         public IReadOnlyCollection<double> GetBbox([Parent] Geometry geometry)
         {
@@ -28,14 +26,7 @@ namespace HotChocolate.Types.Spatial
             return new[] { envelope.MinX, envelope.MinY, envelope.MaxX, envelope.MaxY };
         }
 
-        public int GetCrs([Parent] Geometry geometry)
-        {
-            if (geometry.SRID == 0)
-            {
-                return 4326;
-            }
-
-            return geometry.SRID;
-        }
+        public int GetCrs([Parent] Geometry geometry) =>
+            geometry.SRID == 0 ? 4326 : geometry.SRID;
     }
 }

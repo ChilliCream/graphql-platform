@@ -2,12 +2,11 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Spatial
 {
-    public abstract class GeoJsonInputObjectType<T>
-        : InputObjectType<T>
+    public abstract class GeoJsonInputType<T> : InputObjectType<T>
     {
         private readonly IGeoJsonSerializer _serializer;
 
-        protected GeoJsonInputObjectType(GeoJsonGeometryType geometryType)
+        protected GeoJsonInputType(GeoJsonGeometryType geometryType)
         {
             _serializer = GeoJsonSerializers.Serializers[geometryType];
         }

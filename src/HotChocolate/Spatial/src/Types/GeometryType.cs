@@ -12,7 +12,8 @@ namespace HotChocolate.Types.Spatial
 
         public GeometryType(
             NameString name,
-            BindingBehavior bind = BindingBehavior.Explicit) : base(name, bind)
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
         }
 
