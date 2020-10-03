@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Filters.Expressions
         }
 
         protected virtual FilterVisitor<QueryableFilterContext, Expression> Visitor { get; } =
-            new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator());
+            new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator<QueryableFilterContext>());
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
@@ -60,7 +60,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 if (source != null && argument.Type is IFilterInputType filterInput)
                 {
                     var visitorContext = new QueryableFilterContext(
-                        filterInput, source is EnumerableQuery);
+                        filterInput, source is EnumerableQuery, typeof(TEntityType));
 
                     // rewrite GraphQL input object into expression tree.
                     Visitor.Visit(filter, visitorContext);

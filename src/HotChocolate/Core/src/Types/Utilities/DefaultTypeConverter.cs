@@ -55,7 +55,7 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(to));
             }
 
-            if (from == to)
+            if (to.IsAssignableFrom(from))
             {
                 converted = source;
                 return true;
@@ -141,7 +141,7 @@ namespace HotChocolate.Utilities
             Type target,
             [NotNullWhen(true)] out ChangeType? converter)
         {
-            if (source == target || target == typeof(object))
+            if (target.IsAssignableFrom(source) || target == typeof(object))
             {
                 converter = source => source;
                 return true;

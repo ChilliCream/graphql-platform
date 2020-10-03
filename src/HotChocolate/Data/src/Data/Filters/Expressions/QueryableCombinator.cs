@@ -5,11 +5,11 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
-    public class QueryableCombinator
-        : FilterOperationCombinator<QueryableFilterContext, Expression>
+    public class QueryableCombinator<TContext>
+        : FilterOperationCombinator<TContext, Expression> where TContext : QueryableFilterContext
     {
         public override bool TryCombineOperations(
-            QueryableFilterContext context,
+            TContext context,
             Queue<Expression> operations,
             FilterCombinator combinator,
             [NotNullWhen(true)] out Expression combined)

@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Filters.Expressions
             this QueryableFilterContext context)
         {
             var closure = new QueryableScope(
-                context.RuntimeTypes.Peek(),
+                context.RuntimeTypes.Peek().Source,
                 "_s" + context.Scopes.Count,
                 false);
 
