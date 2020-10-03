@@ -7,17 +7,17 @@ namespace HotChocolate.Stitching.Client
 {
     internal class BufferedRequest
     {
-        public BufferedRequest(IReadOnlyQueryRequest request)
+        public BufferedRequest(IQueryRequest request)
         {
-            Promise = new TaskCompletionSource<IExecutionResult>(
-                TaskCreationOptions.RunContinuationsAsynchronously);
             Request = request;
             Document = request.Query is QueryDocument document
                 ? document.Document
                 : Utf8GraphQLParser.Parse(request.Query!.AsSpan());
+            Promise = new TaskCompletionSource<IExecutionResult>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
-        public IReadOnlyQueryRequest Request { get; }
+        public IQueryRequest Request { get; }
 
         public DocumentNode Document { get; }
 

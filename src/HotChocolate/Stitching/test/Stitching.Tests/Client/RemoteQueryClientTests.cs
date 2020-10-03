@@ -30,7 +30,7 @@ namespace HotChocolate.Stitching
                     return Task.FromResult<IExecutionResult>(null);
                 }));
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Stitching
             var request_a = QueryRequestBuilder.Create("query a { a }");
             var request_b = QueryRequestBuilder.Create("query b { a b }");
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -124,7 +124,7 @@ namespace HotChocolate.Stitching
             var request_a = QueryRequestBuilder.New().SetQuery("query a { a }").SetOperation("a").Create();
             var request_b = QueryRequestBuilder.New().SetQuery("query b { a b }").SetOperation("a").Create();
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -177,7 +177,7 @@ namespace HotChocolate.Stitching
             var request_a = QueryRequestBuilder.Create("query a { a }");
             var request_b = QueryRequestBuilder.Create("query b { a b }");
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -228,7 +228,7 @@ namespace HotChocolate.Stitching
             var request_a = QueryRequestBuilder.Create("query a { a }");
             var request_b = QueryRequestBuilder.Create("query b { a b }");
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -265,7 +265,7 @@ namespace HotChocolate.Stitching
             var request_a = QueryRequestBuilder.Create("query a { a }");
             var request_b = QueryRequestBuilder.Create("query b { a b }");
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 
@@ -321,7 +321,7 @@ namespace HotChocolate.Stitching
             var request_b = QueryRequestBuilder.Create(
                 "query b { a b }");
 
-            var client = new RemoteQueryClient(
+            var client = new RemoteRequestExecutor(
                 new EmptyServiceProvider(),
                 executor.Object);
 

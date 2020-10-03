@@ -15,7 +15,7 @@ namespace HotChocolate.Stitching
         /// <summary>
         /// Add a remote schema document resolver.
         /// The remote schema registered like this will be queried through a
-        /// <see cref="IRemoteQueryClient" /> obtained with the schema name
+        /// <see cref="IRemoteRequestExecutor" /> obtained with the schema name
         /// from the <see cref="IStitchingContext" />.
         /// </summary>
         /// <param name="name">

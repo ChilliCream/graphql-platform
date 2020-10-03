@@ -35,15 +35,15 @@ namespace HotChocolate.Stitching.Client
             IServiceProvider services = serviceCollection.BuildServiceProvider();
 
             IStitchingContext stitchingContext = services.GetRequiredService<IStitchingContext>();
-            IRemoteQueryClient customerQueryClient = stitchingContext.GetRemoteQueryClient("customer");
+            IRemoteRequestExecutor customerRequestExecutor = stitchingContext.GetRemoteQueryClient("customer");
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("query ($id: ID!) { customer(id: $id) { name } }")
                 .SetVariableValue("id", "Q3VzdG9tZXIKZDE=")
                 .Create();
 
-            Task<IExecutionResult> executeTask = customerQueryClient.ExecuteAsync(request);
-            await customerQueryClient.DispatchAsync(CancellationToken.None);
+            Task<IExecutionResult> executeTask = customerRequestExecutor.ExecuteAsync(request);
+            await customerRequestExecutor.DispatchAsync(CancellationToken.None);
 
             IExecutionResult result = await executeTask;
 
@@ -62,15 +62,15 @@ namespace HotChocolate.Stitching.Client
             IServiceProvider services = serviceCollection.BuildServiceProvider();
 
             IStitchingContext stitchingContext = services.GetRequiredService<IStitchingContext>();
-            IRemoteQueryClient customerQueryClient = stitchingContext.GetRemoteQueryClient("foo");
+            IRemoteRequestExecutor customerRequestExecutor = stitchingContext.GetRemoteQueryClient("foo");
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
                 .SetQuery("query ($foo: Int!) { foo(a: $foo) }")
                 .SetVariableValue("foo", 1)
                 .Create();
 
-            Task<IExecutionResult> executeTask = customerQueryClient.ExecuteAsync(request);
-            await customerQueryClient.DispatchAsync(CancellationToken.None);
+            Task<IExecutionResult> executeTask = customerRequestExecutor.ExecuteAsync(request);
+            await customerRequestExecutor.DispatchAsync(CancellationToken.None);
 
             IExecutionResult result = await executeTask;
 

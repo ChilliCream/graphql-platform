@@ -4,14 +4,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Client;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Client
 {
-    public class RemoteQueryClient
-        : IRemoteQueryClient
+    public class RemoteRequestExecutor
+        : IRemoteRequestExecutor
     {
         private readonly object _sync = new object();
         private readonly RemoteRequestDispatcher _dispatcher;
@@ -20,7 +22,7 @@ namespace HotChocolate.Stitching.Client
 
         public event RequestBufferedEventHandler BufferedRequest;
 
-        public RemoteQueryClient(
+        public RemoteRequestExecutor(
             IServiceProvider services,
             IQueryExecutor executor)
         {
@@ -69,10 +71,7 @@ namespace HotChocolate.Stitching.Client
 
         private void RaiseBufferedRequest()
         {
-            if (BufferedRequest != null)
-            {
-                BufferedRequest.Invoke(this, EventArgs.Empty);
-            }
+            BufferedRequest?.Invoke(this, EventArgs.Empty);
         }
 
         private IReadOnlyQueryRequest NormalizeRequest(
@@ -159,6 +158,102 @@ namespace HotChocolate.Stitching.Client
             }
 
             return operation;
+        }
+    }
+}
+
+namespace HotChocolate.Stitching
+{
+    internal class RemoteRequestExecutor
+        : IRemoteRequestExecutor
+    {
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private readonly List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
+        private readonly IRequestExecutor _executor;
+        private readonly IBatchScheduler _batchScheduler;
+        private bool _taskRegistered;
+
+        public RemoteRequestExecutor(IRequestExecutor executor, IBatchScheduler batchScheduler)
+        {
+            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
+            _batchScheduler = batchScheduler;
+        }
+
+        /// <iniheritdoc />
+        public ISchema Schema => _executor.Schema;
+
+        /// <iniheritdoc />
+        public IServiceProvider Services => _executor.Services;
+
+        /// <iniheritdoc />
+        public Task<IExecutionResult> ExecuteAsync(
+            IQueryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var bufferRequest = new BufferedRequest(NormalizeRequest(request));
+
+            _semaphore.Wait(cancellationToken);
+
+            try
+            {
+                _bufferedRequests.Add(bufferRequest);
+
+                if (!_taskRegistered)
+                {
+                    _batchScheduler.Schedule(() => ExecuteRequestsInternal(cancellationToken));
+                    _taskRegistered = true;
+                }
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+
+            return bufferRequest.Promise.Task;
+        }
+
+        private async ValueTask ExecuteRequestsInternal(CancellationToken cancellationToken)
+        {
+            await _semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                // first we take all buffered requests and merge them into
+                // a single request in order to reduce network traffic.
+                IQueryRequest request = MergeRequests();
+
+                // now we take this merged request and run it against the executor.
+                IExecutionResult result = await _executor
+                    .ExecuteAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
+
+                // last we will extract the results for the original buffered requests
+                // and fulfil the promises.
+                DistributeResults(result);
+
+                // reset the states so that we are ready for new requests to be buffered.
+                _taskRegistered = false;
+                _bufferedRequests.Clear();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
+        private IQueryRequest NormalizeRequest(IQueryRequest originalRequest)
+        {
+            throw new NotImplementedException();
+        }
+
+        private IQueryRequest MergeRequests()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DistributeResults(IExecutionResult result)
+        {
+            throw new NotImplementedException();
         }
     }
 }

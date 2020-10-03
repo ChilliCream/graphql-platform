@@ -3,9 +3,9 @@ using System;
 namespace HotChocolate.Stitching
 {
     public interface IStitchingContext
-        : IObservable<IRemoteQueryClient>
+        : IObservable<IRemoteRequestExecutor>
     {
-        IRemoteQueryClient GetRemoteQueryClient(NameString schemaName);
+        IRemoteRequestExecutor GetRemoteQueryClient(NameString schemaName);
 
         ISchema GetRemoteSchema(NameString schemaName);
     }

@@ -11,9 +11,9 @@ namespace HotChocolate.Stitching.Client
         : IStitchingContext
     {
         private readonly object _sync = new object();
-        private readonly List<IObserver<IRemoteQueryClient>> _observers =
-            new List<IObserver<IRemoteQueryClient>>();
-        private readonly IDictionary<NameString, RemoteQueryClient> _clients;
+        private readonly List<IObserver<IRemoteRequestExecutor>> _observers =
+            new List<IObserver<IRemoteRequestExecutor>>();
+        private readonly IDictionary<NameString, RemoteRequestExecutor> _clients;
 
         public StitchingContext(
             IServiceProvider services,
@@ -31,14 +31,14 @@ namespace HotChocolate.Stitching.Client
 
             _clients = executors.ToDictionary(
                 t => t.SchemaName,
-                t => new RemoteQueryClient(services, t.Executor));
+                t => new RemoteRequestExecutor(services, t.Executor));
         }
 
-        public IRemoteQueryClient GetRemoteQueryClient(NameString schemaName)
+        public IRemoteRequestExecutor GetRemoteQueryClient(NameString schemaName)
         {
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            if (_clients.TryGetValue(schemaName, out RemoteQueryClient client))
+            if (_clients.TryGetValue(schemaName, out RemoteRequestExecutor client))
             {
                 return client;
             }
@@ -53,7 +53,7 @@ namespace HotChocolate.Stitching.Client
         {
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            if (_clients.TryGetValue(schemaName, out RemoteQueryClient client))
+            if (_clients.TryGetValue(schemaName, out RemoteRequestExecutor client))
             {
                 return client.Executor.Schema;
             }
@@ -64,14 +64,14 @@ namespace HotChocolate.Stitching.Client
                 schemaName));
         }
 
-        public IDisposable Subscribe(IObserver<IRemoteQueryClient> observer)
+        public IDisposable Subscribe(IObserver<IRemoteRequestExecutor> observer)
         {
             lock (_sync)
             {
                 _observers.Add(observer);
             }
 
-            foreach (RemoteQueryClient client in _clients.Values)
+            foreach (RemoteRequestExecutor client in _clients.Values)
             {
                 observer.OnNext(client);
             }
