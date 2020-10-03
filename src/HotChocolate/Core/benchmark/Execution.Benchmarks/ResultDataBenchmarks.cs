@@ -50,7 +50,7 @@ namespace HotChocolate.Execution.Benchmarks
                 _resultMap.SetValue(i, i.ToString(), i);
             }
 
-            _resultMap.Reset();
+            _resultMap.Clear();
             return _resultMap;
         }
     }
