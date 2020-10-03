@@ -226,13 +226,11 @@ const IndexPage: FunctionComponent = () => {
                   <Seven2OneLogoSvg />
                 </Link>
               </Logo>
-              {false && (
-                <Logo width={100}>
-                  <Link to="https://www.swisslife.ch">
-                    <SwissLifeLogoSvg />
-                  </Link>
-                </Logo>
-              )}
+              <Logo width={100}>
+                <Link to="https://www.swisslife.ch">
+                  <SwissLifeLogoSvg />
+                </Link>
+              </Logo>
             </Logos>
           </ContentContainer>
         </SectionRow>
