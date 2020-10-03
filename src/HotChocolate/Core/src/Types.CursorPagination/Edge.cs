@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Pagination
 
         public T Node { get; }
 
-        object IEdge.Node => Node;
+        object? IEdge.Node => Node;
 
         public string Cursor { get; }
     }
