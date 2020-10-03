@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Data.Sorting.InMemory.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Data</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\test\Types.Tests\HotChocolate.Types.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+</Project>
