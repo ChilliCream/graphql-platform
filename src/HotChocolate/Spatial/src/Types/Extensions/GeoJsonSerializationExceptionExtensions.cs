@@ -1,8 +1,6 @@
-using HotChocolate.Types.Spatial;
-
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial
 {
-    public static class GeoJsonSerializationExceptionExtensions
+    internal static class GeoJsonSerializationExceptionExtensions
     {
         public static SerializationException ToSerializationException(
             this GeoJsonSerializationException exception,

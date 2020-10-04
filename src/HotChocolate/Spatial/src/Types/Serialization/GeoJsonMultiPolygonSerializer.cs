@@ -1,9 +1,8 @@
-using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonMultiPolygonSerializer
         : GeoJsonInputObjectSerializer<MultiPolygon>

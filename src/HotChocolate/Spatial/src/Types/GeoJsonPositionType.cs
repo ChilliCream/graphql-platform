@@ -1,6 +1,8 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Spatial.Extensions;
 using NetTopologySuite.Geometries;
 using HotChocolate.Types.Spatial.Properties;
+using HotChocolate.Types.Spatial.Serialization;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
 namespace HotChocolate.Types.Spatial

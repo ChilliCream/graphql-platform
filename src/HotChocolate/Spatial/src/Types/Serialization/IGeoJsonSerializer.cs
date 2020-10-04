@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     /// <summary>
     /// A serializable type can serialize its runtime value to the result value

@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal static class GeoJsonSerializers
     {

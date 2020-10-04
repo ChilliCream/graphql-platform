@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
     {

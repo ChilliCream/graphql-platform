@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal abstract class GeoJsonSerializerBase<T> : IGeoJsonSerializer
     {
@@ -59,8 +58,8 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected (GeoJsonGeometryType type, object coordinates, int? crs)
-            ParseFields(IReadOnlyDictionary<string, object> obj)
+        protected (GeoJsonGeometryType type, object coordinates, int? crs) ParseFields(
+            IReadOnlyDictionary<string, object> obj)
         {
             GeoJsonGeometryType? type = null;
             object? coordinates = null;
@@ -96,8 +95,8 @@ namespace HotChocolate.Types
             return (type.Value, coordinates, crs);
         }
 
-        protected (GeoJsonGeometryType type, object coordinates, int? crs)
-            ParseFields(ObjectValueNode obj)
+        protected (GeoJsonGeometryType type, object coordinates, int? crs) ParseFields(
+            ObjectValueNode obj)
         {
             GeoJsonGeometryType? type = null;
             object? coordinates = null;
