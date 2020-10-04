@@ -124,8 +124,7 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(1),
                 new IntValueNode(2),
                 new IntValueNode(3),
-                new IntValueNode(4)
-            );
+                new IntValueNode(4));
 
             // act
             bool? result = type.IsInstanceOfType(coordinate);
@@ -257,8 +256,11 @@ namespace HotChocolate.Types.Spatial
         {
             // arrange
             var type = new GeoJsonPositionType();
+
+            // act
             IValueNode result = type.ParseValue(null);
 
+            // assert
             Assert.Null(Assert.IsType<NullValueNode>(result).Value);
         }
 
@@ -269,8 +271,10 @@ namespace HotChocolate.Types.Spatial
             var type = new GeoJsonPositionType();
             var coordinate = new Coordinate(1.1, 2.2);
 
+            // act
             IValueNode result = type.ParseValue(coordinate);
 
+            // assert
             Assert.Equal("1.1", Assert.IsType<ListValueNode>(result).Items[0].Value);
             Assert.Equal("2.2", Assert.IsType<ListValueNode>(result).Items[1].Value);
         }
@@ -282,8 +286,10 @@ namespace HotChocolate.Types.Spatial
             var type = new GeoJsonPositionType();
             var coordinate = new CoordinateZ(1.1, 2.2, 3.3);
 
+            // act
             IValueNode result = type.ParseValue(coordinate);
 
+            // assert
             Assert.Equal("1.1", Assert.IsType<ListValueNode>(result).Items[0].Value);
             Assert.Equal("2.2", Assert.IsType<ListValueNode>(result).Items[1].Value);
             Assert.Equal("3.3", Assert.IsType<ListValueNode>(result).Items[2].Value);

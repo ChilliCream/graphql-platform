@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(30),
                 new IntValueNode(10)));
 
-        private Geometry _geometry = new Polygon(
+        private readonly Geometry _geometry = new Polygon(
             new LinearRing(
                 new[]
                 {
@@ -157,7 +157,7 @@ namespace HotChocolate.Types.Spatial
             Assert.False(
                 type.IsInstanceOfType(
                     GeometryFactory.Default.CreateGeometryCollection(
-                        new[] { new Point(1, 2) })));
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -209,7 +209,8 @@ namespace HotChocolate.Types.Spatial
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(() => type.ParseLiteral(new ListValueNode()));
+            Assert.Throws<InvalidOperationException>(
+                () => type.ParseLiteral(new ListValueNode()));
         }
 
         [Theory]
@@ -282,7 +283,6 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, coordField);
 
             // act
-            // assert
             object? parsedResult = type.ParseLiteral(valueNode);
 
             // assert
@@ -409,7 +409,11 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Deserialize(null));
         }
 
@@ -539,6 +543,7 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void Polygon_IsCoordinateValid_Should_Fail_When_Point(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new IntValueNode(30),
