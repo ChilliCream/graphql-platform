@@ -1,0 +1,1 @@
+﻿{ type: LineString, coordinates: [ [ 30, 10 ], [ 10, 30 ], [ 40, 40 ] ], crs: 0 }
