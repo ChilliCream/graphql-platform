@@ -42,7 +42,6 @@ namespace HotChocolate.Types.Spatial.Serialization
             throw Serializer_CouldNotSerialize();
         }
 
-
         public virtual bool IsInstanceOfType(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -138,11 +137,9 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         private object ParseCoordinates(object? runtimeValue)
         {
-            if (runtimeValue is IList top &&
-                top.Count > 0)
+            if (runtimeValue is IList top && top.Count > 0)
             {
-                if (top[0] is IList second &&
-                    second.Count > 0)
+                if (top[0] is IList second && second.Count > 0)
                 {
                     if (second[0] is IList)
                     {
@@ -179,11 +176,10 @@ namespace HotChocolate.Types.Spatial.Serialization
                         return result;
                     }
                 }
-                else if (
-                    GeoJsonPositionSerializer.Default.TryDeserialize(
-                        runtimeValue,
-                        out object? result) &&
-                    result is { })
+                else if (GeoJsonPositionSerializer.Default.TryDeserialize(
+                    runtimeValue,
+                    out object? result) &&
+                    result is not null)
                 {
                     return result;
                 }
@@ -194,11 +190,9 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         private object ParseCoordinates(IValueNode syntaxNode)
         {
-            if (syntaxNode is ListValueNode top &&
-                top.Items.Count > 0)
+            if (syntaxNode is ListValueNode top && top.Items.Count > 0)
             {
-                if (top.Items[0] is ListValueNode second &&
-                    second.Items.Count > 0)
+                if (top.Items[0] is ListValueNode second && second.Items.Count > 0)
                 {
                     if (second.Items[0] is ListValueNode)
                     {
