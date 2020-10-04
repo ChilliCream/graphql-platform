@@ -51,9 +51,7 @@ namespace HotChocolate.Types.Spatial
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode(
-                        "type",
-                        new EnumValueNode("MultiPolygon")),
+                    new ObjectFieldNode("type", new EnumValueNode("MultiPolygon")),
                     new ObjectFieldNode("coordinates", _multiPolygon)));
 
             // assert
@@ -80,9 +78,7 @@ namespace HotChocolate.Types.Spatial
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode(
-                        "type",
-                        new EnumValueNode("MultiPolygon")),
+                    new ObjectFieldNode("type", new EnumValueNode("MultiPolygon")),
                     new ObjectFieldNode("coordinates", _multiPolygon),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -152,9 +148,7 @@ namespace HotChocolate.Types.Spatial
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
-                        new ObjectFieldNode(
-                            "type",
-                            new EnumValueNode("MultiPolygon")),
+                        new ObjectFieldNode("type", new EnumValueNode("MultiPolygon")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 

@@ -13,8 +13,7 @@ namespace HotChocolate.Types.Spatial
     {
         private readonly ListValueNode _point = new ListValueNode(
             new IntValueNode(30),
-            new IntValueNode(10)
-        );
+            new IntValueNode(10));
 
         [Fact]
         public void ParseLiteral_Point_With_Valid_Coordinates_Scalar()

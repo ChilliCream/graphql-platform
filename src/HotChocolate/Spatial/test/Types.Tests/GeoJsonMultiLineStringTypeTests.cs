@@ -15,7 +15,9 @@ namespace HotChocolate.Types.Spatial
                 new LineString(
                     new[]
                     {
-                        new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(10, 40)
+                        new Coordinate(10, 10),
+                        new Coordinate(20, 20),
+                        new Coordinate(10, 40)
                     }),
                 new LineString(
                     new[]
@@ -77,10 +79,8 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Fact]
-        public void MultiLineString_Execution_Tests()
-        {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
+        public void MultiLineString_Execution_Tests() =>
+            SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonMultiLineStringType>()
@@ -89,11 +89,8 @@ namespace HotChocolate.Types.Spatial
                         .Name("Query")
                         .Field("test")
                         .Resolver(_geom))
-                .Create();
-
-            // act
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+                .Create()
+                .Print()
+                .MatchSnapshot();
     }
 }

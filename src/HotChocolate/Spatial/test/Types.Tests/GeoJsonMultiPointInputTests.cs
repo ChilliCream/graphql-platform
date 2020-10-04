@@ -14,20 +14,16 @@ namespace HotChocolate.Types.Spatial
         private readonly ListValueNode _multipoint = new ListValueNode(
             new ListValueNode(
                 new IntValueNode(10),
-                new IntValueNode(40)
-            ),
+                new IntValueNode(40)),
             new ListValueNode(
                 new IntValueNode(40),
-                new IntValueNode(30)
-            ),
+                new IntValueNode(30)),
             new ListValueNode(
                 new IntValueNode(20),
-                new IntValueNode(20)
-            ),
+                new IntValueNode(20)),
             new ListValueNode(
                 new IntValueNode(30),
-                new IntValueNode(10)
-            ));
+                new IntValueNode(10)));
 
         [Fact]
         public void ParseLiteral_MultiPoint_With_Valid_Coordinates()
@@ -130,17 +126,18 @@ namespace HotChocolate.Types.Spatial
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
-                        new ObjectFieldNode(
-                            "type",
-                            new EnumValueNode("MultiPoint")),
+                        new ObjectFieldNode("type", new EnumValueNode("MultiPoint")),
                         new ObjectFieldNode("coordinates", new ListValueNode()))));
         }
 
         [Fact]
         public void ParseLiteral_MultiPoint_With_Wrong_Geometry_Type_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -165,7 +162,12 @@ namespace HotChocolate.Types.Spatial
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ test(arg: { type: MultiPoint, coordinates:[[10, 40], [40, 30], [20, 20], [30, 10]] })}");
+                @"{
+                    test(arg: {
+                        type: MultiPoint,
+                        coordinates:[[10, 40], [40, 30], [20, 20], [30, 10]]
+                    })
+                }");
 
             // assert
             result.MatchSnapshot();
@@ -182,16 +184,17 @@ namespace HotChocolate.Types.Spatial
             schema.ToString().MatchSnapshot();
         }
 
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddType<MockObjectType>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiPointInputType>())
-                    .Resolver("ghi"))
-            .Create();
+        private ISchema CreateSchema() =>
+            SchemaBuilder.New()
+                .AddConvention<INamingConventions, MockNamingConvention>()
+                .AddType<MockObjectType>()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<GeoJsonMultiPointInputType>())
+                        .Resolver("ghi"))
+                .Create();
 
         private InputObjectType CreateInputType()
         {

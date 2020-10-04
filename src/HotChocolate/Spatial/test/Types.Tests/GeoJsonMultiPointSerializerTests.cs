@@ -13,22 +13,18 @@ namespace HotChocolate.Types.Spatial
         private readonly IValueNode _coordinatesSyntaxNode = new ListValueNode(
             new ListValueNode(
                 new IntValueNode(10),
-                new IntValueNode(40)
-            ),
+                new IntValueNode(40)),
             new ListValueNode(
                 new IntValueNode(40),
-                new IntValueNode(30)
-            ),
+                new IntValueNode(30)),
             new ListValueNode(
                 new IntValueNode(20),
-                new IntValueNode(20)
-            ),
+                new IntValueNode(20)),
             new ListValueNode(
                 new IntValueNode(30),
-                new IntValueNode(10)
-            ));
+                new IntValueNode(10)));
 
-        private Geometry _geometry = new MultiPoint(
+        private readonly Geometry _geometry = new MultiPoint(
             new[]
             {
                 new Point(new Coordinate(10, 40)),
@@ -153,7 +149,8 @@ namespace HotChocolate.Types.Spatial
             // assert
             Assert.False(
                 type.IsInstanceOfType(
-                    GeometryFactory.Default.CreateGeometryCollection(new[] { new Point(1, 2) })));
+                    GeometryFactory.Default.CreateGeometryCollection(
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -243,6 +240,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -258,6 +256,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -399,7 +398,11 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Deserialize(null));
         }
 

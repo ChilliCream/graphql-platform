@@ -193,7 +193,8 @@ namespace HotChocolate.Types.Spatial
             // assert
             Assert.False(
                 type.IsInstanceOfType(
-                    GeometryFactory.Default.CreateGeometryCollection(new[] { new Point(1, 2) })));
+                    GeometryFactory.Default.CreateGeometryCollection(
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -531,7 +532,7 @@ namespace HotChocolate.Types.Spatial
         [Theory]
         [InlineData(MultiPolygonInputName)]
         [InlineData(GeometryTypeName)]
-        public void Deserialize_Should_Fail_WhentypeNameIsMissing(string typeName)
+        public void Deserialize_Should_Fail_WhenTypeNameIsMissing(string typeName)
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
@@ -569,6 +570,7 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void MultiPolygon_IsCoordinateValid_Should_Fail_When_Point(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new IntValueNode(30),
