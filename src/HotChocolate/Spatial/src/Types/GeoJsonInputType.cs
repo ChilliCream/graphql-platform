@@ -1,5 +1,4 @@
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial.Extensions;
 using HotChocolate.Types.Spatial.Serialization;
 
 namespace HotChocolate.Types.Spatial
