@@ -219,6 +219,12 @@ namespace HotChocolate.Types.Spatial.Serialization
 
         public override bool TrySerialize(object? value, out object? serialized)
         {
+            if (value is null)
+            {
+                serialized = null;
+                return true;
+            }
+
             if (!(value is Coordinate coordinate))
             {
                 serialized = null;
