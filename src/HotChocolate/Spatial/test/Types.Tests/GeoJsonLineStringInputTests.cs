@@ -93,8 +93,10 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
@@ -104,6 +106,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -114,6 +118,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -127,6 +133,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -142,6 +150,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -153,7 +163,6 @@ namespace HotChocolate.Types.Spatial.Tests
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
@@ -174,19 +183,15 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
-        public void Schema_Tests()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
+        public void Schema_Tests() =>
+            CreateSchema()
+                .Print()
+                .MatchSnapshot();
 
         [Fact]
         public void ParseLiteral_With_Input_Crs()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
@@ -203,8 +208,10 @@ namespace HotChocolate.Types.Spatial.Tests
                 new ObjectFieldNode("coordinates", _linestring),
                 new ObjectFieldNode("crs", 26912));
 
+            // act
             object? result = type.ParseLiteral(node);
 
+            // assert
             Assert.Equal(26912, Assert.IsType<LineString>(result).SRID);
         }
     }
