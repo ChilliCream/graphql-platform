@@ -6,7 +6,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPointSerializerTests
     {

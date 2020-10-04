@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     /// <summary>
     /// We deactivate description inference because we target multiple frameworks and it only
