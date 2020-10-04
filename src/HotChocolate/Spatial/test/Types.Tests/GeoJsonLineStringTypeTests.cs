@@ -10,7 +10,12 @@ namespace HotChocolate.Types.Spatial
     public class GeoJsonLineStringTypeTests
     {
         private readonly LineString _geom = new LineString(
-            new[] { new Coordinate(30, 10), new Coordinate(10, 30), new Coordinate(40, 40) });
+            new[]
+            {
+                new Coordinate(30, 10),
+                new Coordinate(10, 30),
+                new Coordinate(40, 40)
+            });
 
         [Fact]
         public async Task LineString_Execution_Output()
@@ -62,9 +67,8 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Fact]
-        public void LineString_Execution_Tests()
-        {
-            ISchema schema = SchemaBuilder.New()
+        public void LineString_Execution_Tests() =>
+            SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonLineStringType>()
@@ -73,10 +77,9 @@ namespace HotChocolate.Types.Spatial
                         .Name("Query")
                         .Field("test")
                         .Resolver(_geom))
-                .Create();
-
-            schema.ToString().MatchSnapshot();
-        }
+                .Create()
+                .Print()
+                .MatchSnapshot();
 
         [Fact]
         public async Task LineString_Execution_With_CRS()
@@ -95,8 +98,7 @@ namespace HotChocolate.Types.Spatial
 
             // act
             IRequestExecutor executor = schema.MakeExecutable();
-            IExecutionResult result = await executor.ExecuteAsync(
-                "{ test { crs }}");
+            IExecutionResult result = await executor.ExecuteAsync("{ test { crs }}");
 
             // assert
             result.MatchSnapshot();

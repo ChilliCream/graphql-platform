@@ -34,8 +34,7 @@ namespace HotChocolate.Types.Spatial
                     new IntValueNode(20)),
                 new ListValueNode(
                     new IntValueNode(30),
-                    new IntValueNode(10))
-            ));
+                    new IntValueNode(10))));
 
         [Fact]
         public void ParseLiteral_MultiLineString_With_Valid_Coordinates()
@@ -169,7 +168,6 @@ namespace HotChocolate.Types.Spatial
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
@@ -191,16 +189,11 @@ namespace HotChocolate.Types.Spatial
         }
 
         [Fact]
-        public void Schema_Tests()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema();
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
+        public void Schema_Tests() =>
+            CreateSchema()
+                .Print()
+                .MatchSnapshot();
+        
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddQueryType(

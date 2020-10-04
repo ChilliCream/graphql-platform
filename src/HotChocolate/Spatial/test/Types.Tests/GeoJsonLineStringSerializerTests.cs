@@ -21,14 +21,21 @@ namespace HotChocolate.Types.Spatial
                 new IntValueNode(40),
                 new IntValueNode(40)));
 
-        private Geometry _geometry = new LineString(
-            new[] { new Coordinate(30, 10), new Coordinate(10, 30), new Coordinate(40, 40) });
+        private readonly Geometry _geometry = new LineString(
+            new[]
+            {
+                new Coordinate(30, 10),
+                new Coordinate(10, 30),
+                new Coordinate(40, 40)
+            });
 
         private readonly string _geometryType = "LineString";
 
         private readonly object _geometryParsed = new[]
         {
-            new[] { 30.0, 10.0 }, new[] { 10.0, 30.0 }, new[] { 40.0, 40.0 }
+            new[] { 30.0, 10.0 },
+            new[] { 10.0, 30.0 },
+            new[] { 40.0, 40.0 }
         };
 
         [Theory]
@@ -133,7 +140,8 @@ namespace HotChocolate.Types.Spatial
             // assert
             Assert.False(
                 type.IsInstanceOfType(
-                    GeometryFactory.Default.CreateGeometryCollection(new[] { new Point(1, 2) })));
+                    GeometryFactory.Default.CreateGeometryCollection(
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -223,6 +231,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -238,6 +247,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
