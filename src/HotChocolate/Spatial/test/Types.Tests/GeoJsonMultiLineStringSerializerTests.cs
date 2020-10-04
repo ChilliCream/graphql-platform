@@ -33,16 +33,17 @@ namespace HotChocolate.Types.Spatial
                     new IntValueNode(20)),
                 new ListValueNode(
                     new IntValueNode(30),
-                    new IntValueNode(10))
-            ));
+                    new IntValueNode(10))));
 
-        private Geometry _geometry = new MultiLineString(
+        private readonly Geometry _geometry = new MultiLineString(
             new[]
             {
                 new LineString(
                     new[]
                     {
-                        new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(10, 40)
+                        new Coordinate(10, 10),
+                        new Coordinate(20, 20),
+                        new Coordinate(10, 40)
                     }),
                 new LineString(
                     new[]
@@ -265,6 +266,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -280,6 +282,7 @@ namespace HotChocolate.Types.Spatial
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -560,6 +563,7 @@ namespace HotChocolate.Types.Spatial
         [InlineData(GeometryTypeName)]
         public void MultiLine_IsCoordinateValid_Should_Fail_When_Point(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
 
             var coords = new ListValueNode(
@@ -574,15 +578,16 @@ namespace HotChocolate.Types.Spatial
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddSpatialTypes()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<StringType>())
-                    .Resolver("ghi"))
-            .Create();
+        private ISchema CreateSchema() =>
+            SchemaBuilder.New()
+                .AddSpatialTypes()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("test")
+                        .Argument("arg", a => a.Type<StringType>())
+                        .Resolver("ghi"))
+                .Create();
 
         private static void AssertGeometry(object? obj, int? crs = null)
         {

@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Spatial
             CreateSchema()
                 .Print()
                 .MatchSnapshot();
-        
+
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
             .AddQueryType(
