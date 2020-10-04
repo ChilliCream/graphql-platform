@@ -69,7 +69,6 @@ namespace HotChocolate.Types.Spatial.Serialization
                         }
                     }
 
-
                     resultValue = new Dictionary<string, object>
                     {
                         { CoordinatesFieldName, coordinate },
@@ -146,7 +145,6 @@ namespace HotChocolate.Types.Spatial.Serialization
                         TypeFieldName,
                         GeoJsonTypeSerializer.Default.ParseResult(_geometryType))
                 };
-
 
                 if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
                     value is IList coordinates)
