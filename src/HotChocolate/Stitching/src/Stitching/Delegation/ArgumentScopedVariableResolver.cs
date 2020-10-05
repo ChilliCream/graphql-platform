@@ -9,8 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
 {
-    internal class ArgumentScopedVariableResolver
-        : IScopedVariableResolver
+    internal class ArgumentScopedVariableResolver : IScopedVariableResolver
     {
         public VariableValue Resolve(
             IResolverContext context,
@@ -34,8 +33,8 @@ namespace HotChocolate.Stitching.Delegation
                     nameof(variable));
             }
 
-            IInputField argument = context.Field.Arguments.FirstOrDefault(t =>
-                t.Name.Value.EqualsOrdinal(variable.Name.Value));
+            IInputField? argument = context.Field.Arguments.FirstOrDefault(
+                t => t.Name.Value.EqualsOrdinal(variable.Name.Value));
 
             if (argument == null)
             {
@@ -43,7 +42,7 @@ namespace HotChocolate.Stitching.Delegation
                     .SetMessage(
                         StitchingResources.ArgumentScopedVariableResolver_InvalidArgumentName,
                         variable.Name.Value)
-                    .SetCode(ErrorCodes.ArgumentNotDefined)
+                    .SetCode(ErrorCodes.Stitching.ArgumentNotDefined)
                     .SetPath(context.Path)
                     .AddLocation(context.FieldSelection)
                     .Build());
@@ -53,7 +52,7 @@ namespace HotChocolate.Stitching.Delegation
             (
                 variable.ToVariableName(),
                 argument.Type.ToTypeNode(),
-                context.Argument<IValueNode>(variable.Name.Value),
+                context.ArgumentLiteral<IValueNode>(variable.Name.Value),
                 argument.Type.IsNonNullType() && argument.DefaultValue.IsNull()
                     ? null
                     : argument.DefaultValue

@@ -39,7 +39,7 @@ namespace HotChocolate.Stitching.Delegation
                     nameof(variable));
             }
 
-            context.ScopedContextData.TryGetValue(variable.Name.Value, out object data);
+            context.ScopedContextData.TryGetValue(variable.Name.Value, out object? data);
 
             return new VariableValue
             (

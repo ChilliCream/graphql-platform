@@ -35,8 +35,7 @@ namespace HotChocolate.Stitching.Delegation
                 throw new ArgumentNullException(nameof(variable));
             }
 
-            if (_resolvers.TryGetValue(variable.Scope.Value,
-                out IScopedVariableResolver resolver))
+            if (_resolvers.TryGetValue(variable.Scope.Value, out IScopedVariableResolver? resolver))
             {
                 return resolver.Resolve(context, variable, targetType);
             }
@@ -45,7 +44,7 @@ namespace HotChocolate.Stitching.Delegation
                 .SetMessage(
                     StitchingResources.RootScopedVariableResolver_ScopeNotSupported,
                     variable.Scope.Value)
-                .SetCode(ErrorCodes.ScopeNotDefined)
+                .SetCode(ErrorCodes.Stitching.ScopeNotDefined)
                 .SetPath(context.Path)
                 .AddLocation(context.FieldSelection)
                 .Build());

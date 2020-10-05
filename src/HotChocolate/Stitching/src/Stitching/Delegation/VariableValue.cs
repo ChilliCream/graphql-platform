@@ -8,8 +8,8 @@ namespace HotChocolate.Stitching.Delegation
         internal VariableValue(
             string name,
             ITypeNode type,
-            IValueNode value,
-            IValueNode defaultValue)
+            IValueNode? value,
+            IValueNode? defaultValue)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -21,9 +21,9 @@ namespace HotChocolate.Stitching.Delegation
 
         public ITypeNode Type { get; }
 
-        public IValueNode Value { get; }
+        public IValueNode? Value { get; }
 
-        public IValueNode DefaultValue { get; }
+        public IValueNode? DefaultValue { get; }
 
         public VariableValue WithValue(IValueNode value) =>
             new VariableValue(Name, Type, value, DefaultValue);

@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         public ScopedVariableNode(
-            Language.Location location,
+            Language.Location? location,
             NameNode scope,
             NameNode name)
         {
@@ -33,9 +33,9 @@ namespace HotChocolate.Stitching.Delegation
             Name = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        public NodeKind Kind { get; } = NodeKind.Variable;
+        public SyntaxKind Kind { get; } = SyntaxKind.Variable;
 
-        public Language.Location Location { get; }
+        public Language.Location? Location { get; }
 
         public NameNode Scope { get; }
 
