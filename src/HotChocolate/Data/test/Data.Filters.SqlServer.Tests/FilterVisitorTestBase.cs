@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Data.Filters.Expressions;
+using HotChocolate.Data.Spatial.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
@@ -23,9 +25,16 @@ namespace HotChocolate.Data.Filters
             }
 
             var dbContext = new DatabaseContext<TResult>(FileName);
-            dbContext.Database.EnsureDeleted();
-            dbContext.Database.EnsureCreated();
-            dbContext.AddRange(results);
+
+            try
+            {
+                dbContext.Database.EnsureDeleted();
+                // dbContext.Database.EnsureCreated();
+                dbContext.AddRange(results);
+            }
+            catch (Exception ex) {
+                Console.WriteLine(ex.Message);
+            }
 
             try
             {
@@ -52,12 +61,21 @@ namespace HotChocolate.Data.Filters
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddFiltering()
+                .AddSpatialTypes()
+                .AddFiltering(
+                    // x => x
+                    //     .AddDefaults()
+                    //     .AddSpatialOperations()
+                    //     .BindSpatialTypes()
+                    //     .Provider(
+                    //         new QueryableFilterProvider(
+                    //             p => p.AddSpatialHandlers().AddDefaultFieldHandlers()))
+                )
                 .AddQueryType(
                     c => c
                         .Name("Query")
                         .Field("root")
-                        .Resolver(resolver)
+                        // .Resolver(resolver)
                         .Use(next => async context =>
                         {
                             await next(context);
@@ -71,7 +89,7 @@ namespace HotChocolate.Data.Filters
                                 catch (Exception)
                                 {
                                     context.ContextData["sql"] =
-                                        "EF Core 3.1 does not support ToQuerString offically";
+                                        "EF Core 3.1 does not support ToQueryString officially";
                                 }
                             }
                         })

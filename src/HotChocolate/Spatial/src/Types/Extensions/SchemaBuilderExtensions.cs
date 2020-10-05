@@ -1,6 +1,4 @@
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types.Spatial;
-using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite.Geometries;
 
 namespace HotChocolate
