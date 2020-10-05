@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -11,7 +9,6 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities.Introspection;
 using IHasName = HotChocolate.Types.IHasName;
 using WellKnownContextData = HotChocolate.Stitching.WellKnownContextData;
@@ -169,49 +166,5 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static bool IsOfTypeWithName(IHasName objectType, object? result) =>
             result == null || objectType.Name.Equals(result.GetType().Name);
-    }
-
-    public class StitchingTypeInterceptor : TypeInterceptor
-    {
-        public override void OnAfterInitialize(
-            ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
-        {
-            if (definition is ObjectTypeDefinition objectTypeDef)
-            {
-                foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
-                {
-                    if (objectField.Directives.Any(IsDelegatedField))
-                    {
-                        objectField.MiddlewareComponents.Insert(
-                            0,
-                            FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>());
-                        objectField.MiddlewareComponents.Insert(
-                            1,
-                            FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>());
-                    }
-
-                    // if computed //
-                }
-            }
-        }
-
-        private static bool IsDelegatedField(DirectiveDefinition directiveDef)
-        {
-            if (directiveDef.Reference is NameDirectiveReference nameRef &&
-                nameRef.Name.Equals(DirectiveNames.Delegate))
-            {
-                return true;
-            }
-
-            if (directiveDef.Reference is ClrTypeDirectiveReference typeRef &&
-                typeRef.ClrType == typeof(DelegateDirective))
-            {
-                return true;
-            }
-
-            return false;
-        }
     }
 }

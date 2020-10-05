@@ -122,8 +122,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     schemaBuilder
                         .AddRemoteExecutor(schemaName, autoProxy)
-                        .TryAddSchemaInterceptor(typeof(StitchingSchemaInterceptor));
-
+                        .TryAddSchemaInterceptor(typeof(StitchingSchemaInterceptor))
+                        .TryAddTypeInterceptor<StitchingTypeInterceptor>();
                 });
 
             // Last but not least, we will setup the stitching context which will
