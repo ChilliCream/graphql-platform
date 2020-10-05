@@ -225,4 +225,7 @@
   <data name="Type_NotSupported" xml:space="preserve">
     <value>The type definition is not yet supported.</value>
   </data>
+  <data name="BufferedRequest_Create_QueryCannotBeNull" xml:space="preserve">
+    <value>The request must contain a query document.</value>
+  </data>
 </root>

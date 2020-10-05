@@ -2,8 +2,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Stitching.Utilities
 {
-    internal class HttpQueryRequest
-        : IHttpQueryRequest
+    internal class HttpQueryRequest : IHttpQueryRequest
     {
         public string Id { get; set; }
         public string Query { get; set; }

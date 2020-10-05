@@ -20,7 +20,7 @@ namespace HotChocolate.Stitching
             string query_c = "{ a { c } }";
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             rewriter.AddQuery(Utf8GraphQLParser.Parse(query_a), "_a", false);
             rewriter.AddQuery(Utf8GraphQLParser.Parse(query_b), "_b", false);
             rewriter.AddQuery(Utf8GraphQLParser.Parse(query_c), "_c", false);
@@ -40,7 +40,7 @@ namespace HotChocolate.Stitching
                 FileResource.Open("StitchingQueryWithVariables.graphql"));
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             rewriter.AddQuery(query_a, "_a", false);
             rewriter.AddQuery(query_b, "_b", false);
             DocumentNode document = rewriter.Merge();
@@ -59,7 +59,7 @@ namespace HotChocolate.Stitching
                 FileResource.Open("MergeQueryWithVariable.graphql"));
 
             // act
-            var rewriter = new MergeQueryRewriter(
+            var rewriter = new MergeRequestRewriter(
                 new HashSet<string>(new[] { "global" }));
             rewriter.AddQuery(query_a, "_a", true);
             rewriter.AddQuery(query_b, "_b", true);
@@ -79,7 +79,7 @@ namespace HotChocolate.Stitching
                 FileResource.Open("MergeQueryWithVariable.graphql"));
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             IDictionary<string, string> a =
                 rewriter.AddQuery(query_a, "_a", true);
             IDictionary<string, string> b =
@@ -99,7 +99,7 @@ namespace HotChocolate.Stitching
                 "type Foo { s: String }");
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             Action action = () => rewriter.AddQuery(query, "_a", false);
 
             // assert
@@ -115,7 +115,7 @@ namespace HotChocolate.Stitching
                 "type Foo { s: String }");
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             Action action = () => rewriter.AddQuery(null, "_a", false);
 
             // assert
@@ -131,7 +131,7 @@ namespace HotChocolate.Stitching
             DocumentNode query_b = Utf8GraphQLParser.Parse("mutation a { b }");
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             rewriter.AddQuery(query_a, "abc", false);
             Action action = () => rewriter.AddQuery(query_b, "abc", false);
 
@@ -148,7 +148,7 @@ namespace HotChocolate.Stitching
                 "type Foo { s: String }");
 
             // act
-            var rewriter = new MergeQueryRewriter(Array.Empty<string>());
+            var rewriter = new MergeRequestRewriter(Array.Empty<string>());
             Action action = () => rewriter.AddQuery(
                 query, default(NameString), false);
 
@@ -165,7 +165,7 @@ namespace HotChocolate.Stitching
                 "type Foo { s: String }");
 
             // act
-            Action action = () => new MergeQueryRewriter(null);
+            Action action = () => new MergeRequestRewriter(null);
 
             // assert
             Assert.Equal("globalVariableNames",

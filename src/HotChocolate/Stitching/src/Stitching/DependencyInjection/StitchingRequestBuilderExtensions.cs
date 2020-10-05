@@ -60,25 +60,4 @@ namespace Microsoft.Extensions.DependencyInjection
             throw new Exception();
         }
     }
-
-    public class Foo
-    {
-
-public void ConfigureServices(IServiceCollection services)
-{
-    services.AddGraphQL()
-        .AddMicrosoftGraph()
-        .AddTypeExtension<UserExtension>();
-}
-
-[ExtendObjectType(Name = "User")]
-public class UserExtension
-{
-    public string Greetings([Parent("displayName")]string displayName)
-    {
-        return "hello " + displayName;
-    }
-}
-
-    }
 }

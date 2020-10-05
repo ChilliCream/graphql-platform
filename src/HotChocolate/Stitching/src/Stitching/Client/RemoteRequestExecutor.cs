@@ -1,166 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
-using HotChocolate.Types;
-
-namespace HotChocolate.Stitching.Client
-{
-    public class RemoteRequestExecutor
-        : IRemoteRequestExecutor
-    {
-        private readonly object _sync = new object();
-        private readonly RemoteRequestDispatcher _dispatcher;
-        private List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
-        private int _bufferSize;
-
-        public event RequestBufferedEventHandler BufferedRequest;
-
-        public RemoteRequestExecutor(
-            IServiceProvider services,
-            IQueryExecutor executor)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            Executor = executor ?? throw new ArgumentNullException(nameof(executor));
-            _dispatcher = new RemoteRequestDispatcher(services, executor);
-        }
-
-        public IQueryExecutor Executor { get; }
-
-        public int BufferSize => _bufferSize;
-
-        public Task<IExecutionResult> ExecuteAsync(IReadOnlyQueryRequest request)
-        {
-            var bufferRequest = new BufferedRequest(NormalizeRequest(request));
-
-            lock (_sync)
-            {
-                _bufferedRequests.Add(bufferRequest);
-                _bufferSize++;
-                RaiseBufferedRequest();
-            }
-
-            return bufferRequest.Promise.Task;
-        }
-
-        public Task DispatchAsync(CancellationToken cancellationToken)
-        {
-            return _dispatcher.DispatchAsync(GetBuffer(), cancellationToken);
-        }
-
-        private IList<BufferedRequest> GetBuffer()
-        {
-            lock (_sync)
-            {
-                _bufferSize = 0;
-                List<BufferedRequest> buffer = _bufferedRequests;
-                _bufferedRequests = new List<BufferedRequest>();
-                return buffer;
-            }
-        }
-
-        private void RaiseBufferedRequest()
-        {
-            BufferedRequest?.Invoke(this, EventArgs.Empty);
-        }
-
-        private IReadOnlyQueryRequest NormalizeRequest(
-            IReadOnlyQueryRequest originalRequest)
-        {
-            ImmutableDictionary<string, object> normalizedVariables =
-                ImmutableDictionary<string, object>.Empty;
-
-            OperationDefinitionNode operation = null;
-
-            foreach (KeyValuePair<string, object> variable in originalRequest.VariableValues)
-            {
-                if (variable.Value as IValueNode is null)
-                {
-                    if (operation is null)
-                    {
-                        operation = ResolveOperationDefinition(
-                            originalRequest.Query, originalRequest.OperationName);
-                    }
-
-                    IValueNode normalizedValue = RewriteVariable(
-                        operation, variable.Key, variable.Value);
-
-                    normalizedVariables =
-                        normalizedVariables.SetItem(variable.Key, normalizedValue);
-                }
-            }
-
-            if (normalizedVariables.Count > 0)
-            {
-                QueryRequestBuilder builder = QueryRequestBuilder.From(originalRequest);
-
-                foreach (KeyValuePair<string, object> normalized in normalizedVariables)
-                {
-                    builder.SetVariableValue(normalized.Key, normalized.Value);
-                }
-
-                return builder.Create();
-            }
-
-            return originalRequest;
-        }
-
-        private IValueNode RewriteVariable(
-            OperationDefinitionNode operation,
-            string name,
-            object value)
-        {
-            VariableDefinitionNode variableDefinition =
-                operation.VariableDefinitions.FirstOrDefault(t =>
-                    string.Equals(t.Variable.Name.Value, name, StringComparison.Ordinal));
-
-            if (variableDefinition is { }
-                && Executor.Schema.TryGetType(
-                    variableDefinition.Type.NamedType().Name.Value,
-                    out INamedInputType namedType))
-            {
-                IInputType variableType = (IInputType)variableDefinition.Type.ToType(namedType);
-                return variableType.ParseValue(value);
-            }
-
-            throw new InvalidOperationException(
-                $"The specified variable `{name}` does not exist or is of an " +
-                "invalid type.");
-        }
-
-        private OperationDefinitionNode ResolveOperationDefinition(
-            IQuery query, string operationName)
-        {
-            DocumentNode documents = Utf8GraphQLParser.Parse(query.ToSpan());
-
-            OperationDefinitionNode operation = operationName is null
-                ? documents.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault()
-                : documents.Definitions.OfType<OperationDefinitionNode>().SingleOrDefault(t =>
-                    string.Equals(t.Name?.Value, operationName, StringComparison.Ordinal));
-
-            if (operation is null)
-            {
-                throw new InvalidOperationException(
-                    "The provided remote query does not contain the specified operation." +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    $"`{query.ToString()}`");
-            }
-
-            return operation;
-        }
-    }
-}
 
 namespace HotChocolate.Stitching
 {
@@ -190,7 +34,7 @@ namespace HotChocolate.Stitching
             IQueryRequest request,
             CancellationToken cancellationToken = default)
         {
-            var bufferRequest = new BufferedRequest(NormalizeRequest(request));
+            var bufferRequest = BufferedRequest.Create(request, Schema);
 
             _semaphore.Wait(cancellationToken);
 
@@ -218,18 +62,15 @@ namespace HotChocolate.Stitching
 
             try
             {
-                // first we take all buffered requests and merge them into
-                // a single request in order to reduce network traffic.
-                IQueryRequest request = MergeRequests();
+                if (_bufferedRequests.Count == 1)
+                {
+                    await ExecuteSingleRequestAsync(cancellationToken).ConfigureAwait(false);
+                }
 
-                // now we take this merged request and run it against the executor.
-                IExecutionResult result = await _executor
-                    .ExecuteAsync(request, cancellationToken)
-                    .ConfigureAwait(false);
-
-                // last we will extract the results for the original buffered requests
-                // and fulfil the promises.
-                DistributeResults(result);
+                if (_bufferedRequests.Count > 1)
+                {
+                    await ExecuteBufferedRequestBatchAsync(cancellationToken).ConfigureAwait(false);
+                }
 
                 // reset the states so that we are ready for new requests to be buffered.
                 _taskRegistered = false;
@@ -241,19 +82,59 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private IQueryRequest NormalizeRequest(IQueryRequest originalRequest)
+        private async ValueTask ExecuteSingleRequestAsync(
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            BufferedRequest request = _bufferedRequests[0];
+
+            IExecutionResult result = await _executor
+                .ExecuteAsync(request.Request, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result is IQueryResult queryResult)
+            {
+                request.Promise.SetResult(queryResult);
+            }
+            else
+            {
+                // since we only support query/mutation at this point we will just fail
+                // in the event that something else was returned.
+                request.Promise.SetException(new NotSupportedException(
+                    "Only IQueryResult is supported when batching."));
+            }
         }
 
-        private IQueryRequest MergeRequests()
+        private async ValueTask ExecuteBufferedRequestBatchAsync(
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
-        }
+            // first we take all buffered requests and merge them into a single request.
+            // we however have to group requests by operation type. This means we should
+            // end up with one or two requests (query and mutation).
+            foreach ((IQueryRequest Merged, IEnumerable<BufferedRequest> Requests) batch in
+                RequestMergeHelper.MergeRequests(_bufferedRequests))
+            {
+                // now we take this merged request and run it against the executor.
+                IExecutionResult result = await _executor
+                    .ExecuteAsync(batch.Merged, cancellationToken)
+                    .ConfigureAwait(false);
 
-        private void DistributeResults(IExecutionResult result)
-        {
-            throw new NotImplementedException();
+                if (result is IQueryResult queryResult)
+                {
+                    // last we will extract the results for the original buffered requests
+                    // and fulfil the promises.
+                    RequestMergeHelper.DispatchResults(queryResult, batch.Requests);
+                }
+                else
+                {
+                    // since we only support query/mutation at this point we will just fail
+                    // in the event that something else was returned.
+                    foreach (BufferedRequest request in batch.Requests)
+                    {
+                        request.Promise.SetException(new NotSupportedException(
+                            "Only IQueryResult is supported when batching."));
+                    }
+                }
+            }
         }
     }
 }
