@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IRequestExecutorBuilder AddHttpRemoteSchema(
-            IRequestExecutorBuilder builder,
+            this IRequestExecutorBuilder builder,
             NameString schemaName)
         {
             // first we add a full GraphQL schema and executor that represents the remote schema.
