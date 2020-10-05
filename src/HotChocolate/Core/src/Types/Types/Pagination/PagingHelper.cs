@@ -21,7 +21,7 @@ namespace HotChocolate.Types.Pagination
             Type? type,
             Type? entityType = null,
             GetPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
         {
             if (descriptor is null)
             {
@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Pagination
                         Definition = d,
                         On = ApplyConfigurationOn.Completion,
                         Configure = (c, d) => ApplyConfiguration(
-                            c, d, entityType, resolvePagingProvider, settings, placeholder)
+                            c, d, entityType, resolvePagingProvider, options, placeholder)
                     };
 
                     configuration.Dependencies.Add(
@@ -62,16 +62,16 @@ namespace HotChocolate.Types.Pagination
             ObjectFieldDefinition definition,
             Type? entityType,
             GetPagingProvider? resolvePagingProvider,
-            PagingSettings settings,
+            PagingOptions options,
             FieldMiddleware placeholder)
         {
-            settings = context.GetSettings(settings);
+            options = context.GetSettings(options);
             entityType ??= context.GetType<IOutputType>(definition.Type).ToRuntimeType();
             resolvePagingProvider ??= ResolvePagingProvider;
 
             IExtendedType sourceType = GetSourceType(context.TypeInspector, definition, entityType);
             IPagingProvider pagingProvider = resolvePagingProvider(context.Services, sourceType);
-            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, settings);
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, options);
             FieldMiddleware middleware = CreateMiddleware(pagingHandler);
 
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
@@ -168,27 +168,27 @@ namespace HotChocolate.Types.Pagination
             return typeInspector.GetType(type);
         }
 
-        public static PagingSettings GetSettings(
+        public static PagingOptions GetSettings(
             this ITypeCompletionContext context,
-            PagingSettings settings) =>
-            context.DescriptorContext.GetSettings(settings);
+            PagingOptions options) =>
+            context.DescriptorContext.GetSettings(options);
 
-        public static PagingSettings GetSettings(
+        public static PagingOptions GetSettings(
             this IDescriptorContext context,
-            PagingSettings settings)
+            PagingOptions options)
         {
-            PagingSettings global = default;
-            if (context.ContextData.TryGetValue(typeof(PagingSettings).FullName!, out object? o) &&
-                o is PagingSettings casted)
+            PagingOptions global = default;
+            if (context.ContextData.TryGetValue(typeof(PagingOptions).FullName!, out object? o) &&
+                o is PagingOptions casted)
             {
                 global = casted;
             }
 
-            return new PagingSettings
+            return new PagingOptions
             {
-                DefaultPageSize = settings.DefaultPageSize ?? global.DefaultPageSize,
-                MaxPageSize = settings.MaxPageSize ?? global.MaxPageSize,
-                IncludeTotalCount = settings.IncludeTotalCount ?? global.IncludeTotalCount,
+                DefaultPageSize = options.DefaultPageSize ?? global.DefaultPageSize,
+                MaxPageSize = options.MaxPageSize ?? global.MaxPageSize,
+                IncludeTotalCount = options.IncludeTotalCount ?? global.IncludeTotalCount,
             };
         }
 

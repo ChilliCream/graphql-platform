@@ -42,7 +42,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                 do
                 {
-                    position = buffer.PositionOf(Subscription._delimiter);
+                    position = buffer.PositionOf(Subscription.Delimiter);
 
                     if (position is not null)
                     {
@@ -65,7 +65,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 }
             }
 
-            _reader.Complete();
+            await _reader.CompleteAsync();
         }
     }
 }

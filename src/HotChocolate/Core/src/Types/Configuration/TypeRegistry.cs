@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
                 new ExtendedTypeReferenceEqualityComparer());
         private readonly Dictionary<NameString, ITypeReference> _nameRefs =
             new Dictionary<NameString, ITypeReference>();
-        private List<RegisteredType> _types = new List<RegisteredType>();
+        private readonly List<RegisteredType> _types = new List<RegisteredType>();
 
         public int Count => _typeRegister.Count;
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(registeredType));
             }
 
-            bool addToTypes = !_typeRegister.ContainsValue(registeredType);
+            var addToTypes = !_typeRegister.ContainsValue(registeredType);
 
             foreach (ITypeReference typeReference in registeredType.References)
             {
@@ -176,6 +176,19 @@ namespace HotChocolate.Configuration
             }
 
             _nameRefs[typeName] = registeredType.References[0];
+        }
+
+        public void CompleteDiscovery()
+        {
+            foreach (RegisteredType registeredType in _types)
+            {
+                _typeRegister[TypeReference.Create(registeredType.Type)] = registeredType;
+
+                if (registeredType.Type.Scope is { } s)
+                {
+                    _typeRegister[TypeReference.Create(registeredType.Type, s)] = registeredType;
+                }
+            }
         }
     }
 }

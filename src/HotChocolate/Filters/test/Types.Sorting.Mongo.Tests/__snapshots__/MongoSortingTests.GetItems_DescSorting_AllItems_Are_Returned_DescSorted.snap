@@ -1,4 +1,6 @@
 ﻿{
+  "Label": null,
+  "Path": null,
   "Data": {
     "items": [
       {
@@ -11,5 +13,6 @@
   },
   "Errors": null,
   "Extensions": null,
-  "ContextData": null
+  "ContextData": null,
+  "HasNext": null
 }

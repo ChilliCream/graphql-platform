@@ -59,7 +59,7 @@ namespace HotChocolate.Configuration
                 if (typeSystemObject is IHasRuntimeType hasRuntimeType
                     && hasRuntimeType.RuntimeType != typeof(object))
                 {
-                    ExtendedTypeReference? runtimeTypeRef =
+                    ExtendedTypeReference runtimeTypeRef =
                         _context.TypeInspector.GetTypeRef(
                             hasRuntimeType.RuntimeType,
                             SchemaTypeReference.InferTypeContext(typeSystemObject),
@@ -176,9 +176,7 @@ namespace HotChocolate.Configuration
 
                 if (!isInferred)
                 {
-                    references.Add(TypeReference.Create(
-                        typeSystemObject,
-                        scope: scope));
+                    references.Add(TypeReference.Create(typeSystemObject, scope));
                 }
 
                 if (!ExtendedType.Tools.IsNonGenericBaseType(typeSystemObject.GetType()))
@@ -186,7 +184,7 @@ namespace HotChocolate.Configuration
                     references.Add(_context.TypeInspector.GetTypeRef(
                         typeSystemObject.GetType(),
                         SchemaTypeReference.InferTypeContext(typeSystemObject),
-                        scope: scope));
+                        scope));
                 }
 
                 if (typeSystemObject is IHasTypeIdentity hasTypeIdentity &&
@@ -196,7 +194,7 @@ namespace HotChocolate.Configuration
                         _context.TypeInspector.GetTypeRef(
                             hasTypeIdentity.TypeIdentity,
                             SchemaTypeReference.InferTypeContext(typeSystemObject),
-                            scope: scope);
+                            scope);
 
                     if (!references.Contains(reference))
                     {

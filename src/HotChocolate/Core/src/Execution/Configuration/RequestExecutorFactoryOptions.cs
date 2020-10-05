@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Configuration
     {
         public ISchema? Schema { get; set; }
 
-        public SchemaBuilder? SchemaBuilder { get; set; }
+        public ISchemaBuilder? SchemaBuilder { get; set; }
 
         public RequestExecutorOptions? RequestExecutorOptions { get; set; }
 

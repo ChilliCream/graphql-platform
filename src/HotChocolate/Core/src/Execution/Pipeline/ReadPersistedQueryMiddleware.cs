@@ -9,7 +9,7 @@ namespace HotChocolate.Execution.Pipeline
     {
         private readonly RequestDelegate _next;
         private readonly IDiagnosticEvents _diagnosticEvents;
-        private IReadStoredQueries _persistedQueryStore;
+        private readonly IReadStoredQueries _persistedQueryStore;
 
         public ReadPersistedQueryMiddleware(
             RequestDelegate next,
@@ -20,16 +20,14 @@ namespace HotChocolate.Execution.Pipeline
                 throw new ArgumentNullException(nameof(next));
             _diagnosticEvents = diagnosticEvents ??
                 throw new ArgumentNullException(nameof(diagnosticEvents));
-            _persistedQueryStore = persistedQueryStore ?? 
+            _persistedQueryStore = persistedQueryStore ??
                 throw new ArgumentNullException(nameof(persistedQueryStore));
         }
 
         public async ValueTask InvokeAsync(IRequestContext context)
         {
-            IQueryRequest request = context.Request;
-
             if (context.Document is null &&
-                context.Request.Query is { })
+                context.Request.Query is null)
             {
                 await TryLoadQueryAsync(context).ConfigureAwait(false);
             }
@@ -39,23 +37,26 @@ namespace HotChocolate.Execution.Pipeline
 
         private async ValueTask TryLoadQueryAsync(IRequestContext context)
         {
-            string? queryId = context.Request.QueryId ??
+            var queryId =
+                context.Request.QueryId ??
                 context.DocumentId ??
                 context.DocumentHash ??
                 context.Request.QueryHash;
 
-            if (queryId is { })
+            if (queryId is not null)
             {
-                QueryDocument queryDocument =
+                QueryDocument? queryDocument =
                     await _persistedQueryStore.TryReadQueryAsync(
                         queryId, context.RequestAborted)
                         .ConfigureAwait(false);
-                if (queryDocument is { })
+
+                if (queryDocument is not null)
                 {
                     context.DocumentId = queryId;
                     context.Document = queryDocument.Document;
                     context.ValidationResult = DocumentValidatorResult.Ok;
                     context.IsCachedDocument = true;
+                    context.IsPersistedDocument = true;
                     _diagnosticEvents.RetrievedDocumentFromStorage(context);
                 }
             }

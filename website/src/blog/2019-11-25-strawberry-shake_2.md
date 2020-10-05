@@ -17,7 +17,7 @@ Since, with the new version of _Strawberry Shake_ our initial blog has become ki
 
 ## Getting Started
 
-Let us have a look at how we want to tackle things with _Strawberry Shake_. For this little walkthrough I will use our [_Star Wars_ server example](https://github.com/ChilliCream/hotchocolate/tree/master/examples/AspNetCore.StarWars).
+Let us have a look at how we want to tackle things with _Strawberry Shake_. For this little walk-through I will use our [_Star Wars_ server example](https://github.com/ChilliCream/hotchocolate/tree/master/examples/AspNetCore.StarWars).
 
 If you want to follow along then install the [.NET Core 3 SDK](https://dotnet.microsoft.com/download/dotnet-core/3.0) . We are also supporting other .NET variants but for this example you will need the .NET Core 3 SDK.
 
@@ -448,8 +448,8 @@ So, in order to give the generator a hint about these things we need to extend o
 
 ```graphql
 extend scalar ByteArray
-  @runtimeType(name: "System.Byte[]")
-  @serializationType(name: "System.String")
+@runtimeType(name: "System.Byte[]")
+@serializationType(name: "System.String")
 ```
 
 The above example declares that for the `ByteArray` scalar the runtime type (the type that is used in the C# models) shall be a `System.Byte[]` and that the serialization type (the type which client and server use to send the data) shall be a `System.String`. For the generator that is enough to generate everything accordingly.

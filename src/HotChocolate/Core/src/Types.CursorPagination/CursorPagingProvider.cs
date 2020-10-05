@@ -9,11 +9,11 @@ namespace HotChocolate.Types.Pagination
 
         IPagingHandler IPagingProvider.CreateHandler(
             IExtendedType source,
-            PagingSettings settings) =>
-            CreateHandler(source, settings);
+            PagingOptions options) =>
+            CreateHandler(source, options);
 
         protected abstract CursorPagingHandler CreateHandler(
             IExtendedType source,
-            PagingSettings settings);
+            PagingOptions options);
     }
 }

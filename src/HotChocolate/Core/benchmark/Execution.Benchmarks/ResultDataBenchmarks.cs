@@ -1,6 +1,7 @@
-using BenchmarkDotNet.Attributes;
-using System.Collections.Generic;
 using System.Buffers;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using HotChocolate.Execution.Processing;
 
 namespace HotChocolate.Execution.Benchmarks
 {
@@ -49,7 +50,7 @@ namespace HotChocolate.Execution.Benchmarks
                 _resultMap.SetValue(i, i.ToString(), i);
             }
 
-            _resultMap.Reset();
+            _resultMap.Clear();
             return _resultMap;
         }
     }

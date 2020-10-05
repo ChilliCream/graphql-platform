@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Validation;
+using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Pipeline
 {
@@ -29,11 +30,7 @@ namespace HotChocolate.Execution.Pipeline
         {
             if (context.Document is null)
             {
-                // TODO : ErrorHelper
-                context.Result = QueryResultBuilder.CreateError(
-                    ErrorBuilder.New()
-                        .SetMessage("Cannot Validate")
-                        .Build());
+                context.Result = StateInvalidForDocumentValidation();
             }
             else
             {

@@ -1723,6 +1723,7 @@ namespace HotChocolate.Types
                 .Create()
                 .MakeExecutable()
                 .Execute("{ fooMatrix { baz } }")
+                .ToJson()
                 .MatchSnapshot();
         }
 
@@ -1734,6 +1735,7 @@ namespace HotChocolate.Types
                 .Create()
                 .MakeExecutable()
                 .Execute("{ foo baz }")
+                .ToJson()
                 .MatchSnapshot();
         }
 

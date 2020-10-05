@@ -269,6 +269,7 @@ namespace HotChocolate.Types
                 "subscription { " + field + " }", cts.Token);
 
             var results = new StringBuilder();
+
             await foreach (IQueryResult result in
                 stream.ReadResultsAsync().WithCancellation(cts.Token))
             {

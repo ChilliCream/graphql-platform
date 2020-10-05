@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -49,7 +50,16 @@ namespace HotChocolate
 
             for (int i = 0; i < errors.Count; i++)
             {
-                message.AppendLine($"{i + 1}. {errors[i].Message}");
+                ISchemaError error = errors[i];
+
+                message.Append($"{i + 1}. {error.Message}");
+
+                if (error.TypeSystemObject is not null)
+                {
+                    message.Append($" ({error.TypeSystemObject.GetType().GetTypeName()})");
+                }
+
+                message.AppendLine();
             }
 
             return message.ToString();

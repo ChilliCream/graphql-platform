@@ -6,10 +6,10 @@ namespace HotChocolate.Types.Pagination
 {
     public abstract class CursorPagingHandler : IPagingHandler
     {
-        protected CursorPagingHandler(PagingSettings settings)
+        protected CursorPagingHandler(PagingOptions options)
         {
-            DefaultPageSize = settings.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-            MaxPageSize = settings.MaxPageSize ?? PagingDefaults.MaxPageSize;
+            DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+            MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
 
             if (MaxPageSize < DefaultPageSize)
             {

@@ -211,7 +211,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryType>()
-                    .SetPagingSettings(new PagingSettings { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -219,7 +219,35 @@ namespace HotChocolate.Types.Pagination
             await executor
                 .ExecuteAsync(@"
                 {
-                    letters(take: 2) {
+                    letters {
+                        items
+                        pageInfo {
+                            hasNextPage
+                            hasPreviousPage
+                        }
+                    }
+                }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Simple_StringList_Global_DefaultItem_50_Page_Larger_Than_Data_List()
+        {
+            Snapshot.FullName();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .AddQueryType<QueryType>()
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 50 })
+                    .Services
+                    .BuildServiceProvider()
+                    .GetRequestExecutorAsync();
+
+            await executor
+                .ExecuteAsync(@"
+                {
+                    letters {
                         items
                         pageInfo {
                             hasNextPage
@@ -239,7 +267,7 @@ namespace HotChocolate.Types.Pagination
                 await new ServiceCollection()
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
-                    .SetPagingSettings(new PagingSettings { DefaultPageSize = 2 })
+                    .SetPagingOptions(new PagingOptions { DefaultPageSize = 2 })
                     .Services
                     .BuildServiceProvider()
                     .GetRequestExecutorAsync();
@@ -444,7 +472,7 @@ namespace HotChocolate.Types.Pagination
                     .AddInterfaceType<ISome>(d => d
                         .Field(t => t.ExplicitType())
                         .UseOffsetPaging())
-                    .ModifyOptions(o => 
+                    .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
                         o.StrictValidation = false;
@@ -456,7 +484,7 @@ namespace HotChocolate.Types.Pagination
             schema.Print().MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public async Task Attribute_Interface_With_Paging_Field()
         {
             Snapshot.FullName();
@@ -466,7 +494,7 @@ namespace HotChocolate.Types.Pagination
                     .AddGraphQL()
                     .AddQueryType<QueryAttr>()
                     .AddInterfaceType<ISome2>()
-                    .ModifyOptions(o => 
+                    .ModifyOptions(o =>
                     {
                         o.RemoveUnreachableTypes = false;
                         o.StrictValidation = false;
@@ -495,7 +523,7 @@ namespace HotChocolate.Types.Pagination
                     .Field(t => t.Foos())
                     .Name("nestedObjectList")
                     .UseOffsetPaging(
-                        settings: new PagingSettings
+                        options: new PagingOptions
                         {
                             MaxPageSize = 2,
                             IncludeTotalCount = true

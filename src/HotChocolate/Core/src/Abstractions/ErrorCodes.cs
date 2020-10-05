@@ -19,12 +19,11 @@ namespace HotChocolate
             public const string AutoMapVarError = "EXEC_BATCH_AUTO_MAP_VAR_TYPE";
             public const string Incomplete = "EXEC_MIDDLEWARE_INCOMPLETE";
             public const string Timeout = "EXEC_TIMEOUT";
-            public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
-            public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
             public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
             public const string InvalidType = "EXEC_INVALID_TYPE";
             public const string SyntaxError = "EXEC_SYNTAX_ERROR";
+            public const string QueryNotFound = "QUERY_NOT_FOUND";
         }
 
         public static class Schema
@@ -39,6 +38,44 @@ namespace HotChocolate
             public const string InvalidArgument = "TS_INVALID_ARG";
             public const string NonNullArgument = "TS_ARG_NON_NULL";
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
+        }
+
+        public static class Scalars
+        {
+            /// <summary>
+            /// The runtime type is not supported by the scalars ParseValue method.
+            /// </summary>
+            public const string InvalidRuntimeType = "HC0001";
+
+            /// <summary>
+            /// Either the syntax node is invalid when parsing the literal or the syntax
+            /// node value has an invalid format.
+            /// </summary>
+            public const string InvalidSyntaxFormat = "HC0002";
+        }
+
+        public static class Apollo
+        {
+            public static class Federation
+            {
+                /// <summary>
+                /// The key attribute is used on the type level without specifying the the
+                /// fieldset.
+                /// </summary>
+                public const string KeyFieldSetNullOrEmpty = "HC0003";
+
+                /// <summary>
+                /// The provides attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string ProvidesFieldSetNullOrEmpty = "HC0004";
+
+                /// <summary>
+                /// The requires attribute is used and the fieldset is set to <c>null</c> or
+                /// <see cref="string.Empty"/>.
+                /// </summary>
+                public const string RequiresFieldSetNullOrEmpty = "HC0005";
+            }
         }
 
         public static class Filtering

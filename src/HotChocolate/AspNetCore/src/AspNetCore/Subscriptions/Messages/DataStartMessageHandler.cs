@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
+using static HotChocolate.AspNetCore.Utilities.ThrowHelper;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
@@ -16,10 +17,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             IRequestExecutor requestExecutor,
             ISocketSessionInterceptor socketSessionInterceptor)
         {
-            _requestExecutor = requestExecutor
-                ?? throw new ArgumentNullException(nameof(requestExecutor));
-            _socketSessionInterceptor = socketSessionInterceptor
-                ?? throw new ArgumentNullException(nameof(socketSessionInterceptor));
+            _requestExecutor = requestExecutor ??
+                throw new ArgumentNullException(nameof(requestExecutor));
+            _socketSessionInterceptor = socketSessionInterceptor ??
+                throw new ArgumentNullException(nameof(socketSessionInterceptor));
         }
 
         protected override async Task HandleAsync(
@@ -28,12 +29,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             CancellationToken cancellationToken)
         {
             IQueryRequestBuilder requestBuilder =
-                QueryRequestBuilder.New()
-                    .SetQuery(message.Payload.Query)
-                    .SetQueryId(message.Payload.QueryId)
-                    .SetOperation(message.Payload.OperationName)
-                    .SetVariableValues(message.Payload.Variables)
-                    .SetProperties(message.Payload.Extensions)
+                QueryRequestBuilder.From(message.Payload)
                     .SetServices(connection.RequestServices);
 
             await _socketSessionInterceptor.OnRequestAsync(
@@ -56,7 +52,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     break;
 
                 default:
-                    throw new NotSupportedException("The response type is not supported.");
+                    throw DataStartMessageHandler_RequestTypeNotSupported();
             }
         }
 
@@ -68,13 +64,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             await connection.SendAsync(
                 new DataResultMessage(message.Id, queryResult).Serialize(),
-                cancellationToken)
-                ;
+                cancellationToken);
 
             await connection.SendAsync(
                 new DataCompleteMessage(message.Id).Serialize(),
-                cancellationToken)
-                ;
+                cancellationToken);
         }
     }
 }

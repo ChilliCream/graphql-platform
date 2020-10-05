@@ -30,12 +30,12 @@ namespace HotChocolate.Types.Pagination
         /// The source type represents the result of the field resolver and could be a collection, 
         /// a query builder or some other object representing the data set.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that apply to the newly create paging handler.
         /// </param>
         /// <returns>
         /// Returns the paging handler that was create for the specified <paramref name="source"/>.
         /// </returns>
-        IPagingHandler CreateHandler(IExtendedType source, PagingSettings settings);
+        IPagingHandler CreateHandler(IExtendedType source, PagingOptions options);
     }
 }

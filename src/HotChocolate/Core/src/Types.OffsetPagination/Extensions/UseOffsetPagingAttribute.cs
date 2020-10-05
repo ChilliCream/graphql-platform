@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Pagination;
 
-namespace HotChocolate.Types.Pagination
+namespace HotChocolate.Types
 {
     /// <summary>
     /// This attribute adds the offset paging middleware to the annotated method or property.
@@ -66,7 +67,7 @@ namespace HotChocolate.Types.Pagination
             {
                 odf.UseOffsetPaging(
                     Type,
-                    settings: new PagingSettings
+                    options: new PagingOptions
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,
@@ -78,7 +79,7 @@ namespace HotChocolate.Types.Pagination
             {
                 idf.UseOffsetPaging(
                     Type,
-                    settings: new PagingSettings
+                    options: new PagingOptions
                     {
                         DefaultPageSize = _defaultPageSize,
                         MaxPageSize = _maxPageSize,

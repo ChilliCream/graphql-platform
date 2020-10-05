@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -52,10 +52,12 @@ namespace HotChocolate.Execution
         public CancellationToken RequestAborted { get; set; }
 
         public string? DocumentId { get; set; }
-        
+
         public string? DocumentHash { get; set; }
 
         public bool IsCachedDocument { get; set; }
+
+        public bool IsPersistedDocument { get; set; }
 
         public DocumentNode? Document { get; set; }
 

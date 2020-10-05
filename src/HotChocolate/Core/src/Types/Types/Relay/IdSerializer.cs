@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Relay
 
             byte[] serializedArray = null;
 
-            Span<byte> serialized = serializedSize > _stackallocThreshold
+            Span<byte> serialized = serializedSize <= _stackallocThreshold
                 ? stackalloc byte[serializedSize]
                 : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
 
@@ -184,7 +184,7 @@ namespace HotChocolate.Types.Relay
 
             byte[] serializedArray = null;
 
-            Span<byte> serialized = serializedSize > _stackallocThreshold
+            Span<byte> serialized = serializedSize <= _stackallocThreshold
                 ? stackalloc byte[serializedSize]
                 : (serializedArray = ArrayPool<byte>.Shared.Rent(serializedSize));
 

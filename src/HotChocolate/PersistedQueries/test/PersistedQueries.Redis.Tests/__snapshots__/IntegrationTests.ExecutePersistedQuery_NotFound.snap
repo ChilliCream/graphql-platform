@@ -1,0 +1,20 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "The query request contains no document.",
+      "Code": "QUERY_NOT_FOUND",
+      "Path": null,
+      "Locations": null,
+      "Extensions": {
+        "code": "QUERY_NOT_FOUND"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

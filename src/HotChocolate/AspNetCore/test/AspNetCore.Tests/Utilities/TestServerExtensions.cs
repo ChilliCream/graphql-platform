@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 
@@ -103,7 +102,7 @@ namespace HotChocolate.AspNetCore.Utilities
                 ClientQueryResult result = JsonConvert.DeserializeObject<ClientQueryResult>(json);
                 result.StatusCode = response.StatusCode;
                 result.ContentType = response.Content.Headers.ContentType.ToString();
-                return new [] { result };
+                return new[] { result };
             }
         }
 
@@ -130,13 +129,36 @@ namespace HotChocolate.AspNetCore.Utilities
             return result;
         }
 
+        public static async Task<ClientRawResult> PostRawAsync(
+            this TestServer testServer,
+            ClientQueryRequest request,
+            string path = "/graphql")
+        {
+            HttpResponseMessage response =
+                await SendPostRequestAsync(
+                    testServer,
+                    JsonConvert.SerializeObject(request),
+                    path);
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return new ClientRawResult { StatusCode = HttpStatusCode.NotFound };
+            }
+
+            var result = new ClientRawResult();
+            result.StatusCode = response.StatusCode;
+            result.ContentType = response.Content.Headers.ContentType.ToString();
+            result.Content = await response.Content.ReadAsStringAsync();
+            return result;
+        }
+
         public static async Task<ClientQueryResult> GetAsync(
             this TestServer testServer,
             ClientQueryRequest request,
             string path = "/graphql")
         {
             HttpResponseMessage response =
-                await SendGetRequestAsync(testServer, request.ToString(), path);
+                await SendGetRequestAsync(testServer, request.ToString().Replace("+", "%2B"), path);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
             {

@@ -1,5 +1,5 @@
 using BenchmarkDotNet.Attributes;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 
@@ -28,7 +28,7 @@ namespace HotChocolate.Execution.Benchmarks
             _introspectionOperation = (OperationDefinitionNode)_introspectionQuery.Definitions[0];
             
             _starWarsQuery = Utf8GraphQLParser.Parse(
-                resources.GetResourceString("StarWarsQuery.graphql"));
+                resources.GetResourceString("GetTwoHerosWithFriendsQuery.graphql"));
             _starWarsFragments = new FragmentCollection(_schema, _starWarsQuery);
             _starWarsOperation = (OperationDefinitionNode)_starWarsQuery.Definitions[0];
         }

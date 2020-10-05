@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using static HotChocolate.Execution.Utilities.ThrowHelper;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -35,13 +35,13 @@ namespace HotChocolate.Execution.Batching
                 IErrorHandler errorHandler,
                 ITypeConverter typeConverter)
             {
-                _requestBatch = requestBatch ?? 
+                _requestBatch = requestBatch ??
                     throw new ArgumentNullException(nameof(requestBatch));
-                _requestExecutor = requestExecutor ?? 
+                _requestExecutor = requestExecutor ??
                     throw new ArgumentNullException(nameof(requestExecutor));
-                _errorHandler = errorHandler ?? 
+                _errorHandler = errorHandler ??
                     throw new ArgumentNullException(nameof(errorHandler));
-                _typeConverter = typeConverter ?? 
+                _typeConverter = typeConverter ??
                     throw new ArgumentNullException(nameof(typeConverter));
                 _visitor = new CollectVariablesVisitor(requestExecutor.Schema);
             }
@@ -49,8 +49,9 @@ namespace HotChocolate.Execution.Batching
             public async IAsyncEnumerator<IQueryResult> GetAsyncEnumerator(
                 CancellationToken cancellationToken = default)
             {
-                foreach (IReadOnlyQueryRequest request in _requestBatch)
+                foreach (IQueryRequest queryRequest in _requestBatch)
                 {
+                    var request = (IReadOnlyQueryRequest) queryRequest;
                     IQueryResult result =
                         await ExecuteNextAsync(request, cancellationToken).ConfigureAwait(false);
                     yield return result;
@@ -155,7 +156,7 @@ namespace HotChocolate.Execution.Batching
                     if (!exported[variableName].Any())
                     {
                         if (variables != null
-                            && variables.TryGetValue(variableName, out var value))
+                            && variables.TryGetValue(variableName, out object? value))
                         {
                             merged[variableName] = value;
                         }
@@ -165,7 +166,7 @@ namespace HotChocolate.Execution.Batching
                         var list = new List<object?>();
 
                         if (variables != null
-                            && variables.TryGetValue(variableName, out var value))
+                            && variables.TryGetValue(variableName, out object? value))
                         {
                             if (value is IReadOnlyCollection<object?> l)
                             {
@@ -198,7 +199,7 @@ namespace HotChocolate.Execution.Batching
                         else
                         {
                             merged[variableName] = Serialize(
-                                exported[variableName].FirstOrDefault(),
+                                exported[variableName].First(),
                                 variableDefinition.Type);
                         }
                     }
@@ -217,7 +218,7 @@ namespace HotChocolate.Execution.Batching
                         typeof(object),
                         inputType.RuntimeType,
                         exported.Value,
-                        out var converted))
+                        out object? converted))
                 {
                     return inputType.Serialize(converted);
                 }
@@ -256,7 +257,7 @@ namespace HotChocolate.Execution.Batching
                             typeof(object),
                             inputType.RuntimeType,
                             o,
-                            out var converted))
+                            out object? converted))
                         {
                             list.Add(inputType.Serialize(converted));
                         }

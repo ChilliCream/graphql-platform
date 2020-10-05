@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Utilities;
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
@@ -73,6 +73,11 @@ namespace HotChocolate.Execution
         /// Defines that the document was retrieved from cache.
         /// </summary>
         bool IsCachedDocument { get; set; }
+
+        /// <summary>
+        /// Defines that the document was retrieved from a query storage.
+        /// </summary>
+        bool IsPersistedDocument { get; set; }
 
         /// <summary>
         /// Gets or sets the document validation result.

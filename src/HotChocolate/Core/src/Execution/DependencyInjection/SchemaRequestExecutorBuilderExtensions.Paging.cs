@@ -7,16 +7,16 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class SchemaRequestExecutorBuilderExtensions
     {
-        public static IRequestExecutorBuilder SetPagingSettings(
+        public static IRequestExecutorBuilder SetPagingOptions(
             this IRequestExecutorBuilder builder,
-            PagingSettings settings)
+            PagingOptions options)
         {
             if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.ConfigureSchema(s => s.SetPagingSettings(settings));
+            return builder.ConfigureSchema(s => s.SetPagingOptions(options));
         }
     }
 }

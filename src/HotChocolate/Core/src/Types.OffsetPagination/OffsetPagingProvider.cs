@@ -23,8 +23,8 @@ namespace HotChocolate.Types.Pagination
 
         IPagingHandler IPagingProvider.CreateHandler(
             IExtendedType source,
-            PagingSettings settings) =>
-            CreateHandler(source, settings);
+            PagingOptions options) =>
+            CreateHandler(source, options);
 
         /// <summary>
         /// Creates the paging handler for offset pagination.
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Pagination
         /// The source type represents the result of the field resolver and could be a collection, 
         /// a query builder or some other object representing the data set.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that apply to the newly create paging handler.
         /// </param>
         /// <returns>
@@ -41,6 +41,6 @@ namespace HotChocolate.Types.Pagination
         /// </returns>
         protected abstract OffsetPagingHandler CreateHandler(
             IExtendedType source,
-            PagingSettings settings);
+            PagingOptions options);
     }
 }

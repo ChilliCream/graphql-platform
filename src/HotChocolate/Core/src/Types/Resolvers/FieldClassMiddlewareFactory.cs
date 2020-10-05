@@ -31,7 +31,7 @@ namespace HotChocolate.Resolvers
             {
                 var parameters = new List<IParameterHandler>();
 
-                foreach (var service in services)
+                foreach ((Type Service, object Instance) service in services)
                 {
                     parameters.Add(new TypeParameterHandler(
                         service.Service,
@@ -51,7 +51,7 @@ namespace HotChocolate.Resolvers
         }
 
         public static FieldMiddleware Create(
-            Type middlewareType, 
+            Type middlewareType,
             params (Type Service, object Instance)[] services)
         {
             return (FieldMiddleware)_createGeneric

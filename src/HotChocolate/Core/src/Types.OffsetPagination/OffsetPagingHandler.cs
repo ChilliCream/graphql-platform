@@ -12,10 +12,10 @@ namespace HotChocolate.Types.Pagination
     /// </summary>
     public abstract class OffsetPagingHandler : IPagingHandler
     {
-        protected OffsetPagingHandler(PagingSettings settings)
+        protected OffsetPagingHandler(PagingOptions options)
         {
-            DefaultPageSize = settings.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-            MaxPageSize = settings.MaxPageSize ?? PagingDefaults.MaxPageSize;
+            DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+            MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
 
             if (MaxPageSize < DefaultPageSize)
             {

@@ -6,6 +6,7 @@ namespace HotChocolate.Types.Pagination
 {
     public class CollectionSegmentType<T>
         : ObjectType<CollectionSegment>
+        , IPageType
         where T : class, IOutputType
     {
         /// <summary>
@@ -34,7 +35,6 @@ namespace HotChocolate.Types.Pagination
         /// <summary>
         /// Gets the item type of this collection segment.
         /// </summary>
-        /// <value></value>
         public IOutputType ItemType { get; private set; } = default!;
 
         protected override void Configure(IObjectTypeDescriptor<CollectionSegment> descriptor) =>

@@ -28,7 +28,7 @@ namespace HotChocolate.Types
         /// <param name="resolvePagingProvider">
         /// A delegate allowing to dynamically define a paging resolver for a field.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that shall be applied to this field.
         /// </param>
         /// <typeparam name="TSchemaType">
@@ -41,14 +41,14 @@ namespace HotChocolate.Types
             this IObjectFieldDescriptor descriptor,
             Type? itemType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
             where TSchemaType : IOutputType =>
             UseOffsetPaging(
                 descriptor,
                 typeof(TSchemaType),
                 itemType,
                 resolvePagingProvider,
-                settings);
+                options);
 
         /// <summary>
         /// Applies the offset paging middleware to the current field.
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         /// <param name="resolvePagingProvider">
         /// A delegate allowing to dynamically define a paging resolver for a field.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that shall be applied to this field.
         /// </param>
         /// <returns>
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
             Type? type = null,
             Type? itemType = null,
             GetOffsetPagingProvider? resolvePagingProvider = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
         {
             if (descriptor is null)
             {
@@ -92,13 +92,13 @@ namespace HotChocolate.Types
                 type,
                 itemType,
                 (services, source) => resolvePagingProvider(services, source),
-                settings);
+                options);
 
             descriptor
                 .Extend()
                 .OnBeforeCreate((c, d) =>
                 {
-                    d.Type = CreateTypeRef(c, d.ResolverMember ?? d.Member, type, settings);
+                    d.Type = CreateTypeRef(c, d.ResolverMember ?? d.Member, type, options);
                 });
 
             return descriptor;
@@ -110,7 +110,7 @@ namespace HotChocolate.Types
         /// <param name="descriptor">
         /// The object field descriptor.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that shall be applied to this field.
         /// </param>
         /// <typeparam name="TSchemaType">
@@ -121,9 +121,9 @@ namespace HotChocolate.Types
         /// </returns>
         public static IInterfaceFieldDescriptor UseOffsetPaging<TSchemaType>(
             this IInterfaceFieldDescriptor descriptor,
-            PagingSettings settings = default)
+            PagingOptions options = default)
             where TSchemaType : class, IOutputType =>
-            UseOffsetPaging(descriptor, typeof(TSchemaType), settings);
+            UseOffsetPaging(descriptor, typeof(TSchemaType), options);
 
         /// <summary>
         /// Applies the offset paging middleware to the current field.
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
         /// <param name="type">
         /// The schema type representation of the item type.
         /// </param>
-        /// <param name="settings">
+        /// <param name="options">
         /// The paging settings that shall be applied to this field.
         /// </param>
         /// <returns>
@@ -143,7 +143,7 @@ namespace HotChocolate.Types
         public static IInterfaceFieldDescriptor UseOffsetPaging(
             this IInterfaceFieldDescriptor descriptor,
             Type? type = null,
-            PagingSettings settings = default)
+            PagingOptions options = default)
         {
             if (descriptor is null)
             {
@@ -153,7 +153,7 @@ namespace HotChocolate.Types
             descriptor
                 .AddOffsetPagingArguments()
                 .Extend()
-                .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, d.Member, type, settings));
+                .OnBeforeCreate((c, d) => d.Type = CreateTypeRef(c, d.Member, type, options));
 
             return descriptor;
         }
@@ -194,7 +194,7 @@ namespace HotChocolate.Types
             IDescriptorContext context,
             MemberInfo? resolverMember,
             Type? type,
-            PagingSettings settings)
+            PagingOptions options)
         {
             // first we will try and infer the schema type of the collection.
             IExtendedType schemaType = PagingHelper.GetSchemaType(
@@ -211,12 +211,12 @@ namespace HotChocolate.Types
                 throw OffsetPagingObjectFieldDescriptorExtensions_InvalidType();
             }
 
-            settings = context.GetSettings(settings);
+            options = context.GetSettings(options);
 
             // once we have identified the correct type we will create the
             // paging result type from it.
             IExtendedType connectionType = context.TypeInspector.GetType(
-                settings.IncludeTotalCount ?? false
+                options.IncludeTotalCount ?? false
                     ? typeof(CollectionSegmentCountType<>).MakeGenericType(schemaType.Source)
                     : typeof(CollectionSegmentType<>).MakeGenericType(schemaType.Source));
 

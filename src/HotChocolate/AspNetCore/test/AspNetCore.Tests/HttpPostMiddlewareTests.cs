@@ -141,6 +141,33 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Defer_Results()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    { 
+                        hero(episode: NEW_HOPE) 
+                        { 
+                            name 
+                            ... on Droid @defer(label: ""my_id"")
+                            { 
+                                id 
+                            } 
+                        } 
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange
@@ -365,6 +392,132 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Double_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", 1.539 } }
+                },
+                "/arguments");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Double_Max_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", double.MaxValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                double.MaxValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Double_Min_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Float) {
+                             double_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", double.MinValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                double.MinValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Decimal_Max_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Decimal) {
+                             decimal_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", decimal.MaxValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                decimal.MaxValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Decimal_Min_Variable()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.PostAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        query ($d: Decimal) {
+                             decimal_arg(d: $d)
+                        }",
+                    Variables = new Dictionary<string, object> { { "d", decimal.MinValue } }
+                },
+                "/arguments");
+
+            // assert
+            new
+            {
+                decimal.MinValue,
+                result
+            }.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_Incomplete()
         {
             // arrange
@@ -377,12 +530,12 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
-        [InlineData("{}")]
-        [InlineData("{ }")]
-        [InlineData("{\n}")]
-        [InlineData("{\r\n}")]
+        [InlineData("{}", 1)]
+        [InlineData("{ }", 2)]
+        [InlineData("{\n}", 3)]
+        [InlineData("{\r\n}", 4)]
         [Theory]
-        public async Task SingleRequest_Empty(string request)
+        public async Task SingleRequest_Empty(string request, int id)
         {
             // arrange
             TestServer server = CreateStarWarsServer();
@@ -391,15 +544,15 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
         }
 
-        [InlineData("[]")]
-        [InlineData("[ ]")]
-        [InlineData("[\n]")]
-        [InlineData("[\r\n]")]
+        [InlineData("[]", 1)]
+        [InlineData("[ ]", 2)]
+        [InlineData("[\n]", 3)]
+        [InlineData("[\r\n]", 4)]
         [Theory]
-        public async Task BatchRequest_Empty(string request)
+        public async Task BatchRequest_Empty(string request, int id)
         {
             // arrange
             TestServer server = CreateStarWarsServer();
@@ -408,7 +561,7 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await server.PostAsync(request);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(new SnapshotNameExtension(id.ToString()));
         }
 
         [Fact]
@@ -450,20 +603,20 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
                     },
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     }
                 });
 
@@ -483,18 +636,17 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                            @"query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman");
 
@@ -545,19 +697,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=[" + s);
@@ -577,19 +728,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=" + s);
