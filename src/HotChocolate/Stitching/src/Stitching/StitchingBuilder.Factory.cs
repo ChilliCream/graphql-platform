@@ -5,11 +5,11 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Introspection;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Stitching.Requests;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching

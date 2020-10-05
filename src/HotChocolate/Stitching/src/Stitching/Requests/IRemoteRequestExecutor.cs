@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Requests
 {
     /// <summary>
     /// This remote executor delegates GraphQL query, mutation and subscription requests for the

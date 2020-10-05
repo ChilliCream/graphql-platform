@@ -7,7 +7,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;

@@ -4,23 +4,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Stitching.Client;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Requests
 {
-    internal class RemoteRequestExecutor
+    internal sealed class RemoteRequestExecutor
         : IRemoteRequestExecutor
+        , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
-        private readonly IRequestExecutor _executor;
         private readonly IBatchScheduler _batchScheduler;
+        private readonly IRequestExecutor _executor;
         private bool _taskRegistered;
 
-        public RemoteRequestExecutor(IRequestExecutor executor, IBatchScheduler batchScheduler)
+        public RemoteRequestExecutor(
+            IBatchScheduler batchScheduler,
+            IRequestExecutor executor)
         {
-            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
-            _batchScheduler = batchScheduler;
+            _batchScheduler = batchScheduler ??
+                throw new ArgumentNullException(nameof(batchScheduler));
+            _executor = executor ??
+                throw new ArgumentNullException(nameof(executor));
         }
 
         /// <iniheritdoc />
@@ -134,6 +138,16 @@ namespace HotChocolate.Stitching
                             "Only IQueryResult is supported when batching."));
                     }
                 }
+            }
+        }
+
+        public void Dispose()
+        {
+            _semaphore.Dispose();
+
+            if (_executor is IDisposable d)
+            {
+                d.Dispose();
             }
         }
     }

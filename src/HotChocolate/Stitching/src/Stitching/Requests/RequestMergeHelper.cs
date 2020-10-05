@@ -6,9 +6,8 @@ using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Utilities;
 
-namespace HotChocolate.Stitching.Client
+namespace HotChocolate.Stitching.Requests
 {
     internal class RequestMergeHelper
     {

@@ -4,8 +4,8 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
-using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Requests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 

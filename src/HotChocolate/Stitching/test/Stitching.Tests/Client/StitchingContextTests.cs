@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Requests;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;

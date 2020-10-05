@@ -7,7 +7,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
-    internal static class ContextDataExtensions
+    internal static class ContextDataExtensions_legacy
     {
         private const string _variables = "HotChocolate.Stitching.Variables";
         private static readonly Dictionary<string, IValueNode> _empty =

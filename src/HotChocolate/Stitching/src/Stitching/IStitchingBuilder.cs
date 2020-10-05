@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Configuration;
+using HotChocolate.Stitching.Requests;
 
 namespace HotChocolate.Stitching
 {

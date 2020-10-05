@@ -1,6 +1,6 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Requests
 {
     internal static class MergeUtils
     {

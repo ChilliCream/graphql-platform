@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Client;
+using HotChocolate.Stitching.Requests;
 using HotChocolate.Utilities;
 using Moq;
 using Snapshooter.Xunit;

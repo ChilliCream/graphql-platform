@@ -51,7 +51,7 @@ namespace HotChocolate
                 {
                     if (objectType.Directives.Contains(DirectiveNames.Source)
                         && context.ScopedContextData.TryGetValue(
-                            WellKnownProperties.SchemaName, out object o)
+                            Stitching.WellKnownContextData.SchemaName, out object o)
                         && o is NameString schemaName
                         && objectType.TryGetSourceDirective(schemaName,
                             out SourceDirective sourceDirective))

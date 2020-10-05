@@ -8,7 +8,7 @@ using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Client
+namespace HotChocolate.Stitching.Requests
 {
     internal class BufferedRequest
     {
