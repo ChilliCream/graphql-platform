@@ -1,16 +1,18 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Stitching;
 using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Utilities.Introspection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using static HotChocolate.Stitching.WellKnownContextData;
+using WellKnownContextData = HotChocolate.Stitching.WellKnownContextData;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -113,29 +115,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         cancellationToken);
 
                     schemaBuilder
-                        .SetSchema(descriptor => descriptor
-                            .Extend()
-                            .OnBeforeCreate(def =>
-                            {
-                                if (!def.ContextData.ContainsKey(RemoteExecutors))
-                                {
-                                    def.ContextData.Add(
-                                        RemoteExecutors,
-                                        new Dictionary<NameString, IRequestExecutor>());
-                                }
+                        .AddRemoteExecutor(schemaName, autoProxy)
+                        .TryAddSchemaInterceptor(typeof(StitchingSchemaInterceptor));
 
-                                if (def.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
-                                    o is IDictionary<NameString, IRequestExecutor> executors)
-                                {
-                                    executors[schemaName] = autoProxy;
-                                }
-                                else
-                                {
-                                    // TODO : throw helper
-                                    throw new InvalidOperationException(
-                                        "The mandatory remote executors have not been found.");
-                                }
-                            }));
                 });
 
             // Last but not least, we will setup the stitching context which will

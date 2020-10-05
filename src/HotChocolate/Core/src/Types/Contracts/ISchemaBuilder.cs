@@ -64,6 +64,14 @@ namespace HotChocolate
 
         ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
 
+        ISchemaBuilder AddSchemaInterceptor(Type interceptor);
+
+        ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
+
+        ISchemaBuilder AddSchemaInterceptor(ISchemaInterceptor interceptor);
+
+        ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor);
+
         ISchemaBuilder AddConvention(
             Type convention,
             CreateConvention factory,
@@ -75,6 +83,9 @@ namespace HotChocolate
             string? scope = null);
 
         ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action);
+
+        ISchemaBuilder TryAddSchemaInterceptor<T>()
+            where T : ISchemaInterceptor, new();
 
         ISchema Create();
     }

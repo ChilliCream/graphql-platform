@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     /// The descriptor context is passed around during the schema creation and
     /// allows access to conventions and context data.
     /// </summary>
-    public interface IDescriptorContext
+    public interface IDescriptorContext : IHasContextData
     {
         event EventHandler<SchemaCompletedEventArgs> SchemaCompleted;
 
@@ -33,13 +33,6 @@ namespace HotChocolate.Types.Descriptors
         /// Gets the type inspector.
         /// </summary>
         ITypeInspector TypeInspector { get; }
-
-        /// <summary>
-        /// Gets the context for the schema creation process.
-        /// These context data are passed along into every type and
-        /// will be cleared at the end of the schema creation process.
-        /// </summary>
-        IDictionary<string, object?> ContextData { get; }
 
         /// <summary>
         /// Gets a custom convention.

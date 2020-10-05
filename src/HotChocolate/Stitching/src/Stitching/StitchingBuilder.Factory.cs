@@ -241,14 +241,11 @@ namespace HotChocolate.Stitching
                 return current;
             }
 
-            private static void VisitMerged(
-                StitchingBuilder builder,
-                DocumentNode schema)
+            private static void VisitMerged(StitchingBuilder builder, DocumentNode schema)
             {
                 if (builder._mergedDocVis.Count > 0)
                 {
-                    foreach (Action<DocumentNode> visitor in
-                        builder._mergedDocVis)
+                    foreach (Action<DocumentNode> visitor in builder._mergedDocVis)
                     {
                         visitor.Invoke(schema);
                     }
