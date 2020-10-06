@@ -21,12 +21,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     if (objectField.Directives.Any(IsDelegatedField))
                     {
-                        objectField.MiddlewareComponents.Insert(
-                            0,
-                            FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>());
-                        objectField.MiddlewareComponents.Insert(
-                            1,
-                            FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>());
+                        FieldMiddleware handleDictionary =
+                            FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
+                        FieldMiddleware delegateToSchema =
+                            FieldClassMiddlewareFactory.Create<DelegateToRemoteSchemaMiddleware>();
+
+                        objectField.MiddlewareComponents.Insert(0, handleDictionary);
+                        objectField.MiddlewareComponents.Insert(0, delegateToSchema);
                     }
 
                     // if computed //

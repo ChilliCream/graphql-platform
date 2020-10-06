@@ -13,6 +13,7 @@ using HotChocolate.Stitching.Requests;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using static HotChocolate.Stitching.WellKnownContextData;
+using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching
 {
@@ -205,7 +206,17 @@ namespace HotChocolate.Stitching
 
         private static Path RewriteErrorPath(IError error, Path path)
         {
+            // TODO : FIX THIS
             Path current = path;
+
+            /*
+            if (error.Path.Depth > 0 &&
+                error.Path is NamePathSegment p1 &&
+                path is NamePathSegment p2 &&
+                p1.Name.Equals(p2.Name))
+            {
+                while()
+            }
 
             if (error.Path.Depth > 0
                 && error.Path[0] is string s
@@ -224,6 +235,7 @@ namespace HotChocolate.Stitching
                     }
                 }
             }
+            */
 
             return current;
         }
@@ -277,14 +289,14 @@ namespace HotChocolate.Stitching
 
                 if (!type.Fields.TryGetField(component.Name.Value, out IOutputField field))
                 {
-                    throw new QueryException(new Error
-                    {
-                        Message = string.Format(
+                    throw new GraphQLException(new Error
+                    (
+                        string.Format(
                             CultureInfo.InvariantCulture,
-                            StitchingResources.DelegationMiddleware_PathElementInvalid,
+                            DelegationMiddleware_PathElementInvalid,
                             component.Name.Value,
                             type.Name)
-                    });
+                    ));
                 }
 
                 ResolveScopedVariableArguments(
@@ -295,11 +307,8 @@ namespace HotChocolate.Stitching
                 {
                     if (!field.Type.IsComplexType())
                     {
-                        throw new QueryException(new Error
-                        {
-                            Message = StitchingResources
-                                .DelegationMiddleware_PathElementTypeUnexpected
-                        });
+                        throw new GraphQLException(
+                            new Error(DelegationMiddleware_PathElementTypeUnexpected));
                     }
                     type = (IComplexOutputType)field.Type.NamedType();
                 }
@@ -323,10 +332,10 @@ namespace HotChocolate.Stitching
                     throw new QueryException(
                         ErrorBuilder.New()
                             .SetMessage(
-                                StitchingResources.DelegationMiddleware_ArgumentNotFound,
+                                DelegationMiddleware_ArgumentNotFound,
                                 argument.Name.Value)
                             .SetExtension("argument", argument.Name.Value)
-                            .SetCode(ErrorCodes.ArgumentNotFound)
+                            .SetCode(ErrorCodes.Stitching.ArgumentNotFound)
                             .Build());
                 }
 
