@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching
 {
     internal static class SelectionPathParser
     {
@@ -52,8 +52,7 @@ namespace HotChocolate.Stitching.Delegation
         private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
             ref Utf8GraphQLParser parser)
         {
-            ImmutableStack<SelectionPathComponent> path =
-                ImmutableStack<SelectionPathComponent>.Empty;
+            var path = ImmutableStack<SelectionPathComponent>.Empty;
 
             parser.MoveNext();
 

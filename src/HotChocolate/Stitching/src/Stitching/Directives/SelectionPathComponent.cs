@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching
 {
     public class SelectionPathComponent
     {

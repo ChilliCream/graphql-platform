@@ -146,7 +146,7 @@ namespace HotChocolate.Stitching
             throw new GraphQLException(DelegationMiddleware_OnlyQueryResults);
         }
 
-        private static object ExtractData(
+        private static object? ExtractData(
             IReadOnlyDictionary<string, object?>? data,
             int levels)
         {
@@ -155,7 +155,7 @@ namespace HotChocolate.Stitching
                 return null;
             }
 
-            object obj = data.Count == 0 ? null : data.First().Value;
+            object? obj = data.Count == 0 ? null : data.First().Value;
 
             if (obj != null && levels > 1)
             {
@@ -283,7 +283,7 @@ namespace HotChocolate.Stitching
             {
                 SelectionPathComponent component = comps[i];
 
-                if (!type.Fields.TryGetField(component.Name.Value, out IOutputField field))
+                if (!type.Fields.TryGetField(component.Name.Value, out IOutputField? field))
                 {
                     throw new GraphQLException(new Error
                     (
@@ -323,7 +323,7 @@ namespace HotChocolate.Stitching
         {
             foreach (ArgumentNode argument in component.Arguments)
             {
-                if (!field.Arguments.TryGetField(argument.Name.Value, out IInputField arg))
+                if (!field.Arguments.TryGetField(argument.Name.Value, out IInputField? arg))
                 {
                     throw new QueryException(
                         ErrorBuilder.New()
@@ -337,10 +337,9 @@ namespace HotChocolate.Stitching
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    VariableValue variable =
-                        _resolvers.Resolve(context, sv, arg.Type);
+                    VariableValue variable = _resolvers.Resolve(context, sv, arg.Type);
                     IValueNode value = rewriter.RewriteValueNode(
-                        schemaName, arg.Type, variable.Value);
+                        schemaName, arg.Type, variable.Value!);
                     variables.Add(variable.WithValue(value));
                 }
             }

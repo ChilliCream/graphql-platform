@@ -11,10 +11,11 @@ namespace HotChocolate.Stitching.Schemas.Customers
             return SchemaBuilder.New()
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
-                .UseGlobalObjectIdentifier()
+                .EnableRelaySupport()
                 .Create();
         }
 
+/*
         public static void ConfigureServices(IServiceCollection services)
         {
             if (services == null)
@@ -25,6 +26,6 @@ namespace HotChocolate.Stitching.Schemas.Customers
             services.AddSingleton<CustomerRepository>();
             services.AddSingleton<Query>();
             services.AddGraphQL(Create());
-        }
+        }*/
     }
 }

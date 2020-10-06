@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Conventions;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;

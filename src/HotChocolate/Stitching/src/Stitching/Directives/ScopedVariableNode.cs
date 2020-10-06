@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching
 {
     public sealed class ScopedVariableNode
         : IValueNode<string>

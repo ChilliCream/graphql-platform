@@ -142,49 +142,22 @@ namespace HotChocolate.Types.Descriptors
         }
 
         internal static DescriptorContext Create(
-            IReadOnlySchemaOptions options,
-            IServiceProvider services,
-            IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
-            IDictionary<string, object?> contextData,
-            SchemaBuilder.LazySchema schema,
-            ISchemaInterceptor schemaInterceptor,
-            ITypeInterceptor typeInterceptor)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (conventions is null)
-            {
-                throw new ArgumentNullException(nameof(conventions));
-            }
-
-            return new DescriptorContext(
-                options,
-                conventions,
-                services,
-                contextData,
-                schema,
-                schemaInterceptor,
-                typeInterceptor);
-        }
-
-        internal static DescriptorContext Create()
+            IReadOnlySchemaOptions? options = null,
+            IServiceProvider? services = null,
+            IReadOnlyDictionary<(Type, string?), CreateConvention>? conventions = null,
+            IDictionary<string, object?>? contextData = null,
+            SchemaBuilder.LazySchema? schema = null,
+            ISchemaInterceptor? schemaInterceptor = null,
+            ITypeInterceptor? typeInterceptor = null)
         {
             return new DescriptorContext(
-                new SchemaOptions(),
-                new Dictionary<(Type, string?), CreateConvention>(),
-                new EmptyServiceProvider(),
-                new Dictionary<string, object?>(),
-                new SchemaBuilder.LazySchema(),
-                new AggregateSchemaInterceptor(),
-                new AggregateTypeInterceptor());
+                options ?? new SchemaOptions(),
+                conventions ?? new Dictionary<(Type, string?), CreateConvention>(),
+                services ?? new EmptyServiceProvider(),
+                contextData ?? new Dictionary<string, object?>(),
+                schema ?? new SchemaBuilder.LazySchema(),
+                schemaInterceptor ?? new AggregateSchemaInterceptor(),
+                typeInterceptor ?? new AggregateTypeInterceptor());
         }
     }
 }
