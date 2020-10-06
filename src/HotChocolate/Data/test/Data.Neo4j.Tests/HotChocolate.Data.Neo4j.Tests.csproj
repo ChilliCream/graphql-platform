@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="Neo4j.Driver" Version="4.1.1" />
+    <PackageReference Include="Squadron.Core" Version="0.8.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <PackageReference Include="coverlet.collector" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Neo4j\HotChocolate.Data.Neo4j.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Cyper\__snapshots__\" />
+    <Folder Include="__snapshots__\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Squadron">
+      <HintPath>..\..\..\..\..\..\squadron\src\Neo4j\bin\Debug\netstandard2.0\Squadron.dll</HintPath>
+    </Reference>
+    <Reference Include="Squadron.Neo4j">
+      <HintPath>..\..\..\..\..\..\squadron\src\Neo4j\bin\Debug\netstandard2.0\Squadron.Neo4j.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

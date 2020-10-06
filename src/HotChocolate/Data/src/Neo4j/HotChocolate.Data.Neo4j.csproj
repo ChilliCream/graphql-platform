@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.Neo4j</PackageId>
+    <AssemblyName>HotChocolate.Data.Neo4j</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Neo4j</RootNamespace>
+    <NoWarn>$(NoWarn);CA1062</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.0-rc.1.20451.17" />
+    <PackageReference Include="Neo4j.Driver" Version="4.1.1" />
+  </ItemGroup>
+  
+</Project>

@@ -1,0 +1,9 @@
+﻿{
+  "LastBookmark": null,
+  "SessionConfig": {
+    "Database": "neo4j",
+    "DefaultAccessMode": "Write",
+    "Bookmarks": null,
+    "FetchSize": null
+  }
+}
