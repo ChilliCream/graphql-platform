@@ -1,58 +1,69 @@
 using System.Threading.Tasks;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
+using Squadron;
 using Xunit;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Spatial.Data.Filters
 {
     public class QueryableFilterVisitorSpatialTests
+        : SchemaCache,
+          IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
-        private static readonly Polygon TruePolygon = new Polygon(
-            new LinearRing(new[] {
-                new Coordinate(0, 0),
-                new Coordinate(0, 2),
-                new Coordinate(2, 2),
-                new Coordinate(2, 0),
-                new Coordinate(0, 0)
-            })
+        private static readonly Polygon _truePolygon = new Polygon(
+            new LinearRing(
+                new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(0, 2),
+                    new Coordinate(2, 2),
+                    new Coordinate(2, 0),
+                    new Coordinate(0, 0)
+                })
         );
 
-        private static readonly Polygon FalsePolygon = new Polygon(
-            new LinearRing(new[] {
-                new Coordinate(0, 0),
-                new Coordinate(0, -2),
-                new Coordinate(-2, -2),
-                new Coordinate(-2, 0),
-                new Coordinate(0, 0)
-            })
+        private static readonly Polygon _falsePolygon = new Polygon(
+            new LinearRing(
+                new[]
+                {
+                    new Coordinate(0, 0),
+                    new Coordinate(0, -2),
+                    new Coordinate(-2, -2),
+                    new Coordinate(-2, 0),
+                    new Coordinate(0, 0)
+                })
         );
 
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Id = 1, Bar = TruePolygon },
-            new Foo { Id = 0, Bar = FalsePolygon }
+            new Foo { Id = 1, Bar = _truePolygon }, new Foo { Id = 0, Bar = _falsePolygon }
         };
 
         private static readonly FooNullable[] _fooNullableEntities =
         {
-            new FooNullable { Bar = TruePolygon },
+            new FooNullable { Bar = _truePolygon },
             new FooNullable { Bar = null },
-            new FooNullable { Bar = FalsePolygon }
+            new FooNullable { Bar = _falsePolygon }
         };
 
-        private readonly SchemaCache _cache = new SchemaCache();
+        public QueryableFilterVisitorSpatialTests(PostgreSqlResource<PostgisConfig> resource)
+            : base(resource)
+        {
+        }
 
         [Fact]
         public async Task Create_BooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(@"{
+                    .SetQuery(
+                        @"{
                         root(where: {
                             bar: {
                                 contains: {
@@ -73,7 +84,8 @@ namespace HotChocolate.Data.Filters
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(@"{
+                    .SetQuery(
+                        @"{
                         root(where: {
                             bar: {
                                 contains: {
@@ -97,7 +109,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
@@ -120,7 +132,7 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableBooleanEqual_Expression()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
                 _fooNullableEntities);
 
             // act
@@ -151,14 +163,15 @@ namespace HotChocolate.Data.Filters
         public async Task Create_NullableBooleanNotEqual_Expression()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema<FooNullable, FooNullableFilterType>(
+            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
                 _fooNullableEntities);
 
             // act
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(@"{
+                    .SetQuery(
+                        @"{
                         root(where: {
                             bar: {
                                 contains: {
@@ -197,14 +210,14 @@ namespace HotChocolate.Data.Filters
         {
             public int Id { get; set; }
 
-            public Geometry Bar { get; set; } = null!;
+            public Polygon Bar { get; set; } = null!;
         }
 
         public class FooNullable
         {
             public int Id { get; set; }
 
-            public Geometry? Bar { get; set; }
+            public Polygon? Bar { get; set; }
         }
 
         public class FooFilterType

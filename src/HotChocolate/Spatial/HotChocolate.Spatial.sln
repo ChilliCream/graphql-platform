@@ -1,4 +1,4 @@
-﻿﻿
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
@@ -59,6 +59,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{984F2611-8
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spatial.Demo", "demo\Spatial.Demo\Spatial.Demo.csproj", "{CF8D169A-424B-4FF6-9BA1-55AD973DE652}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Spatial.Data.Filters.SqlServer.Tests", "test\Data.Filters.SqlServer.Tests\HotChocolate.Spatial.Data.Filters.SqlServer.Tests.csproj", "{A3133EC8-3707-44CC-9763-9155F0C49F02}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -92,6 +94,7 @@ Global
 		{90C4AD09-C23C-4AC2-9486-F508D9436DAE} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{F16DEEB5-5019-4189-8FE7-42347E570051} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 		{CF8D169A-424B-4FF6-9BA1-55AD973DE652} = {984F2611-860A-490B-AF0F-19A1780399C1}
+		{A3133EC8-3707-44CC-9763-9155F0C49F02} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{69E80153-5C67-4508-9CB9-63406BC4FE8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -334,5 +337,19 @@ Global
 		{CF8D169A-424B-4FF6-9BA1-55AD973DE652}.Release|x64.Build.0 = Release|Any CPU
 		{CF8D169A-424B-4FF6-9BA1-55AD973DE652}.Release|x86.ActiveCfg = Release|Any CPU
 		{CF8D169A-424B-4FF6-9BA1-55AD973DE652}.Release|x86.Build.0 = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Debug|x86.Build.0 = Debug|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|x64.Build.0 = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|x86.ActiveCfg = Release|Any CPU
+		{A3133EC8-3707-44CC-9763-9155F0C49F02}.Release|x86.Build.0 = Release|Any CPU
+		{97AA8708-0D9C-4C2E-A9FE-5E58049A4F39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97AA8708-0D9C-4C2E-A9FE-5E58049A4F39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 EndGlobal

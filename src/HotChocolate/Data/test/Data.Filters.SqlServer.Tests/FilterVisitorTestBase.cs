@@ -29,20 +29,14 @@ namespace HotChocolate.Data.Filters
             try
             {
                 dbContext.Database.EnsureDeleted();
-                // dbContext.Database.EnsureCreated();
+                dbContext.Database.EnsureCreated();
                 dbContext.AddRange(results);
             }
             catch (Exception ex) {
                 Console.WriteLine(ex.Message);
             }
 
-            try
-            {
-                dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-            }
+            dbContext.SaveChanges();
 
             return ctx => dbContext.Data.AsQueryable();
         }
@@ -61,21 +55,11 @@ namespace HotChocolate.Data.Filters
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddSpatialTypes()
-                .AddFiltering(
-                    // x => x
-                    //     .AddDefaults()
-                    //     .AddSpatialOperations()
-                    //     .BindSpatialTypes()
-                    //     .Provider(
-                    //         new QueryableFilterProvider(
-                    //             p => p.AddSpatialHandlers().AddDefaultFieldHandlers()))
-                )
                 .AddQueryType(
                     c => c
                         .Name("Query")
                         .Field("root")
-                        // .Resolver(resolver)
+                         .Resolver(resolver)
                         .Use(next => async context =>
                         {
                             await next(context);

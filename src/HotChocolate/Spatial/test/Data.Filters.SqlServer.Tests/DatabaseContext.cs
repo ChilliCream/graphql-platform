@@ -1,25 +1,29 @@
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Squadron;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Spatial.Data.Filters
 {
     public class DatabaseContext<T> : DbContext
         where T : class
     {
-        private readonly string _fileName;
+        private readonly PostgreSqlResource<PostgisConfig> _resource;
         private bool _disposed;
 
-        public DatabaseContext(string fileName)
+        public DatabaseContext(PostgreSqlResource<PostgisConfig> resource)
         {
-            _fileName = fileName;
+            _resource = resource;
         }
 
         public DbSet<T> Data { get; set; } = default!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=:memory:", opt => opt.UseNetTopologySuite());
+            optionsBuilder.UseNpgsql(
+                _resource.ConnectionString,
+                o =>
+                    o.UseNetTopologySuite());
         }
 
         public override async ValueTask DisposeAsync()
@@ -28,18 +32,6 @@ namespace HotChocolate.Data.Filters
 
             if (!_disposed)
             {
-                if (File.Exists(_fileName))
-                {
-                    try
-                    {
-                        File.Delete(_fileName);
-                    }
-                    catch
-                    {
-                        // we will ignore if we cannot delete it.
-                    }
-                }
-
                 _disposed = true;
             }
         }
