@@ -208,7 +208,7 @@ namespace HotChocolate.Execution
             }
 
             schemaBuilder
-                .AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
+                .TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
                 .AddServices(serviceProvider);
 
             ISchema schema = schemaBuilder.Create();
@@ -285,8 +285,8 @@ namespace HotChocolate.Execution
         private class RegisteredExecutor
         {
             public RegisteredExecutor(
-                IRequestExecutor executor, 
-                IServiceProvider services, 
+                IRequestExecutor executor,
+                IServiceProvider services,
                 IDiagnosticEvents diagnosticEvents)
             {
                 Executor = executor;

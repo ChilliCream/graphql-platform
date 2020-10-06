@@ -1,6 +1,6 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public class SchemaInterceptor : ISchemaInterceptor
     {

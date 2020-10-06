@@ -5,7 +5,7 @@ namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
-        public static ISchemaBuilder AddTypeInterceptor<T>(
+        public static ISchemaBuilder TryAddTypeInterceptor<T>(
             this ISchemaBuilder builder)
             where T : ITypeInitializationInterceptor
         {
@@ -14,12 +14,12 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddTypeInterceptor(typeof(T));
+            return builder.TryAddTypeInterceptor(typeof(T));
         }
 
-        public static ISchemaBuilder TryAddTypeInterceptor<T>(
+        public static ISchemaBuilder TryAddSchemaInterceptor<T>(
             this ISchemaBuilder builder)
-            where T : ITypeInitializationInterceptor
+            where T : ISchemaInterceptor
         {
             if (builder is null)
             {

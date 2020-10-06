@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
@@ -10,9 +11,6 @@ namespace HotChocolate.Stitching.Delegation
     internal class ContextDataScopedVariableResolver
         : IScopedVariableResolver
     {
-        private readonly DictionaryToObjectValueConverter _converter =
-            new DictionaryToObjectValueConverter();
-
         public VariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
@@ -42,11 +40,18 @@ namespace HotChocolate.Stitching.Delegation
 
             context.ContextData.TryGetValue(variable.Name.Value, out object data);
 
+            IValueNode literal = data switch
+            {
+                IValueNode l => l,
+                null => NullValueNode.Default,
+                _ => targetType.ParseValue(data)
+            };
+
             return new VariableValue
             (
                 variable.ToVariableName(),
                 targetType.ToTypeNode(),
-                _converter.Convert(data, targetType, variable.Value),
+                literal,
                 null
             );
         }

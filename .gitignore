@@ -307,3 +307,4 @@ __mismatch__
 coverage.opencover.xml
 output
 src/All.sln
+*.DotSettings

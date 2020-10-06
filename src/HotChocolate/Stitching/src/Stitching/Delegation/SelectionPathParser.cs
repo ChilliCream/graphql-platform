@@ -1,45 +1,59 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Delegation
 {
     internal static class SelectionPathParser
     {
-        public static IImmutableStack<SelectionPathComponent> Parse(
-            string serializedPath)
+        private const int _maxStackSize = 256;
+
+        public static IImmutableStack<SelectionPathComponent> Parse(string path)
         {
-            if (serializedPath is null)
+            if (path is null)
             {
-                throw new ArgumentNullException(nameof(serializedPath));
+                throw new ArgumentNullException(nameof(path));
             }
 
-            byte[] buffer = Encoding.UTF8.GetBytes(RemoveDots(serializedPath));
-            var reader = new Utf8GraphQLReader(buffer);
-            var parser = new Utf8GraphQLParser(reader, ParserOptions.Default);
+            byte[]? rented = null;
+            Span<byte> buffer = path.Length < _maxStackSize
+                ? stackalloc byte[path.Length]
+                : rented = ArrayPool<byte>.Shared.Rent(path.Length);
 
-            return ParseSelectionPath(ref parser);
+            try
+            {
+                buffer = buffer.Slice(0, path.Length);
+                Prepare(path, buffer);
+                var reader = new Utf8GraphQLReader(buffer);
+                var parser = new Utf8GraphQLParser(reader, ParserOptions.Default);
+                return ParseSelectionPath(ref parser);
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    buffer.Clear();
+                    ArrayPool<byte>.Shared.Return(rented);
+                }
+            }
         }
 
-        private static string RemoveDots(string serializedPath)
+        private static void Prepare(string path, Span<byte> sourceText)
         {
-            var stringBuilder = new StringBuilder();
-
-            for (int i = 0; i < serializedPath.Length; i++)
+            for (var i = 0; i < path.Length; i++)
             {
-                char current = serializedPath[i];
-                stringBuilder.Append(current == GraphQLConstants.Dot ? ' ' : current);
+                var current = path[i];
+                sourceText[i] = current == GraphQLConstants.Dot ? (byte)' ' : (byte)current;
             }
-
-            return stringBuilder.ToString();
         }
 
         private static ImmutableStack<SelectionPathComponent> ParseSelectionPath(
             ref Utf8GraphQLParser parser)
         {
-            var path = ImmutableStack<SelectionPathComponent>.Empty;
+            ImmutableStack<SelectionPathComponent> path =
+                ImmutableStack<SelectionPathComponent>.Empty;
 
             parser.MoveNext();
 
@@ -96,7 +110,8 @@ namespace HotChocolate.Stitching.Delegation
                 value
             );
         }
-        private static IValueNode ParseValueLiteral(ref Utf8GraphQLParser parser)
+        private static IValueNode ParseValueLiteral(
+            ref Utf8GraphQLParser parser)
         {
             if (parser.Kind == TokenKind.Dollar)
             {

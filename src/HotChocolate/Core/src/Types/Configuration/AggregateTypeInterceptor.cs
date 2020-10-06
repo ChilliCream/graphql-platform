@@ -6,14 +6,14 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class AggregateTypeInitializationInterceptor
+    internal sealed class AggregateTypeInterceptor
         : ITypeInterceptor
     {
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _initInterceptors;
         private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _agrInterceptors;
         private readonly IReadOnlyCollection<ITypeScopeInterceptor> _scopeInterceptors;
 
-        public AggregateTypeInitializationInterceptor()
+        public AggregateTypeInterceptor()
         {
             _initInterceptors = Array.Empty<ITypeInitializationInterceptor>();
             _agrInterceptors = Array.Empty<ITypeInitializationInterceptor>();
@@ -21,12 +21,12 @@ namespace HotChocolate.Configuration
             TriggerAggregations = false;
         }
 
-        public AggregateTypeInitializationInterceptor(object interceptor)
+        public AggregateTypeInterceptor(object interceptor)
             : this(new[] { interceptor })
         {
         }
 
-        public AggregateTypeInitializationInterceptor(IReadOnlyCollection<object> interceptors)
+        public AggregateTypeInterceptor(IReadOnlyCollection<object> interceptors)
         {
             _initInterceptors = interceptors.OfType<ITypeInitializationInterceptor>().ToList();
             _agrInterceptors = _initInterceptors.Where(t => t.TriggerAggregations).ToList();
@@ -34,7 +34,7 @@ namespace HotChocolate.Configuration
             TriggerAggregations = _agrInterceptors.Count > 0;
         }
 
-        public bool TriggerAggregations { get; private set; }
+        public bool TriggerAggregations { get; }
 
         public bool CanHandle(ITypeSystemObjectContext context) => true;
 

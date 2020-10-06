@@ -5,8 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal sealed class NoopDocumentationProvider
-        : IDocumentationProvider
+    internal sealed class NoopDocumentationProvider : IDocumentationProvider
     {
         public string? GetDescription(Type type) => null;
 

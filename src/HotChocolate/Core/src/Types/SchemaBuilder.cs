@@ -1,6 +1,6 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -14,8 +14,7 @@ using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
-    public partial class SchemaBuilder
-        : ISchemaBuilder
+    public partial class SchemaBuilder : ISchemaBuilder
     {
         private delegate ITypeReference CreateRef(ITypeInspector typeInspector);
 
@@ -35,12 +34,11 @@ namespace HotChocolate
             new Dictionary<(Type, string), CreateConvention>();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
             new Dictionary<Type, (CreateRef, CreateRef)>();
-        private readonly List<object> _interceptors = new List<object>
+        private readonly List<object> _schemaInterceptors = new List<object>();
+        private readonly List<object> _typeInterceptors = new List<object>
         {
             typeof(IntrospectionTypeInterceptor)
         };
-        private readonly List<Action<IDescriptorContext>> _onBeforeCreate =
-            new List<Action<IDescriptorContext>>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -313,7 +311,9 @@ namespace HotChocolate
             if (_operations.ContainsKey(operation))
             {
                 throw new ArgumentException(
-                    string.Format("The root type `{0}` has already been registered.", operation),
+                    string.Format(
+                        TypeResources.SchemaBuilder_AddRootType_TypeAlreadyRegistered,
+                        operation),
                     nameof(operation));
             }
 
@@ -334,7 +334,9 @@ namespace HotChocolate
             if (_operations.ContainsKey(operation))
             {
                 throw new ArgumentException(
-                    string.Format("The root type `{0}` has already been registered.", operation),
+                    string.Format(
+                        TypeResources.SchemaBuilder_AddRootType_TypeAlreadyRegistered,
+                        operation),
                     nameof(operation));
             }
 
@@ -411,24 +413,6 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddTypeInterceptor(Type interceptor)
-        {
-            if (interceptor is null)
-            {
-                throw new ArgumentNullException(nameof(interceptor));
-            }
-
-            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
-                    nameof(interceptor));
-            }
-
-            _interceptors.Add(interceptor);
-            return this;
-        }
-
         public ISchemaBuilder TryAddTypeInterceptor(Type interceptor)
         {
             if (interceptor is null)
@@ -443,22 +427,11 @@ namespace HotChocolate
                     nameof(interceptor));
             }
 
-            if (!_interceptors.Contains(interceptor))
+            if (!_typeInterceptors.Contains(interceptor))
             {
-                _interceptors.Add(interceptor);
+                _typeInterceptors.Add(interceptor);
             }
 
-            return this;
-        }
-
-        public ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor)
-        {
-            if (interceptor is null)
-            {
-                throw new ArgumentNullException(nameof(interceptor));
-            }
-
-            _interceptors.Add(interceptor);
             return this;
         }
 
@@ -469,22 +442,48 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(interceptor));
             }
 
-            if (!_interceptors.Contains(interceptor))
+            if (!_typeInterceptors.Contains(interceptor))
             {
-                _interceptors.Add(interceptor);
+                _typeInterceptors.Add(interceptor);
             }
 
             return this;
         }
 
-        public ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action)
+        public ISchemaBuilder TryAddSchemaInterceptor(Type interceptor)
         {
-            if (action is null)
+            if (interceptor is null)
             {
-                throw new ArgumentNullException(nameof(action));
+                throw new ArgumentNullException(nameof(interceptor));
             }
 
-            _onBeforeCreate.Add(action);
+            if (!typeof(ISchemaInterceptor).IsAssignableFrom(interceptor))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                    nameof(interceptor));
+            }
+
+            if (_schemaInterceptors.Contains(interceptor))
+            {
+                _schemaInterceptors.Add(interceptor);
+            }
+
+            return this;
+        }
+
+        public ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if (_schemaInterceptors.Contains(interceptor))
+            {
+                _schemaInterceptors.Add(interceptor);
+            }
+
             return this;
         }
 

@@ -1064,5 +1064,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("StreamDirectiveType_If_Description", resourceCulture);
             }
         }
+        
+        internal static string SchemaBuilder_AddRootType_TypeAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_AddRootType_TypeAlreadyRegistered", resourceCulture);
+            }
+        }
     }
 }

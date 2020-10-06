@@ -56,19 +56,11 @@ namespace HotChocolate
 
         ISchemaBuilder SetContextData(string key, Func<object?, object?> update);
 
-        ISchemaBuilder AddTypeInterceptor(Type interceptor);
-
         ISchemaBuilder TryAddTypeInterceptor(Type interceptor);
-
-        ISchemaBuilder AddTypeInterceptor(ITypeInitializationInterceptor interceptor);
 
         ISchemaBuilder TryAddTypeInterceptor(ITypeInitializationInterceptor interceptor);
 
-        ISchemaBuilder AddSchemaInterceptor(Type interceptor);
-
         ISchemaBuilder TryAddSchemaInterceptor(Type interceptor);
-
-        ISchemaBuilder AddSchemaInterceptor(ISchemaInterceptor interceptor);
 
         ISchemaBuilder TryAddSchemaInterceptor(ISchemaInterceptor interceptor);
 
@@ -81,11 +73,6 @@ namespace HotChocolate
             Type convention,
             CreateConvention factory,
             string? scope = null);
-
-        ISchemaBuilder OnBeforeCreate(Action<IDescriptorContext> action);
-
-        ISchemaBuilder TryAddSchemaInterceptor<T>()
-            where T : ISchemaInterceptor, new();
 
         ISchema Create();
     }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration;
 
 #nullable enable
@@ -33,6 +32,16 @@ namespace HotChocolate.Types.Descriptors
         /// Gets the type inspector.
         /// </summary>
         ITypeInspector TypeInspector { get; }
+
+        /// <summary>
+        /// Gets the schema interceptor.
+        /// </summary>
+        ISchemaInterceptor SchemaInterceptor { get; }
+
+        /// <summary>
+        /// Gets the type interceptor.
+        /// </summary>
+        ITypeInterceptor TypeInterceptor { get; }
 
         /// <summary>
         /// Gets a custom convention.

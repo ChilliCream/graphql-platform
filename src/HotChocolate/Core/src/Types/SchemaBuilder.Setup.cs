@@ -39,17 +39,26 @@ namespace HotChocolate
                 SchemaBuilder builder,
                 LazySchema lazySchema)
             {
+                IServiceProvider services = builder._services ?? new EmptyServiceProvider();
+                var schemaInterceptors = new List<ISchemaInterceptor>();
+                var typeInterceptors = new List<ITypeInitializationInterceptor>();
+
+                InitializeInterceptors(services, builder._schemaInterceptors, schemaInterceptors);
+                InitializeInterceptors(services, builder._typeInterceptors, typeInterceptors);
+
+                var schemaInterceptor = new AggregateSchemaInterceptor(schemaInterceptors);
+                var typeInterceptor = new AggregateTypeInterceptor(typeInterceptors);
+
                 DescriptorContext context = DescriptorContext.Create(
                     builder._options,
-                    builder._services ?? new EmptyServiceProvider(),
+                    services,
                     builder._conventions,
                     builder._contextData,
-                    lazySchema);
+                    lazySchema,
+                    schemaInterceptor,
+                    typeInterceptor);
 
-                foreach (Action<IDescriptorContext> action in builder._onBeforeCreate)
-                {
-                    action(context);
-                }
+                schemaInterceptor.OnBeforeCreate(context, builder);
 
                 return context;
             }
@@ -171,15 +180,11 @@ namespace HotChocolate
                 Dictionary<OperationType, ITypeReference> operations =
                     builder._operations.ToDictionary(t => t.Key, t => t.Value(context.TypeInspector));
 
-                var interceptor = new AggregateTypeInitializationInterceptor(
-                    CreateInterceptors(builder, context.Services));
-
                 var initializer = new TypeInitializer(
                     context,
                     typeRegistry,
                     typeReferences,
                     builder._resolverTypes,
-                    interceptor,
                     builder._isOfType,
                     type => IsQueryType(context.TypeInspector, type, operations));
 
@@ -213,43 +218,38 @@ namespace HotChocolate
                 return initializer;
             }
 
-            private static IReadOnlyCollection<ITypeInitializationInterceptor> CreateInterceptors(
-                SchemaBuilder builder,
-                IServiceProvider services)
+            private static void InitializeInterceptors<T>(
+                IServiceProvider services,
+                IReadOnlyList<object> registered,
+                List<T> interceptors)
+                where T : class
             {
-                var list = new List<ITypeInitializationInterceptor>();
-
-                if (services is not EmptyServiceProvider)
+                if (services is not EmptyServiceProvider &&
+                    services.GetService<IEnumerable<T>>() is { } fromService)
                 {
-                    var inter = services.GetService<IEnumerable<ITypeInitializationInterceptor>>();
-                    if (inter is not null)
-                    {
-                        list.AddRange(inter);
-                    }
+                    interceptors.AddRange(fromService);
                 }
 
-                if (builder._interceptors.Count > 0)
+                if (registered.Count > 0)
                 {
                     var serviceFactory = new ServiceFactory { Services = services };
 
-                    foreach (object interceptorOrType in builder._interceptors)
+                    foreach (object interceptorOrType in registered)
                     {
                         if (interceptorOrType is Type type)
                         {
-                            var obj = serviceFactory.CreateInstance(type);
-                            if (obj is ITypeInitializationInterceptor casted)
+                            object? obj = serviceFactory.CreateInstance(type);
+                            if (obj is T casted)
                             {
-                                list.Add(casted);
+                                interceptors.Add(casted);
                             }
                         }
-                        else if (interceptorOrType is ITypeInitializationInterceptor interceptor)
+                        else if (interceptorOrType is T interceptor)
                         {
-                            list.Add(interceptor);
+                            interceptors.Add(interceptor);
                         }
                     }
                 }
-
-                return list;
             }
 
             private static bool IsQueryType(
@@ -308,6 +308,7 @@ namespace HotChocolate
 
                 schema.CompleteSchema(definition);
                 lazySchema.Schema = schema;
+                context.SchemaInterceptor.OnAfterCreate(context, schema);
                 return schema;
             }
 

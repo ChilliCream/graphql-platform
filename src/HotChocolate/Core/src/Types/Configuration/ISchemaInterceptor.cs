@@ -1,6 +1,6 @@
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public interface ISchemaInterceptor
     {

@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
 {
     internal class FieldScopedVariableResolver
         : IScopedVariableResolver
     {
-        private readonly DictionaryToObjectValueConverter _converter =
-            new DictionaryToObjectValueConverter();
-
         public VariableValue Resolve(
             IResolverContext context,
             ScopedVariableNode variable,
@@ -38,17 +37,23 @@ namespace HotChocolate.Stitching.Delegation
                     nameof(variable));
             }
 
-            if (context.ObjectType.Fields.TryGetField(variable.Name.Value,
-                out ObjectField field))
+            if (context.ObjectType.Fields.TryGetField(variable.Name.Value, out IObjectField field))
             {
-                IReadOnlyDictionary<string, object> obj =
-                    context.Parent<IReadOnlyDictionary<string, object>>();
+                object parent = context.Parent<object>();
+                ObjectValueNode objectLiteral =
+                    parent is ObjectValueNode o
+                        ? o :
+                        (ObjectValueNode)targetType.ParseValue(parent);
+
+                ObjectFieldNode? fieldLiteral =
+                    objectLiteral.Fields.FirstOrDefault(
+                        t => t.Name.Value.EqualsOrdinal(field.Name));
 
                 return new VariableValue
                 (
                     variable.ToVariableName(),
                     targetType.ToTypeNode(),
-                    _converter.Convert(obj[field.Name], targetType, variable.Value),
+                    fieldLiteral?.Value ?? NullValueNode.Default,
                     null
                 );
             }
@@ -57,7 +62,7 @@ namespace HotChocolate.Stitching.Delegation
                 .SetMessage(
                     StitchingResources.FieldScopedVariableResolver_InvalidFieldName,
                     variable.Name.Value)
-                .SetCode(ErrorCodes.FieldNotDefined)
+                .SetCode(ErrorCodes.Stitching.FieldNotDefined)
                 .SetPath(context.Path)
                 .AddLocation(context.FieldSelection)
                 .Build());

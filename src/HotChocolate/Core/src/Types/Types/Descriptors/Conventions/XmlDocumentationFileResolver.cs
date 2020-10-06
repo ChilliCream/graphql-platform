@@ -7,8 +7,7 @@ using IOPath = System.IO.Path;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class XmlDocumentationFileResolver
-        : IXmlDocumentationFileResolver
+    public class XmlDocumentationFileResolver : IXmlDocumentationFileResolver
     {
         private const string _bin = "bin";
 
@@ -18,17 +17,13 @@ namespace HotChocolate.Types.Descriptors
 
         public bool TryGetXmlDocument(Assembly assembly, out XDocument document)
         {
-            string fullName = assembly.GetName().FullName;
+            var fullName = assembly.GetName().FullName;
 
             if (!_cache.TryGetValue(fullName, out XDocument doc))
             {
-                string pathToXmlFile = GetXmlDocumentationPath(assembly);
+                var pathToXmlFile = GetXmlDocumentationPath(assembly);
 
-                if (!File.Exists(pathToXmlFile))
-                {
-                    doc = _cache[fullName] = null;
-                }
-                else
+                if (File.Exists(pathToXmlFile))
                 {
                     doc = XDocument.Load(
                         pathToXmlFile,
@@ -66,7 +61,7 @@ namespace HotChocolate.Types.Descriptors
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))
                 {
-                    string assemblyDirectory =
+                    var assemblyDirectory =
                         IOPath.GetDirectoryName(assembly.Location);
                     path = IOPath.Combine(assemblyDirectory, expectedDocFile);
                     if (File.Exists(path))
@@ -90,7 +85,7 @@ namespace HotChocolate.Types.Descriptors
                     }
                 }
 
-                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 if (!string.IsNullOrEmpty(baseDirectory))
                 {
                     path = IOPath.Combine(baseDirectory, expectedDocFile);
@@ -105,7 +100,7 @@ namespace HotChocolate.Types.Descriptors
                         expectedDocFile);
                 }
 
-                string currentDirectory = Directory.GetCurrentDirectory();
+                var currentDirectory = Directory.GetCurrentDirectory();
                 path = IOPath.Combine(currentDirectory, expectedDocFile);
                 if (File.Exists(path))
                 {
