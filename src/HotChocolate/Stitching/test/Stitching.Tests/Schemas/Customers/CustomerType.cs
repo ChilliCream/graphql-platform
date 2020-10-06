@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Customers
@@ -8,7 +10,16 @@ namespace HotChocolate.Stitching.Schemas.Customers
         protected override void Configure(
             IObjectTypeDescriptor<Customer> descriptor)
         {
-            descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+            descriptor
+                .AsNode()
+                .IdField(t => t.Id)
+                .NodeResolver((ctx, id) => 
+                {
+                    return Task.FromResult(
+                        ctx.Service<CustomerRepository>()
+                            .Customers.FirstOrDefault(t => t.Id.Equals(id)));
+                });
+
             descriptor.Field(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.Street).Type<NonNullType<StringType>>();
             descriptor.Field(t => t.ConsultantId).Ignore();

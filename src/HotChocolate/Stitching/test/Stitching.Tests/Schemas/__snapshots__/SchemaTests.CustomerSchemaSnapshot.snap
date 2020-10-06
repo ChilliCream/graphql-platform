@@ -1,0 +1,123 @@
+﻿schema {
+  query: Query
+  mutation: Mutation
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+type Consultant implements Node {
+  id: ID!
+  name: String!
+  customers(first: Int after: String last: Int before: String): CustomerConnection
+}
+
+type CreateCustomerPayload {
+  customer: Customer
+}
+
+type Customer implements Node {
+  id: ID!
+  name: String!
+  street: String!
+  consultant(customer: CustomerInput): Consultant
+  say(input: SayInput!): String
+  complexArg(arg: ComplexInputType): String
+  someInt: Int!
+  someGuid: Uuid!
+  kind: CustomerKind!
+}
+
+"A connection to a list of items."
+type CustomerConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [CustomerEdge!]
+  "A flattened list of the nodes."
+  nodes: [Customer]
+}
+
+"An edge in a connection."
+type CustomerEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Customer
+}
+
+type Mutation {
+  createCustomer(input: CreateCustomerInput): CreateCustomerPayload
+  createCustomers(inputs: [CreateCustomerInput]): [CreateCustomerPayload]
+}
+
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+type Query {
+  node(id: ID!): Node
+  customer(id: ID!): Customer
+  customers(ids: [ID!]!): [Customer]
+  consultant(id: ID!): Consultant
+  customerOrConsultant(id: ID!): CustomerOrConsultant
+  customerByKind(kind: CustomerKind!): Customer
+}
+
+union CustomerOrConsultant = Customer | Consultant
+
+input ComplexInputType {
+  value: String
+  deeper: ComplexInputType
+  valueArray: [String]
+  deeperArray: [ComplexInputType]
+}
+
+input CreateCustomerInput {
+  name: String
+  street: String
+  consultantId: String
+}
+
+input CustomerInput {
+  id: String
+  name: String
+  street: String
+  consultantId: String
+  someInt: Int!
+  someGuid: Uuid!
+  kind: CustomerKind!
+}
+
+input SayInput {
+  words: [String]
+}
+
+enum CustomerKind {
+  STANDARD
+  PREMIUM
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `\"4\"`) or integer (such as `4`) input value will be accepted as an ID."
+scalar ID
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+scalar Uuid
