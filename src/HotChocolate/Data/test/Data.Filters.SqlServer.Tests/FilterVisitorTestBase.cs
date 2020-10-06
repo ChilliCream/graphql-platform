@@ -59,7 +59,7 @@ namespace HotChocolate.Data.Filters
                     c => c
                         .Name("Query")
                         .Field("root")
-                         .Resolver(resolver)
+                        .Resolver(resolver)
                         .Use(next => async context =>
                         {
                             await next(context);
