@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Internal;
 
@@ -7,13 +8,14 @@ namespace HotChocolate.Data.Sorting.Expressions
     {
         public QueryableSortContext(
             ISortInputType initialType,
-            bool inMemory)
+            bool inMemory,
+            Type? entityType = null)
             : base(initialType)
         {
             InMemory = inMemory;
             RuntimeTypes = new Stack<IExtendedType>();
             RuntimeTypes.Push(initialType.EntityType);
-            Instance.Push(QueryableFieldSelector.New(initialType.EntityType.Source));
+            Instance.Push(QueryableFieldSelector.New(entityType ?? initialType.EntityType.Source));
         }
 
         public bool InMemory { get; }
