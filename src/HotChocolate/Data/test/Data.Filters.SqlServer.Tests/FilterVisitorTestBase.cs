@@ -29,7 +29,7 @@ namespace HotChocolate.Data.Filters
             try
             {
                 dbContext.Database.EnsureDeleted();
-                // dbContext.Database.EnsureCreated();
+                dbContext.Database.EnsureCreated();
                 dbContext.AddRange(results);
             }
             catch (Exception ex) {
@@ -75,7 +75,7 @@ namespace HotChocolate.Data.Filters
                     c => c
                         .Name("Query")
                         .Field("root")
-                        // .Resolver(resolver)
+                        .Resolver(resolver)
                         .Use(next => async context =>
                         {
                             await next(context);
