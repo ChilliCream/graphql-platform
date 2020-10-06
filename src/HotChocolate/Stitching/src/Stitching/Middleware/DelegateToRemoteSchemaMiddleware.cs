@@ -8,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation;
-using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
@@ -144,8 +143,7 @@ namespace HotChocolate.Stitching
                 return queryResult;
             }
 
-            throw new QueryException(
-                StitchingResources.DelegationMiddleware_OnlyQueryResults);
+            throw new GraphQLException(DelegationMiddleware_OnlyQueryResults);
         }
 
         private static object ExtractData(
@@ -257,11 +255,9 @@ namespace HotChocolate.Stitching
                 values[value.Name] = value;
             }
 
-            IReadOnlyDictionary<string, IValueNode> requestVariables = context.GetVariables();
-
             foreach (VariableValue value in ResolveUsedRequestVariables(
                 context.Schema, schemaName, extractedField,
-                requestVariables, rewriter))
+                context.Variables, rewriter))
             {
                 values[value.Name] = value;
             }
@@ -354,7 +350,7 @@ namespace HotChocolate.Stitching
             ISchema schema,
             NameString schemaName,
             ExtractedField extractedField,
-            IReadOnlyDictionary<string, IValueNode> requestVariables,
+            IVariableValueCollection requestVariables,
             ExtractFieldQuerySyntaxRewriter rewriter)
         {
             foreach (VariableDefinitionNode variable in extractedField.Variables)
@@ -363,7 +359,7 @@ namespace HotChocolate.Stitching
                 INamedInputType namedType = schema.GetType<INamedInputType>(
                     variable.Type.NamedType().Name.Value);
 
-                if (!requestVariables.TryGetValue(name, out IValueNode value))
+                if (!requestVariables.TryGetVariable(name, out IValueNode value))
                 {
                     value = NullValueNode.Default;
                 }

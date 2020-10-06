@@ -16,7 +16,7 @@ namespace HotChocolate.Stitching
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public Task InvokeAsync(IMiddlewareContext context)
+        public ValueTask InvokeAsync(IMiddlewareContext context)
         {
             if (context.Result is SerializedData s)
             {
@@ -49,24 +49,23 @@ namespace HotChocolate.Stitching
             {
                 return value;
             }
-            else if (field.Type.IsListType()
+
+            if (field.Type.IsListType()
                 && field.Type.NamedType() is ILeafType leafType
                 && obj is IList list)
             {
                 Array array = Array.CreateInstance(
-                    leafType.ClrType, list.Count);
+                    leafType.RuntimeType, list.Count);
 
-                for (int i = 0; i < list.Count; i++)
+                for (var i = 0; i < list.Count; i++)
                 {
                     array.SetValue(leafType.Deserialize(list[i]), i);
                 }
 
                 return array;
             }
-            else
-            {
-                return obj;
-            }
+
+            return obj;
         }
     }
 }
