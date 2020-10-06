@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
-using System.Linq.Expressions;
 using HotChocolate.Execution;
+using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data.Projections
 {
@@ -13,11 +13,18 @@ namespace HotChocolate.Data.Projections
             new ConcurrentDictionary<(Type, object), IRequestExecutor>();
 
         public IRequestExecutor CreateSchema<T>(
-            T[] entities)
+            T[] entities,
+            Action<ModelBuilder>? onModelCreating = null,
+            bool usePaging = false)
             where T : class
         {
             (Type, T[] entites) key = (typeof(T), entities);
-            return _cache.GetOrAdd(key, k => base.CreateSchema(entities));
+            return _cache.GetOrAdd(
+                key,
+                k => base.CreateSchema(
+                    entities,
+                    usePaging: usePaging,
+                    onModelCreating: onModelCreating));
         }
 
         public void Dispose()

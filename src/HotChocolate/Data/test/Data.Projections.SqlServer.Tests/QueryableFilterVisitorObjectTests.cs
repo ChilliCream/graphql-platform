@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace HotChocolate.Data.Projections.Expressions
@@ -17,9 +18,11 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    ObjectArray = new List<Bar>
+                    NestedObject =
+                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } },
+                    ObjectArray = new List<BarDeep>
                     {
-                        new Bar { Foo = new Foo { BarShort = 12, BarString = "a" } }
+                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "a" } }
                     }
                 }
             },
@@ -31,22 +34,12 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    ObjectArray = new List<Bar>
+                    NestedObject =
+                        new BarDeep { Foo = new FooDeep { BarShort = 12, BarString = "d" } },
+                    ObjectArray = new List<BarDeep>
                     {
-                        new Bar { Foo = new Foo { BarShort = 14, BarString = "d" } }
+                        new BarDeep { Foo = new FooDeep { BarShort = 14, BarString = "d" } }
                     }
-                }
-            },
-            new Bar
-            {
-                Foo = new Foo
-                {
-                    BarShort = 13,
-                    BarBool = false,
-                    BarEnum = BarEnum.FOO,
-                    BarString = "testctest",
-                    //ScalarArray = null,
-                    ObjectArray = null,
                 }
             }
         };
@@ -94,7 +87,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarString = "testctest",
                     ObjectArray = new List<BarNullable>
                     {
-                        new BarNullable { Foo = new FooNullable { BarShort = 14, } }
+                        new BarNullable { Foo = new FooNullable { BarShort = 14 } }
                     }
                 }
             },
@@ -114,496 +107,106 @@ namespace HotChocolate.Data.Projections.Expressions
         private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
-        public async Task Create_ObjectShortEqual_Expression()
+        public async Task Create_ObjectSingleProjection()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                        "{ foo{ barShort}}}")
+                    .SetQuery("{ root { foo{ barShort}}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("13");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
-        public async Task Create_ObjectShortIn_Expression()
-        {
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
-
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12and13");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("13and14");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ null, 14 ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("nullAnd14");
-        }
-
-        [Fact]
-        public async Task Create_ObjectNullableShortEqual_Expression()
+        public async Task Create_ObjectTwoProjections()
         {
             // arrange
-            IRequestExecutor? tester =
-                _cache.CreateSchema(_barNullableEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: 12}}}) " +
-                        "{ foo{ barShort}}}")
+                    .SetQuery("{ root { foo{ barString barShort}}}")
                     .Create());
 
             res1.MatchSqlSnapshot("12");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: 13}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("13");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { eq: null}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
         }
 
         [Fact]
-        public async Task Create_ObjectNullableShortIn_Expression()
-        {
-            IRequestExecutor? tester =
-                _cache.CreateSchema(_barNullableEntities);
-
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ 12, 13 ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12and13");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ 13, 14 ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("13and14");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barShort: { in: [ 13, null ]}}}) " +
-                        "{ foo{ barShort}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("13andNull");
-        }
-
-        [Fact]
-        public async Task Create_ObjectBooleanEqual_Expression()
+        public async Task Create_NestedObjectTwoProjections()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                        "{ foo{ barBool}}}")
+                    .SetQuery("{ root { foo { nestedObject { foo { barString barShort}}}}}")
                     .Create());
 
-            res1.MatchSqlSnapshot("true");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("false");
+            res1.MatchSqlSnapshot("12");
         }
 
         [Fact]
-        public async Task Create_ObjectNullableBooleanEqual_Expression()
+        public async Task Create_NestedObjectDifferentLevelProjection()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(
-                _barNullableEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barBool: { eq: true}}}) " +
-                        "{ foo{ barBool}}}")
+                    .SetQuery("{ root { foo { barString nestedObject { foo {barShort}}}}}")
                     .Create());
 
-            res1.MatchSqlSnapshot("true");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barBool: { eq: false}}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("false");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barBool: { eq: null}}}) " +
-                        "{ foo{ barBool}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
+            res1.MatchSqlSnapshot("12");
         }
 
         [Fact]
-        public async Task Create_ObjectEnumEqual_Expression()
-        {
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("BAR");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("FOO");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        [Fact]
-        public async Task Create_ObjectEnumIn_Expression()
-        {
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("BarAndFoo");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("FOO");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("nullAndFoo");
-        }
-
-        [Fact]
-        public async Task Create_ObjectNullableEnumEqual_Expression()
-        {
-            IRequestExecutor? tester = _cache.CreateSchema(
-                _barNullableEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: BAR}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("BAR");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: FOO}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("FOO");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { eq: null}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        [Fact]
-        public async Task Create_ObjectNullableEnumIn_Expression()
-        {
-            IRequestExecutor? tester = _cache.CreateSchema(
-                _barNullableEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ BAR FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("BarAndFoo");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("FOO");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barEnum: { in: [ null FOO ]}}}) " +
-                        "{ foo{ barEnum}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("nullAndFoo");
-        }
-
-        [Fact]
-        public async Task Create_ObjectStringEqual_Expression()
+        public async Task Create_ListObjectTwoProjections()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { eq: \"testatest\"}}}) " +
-                        "{ foo{ barString}}}")
+                    .SetQuery("{ root { foo { objectArray { foo { barString barShort}}}}}")
                     .Create());
 
-            res1.MatchSqlSnapshot("testatest");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { eq: \"testbtest\"}}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("testbtest");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { eq: null}}}){ foo{ barString}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
+            res1.MatchSqlSnapshot("12");
         }
 
         [Fact]
-        public async Task Create_ObjectStringIn_Expression()
+        public async Task Create_ListObjectDifferentLevelProjection()
         {
             // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
 
             // act
             // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
+            IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { in: " +
-                        "[ \"testatest\"  \"testbtest\" ]}}}) " +
-                        "{ foo{ barString}}}")
+                    .SetQuery("{ root { foo { barString objectArray{ foo {barShort}}}}}")
                     .Create());
 
-            res1.MatchSqlSnapshot("testatestAndtestb");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { in: [\"testbtest\" null]}}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("testbtestAndNull");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { barString: { in: [ \"testatest\" ]}}}) " +
-                        "{ foo{ barString}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("testatest");
+            res1.MatchSqlSnapshot("12");
         }
 
-        [Fact]
-        public async Task Create_ArrayObjectNestedArraySomeStringEqual_Expression()
+        public static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo:{ objectArray: { " +
-                        "some: { foo: { barString: { eq: \"a\"}}}}}}) " +
-                        "{ foo { objectArray { foo { barString}}}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("a");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo:{ objectArray: { " +
-                        "some: { foo: { barString: { eq: \"d\"}}}}}}) " +
-                        "{ foo { objectArray { foo { barString}}}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("d");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo:{ objectArray: { " +
-                        "some: { foo: { barString: { eq: null}}}}}}) " +
-                        "{ foo { objectArray { foo {barString}}}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        [Fact]
-        public async Task Create_ArrayObjectNestedArrayAnyStringEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor? tester = _cache.CreateSchema(_barEntities);
-
-            // act
-            // assert
-            IExecutionResult? res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { objectArray: { any: false}}}) " +
-                        "{ foo { objectArray  { foo { barString }}}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("false");
-
-            IExecutionResult? res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { objectArray: { any: true}}}) " +
-                        "{ foo { objectArray  { foo { barString }}}}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("true");
-
-            IExecutionResult? res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        "{ root(where: { foo: { objectArray: { any: null}}}) " +
-                        "{ foo { objectArray  { foo { barString }}}}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
+            modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
+            modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
+            modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
         }
 
         public class Foo
@@ -618,7 +221,18 @@ namespace HotChocolate.Data.Projections.Expressions
 
             public bool BarBool { get; set; }
 
-            public List<Bar> ObjectArray { get; set; }
+            public List<BarDeep> ObjectArray { get; set; }
+
+            public BarDeep NestedObject { get; set; }
+        }
+
+        public class FooDeep
+        {
+            public int Id { get; set; }
+
+            public short BarShort { get; set; }
+
+            public string BarString { get; set; } = string.Empty;
         }
 
         public class FooNullable
@@ -641,6 +255,13 @@ namespace HotChocolate.Data.Projections.Expressions
             public int Id { get; set; }
 
             public Foo Foo { get; set; }
+        }
+
+        public class BarDeep
+        {
+            public int Id { get; set; }
+
+            public FooDeep Foo { get; set; }
         }
 
         public class BarNullable

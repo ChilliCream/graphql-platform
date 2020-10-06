@@ -220,6 +220,9 @@ namespace HotChocolate.Data
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
 
+            var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
+            convention.ConfigureField(fieldDescriptor);
+
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
             var index = definition.MiddlewareComponents.IndexOf(placeholder);

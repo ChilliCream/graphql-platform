@@ -8,11 +8,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class DescriptorBase<T>
-        : IDescriptor<T>
-        , IDescriptorExtension<T>
-        , IDescriptorExtension
-        , IDefinitionFactory<T>
-        , IHasDescriptorContext
+        : IDescriptor<T>,
+          IDescriptorExtension<T>,
+          IDescriptorExtension,
+          IDefinitionFactory<T>,
+          IHasDescriptorContext
         where T : DefinitionBase
     {
         private readonly List<Action<IDescriptorContext, T>> _modifiers =
@@ -45,6 +45,11 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return Definition;
+        }
+
+        public void ConfigureContextData(Action<ExtensionData> configure)
+        {
+            configure(Definition.ContextData);
         }
 
         protected virtual void OnCreateDefinition(T definition)
@@ -89,7 +94,7 @@ namespace HotChocolate.Types.Descriptors
             OnBeforeNaming(configure);
 
         private INamedDependencyDescriptor OnBeforeNaming(
-           Action<ITypeCompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             if (configure is null)
             {
@@ -98,9 +103,7 @@ namespace HotChocolate.Types.Descriptors
 
             var configuration = new TypeConfiguration<T>
             {
-                Definition = Definition,
-                On = ApplyConfigurationOn.Naming,
-                Configure = configure
+                Definition = Definition, On = ApplyConfigurationOn.Naming, Configure = configure
             };
             Definition.Configurations.Add(configuration);
 

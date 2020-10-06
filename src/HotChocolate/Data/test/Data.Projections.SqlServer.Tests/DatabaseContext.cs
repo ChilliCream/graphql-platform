@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -8,14 +9,23 @@ namespace HotChocolate.Data.Projections
         where T : class
     {
         private readonly string _fileName;
+        private readonly Action<ModelBuilder>? _onModelCreating;
         private bool _disposed;
 
-        public DatabaseContext(string fileName)
+        public DatabaseContext(
+            string fileName,
+            Action<ModelBuilder>? onModelCreating = null)
         {
             _fileName = fileName;
+            _onModelCreating = onModelCreating;
         }
 
         public DbSet<T> Data { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            _onModelCreating?.Invoke(modelBuilder);
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

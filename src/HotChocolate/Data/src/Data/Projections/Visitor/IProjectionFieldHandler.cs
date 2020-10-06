@@ -6,6 +6,6 @@ namespace HotChocolate.Data.Projections
     {
         bool CanHandle(ISelection selection);
 
-        Selection RewriteSelection(Selection selection);
+        IProjectionFieldHandler Wrap(IProjectionFieldInterceptor interceptor);
     }
 }

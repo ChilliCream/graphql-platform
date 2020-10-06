@@ -1,0 +1,9 @@
+﻿SELECT "f"."BarString", "d"."Id", "t"."BarString", "t"."BarShort", "t"."Id"
+FROM "Data" AS "d"
+LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+LEFT JOIN (
+    SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "b"."FooId"
+    FROM "BarDeep" AS "b"
+    LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"
+) AS "t" ON "f"."Id" = "t"."FooId"
+ORDER BY "d"."Id", "t"."BarShort", "t"."Id"

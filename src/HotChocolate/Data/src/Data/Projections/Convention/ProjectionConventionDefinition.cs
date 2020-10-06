@@ -10,5 +10,11 @@ namespace HotChocolate.Data.Projections
 
         public IList<(Type, IProjectionFieldHandler?)> Handlers { get; } =
             new List<(Type, IProjectionFieldHandler?)>();
+
+        public IList<(Type, IProjectionFieldInterceptor?)> Interceptors { get; } =
+            new List<(Type, IProjectionFieldInterceptor?)>();
+
+        public IList<(Type, IProjectionOptimizer?)> Optimizers { get; } =
+            new List<(Type, IProjectionOptimizer?)>();
     }
 }

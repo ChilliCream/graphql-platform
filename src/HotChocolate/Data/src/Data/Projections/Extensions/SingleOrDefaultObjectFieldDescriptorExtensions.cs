@@ -5,10 +5,10 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    /*
     public static class SingleOrDefaultObjectFieldDescriptorExtensions
     {
         private static readonly Type _firstMiddleware = typeof(FirstOrDefaultMiddleware<>);
@@ -37,42 +37,46 @@ namespace HotChocolate.Types
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate((context, definition) =>
-                {
-                    definition.ContextData[optionName] = null;
-
-
-                    if (definition.ResultType is null ||
-                        !context.TypeInspector.TryCreateTypeInfo(
-                            definition.ResultType, out ITypeInfo? typeInfo))
+                .OnBeforeCreate(
+                    (context, definition) =>
                     {
-                        Type resultType = definition.ResolverType ?? typeof(object);
-                        throw new ArgumentException(
-                            $"Cannot handle the specified type `{resultType.FullName}`.",
-                            nameof(descriptor));
-                    }
+                        definition.ContextData[optionName] = null;
 
-                    Type selectionType = typeInfo.NamedType;
-                    definition.ResultType = selectionType;
-                    definition.Type = RewriteToNonNullableType(definition.Type);
+                        if (definition.ResultType is null ||
+                            !context.TypeInspector.TryCreateTypeInfo(
+                                definition.ResultType,
+                                out ITypeInfo? typeInfo))
+                        {
+                            Type resultType = definition.ResolverType ?? typeof(object);
+                            throw new ArgumentException(
+                                $"Cannot handle the specified type `{resultType.FullName}`.",
+                                nameof(descriptor));
+                        }
 
-                    ILazyTypeConfiguration lazyConfiguration =
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((_, __) =>
-                            {
-                                CompileMiddleware(
-                                    selectionType,
-                                    definition,
-                                    placeholder,
-                                    middlewareDefinition);
-                            })
-                            .On(ApplyConfigurationOn.Completion)
-                            .Build();
+                        Type selectionType = typeInfo.NamedType;
+                        definition.ResultType = selectionType;
+                        definition.Type = RewriteToNonNullableType(
+                            context.TypeInspector,
+                            definition.Type);
 
-                    definition.Configurations.Add(lazyConfiguration);
-                });
+                        ILazyTypeConfiguration lazyConfiguration =
+                            LazyTypeConfigurationBuilder
+                                .New<ObjectFieldDefinition>()
+                                .Definition(definition)
+                                .Configure(
+                                    (_, __) =>
+                                    {
+                                        CompileMiddleware(
+                                            selectionType,
+                                            definition,
+                                            placeholder,
+                                            middlewareDefinition);
+                                    })
+                                .On(ApplyConfigurationOn.Completion)
+                                .Build();
+
+                        definition.Configurations.Add(lazyConfiguration);
+                    });
 
             return descriptor;
         }
@@ -89,42 +93,19 @@ namespace HotChocolate.Types
             definition.MiddlewareComponents[index] = middleware;
         }
 
-        private static ITypeReference RewriteToNonNullableType(ITypeReference type)
+        private static ITypeReference RewriteToNonNullableType(
+            ITypeInspector typeInspector,
+            ITypeReference reference)
         {
-            if (type is ExtendedTypeReference extendedTypeRef)
+            if (reference is ExtendedTypeReference extendedTypeRef)
             {
-                IExtendedType rewritten = Unwrap(extendedTypeRef.Type);
-                rewritten = rewritten.ElementType ?? extendedTypeRef.Type;
-                return extendedTypeRef.WithType(rewritten);
+                return extendedTypeRef.Type.IsNullable
+                    ? extendedTypeRef.WithType(
+                        typeInspector.ChangeNullability(extendedTypeRef.Type, false))
+                    : extendedTypeRef;
             }
 
             throw new NotSupportedException();
         }
-
-        private static IExtendedType Unwrap(IExtendedType type)
-        {
-            IExtendedType current = type;
-
-            while (IsWrapperType(current) || IsTaskType(current) || IsOptional(current))
-            {
-                current = type.TypeArguments[0];
-            }
-
-            return current;
-        }
-
-        private static bool IsWrapperType(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(NativeType<>) == type.Definition;
-
-        private static bool IsTaskType(IExtendedType type) =>
-            type.IsGeneric &&
-            (typeof(Task<>) == type.Definition ||
-             typeof(ValueTask<>) == type.Definition);
-
-        private static bool IsOptional(IExtendedType type) =>
-            type.IsGeneric &&
-            typeof(Optional<>) == type.Definition;
     }
-    */
 }

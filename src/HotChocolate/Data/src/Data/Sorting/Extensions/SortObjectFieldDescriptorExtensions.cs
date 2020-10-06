@@ -135,70 +135,77 @@ namespace HotChocolate.Data
             descriptor
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCreate((c, definition) =>
-                {
-                    Type? argumentType = sortType;
-
-                    if (argumentType is null)
+                .OnBeforeCreate(
+                    (c, definition) =>
                     {
-                        if (definition.ResultType is null ||
-                            definition.ResultType == typeof(object) ||
-                            !c.TypeInspector.TryCreateTypeInfo(
-                                definition.ResultType, out ITypeInfo? typeInfo))
+                        Type? argumentType = sortType;
+
+                        if (argumentType is null)
                         {
-                            throw new ArgumentException(
-                                SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
-                                nameof(descriptor));
+                            if (definition.ResultType is null ||
+                                definition.ResultType == typeof(object) ||
+                                !c.TypeInspector.TryCreateTypeInfo(
+                                    definition.ResultType,
+                                    out ITypeInfo? typeInfo))
+                            {
+                                throw new ArgumentException(
+                                    SortObjectFieldDescriptorExtensions_UseSorting_CannotHandleType,
+                                    nameof(descriptor));
+                            }
+
+                            argumentType = typeof(SortInputType<>)
+                                .MakeGenericType(typeInfo.NamedType);
                         }
 
-                        argumentType = typeof(SortInputType<>)
-                            .MakeGenericType(typeInfo.NamedType);
-                    }
+                        ITypeReference argumentTypeReference = sortTypeInstance is null
+                            ? (ITypeReference)c.TypeInspector.GetTypeRef(
+                                argumentType,
+                                TypeContext.Input,
+                                scope)
+                            : TypeReference.Create(sortTypeInstance, scope);
 
-                    ITypeReference argumentTypeReference = sortTypeInstance is null
-                        ? (ITypeReference)c.TypeInspector.GetTypeRef(
-                            argumentType,
-                            TypeContext.Input,
-                            scope)
-                        : TypeReference.Create(sortTypeInstance, scope);
+                        if (argumentType == typeof(object))
+                        {
+                            throw SortObjectFieldDescriptorExtensions_CannotInfer();
+                        }
 
-                    if (argumentType == typeof(object))
-                    {
-                        throw SortObjectFieldDescriptorExtensions_CannotInfer();
-                    }
+                        var argumentDefinition = new ArgumentDefinition
+                        {
+                            Name = argumentPlaceholder,
+                            Type = c.TypeInspector.GetTypeRef(
+                                argumentType,
+                                TypeContext.Input,
+                                scope)
+                        };
+                        definition.Arguments.Add(argumentDefinition);
 
-                    var argumentDefinition = new ArgumentDefinition
-                    {
-                        Name = argumentPlaceholder,
-                        Type = c.TypeInspector.GetTypeRef(argumentType, TypeContext.Input, scope)
-                    };
-                    definition.Arguments.Add(argumentDefinition);
+                        definition.Configurations.Add(
+                            LazyTypeConfigurationBuilder
+                                .New<ObjectFieldDefinition>()
+                                .Definition(definition)
+                                .Configure(
+                                    (context, defintion) =>
+                                        CompileMiddleware(
+                                            context,
+                                            definition,
+                                            argumentTypeReference,
+                                            placeholder,
+                                            scope))
+                                .On(ApplyConfigurationOn.Completion)
+                                .DependsOn(argumentTypeReference, true)
+                                .Build());
 
-                    definition.Configurations.Add(
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, defintion) =>
-                                CompileMiddleware(
-                                    context,
-                                    definition,
-                                    argumentTypeReference,
-                                    placeholder,
-                                    scope))
-                            .On(ApplyConfigurationOn.Completion)
-                            .DependsOn(argumentTypeReference, true)
-                            .Build());
-
-                    definition.Configurations.Add(
-                        LazyTypeConfigurationBuilder
-                            .New<ObjectFieldDefinition>()
-                            .Definition(definition)
-                            .Configure((context, defintion) =>
-                                argumentDefinition.Name =
-                                    context.GetSortConvention(scope).GetArgumentName())
-                            .On(ApplyConfigurationOn.Naming)
-                            .Build());
-                });
+                        definition.Configurations.Add(
+                            LazyTypeConfigurationBuilder
+                                .New<ObjectFieldDefinition>()
+                                .Definition(definition)
+                                .Configure(
+                                    (context, defintion) =>
+                                        argumentDefinition.Name =
+                                            context.GetSortConvention(scope).GetArgumentName())
+                                .On(ApplyConfigurationOn.Naming)
+                                .Build());
+                    });
 
             return descriptor;
         }
@@ -212,6 +219,9 @@ namespace HotChocolate.Data
         {
             ISortInputType type = context.GetType<ISortInputType>(argumentTypeReference);
             ISortConvention convention = context.DescriptorContext.GetSortConvention(scope);
+
+            var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
+            convention.ConfigureField(fieldDescriptor);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;

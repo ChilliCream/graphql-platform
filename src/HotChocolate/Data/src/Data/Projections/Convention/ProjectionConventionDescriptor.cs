@@ -36,6 +36,34 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        public IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>()
+            where THandler : IProjectionFieldInterceptor
+        {
+            Definition.Interceptors.Add((typeof(THandler), null));
+            return this;
+        }
+
+        public IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
+            where THandler : IProjectionFieldInterceptor
+        {
+            Definition.Interceptors.Add((typeof(THandler), handler));
+            return this;
+        }
+
+        public IProjectionConventionDescriptor RegisterOptimizer<THandler>()
+            where THandler : IProjectionOptimizer
+        {
+            Definition.Optimizers.Add((typeof(THandler), null));
+            return this;
+        }
+
+        public IProjectionConventionDescriptor RegisterOptimizer<THandler>(THandler handler)
+            where THandler : IProjectionOptimizer
+        {
+            Definition.Optimizers.Add((typeof(THandler), handler));
+            return this;
+        }
+
         /// <summary>
         /// Creates a new descriptor for <see cref="ProjectionConvention"/>
         /// </summary>

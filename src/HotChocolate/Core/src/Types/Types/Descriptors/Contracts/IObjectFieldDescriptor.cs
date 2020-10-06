@@ -10,8 +10,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public interface IObjectFieldDescriptor
-        : IDescriptor<ObjectFieldDefinition>
-        , IFluent
+        : IDescriptor<ObjectFieldDefinition>,
+          IFluent
     {
         IObjectFieldDescriptor SyntaxNode(
             FieldDefinitionNode? fieldDefinition);
@@ -86,5 +86,7 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IObjectFieldDescriptor ConfigureContextData(Action<ExtensionData> configure);
     }
 }

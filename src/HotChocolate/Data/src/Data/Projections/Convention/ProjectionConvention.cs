@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -14,49 +10,6 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Projections
 {
-    public class ProjectionSelection
-        : Selection,
-          IProjectionSelection
-    {
-        public ProjectionSelection(
-            IProjectionFieldHandler handler,
-            IObjectType declaringType,
-            IObjectField field,
-            FieldNode selection,
-            FieldDelegate resolverPipeline,
-            NameString? responseName = null,
-            IReadOnlyDictionary<NameString, ArgumentValue>? arguments = null,
-            SelectionIncludeCondition? includeCondition = null,
-            bool internalSelection = false) : base(
-            declaringType,
-            field,
-            selection,
-            resolverPipeline,
-            responseName,
-            arguments,
-            includeCondition,
-            internalSelection)
-        {
-            Handler = handler;
-        }
-
-        public IProjectionFieldHandler Handler { get; }
-
-        public static ProjectionSelection From(
-            Selection selection,
-            IProjectionFieldHandler handler) =>
-            new ProjectionSelection(
-                handler,
-                selection.DeclaringType,
-                selection.Field,
-                selection.SyntaxNode,
-                selection.ResolverPipeline,
-                selection.ResponseName,
-                selection.Arguments,
-                selection.IncludeConditions?.FirstOrDefault(),
-                selection.IsInternal);
-    }
-
     /// <summary>
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
@@ -66,8 +19,13 @@ namespace HotChocolate.Data.Projections
     {
         private Action<IProjectionConventionDescriptor>? _configure;
 
-        public IList<IProjectionFieldHandler> _fieldHandlers { get; } =
+        private readonly IList<IProjectionFieldHandler> _fieldHandlers =
             new List<IProjectionFieldHandler>();
+
+        private readonly IList<IProjectionFieldInterceptor> _fieldInterceptors =
+            new List<IProjectionFieldInterceptor>();
+
+        private readonly IList<IProjectionOptimizer> _optimizer = new List<IProjectionOptimizer>();
 
         protected ProjectionConvention()
         {
@@ -136,16 +94,77 @@ namespace HotChocolate.Data.Projections
                         break;
                 }
             }
+
+            foreach ((Type Type, IProjectionFieldInterceptor? Instance) handler in
+                definition.Interceptors)
+            {
+                switch (handler.Instance)
+                {
+                    case null when services.TryGetOrCreateService(
+                        handler.Type,
+                        out IProjectionFieldInterceptor? service):
+                        _fieldInterceptors.Add(service);
+                        break;
+                    case null:
+                        context.ReportError(
+                            ProjectionConvention_UnableToCreateFieldHandler(this, handler.Type));
+                        break;
+                    default:
+                        _fieldInterceptors.Add(handler.Instance);
+                        break;
+                }
+            }
+
+            foreach ((Type Type, IProjectionOptimizer? Instance) handler in
+                definition.Optimizers)
+            {
+                switch (handler.Instance)
+                {
+                    case null when services.TryGetOrCreateService(
+                        handler.Type,
+                        out IProjectionOptimizer? service):
+                        _optimizer.Add(service);
+                        break;
+                    case null:
+                        context.ReportError(
+                            ProjectionConvention_UnableToCreateFieldHandler(this, handler.Type));
+                        break;
+                    default:
+                        _optimizer.Add(handler.Instance);
+                        break;
+                }
+            }
         }
 
-        public Selection RewriteSelection(Selection selection)
+        public Selection RewriteSelection(
+            SelectionOptimizerContext context,
+            Selection selection)
         {
+            for (var i = 0; i < _optimizer.Count; i++)
+            {
+                if (_optimizer[i].CanHandle(selection))
+                {
+                    selection = _optimizer[i].RewriteSelection(context, selection);
+                }
+            }
+
             for (var i = 0; i < _fieldHandlers.Count; i++)
             {
                 if (_fieldHandlers[i].CanHandle(selection))
                 {
-                    selection = _fieldHandlers[i].RewriteSelection(selection);
-                    return ProjectionSelection.From(selection, _fieldHandlers[i]);
+                    IProjectionFieldHandler fieldHandler = _fieldHandlers[i];
+
+                    for (var m = 0; m < _fieldInterceptors.Count; m++)
+                    {
+                        if (_fieldInterceptors[m].CanHandle(selection))
+                        {
+                            fieldHandler = fieldHandler.Wrap(_fieldInterceptors[m]);
+                        }
+                    }
+
+                    return ProjectionSelection.From(
+                        selection,
+                        fieldHandler);
                 }
             }
 

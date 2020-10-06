@@ -12,7 +12,7 @@ namespace HotChocolate.Data
             IObjectFieldDescriptor descriptor,
             MemberInfo member)
         {
-            //         descriptor.UseSingleOrDefault();
+            descriptor.UseSingleOrDefault();
         }
     }
 }

@@ -6,7 +6,5 @@ namespace HotChocolate.Data.Projections
         : IProjectionVisitorContext
     {
         Stack<ProjectionScope<T>> Scopes { get; }
-
-        ProjectionScope<T> CreateScope();
     }
 }

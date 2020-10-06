@@ -1,6 +1,7 @@
 namespace HotChocolate.Data.Projections
 {
-    public interface IProjectionFieldHandler<in TContext, T>
+    // TODO obsolete
+    public interface IProjectionFieldHandler<TContext, T>
         : IProjectionFieldHandler<TContext>
         where TContext : ProjectionVisitorContext<T>
     {

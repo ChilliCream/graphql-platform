@@ -8,6 +8,8 @@ namespace HotChocolate.Data.Projections
 {
     public sealed class FirstOrDefaultMiddleware<T>
     {
+        public const string ContextKey = nameof(FirstOrDefaultMiddleware<object>);
+
         private readonly FieldDelegate _next;
 
         public FirstOrDefaultMiddleware(FieldDelegate next)
@@ -36,7 +38,8 @@ namespace HotChocolate.Data.Projections
             else if (context.Result is IEnumerable<T> e)
             {
                 context.Result = await Task.Run(
-                    () => e.FirstOrDefault(), context.RequestAborted)
+                        () => e.FirstOrDefault(),
+                        context.RequestAborted)
                     .ConfigureAwait(false);
             }
         }

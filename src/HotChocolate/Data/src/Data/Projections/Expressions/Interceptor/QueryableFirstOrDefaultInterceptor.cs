@@ -1,8 +1,8 @@
 namespace HotChocolate.Data.Projections.Handlers
 {
-    public class FirstOrDefaultHandler : TakeHandlerBase
+    public class QueryableFirstOrDefaultInterceptor : QueryableTakeHandlerInterceptor
     {
-        public FirstOrDefaultHandler()
+        public QueryableFirstOrDefaultInterceptor()
             : base(SelectionOptions.FirstOrDefault, 1)
         {
         }

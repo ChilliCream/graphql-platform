@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Projections.Expressions
 
         ///<summary>
         /// Contains a queue for each level of the AST. The queues contain all operations of a level
-        /// A new queue is neeeded when entering new <see cref="ObjectValueNode"/>
+        /// A new queue is needed when entering new <see cref="ObjectValueNode"/>
         ///</summary>
         public Stack<Queue<MemberAssignment>> Level { get; }
 

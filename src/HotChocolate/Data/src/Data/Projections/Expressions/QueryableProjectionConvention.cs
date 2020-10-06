@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
@@ -45,12 +49,20 @@ namespace HotChocolate.Data.Projections.Expressions
                 if (source is not null)
                 {
                     var visitorContext =
-                        new QueryableProjectionContext(context, context.ObjectType);
-                    var visitor = new ProjectionVisitor<QueryableProjectionContext>();
+                        new QueryableProjectionContext(
+                            context,
+                            context.ObjectType,
+                            context.Field.Type.ElementType().ToRuntimeType());
+                    var visitor = new QueryableProjectionVisitor();
                     visitor.Visit(visitorContext);
-//                    context.Result = source.Select(visitor.Project<TEntityType>());
+                    context.Result = source.Select(visitorContext.Project<TEntityType>());
                 }
             }
         }
+    }
+
+    public class QueryableProjectionVisitor
+        : ProjectionVisitor<QueryableProjectionContext>
+    {
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Internal;
@@ -26,9 +27,10 @@ namespace HotChocolate.Types
 
         public void OptimizeSelectionSet(SelectionOptimizerContext context)
         {
-            foreach (KeyValuePair<string, Selection> field in context.Fields)
+            foreach (KeyValuePair<string, Selection> field in context.Fields.ToArray())
             {
-                context.Fields[field.Key] = _convention.RewriteSelection(field.Value);
+                context.Fields[field.Key] =
+                    _convention.RewriteSelection(context, field.Value);
             }
         }
 

@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Data
 {
-    /*
     public sealed class UseFirstOrDefaultAttribute
         : ObjectFieldDescriptorAttribute
     {
@@ -16,6 +15,4 @@ namespace HotChocolate.Data
             descriptor.UseFirstOrDefault();
         }
     }
-
-   */
 }

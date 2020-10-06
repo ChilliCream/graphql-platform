@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -10,13 +12,14 @@ using static HotChocolate.Data.ErrorHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>
-        , IFilterProvider
-        , IFilterProviderConvention
+        : Convention<FilterProviderDefinition>,
+          IFilterProvider,
+          IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
             new List<IFilterFieldHandler<TContext>>();
+
         private Action<IFilterProviderDescriptor<TContext>>? _configure;
 
         protected FilterProvider()
@@ -62,10 +65,10 @@ namespace HotChocolate.Data.Filters
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                    (typeof(IFilterProvider), this),
+                    (typeof(IConventionContext), context),
+                    (typeof(IDescriptorContext), context.DescriptorContext),
+                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, IFilterFieldHandler? Instance) handler in definition.Handlers)
@@ -75,14 +78,14 @@ namespace HotChocolate.Data.Filters
                     case null when services.TryGetOrCreateService(
                         handler.Type,
                         out IFilterFieldHandler<TContext>? service):
-                        _fieldHandlers .Add(service);
+                        _fieldHandlers.Add(service);
                         break;
                     case null:
                         context.ReportError(
                             FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
                         break;
                     case IFilterFieldHandler<TContext> casted:
-                        _fieldHandlers .Add(casted);
+                        _fieldHandlers.Add(casted);
                         break;
                 }
             }
@@ -91,5 +94,11 @@ namespace HotChocolate.Data.Filters
         protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
         public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+
+        public virtual void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+        }
     }
 }

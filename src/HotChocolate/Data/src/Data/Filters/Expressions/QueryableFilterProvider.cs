@@ -12,6 +12,11 @@ namespace HotChocolate.Data.Filters.Expressions
     public class QueryableFilterProvider
         : FilterProvider<QueryableFilterContext>
     {
+        public const string ContextArgumentNameKey = "FilterArgumentName";
+        public const string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
+        public const string SkipFilteringKey = "SkipFiltering";
+
+
         public QueryableFilterProvider()
         {
         }
@@ -41,7 +46,12 @@ namespace HotChocolate.Data.Filters.Expressions
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no filter is defined we can stop here and yield back control.
-                if (filter.IsNull())
+                if (filter.IsNull() ||
+                    (context.LocalContextData.TryGetValue(
+                            SkipFilteringKey,
+                            out object? skipObject) &&
+                        skipObject is bool skip &&
+                        skip))
                 {
                     return;
                 }
@@ -57,13 +67,17 @@ namespace HotChocolate.Data.Filters.Expressions
                     source = e.AsQueryable();
                 }
 
-                if (source != null && argument.Type is IFilterInputType filterInput)
+                if (source != null &&
+                    argument.Type is IFilterInputType filterInput &&
+                    context.Field.ContextData.TryGetValue(
+                        ContextVisitFilterArgumentKey,
+                        out object? executorObj) &&
+                    executorObj is VisitFilterArgument executor)
                 {
-                    var visitorContext = new QueryableFilterContext(
-                        filterInput, source is EnumerableQuery);
-
-                    // rewrite GraphQL input object into expression tree.
-                    Visitor.Visit(filter, visitorContext);
+                    QueryableFilterContext visitorContext = executor(
+                        filter,
+                        filterInput,
+                        source is EnumerableQuery);
 
                     // compile expression tree
                     if (visitorContext.TryCreateLambda(
@@ -85,5 +99,38 @@ namespace HotChocolate.Data.Filters.Expressions
                 }
             }
         }
+
+        public override void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+            QueryableFilterContext VisitFilterArgumentExecutor(
+                IValueNode valueNode,
+                IFilterInputType filterInput,
+                bool inMemory)
+            {
+                var visitorContext = new QueryableFilterContext(
+                    filterInput,
+                    inMemory);
+
+                // rewrite GraphQL input object into expression tree.
+                Visitor.Visit(valueNode, visitorContext);
+
+                return visitorContext;
+            }
+
+            descriptor.ConfigureContextData(
+                contextData =>
+                {
+                    contextData[ContextVisitFilterArgumentKey] =
+                        (VisitFilterArgument)VisitFilterArgumentExecutor;
+                    contextData[ContextArgumentNameKey] = argumentName;
+                });
+        }
     }
+
+    public delegate QueryableFilterContext VisitFilterArgument(
+        IValueNode filterValueNode,
+        IFilterInputType filterInputType,
+        bool inMemory);
 }
