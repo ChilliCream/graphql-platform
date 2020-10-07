@@ -266,5 +266,17 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("BufferedRequest_Create_QueryCannotBeNull", resourceCulture);
             }
         }
+        
+        internal static string ThrowHelper_BufferedRequest_VariableDoesNotExist {
+            get {
+                return ResourceManager.GetString("ThrowHelper_BufferedRequest_VariableDoesNotExist", resourceCulture);
+            }
+        }
+        
+        internal static string ThrowHelper_BufferedRequest_OperationNotFound {
+            get {
+                return ResourceManager.GetString("ThrowHelper_BufferedRequest_OperationNotFound", resourceCulture);
+            }
+        }
     }
 }

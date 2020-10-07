@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Stitching.ThrowHelper;
 
 namespace HotChocolate.Stitching.Requests
 {
@@ -41,6 +42,11 @@ namespace HotChocolate.Stitching.Requests
                 throw new ArgumentNullException(nameof(request));
             }
 
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
             if (request.Query is null)
             {
                 throw new ArgumentException(
@@ -72,12 +78,7 @@ namespace HotChocolate.Stitching.Requests
 
             if (operation is null)
             {
-                // TODO : throw helper
-                throw new InvalidOperationException(
-                    "The provided remote query does not contain the specified operation." +
-                    Environment.NewLine +
-                    Environment.NewLine +
-                    $"`{document}`");
+                throw BufferedRequest_OperationNotFound(document);
             }
 
             return operation;
@@ -90,14 +91,25 @@ namespace HotChocolate.Stitching.Requests
         {
             if (request.VariableValues is { Count: > 0 })
             {
+                ITypeConverter converter = schema.Services.GetTypeConverter();
                 var builder = QueryRequestBuilder.From(request);
 
                 foreach (KeyValuePair<string, object?> variable in request.VariableValues)
                 {
-                    builder.SetVariableValue(
-                        variable.Key,
-                        RewriteVariable(operation, variable.Key, variable.Value, schema));
+                    if (variable.Value is not IValueNode)
+                    {
+                        builder.SetVariableValue(
+                            variable.Key,
+                            RewriteVariable(
+                                operation,
+                                variable.Key,
+                                variable.Value,
+                                schema,
+                                converter));
+                    }
                 }
+
+                return builder.Create();
             }
 
             return request;
@@ -106,8 +118,9 @@ namespace HotChocolate.Stitching.Requests
         private static IValueNode RewriteVariable(
             OperationDefinitionNode operation,
             string name,
-            object value,
-            ISchema schema)
+            object? value,
+            ISchema schema,
+            ITypeConverter converter)
         {
             VariableDefinitionNode? variableDefinition =
                 operation.VariableDefinitions.FirstOrDefault(t =>
@@ -119,13 +132,22 @@ namespace HotChocolate.Stitching.Requests
                     out INamedInputType namedType))
             {
                 var variableType = (IInputType)variableDefinition.Type.ToType(namedType);
+
+                if (value is not null &&
+                    !variableType.RuntimeType.IsInstanceOfType(value) &&
+                    converter.TryConvert(
+                        value.GetType(),
+                        variableType.RuntimeType,
+                        value,
+                        out object? converted))
+                {
+                    value = converted;
+                }
+
                 return variableType.ParseValue(value);
             }
 
-            // TODO : throw helper
-            throw new InvalidOperationException(
-                $"The specified variable `{name}` does not exist or is of an " +
-                "invalid type.");
+            throw BufferedRequest_VariableDoesNotExist(name);
         }
     }
 }

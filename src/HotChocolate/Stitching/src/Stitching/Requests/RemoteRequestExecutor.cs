@@ -115,7 +115,7 @@ namespace HotChocolate.Stitching.Requests
             // we however have to group requests by operation type. This means we should
             // end up with one or two requests (query and mutation).
             foreach ((IQueryRequest Merged, IEnumerable<BufferedRequest> Requests) batch in
-                RequestMergeHelper.MergeRequests(_bufferedRequests))
+                MergeRequestHelper.MergeRequests(_bufferedRequests))
             {
                 // now we take this merged request and run it against the executor.
                 IExecutionResult result = await _executor
@@ -126,7 +126,7 @@ namespace HotChocolate.Stitching.Requests
                 {
                     // last we will extract the results for the original buffered requests
                     // and fulfil the promises.
-                    RequestMergeHelper.DispatchResults(queryResult, batch.Requests);
+                    MergeRequestHelper.DispatchResults(queryResult, batch.Requests);
                 }
                 else
                 {

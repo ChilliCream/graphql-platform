@@ -72,17 +72,8 @@ namespace HotChocolate.Execution
         public async Task Ensure_Manual_Proxy_Is_Not_Null()
         {
             // arrange
-            IRequestExecutorResolver resolver =
-                new ServiceCollection()
-                    .AddGraphQL()
-                    .AddStarWarsRepositories()
-                    .AddStarWarsTypes()
-                    .Services
-                    .BuildServiceProvider()
-                    .GetRequiredService<IRequestExecutorResolver>();
-
             // act
-            async Task Action() => await AutoUpdateRequestExecutorProxy.CreateAsync(null);
+            async Task Action() => await AutoUpdateRequestExecutorProxy.CreateAsync(null!);
 
             // assert
             await Assert.ThrowsAsync<ArgumentNullException>(Action);

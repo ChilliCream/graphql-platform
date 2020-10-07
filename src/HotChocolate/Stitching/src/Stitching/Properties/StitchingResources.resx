@@ -228,4 +228,10 @@
   <data name="BufferedRequest_Create_QueryCannotBeNull" xml:space="preserve">
     <value>The request must contain a query document.</value>
   </data>
+  <data name="ThrowHelper_BufferedRequest_VariableDoesNotExist" xml:space="preserve">
+    <value>The specified variable `{0}` does not exist or is of an invalid type.</value>
+  </data>
+  <data name="ThrowHelper_BufferedRequest_OperationNotFound" xml:space="preserve">
+    <value>The provided remote query does not contain the specified operation.\r\n\r\n`{0}`</value>
+  </data>
 </root>
