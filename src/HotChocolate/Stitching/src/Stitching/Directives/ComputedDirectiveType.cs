@@ -16,8 +16,7 @@ namespace HotChocolate.Stitching
             descriptor.Argument(t => t.DependantOn)
                 .Name(DirectiveFieldNames.Computed_DependantOn)
                 .Type<ListType<NonNullType<NameType>>>()
-                .Description(StitchingResources
-                    .ComputedDirectiveType_Description);
+                .Description(StitchingResources.ComputedDirectiveType_Description);
         }
     }
 }
