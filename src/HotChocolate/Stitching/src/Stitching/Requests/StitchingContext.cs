@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using GreenDonut;
 using HotChocolate.Execution;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Requests
@@ -32,7 +31,10 @@ namespace HotChocolate.Stitching.Requests
             {
                 _executors.Add(
                     executor.Key,
-                    new RemoteRequestExecutor(batchScheduler, executor.Value));
+                    new RemoteRequestExecutor(
+                        batchScheduler,
+                        executor.Value,
+                        requestContextAccessor));
             }
         }
 

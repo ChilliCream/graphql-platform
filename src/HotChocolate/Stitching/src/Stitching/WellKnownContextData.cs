@@ -12,5 +12,6 @@ namespace HotChocolate.Stitching
         public const string TypeExtensions = "HotChocolate.Stitching.TypeExtensions";
         public const string MergedDocRewriter = "HotChocolate.Stitching.MergedDocRewriter";
         public const string MergedDocVisitors = "HotChocolate.Stitching.MergedDocVisitors";
+        public const string RequestVarNames = "HotChocolate.Stitching.RequestVarNames";
     }
 }

@@ -23,11 +23,6 @@ namespace HotChocolate.Stitching.Requests
         private OperationType? _operationType;
         private NameNode? _operationName;
 
-        public MergeRequestRewriter()
-        {
-            _globalVariableNames = _emptySet;
-        }
-
         public MergeRequestRewriter(ISet<string> globalVariableNames)
         {
             _globalVariableNames = globalVariableNames ??

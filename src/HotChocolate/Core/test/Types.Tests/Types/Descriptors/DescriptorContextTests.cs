@@ -9,69 +9,6 @@ namespace HotChocolate.Types.Descriptors
     public class DescriptorContextTests
     {
         [Fact]
-        public void Create_ServicesNull_ArgumentException()
-        {
-            // arrange
-            var options = new SchemaOptions();
-            var conventions = new Dictionary<(Type, string), CreateConvention>();
-
-            // act
-            Action action = () => DescriptorContext.Create(
-                options, 
-                null, 
-                conventions, 
-                new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
-                new AggregateTypeInterceptor());
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Create_OptionsNull_ArgumentException()
-        {
-            // arrange
-            var service = new EmptyServiceProvider();
-            var conventions = new Dictionary<(Type, string), CreateConvention>();
-
-            // act
-            Action action = () => DescriptorContext.Create(
-                null, 
-                service, 
-                conventions, 
-                new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
-                new AggregateTypeInterceptor());
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void Create_ConventionsNull_ArgumentException()
-        {
-            // arrange
-            var service = new EmptyServiceProvider();
-            var options = new SchemaOptions();
-
-            // act
-            Action action = () => DescriptorContext.Create(
-                options, 
-                service, 
-                null, 
-                new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
-                new AggregateTypeInterceptor());
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
         public void Create_With_Custom_NamingConventions()
         {
             // arrange
@@ -84,12 +21,12 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, 
-                services, 
-                conventions, 
+                options,
+                services,
+                conventions,
                 new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
+                new SchemaBuilder.LazySchema(),
+                new AggregateSchemaInterceptor(),
                 new AggregateTypeInterceptor());
 
             // assert
@@ -112,12 +49,12 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, 
-                new EmptyServiceProvider(), 
-                conventions, 
+                options,
+                new EmptyServiceProvider(),
+                conventions,
                 new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
+                new SchemaBuilder.LazySchema(),
+                new AggregateSchemaInterceptor(),
                 new AggregateTypeInterceptor());
 
             // assert
@@ -139,12 +76,12 @@ namespace HotChocolate.Types.Descriptors
 
             // act
             var context = DescriptorContext.Create(
-                options, 
-                services, 
-                conventions, 
+                options,
+                services,
+                conventions,
                 new Dictionary<string, object>(),
-                new SchemaBuilder.LazySchema(), 
-                new AggregateSchemaInterceptor(), 
+                new SchemaBuilder.LazySchema(),
+                new AggregateSchemaInterceptor(),
                 new AggregateTypeInterceptor());
 
             // assert

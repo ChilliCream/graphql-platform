@@ -245,7 +245,7 @@ namespace HotChocolate.Stitching
         public static IReadOnlyList<Action<DocumentNode>> GetMergedDocVisitors(
             this IDescriptorContext hasContextData)
         {
-            if (hasContextData.ContextData.TryGetValue(MergedDocRewriter, out object? o) &&
+            if (hasContextData.ContextData.TryGetValue(MergedDocVisitors, out object? o) &&
                 o is IReadOnlyList<Action<DocumentNode>> rules)
             {
                 return rules;
@@ -258,7 +258,7 @@ namespace HotChocolate.Stitching
             this ISchemaBuilder schemaBuilder,
             Action<DocumentNode> visit) =>
             schemaBuilder.SetContextData(
-                MergedDocRewriter,
+                MergedDocVisitors,
                 current =>
                 {
                     if (!(current is List<Action<DocumentNode>> list))
