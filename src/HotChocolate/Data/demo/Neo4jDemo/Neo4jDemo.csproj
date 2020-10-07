@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HotChocolate" Version="11.0.0-preview.148" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.0.0-preview.148" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Neo4j\HotChocolate.Data.Neo4j.csproj" />
+  </ItemGroup>
+
+</Project>
