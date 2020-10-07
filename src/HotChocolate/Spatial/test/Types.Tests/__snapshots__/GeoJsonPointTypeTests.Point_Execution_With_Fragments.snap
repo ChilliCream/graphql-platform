@@ -1,0 +1,32 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": null,
+  "Errors": [
+    {
+      "Message": "Unknown type `Point`.",
+      "Code": null,
+      "Path": {
+        "Parent": null,
+        "Depth": 0,
+        "Name": "test"
+      },
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 10
+        }
+      ],
+      "Extensions": {
+        "typeCondition": "Point",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Fragment-Spread-Type-Existence"
+      },
+      "Exception": null
+    }
+  ],
+  "Extensions": null,
+  "ContextData": {
+    "ValidationErrors": true
+  },
+  "HasNext": null
+}

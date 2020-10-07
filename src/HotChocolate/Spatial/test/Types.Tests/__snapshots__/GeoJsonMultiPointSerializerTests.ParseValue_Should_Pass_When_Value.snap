@@ -1,0 +1,1 @@
+﻿{ type: MultiPoint, crs: 0, coordinates: [ [ 10, 40 ], [ 40, 30 ], [ 20, 20 ], [ 30, 10 ] ] }
