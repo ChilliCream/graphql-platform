@@ -1,34 +1,73 @@
-using HotChocolate.Data.Neo4j.Language.Clauses;
+using System;
 
 namespace HotChocolate.Data.Neo4j
 {
-    public class CypherVisitor : IVisitor
+    public class CypherVisitor
     {
         private readonly CypherWriter _writer = new CypherWriter();
 
-        public void Enter(MatchClause match)
+        public void VisitIfNotNull(IVisitable? visitable)
+        {
+            if (visitable is not null)
+            {
+                visitable.Visit(this);
+            }
+        }
+
+        public void Enter(Node node)
+        {
+            _writer.Write($"({node.Alias ?? ""}");
+        }
+
+        public void Leave(Node node)
+        {
+            _writer.Write(")");
+        }
+
+        public void Enter(Match match)
         {
             if (match.IsOptional)
             {
-                _writer.Append("OPTIONAL ");
+                _writer.Write("OPTIONAL ");
             }
-            _writer.Append("MATCH ");
+            _writer.Write("MATCH ");
         }
 
-        public void Leave(MatchClause match)
+        public void Leave(Match match)
         {
-            _writer.Append(" ");
+            _writer.Write(" ");
         }
 
-        public void Enter(NodeClause node)
+        public void Enter(NodeLabels labels)
         {
-            _writer.Append($"({node.SymbolicName}:{node.Label}");
+            _writer.Write(string.Join($"{Symbols.NodeLabelStart}", labels.GetLabels()));
         }
 
-        public void Leave(NodeClause match)
+        public void Leave(NodeLabels labels)
         {
-            _writer.Append(")");
+            _writer.Write("");
         }
+
+        public void Enter(Property property)
+        {
+            _writer.Write($"{property.Key} {property.Operator} {property.Parameter}");
+        }
+
+        public void Leave(Property property)
+        {
+
+        }
+
+        public void Enter(Raw raw)
+        {
+            _writer.Write(raw.Value);
+        }
+
+        public void Leave(Raw raw)
+        {
+
+        }
+
 
         public override string ToString()
         {

@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Neo4j
 
             _value = value;
         }
-        CypherParameter(RawClause clause)
+        CypherParameter(Raw clause)
         {
             _value = clause.ToString();
         }

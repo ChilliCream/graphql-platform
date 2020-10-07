@@ -6,6 +6,7 @@ namespace HotChocolate.Data.Neo4j
 {
     public class CypherWriter : IDisposable
     {
+        private bool isDisposed;
         private static ObjectPoolProvider _pool = new DefaultObjectPoolProvider();
         private readonly ObjectPool<StringBuilder> _stringBuilderPool = _pool.CreateStringBuilderPool();
         private readonly StringBuilder _writer;
@@ -19,9 +20,18 @@ namespace HotChocolate.Data.Neo4j
         /// Appends text.
         /// </summary>
         /// <param name="text">The text.</param>
-        public void Append(string text)
+        public void Write(string text)
         {
             _writer.Append(text);
+        }
+
+        /// <summary>
+        /// Appends char.
+        /// </summary>
+        /// <param name="c">The character.</param>
+        public void Write(char c)
+        {
+            _writer.Append(c);
         }
 
         public string Print()
@@ -34,7 +44,24 @@ namespace HotChocolate.Data.Neo4j
         /// </summary>
         public void Dispose()
         {
-            _stringBuilderPool.Return(_writer);
+            Dispose(true);
+            GC.SuppressFinalize(this);
+            
+        }
+
+        // The bulk of the clean-up code is implemented in Dispose(bool)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (isDisposed)
+                return;
+
+            if (disposing)
+            {
+                // free managed resources
+                _stringBuilderPool.Return(_writer);
+            }
+
+            isDisposed = true;
         }
     }
 }

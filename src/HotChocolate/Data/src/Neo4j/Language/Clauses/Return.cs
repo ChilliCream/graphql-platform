@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Data.Neo4j
 {
-    public class ReturnClause
+    public class Return
     {
     }
 }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.Data.Neo4j
 {
-    public interface IPatternElement
+    public class Where
     {
+
     }
 }
