@@ -1,11 +1,10 @@
 using System;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching.Delegation
+namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
     internal class ScopedContextDataScopedVariableResolver
         : IScopedVariableResolver

@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 

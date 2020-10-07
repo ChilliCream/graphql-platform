@@ -117,7 +117,7 @@ namespace HotChocolate.Stitching.Requests
             {
                 NameNode responseName = node.Alias ?? node.Name;
                 NameNode alias = responseName.CreateNewName(_requestPrefix);
-                _aliases[alias.Value] = responseName.Value;
+                _aliases![alias.Value] = responseName.Value;
                 current = current.WithAlias(alias);
             }
 

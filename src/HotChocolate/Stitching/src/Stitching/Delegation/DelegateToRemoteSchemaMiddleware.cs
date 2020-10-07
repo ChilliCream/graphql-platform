@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using static HotChocolate.Stitching.WellKnownContextData;
 using static HotChocolate.Stitching.Properties.StitchingResources;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class DelegateToRemoteSchemaMiddleware
     {

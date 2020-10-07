@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -19,7 +20,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String a: String }",
                 c =>
                 {
-                    c.Use(next => contet => default);
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -58,7 +59,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => contet => default);
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -105,7 +106,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => contet => default);
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -133,7 +134,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => contet => default);
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -162,7 +163,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.Use(next => contet => default);
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 

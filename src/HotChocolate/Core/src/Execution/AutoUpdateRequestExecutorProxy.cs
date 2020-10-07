@@ -30,6 +30,11 @@ namespace HotChocolate.Execution
         }
 
         /// <summary>
+        /// The inner executor is exposed for testability.
+        /// </summary>
+        internal IRequestExecutor InnerExecutor => _executor;
+
+        /// <summary>
         /// Creates a new auto-update proxy for <see cref="IRequestExecutor"/>.
         /// </summary>
         /// <param name="requestExecutorProxy">
@@ -43,7 +48,7 @@ namespace HotChocolate.Execution
         /// </returns>
         public static async ValueTask<AutoUpdateRequestExecutorProxy> CreateAsync(
             RequestExecutorProxy requestExecutorProxy,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             if (requestExecutorProxy == null)
             {
@@ -96,7 +101,6 @@ namespace HotChocolate.Execution
             CancellationToken cancellationToken = default) =>
             _executor.ExecuteAsync(request, cancellationToken);
 
-
         /// <summary>
         /// Executes the given GraphQL <paramref name="requestBatch" />.
         /// </summary>
@@ -138,6 +142,7 @@ namespace HotChocolate.Execution
             }
         }
 
+        /// <inheritdoc cref="IDisposable" />
         public void Dispose()
         {
             Dispose(true);

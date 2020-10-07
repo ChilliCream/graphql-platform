@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class DictionaryResultMiddleware
     {
