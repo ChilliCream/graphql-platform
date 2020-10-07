@@ -77,7 +77,7 @@ namespace HotChocolate.Stitching.Pipeline
                     .ReadAsStreamAsync()
                     .ConfigureAwait(false);
 
-                IReadOnlyDictionary<string, object?>? response =
+                IReadOnlyDictionary<string, object?> response =
                     await BufferHelper.ReadAsync(
                             stream,
                             ParseResponse,
@@ -130,8 +130,10 @@ namespace HotChocolate.Stitching.Pipeline
             var requestMessage = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                Headers = { {_contentType.Key, _contentType.Value} },
-                Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length),
+                Content = new ByteArrayContent(writer.GetInternalBuffer(), 0, writer.Length)
+                {
+                    Headers = { { _contentType.Key, _contentType.Value } }
+                }
             };
 
             await _requestInterceptor
@@ -143,7 +145,7 @@ namespace HotChocolate.Stitching.Pipeline
 
         private static IReadOnlyDictionary<string, object?> ParseResponse(
             byte[] buffer, int bytesBuffered) =>
-            Utf8GraphQLRequestParser.ParseVariables(buffer.AsSpan(0, bytesBuffered));
+            Utf8GraphQLRequestParser.ParseVariables(buffer.AsSpan(0, bytesBuffered))!;
 
         private static void WriteJsonRequest(
             IBufferWriter<byte> writer,
@@ -151,7 +153,7 @@ namespace HotChocolate.Stitching.Pipeline
             IQueryRequest request)
         {
             jsonWriter.WriteStartObject();
-            jsonWriter.WriteString("query", request.Query.ToString());
+            jsonWriter.WriteString("query", request.Query!.AsSpan());
 
             if (request.OperationName is { })
             {

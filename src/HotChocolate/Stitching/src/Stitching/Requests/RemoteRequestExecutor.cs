@@ -161,7 +161,7 @@ namespace HotChocolate.Stitching.Requests
                         return new HashSet<string>(variables.Keys);
                     }
                     return _empty;
-                });
+                })!;
             }
 
             if(!context.ContextData.TryGetValue(RequestVarNames, out object? value))
@@ -171,7 +171,7 @@ namespace HotChocolate.Stitching.Requests
                     : _empty;
             }
 
-            return (ISet<string>)value;
+            return (ISet<string>)value!;
         }
 
         public void Dispose()

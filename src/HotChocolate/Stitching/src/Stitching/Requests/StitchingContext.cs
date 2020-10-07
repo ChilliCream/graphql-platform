@@ -27,7 +27,7 @@ namespace HotChocolate.Stitching.Requests
             }
 
             foreach (KeyValuePair<NameString, IRequestExecutor> executor in
-                requestContextAccessor.RequestContext.GetRemoteExecutors())
+                requestContextAccessor.RequestContext.Schema.GetRemoteExecutors())
             {
                 _executors.Add(
                     executor.Key,

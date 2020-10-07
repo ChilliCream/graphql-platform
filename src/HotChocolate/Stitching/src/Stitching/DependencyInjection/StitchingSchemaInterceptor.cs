@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
@@ -10,6 +11,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using IHasName = HotChocolate.Types.IHasName;
 using WellKnownContextData = HotChocolate.Stitching.WellKnownContextData;
@@ -41,6 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mergedSchema = mergedSchema.RemoveBuiltInTypes();
 
             VisitMerged(context, mergedSchema);
+            MarkExternalFields(schemaBuilder, mergedSchema);
 
             schemaBuilder
                 .AddDocument(mergedSchema)
@@ -130,6 +133,42 @@ namespace Microsoft.Extensions.DependencyInjection
             foreach (Action<DocumentNode> visitor in context.GetMergedDocVisitors())
             {
                 visitor.Invoke(schema);
+            }
+        }
+
+        private static void MarkExternalFields(ISchemaBuilder schemaBuilder, DocumentNode document)
+        {
+            Dictionary<NameString, ISet<NameString>> externalFieldLookup =
+                new Dictionary<NameString, ISet<NameString>>();
+
+            foreach (ObjectTypeDefinitionNodeBase objectType in
+                document.Definitions.OfType<ObjectTypeDefinitionNodeBase>())
+            {
+                if (!externalFieldLookup.TryGetValue(
+                    objectType.Name.Value,
+                    out ISet<NameString>? externalFields))
+                {
+                    externalFields = new HashSet<NameString>();
+                    externalFieldLookup.Add(objectType.Name.Value, externalFields);
+                }
+
+                MarkExternalFields(objectType.Fields, externalFields);
+            }
+
+            schemaBuilder.AddExternalFieldLookup(externalFieldLookup);
+        }
+
+        private static void MarkExternalFields(
+            IReadOnlyList<FieldDefinitionNode> fields,
+            ISet<NameString> externalFields)
+        {
+            foreach (FieldDefinitionNode field in fields)
+            {
+                if (field.Directives.Count == 0 ||
+                    field.Directives.All(t => !t.Name.Value.EqualsOrdinal(DirectiveNames.Computed)))
+                {
+                    externalFields.Add(field.Name.Value);
+                }
             }
         }
 

@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
-using HotChocolate.Stitching.Schemas.Contracts;
-using HotChocolate.Stitching.Schemas.Customers;
-using Moq;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -44,68 +37,33 @@ namespace HotChocolate.Stitching.Integration
             schema.Print().MatchSnapshot();
         }
 
-
-    }
-
-    public class StitchingTestContext
-    {
-        public TestServerFactory ServerFactory { get; } = new TestServerFactory();
-
-        public NameString CustomerSchema { get; } = "customer";
-
-        public NameString ContractSchema { get; } = "contract";
-
-        public TestServer CreateCustomerService() =>
-            ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddCustomerSchema(),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
-
-        public TestServer CreateContractService() =>
-            ServerFactory.Create(
-                services => services
-                    .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
-                    .AddGraphQLServer()
-                    .AddContractSchema(),
-                app => app
-                    .UseWebSockets()
-                    .UseRouting()
-                    .UseEndpoints(endpoints => endpoints.MapGraphQL("/")));
-
-        public IHttpClientFactory CreateDefaultRemoteSchemas()
+        [Fact]
+        public async Task AutoMerge_Execute()
         {
-            var connections = new Dictionary<string, HttpClient>
-            {
-                {CustomerSchema, CreateCustomerService().CreateClient()},
-                {ContractSchema, CreateContractService().CreateClient()}
-            };
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
 
-            return CreateRemoteSchemas(connections);
-        }
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
 
-        public static IHttpClientFactory CreateRemoteSchemas(
-            Dictionary<string, HttpClient> connections)
-        {
-            var httpClientFactory = new Mock<IHttpClientFactory>();
-            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
-                .Returns(new Func<string, HttpClient>(n =>
-                {
-                    if (connections.ContainsKey(n))
-                    {
-                        return connections[n];
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    allCustomers {
+                        id
+                        name
                     }
+                }");
 
-                    throw new Exception();
-                }));
-
-            return httpClientFactory.Object;
+            // assert
+            result.MatchSnapshot();
         }
     }
 }

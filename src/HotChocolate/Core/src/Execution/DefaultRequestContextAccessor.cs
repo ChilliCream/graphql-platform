@@ -13,30 +13,25 @@ namespace HotChocolate.Execution
             get
             {
                 return _requestContextCurrent.Value?.Context ??
-                       throw new InvalidCastException("Can only be accessed in a request context.");
+                    throw new InvalidCastException("Can only be accessed in a request context.");
             }
             set
             {
-                RequestContextHolder holder = _requestContextCurrent.Value;
+                RequestContextHolder? holder = _requestContextCurrent.Value;
 
-                if (holder != null)
+                if (holder is null)
                 {
-                    holder.Context = null!;
+                    holder = new RequestContextHolder();
+                    _requestContextCurrent.Value = holder;
                 }
 
-                if (value is not null!)
-                {
-                    _requestContextCurrent.Value = new RequestContextHolder
-                    {
-                        Context = value
-                    };
-                }
+                holder.Context = value;
             }
         }
 
         private class RequestContextHolder
         {
-            public IRequestContext Context;
+            public IRequestContext Context = default!;
         }
     }
 }

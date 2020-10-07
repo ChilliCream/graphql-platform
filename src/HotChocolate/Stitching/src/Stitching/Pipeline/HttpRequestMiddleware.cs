@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Pipeline
 
         public HttpRequestMiddleware(
             RequestDelegate next,
-            HttpRequestClient httpRequestClient)
+            [SchemaService]HttpRequestClient httpRequestClient)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _httpRequestClient = httpRequestClient;

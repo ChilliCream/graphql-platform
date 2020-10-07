@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ServiceAttribute : Attribute
+    public sealed class SchemaServiceAttribute : Attribute
     {
     }
 }

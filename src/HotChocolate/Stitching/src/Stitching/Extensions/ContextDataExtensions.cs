@@ -11,10 +11,24 @@ namespace HotChocolate.Stitching
 {
     internal static class ContextDataExtensions
     {
-        public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
+         public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
             this IHasContextData hasContextData)
         {
             if (hasContextData.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
+                o is IReadOnlyDictionary<NameString, IRequestExecutor> executors)
+            {
+                return executors;
+            }
+
+            // TODO : throw helper
+            throw new InvalidOperationException(
+                "The mandatory remote executors have not been found.");
+        }
+
+        public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
+            this ISchema schema)
+        {
+            if (schema.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
                 o is IReadOnlyDictionary<NameString, IRequestExecutor> executors)
             {
                 return executors;
@@ -269,5 +283,24 @@ namespace HotChocolate.Stitching
                     list.Add(visit);
                     return list;
                 });
+
+        public static IReadOnlyDictionary<NameString, ISet<NameString>> GetExternalFieldLookup(
+            this IHasContextData hasContextData)
+        {
+            if (hasContextData.ContextData.TryGetValue(ExternalFieldLookup, out object? value) &&
+                value is IReadOnlyDictionary<NameString, ISet<NameString>> dict)
+            {
+                return dict;
+            }
+
+            return new Dictionary<NameString, ISet<NameString>>();
+        }
+
+        public static ISchemaBuilder AddExternalFieldLookup(
+            this ISchemaBuilder schemaBuilder,
+            IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup)
+        {
+            return schemaBuilder.SetContextData(ExternalFieldLookup, externalFieldLookup);
+        }
     }
 }

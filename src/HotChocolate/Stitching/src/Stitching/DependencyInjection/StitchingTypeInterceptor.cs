@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -30,8 +32,31 @@ namespace Microsoft.Extensions.DependencyInjection
                         objectField.MiddlewareComponents.Insert(0, handleDictionary);
                         objectField.MiddlewareComponents.Insert(0, delegateToSchema);
                     }
+                }
+            }
+        }
 
-                    // if computed //
+        public override void OnBeforeCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase definition,
+            IDictionary<string, object> contextData)
+        {
+            if (completionContext.Type is ObjectType objectType &&
+                definition is ObjectTypeDefinition objectTypeDef)
+            {
+                IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
+                    completionContext.GetExternalFieldLookup();
+                if (externalFieldLookup.TryGetValue(objectType.Name, out ISet<NameString> external))
+                {
+                    foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
+                    {
+                        if (external.Contains(objectField.Name))
+                        {
+                            FieldMiddleware handleDictionary =
+                                FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
+                            objectField.MiddlewareComponents.Insert(0, handleDictionary);
+                        }
+                    }
                 }
             }
         }

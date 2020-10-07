@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Pipeline
 {
@@ -10,55 +12,40 @@ namespace HotChocolate.Stitching.Pipeline
         private const string _extensions = "extensions";
         private const string _errors = "errors";
 
+        private static readonly ObjectValueToDictionaryConverter _converter =
+            new ObjectValueToDictionaryConverter();
+
         public static IQueryResult Deserialize(
-            IReadOnlyDictionary<string, object> serializedResult)
+            IReadOnlyDictionary<string, object?> serializedResult)
         {
             var result = new QueryResultBuilder();
-            var data = new OrderedDictionary();
-            var extensionData = new ExtensionData();
 
-            DeserializeRootField(
-                data,
-                serializedResult,
-                _data);
-            result.SetData(data);
+            if (serializedResult.TryGetValue(_data, out object? data))
+            {
+                result.SetData(data as IReadOnlyDictionary<string, object?>);
+            }
 
-            DeserializeRootField(
-                extensionData,
-                serializedResult,
-                _extensions);
-            result.SetExtensions(extensionData);
+            if (serializedResult.TryGetValue(_extensions, out object? extensionData))
+            {
+                result.SetExtensions(extensionData as IReadOnlyDictionary<string, object?>);
+            }
 
             DeserializeErrors(result, serializedResult);
 
             return result.Create();
         }
 
-        private static void DeserializeRootField(
-            IDictionary<string, object> data,
-            IReadOnlyDictionary<string, object> serializedResult,
-            string field)
-        {
-            if (serializedResult.TryGetValue(field, out object o)
-                && o is IReadOnlyDictionary<string, object> d)
-            {
-                foreach (KeyValuePair<string, object> item in d)
-                {
-                    data[item.Key] = item.Value;
-                }
-            }
-        }
-
         private static void DeserializeErrors(
             IQueryResultBuilder result,
-            IReadOnlyDictionary<string, object> serializedResult)
+            IReadOnlyDictionary<string, object?> serializedResult)
         {
-            if (serializedResult.TryGetValue(_errors, out object o)
-                && o is IReadOnlyList<object> l)
+            if (serializedResult.TryGetValue(_errors, out object? o)
+                && o is ListValueNode l)
             {
-                foreach (var error in l.OfType<IReadOnlyDictionary<string, object>>())
+                foreach (var error in l.Items.OfType<ObjectValueNode>())
                 {
-                    result.AddError(ErrorBuilder.FromDictionary(error).Build());
+                    Dictionary<string, object?> dict = _converter.Convert(error);
+                    result.AddError(ErrorBuilder.FromDictionary(dict).Build());
                 }
             }
         }

@@ -164,6 +164,18 @@ namespace Microsoft.Extensions.DependencyInjection
             // this schema and also to lookup types in order correctly convert between scalars.
             builder
                 .AddGraphQL(schemaName)
+                .ConfigureSchemaServices(services =>
+                {
+                    services.TryAddSingleton(
+                        sp => new HttpRequestClient(
+                            sp.GetApplicationService<IHttpClientFactory>(),
+                            sp.GetRequiredService<IErrorHandler>(),
+                            sp.GetRequiredService<IHttpStitchingRequestInterceptor>()));
+
+                    services.TryAddSingleton<
+                        IHttpStitchingRequestInterceptor,
+                        HttpStitchingRequestInterceptor>();
+                })
                 .ConfigureSchemaAsync(
                     async (services, schemaBuilder, cancellationToken) =>
                     {

@@ -146,7 +146,7 @@ namespace HotChocolate.Stitching.Requests
 
                 foreach (KeyValuePair<string, string> alias in aliases)
                 {
-                    if (mergedResult.Data.TryGetValue(alias.Key, out object o))
+                    if (mergedResult.Data.TryGetValue(alias.Key, out object? o))
                     {
                         data.SetValue(i++, alias.Value, o);
                     }
