@@ -26,7 +26,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.TryAddTypeInterceptor(typeof(T));
+            return builder.TryAddSchemaInterceptor(typeof(T));
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching;
@@ -56,8 +57,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .UseInstrumentations()
                 .UseExceptions()
                 .UseDocumentCache()
-                .UseReadPersistedQuery()
-                .UseWritePersistedQuery()
                 .UseDocumentParser()
                 .UseDocumentValidation()
                 .UseOperationCache()
@@ -173,6 +172,8 @@ namespace Microsoft.Extensions.DependencyInjection
                             await loadSchema(services, cancellationToken)
                                 .ConfigureAwait(false);
 
+                        document = document.RemoveBuiltInTypes();
+
                         // The document is used to create a SDL-first schema ...
                         schemaBuilder.AddDocument(document);
 
@@ -191,11 +192,18 @@ namespace Microsoft.Extensions.DependencyInjection
             builder
                 .ConfigureSchemaAsync(async (services, schemaBuilder, cancellationToken) =>
                 {
-                    var autoProxy = await AutoUpdateRequestExecutorProxy.CreateAsync(
+                    IInternalRequestExecutorResolver noLockExecutorResolver =
+                        services.GetRequiredService<IInternalRequestExecutorResolver>();
+
+                    IRequestExecutor executor = await noLockExecutorResolver
+                        .GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var autoProxy = AutoUpdateRequestExecutorProxy.Create(
                         new RequestExecutorProxy(
                             services.GetRequiredService<IRequestExecutorResolver>(),
                             schemaName),
-                        cancellationToken);
+                        executor);
 
                     schemaBuilder
                         .AddRemoteExecutor(schemaName, autoProxy)

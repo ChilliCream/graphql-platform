@@ -63,6 +63,30 @@ namespace HotChocolate.Execution
         }
 
         /// <summary>
+        /// Creates a new auto-update proxy for <see cref="IRequestExecutor"/>.
+        /// </summary>
+        /// <param name="requestExecutorProxy">
+        /// The underlying manual proxy.
+        /// </param>
+        /// <param name="initialExecutor">
+        /// The initial executor instance.
+        /// </param>
+        /// <returns>
+        /// Returns a new auto-update proxy for <see cref="IRequestExecutor"/>.
+        /// </returns>
+        public static AutoUpdateRequestExecutorProxy Create(
+            RequestExecutorProxy requestExecutorProxy,
+            IRequestExecutor initialExecutor)
+        {
+            if (requestExecutorProxy == null)
+            {
+                throw new ArgumentNullException(nameof(requestExecutorProxy));
+            }
+
+            return new AutoUpdateRequestExecutorProxy(requestExecutorProxy, initialExecutor);
+        }
+
+        /// <summary>
         /// Gets the schema to which this executor is bound to.
         /// </summary>
         public ISchema Schema => _executor.Schema;

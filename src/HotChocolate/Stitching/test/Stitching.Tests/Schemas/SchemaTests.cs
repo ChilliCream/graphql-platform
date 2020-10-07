@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Tests;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +19,18 @@ namespace HotChocolate.Stitching.Schemas
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddCustomerSchema()
+                .BuildSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task ContractSchemaSnapshot()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddContractSchema()
                 .BuildSchemaAsync()
                 .MatchSnapshotAsync();
         }

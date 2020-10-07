@@ -30,7 +30,9 @@ namespace HotChocolate.Utilities.Introspection
             {
                 Skip,
                 Include,
-                Deprecated
+                Deprecated,
+                Defer,
+                Stream
             };
 
         public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)

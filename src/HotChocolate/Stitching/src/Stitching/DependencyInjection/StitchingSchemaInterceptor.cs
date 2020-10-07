@@ -22,7 +22,6 @@ namespace Microsoft.Extensions.DependencyInjection
             IDescriptorContext context,
             ISchemaBuilder schemaBuilder)
         {
-
             var allSchemas = new OrderedDictionary<NameString, DocumentNode>();
 
             foreach (KeyValuePair<NameString, IRequestExecutor> executor in

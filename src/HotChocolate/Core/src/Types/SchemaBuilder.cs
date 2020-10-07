@@ -464,7 +464,7 @@ namespace HotChocolate
                     nameof(interceptor));
             }
 
-            if (_schemaInterceptors.Contains(interceptor))
+            if (!_schemaInterceptors.Contains(interceptor))
             {
                 _schemaInterceptors.Add(interceptor);
             }
@@ -479,7 +479,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(interceptor));
             }
 
-            if (_schemaInterceptors.Contains(interceptor))
+            if (!_schemaInterceptors.Contains(interceptor))
             {
                 _schemaInterceptors.Add(interceptor);
             }
