@@ -1,19 +1,18 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 2,
-          "column": 21
-        }
-      ],
-      "path": [
-        "customers"
-      ]
-    }
-  ],
   "data": {
-    "customers": null
+    "allCustomers": [
+      {
+        "id": "Q3VzdG9tZXIKZDE=",
+        "name": "Freddy Freeman"
+      },
+      {
+        "id": "Q3VzdG9tZXIKZDI=",
+        "name": "Carol Danvers"
+      },
+      {
+        "id": "Q3VzdG9tZXIKZDM=",
+        "name": "Walter Lawson"
+      }
+    ]
   }
 }

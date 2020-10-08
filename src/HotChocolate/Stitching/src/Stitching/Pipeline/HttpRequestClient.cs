@@ -145,7 +145,7 @@ namespace HotChocolate.Stitching.Pipeline
 
         private static IReadOnlyDictionary<string, object?> ParseResponse(
             byte[] buffer, int bytesBuffered) =>
-            Utf8GraphQLRequestParser.ParseVariables(buffer.AsSpan(0, bytesBuffered))!;
+            Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
 
         private static void WriteJsonRequest(
             IBufferWriter<byte> writer,

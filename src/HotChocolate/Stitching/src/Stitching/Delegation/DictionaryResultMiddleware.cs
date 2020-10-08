@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -24,48 +25,120 @@ namespace HotChocolate.Stitching.Delegation
                     ? d
                     : DeserializeResult(context.Field, s.Data);
             }
-            else if (context.Result is null
-                && !context.Field.Directives.Contains(DirectiveNames.Computed)
-                && context.Parent<object>() is IDictionary<string, object> dict)
+            else if (context.Result is null &&
+                !context.Field.Directives.Contains(DirectiveNames.Computed) &&
+                context.Parent<object>() is IDictionary<string, object> dict)
             {
                 string responseName = context.FieldSelection.Alias == null
                     ? context.FieldSelection.Name.Value
                     : context.FieldSelection.Alias.Value;
 
-                dict.TryGetValue(responseName, out object obj);
+                dict.TryGetValue(responseName, out object? obj);
                 context.Result = DeserializeResult(context.Field, obj);
             }
 
             return _next.Invoke(context);
         }
 
-        private static object DeserializeResult(
+        private static object? DeserializeResult(
             IOutputField field,
-            object obj)
+            object? obj)
         {
-            if (field.Type.IsLeafType()
-                && field.Type.NamedType() is ISerializableType t
-                && t.TryDeserialize(obj, out object value))
-            {
-                return value;
-            }
+            INamedType namedType = field.Type.NamedType();
 
-            if (field.Type.IsListType()
-                && field.Type.NamedType() is ILeafType leafType
-                && obj is IList list)
+            if (field.Type is IInputType inputType)
             {
-                Array array = Array.CreateInstance(
-                    leafType.RuntimeType, list.Count);
-
-                for (var i = 0; i < list.Count; i++)
+                if (namedType.Kind == TypeKind.Enum)
                 {
-                    array.SetValue(leafType.Deserialize(list[i]), i);
+                    return DeserializeEnumResult(inputType, obj);
                 }
 
-                return array;
+                if (namedType.Kind == TypeKind.Scalar)
+                {
+                    return DeserializeScalarResult(inputType, obj);
+                }
             }
 
             return obj;
+        }
+
+        private static object? DeserializeEnumResult(IInputType inputType, object? value)
+        {
+            switch (value)
+            {
+                case IReadOnlyList<object> list:
+                {
+                    var elementType = (IInputType)inputType.ElementType();
+                    var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
+
+                    foreach (object? item in list)
+                    {
+                        deserializedList.Add(DeserializeEnumResult(elementType, item));
+                    }
+
+                    return deserializedList;
+                }
+
+                case ListValueNode listLiteral:
+                {
+                    var elementType = (IInputType)inputType.ElementType();
+                    var list = new List<object?>();
+
+                    foreach (IValueNode item in listLiteral.Items)
+                    {
+                        list.Add(DeserializeEnumResult(elementType, item));
+                    }
+
+                    return list;
+                }
+
+                case StringValueNode stringLiteral:
+                    return inputType.Deserialize(stringLiteral.Value);
+
+                case IValueNode literal:
+                    return inputType.ParseLiteral(literal);
+
+                default:
+                    return inputType.Deserialize(value);
+            }
+        }
+
+        private static object? DeserializeScalarResult(IInputType inputType, object? value)
+        {
+            switch (value)
+            {
+                case IReadOnlyList<object> list:
+                {
+                    var elementType = (IInputType)inputType.ElementType();
+                    var deserializedList = (IList)Activator.CreateInstance(inputType.RuntimeType)!;
+
+                    foreach (object? item in list)
+                    {
+                        deserializedList.Add(DeserializeEnumResult(elementType, item));
+                    }
+
+                    return deserializedList;
+                }
+
+                case ListValueNode listLiteral:
+                {
+                    var elementType = (IInputType)inputType.ElementType();
+                    var list = new List<object?>();
+
+                    foreach (IValueNode item in listLiteral.Items)
+                    {
+                        list.Add(DeserializeEnumResult(elementType, item));
+                    }
+
+                    return list;
+                }
+
+                case IValueNode literal:
+                    return inputType.ParseLiteral(literal);
+
+                default:
+                    return inputType.Deserialize(value);
+            }
         }
     }
 }
