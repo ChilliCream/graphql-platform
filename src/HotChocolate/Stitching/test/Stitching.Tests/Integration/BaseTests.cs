@@ -65,5 +65,45 @@ namespace HotChocolate.Stitching.Integration
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task AutoMerge_Execute_Inline_C()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        name
+                        consultant {
+                            name
+                        }
+                        contracts {
+                            id
+                            ... on LifeInsuranceContract {
+                                premium
+                            }
+                            ... on SomeOtherContract {
+                                expiryDate
+                            }
+                        }
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }
