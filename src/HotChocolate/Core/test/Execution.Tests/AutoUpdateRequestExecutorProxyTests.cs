@@ -60,6 +60,7 @@ namespace HotChocolate.Execution
             // act
             IRequestExecutor a = proxy.InnerExecutor;
             resolver.EvictRequestExecutor();
+            await Task.Delay(100);
             IRequestExecutor b = proxy.InnerExecutor;
 
             // assert
