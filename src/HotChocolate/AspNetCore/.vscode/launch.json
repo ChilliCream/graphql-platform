@@ -13,10 +13,6 @@
       "args": [],
       "cwd": "${workspaceFolder}/sample/StarWars",
       "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-      },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

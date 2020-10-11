@@ -13,29 +13,35 @@ namespace Microsoft.AspNetCore.Builder
     {
         public static IEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
-            string pattern = "/graphql",
+            string path = "/graphql",
             NameString schemaName = default) =>
-            MapGraphQL(endpointRouteBuilder, RoutePatternFactory.Parse(pattern), schemaName);
+            MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
         public static IEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
-            RoutePattern pattern,
+            PathString path,
             NameString schemaName = default)
         {
-            if (endpointRouteBuilder == null)
+            if (endpointRouteBuilder is null)
             {
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            IApplicationBuilder requestPipeline =
-                endpointRouteBuilder.CreateApplicationBuilder();
+            path = path.ToString().TrimEnd('/');
+
+            RoutePattern pattern = RoutePatternFactory.Parse(path + "/{**slug}");
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            requestPipeline.UseMiddleware<ToolDefaultFileMiddleware>(CreateFileProvider(), path);
+            requestPipeline.UseMiddleware<ToolStaticFileMiddleware>(CreateFileProvider(), path);
 
             requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
             requestPipeline.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
             requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
-            //requestPipeline.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
-            requestPipeline.UsePlaygroundFileServer();
+            requestPipeline.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
+
+            requestPipeline.UseBcpFileServer();
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
@@ -48,7 +54,7 @@ namespace Microsoft.AspNetCore.Builder
             PathString pathMatch = default,
             NameString schemaName = default)
         {
-            if (applicationBuilder == null)
+            if (applicationBuilder is null)
             {
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
@@ -66,7 +72,7 @@ namespace Microsoft.AspNetCore.Builder
                 });
         }
 
-        private static IApplicationBuilder UsePlaygroundFileServer(
+        public static IApplicationBuilder UseBcpFileServer(
             this IApplicationBuilder applicationBuilder)
         {
             var fileServerOptions = new FileServerOptions
@@ -75,8 +81,7 @@ namespace Microsoft.AspNetCore.Builder
                 EnableDefaultFiles = true,
                 StaticFileOptions =
                 {
-                    ContentTypeProvider =
-                        new FileExtensionContentTypeProvider()
+                    ContentTypeProvider = new FileExtensionContentTypeProvider()
                 }
             };
 
@@ -85,12 +90,10 @@ namespace Microsoft.AspNetCore.Builder
 
         private static IFileProvider CreateFileProvider()
         {
-            var type = typeof(HttpEndpointRouteBuilderExtensions);
+            Type type = typeof(HttpEndpointRouteBuilderExtensions);
             var resourceNamespace = "HotChocolate.AspNetCore.Resources";
 
-            return new EmbeddedFileProvider(
-                type.Assembly,
-                resourceNamespace);
+            return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
         }
     }
 }

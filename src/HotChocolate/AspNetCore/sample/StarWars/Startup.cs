@@ -39,6 +39,8 @@ namespace StarWars
             }
 
             app.UseRouting();
+            
+            // app.UseBcpFileServer();
 
             app.UseEndpoints(endpoints =>
             {
