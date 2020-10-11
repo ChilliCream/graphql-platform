@@ -1,10 +1,11 @@
 using System;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -28,15 +29,13 @@ namespace Microsoft.AspNetCore.Builder
 
             IApplicationBuilder requestPipeline =
                 endpointRouteBuilder.CreateApplicationBuilder();
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
-            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpPostMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpGetMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
+            requestPipeline.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
+            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
+            //requestPipeline.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
+            requestPipeline.UsePlaygroundFileServer();
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
@@ -54,19 +53,44 @@ namespace Microsoft.AspNetCore.Builder
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
             return applicationBuilder.Map(
                 pathMatch,
                 app =>
                 {
-                    app.UseMiddleware<WebSocketSubscriptionMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpPostMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpGetSchemaMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpGetMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
+                    app.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
                 });
+        }
+
+        private static IApplicationBuilder UsePlaygroundFileServer(
+            this IApplicationBuilder applicationBuilder)
+        {
+            var fileServerOptions = new FileServerOptions
+            {
+                FileProvider = CreateFileProvider(),
+                EnableDefaultFiles = true,
+                StaticFileOptions =
+                {
+                    ContentTypeProvider =
+                        new FileExtensionContentTypeProvider()
+                }
+            };
+
+            return applicationBuilder.UseFileServer(fileServerOptions);
+        }
+
+        private static IFileProvider CreateFileProvider()
+        {
+            var type = typeof(HttpEndpointRouteBuilderExtensions);
+            var resourceNamespace = "HotChocolate.AspNetCore.Resources";
+
+            return new EmbeddedFileProvider(
+                type.Assembly,
+                resourceNamespace);
         }
     }
 }
