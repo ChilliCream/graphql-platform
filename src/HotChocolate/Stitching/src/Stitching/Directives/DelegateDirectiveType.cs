@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching
         {
             descriptor.Name(DirectiveNames.Delegate);
 
-            descriptor.Location(Types.DirectiveLocation.FieldDefinition);
+            descriptor.Location(DirectiveLocation.FieldDefinition);
 
             descriptor.Argument(t => t.Path)
                 .Name(DirectiveFieldNames.Delegate_Path)

@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Tests
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<ISortConvention>(convention)
-                .AddTypeInterceptor<SortTypeInterceptor>()
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
                 .AddQueryType(c =>
                     c.Name("Query")
                         .Field("foo")
@@ -48,7 +48,7 @@ namespace HotChocolate.Data.Tests
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<ISortConvention>(convention)
-                .AddTypeInterceptor<SortTypeInterceptor>()
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
                 .AddQueryType(c =>
                     c.Name("Query")
                         .Field("foo")

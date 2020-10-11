@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters.Expressions
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(
                     c =>
                         c.Name("Query")
@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Filters.Expressions
             var convention = new FilterConvention(x => x.AddDefaults());
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(c => c
                     .Name("Query")
                     .Field("foo")

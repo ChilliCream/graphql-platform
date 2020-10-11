@@ -1,11 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
-using ChilliCream.Testing;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
 using Snapshooter.Xunit;
 using Xunit;
 

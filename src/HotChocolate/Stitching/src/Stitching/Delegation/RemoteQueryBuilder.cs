@@ -19,19 +19,19 @@ namespace HotChocolate.Stitching.Delegation
             new List<FragmentDefinitionNode>();
         private NameNode _operationName = new NameNode("fetch");
         private OperationType _operation = OperationType.Query;
-        private IImmutableStack<SelectionPathComponent> _path =
+        private IImmutableStack<SelectionPathComponent> _path = 
             ImmutableStack<SelectionPathComponent>.Empty;
-        private FieldNode _requestField;
+        private FieldNode? _requestField;
 
         public RemoteQueryBuilder SetOperation(
-            NameNode name,
+            NameNode? name,
             OperationType operation)
         {
             if (name != null)
             {
                 _operationName = name;
             }
-            
+
             _operation = operation;
             return this;
         }
@@ -49,8 +49,7 @@ namespace HotChocolate.Stitching.Delegation
 
         public RemoteQueryBuilder SetRequestField(FieldNode field)
         {
-            _requestField = field
-                ?? throw new ArgumentNullException(nameof(field));
+            _requestField = field ?? throw new ArgumentNullException(nameof(field));
             return this;
         }
 
@@ -72,7 +71,7 @@ namespace HotChocolate.Stitching.Delegation
         public RemoteQueryBuilder AddVariable(
             NameString name,
             ITypeNode type,
-            IValueNode defaultValue)
+            IValueNode? defaultValue)
         {
             if (type == null)
             {
@@ -200,7 +199,7 @@ namespace HotChocolate.Stitching.Delegation
                 ? requestedField.Name.Value
                 : requestedField.Alias.Value;
 
-            NameNode alias = component.Name.Value.EqualsOrdinal(responseName)
+            NameNode? alias = component.Name.Value.EqualsOrdinal(responseName)
                 ? null
                 : new NameNode(responseName);
 
@@ -234,9 +233,9 @@ namespace HotChocolate.Stitching.Delegation
         private static FieldNode CreateSelection(
             SelectionSetNode selectionSet,
             SelectionPathComponent next,
-            string alias)
+            string? alias)
         {
-            NameNode aliasNode = string.IsNullOrEmpty(alias)
+            NameNode? aliasNode = string.IsNullOrEmpty(alias)
                 ? null : new NameNode(alias);
 
             return new FieldNode

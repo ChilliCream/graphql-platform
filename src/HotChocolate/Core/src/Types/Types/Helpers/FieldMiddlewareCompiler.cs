@@ -55,7 +55,7 @@ namespace HotChocolate.Types
         {
             FieldDelegate next = first;
 
-            for (int i = components.Count - 1; i >= 0; i--)
+            for (var i = components.Count - 1; i >= 0; i--)
             {
                 next = components[i].Invoke(next);
             }
