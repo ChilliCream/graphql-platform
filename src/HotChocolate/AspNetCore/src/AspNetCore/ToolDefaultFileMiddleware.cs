@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
 using HotChocolate.AspNetCore.Utilities;
+using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore
 {
@@ -56,6 +57,7 @@ namespace HotChocolate.AspNetCore
         public Task Invoke(HttpContext context)
         {
             if (Helpers.IsGetOrHeadMethod(context.Request.Method) &&
+                Helpers.AcceptHeaderContainsHtml(context.Request.Headers) &&
                 Helpers.TryMatchPath(context, _matchUrl, true, out PathString subPath))
             {
                 var dirContents = _fileProvider.GetDirectoryContents(subPath.Value);

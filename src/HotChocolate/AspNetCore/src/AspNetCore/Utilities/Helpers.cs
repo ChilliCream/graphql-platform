@@ -1,19 +1,16 @@
 ﻿using System;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
     internal static class Helpers
     {
-        internal static IFileProvider ResolveFileProvider(IWebHostEnvironment hostingEnv)
+        internal static bool AcceptHeaderContainsHtml(IHeaderDictionary headers)
         {
-            if (hostingEnv.WebRootFileProvider == null)
-            {
-                throw new InvalidOperationException("Missing FileProvider.");
-            }
-            return hostingEnv.WebRootFileProvider;
+            return headers.TryGetValue(HeaderNames.Accept, out StringValues values) &&
+                values.Count > 0 && values[0].Contains("text/html");
         }
 
         internal static bool IsGetOrHeadMethod(string method)

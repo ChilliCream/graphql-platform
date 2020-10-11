@@ -32,16 +32,14 @@ namespace Microsoft.AspNetCore.Builder
             RoutePattern pattern = RoutePatternFactory.Parse(path + "/{**slug}");
             IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+            IFileProvider fileProvider = CreateFileProvider();
 
-            requestPipeline.UseMiddleware<ToolDefaultFileMiddleware>(CreateFileProvider(), path);
-            requestPipeline.UseMiddleware<ToolStaticFileMiddleware>(CreateFileProvider(), path);
-
+            requestPipeline.UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path);
+            requestPipeline.UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path);
             requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
             requestPipeline.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
             requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
             requestPipeline.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
-
-            requestPipeline.UseBcpFileServer();
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
@@ -70,22 +68,6 @@ namespace Microsoft.AspNetCore.Builder
                     app.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
                     app.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
                 });
-        }
-
-        public static IApplicationBuilder UseBcpFileServer(
-            this IApplicationBuilder applicationBuilder)
-        {
-            var fileServerOptions = new FileServerOptions
-            {
-                FileProvider = CreateFileProvider(),
-                EnableDefaultFiles = true,
-                StaticFileOptions =
-                {
-                    ContentTypeProvider = new FileExtensionContentTypeProvider()
-                }
-            };
-
-            return applicationBuilder.UseFileServer(fileServerOptions);
         }
 
         private static IFileProvider CreateFileProvider()
