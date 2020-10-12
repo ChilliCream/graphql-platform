@@ -5,7 +5,7 @@ namespace HotChocolate.Resolvers.Expressions
     /// <summary>
     /// Describes a resolver that is based on a resolver type.
     /// </summary>
-    internal class ResolverDescriptor
+    public class ResolverDescriptor
     {
         public ResolverDescriptor(
             Type resolverType,

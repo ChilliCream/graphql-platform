@@ -25,20 +25,61 @@ namespace HotChocolate.ApolloFederation
                 fieldSetType);
 
         /// <summary>
+        /// Either the syntax node is invalid when parsing the literal or the syntax
+        /// node value has an invalid format.
+        /// </summary>
+        public static SerializationException Any_InvalidFormat(
+            AnyType anyType) =>
+            new SerializationException(
+                ErrorBuilder.New()
+                    .SetMessage(ThrowHelper_Any_HasInvalidFormat)
+                    .SetCode(ErrorCodes.Scalars.InvalidSyntaxFormat)
+                    .Build(),
+                anyType);
+
+        /// <summary>
+        /// The ExternalAttribute may only be applied to property members
+        /// of a given type, which is not the case for the given member
+        /// of the given type.
+        /// </summary>
+        public static SchemaException ExternalAttribute_InvalidTarget(
+            Type type, MemberInfo? member) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified external attribute was applied to " +
+                    "the member `{0}` of `{1}`, which is not a property.",
+                    member?.Name,
+                    type.FullName ?? type.Name)
+                .Build());
+
+        /// <summary>
+        /// No ReferenceResolver was found for a type that is decorated with a ReferenceResolverAttribute.
+        /// </summary>
+        public static SchemaException ReferenceResolverAttribute_EntityResolverNotFound(
+            Type type,
+            string referenceResolver) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified ReferenceResolver `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    referenceResolver)
+                .Build());
+
+        /// <summary>
         /// The runtime type is not supported by the scalars ParseValue method.
         /// </summary>
-        public static SerializationException FieldSet_CannotParseValue(
-            FieldSetType fieldSetType,
+        public static SerializationException Scalar_CannotParseValue(
+            ScalarType scalarType,
             Type valueType) =>
             new SerializationException(
                 ErrorBuilder.New()
                     .SetMessage(
-                        ThrowHelper_FieldSet_CannotParseValue,
-                        fieldSetType.Name,
+                        ThrowHelper_Scalar_CannotParseValue,
+                        scalarType.Name,
                         valueType.FullName ?? valueType.Name)
                     .SetCode(ErrorCodes.Scalars.InvalidRuntimeType)
                     .Build(),
-                fieldSetType);
+                scalarType);
 
         /// <summary>
         /// The schema doesn't contain any types with a key directive
@@ -50,6 +91,17 @@ namespace HotChocolate.ApolloFederation
                 SchemaErrorBuilder.New()
                     .SetMessage(ThrowHelper_EntityType_NoEntities)
                     .SetCode(ErrorCodes.Apollo.Federation.NoEntitiesDeclared)
+                    .Build());
+
+        /// <summary>
+        /// The apollo gateway tries to resolve an entity for which no
+        /// EntityResolver method was found.
+        /// </summary>
+        public static SchemaException EntityResolver_NoResolverFound() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(ThrowHelper_EntityResolver_NoEntityResolverFound)
+                    .SetCode(ErrorCodes.Apollo.Federation.NoEntityResolverFound)
                     .Build());
 
         /// <summary>

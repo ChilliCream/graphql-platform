@@ -5,10 +5,12 @@
     <AssemblyName>HotChocolate.ApolloFederation</AssemblyName>
     <RootNamespace>HotChocolate.ApolloFederation</RootNamespace>
     <Description></Description>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj" />
   </ItemGroup>
 
   <ItemGroup>

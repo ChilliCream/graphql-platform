@@ -86,6 +86,7 @@ namespace HotChocolate
                 /// </summary>
                 public const string RequiresFieldSetNullOrEmpty = "HC0005";
                 public const string NoEntitiesDeclared = "HC0006";
+                public const string NoEntityResolverFound = "HC0007";
             }
         }
 

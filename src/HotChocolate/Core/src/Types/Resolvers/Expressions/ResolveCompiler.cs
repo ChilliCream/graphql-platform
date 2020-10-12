@@ -7,7 +7,7 @@ using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Resolvers.Expressions
 {
-    internal sealed class ResolveCompiler : ResolverCompiler
+    public sealed class ResolveCompiler : ResolverCompiler
     {
         private static readonly MethodInfo _awaitTaskHelper =
             typeof(ExpressionHelper).GetMethod(nameof(ExpressionHelper.AwaitTaskHelper));

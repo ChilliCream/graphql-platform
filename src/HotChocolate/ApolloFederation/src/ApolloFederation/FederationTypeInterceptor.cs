@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -11,9 +14,10 @@ using static HotChocolate.ApolloFederation.ThrowHelper;
 
 namespace HotChocolate.ApolloFederation
 {
-    internal class EntityTypeInterceptor : TypeInterceptor
+    internal class FederationTypeInterceptor : TypeInterceptor
     {
         private readonly List<ObjectType> _entityTypes = new List<ObjectType>();
+        private static readonly object _empty = new object();
 
         public override bool TriggerAggregations { get; } = true;
 
@@ -40,6 +44,16 @@ namespace HotChocolate.ApolloFederation
             }
         }
 
+        public override void OnAfterCompleteType(
+            ITypeCompletionContext completionContext,
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
+        {
+            AddFactoryMethodToContext(
+                completionContext,
+                contextData);
+        }
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition,
@@ -54,6 +68,84 @@ namespace HotChocolate.ApolloFederation
                 definition);
         }
 
+        private void AddFactoryMethodToContext(
+            ITypeCompletionContext completionContext,
+            IDictionary<string, object?> contextData)
+        {
+            if (completionContext.Type is ObjectType ot && ot.ToRuntimeType() is var rt &&
+                rt.IsDefined(typeof(ForeignServiceTypeExtensionAttribute)))
+            {
+                var fields = ot.Fields.Where(
+                    field => field.Member is not null &&
+                             field.Member.IsDefined(typeof(ExternalAttribute))
+                );
+
+                var representationArgument = Expression.Parameter(typeof(Representation));
+                var objectVariable = Expression.Variable(rt);
+
+                var assignExpressions = fields.Select(
+                    field =>
+                    {
+                        if (field.Member is PropertyInfo pi && field.Type.InnerType() is ScalarType st)
+                        {
+                            Expression<Func<IValueNode, object?>> valueConverter =
+                                    (valueNode) => st.ParseLiteral(valueNode, true);
+
+                            Expression<Func<Representation, bool>> assignConditionCheck =
+                                (representation) =>
+                                    representation.Data.Fields.Any(
+                                        item =>
+                                            item.Name.Value.Equals(
+                                                pi.Name,
+                                                StringComparison.OrdinalIgnoreCase)
+                                    );
+
+                            Expression<Func<Representation, IValueNode>> valueGetterFunc =
+                                (representation) =>
+                                    representation.Data.Fields.Single(item =>
+                                        item.Name.Value.Equals(
+                                            pi.Name,
+                                            StringComparison.OrdinalIgnoreCase)).Value;
+
+                            return Expression.IfThen(
+                                Expression.Invoke(assignConditionCheck, representationArgument),
+                                Expression.Assign(
+                                    Expression.MakeMemberAccess(objectVariable, pi),
+                                    Expression.Convert(
+                                        Expression.Invoke(
+                                            valueConverter,
+                                            Expression.Invoke(
+                                                valueGetterFunc,
+                                                representationArgument
+                                            )), pi.PropertyType)));
+                        }
+                        throw ExternalAttribute_InvalidTarget(rt, field.Member);
+                    }
+                );
+
+                LabelTarget returnTarget = Expression.Label(rt);
+                var expressions = new List<Expression>
+                {
+                    Expression.Assign(
+                        objectVariable,
+                        Expression.New(rt)
+                    ),
+                };
+                expressions.AddRange(assignExpressions);
+                expressions.Add(Expression.Label(returnTarget, objectVariable));
+
+                var objectFactoryMethodExpression = Expression.Lambda(
+                    Expression.Block(
+                        new[] { objectVariable },
+                        expressions
+                    ),
+                    representationArgument
+                );
+
+                contextData[EntityResolver] = objectFactoryMethodExpression.Compile();
+            }
+        }
+
         private void AddServiceTypeToQueryType(
             ITypeCompletionContext completionContext,
             DefinitionBase definition)
@@ -61,13 +153,30 @@ namespace HotChocolate.ApolloFederation
             if (completionContext.IsQueryType == true &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
             {
-                var fieldDescriptor = ObjectFieldDescriptor.New(
+                var serviceFieldDescriptor = ObjectFieldDescriptor.New(
                     completionContext.DescriptorContext,
                     WellKnownFieldNames.Service);
-                fieldDescriptor
+                serviceFieldDescriptor
                     .Type<NonNullType<ServiceType>>()
-                    .Resolver(default(object));
-                objectTypeDefinition.Fields.Add(fieldDescriptor.CreateDefinition());
+                    .Resolve(_empty);
+                objectTypeDefinition.Fields.Add(serviceFieldDescriptor.CreateDefinition());
+
+                var entitiesFieldDescriptor = ObjectFieldDescriptor.New(
+                    completionContext.DescriptorContext,
+                    WellKnownFieldNames.Entities);
+                entitiesFieldDescriptor
+                    .Type<NonNullType<ListType<EntityType>>>()
+                    .Argument(
+                        WellKnownArgumentNames.Representations,
+                        descriptor =>
+                            descriptor.Type<NonNullType<ListType<NonNullType<AnyType>>>>()
+                    )
+                    .Resolve(c => EntitiesResolver._Entities(
+                        c.Schema,
+                        c.ArgumentValue<IReadOnlyList<Representation>>(WellKnownArgumentNames.Representations),
+                        c
+                    ));
+                objectTypeDefinition.Fields.Add(entitiesFieldDescriptor.CreateDefinition());
             }
         }
 

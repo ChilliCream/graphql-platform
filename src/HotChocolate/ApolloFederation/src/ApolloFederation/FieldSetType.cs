@@ -75,7 +75,7 @@ namespace HotChocolate.ApolloFederation
                 return new StringValueNode(SerializeSelectionSet(selectionSet));
             }
 
-            throw FieldSet_CannotParseValue(this, resultValue.GetType());
+            throw Scalar_CannotParseValue(this, resultValue.GetType());
         }
 
         /// <inheritdoc />

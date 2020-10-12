@@ -11,7 +11,7 @@ namespace HotChocolate.ApolloFederation
 {
     public class MockResolverContext: IResolverContext
     {
-        public IDictionary<string, object?> ContextData { get; }
+        public IDictionary<string, object?> ContextData { get; } = new Dictionary<string, object?>();
         public IServiceProvider Services { get; }
         public ISchema Schema { get; }
         public IObjectType RootType { get; }
@@ -22,8 +22,8 @@ namespace HotChocolate.ApolloFederation
         public FieldNode FieldSelection { get; }
         public NameString ResponseName { get; }
         public Path Path { get; }
-        public IImmutableDictionary<string, object?> ScopedContextData { get; set; }
-        public IImmutableDictionary<string, object?> LocalContextData { get; set; }
+        public IImmutableDictionary<string, object?> ScopedContextData { get; set; } = new Dictionary<string, object?>().ToImmutableDictionary();
+        public IImmutableDictionary<string, object?> LocalContextData { get; set; } = new Dictionary<string, object?>().ToImmutableDictionary();
         public IVariableValueCollection Variables { get; }
         public CancellationToken RequestAborted { get; }
 
@@ -34,7 +34,7 @@ namespace HotChocolate.ApolloFederation
 
         public T Parent<T>()
         {
-            throw new NotImplementedException();
+            return Activator.CreateInstance<T>();
         }
 
         public T Argument<T>(NameString name)
@@ -74,7 +74,7 @@ namespace HotChocolate.ApolloFederation
 
         public T Resolver<T>()
         {
-            throw new NotImplementedException();
+            return Activator.CreateInstance<T>();
         }
 
         public void ReportError(string errorMessage)

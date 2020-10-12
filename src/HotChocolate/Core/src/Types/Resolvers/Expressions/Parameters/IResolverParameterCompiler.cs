@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
-    internal interface IResolverParameterCompiler
+    public interface IResolverParameterCompiler
     {
         bool CanHandle(
             ParameterInfo parameter,

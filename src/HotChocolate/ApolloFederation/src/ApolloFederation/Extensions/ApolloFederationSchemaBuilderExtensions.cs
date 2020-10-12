@@ -28,6 +28,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
+            builder.AddType<AnyType>();
             builder.AddType<EntityType>();
             builder.AddType<ServiceType>();
             builder.AddType<ExternalDirectiveType>();
@@ -35,7 +36,7 @@ namespace HotChocolate
             builder.AddType<KeyDirectiveType>();
             builder.AddType<FieldSetType>();
             builder.AddType<RequiresDirectiveType>();
-            builder.TryAddTypeInterceptor<EntityTypeInterceptor>();
+            builder.TryAddTypeInterceptor<FederationTypeInterceptor>();
             return builder;
         }
     }
