@@ -14,8 +14,8 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Descriptors
 {
     public class ObjectFieldDescriptor
-        : OutputFieldDescriptorBase<ObjectFieldDefinition>,
-          IObjectFieldDescriptor
+        : OutputFieldDescriptorBase<ObjectFieldDefinition>
+        , IObjectFieldDescriptor
     {
         private bool _argumentsInitialized;
 

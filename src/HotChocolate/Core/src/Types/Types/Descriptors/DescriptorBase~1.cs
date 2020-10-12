@@ -8,11 +8,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class DescriptorBase<T>
-        : IDescriptor<T>,
-          IDescriptorExtension<T>,
-          IDescriptorExtension,
-          IDefinitionFactory<T>,
-          IHasDescriptorContext
+        : IDescriptor<T>
+        , IDescriptorExtension<T>
+        , IDescriptorExtension
+        , IDefinitionFactory<T>
+        , IHasDescriptorContext
         where T : DefinitionBase
     {
         private readonly List<Action<IDescriptorContext, T>> _modifiers =

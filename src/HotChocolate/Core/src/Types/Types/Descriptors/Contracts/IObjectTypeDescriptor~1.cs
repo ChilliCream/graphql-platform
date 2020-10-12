@@ -6,8 +6,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public interface IObjectTypeDescriptor<T>
-        : IDescriptor<ObjectTypeDefinition>,
-          IFluent
+        : IDescriptor<ObjectTypeDefinition>
+        , IFluent
     {
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.

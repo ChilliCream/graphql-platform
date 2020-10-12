@@ -40,19 +40,20 @@ namespace HotChocolate.Data.Projections
             }
             else if (context.Result is IEnumerable<T> e)
             {
-
-                context.Result = await Task.Run<object?>(
-                    () =>
-                    {
-                        try
+                context.Result = await Task
+                    .Run<object?>(
+                        () =>
                         {
-                            return e.SingleOrDefault();
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            return ErrorHelper.CreateMoreThanOneError(context);
-                        }
-                    }, context.RequestAborted)
+                            try
+                            {
+                                return e.SingleOrDefault();
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                return ErrorHelper.CreateMoreThanOneError(context);
+                            }
+                        },
+                        context.RequestAborted)
                     .ConfigureAwait(false);
             }
         }

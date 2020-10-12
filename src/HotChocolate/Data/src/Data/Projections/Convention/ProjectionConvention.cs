@@ -7,8 +7,8 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Data.Projections
 {
     public class ProjectionConvention
-        : Convention<ProjectionConventionDefinition>,
-          IProjectionConvention
+        : Convention<ProjectionConventionDefinition>
+        , IProjectionConvention
     {
         private Action<IProjectionConventionDescriptor>? _configure;
         private IProjectionProvider _provider;

@@ -54,7 +54,7 @@ namespace HotChocolate.Data.Projections.Expressions
         {
             return Expression.Call(
                 typeof(Enumerable),
-                "ToArray",
+                nameof(Enumerable.ToArray),
                 new[] { scope.RuntimeType },
                 source);
         }
@@ -63,7 +63,7 @@ namespace HotChocolate.Data.Projections.Expressions
         {
             return Expression.Call(
                 typeof(Enumerable),
-                "ToList",
+                nameof(Enumerable.ToList),
                 new[] { scope.RuntimeType },
                 source);
         }
@@ -80,7 +80,6 @@ namespace HotChocolate.Data.Projections.Expressions
 
             if (ctor is null)
             {
-                // TODO
                 throw new InvalidOperationException();
             }
 

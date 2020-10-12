@@ -37,9 +37,8 @@ namespace HotChocolate.Data.Projections
             }
             else if (context.Result is IEnumerable<T> e)
             {
-                context.Result = await Task.Run(
-                        () => e.FirstOrDefault(),
-                        context.RequestAborted)
+                context.Result = await Task
+                    .Run(() => e.FirstOrDefault(), context.RequestAborted)
                     .ConfigureAwait(false);
             }
         }

@@ -8,8 +8,8 @@ using HotChocolate.Types;
 namespace HotChocolate.Data.Projections
 {
     public class ProjectionSelection
-        : Selection,
-          IProjectionSelection
+        : Selection
+        , IProjectionSelection
     {
         public ProjectionSelection(
             IProjectionFieldHandler handler,
