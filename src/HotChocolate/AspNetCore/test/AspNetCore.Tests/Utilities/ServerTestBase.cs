@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Utilities
             ServerFactory = serverFactory;
         }
 
-        protected TestServerFactory ServerFactory { get; set; }
+        protected TestServerFactory ServerFactory { get; }
 
         protected virtual TestServer CreateStarWarsServer(string pattern = "/graphql") =>
             ServerFactory.Create(
@@ -54,8 +54,8 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseEndpoints(endpoints =>
                     {
                         endpoints.MapGraphQL(pattern);
-                        endpoints.MapGraphQL("evict", "evict");
-                        endpoints.MapGraphQL("arguments", "arguments");
+                        endpoints.MapGraphQL("/evict", "evict");
+                        endpoints.MapGraphQL("/arguments", "arguments");
                     }));
     }
 }
