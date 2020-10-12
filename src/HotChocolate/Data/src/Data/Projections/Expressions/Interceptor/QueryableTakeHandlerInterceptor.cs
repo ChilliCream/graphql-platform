@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Handlers
 {
@@ -20,28 +21,34 @@ namespace HotChocolate.Data.Projections.Handlers
         }
 
         public bool CanHandle(ISelection selection) =>
+            selection.Field.Member is {} &&
             selection.Field.ContextData.ContainsKey(_contextDataKey);
 
-        public void BeforeProjection(QueryableProjectionContext context, ISelection selection)
-        {
-        }
-
-        public void AfterProjection(QueryableProjectionContext context, ISelection selection)
+        public void BeforeProjection(
+            QueryableProjectionContext context,
+            ISelection selection)
         {
             var field = selection.Field;
-            if (field.ContextData.ContainsKey(_contextDataKey))
+            if (field.ContextData.ContainsKey(_contextDataKey) &&
+                selection.Field.Type.InnerType() is ListType lt &&
+                lt.ElementType.InnerType() is {} elementType)
             {
-                Type elementType = selection.Field.RuntimeType;
-
                 Expression instance = context.PopInstance();
+
                 context.PushInstance(
                     Expression.Call(
                         typeof(Enumerable),
                         nameof(Enumerable.Take),
-                        new[] { elementType },
+                        new[] { elementType.ToRuntimeType() },
                         instance,
                         Expression.Constant(_take)));
             }
+        }
+
+        public void AfterProjection(
+            QueryableProjectionContext context,
+            ISelection selection)
+        {
         }
     }
 }

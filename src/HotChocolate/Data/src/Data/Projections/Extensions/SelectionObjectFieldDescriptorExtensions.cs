@@ -11,26 +11,34 @@ using HotChocolate.Data.Projections;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
 
 namespace HotChocolate.Types
 {
     public class ProjectionOptimizer : ISelectionOptimizer
     {
-        private readonly IProjectionConvention _convention;
+        private readonly IProjectionProvider _convention;
 
         public ProjectionOptimizer(
-            IProjectionConvention convention)
+            IProjectionProvider convention)
         {
             _convention = convention;
         }
 
         public void OptimizeSelectionSet(SelectionOptimizerContext context)
         {
-            foreach (KeyValuePair<string, Selection> field in context.Fields.ToArray())
+            var processedFields = new HashSet<string>();
+            while (!processedFields.SetEquals(context.Fields.Keys))
             {
-                context.Fields[field.Key] =
-                    _convention.RewriteSelection(context, field.Value);
+                var fieldsToProcess = new HashSet<string>(context.Fields.Keys);
+                fieldsToProcess.ExceptWith(processedFields);
+                foreach (var field in fieldsToProcess)
+                {
+                    context.Fields[field] =
+                        _convention.RewriteSelection(context, context.Fields[field]);
+                    processedFields.Add(field);
+                }
             }
         }
 
@@ -55,6 +63,18 @@ namespace HotChocolate.Types
         private static readonly MethodInfo _factoryTemplate =
             typeof(ProjectionObjectFieldDescriptorExtensions)
                 .GetMethod(nameof(CreateMiddleware), BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        public static IObjectFieldDescriptor IsProjected(
+            this IObjectFieldDescriptor descriptor,
+            bool isProjected = true)
+        {
+            descriptor
+                .Extend()
+                .OnBeforeCreate(
+                    x => x.ContextData[ProjectionConvention.IsProjectedKey] = isProjected);
+
+            return descriptor;
+        }
 
         public static IObjectFieldDescriptor UseProjection(
             this IObjectFieldDescriptor descriptor,
@@ -137,9 +157,11 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             string? scope)
         {
-            IProjectionConvention convention =
+            IProjectionProvider convention =
                 context.DescriptorContext.GetProjectionConvention(scope);
             RegisterOptimizer(definition.ContextData, new ProjectionOptimizer(convention));
+
+            definition.ContextData[ProjectionContextIdentifier] = true;
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;
@@ -148,7 +170,7 @@ namespace HotChocolate.Types
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(
-            IProjectionConvention convention) =>
+            IProjectionProvider convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }

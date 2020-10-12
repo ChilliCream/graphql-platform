@@ -1,24 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
-    public class QueryableProjectionConvention
-        : ProjectionConvention
+    public class QueryableProjectionProvider
+        : ProjectionProvider
     {
-        public QueryableProjectionConvention()
+        public QueryableProjectionProvider()
         {
         }
 
-        public QueryableProjectionConvention(
-            Action<IProjectionConventionDescriptor> configure)
+        public QueryableProjectionProvider(
+            Action<IProjectionProviderDescriptor> configure)
             : base(configure)
         {
         }
@@ -52,17 +48,12 @@ namespace HotChocolate.Data.Projections.Expressions
                         new QueryableProjectionContext(
                             context,
                             context.ObjectType,
-                            context.Field.Type.ElementType().ToRuntimeType());
+                            context.Field.Type.UnwrapRuntimeType());
                     var visitor = new QueryableProjectionVisitor();
                     visitor.Visit(visitorContext);
                     context.Result = source.Select(visitorContext.Project<TEntityType>());
                 }
             }
         }
-    }
-
-    public class QueryableProjectionVisitor
-        : ProjectionVisitor<QueryableProjectionContext>
-    {
     }
 }

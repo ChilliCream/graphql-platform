@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data.Projections
@@ -8,13 +7,8 @@ namespace HotChocolate.Data.Projections
     {
         public string? Scope { get; set; }
 
-        public IList<(Type, IProjectionFieldHandler?)> Handlers { get; } =
-            new List<(Type, IProjectionFieldHandler?)>();
+        public Type? Provider { get; set; }
 
-        public IList<(Type, IProjectionFieldInterceptor?)> Interceptors { get; } =
-            new List<(Type, IProjectionFieldInterceptor?)>();
-
-        public IList<(Type, IProjectionOptimizer?)> Optimizers { get; } =
-            new List<(Type, IProjectionOptimizer?)>();
+        public IProjectionProvider? ProviderInstance { get; set; }
     }
 }

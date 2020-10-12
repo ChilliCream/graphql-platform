@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
 
@@ -10,31 +9,18 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
     public class QueryableProjectionListHandler
         : QueryableProjectionHandlerBase
     {
-        public override bool CanHandle(ISelection selection)
-        {
-            return selection.Field.Type is ListType ||
-                selection.Field.Type is NonNullType nonNullType &&
-                nonNullType.InnerType() is ListType;
-        }
+        public override bool CanHandle(ISelection selection) =>
+            selection.Field.Member is {} &&
+            selection.Field.Type is ListType ||
+            selection.Field.Type is NonNullType nonNullType &&
+            nonNullType.InnerType() is ListType;
 
         public override QueryableProjectionContext OnBeforeEnter(
             QueryableProjectionContext context,
             ISelection selection)
         {
             IObjectField field = selection.Field;
-            Expression next;
-            if (field.Member is PropertyInfo propertyInfo)
-            {
-                next = Expression.Property(context.GetInstance(), propertyInfo);
-            }
-            else if (field.Member is MethodInfo methodInfo)
-            {
-                next = Expression.Call(context.GetInstance(), methodInfo);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+            Expression next = context.GetInstance().Append(field.Member);
 
             context.PushInstance(next);
 
@@ -90,19 +76,15 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 return false;
             }
 
-            Type type;
-            if (field.Member is PropertyInfo propertyInfo)
+            // in case the projection is empty we do not project. This can happen if the
+            // field handler below skips fields
+            if (queryableScope.Level.Count == 0 || queryableScope.Level.Peek().Count == 0)
             {
-                type = propertyInfo.PropertyType;
+                action = SelectionVisitor.Continue;
+                return true;
             }
-            else if (field.Member is MethodInfo methodInfo)
-            {
-                type = methodInfo.ReturnType;
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+
+            Type type = field.Member.GetReturnType();
 
             Expression select = queryableScope.CreateSelection(
                 context.PopInstance(),

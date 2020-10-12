@@ -6,7 +6,9 @@ namespace HotChocolate.Data.Projections
     public class ProjectionConventionDescriptor
         : IProjectionConventionDescriptor
     {
-        protected ProjectionConventionDescriptor(IDescriptorContext context, string? scope)
+        protected ProjectionConventionDescriptor(
+            IDescriptorContext context,
+            string? scope)
         {
             Context = context ?? throw new ArgumentNullException(nameof(context));
             Definition.Scope = scope;
@@ -22,45 +24,36 @@ namespace HotChocolate.Data.Projections
             return Definition;
         }
 
-        public IProjectionConventionDescriptor RegisterFieldHandler<THandler>()
-            where THandler : IProjectionFieldHandler
+        /// <inheritdoc />
+        public IProjectionConventionDescriptor Provider<TProvider>()
+            where TProvider : class, IProjectionProvider =>
+            Provider(typeof(TProvider));
+
+        /// <inheritdoc />
+        public IProjectionConventionDescriptor Provider<TProvider>(TProvider provider)
+            where TProvider : class, IProjectionProvider
         {
-            Definition.Handlers.Add((typeof(THandler), null));
+            Definition.Provider = typeof(TProvider);
+            Definition.ProviderInstance = provider;
             return this;
         }
 
-        public IProjectionConventionDescriptor RegisterFieldHandler<THandler>(THandler handler)
-            where THandler : IProjectionFieldHandler
+        /// <inheritdoc />
+        public IProjectionConventionDescriptor Provider(Type provider)
         {
-            Definition.Handlers.Add((typeof(THandler), handler));
-            return this;
-        }
+            if (provider is null)
+            {
+                throw new ArgumentNullException(nameof(provider));
+            }
 
-        public IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>()
-            where THandler : IProjectionFieldInterceptor
-        {
-            Definition.Interceptors.Add((typeof(THandler), null));
-            return this;
-        }
+            if (!typeof(IProjectionProvider).IsAssignableFrom(provider))
+            {
+                throw new ArgumentException(
+                    DataResources.ProjectionConventionDescriptor_MustImplementIProjectionProvider,
+                    nameof(provider));
+            }
 
-        public IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
-            where THandler : IProjectionFieldInterceptor
-        {
-            Definition.Interceptors.Add((typeof(THandler), handler));
-            return this;
-        }
-
-        public IProjectionConventionDescriptor RegisterOptimizer<THandler>()
-            where THandler : IProjectionOptimizer
-        {
-            Definition.Optimizers.Add((typeof(THandler), null));
-            return this;
-        }
-
-        public IProjectionConventionDescriptor RegisterOptimizer<THandler>(THandler handler)
-            where THandler : IProjectionOptimizer
-        {
-            Definition.Optimizers.Add((typeof(THandler), handler));
+            Definition.Provider = provider;
             return this;
         }
 

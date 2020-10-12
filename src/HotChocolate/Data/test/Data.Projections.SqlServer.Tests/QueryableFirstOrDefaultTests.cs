@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
-    public class QueryableProjectionVisitorObjectTests
+    public class QueryableFirstOrDefaultTests
     {
         private static readonly Bar[] _barEntities =
         {
@@ -54,9 +54,9 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarBool = true,
                     BarEnum = BarEnum.BAR,
                     BarString = "testatest",
-                    ObjectArray = new List<BarNullable>
+                    ObjectArray = new List<BarNullableDeep?>
                     {
-                        new BarNullable { Foo = new FooNullable { BarShort = 12, } }
+                        new BarNullableDeep { Foo = new FooDeep { BarShort = 12 } }
                     }
                 }
             },
@@ -68,12 +68,9 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarBool = null,
                     BarEnum = BarEnum.BAZ,
                     BarString = "testbtest",
-                    ObjectArray = new List<BarNullable>
+                    ObjectArray = new List<BarNullableDeep?>
                     {
-                        new BarNullable
-                        {
-                            Foo = new FooNullable { BarShort = null, }
-                        }
+                        new BarNullableDeep { Foo = new FooDeep { BarShort = 9 } }
                     }
                 }
             },
@@ -85,9 +82,9 @@ namespace HotChocolate.Data.Projections.Expressions
                     BarBool = false,
                     BarEnum = BarEnum.QUX,
                     BarString = "testctest",
-                    ObjectArray = new List<BarNullable>
+                    ObjectArray = new List<BarNullableDeep?>
                     {
-                        new BarNullable { Foo = new FooNullable { BarShort = 14 } }
+                        new BarNullableDeep { Foo = new FooDeep { BarShort = 14 } }
                     }
                 }
             },
@@ -107,7 +104,7 @@ namespace HotChocolate.Data.Projections.Expressions
         private readonly SchemaCache _cache = new SchemaCache();
 
         [Fact]
-        public async Task Create_ObjectSingleProjection()
+        public async Task Create_DeepFilterObjectTwoProjections()
         {
             // arrange
             IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
@@ -116,74 +113,23 @@ namespace HotChocolate.Data.Projections.Expressions
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo{ barShort}}}")
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                foo {
+                                    objectArray {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
                     .Create());
 
-            res1.MatchSqlSnapshot("12");
-        }
-
-        [Fact]
-        public async Task Create_ObjectTwoProjections()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo{ barString barShort}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12");
-        }
-
-        [Fact]
-        public async Task Create_NestedObjectTwoProjections()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo { nestedObject { foo { barString barShort}}}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12");
-        }
-
-        [Fact]
-        public async Task Create_NestedObjectDifferentLevelProjection()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo { barString nestedObject { foo {barShort}}}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12");
-        }
-
-        [Fact]
-        public async Task Create_ListObjectTwoProjections()
-        {
-            // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo { objectArray { foo { barString barShort}}}}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("12");
+            res1.MatchSqlSnapshot();
         }
 
         [Fact]
@@ -196,10 +142,83 @@ namespace HotChocolate.Data.Projections.Expressions
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root { foo { barString objectArray{ foo {barShort}}}}}")
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                foo {
+                                    barString
+                                    objectArray {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
                     .Create());
 
-            res1.MatchSqlSnapshot("12");
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Create_DeepFilterObjectTwoProjections_Nullable()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                foo {
+                                    objectArray {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Create_ListObjectDifferentLevelProjection_Nullable()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root {
+                                foo {
+                                    barString
+                                    objectArray {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
         }
 
         public static void OnModelCreating(ModelBuilder modelBuilder)
@@ -221,6 +240,7 @@ namespace HotChocolate.Data.Projections.Expressions
 
             public bool BarBool { get; set; }
 
+            [UseFirstOrDefault]
             public List<BarDeep> ObjectArray { get; set; }
 
             public BarDeep NestedObject { get; set; }
@@ -247,7 +267,10 @@ namespace HotChocolate.Data.Projections.Expressions
 
             public bool? BarBool { get; set; }
 
-            public List<BarNullable>? ObjectArray { get; set; }
+            [UseFirstOrDefault]
+            public List<BarNullableDeep?>? ObjectArray { get; set; }
+
+            public BarNullableDeep? NestedObject { get; set; }
         }
 
         public class Bar
@@ -262,6 +285,13 @@ namespace HotChocolate.Data.Projections.Expressions
             public int Id { get; set; }
 
             public FooDeep Foo { get; set; }
+        }
+
+        public class BarNullableDeep
+        {
+            public int Id { get; set; }
+
+            public FooDeep? Foo { get; set; }
         }
 
         public class BarNullable

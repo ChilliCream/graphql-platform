@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Sorting;
@@ -48,20 +47,28 @@ namespace HotChocolate.Data.Projections
 
         public IRequestExecutor CreateSchema<TEntity>(
             TEntity[] entities,
-            ProjectionConvention? convention = null,
+            ProjectionProvider? convention = null,
             Action<ModelBuilder>? onModelCreating = null,
-            bool usePaging = false)
+            bool usePaging = false,
+            ObjectType<TEntity>? objectType = null)
             where TEntity : class
         {
-            convention ??= new QueryableProjectionConvention(
+            convention ??= new QueryableProjectionProvider(
                 x => x.AddDefaults());
 
             Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(
                 onModelCreating,
                 entities);
 
-            ISchemaBuilder builder = SchemaBuilder.New()
-                .AddConvention<IProjectionConvention>(convention)
+            ISchemaBuilder builder = SchemaBuilder.New();
+
+            if (objectType is {})
+            {
+                builder.AddType(objectType);
+            }
+
+            builder
+                .AddConvention<IProjectionProvider>(convention)
                 .AddProjections()
                 .AddFiltering()
                 .AddSorting()
@@ -72,7 +79,14 @@ namespace HotChocolate.Data.Projections
                             IObjectFieldDescriptor descriptor = c
                                 .Name("Query")
                                 .Field(x => x.Root)
-                                .Resolver(resolver)
+                                .Resolver(resolver);
+
+                            if (usePaging)
+                            {
+                                descriptor.UsePaging<ObjectType<TEntity>>();
+                            }
+
+                            descriptor
                                 .Use(
                                     next => async context =>
                                     {
@@ -85,10 +99,9 @@ namespace HotChocolate.Data.Projections
                                                 context.ContextData["sql"] =
                                                     queryable.ToQueryString();
                                             }
-                                            catch (Exception)
+                                            catch (Exception ex)
                                             {
-                                                context.ContextData["sql"] =
-                                                    "EF Core 3.1 does not support ToQuerString offically";
+                                                context.ContextData["sql"] = ex.Message;
                                             }
 
                                             context.Result = await queryable.ToListAsync();
@@ -97,11 +110,6 @@ namespace HotChocolate.Data.Projections
                                 .UseFiltering()
                                 .UseSorting()
                                 .UseProjection();
-
-                            if (usePaging)
-                            {
-                                descriptor.UsePaging<ObjectType<TEntity>>();
-                            }
                         }));
 
             ISchema schema = builder.Create();

@@ -1,26 +1,28 @@
+using System;
+
 namespace HotChocolate.Data.Projections
 {
-    /// <summary>
-    /// This descriptor is used to configure a <see cref="ProjectionConvention"/>.
-    /// </summary>
     public interface IProjectionConventionDescriptor
     {
-        IProjectionConventionDescriptor RegisterFieldHandler<THandler>()
-            where THandler : IProjectionFieldHandler;
+        /// <summary>
+        /// Specifies the projection provider.
+        /// </summary>
+        /// <typeparam name="TProvider">The projection provider type.</typeparam>
+        IProjectionConventionDescriptor Provider<TProvider>()
+            where TProvider : class, IProjectionProvider;
 
-        IProjectionConventionDescriptor RegisterFieldHandler<THandler>(THandler handler)
-            where THandler : IProjectionFieldHandler;
+        /// <summary>
+        /// Specifies the projection provider.
+        /// </summary>
+        /// <param name="provider">The concrete projection provider that shall be used.</param>
+        /// <typeparam name="TProvider">The projection provider type.</typeparam>
+        IProjectionConventionDescriptor Provider<TProvider>(TProvider provider)
+            where TProvider : class, IProjectionProvider;
 
-        IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>()
-            where THandler : IProjectionFieldInterceptor;
-
-        IProjectionConventionDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
-            where THandler : IProjectionFieldInterceptor;
-
-        IProjectionConventionDescriptor RegisterOptimizer<THandler>()
-            where THandler : IProjectionOptimizer;
-
-        IProjectionConventionDescriptor RegisterOptimizer<THandler>(THandler handler)
-            where THandler : IProjectionOptimizer;
+        /// <summary>
+        /// Specifies the projection provider.
+        /// </summary>
+        /// <param name="provider">The projection provider type.</param>
+        IProjectionConventionDescriptor Provider(Type provider);
     }
 }

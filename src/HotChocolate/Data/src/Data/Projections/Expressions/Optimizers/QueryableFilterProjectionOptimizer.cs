@@ -1,15 +1,15 @@
-using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
+using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 namespace HotChocolate.Data.Projections.Handlers
 {
     public class QueryableFilterProjectionOptimizer : IProjectionOptimizer
     {
         public bool CanHandle(ISelection field) =>
-            field.Field.ContextData.ContainsKey(
-                QueryableFilterProvider.ContextVisitFilterArgumentKey) &&
-            field.Field.ContextData.ContainsKey(QueryableFilterProvider.ContextArgumentNameKey);
+            field.Field.Member is {} &&
+            field.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
+            field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
         public Selection RewriteSelection(
             SelectionOptimizerContext context,
@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Projections.Handlers
             FieldMiddleware wrappedPipeline = next => ctx =>
             {
                 ctx.LocalContextData = ctx.LocalContextData.SetItem(
-                    QueryableFilterProvider.SkipFilteringKey,
+                    SkipFilteringKey,
                     true);
 
                 return next(ctx);

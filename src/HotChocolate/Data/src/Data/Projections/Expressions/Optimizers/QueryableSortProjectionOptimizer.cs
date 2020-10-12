@@ -1,14 +1,15 @@
-using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
+using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers
 {
     public class QueryableSortProjectionOptimizer : IProjectionOptimizer
     {
         public bool CanHandle(ISelection field) =>
-            field.Field.ContextData.ContainsKey(QueryableSortProvider.ContextVisitSortArgumentKey) &&
-            field.Field.ContextData.ContainsKey(QueryableSortProvider.ContextArgumentNameKey);
+            field.Field.Member is {} &&
+            field.Field.ContextData.ContainsKey(ContextVisitSortArgumentKey) &&
+            field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
         public Selection RewriteSelection(
             SelectionOptimizerContext context,
@@ -16,12 +17,15 @@ namespace HotChocolate.Data.Projections.Handlers
         {
             FieldDelegate resolverPipeline =
                 context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
-            FieldMiddleware wrappedPipeline = next => ctx =>
-            {
-                ctx.LocalContextData.SetItem(QueryableSortProvider.SkipSortingKey, true);
-                return next(ctx);
-            };
-            resolverPipeline = wrappedPipeline(resolverPipeline);
+
+            static FieldDelegate WrappedPipeline(FieldDelegate next) =>
+                ctx =>
+                {
+                    ctx.LocalContextData = ctx.LocalContextData.SetItem(SkipSortingKey, true);
+                    return next(ctx);
+                };
+
+            resolverPipeline = WrappedPipeline(resolverPipeline);
 
             var compiledSelection = new Selection(
                 context.Type,

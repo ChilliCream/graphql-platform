@@ -164,13 +164,22 @@
   <data name="FilterVisitor_InvalidField" xml:space="preserve">
     <value>Filter visitor encountered invalid field</value>
   </data>
+  <data name="ProjectionProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="ProjectionProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for projection convention `{1}`.</value>
+  </data>
+  <data name="ProjectionProvider_NoHandlersConfigured" xml:space="preserve">
+    <value>The projection convention `{0}` does not specify and field handler.</value>
+  </data>
   <data name="ProjectionConvention_NoConfigurationSpecified" xml:space="preserve">
     <value>No configuration was specified.</value>
   </data>
-  <data name="ProjectionConvention_UnableToCreateFieldHandler" xml:space="preserve">
-    <value>Unable to create field handler `{0}` for projection convention `{1}`.</value>
+  <data name="ProjectionConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the projection convention `{0}`.</value>
   </data>
-  <data name="ProjectionConvention_NoHandlersConfigured" xml:space="preserve">
-    <value>The projection convention `{0}` does not specify and field handler.</value>
+  <data name="ProjectionConventionDescriptor_MustImplementIProjectionProvider" xml:space="preserve">
+    <value>A projection provider has to implement `IProjectionProvider`.</value>
   </data>
 </root>

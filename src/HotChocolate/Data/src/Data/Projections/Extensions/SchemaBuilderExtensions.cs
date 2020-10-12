@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Data.Projections.Expressions;
 
 namespace HotChocolate.Data.Projections
 {
@@ -41,8 +40,9 @@ namespace HotChocolate.Data.Projections
             Action<IProjectionConventionDescriptor> configure,
             string? name = null) =>
             builder
+                .AddTypeInterceptor<ProjectionTypeInterceptor>()
                 .TryAddConvention<IProjectionConvention>(
-                    sp => new QueryableProjectionConvention(configure),
+                    sp => new ProjectionConvention(configure),
                     name);
 
         /// <summary>
@@ -65,6 +65,7 @@ namespace HotChocolate.Data.Projections
             string? name = null)
             where TConvention : class, IProjectionConvention =>
             builder
+                .AddTypeInterceptor<ProjectionTypeInterceptor>()
                 .TryAddConvention<IProjectionConvention, TConvention>(name);
     }
 }

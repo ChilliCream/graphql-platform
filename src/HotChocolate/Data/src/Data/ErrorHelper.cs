@@ -104,7 +104,7 @@ namespace HotChocolate.Data
         }
 
         public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
-            IProjectionConvention convention,
+            IProjectionProvider convention,
             Type fieldHandler) =>
             SchemaErrorBuilder.New()
                 .SetMessage(

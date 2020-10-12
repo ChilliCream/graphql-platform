@@ -16,6 +16,7 @@ namespace HotChocolate.Data.Projections.Handlers
         : IProjectionFieldInterceptor<QueryableProjectionContext>
     {
         public bool CanHandle(ISelection field) =>
+            field.Field.Member is {} &&
             field.Field.ContextData.ContainsKey(ContextVisitFilterArgumentKey) &&
             field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 

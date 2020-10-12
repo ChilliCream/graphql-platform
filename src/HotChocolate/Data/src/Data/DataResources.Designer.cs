@@ -327,21 +327,39 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string ProjectionProvider_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_NoHandlersConfigured {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
         internal static string ProjectionConvention_NoConfigurationSpecified {
             get {
                 return ResourceManager.GetString("ProjectionConvention_NoConfigurationSpecified", resourceCulture);
             }
         }
         
-        internal static string ProjectionConvention_UnableToCreateFieldHandler {
+        internal static string ProjectionConvention_NoProviderFound {
             get {
-                return ResourceManager.GetString("ProjectionConvention_UnableToCreateFieldHandler", resourceCulture);
+                return ResourceManager.GetString("ProjectionConvention_NoProviderFound", resourceCulture);
             }
         }
         
-        internal static string ProjectionConvention_NoHandlersConfigured {
+        internal static string ProjectionConventionDescriptor_MustImplementIProjectionProvider {
             get {
-                return ResourceManager.GetString("ProjectionConvention_NoHandlersConfigured", resourceCulture);
+                return ResourceManager.GetString("ProjectionConventionDescriptor_MustImplementIProjectionProvider", resourceCulture);
             }
         }
     }

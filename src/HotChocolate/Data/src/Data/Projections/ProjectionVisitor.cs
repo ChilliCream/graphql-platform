@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
+using static HotChocolate.Data.Projections.ProjectionProvider;
 
 namespace HotChocolate.Data.Projections
 {
@@ -83,13 +87,15 @@ namespace HotChocolate.Data.Projections
                 return handlerResult;
             }
 
-            return Break;
+            return SkipAndLeave;
         }
 
         protected override ISelectionVisitorAction Leave(
             ISelection selection,
             TContext context)
         {
+            base.Leave(selection, context);
+
             if (selection is IProjectionSelection projectionSelection &&
                 projectionSelection.Handler is IProjectionFieldHandler<TContext> handler &&
                 handler.TryHandleLeave(
@@ -97,11 +103,51 @@ namespace HotChocolate.Data.Projections
                     selection,
                     out ISelectionVisitorAction? handlerResult))
             {
-                base.Leave(selection, context);
                 return handlerResult;
             }
 
-            return Break;
+            return SkipAndLeave;
+        }
+
+        protected override ISelectionVisitorAction Visit(ISelection selection, TContext context)
+        {
+            if (selection.Field.IsNotProjected())
+            {
+                return Skip;
+            }
+
+            return base.Visit(selection, context);
+        }
+
+        protected override ISelectionVisitorAction Visit(IOutputField field, TContext context)
+        {
+            if (context.SelectionSetNodes.Count > 1 && field.HasProjectionMiddleware())
+            {
+                return Skip;
+            }
+
+            if (field.Type is IPageType and ObjectType pageType &&
+                context.SelectionSetNodes.Peek() is {} pagingFieldSelection)
+            {
+                IReadOnlyList<IFieldSelection> selections =
+                    context.Context.GetSelections(pageType, pagingFieldSelection, true);
+
+                foreach (var selection in selections)
+                {
+                    if (selection.Field.Name.Value is "nodes" &&
+                        selection.SyntaxNode.SelectionSet is not null)
+                    {
+                        context.SelectionSetNodes.Push(
+                            selection.SyntaxNode.SelectionSet);
+
+                        return base.Visit(selection.Field, context);
+                    }
+                }
+
+                return Skip;
+            }
+
+            return base.Visit(field, context);
         }
     }
 }

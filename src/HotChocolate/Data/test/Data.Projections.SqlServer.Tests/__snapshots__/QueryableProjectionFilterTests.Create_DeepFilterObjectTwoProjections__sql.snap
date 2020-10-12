@@ -1,10 +1,12 @@
-﻿SELECT "d"."Id", "t"."BarString", "t"."BarShort", "t"."Id"
+﻿.param set @__p_0 'a'
+
+SELECT "d"."Id", "f"."Id", "t"."BarString", "t"."BarShort", "t"."Id", "t"."Id0"
 FROM "Data" AS "d"
 LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
 LEFT JOIN (
-    SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "b"."FooId"
+    SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "f0"."Id" AS "Id0", "b"."FooId"
     FROM "BarDeep" AS "b"
     LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId1" = "f0"."Id"
-    WHERE ("f0"."BarString" = @__p_0) OR ("f0"."BarString" IS NULL AND @__p_0 IS NULL)
+    WHERE "f0"."BarString" = @__p_0
 ) AS "t" ON "f"."Id" = "t"."FooId"
-ORDER BY "d"."Id", "t"."Id"
+ORDER BY "d"."Id", "f"."Id", "t"."Id", "t"."Id0"

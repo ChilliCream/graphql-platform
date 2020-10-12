@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using Xunit;
 
 namespace HotChocolate.Data.Projections
@@ -9,13 +10,6 @@ namespace HotChocolate.Data.Projections
         private static readonly Foo[] _fooEntities =
         {
             new Foo { Bar = true, Baz = "a" }, new Foo { Bar = false, Baz = "b" }
-        };
-
-        private static readonly FooNullable[] _fooNullableEntities =
-        {
-            new FooNullable { Bar = true, Baz = "a" },
-            new FooNullable { Bar = null, Baz = null },
-            new FooNullable { Bar = false, Baz = "c" }
         };
 
         private readonly SchemaCache _cache = new SchemaCache();
@@ -46,7 +40,29 @@ namespace HotChocolate.Data.Projections
             // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root{ bar baz }}")
+                    .SetQuery("{ root{ baz }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task Create_ProjectsOneProperty_WithResolver()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                objectType: new ObjectType<Foo>(
+                    x => x
+                        .Field("foo")
+                        .Resolver(new[] { "foo" })
+                        .Type<ListType<StringType>>()));
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ baz foo }}")
                     .Create());
 
             res1.MatchSqlSnapshot();

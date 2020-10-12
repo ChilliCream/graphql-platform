@@ -11,10 +11,9 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
     public class QueryableProjectionFieldHandler
         : QueryableProjectionHandlerBase
     {
-        public override bool CanHandle(ISelection selection)
-        {
-            return selection.SelectionSet is not null;
-        }
+        public override bool CanHandle(ISelection selection) =>
+            selection.Field.Member is {} &&
+            selection.SelectionSet is not null;
 
         public override bool TryHandleEnter(
             QueryableProjectionContext context,

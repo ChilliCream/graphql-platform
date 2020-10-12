@@ -6,15 +6,15 @@ namespace HotChocolate.Data.Projections
 {
     public static class ProjectionDescriptorContextExtensions
     {
-        public static IProjectionConvention GetProjectionConvention(
+        public static IProjectionProvider GetProjectionConvention(
             this ITypeSystemObjectContext context,
             string? scope = null) =>
             context.DescriptorContext.GetProjectionConvention(scope);
 
-        public static IProjectionConvention GetProjectionConvention(
+        public static IProjectionProvider GetProjectionConvention(
             this IDescriptorContext context,
             string? scope = null) =>
-            context.GetConventionOrDefault<IProjectionConvention>(
+            context.GetConventionOrDefault<IProjectionProvider>(
                 () => throw new Exception(),
                 scope);
     }

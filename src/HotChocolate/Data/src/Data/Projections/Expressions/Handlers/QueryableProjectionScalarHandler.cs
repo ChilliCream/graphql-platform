@@ -10,10 +10,9 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
     public class QueryableProjectionScalarHandler
         : QueryableProjectionHandlerBase
     {
-        public override bool CanHandle(ISelection selection)
-        {
-            return selection.SelectionSet is null;
-        }
+        public override bool CanHandle(ISelection selection) =>
+            selection.Field.Member is {} &&
+            selection.SelectionSet is null;
 
         public override bool TryHandleLeave(
             QueryableProjectionContext context,
