@@ -4,7 +4,6 @@ using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Builder
@@ -73,7 +72,7 @@ namespace Microsoft.AspNetCore.Builder
         private static IFileProvider CreateFileProvider()
         {
             Type type = typeof(HttpEndpointRouteBuilderExtensions);
-            var resourceNamespace = "HotChocolate.AspNetCore.Resources";
+            string resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
 
             return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
         }
