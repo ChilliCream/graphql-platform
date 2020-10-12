@@ -8,8 +8,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public sealed class DescriptorContext
-        : IDescriptorContext
+    public sealed class DescriptorContext : IDescriptorContext
     {
         private readonly Dictionary<(Type, string?), IConvention> _conventions =
             new Dictionary<(Type, string?), IConvention>();
@@ -26,14 +25,23 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlyDictionary<(Type, string?), CreateConvention> convFactories,
             IServiceProvider services,
             IDictionary<string, object?> contextData,
-            SchemaBuilder.LazySchema schema)
+            SchemaBuilder.LazySchema schema,
+            ISchemaInterceptor schemaInterceptor,
+            ITypeInterceptor typeInterceptor)
         {
             Options = options;
             _convFactories = convFactories;
             _services = services;
             ContextData = contextData;
-            schema.Completed += (sender, args) =>
+            SchemaInterceptor = schemaInterceptor;
+            TypeInterceptor = typeInterceptor;
+
+            schema.Completed += OnSchemaOnCompleted;
+
+            void OnSchemaOnCompleted(object sender, EventArgs args)
+            {
                 SchemaCompleted?.Invoke(this, new SchemaCompletedEventArgs(schema.Schema));
+            }
         }
 
         public IServiceProvider Services => _services;
@@ -65,6 +73,10 @@ namespace HotChocolate.Types.Descriptors
                 return _inspector;
             }
         }
+
+        public ISchemaInterceptor SchemaInterceptor { get; }
+
+        public ITypeInterceptor TypeInterceptor { get; }
 
         public IDictionary<string, object?> ContextData { get; }
 
@@ -130,38 +142,22 @@ namespace HotChocolate.Types.Descriptors
         }
 
         internal static DescriptorContext Create(
-            IReadOnlySchemaOptions options,
-            IServiceProvider services,
-            IReadOnlyDictionary<(Type, string?), CreateConvention> conventions,
-            IDictionary<string, object?> contextData,
-            SchemaBuilder.LazySchema schema)
-        {
-            if (options is null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            if (conventions is null)
-            {
-                throw new ArgumentNullException(nameof(conventions));
-            }
-
-            return new DescriptorContext(options, conventions, services, contextData, schema);
-        }
-
-        internal static DescriptorContext Create()
+            IReadOnlySchemaOptions? options = null,
+            IServiceProvider? services = null,
+            IReadOnlyDictionary<(Type, string?), CreateConvention>? conventions = null,
+            IDictionary<string, object?>? contextData = null,
+            SchemaBuilder.LazySchema? schema = null,
+            ISchemaInterceptor? schemaInterceptor = null,
+            ITypeInterceptor? typeInterceptor = null)
         {
             return new DescriptorContext(
-                new SchemaOptions(),
-                new Dictionary<(Type, string?), CreateConvention>(),
-                new EmptyServiceProvider(),
-                new Dictionary<string, object?>(),
-                new SchemaBuilder.LazySchema());
+                options ?? new SchemaOptions(),
+                conventions ?? new Dictionary<(Type, string?), CreateConvention>(),
+                services ?? new EmptyServiceProvider(),
+                contextData ?? new Dictionary<string, object?>(),
+                schema ?? new SchemaBuilder.LazySchema(),
+                schemaInterceptor ?? new AggregateSchemaInterceptor(),
+                typeInterceptor ?? new AggregateTypeInterceptor());
         }
     }
 }

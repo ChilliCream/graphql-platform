@@ -2,7 +2,6 @@ using System;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 

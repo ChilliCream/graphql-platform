@@ -1,0 +1,9 @@
+{
+    me {
+        id
+        name
+        consultant {
+            name
+        }
+    }
+}

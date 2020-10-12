@@ -12,8 +12,7 @@ namespace HotChocolate.Types.Descriptors
     /// The type inspector provides helpers to inspect .NET types and
     /// infer GraphQL type structures.
     /// </summary>
-    public interface ITypeInspector
-        : IConvention
+    public interface ITypeInspector : IConvention
     {
         /// <summary>
         /// Gets the resolver types from a possible object type.

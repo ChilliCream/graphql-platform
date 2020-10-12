@@ -1,0 +1,34 @@
+﻿{
+  "errors": [
+    {
+      "message": "The argument \u0060id\u0060 does not exist.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 31
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "contracts",
+        "argument": "id",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      }
+    },
+    {
+      "message": "The argument \u0060customerId\u0060 is required.",
+      "locations": [
+        {
+          "line": 2,
+          "column": 21
+        }
+      ],
+      "extensions": {
+        "type": "Query",
+        "field": "contracts",
+        "argument": "customerId",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+      }
+    }
+  ]
+}

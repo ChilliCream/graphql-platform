@@ -9,6 +9,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -19,6 +20,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutorResolver
         : IRequestExecutorResolver
+        , IInternalRequestExecutorResolver
         , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
@@ -53,27 +55,39 @@ namespace HotChocolate.Execution
 
                 try
                 {
-                    if (!_executors.TryGetValue(schemaName, out re))
-                    {
-                        IServiceProvider schemaServices =
-                            await CreateSchemaServicesAsync(schemaName, cancellationToken)
-                                .ConfigureAwait(false);
-
-                        re = new RegisteredExecutor
-                        (
-                            schemaServices.GetRequiredService<IRequestExecutor>(),
-                            schemaServices,
-                            schemaServices.GetRequiredService<IDiagnosticEvents>()
-                        );
-
-                        re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
-                        _executors.TryAdd(schemaName, re);
-                    }
+                    return await GetRequestExecutorNoLockAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 finally
                 {
                     _semaphore.Release();
                 }
+            }
+
+            return re.Executor;
+        }
+
+        public async ValueTask<IRequestExecutor> GetRequestExecutorNoLockAsync(
+            NameString schemaName = default,
+            CancellationToken cancellationToken = default)
+        {
+            schemaName = schemaName.HasValue ? schemaName : Schema.DefaultName;
+
+            if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
+            {
+                IServiceProvider schemaServices =
+                    await CreateSchemaServicesAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
+
+                re = new RegisteredExecutor
+                (
+                    schemaServices.GetRequiredService<IRequestExecutor>(),
+                    schemaServices,
+                    schemaServices.GetRequiredService<IDiagnosticEvents>()
+                );
+
+                re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
+                _executors.TryAdd(schemaName, re);
             }
 
             return re.Executor;
@@ -156,6 +170,7 @@ namespace HotChocolate.Execution
             serviceCollection.AddSingleton<IRequestExecutor>(
                 sp => new RequestExecutor(
                     sp.GetRequiredService<ISchema>(),
+                    _applicationServices.GetRequiredService<DefaultRequestContextAccessor>(),
                     _applicationServices,
                     sp,
                     sp.GetRequiredService<IErrorHandler>(),
@@ -208,7 +223,7 @@ namespace HotChocolate.Execution
             }
 
             schemaBuilder
-                .AddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
+                .TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
                 .AddServices(serviceProvider);
 
             ISchema schema = schemaBuilder.Create();
@@ -285,8 +300,8 @@ namespace HotChocolate.Execution
         private class RegisteredExecutor
         {
             public RegisteredExecutor(
-                IRequestExecutor executor, 
-                IServiceProvider services, 
+                IRequestExecutor executor,
+                IServiceProvider services,
                 IDiagnosticEvents diagnosticEvents)
             {
                 Executor = executor;

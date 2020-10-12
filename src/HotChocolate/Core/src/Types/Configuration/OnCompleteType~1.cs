@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.Configuration
 {
     public delegate void OnCompleteType<T>(
         ITypeCompletionContext context,

@@ -632,4 +632,7 @@ Type: `{0}`</value>
   <data name="StreamDirectiveType_If_Description" xml:space="preserve">
     <value>Streamed when true.</value>
   </data>
+  <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
+    <value>The root type `{0}` has already been registered.</value>
+  </data>
 </root>
