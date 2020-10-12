@@ -39,41 +39,12 @@ namespace HotChocolate.Stitching
                 "The mandatory remote executors have not been found.");
         }
 
-        public static void AddRemoteExecutor(
-            this IDictionary<string, object?> contextData,
-            NameString schemaName,
-            IRequestExecutor executor)
-        {
-            if (!contextData.ContainsKey(RemoteExecutors))
-            {
-                contextData.Add(
-                    RemoteExecutors,
-                    new OrderedDictionary<NameString, IRequestExecutor>());
-            }
-
-            if (contextData.TryGetValue(RemoteExecutors, out object? o) &&
-                o is IDictionary<NameString, IRequestExecutor> executors)
-            {
-                executors[schemaName] = executor;
-            }
-            else
-            {
-                // TODO : throw helper
-                throw new InvalidOperationException(
-                    "The mandatory remote executors have not been found.");
-            }
-        }
-
         public static ISchemaBuilder AddRemoteExecutor(
             this ISchemaBuilder schemaBuilder,
             NameString schemaName,
             IRequestExecutor executor)
         {
             return schemaBuilder
-                .SetSchema(descriptor => descriptor
-                    .Extend()
-                    .OnBeforeCreate(def =>
-                        def.ContextData.AddRemoteExecutor(schemaName, executor)))
                 .SetContextData(
                     RemoteExecutors,
                     current =>

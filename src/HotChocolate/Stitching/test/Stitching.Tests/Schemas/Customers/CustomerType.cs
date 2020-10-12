@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Customers
@@ -13,7 +14,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
             descriptor
                 .AsNode()
                 .IdField(t => t.Id)
-                .NodeResolver((ctx, id) => 
+                .NodeResolver((ctx, id) =>
                 {
                     return Task.FromResult(
                         ctx.Service<CustomerRepository>()
@@ -36,10 +37,9 @@ namespace HotChocolate.Stitching.Schemas.Customers
                     ctx.ArgumentValue<SayInput>("input").Words));
 
             descriptor.Field("complexArg")
-                .Argument("arg", a =>
-                    a.Type<ComplexInputType>())
+                .Argument("arg", a => a.Type<ComplexInputType>())
                 .Type<StringType>()
-                .Resolver("");
+                .Resolve(ctx => ctx.ArgumentLiteral<IValueNode>("arg").ToString());
         }
     }
 }

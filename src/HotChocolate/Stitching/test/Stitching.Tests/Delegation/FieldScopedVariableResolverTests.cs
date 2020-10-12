@@ -12,7 +12,7 @@ namespace HotChocolate.Stitching.Delegation
 {
     public class FieldScopedVariableResolverTests
     {
-        [Fact(Skip =  "Fix It")]
+        [Fact]
         public void CreateVariableValue()
         {
             // arrange
@@ -29,7 +29,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query"));
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Parent<IReadOnlyDictionary<string, object>>())
+            context.Setup(t => t.Parent<object>())
                 .Returns(new Dictionary<string, object> { { "a", "baz" } });
 
             var scopedVariable = new ScopedVariableNode(

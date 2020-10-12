@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate;
 using HotChocolate.Configuration;
@@ -180,7 +181,7 @@ namespace Microsoft.Extensions.DependencyInjection
             if (resolverResult is IReadOnlyDictionary<string, object> dict)
             {
                 if (dict.TryGetValue(WellKnownFieldNames.TypeName, out object? value) &&
-                    value is string typeName)
+                    TryDeserializeTypeName(value, out string typeName))
                 {
                     if (objectType.Directives.Contains(DirectiveNames.Source) &&
                         context.ScopedContextData.TryGetValue(WellKnownContextData.SchemaName, out object? o) &&
@@ -198,6 +199,26 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             return IsOfTypeWithClrType(objectType, resolverResult);
+        }
+
+        private static bool TryDeserializeTypeName(
+            object serializedTypeName,
+            [NotNullWhen(true)] out string? typeName)
+        {
+            if (serializedTypeName is string s)
+            {
+                typeName = s;
+                return true;
+            }
+
+            if (serializedTypeName is StringValueNode sv)
+            {
+                typeName = sv.Value;
+                return true;
+            }
+
+            typeName = null;
+            return false;
         }
 
         private static bool IsOfTypeWithClrType(IHasRuntimeType type, object? result) =>

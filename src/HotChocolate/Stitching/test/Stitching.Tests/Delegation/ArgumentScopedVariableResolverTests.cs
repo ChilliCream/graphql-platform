@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Delegation
 {
     public class ArgumentScopedVariableResolverTests
     {
-        [Fact(Skip =  "Fix It")]
+        [Fact]
         public void CreateVariableValue()
         {
             // arrange
@@ -26,7 +26,7 @@ namespace HotChocolate.Stitching.Delegation
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             ObjectField field = schema.GetType<ObjectType>("Query").Fields["foo"];
             context.SetupGet(t => t.Field).Returns(field);
-            context.Setup(t => t.ArgumentValue<IValueNode>("a"))
+            context.Setup(t => t.ArgumentLiteral<IValueNode>("a"))
                 .Returns(new StringValueNode("baz"));
 
             var scopedVariable = new ScopedVariableNode(

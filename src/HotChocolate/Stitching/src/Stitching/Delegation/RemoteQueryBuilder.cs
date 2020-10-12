@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
             new List<FragmentDefinitionNode>();
         private NameNode _operationName = new NameNode("fetch");
         private OperationType _operation = OperationType.Query;
-        private IImmutableStack<SelectionPathComponent> _path = 
+        private IImmutableStack<SelectionPathComponent> _path =
             ImmutableStack<SelectionPathComponent>.Empty;
         private FieldNode? _requestField;
 
@@ -39,11 +39,7 @@ namespace HotChocolate.Stitching.Delegation
         public RemoteQueryBuilder SetSelectionPath(
             IImmutableStack<SelectionPathComponent> selectionPath)
         {
-            if (selectionPath == null)
-            {
-                throw new ArgumentNullException(nameof(selectionPath));
-            }
-            _path = selectionPath;
+            _path = selectionPath ?? throw new ArgumentNullException(nameof(selectionPath));
             return this;
         }
 
@@ -157,7 +153,7 @@ namespace HotChocolate.Stitching.Delegation
             IImmutableStack<SelectionPathComponent> path,
             FieldNode requestedField)
         {
-            if (!path.Any())
+            if (path.IsEmpty)
             {
                 path = path.Push(new SelectionPathComponent(
                     requestedField.Name,
@@ -166,7 +162,7 @@ namespace HotChocolate.Stitching.Delegation
 
             FieldNode current = CreateRequestedField(requestedField, ref path);
 
-            while (path.Any())
+            while (!path.IsEmpty)
             {
                 path = path.Pop(out SelectionPathComponent component);
                 current = CreateSelection(current, component);
