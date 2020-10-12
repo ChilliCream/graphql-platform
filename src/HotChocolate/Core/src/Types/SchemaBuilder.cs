@@ -39,8 +39,7 @@ namespace HotChocolate
         {
             typeof(IntrospectionTypeInterceptor)
         };
-        private readonly IBindingCompiler _bindingCompiler =
-            new BindingCompiler();
+        private readonly IBindingCompiler _bindingCompiler = new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;

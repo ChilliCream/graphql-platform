@@ -8,6 +8,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -33,6 +34,15 @@ namespace Microsoft.Extensions.DependencyInjection
                         objectField.MiddlewareComponents.Insert(0, delegateToSchema);
                     }
                 }
+            }
+
+            if (definition is SchemaTypeDefinition &&
+                discoveryContext.ContextData.TryGetValue(RemoteExecutors, out object? value))
+            {
+                // we copy the remote executors that are stored only on the
+                // schema builder context to the schema context so that
+                // the stitching context can access these at runtime.
+                contextData.Add(RemoteExecutors, value);
             }
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -35,23 +36,36 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                     nameof(variable));
             }
 
-            if (context.ObjectType.Fields.TryGetField(variable.Name.Value, out IObjectField field))
+            if (context.ObjectType.Fields.TryGetField(variable.Name.Value, out IObjectField? field))
             {
                 object parent = context.Parent<object>();
-                ObjectValueNode objectLiteral =
-                    parent is ObjectValueNode o
-                        ? o :
-                        (ObjectValueNode)targetType.ParseValue(parent);
 
-                ObjectFieldNode? fieldLiteral =
-                    objectLiteral.Fields.FirstOrDefault(
-                        t => t.Name.Value.EqualsOrdinal(field.Name));
+                IValueNode? valueLiteral = null;
+
+                if (parent is ObjectValueNode objectValue)
+                {
+                    valueLiteral =
+                        objectValue.Fields.FirstOrDefault(
+                            t => t.Name.Value.EqualsOrdinal(field.Name))?.Value;
+                }
+                else if (parent is IReadOnlyDictionary<string, object> dict &&
+                    dict.TryGetValue(field.Name, out object? value))
+                {
+                    if (value is IValueNode v)
+                    {
+                        valueLiteral = v;
+                    }
+                    else if(field.Type.IsInputType() && field.Type is IInputType type)
+                    {
+                        valueLiteral = type.ParseValue(value);
+                    }
+                }
 
                 return new VariableValue
                 (
                     variable.ToVariableName(),
                     targetType.ToTypeNode(),
-                    fieldLiteral?.Value ?? NullValueNode.Default,
+                    valueLiteral ?? NullValueNode.Default,
                     null
                 );
             }
