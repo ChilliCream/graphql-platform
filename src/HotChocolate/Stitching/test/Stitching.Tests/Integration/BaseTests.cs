@@ -404,7 +404,7 @@ namespace HotChocolate.Stitching.Integration
                             consultant: Consultant
                                 @delegate(
                                     schema: ""customer""
-                                    path: ""customer(id:\\""Q3VzdG9tZXIKZDE=\\"").consultant"")
+                                    path: ""customer(id:\""Q3VzdG9tZXIKZDE=\"").consultant"")
                         }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
@@ -439,7 +439,7 @@ namespace HotChocolate.Stitching.Integration
                             consultantName: String!
                                 @delegate(
                                     schema: ""customer""
-                                    path: ""customer(id:\\""Q3VzdG9tZXIKZDE=\\"").consultant.name"")
+                                    path: ""customer(id:\""Q3VzdG9tZXIKZDE=\"").consultant.name"")
                         }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
