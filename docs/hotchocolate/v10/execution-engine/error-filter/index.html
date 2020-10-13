@@ -1314,7 +1314,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Since, errors can have a lot of properties depending on your case we have introduced a new error builder which provides a nice API without thousands of overloads.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73877513985270740000"
+              data-toaster-id="14465243624837298000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1322,7 +1322,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`return ErrorBuilder.New()
     .SetMessage(&quot;This is my error.&quot;)
     .SetCode(&quot;FOO_BAR&quot;)
-    .Build();`, `73877513985270740000`)"
+    .Build();`, `14465243624837298000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1341,14 +1341,14 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>An error filter has to be registered with the execution builder or with your dependency injection.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="80157295772761150000"
+              data-toaster-id="40902264221368975000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`IQueryExecuter executer = schema.MakeExecutable(builder =>
     builder.UseDefaultPipeline(options)
-        .AddErrorFilter<MyErrorFilter>());`, `80157295772761150000`)"
+        .AddErrorFilter<MyErrorFilter>());`, `40902264221368975000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1363,12 +1363,12 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>OR</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31990887315993710000"
+              data-toaster-id="44605961419180050000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddErrorFilter<MyErrorFilter>();`, `31990887315993710000`)"
+              onClick="copyToClipboard(`services.AddErrorFilter<MyErrorFilter>();`, `44605961419180050000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1381,7 +1381,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>It is also possible to just register the error filter as a delegate like the following.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97337870578025100000"
+              data-toaster-id="63354965704821620000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1395,7 +1395,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
                 return error.WithCode(&quot;NullRef&quot;);
             }
             return error;
-        }));`, `97337870578025100000`)"
+        }));`, `63354965704821620000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1417,7 +1417,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Since errors are immutable we have added some helper functions like <code class="language-text">WithMessage</code>, <code class="language-text">WithCode</code> and so on that create a new error with the desired properties. Moreover, you can create an error builder from an error and modify multiple properties and then rebuild the error object.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="39159677036001935000"
+              data-toaster-id="52521924229965240000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1425,7 +1425,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`return ErrorBuilder.FromError(error)
     .SetMessage(&quot;This is my error.&quot;)
     .SetCode(&quot;FOO_BAR&quot;)
-    .Build();`, `39159677036001935000`)"
+    .Build();`, `52521924229965240000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1442,7 +1442,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to automatically add exception details to your GraphQL error you can switch the execution option to include exception details. By default we will switch this on if the debugger is attached. You can overwrite the behavior by setting the option.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="38276934480667690000"
+              data-toaster-id="23874105203637375000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1453,7 +1453,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     .MakeExecutable(new QueryExecutionOptions
     {
         IncludeExceptionDetails = true
-    });`, `38276934480667690000`)"
+    });`, `23874105203637375000`)"
             >
               <div
                 class="gatsby-code-button"
