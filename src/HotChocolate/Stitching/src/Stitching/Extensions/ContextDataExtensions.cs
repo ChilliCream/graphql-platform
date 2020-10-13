@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
@@ -307,7 +308,7 @@ namespace HotChocolate.Stitching
             {
                 if (current is IDictionary<(NameString, NameString), NameString> dict)
                 {
-                    foreach (var item in nameLookup)
+                    foreach (KeyValuePair<(NameString, NameString), NameString> item in nameLookup)
                     {
                         dict[item.Key] = item.Value;
                     }
@@ -315,8 +316,7 @@ namespace HotChocolate.Stitching
                     return dict;
                 }
 
-                return new Dictionary<(NameString, NameString), NameString>(
-                    (IEnumerable<KeyValuePair<(NameString, NameString), NameString>>)nameLookup);
+                return nameLookup.ToDictionary(t => t.Key, t => t.Value);
             });
         }
 
@@ -331,7 +331,7 @@ namespace HotChocolate.Stitching
                     dict[(typeName, sourceSchema)] = sourceName;
                 }
 
-                return new Dictionary<(NameString, NameString), NameString> 
+                return new Dictionary<(NameString, NameString), NameString>
                 {
                     { (typeName, sourceSchema), sourceName }
                 };
