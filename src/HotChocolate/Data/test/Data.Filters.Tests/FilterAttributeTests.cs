@@ -111,6 +111,8 @@ namespace HotChocolate.Data.Filters
 
             [GraphQLType(typeof(IntType))]
             public int? Qux { get; set; }
+
+            public Foo? Nested { get; set; }
         }
     }
 }

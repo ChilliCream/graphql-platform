@@ -6,6 +6,7 @@ type Foo {
   bar: String!
   baz: Int!
   qux: Int
+  nested: Foo
 }
 
 type Query2 {

@@ -6,6 +6,7 @@ type Foo {
   bar: String!
   baz: Int!
   qux: Int
+  nested: Foo
 }
 
 type Query1 {
@@ -48,6 +49,7 @@ input FooFilterInput {
   bar: StringOperationFilterInput
   baz: ComparableOperationFilterInputOfInt64FilterInput
   qux: ComparableOperationFilterInputOfNullableOfInt32FilterInput
+  nested: FooFilterInput
 }
 
 input StringOperationFilterInput {
