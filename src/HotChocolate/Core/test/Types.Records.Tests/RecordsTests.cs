@@ -27,6 +27,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Records_Default_Value_Is_Taken_From_Ctor()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<Query>()
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
         public async Task Relay_Id_Middleware_Is_Correctly_Applied()
         {
             Snapshot.FullName();
@@ -36,7 +50,7 @@ namespace HotChocolate.Types
                 @"{ person { id name } }",
                 b => b.AddQueryType<Query>()
             )
-            .MatchSnapshotAsync(); ;
+            .MatchSnapshotAsync();
         }
 
         public class Query
@@ -45,5 +59,13 @@ namespace HotChocolate.Types
         }
 
         public record Person([ID] int Id, string Name);
+
+        public class Query2
+        {
+            public DefaultValueTest GetPerson(DefaultValueTest? defaultValueTest) =>
+                new DefaultValueTest(1, "Test");
+        }
+
+        public record DefaultValueTest([ID] int Id, string Name = "ShouldBeDefaultValue");
     }
 }
