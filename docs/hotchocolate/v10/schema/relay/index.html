@@ -1312,14 +1312,14 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to support the schema has to provide an interface <code class="language-text">Node</code> that looks like following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92459959106781000000"
+              data-toaster-id="33319946000877064000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`interface Node {
   id: ID!
-}`, `92459959106781000000`)"
+}`, `33319946000877064000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1335,7 +1335,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Moreover, the <code class="language-text">Query</code> type has to expose a field <code class="language-text">node</code> that can return a node for an id.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="72208056436194840000"
+              data-toaster-id="90859023163244990000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1344,7 +1344,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
   ...
   node(id: ID!) : Node
   ...
-}`, `72208056436194840000`)"
+}`, `90859023163244990000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1362,7 +1362,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Hot Chocolate makes implementing this very easy. First, we have to declare on our schema that we want to be relay compliant:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84382194859125240000"
+              data-toaster-id="87483637133989430000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1370,7 +1370,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`ISchema schema = SchemaBuilder.New()
     .EnableRelaySupport()
     ...
-    .Create();`, `84382194859125240000`)"
+    .Create();`, `87483637133989430000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1387,7 +1387,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Lastly, we have to declare on our object types that they are nodes and how they can be resolved.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57348965949305766000"
+              data-toaster-id="94398305135266250000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1403,7 +1403,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
                 ctx.Service<IMyRepository>().GetMyObjectAsync(id));
         ...
     }
-}`, `57348965949305766000`)"
+}`, `94398305135266250000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1432,7 +1432,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>If your database provider can provide it`s data through <code class="language-text">IQueryable</code> then implementing relay pagination is one line of code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="98695262823509360000"
+              data-toaster-id="36816161143787495000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1444,7 +1444,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     {
         descriptor.Field(t => t.Strings).UsePaging<StringType>();
     }
-}`, `98695262823509360000`)"
+}`, `36816161143787495000`)"
             >
               <div
                 class="gatsby-code-button"
