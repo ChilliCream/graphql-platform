@@ -11,8 +11,8 @@ namespace HotChocolate.Stitching
 {
     internal static class ContextDataExtensions
     {
-         public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
-            this IHasContextData hasContextData)
+        public static IReadOnlyDictionary<NameString, IRequestExecutor> GetRemoteExecutors(
+           this IHasContextData hasContextData)
         {
             if (hasContextData.ContextData.TryGetValue(RemoteExecutors, out object? o) &&
                 o is IReadOnlyDictionary<NameString, IRequestExecutor> executors)
@@ -272,6 +272,70 @@ namespace HotChocolate.Stitching
             IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup)
         {
             return schemaBuilder.SetContextData(ExternalFieldLookup, externalFieldLookup);
+        }
+
+        public static IReadOnlyDictionary<(NameString, NameString), NameString> GetNameLookup(
+            this ISchema schema)
+        {
+            if (schema.ContextData.TryGetValue(NameLookup, out object? value) &&
+                value is IReadOnlyDictionary<(NameString, NameString), NameString> dict)
+            {
+                return dict;
+            }
+
+            // todo . throw helper
+            throw new InvalidOperationException("A stitched schema must provide a name lookup");
+        }
+
+        public static IReadOnlyDictionary<(NameString, NameString), NameString> GetNameLookup(
+            this IHasContextData hasContextData)
+        {
+            if (hasContextData.ContextData.TryGetValue(NameLookup, out object? value) &&
+                value is IReadOnlyDictionary<(NameString, NameString), NameString> dict)
+            {
+                return dict;
+            }
+
+            return new Dictionary<(NameString, NameString), NameString>();
+        }
+
+        public static ISchemaBuilder AddNameLookup(
+            this ISchemaBuilder schemaBuilder,
+            IReadOnlyDictionary<(NameString, NameString), NameString> nameLookup)
+        {
+            return schemaBuilder.SetContextData(NameLookup, current =>
+            {
+                if (current is IDictionary<(NameString, NameString), NameString> dict)
+                {
+                    foreach (var item in nameLookup)
+                    {
+                        dict[item.Key] = item.Value;
+                    }
+
+                    return dict;
+                }
+
+                return new Dictionary<(NameString, NameString), NameString>(
+                    (IEnumerable<KeyValuePair<(NameString, NameString), NameString>>)nameLookup);
+            });
+        }
+
+        public static ISchemaBuilder AddNameLookup(
+            this ISchemaBuilder schemaBuilder,
+            NameString typeName, NameString sourceSchema, NameString sourceName)
+        {
+            return schemaBuilder.SetContextData(NameLookup, current =>
+            {
+                if (current is IDictionary<(NameString, NameString), NameString> dict)
+                {
+                    dict[(typeName, sourceSchema)] = sourceName;
+                }
+
+                return new Dictionary<(NameString, NameString), NameString> 
+                {
+                    { (typeName, sourceSchema), sourceName }
+                };
+            });
         }
     }
 }

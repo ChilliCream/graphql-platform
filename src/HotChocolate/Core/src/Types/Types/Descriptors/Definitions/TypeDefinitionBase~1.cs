@@ -6,8 +6,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class TypeDefinitionBase<T>
         : DefinitionBase<T>
-        , IHasRuntimeType
-        , IHasDirectiveDefinition
+        , ITypeDefinition
         where T : class, ISyntaxNode
     {
         protected TypeDefinitionBase() { }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -15,7 +16,6 @@ using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Requests;
 using HotChocolate.Utilities.Introspection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -653,6 +653,25 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder.AddTypeRewriter(
                 new RenameTypeRewriter(
                     schemaName, originalTypeName, newTypeName));
+        }
+
+        public static IRequestExecutorBuilder RewriteType(
+            this IRequestExecutorBuilder builder,
+            NameString sourceSchema,
+            NameString sourceType,
+            NameString typeName)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
+            sourceType.EnsureNotEmpty(nameof(sourceType));
+            typeName.EnsureNotEmpty(nameof(typeName));
+
+            return builder.ConfigureSchema(
+                s => s.AddNameLookup(typeName, sourceSchema, sourceType));
         }
 
         public static IRequestExecutorBuilder RenameField(
