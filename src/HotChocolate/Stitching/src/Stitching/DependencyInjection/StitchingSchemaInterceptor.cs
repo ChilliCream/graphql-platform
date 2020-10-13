@@ -16,6 +16,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using IHasName = HotChocolate.Types.IHasName;
 using WellKnownContextData = HotChocolate.Stitching.WellKnownContextData;
+using static HotChocolate.Stitching.DirectiveFieldNames;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -45,6 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             VisitMerged(context, mergedSchema);
             MarkExternalFields(schemaBuilder, mergedSchema);
+            BuildNameLookup(context, schemaBuilder, mergedSchema, allSchemas.Keys);
 
             schemaBuilder
                 .AddDocument(mergedSchema)
@@ -159,6 +161,54 @@ namespace Microsoft.Extensions.DependencyInjection
             schemaBuilder.AddExternalFieldLookup(externalFieldLookup);
         }
 
+        private static void BuildNameLookup(
+            IDescriptorContext context,
+            ISchemaBuilder schemaBuilder,
+            DocumentNode document,
+            ICollection<NameString> schemaNames)
+        {
+            Dictionary<(NameString Type, NameString TargetSchema), NameString> nameLookup =
+                new Dictionary<(NameString, NameString), NameString>();
+
+            foreach (INamedSyntaxNode type in document.Definitions.OfType<INamedSyntaxNode>())
+            {
+                foreach (DirectiveNode directive in type.Directives
+                    .Where(t => t.Name.Value.EqualsOrdinal(DirectiveNames.Source)))
+                {
+                    if (directive.Arguments.FirstOrDefault(
+                        t => t.Name.Value.EqualsOrdinal(Source_Schema))?.Value
+                            is StringValueNode schema &&
+                        directive.Arguments.FirstOrDefault(
+                            t => t.Name.Value.EqualsOrdinal(Source_Name))?.Value
+                                is StringValueNode name &&
+                        !name.Value.EqualsOrdinal(type.Name.Value))
+                    {
+                        nameLookup[(type.Name.Value, schema.Value)] = name.Value;
+                    }
+                }
+            }
+
+            foreach (RenameTypeRewriter rewriter in
+                context.GetTypeRewriter().OfType<RenameTypeRewriter>())
+            {
+                if (rewriter.SchemaName is null)
+                {
+                    foreach (NameString schemaName in schemaNames)
+                    {
+                        nameLookup[(rewriter.NewTypeName, schemaName)] = 
+                            rewriter.OriginalTypeName;
+                    }
+                }
+                else
+                {
+                    nameLookup[(rewriter.NewTypeName, rewriter.SchemaName.Value)] = 
+                        rewriter.OriginalTypeName;
+                }
+            }
+
+            schemaBuilder.AddNameLookup(nameLookup);
+        }
+
         private static void MarkExternalFields(
             IReadOnlyList<FieldDefinitionNode> fields,
             ISet<NameString> externalFields)
@@ -181,12 +231,12 @@ namespace Microsoft.Extensions.DependencyInjection
             if (resolverResult is IReadOnlyDictionary<string, object> dict)
             {
                 if (dict.TryGetValue(WellKnownFieldNames.TypeName, out object? value) &&
-                    TryDeserializeTypeName(value, out string typeName))
+                    TryDeserializeTypeName(value, out string? typeName))
                 {
                     if (objectType.Directives.Contains(DirectiveNames.Source) &&
                         context.ScopedContextData.TryGetValue(WellKnownContextData.SchemaName, out object? o) &&
                         o is NameString schemaName &&
-                        objectType.TryGetSourceDirective(schemaName, out SourceDirective source))
+                        objectType.TryGetSourceDirective(schemaName, out SourceDirective? source))
                     {
                         return source.Name.Equals(typeName);
                     }

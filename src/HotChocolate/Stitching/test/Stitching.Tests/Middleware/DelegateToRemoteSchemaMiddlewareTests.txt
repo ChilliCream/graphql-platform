@@ -9,7 +9,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Resolvers;
 using FileResource = ChilliCream.Testing.FileResource;
-using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities;<
 using System.Threading;
 
 namespace HotChocolate.Stitching
@@ -21,134 +21,6 @@ namespace HotChocolate.Stitching
             TestServerFactory testServerFactory)
             : base(testServerFactory)
         {
-        }
-
-        private Task<IExecutionResult> ExecuteStitchedQuery(
-            IReadOnlyQueryRequest request)
-        {
-            // arrange
-            IHttpClientFactory clientFactory = CreateRemoteSchemas();
-
-            var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddSingleton(clientFactory);
-
-            serviceCollection.AddRemoteQueryExecutor(b => b
-                .SetSchemaName("contract")
-                .SetSchema(FileResource.Open("Contract.graphql"))
-                .AddScalarType<DateTimeType>());
-
-            serviceCollection.AddRemoteQueryExecutor(b => b
-                .SetSchemaName("customer")
-                .SetSchema(FileResource.Open("Customer.graphql")));
-
-            serviceCollection.AddStitchedSchema(
-                FileResource.Open("Stitching.graphql"),
-                c => c.RegisterType<DateTimeType>());
-
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            request = QueryRequestBuilder.From(request)
-                .SetServices(services)
-                .Create();
-
-            IQueryExecutor executor = services
-                .GetRequiredService<IQueryExecutor>();
-
-            // act
-            return executor.ExecuteAsync(request);
-        }
-
-        [Fact]
-        public async Task DelegateWithIntFieldArgument()
-        {
-            // arrange
-            IHttpClientFactory clientFactory = CreateRemoteSchemas();
-
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(clientFactory);
-            serviceCollection.AddStitchedSchema(builder =>
-                builder.AddSchemaFromHttp("contract")
-                    .AddSchemaFromHttp("customer")
-                    .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql"))
-                    .AddSchemaConfiguration(c =>
-                        c.RegisterType<PaginationAmountType>()));
-
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            IQueryExecutor executor = services
-                .GetRequiredService<IQueryExecutor>();
-            IExecutionResult result = null;
-
-            // act
-            using (IServiceScope scope = services.CreateScope())
-            {
-                IReadOnlyQueryRequest request =
-                    QueryRequestBuilder.New()
-                        .SetQuery(@"
-                        {
-                            customer(id: ""Q3VzdG9tZXIKZDE="") {
-                                int
-                            }
-                        }")
-                        .SetServices(scope.ServiceProvider)
-                        .Create();
-
-                result = await executor.ExecuteAsync(request);
-            }
-
-            // assert
-            Snapshot.Match(result);
-        }
-
-        [Fact]
-        public async Task DelegateWithGuidFieldArgument()
-        {
-            // arrange
-            IHttpClientFactory clientFactory = CreateRemoteSchemas();
-
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(clientFactory);
-            serviceCollection.AddStitchedSchema(builder =>
-                builder.AddSchemaFromHttp("contract")
-                    .AddSchemaFromHttp("customer")
-                    .AddExtensionsFromString(
-                        FileResource.Open("StitchingExtensions.graphql"))
-                    .AddSchemaConfiguration(c =>
-                    {
-                        c.RegisterExtendedScalarTypes();
-                        c.RegisterType<PaginationAmountType>();
-                    }));
-
-            IServiceProvider services =
-                serviceCollection.BuildServiceProvider();
-
-            IQueryExecutor executor = services
-                .GetRequiredService<IQueryExecutor>();
-            IExecutionResult result = null;
-
-            // act
-            using (IServiceScope scope = services.CreateScope())
-            {
-                IReadOnlyQueryRequest request =
-                    QueryRequestBuilder.New()
-                        .SetQuery(@"
-                        {
-                            customer(id: ""Q3VzdG9tZXIKZDE="") {
-                                guid
-                            }
-                        }")
-                        .SetServices(scope.ServiceProvider)
-                        .Create();
-
-                result = await executor.ExecuteAsync(request);
-            }
-
-            // assert
-            Snapshot.Match(result);
         }
 
         [Fact]
