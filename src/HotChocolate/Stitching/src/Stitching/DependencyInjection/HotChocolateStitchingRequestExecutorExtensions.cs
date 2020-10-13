@@ -153,12 +153,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 ignoreRootTypes);
         }
 
-        private static IRequestExecutorBuilder AddRemoteSchema(
+        public static IRequestExecutorBuilder AddRemoteSchema(
             this IRequestExecutorBuilder builder,
             NameString schemaName,
             Func<IServiceProvider, CancellationToken, ValueTask<DocumentNode>> loadSchema,
-            bool ignoreRootTypes)
+            bool ignoreRootTypes = false)
         {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (loadSchema is null)
+            {
+                throw new ArgumentNullException(nameof(loadSchema));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
             // first we add a full GraphQL schema and executor that represents the remote schema.
             // This remote schema will be used by the stitching engine to execute queries against
             // this schema and also to lookup types in order correctly convert between scalars.
