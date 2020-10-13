@@ -14,5 +14,6 @@ namespace HotChocolate.Stitching
         public const string MergedDocVisitors = "HotChocolate.Stitching.MergedDocVisitors";
         public const string RequestVarNames = "HotChocolate.Stitching.RequestVarNames";
         public const string ExternalFieldLookup = "HotChocolate.Stitching.ExternalFieldLookup";
+        public const string NameLookup = "HotChocolate.Stitching.NameLookup";
     }
 }

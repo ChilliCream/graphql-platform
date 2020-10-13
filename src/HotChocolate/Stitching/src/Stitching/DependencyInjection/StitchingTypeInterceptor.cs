@@ -14,10 +14,13 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public class StitchingTypeInterceptor : TypeInterceptor
     {
+        private readonly HashSet<(NameString, NameString)> _handledExternalFields =
+            new HashSet<(NameString, NameString)>();
+
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (definition is ObjectTypeDefinition objectTypeDef)
             {
@@ -32,35 +35,43 @@ namespace Microsoft.Extensions.DependencyInjection
 
                         objectField.MiddlewareComponents.Insert(0, handleDictionary);
                         objectField.MiddlewareComponents.Insert(0, delegateToSchema);
+                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
                     }
                 }
             }
 
-            if (definition is SchemaTypeDefinition &&
-                discoveryContext.ContextData.TryGetValue(RemoteExecutors, out object? value))
+            if (definition is SchemaTypeDefinition)
             {
-                // we copy the remote executors that are stored only on the
-                // schema builder context to the schema context so that
-                // the stitching context can access these at runtime.
-                contextData.Add(RemoteExecutors, value);
+                if (discoveryContext.ContextData.TryGetValue(RemoteExecutors, out object? value))
+                {
+                    // we copy the remote executors that are stored only on the
+                    // schema builder context to the schema context so that
+                    // the stitching context can access these at runtime.
+                    contextData.Add(RemoteExecutors, value);
+                }
+
+                contextData.Add(NameLookup, discoveryContext.GetNameLookup());
             }
         }
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (completionContext.Type is ObjectType objectType &&
                 definition is ObjectTypeDefinition objectTypeDef)
             {
                 IReadOnlyDictionary<NameString, ISet<NameString>> externalFieldLookup =
                     completionContext.GetExternalFieldLookup();
-                if (externalFieldLookup.TryGetValue(objectType.Name, out ISet<NameString> external))
+                if (externalFieldLookup.TryGetValue(
+                    objectType.Name,
+                    out ISet<NameString>? external))
                 {
                     foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                     {
-                        if (external.Contains(objectField.Name))
+                        if (external.Contains(objectField.Name) &&
+                            _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                         {
                             FieldMiddleware handleDictionary =
                                 FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
