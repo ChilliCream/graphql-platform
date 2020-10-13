@@ -230,13 +230,17 @@ namespace HotChocolate.Stitching.Pipeline
                         break;
 
                     case IntValueNode i:
-                        jsonWriter.WriteStringValue(i.Value);
-                        RemoveQuotes(writer, jsonWriter, i.Value.Length);
+                        jsonWriter.WriteNumberValue(0);
+                        jsonWriter.Flush();
+                        writer.Advance(-1);
+                        writer.Write(i.AsSpan());
                         break;
 
                     case FloatValueNode f:
-                        jsonWriter.WriteStringValue(f.Value);
-                        RemoveQuotes(writer, jsonWriter, f.Value.Length);
+                        jsonWriter.WriteNumberValue(0);
+                        jsonWriter.Flush();
+                        writer.Advance(-1);
+                        writer.Write(f.AsSpan());
                         break;
 
                     case BooleanValueNode b:
@@ -248,18 +252,6 @@ namespace HotChocolate.Stitching.Pipeline
                             "Unknown variable value kind.");
                 }
             }
-        }
-
-        private static void RemoveQuotes(
-            IBufferWriter<byte> writer,
-            Utf8JsonWriter jsonWriter,
-            int length)
-        {
-            jsonWriter.Flush();
-            writer.Advance(-(length + 2));
-            Span<byte> span = writer.GetSpan(length + 2);
-            span.Slice(1, length + 1).CopyTo(span);
-            writer.Advance(length);
         }
     }
 }

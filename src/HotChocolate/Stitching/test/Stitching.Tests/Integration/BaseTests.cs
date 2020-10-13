@@ -7,6 +7,8 @@ using Snapshooter.Xunit;
 using Xunit;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -487,6 +489,146 @@ namespace HotChocolate.Stitching.Integration
                 @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         foo
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute_RenameScalar()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddType(new FloatType("Foo"))
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .RenameType("Float", "Foo")
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            contracts: [Contract!]
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""contracts(customerId:$fields:id)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            var variables = new Dictionary<string, object> 
+            {
+                { "v", new FloatValueNode(1.2f) }
+            };
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"query ($v: Foo) {
+                    customer: customerOrConsultant(id: ""Q3VzdG9tZXIKZDE="") {
+                        ...customer
+                        ...consultant
+                    }
+                    consultant: customerOrConsultant(id: ""Q29uc3VsdGFudApkMQ=="") {
+                        ...customer
+                        ...consultant
+                    }
+                }
+
+                fragment customer on Customer {
+                    name
+                    consultant {
+                        name
+                    }
+                    contracts {
+                        id
+                        ... on LifeInsuranceContract {
+                            premium
+                            a: float_field(f: 1.1)
+                            b: float_field(f: $v)
+                        }
+                        ... on SomeOtherContract {
+                            expiryDate
+                        }
+                    }
+                }
+
+                fragment consultant on Consultant {
+                    name
+                }",
+                variables);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute_IntField()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            int: Int! 
+                                @delegate(
+                                    schema: ""contract"", 
+                                    path: ""int(i:$fields:someInt)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        int
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute_GuidField()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            guid: Uuid! 
+                                @delegate(
+                                    schema: ""contract"", 
+                                    path: ""guid(guid:$fields:someGuid)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        guid
                     }
                 }");
 
