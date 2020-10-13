@@ -103,7 +103,9 @@ namespace HotChocolate.Types.Descriptors
 
             var configuration = new TypeConfiguration<T>
             {
-                Definition = Definition, On = ApplyConfigurationOn.Naming, Configure = configure
+                Definition = Definition,
+                On = ApplyConfigurationOn.Naming,
+                Configure = configure
             };
             Definition.Configurations.Add(configuration);
 

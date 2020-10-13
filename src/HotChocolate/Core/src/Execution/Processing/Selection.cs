@@ -56,6 +56,21 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
+        public Selection(Selection selection)
+        {
+            _includeConditions = selection._includeConditions;
+            _selections = selection._selections;
+            _isReadOnly = selection._isReadOnly;
+            DeclaringType = selection.DeclaringType;
+            Field = selection.Field;
+            SyntaxNode = selection.SyntaxNode;
+            SyntaxNodes = selection.SyntaxNodes;
+            ResponseName = selection.ResponseName;
+            ResolverPipeline = selection.ResolverPipeline;
+            Arguments = selection.Arguments;
+            InclusionKind = selection.InclusionKind;
+        }
+
         /// <inheritdoc />
         public IObjectType DeclaringType { get; }
 
@@ -92,7 +107,7 @@ namespace HotChocolate.Execution.Processing
             InclusionKind == SelectionInclusionKind.Conditional ||
             InclusionKind == SelectionInclusionKind.InternalConditional;
 
-        public IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
+        internal IReadOnlyList<SelectionIncludeCondition>? IncludeConditions => _includeConditions;
 
         /// <inheritdoc />
         public bool IsIncluded(IVariableValueCollection variableValues, bool allowInternals = false)
@@ -189,8 +204,7 @@ namespace HotChocolate.Execution.Processing
                 return first;
             }
 
-            return new FieldNode
-            (
+            return new FieldNode(
                 first.Location,
                 first.Name,
                 first.Alias,
@@ -219,8 +233,7 @@ namespace HotChocolate.Execution.Processing
                 }
             }
 
-            return new SelectionSetNode
-            (
+            return new SelectionSetNode(
                 selections[0].SelectionSet!.Location,
                 children
             );
@@ -269,7 +282,7 @@ namespace HotChocolate.Execution.Processing
         private void ModifyCondition(bool hasConditions) =>
             InclusionKind =
                 (InclusionKind == SelectionInclusionKind.Internal
-                || InclusionKind == SelectionInclusionKind.InternalConditional)
+                    || InclusionKind == SelectionInclusionKind.InternalConditional)
                     ? (hasConditions
                         ? SelectionInclusionKind.InternalConditional
                         : SelectionInclusionKind.Internal)
