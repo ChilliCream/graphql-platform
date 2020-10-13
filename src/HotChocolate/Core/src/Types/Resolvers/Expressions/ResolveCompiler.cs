@@ -35,7 +35,7 @@ namespace HotChocolate.Resolvers.Expressions
             Expression resolverInstance = Expression.Call(
                 Context, resolverMethod);
 
-            if (descriptor.Field.Member is { })
+            if (descriptor.Field.Member is not null)
             {
                 FieldResolverDelegate resolver = CreateResolver(
                     resolverInstance,

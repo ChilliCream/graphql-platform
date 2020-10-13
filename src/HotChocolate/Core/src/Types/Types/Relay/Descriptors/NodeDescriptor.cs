@@ -1,4 +1,8 @@
 using System;
+using System.Linq.Expressions;
+using System.Reflection;
+using HotChocolate.Resolvers;
+using HotChocolate.Resolvers.Expressions;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
@@ -40,6 +44,31 @@ namespace HotChocolate.Types.Relay.Descriptors
             return _typeDescriptor.Field("id")
                 .Type<NonNullType<IdType>>()
                 .Use<IdMiddleware>();
+        }
+
+        public IObjectFieldDescriptor ResolveNode(
+            FieldResolverDelegate fieldResolver)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IObjectFieldDescriptor ResolveNode(
+            FieldResolverDelegate fieldResolver, 
+            Type resultType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
+            Expression<Func<TResolver, object>> propertyOrMethod)
+        {
+            ResolverCompiler.Resolve.Compile(
+                new ResolverDescriptor())
+        }
+
+        public IObjectFieldDescriptor ResolveNodeWith(MemberInfo propertyOrMethod)
+        {
+            throw new NotImplementedException();
         }
     }
 }
