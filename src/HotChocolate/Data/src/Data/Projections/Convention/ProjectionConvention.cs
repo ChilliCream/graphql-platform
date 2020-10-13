@@ -3,6 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using static HotChocolate.Data.ThrowHelper; 
 
 namespace HotChocolate.Data.Projections
 {
@@ -56,16 +57,14 @@ namespace HotChocolate.Data.Projections
         {
             if (definition.Provider is null)
             {
-                throw ThrowHelper.ProjectionConvention_NoProviderFound(GetType(), definition.Scope);
+                throw ProjectionConvention_NoProviderFound(GetType(), definition.Scope);
             }
 
             if (definition.ProviderInstance is null)
             {
                 _provider =
                     context.Services.GetOrCreateService<IProjectionProvider>(definition.Provider) ??
-                    throw ThrowHelper.ProjectionConvention_NoProviderFound(
-                        GetType(),
-                        definition.Scope);
+                        throw ProjectionConvention_NoProviderFound(GetType(), definition.Scope);
             }
             else
             {
