@@ -33,7 +33,7 @@ namespace HotChocolate.Types
 
             await new ServiceCollection()
                 .AddGraphQL()
-                .AddQueryType<Query>()
+                .AddQueryType<Query2>()
                 .Services
                 .BuildServiceProvider()
                 .GetSchemaAsync()
