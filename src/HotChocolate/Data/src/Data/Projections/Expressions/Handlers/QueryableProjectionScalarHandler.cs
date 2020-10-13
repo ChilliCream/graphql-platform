@@ -35,8 +35,7 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 return true;
             }
 
-            // TODO report error and break
-            throw new Exception();
+            throw new InvalidOperationException();
         }
     }
 }

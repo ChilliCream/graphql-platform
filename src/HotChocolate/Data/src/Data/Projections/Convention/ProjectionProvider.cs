@@ -172,11 +172,12 @@ namespace HotChocolate.Data.Projections
             return selection;
         }
 
-        public void Initialize(IConventionContext context)
+        public new void Initialize(IConventionContext context)
         {
             base.Initialize(context);
         }
 
+        /// <inheritdoc />
         public abstract FieldMiddleware CreateExecutor<TEntityType>();
     }
 }

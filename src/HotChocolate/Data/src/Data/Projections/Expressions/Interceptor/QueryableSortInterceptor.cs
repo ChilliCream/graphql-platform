@@ -15,10 +15,10 @@ namespace HotChocolate.Data.Projections.Handlers
     public class QueryableSortInterceptor
         : IProjectionFieldInterceptor<QueryableProjectionContext>
     {
-        public bool CanHandle(ISelection field) =>
-            field.Field.Member is {} &&
-            field.Field.ContextData.ContainsKey(ContextVisitSortArgumentKey) &&
-            field.Field.ContextData.ContainsKey(ContextArgumentNameKey);
+        public bool CanHandle(ISelection selection) =>
+            selection.Field.Member is {} &&
+            selection.Field.ContextData.ContainsKey(ContextVisitSortArgumentKey) &&
+            selection.Field.ContextData.ContainsKey(ContextArgumentNameKey);
 
         public void BeforeProjection(
             QueryableProjectionContext context,

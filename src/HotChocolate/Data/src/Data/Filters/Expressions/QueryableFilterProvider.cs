@@ -9,13 +9,17 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
+    public delegate QueryableFilterContext VisitFilterArgument(
+        IValueNode filterValueNode,
+        IFilterInputType filterInputType,
+        bool inMemory);
+
     public class QueryableFilterProvider
         : FilterProvider<QueryableFilterContext>
     {
-        public const string ContextArgumentNameKey = "FilterArgumentName";
-        public const string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
-        public const string SkipFilteringKey = "SkipFiltering";
-
+        public static readonly string ContextArgumentNameKey = "FilterArgumentName";
+        public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
+        public static readonly string SkipFilteringKey = "SkipFiltering";
         public static readonly string ContextValueNodeKey = nameof(QueryableFilterProvider);
 
         public QueryableFilterProvider()
@@ -133,9 +137,4 @@ namespace HotChocolate.Data.Filters.Expressions
                 });
         }
     }
-
-    public delegate QueryableFilterContext VisitFilterArgument(
-        IValueNode filterValueNode,
-        IFilterInputType filterInputType,
-        bool inMemory);
 }

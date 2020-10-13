@@ -80,14 +80,12 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
             }
 
             Queue<MemberAssignment> members = queryableScope.Level.Pop();
-            MemberInitExpression memberInit = ProjectionExpressionBuilder.CreateMemberInit(
-                queryableScope.RuntimeType,
-                members);
+            MemberInitExpression memberInit =
+                ProjectionExpressionBuilder.CreateMemberInit(queryableScope.RuntimeType, members);
 
             if (!context.TryGetQueryableScope(out QueryableProjectionScope? parentScope))
             {
-                //TODO Exception, Invalid State
-                throw new Exception();
+                throw new InvalidOperationException();
             }
 
             parentScope.Level.Peek()

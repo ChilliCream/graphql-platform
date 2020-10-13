@@ -17,15 +17,18 @@ namespace HotChocolate.Data.Projections.Handlers
         {
             FieldDelegate resolverPipeline =
                 context.CompileResolverPipeline(selection.Field, selection.SyntaxNode);
-            FieldMiddleware wrappedPipeline = next => ctx =>
-            {
-                ctx.LocalContextData = ctx.LocalContextData.SetItem(
-                    SkipFilteringKey,
-                    true);
 
-                return next(ctx);
-            };
-            resolverPipeline = wrappedPipeline(resolverPipeline);
+            static FieldDelegate WrappedPipeline(FieldDelegate next) =>
+                ctx =>
+                {
+                    ctx.LocalContextData = ctx.LocalContextData.SetItem(
+                        SkipFilteringKey,
+                        true);
+
+                    return next(ctx);
+                };
+
+            resolverPipeline = WrappedPipeline(resolverPipeline);
 
             var compiledSelection = new Selection(
                 context.Type,

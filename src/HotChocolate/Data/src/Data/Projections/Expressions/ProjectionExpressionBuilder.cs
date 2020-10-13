@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
-    public static class ProjectionExpressionBuilder
+    internal static class ProjectionExpressionBuilder
     {
         public static MemberInitExpression CreateMemberInit(
             Type type,

@@ -22,6 +22,7 @@ namespace HotChocolate.Data.Projections
             return Definition;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterFieldHandler<THandler>()
             where THandler : IProjectionFieldHandler
         {
@@ -29,6 +30,7 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterFieldHandler<THandler>(THandler handler)
             where THandler : IProjectionFieldHandler
         {
@@ -36,6 +38,7 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>()
             where THandler : IProjectionFieldInterceptor
         {
@@ -43,6 +46,7 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterFieldInterceptor<THandler>(THandler handler)
             where THandler : IProjectionFieldInterceptor
         {
@@ -50,6 +54,7 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterOptimizer<THandler>()
             where THandler : IProjectionOptimizer
         {
@@ -57,6 +62,7 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
         public IProjectionProviderDescriptor RegisterOptimizer<THandler>(THandler handler)
             where THandler : IProjectionOptimizer
         {

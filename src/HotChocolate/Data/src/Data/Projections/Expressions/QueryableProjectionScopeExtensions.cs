@@ -93,8 +93,8 @@ namespace HotChocolate.Data.Projections.Expressions
             if (type.IsGenericType)
             {
                 Type typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition == typeof(ISet<>)
-                    || typeDefinition == typeof(HashSet<>))
+                if (typeDefinition == typeof(ISet<>) ||
+                    typeDefinition == typeof(HashSet<>))
                 {
                     setType = typeof(HashSet<>);
                     return true;
