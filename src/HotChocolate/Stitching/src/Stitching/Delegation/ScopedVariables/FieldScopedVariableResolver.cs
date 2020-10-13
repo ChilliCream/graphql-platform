@@ -42,13 +42,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
                 IValueNode? valueLiteral = null;
 
-                if (parent is ObjectValueNode objectValue)
-                {
-                    valueLiteral =
-                        objectValue.Fields.FirstOrDefault(
-                            t => t.Name.Value.EqualsOrdinal(field.Name))?.Value;
-                }
-                else if (parent is IReadOnlyDictionary<string, object> dict &&
+                if (parent is IReadOnlyDictionary<string, object> dict &&
                     dict.TryGetValue(field.Name, out object? value))
                 {
                     if (value is IValueNode v)

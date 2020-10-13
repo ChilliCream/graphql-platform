@@ -24,7 +24,7 @@ type LifeInsuranceContract implements Node & Contract {
   byte_field: Byte
   int_field: Int
   long_field: Long
-  float_field: Float
+  float_field(f: Float): Float
   decimal_field: Decimal
   premium: Float!
 }

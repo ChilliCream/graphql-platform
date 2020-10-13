@@ -14,6 +14,9 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public class StitchingTypeInterceptor : TypeInterceptor
     {
+        private readonly HashSet<(NameString, NameString)> _handledExternalFields =
+            new HashSet<(NameString, NameString)>();
+
         public override void OnAfterInitialize(
             ITypeDiscoveryContext discoveryContext,
             DefinitionBase? definition,
@@ -32,6 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                         objectField.MiddlewareComponents.Insert(0, handleDictionary);
                         objectField.MiddlewareComponents.Insert(0, delegateToSchema);
+                        _handledExternalFields.Add((objectTypeDef.Name, objectField.Name));
                     }
                 }
             }
@@ -66,7 +70,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     foreach (ObjectFieldDefinition objectField in objectTypeDef.Fields)
                     {
-                        if (external.Contains(objectField.Name))
+                        if (external.Contains(objectField.Name) &&
+                            _handledExternalFields.Add((objectTypeDef.Name, objectField.Name)))
                         {
                             FieldMiddleware handleDictionary =
                                 FieldClassMiddlewareFactory.Create<DictionaryResultMiddleware>();
