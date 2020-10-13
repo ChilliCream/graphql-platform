@@ -14,9 +14,9 @@ namespace HotChocolate.Data.Projections
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
     public abstract class ProjectionProvider
-        : Convention<ProjectionProviderDefinition>,
-          IProjectionProvider,
-          IProjectionProviderConvention
+        : Convention<ProjectionProviderDefinition>
+        , IProjectionProvider
+        , IProjectionProviderConvention
     {
         private Action<IProjectionProviderDescriptor>? _configure;
 
