@@ -40,7 +40,7 @@ namespace HotChocolate.Data.Projections
             Action<IProjectionConventionDescriptor> configure,
             string? name = null) =>
             builder
-                .AddTypeInterceptor<ProjectionTypeInterceptor>()
+                .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
                 .TryAddConvention<IProjectionConvention>(
                     sp => new ProjectionConvention(configure),
                     name);
@@ -65,7 +65,7 @@ namespace HotChocolate.Data.Projections
             string? name = null)
             where TConvention : class, IProjectionConvention =>
             builder
-                .AddTypeInterceptor<ProjectionTypeInterceptor>()
+                .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
                 .TryAddConvention<IProjectionConvention, TConvention>(name);
     }
 }
