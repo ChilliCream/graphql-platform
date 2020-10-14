@@ -2,18 +2,19 @@
   query: Query
 }
 
-type Foo {
-  bar: String!
+type Bar {
+  baz: String!
+  qux: String!
 }
 
 type Query {
-  foo(where: FooFilterInput): Foo
+  foo(where: BarFilterInput): Bar
 }
 
-input FooFilterInput {
-  and: [FooFilterInput!]
-  or: [FooFilterInput!]
-  bar: StringOperationFilterInput
+input BarFilterInput {
+  and: [BarFilterInput!]
+  or: [BarFilterInput!]
+  qux: StringOperationFilterInput
 }
 
 input StringOperationFilterInput {

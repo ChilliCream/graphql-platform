@@ -212,9 +212,9 @@ namespace HotChocolate.Data.Tests
                     c =>
                         c.Name("Query")
                             .Field("foo")
-                            .Type<ObjectType<Foo>>()
+                            .Type<ObjectType<Bar>>()
                             .Resolver("bar")
-                            .UseFiltering<Foo>(x => x.BindFieldsExplicitly().Field(y => y.Bar)))
+                            .UseFiltering<Bar>(x => x.BindFieldsExplicitly().Field(y => y.Qux)))
                 .Create();
 
             // assert
@@ -233,10 +233,10 @@ namespace HotChocolate.Data.Tests
                     c =>
                         c.Name("Query")
                             .Field("foo")
-                            .Type<ObjectType<Foo>>()
+                            .Type<ObjectType<Bar>>()
                             .Resolver("bar")
-                            .UseFiltering<Foo>(
-                                x => x.BindFields(BindingBehavior.Explicit).Field(y => y.Bar)))
+                            .UseFiltering<Bar>(
+                                x => x.BindFields(BindingBehavior.Explicit).Field(y => y.Qux)))
                 .Create();
 
             // assert
