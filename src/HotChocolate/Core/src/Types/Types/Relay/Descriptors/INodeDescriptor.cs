@@ -3,28 +3,29 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay.Descriptors
 {
-    public interface INodeDescriptor
+    public interface INodeDescriptor : IDescriptor
     {
-        [Obsolete]
+        [Obsolete("Use ResolveNode.")]
         IObjectFieldDescriptor NodeResolver(
             NodeResolverDelegate<object, object> nodeResolver);
 
-        [Obsolete]
+        [Obsolete("Use ResolveNode.")]
         IObjectFieldDescriptor NodeResolver<TId>(
             NodeResolverDelegate<object, TId> nodeResolver);
 
         IObjectFieldDescriptor ResolveNode(
             FieldResolverDelegate fieldResolver);
 
-        IObjectFieldDescriptor ResolveNode(
-            FieldResolverDelegate fieldResolver,
-            Type resultType);
+        IObjectFieldDescriptor ResolveNode<TId>(
+            NodeResolverDelegate<object, TId> fieldResolver);
 
         IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod);
+            Expression<Func<TResolver, object>> method);
 
-        IObjectFieldDescriptor ResolveNodeWith(MemberInfo propertyOrMethod);
+        IObjectFieldDescriptor ResolveNodeWith(MethodInfo method);
     }
 }

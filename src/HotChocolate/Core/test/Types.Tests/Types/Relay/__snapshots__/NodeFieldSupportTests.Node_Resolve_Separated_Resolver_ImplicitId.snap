@@ -1,0 +1,20 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 1,
+          "column": 30
+        }
+      ],
+      "path": [
+        "node",
+        "id"
+      ]
+    }
+  ],
+  "data": {
+    "node": null
+  }
+}

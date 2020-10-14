@@ -341,6 +341,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field-expression must be a property-expression or a method-call-expression.</value>
   </data>
+  <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
+    <value>A node-resolver-expression must be a method-call-expression.</value>
+  </data>
+  <data name="NodeDescriptor_IdMember" xml:space="preserve">
+    <value>An ID-member must be a property-expression or a method-call-expression.</value>
+  </data>
   <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
     <value>Schema types cannot be used as resolver types.</value>
   </data>

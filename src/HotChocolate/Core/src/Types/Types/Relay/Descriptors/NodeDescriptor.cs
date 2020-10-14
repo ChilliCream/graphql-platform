@@ -1,74 +1,55 @@
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.Expressions;
+using HotChocolate.Types.Descriptors.Definitions;
+
+#nullable enable
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
     public class NodeDescriptor
-        : INodeDescriptor
+        : NodeDescriptorBase
+        , INodeDescriptor
     {
         private readonly IObjectTypeDescriptor _typeDescriptor;
 
-        public NodeDescriptor(IObjectTypeDescriptor typeDescriptor)
+        public NodeDescriptor(IObjectTypeDescriptor descriptor)
+            : base(descriptor.Extend().Context)
         {
-            if (typeDescriptor is null)
-            {
-                throw new ArgumentNullException(nameof(typeDescriptor));
-            }
+            _typeDescriptor = descriptor;
 
-            _typeDescriptor = typeDescriptor;
+            _typeDescriptor
+                .Implements<NodeType>()
+                .Extend()
+                .OnBeforeCreate(OnCompleteDefinition);
+        }
+
+        private void OnCompleteDefinition(ObjectTypeDefinition definition)
+        {
+            if (Definition.Resolver is not null)
+            {
+                definition.ContextData[WellKnownContextData.NodeResolver] =
+                    Definition.Resolver;
+            }
+        }
+
+        protected override IObjectFieldDescriptor ConfigureNodeField()
+        {
+            return Definition.IdMember is null
+                ? _typeDescriptor
+                    .Field(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>()
+                    .Use<IdMiddleware>()
+                : _typeDescriptor
+                    .Field(Definition.IdMember)
+                    .Name(NodeType.Names.Id)
+                    .Type<NonNullType<IdType>>()
+                    .Use<IdMiddleware>();
         }
 
         public IObjectFieldDescriptor NodeResolver(
-            NodeResolverDelegate<object, object> nodeResolver)
-        {
-            return NodeResolver<object>(nodeResolver);
-        }
+            NodeResolverDelegate<object, object> nodeResolver) =>
+            ResolveNode(nodeResolver);
 
         public IObjectFieldDescriptor NodeResolver<TId>(
-            NodeResolverDelegate<object, TId> nodeResolver)
-        {
-            Func<IServiceProvider, INodeResolver> nodeResolverFactory =
-                services => new NodeResolver<object, TId>(nodeResolver);
-
-            _typeDescriptor
-                .Interface<NodeType>()
-                .Extend()
-                .OnBeforeCreate(c =>
-                {
-                    c.ContextData[RelayConstants.NodeResolverFactory] = nodeResolverFactory;
-                });
-
-            return _typeDescriptor.Field("id")
-                .Type<NonNullType<IdType>>()
-                .Use<IdMiddleware>();
-        }
-
-        public IObjectFieldDescriptor ResolveNode(
-            FieldResolverDelegate fieldResolver)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IObjectFieldDescriptor ResolveNode(
-            FieldResolverDelegate fieldResolver, 
-            Type resultType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
-        {
-            ResolverCompiler.Resolve.Compile(
-                new ResolverDescriptor())
-        }
-
-        public IObjectFieldDescriptor ResolveNodeWith(MemberInfo propertyOrMethod)
-        {
-            throw new NotImplementedException();
-        }
+            NodeResolverDelegate<object, TId> nodeResolver) =>
+            ResolveNode(nodeResolver);
     }
 }

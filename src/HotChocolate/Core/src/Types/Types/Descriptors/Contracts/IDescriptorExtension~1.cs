@@ -8,6 +8,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public interface IDescriptorExtension<T>
+        : IHasDescriptorContext
         where T : DefinitionBase
     {
         void OnBeforeCreate(Action<T> configure);

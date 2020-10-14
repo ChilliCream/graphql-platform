@@ -192,6 +192,15 @@ namespace HotChocolate.Types.Descriptors
         MemberInfo? GetEnumValueMember(object value);
 
         /// <summary>
+        /// Tries
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        MemberInfo? TryGetNodeIdMember(Type type);
+
+        MethodInfo? TryGetNodeResolverMethod(Type type);
+
+        /// <summary>
         /// Extracts the named type from a type structure.
         /// </summary>
         /// <param name="type">The original type structure.</param>
