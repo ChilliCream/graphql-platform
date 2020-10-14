@@ -27,6 +27,7 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly Dictionary<MemberInfo, ExtendedMethodInfo> _methods =
             new Dictionary<MemberInfo, ExtendedMethodInfo>();
+
         private readonly Dictionary<Type, bool> _records =
             new Dictionary<Type, bool>();
 
@@ -309,6 +310,11 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
+            if (TryGetDefaultValueFromConstructor(property, out defaultValue))
+            {
+                return true;
+            }
+
             defaultValue = null;
             return false;
         }
@@ -566,9 +572,9 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsIgnored(MemberInfo member)
         {
-            if (IsCloneMember(member) || 
-                IsToString(member) || 
-                IsGetHashCode(member) || 
+            if (IsCloneMember(member) ||
+                IsToString(member) ||
+                IsGetHashCode(member) ||
                 IsEquals(member))
             {
                 return true;
@@ -597,6 +603,7 @@ namespace HotChocolate.Types.Descriptors
                 isRecord = IsRecord(type.GetMembers());
                 _records[type] = isRecord;
             }
+
             return isRecord;
         }
 
@@ -609,6 +616,7 @@ namespace HotChocolate.Types.Descriptors
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -633,7 +641,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private IEnumerable<T> GetCustomAttributesFromRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -661,7 +670,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private T? GetCustomAttributeFromRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -687,7 +697,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private static bool IsDefinedOnRecord<T>(
-            PropertyInfo property, bool inherit)
+            PropertyInfo property,
+            bool inherit)
             where T : Attribute
         {
             Type recordType = property.DeclaringType!;
@@ -705,6 +716,30 @@ namespace HotChocolate.Types.Descriptors
                     if (parameter.Name.EqualsOrdinal(property.Name))
                     {
                         return parameter.IsDefined(typeof(T));
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool TryGetDefaultValueFromConstructor(
+            PropertyInfo property,
+            out object? defaultValue)
+        {
+            defaultValue = null;
+            if (IsRecord(property.DeclaringType!))
+            {
+                ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
+
+                if (constructors.Length == 1)
+                {
+                    foreach (ParameterInfo parameter in constructors[0].GetParameters())
+                    {
+                        if (parameter.Name.EqualsOrdinal(property.Name))
+                        {
+                            return TryGetDefaultValue(parameter, out defaultValue);
+                        }
                     }
                 }
             }
