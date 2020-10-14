@@ -11,18 +11,8 @@ interface GeoJSONInterface {
   crs: Int
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonMultiPointTypeTests.MultiPoint_Execution_Tests.snap
 type GeoJSONMultiPointType implements GeoJSONInterface {
   "The \"coordinates\" field is an array of positions."
-=======
-type GeoJSONPointType implements GeoJSONInterface {
-  "The \"coordinates\" field is a single position."
->>>>>>> develop:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonPointTypeTests.Point_Execution_Tests.snap
-=======
-type GeoJSONMultiPointType implements GeoJSONInterface {
-  "The \"coordinates\" field is an array of positions."
->>>>>>> develop
   coordinates: [Position]
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType!
@@ -33,15 +23,7 @@ type GeoJSONMultiPointType implements GeoJSONInterface {
 }
 
 type Query {
-<<<<<<< HEAD
-<<<<<<< HEAD:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonMultiPointTypeTests.MultiPoint_Execution_Tests.snap
   test: GeoJSONMultiPointType
-=======
-  test: GeoJSONPointType
->>>>>>> develop:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonPointTypeTests.Point_Execution_Tests.snap
-=======
-  test: GeoJSONMultiPointType
->>>>>>> develop
 }
 
 enum GeoJSONGeometryType {

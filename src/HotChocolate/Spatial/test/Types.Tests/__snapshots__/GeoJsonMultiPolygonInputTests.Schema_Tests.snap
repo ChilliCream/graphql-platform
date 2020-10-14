@@ -3,18 +3,6 @@
 }
 
 type Query {
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonMultiLineStringInputTests.Schema_Tests.snap
-  test(arg: GeoJSONMultiLineStringInput): String
-}
-
-input GeoJSONMultiLineStringInput {
-  "The geometry type of the GeoJson object"
-  type: GeoJSONGeometryType
-  "The \"coordinates\" field is an array of LineString coordinate arrays."
-=======
->>>>>>> develop
   test(arg: GeoJSONMultiPolygonInput): String
 }
 
@@ -22,10 +10,6 @@ input GeoJSONMultiPolygonInput {
   "The geometry type of the GeoJson object"
   type: GeoJSONGeometryType
   "The \"coordinates\" field is an array of Polygon coordinate arrays."
-<<<<<<< HEAD
-=======
->>>>>>> develop:src/HotChocolate/Spatial/test/Types.Tests/__snapshots__/GeoJsonMultiPolygonInputTests.Schema_Tests.snap
->>>>>>> develop
   coordinates: [[Position]]
   "The coordinate reference system integer identifier"
   crs: Int
