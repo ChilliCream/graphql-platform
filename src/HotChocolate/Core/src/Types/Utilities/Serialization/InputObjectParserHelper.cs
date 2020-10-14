@@ -58,7 +58,9 @@ namespace HotChocolate.Utilities.Serialization
                 if (type.Fields.TryGetField(fieldValue.Name.Value, out InputField field))
                 {
                     object value = field.Type.ParseLiteral(fieldValue.Value);
-                    value = field.Formatter is not null ? field.Formatter.OnAfterDeserialize(value) : value;
+                    value = field.Formatter is not null
+                        ? field.Formatter.OnAfterDeserialize(value)
+                        : value;
                     target[field.Name] = ConvertValue(field, converter, value);
                 }
                 else

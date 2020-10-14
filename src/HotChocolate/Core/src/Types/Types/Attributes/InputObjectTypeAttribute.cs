@@ -12,6 +12,11 @@ namespace HotChocolate.Types
     public sealed class InputObjectTypeAttribute
         : InputObjectTypeDescriptorAttribute
     {
+        public InputObjectTypeAttribute(string? name = null)
+        {
+            Name = name;
+        }
+
         public string? Name { get; set; }
 
         public override void OnConfigure(

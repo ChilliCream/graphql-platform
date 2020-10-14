@@ -7,11 +7,12 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 #nullable enable
 
-namespace HotChocolate.Types.Relay
+namespace HotChocolate.Types
 {
     public static class RelayIdFieldExtensions
     {

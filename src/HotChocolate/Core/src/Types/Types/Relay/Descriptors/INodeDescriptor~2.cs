@@ -7,26 +7,20 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Relay.Descriptors
 {
-    public interface INodeDescriptor : IDescriptor
+    public interface INodeDescriptor<TNode, out TId> : IDescriptor
     {
-        INodeDescriptor IdField(MemberInfo propertyOrMethod);
-
         [Obsolete("Use ResolveNode.")]
         IObjectFieldDescriptor NodeResolver(
-            NodeResolverDelegate<object, object> nodeResolver);
-
-        [Obsolete("Use ResolveNode.")]
-        IObjectFieldDescriptor NodeResolver<TId>(
-            NodeResolverDelegate<object, TId> nodeResolver);
+            NodeResolverDelegate<TNode, TId> nodeResolver);
 
         IObjectFieldDescriptor ResolveNode(
             FieldResolverDelegate fieldResolver);
 
-        IObjectFieldDescriptor ResolveNode<TId>(
-            NodeResolverDelegate<object, TId> fieldResolver);
+        IObjectFieldDescriptor ResolveNode(
+            NodeResolverDelegate<TNode, TId> fieldResolver);
 
         IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, object>> method);
+            Expression<Func<TResolver, TNode>> method);
 
         IObjectFieldDescriptor ResolveNodeWith<TResolver>();
 
