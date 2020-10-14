@@ -728,8 +728,7 @@ namespace HotChocolate.Types.Descriptors
             out object? defaultValue)
         {
             defaultValue = null;
-            Type recordType = property.DeclaringType!;
-            if (IsRecord(recordType))
+            if (IsRecord(property.DeclaringType!))
             {
                 ConstructorInfo[] constructors = recordType.GetConstructors();
 
