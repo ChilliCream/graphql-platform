@@ -73,10 +73,10 @@ namespace HotChocolate.Data.Projections
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                    (typeof(IConventionContext), context),
-                    (typeof(IProjectionProvider), context.Convention),
-                    (typeof(IDescriptorContext), context.DescriptorContext),
-                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                (typeof(IConventionContext), context),
+                (typeof(IProjectionProvider), context.Convention),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type type, IProjectionFieldHandler? instance) in definition.Handlers)
