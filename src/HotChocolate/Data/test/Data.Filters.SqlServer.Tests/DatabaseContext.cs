@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Filters
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=:memory:", opt => opt.UseNetTopologySuite());
+            optionsBuilder.UseSqlite($"Data Source={_fileName}");
         }
 
         public override async ValueTask DisposeAsync()
