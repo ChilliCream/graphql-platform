@@ -131,7 +131,7 @@ partial class Build : NukeBuild
             .EnableCollectCoverage()
             .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
             .SetExcludeByFile("*.Generated.cs")
-            .SetFramework("netcoreapp5.0")
+            .SetFramework("net5.0")
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx")

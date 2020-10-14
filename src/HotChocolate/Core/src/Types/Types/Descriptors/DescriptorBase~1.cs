@@ -12,7 +12,6 @@ namespace HotChocolate.Types.Descriptors
         , IDescriptorExtension<T>
         , IDescriptorExtension
         , IDefinitionFactory<T>
-        , IHasDescriptorContext
         where T : DefinitionBase
     {
         private readonly List<Action<IDescriptorContext, T>> _modifiers =
