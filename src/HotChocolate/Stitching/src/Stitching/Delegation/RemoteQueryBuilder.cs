@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
@@ -127,7 +128,9 @@ namespace HotChocolate.Stitching.Delegation
             return this;
         }
 
-        public DocumentNode Build()
+        public DocumentNode Build(
+            NameString targetSchema,
+            IReadOnlyDictionary<(NameString Type, NameString Schema), NameString> nameLookup)
         {
             if (_requestField == null || _path == null)
             {
@@ -145,19 +148,22 @@ namespace HotChocolate.Stitching.Delegation
                     requestField.SelectionSet.WithSelections(selections));
             }
 
-            return CreateDelegationQuery(_operation, _path, requestField);
+            return CreateDelegationQuery(targetSchema, nameLookup, _operation, _path, requestField);
         }
 
         private DocumentNode CreateDelegationQuery(
+            NameString targetSchema,
+            IReadOnlyDictionary<(NameString Type, NameString Schema), NameString> nameLookup,
             OperationType operation,
             IImmutableStack<SelectionPathComponent> path,
             FieldNode requestedField)
         {
             if (path.IsEmpty)
             {
-                path = path.Push(new SelectionPathComponent(
-                    requestedField.Name,
-                    Array.Empty<ArgumentNode>()));
+                path = path.Push(
+                    new SelectionPathComponent(
+                        requestedField.Name,
+                        Array.Empty<ArgumentNode>()));
             }
 
             FieldNode current = CreateRequestedField(requestedField, ref path);
@@ -172,17 +178,48 @@ namespace HotChocolate.Stitching.Delegation
             _usedVariables.CollectUsedVariables(current, usedVariables);
             _usedVariables.CollectUsedVariables(_fragments, usedVariables);
 
+            List<VariableDefinitionNode> variables = _variables
+                .Where(t => usedVariables.Contains(t.Variable.Name.Value))
+                .ToList();
+
+            for (int i = 0; i < variables.Count; i++)
+            {
+                VariableDefinitionNode variable = variables[i];
+                NameString typeName = variable.Type.NamedType().Name.Value;
+
+                if (nameLookup.TryGetValue((typeName, targetSchema), out NameString targetName))
+                {
+                    variable = variable.WithType(RewriteType(variable.Type, targetName));
+                    variables[i] = variable;
+                }
+            }
+
+            var fields = new FieldNode[] { current };
+
+            OperationDefinitionNode operationDefinition =
+                CreateOperation(_operationName, operation, fields, variables);
+
             var definitions = new List<IDefinitionNode>();
-            definitions.Add(CreateOperation(
-                _operationName,
-                operation,
-                new List<FieldNode> { current },
-                _variables.Where(t =>
-                    usedVariables.Contains(t.Variable.Name.Value))
-                    .ToList()));
+            definitions.Add(operationDefinition);
             definitions.AddRange(_fragments);
 
             return new DocumentNode(null, definitions);
+        }
+
+        private static ITypeNode RewriteType(ITypeNode type, NameString typeName)
+        {
+            if (type is NonNullTypeNode nonNullType)
+            {
+                return new NonNullTypeNode(
+                    (INullableTypeNode )RewriteType(nonNullType.Type, typeName));
+            }
+
+            if (type is ListTypeNode listTypeNode)
+            {
+                return new ListTypeNode(RewriteType(listTypeNode.Type, typeName));
+            }
+
+            return new NamedTypeNode(typeName);
         }
 
         private static FieldNode CreateRequestedField(

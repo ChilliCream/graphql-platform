@@ -129,7 +129,7 @@ namespace HotChocolate.Stitching.Delegation
                 .SetRequestField(extractedField.Field)
                 .AddVariables(CreateVariableDefs(variableValues))
                 .AddFragmentDefinitions(extractedField.Fragments)
-                .Build();
+                .Build(schemaName, context.Schema.GetNameLookup());
 
             var requestBuilder = QueryRequestBuilder.New();
 

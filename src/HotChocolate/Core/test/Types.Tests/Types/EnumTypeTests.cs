@@ -33,6 +33,22 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumType_GraphQLDescriptionAttribute()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<DescriptionTestEnum>());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("DescriptionTestEnum");
+            Assert.Equal("TestDescription", type.Description);
+        }
+
+        [Fact]
         public void EnumType_DynamicName_NonGeneric()
         {
             // act
@@ -589,6 +605,12 @@ namespace HotChocolate.Types
                 descriptor.Name("Some");
                 descriptor.Value("ABC").Name("DEF");
             }
+        }
+
+        [GraphQLDescription("TestDescription")]
+        public enum DescriptionTestEnum
+        {
+            Foo, Bar
         }
     }
 }

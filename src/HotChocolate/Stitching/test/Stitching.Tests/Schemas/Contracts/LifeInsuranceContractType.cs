@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Field(t => t.CustomerId).Type<NonNullType<IdType>>();
             descriptor.Field("foo")
                 .Argument("bar", a => a.Type<StringType>())
-                .Resolver(ctx => ctx.Argument<string>("bar"));
+                .Resolver(ctx => ctx.ArgumentValue<string>("bar"));
             descriptor.Field("error")
                 .Type<StringType>()
                 .Resolver(ctx => ErrorBuilder.New()
@@ -61,7 +61,8 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Resolver(123);
             descriptor.Field("float_field")
                 .Type<FloatType>()
-                .Resolver(123.123);
+                .Argument("f", a => a.Type<FloatType>())
+                .Resolve(ctx => ctx.ArgumentValue<double?>("f") ?? 123.123);
             descriptor.Field("decimal_field")
                 .Type<DecimalType>()
                 .Resolver(123.123);
