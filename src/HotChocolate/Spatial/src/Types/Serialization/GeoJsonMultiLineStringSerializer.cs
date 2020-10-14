@@ -1,9 +1,8 @@
-using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonMultiLineStringSerializer
         : GeoJsonInputObjectSerializer<MultiLineString>
@@ -31,7 +30,7 @@ namespace HotChocolate.Types
                     .CreateGeometry(parts[i], crs);
             }
 
-            if (crs is { })
+            if (crs is not null)
             {
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);

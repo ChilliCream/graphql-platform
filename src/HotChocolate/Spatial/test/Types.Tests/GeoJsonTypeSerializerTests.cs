@@ -1,10 +1,9 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Language;
-using NetTopologySuite.Geometries;
+using HotChocolate.Types.Spatial.Serialization;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonTypeSerializerTests
     {
@@ -205,7 +204,7 @@ namespace HotChocolate.Types.Spatial.Tests
             IValueNode resultValue = serializer.ParseValue(value);
 
             // assert
-            var enumValue = Assert.IsType<EnumValueNode>(resultValue);
+            EnumValueNode enumValue = Assert.IsType<EnumValueNode>(resultValue);
             Assert.Equal(stringValue, enumValue.Value);
         }
 
@@ -217,7 +216,6 @@ namespace HotChocolate.Types.Spatial.Tests
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
 
             // act
-
             // assert
             Assert.Throws<GeoJsonSerializationException>(() => serializer.ParseValue(""));
         }
@@ -424,11 +422,13 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             GeoJsonTypeSerializer serializer = GeoJsonTypeSerializer.Default;
+            var typeName = new NameString(stringValue);
 
             // act
+            var success = serializer.TryDeserialize(typeName, out object? resultValue);
+
             // assert
-            Assert.True(
-                serializer.TryDeserialize(new NameString(stringValue), out object? resultValue));
+            Assert.True(success);
             Assert.Equal(value, resultValue);
         }
     }

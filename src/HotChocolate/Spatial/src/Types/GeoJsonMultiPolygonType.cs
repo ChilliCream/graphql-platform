@@ -8,11 +8,10 @@ namespace HotChocolate.Types.Spatial
     {
         protected override void Configure(IObjectTypeDescriptor<MultiPolygon> descriptor)
         {
-            descriptor.Name(MultiPolygonTypeName);
-
-            descriptor.BindFieldsExplicitly();
-
-            descriptor.Implements<GeoJsonInterface>();
+            descriptor
+                .Name(MultiPolygonTypeName)
+                .Implements<GeoJsonInterfaceType>()
+                .BindFieldsExplicitly();
 
             descriptor
                 .Field(x => x.Coordinates)

@@ -24,12 +24,10 @@ namespace HotChocolate.Execution.Benchmarks
             
             _introspectionQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("IntrospectionQuery.graphql"));
-            _introspectionFragments = new FragmentCollection(_schema, _introspectionQuery);
             _introspectionOperation = (OperationDefinitionNode)_introspectionQuery.Definitions[0];
             
             _starWarsQuery = Utf8GraphQLParser.Parse(
                 resources.GetResourceString("GetTwoHerosWithFriendsQuery.graphql"));
-            _starWarsFragments = new FragmentCollection(_schema, _starWarsQuery);
             _starWarsOperation = (OperationDefinitionNode)_starWarsQuery.Definitions[0];
         }
 
@@ -37,18 +35,22 @@ namespace HotChocolate.Execution.Benchmarks
         public object PrepareSelectionSets_Introspection()
         {
             return OperationCompiler.Compile(
+                "a",
+                _introspectionQuery,
+                _introspectionOperation,
                 _schema,
-                _introspectionFragments,
-                _introspectionOperation);
+                _schema.QueryType);
         }
 
         [Benchmark]
         public object PrepareSelectionSets_StarWars()
         {
             return OperationCompiler.Compile(
+                "b",
+                _starWarsQuery,
+                _starWarsOperation,
                 _schema,
-                _starWarsFragments,
-                _starWarsOperation);
+                _schema.QueryType);
         }
     }
 }

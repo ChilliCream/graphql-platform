@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using HotChocolate.Utilities;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal abstract class GeoJsonSerializerBase<T> : IGeoJsonSerializer
     {
@@ -43,7 +42,6 @@ namespace HotChocolate.Types
             throw Serializer_CouldNotSerialize();
         }
 
-
         public virtual bool IsInstanceOfType(object? runtimeValue)
         {
             if (runtimeValue is null)
@@ -59,8 +57,8 @@ namespace HotChocolate.Types
             return false;
         }
 
-        protected (GeoJsonGeometryType type, object coordinates, int? crs)
-            ParseFields(IReadOnlyDictionary<string, object> obj)
+        protected (GeoJsonGeometryType type, object coordinates, int? crs) ParseFields(
+            IReadOnlyDictionary<string, object> obj)
         {
             GeoJsonGeometryType? type = null;
             object? coordinates = null;
@@ -83,12 +81,12 @@ namespace HotChocolate.Types
                 crs = crsInt;
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }
 
-            if (coordinates == null)
+            if (coordinates is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }
@@ -96,8 +94,8 @@ namespace HotChocolate.Types
             return (type.Value, coordinates, crs);
         }
 
-        protected (GeoJsonGeometryType type, object coordinates, int? crs)
-            ParseFields(ObjectValueNode obj)
+        protected (GeoJsonGeometryType type, object coordinates, int? crs) ParseFields(
+            ObjectValueNode obj)
         {
             GeoJsonGeometryType? type = null;
             object? coordinates = null;
@@ -124,12 +122,12 @@ namespace HotChocolate.Types
                 }
             }
 
-            if (type == null)
+            if (type is null)
             {
                 throw Serializer_TypeIsMissing();
             }
 
-            if (coordinates == null)
+            if (coordinates is null)
             {
                 throw Serializer_CoordinatesIsMissing();
             }
@@ -139,11 +137,9 @@ namespace HotChocolate.Types
 
         private object ParseCoordinates(object? runtimeValue)
         {
-            if (runtimeValue is IList top &&
-                top.Count > 0)
+            if (runtimeValue is IList top && top.Count > 0)
             {
-                if (top[0] is IList second &&
-                    second.Count > 0)
+                if (top[0] is IList second && second.Count > 0)
                 {
                     if (second[0] is IList)
                     {
@@ -180,11 +176,10 @@ namespace HotChocolate.Types
                         return result;
                     }
                 }
-                else if (
-                    GeoJsonPositionSerializer.Default.TryDeserialize(
-                        runtimeValue,
-                        out object? result) &&
-                    result is { })
+                else if (GeoJsonPositionSerializer.Default.TryDeserialize(
+                    runtimeValue,
+                    out object? result) &&
+                    result is not null)
                 {
                     return result;
                 }
@@ -195,11 +190,9 @@ namespace HotChocolate.Types
 
         private object ParseCoordinates(IValueNode syntaxNode)
         {
-            if (syntaxNode is ListValueNode top &&
-                top.Items.Count > 0)
+            if (syntaxNode is ListValueNode top && top.Items.Count > 0)
             {
-                if (top.Items[0] is ListValueNode second &&
-                    second.Items.Count > 0)
+                if (top.Items[0] is ListValueNode second && second.Items.Count > 0)
                 {
                     if (second.Items[0] is ListValueNode)
                     {

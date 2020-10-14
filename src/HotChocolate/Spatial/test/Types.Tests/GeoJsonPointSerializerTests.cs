@@ -6,16 +6,15 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPointSerializerTests
     {
         private readonly IValueNode _coordinatesSyntaxNode = new ListValueNode(
             new IntValueNode(30),
-            new IntValueNode(10)
-        );
+            new IntValueNode(10));
 
-        private Geometry _geometry = new Point(new Coordinate(30, 10));
+        private readonly Geometry _geometry = new Point(new Coordinate(30, 10));
 
         private readonly string _geometryType = "Point";
 
@@ -26,7 +25,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Serialize(null));
         }
 
@@ -37,7 +40,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var dictionary = new Dictionary<string, object>();
 
             // act
@@ -126,7 +128,7 @@ namespace HotChocolate.Types.Spatial.Tests
             Assert.False(
                 type.IsInstanceOfType(
                     GeometryFactory.Default.CreateGeometryCollection(
-                        new[] { new Point(1, 2) })));
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -178,7 +180,8 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(() => type.ParseLiteral(new ListValueNode()));
+            Assert.Throws<InvalidOperationException>(
+                () => type.ParseLiteral(new ListValueNode()));
         }
 
         [Theory]
@@ -188,7 +191,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -210,7 +212,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
                 _coordinatesSyntaxNode);
@@ -218,6 +219,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -228,12 +230,12 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -244,7 +246,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -278,7 +279,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -379,7 +379,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Deserialize(null));
         }
 
@@ -435,7 +439,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -457,7 +460,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -478,7 +480,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -497,7 +498,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -514,6 +514,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Point_IsCoordinateValid_Should_Fail_When_MultiArray(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
             var coords = new ListValueNode(
                 new ListValueNode(

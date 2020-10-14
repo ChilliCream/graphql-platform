@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
-using static HotChocolate.Types.GeoJsonSerializers;
+using static HotChocolate.Types.Spatial.Serialization.GeoJsonSerializers;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonGeometrySerializer : IGeoJsonSerializer
     {

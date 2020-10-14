@@ -9,7 +9,7 @@ using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {
-    internal sealed partial class OperationCompiler
+    public sealed partial class OperationCompiler
     {
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
@@ -22,15 +22,17 @@ namespace HotChocolate.Execution.Processing
             _fragments = fragments;
         }
 
-        public static IReadOnlyDictionary<SelectionSetNode, SelectionVariants> Compile(
-            ISchema schema,
-            FragmentCollection fragments,
+        public static IPreparedOperation Compile(
+            string operationId,
+            DocumentNode document,
             OperationDefinitionNode operation,
+            ISchema schema,
+            ObjectType rootType,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
+            var fragments = new FragmentCollection(schema, document);
             var compiler = new OperationCompiler(schema, fragments);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
-            ObjectType rootType = schema.GetOperationType(operation.Operation);
             var backlog = new Stack<CompilerContext>();
 
             // creates and enqueues the root compiler context.
@@ -44,7 +46,7 @@ namespace HotChocolate.Execution.Processing
             // processes the backlog and by doing so traverses the query graph.
             compiler.Visit(backlog);
 
-            return selectionSetLookup;
+            return new Operation(operationId, document, operation,rootType, selectionSetLookup);
         }
 
         private void Visit(Stack<CompilerContext> backlog)

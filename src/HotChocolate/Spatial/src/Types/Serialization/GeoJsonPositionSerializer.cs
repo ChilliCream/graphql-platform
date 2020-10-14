@@ -1,10 +1,9 @@
 using System;
 using System.Collections;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonPositionSerializer : GeoJsonSerializerBase<Coordinate>
     {
@@ -17,7 +16,7 @@ namespace HotChocolate.Types
 
             if (valueSyntax is ListValueNode listValueNode)
             {
-                int numberOfItems = listValueNode.Items.Count;
+                var numberOfItems = listValueNode.Items.Count;
 
                 if (numberOfItems != 2 && numberOfItems != 3)
                 {
@@ -31,11 +30,11 @@ namespace HotChocolate.Types
                     {
                         return true;
                     }
-                    else if (numberOfItems == 3 &&
-                        listValueNode.Items[2] is IFloatValueLiteral)
-                    {
-                        return true;
-                    }
+
+                   if (listValueNode.Items[2] is IFloatValueLiteral)
+                   {
+                       return true;
+                   }
                 }
             }
 
@@ -68,7 +67,8 @@ namespace HotChocolate.Types
                     {
                         return new Coordinate(x.ToDouble(), y.ToDouble());
                     }
-                    else if (list.Items.Count == 3 &&
+
+                    if (list.Items.Count == 3 &&
                         list.Items[2] is IFloatValueLiteral z)
                     {
                         return new CoordinateZ(x.ToDouble(), y.ToDouble(), z.ToDouble());
@@ -153,8 +153,7 @@ namespace HotChocolate.Types
         {
             if (serialized is null)
             {
-                value = null
-                    ;
+                value = null;
                 return true;
             }
 
@@ -199,7 +198,7 @@ namespace HotChocolate.Types
 
             try
             {
-                double z = Convert.ToDouble(list[2]);
+                var z = Convert.ToDouble(list[2]);
                 if (double.IsInfinity(z))
                 {
                     value = null;
@@ -220,6 +219,12 @@ namespace HotChocolate.Types
 
         public override bool TrySerialize(object? value, out object? serialized)
         {
+            if (value is null)
+            {
+                serialized = null;
+                return true;
+            }
+
             if (!(value is Coordinate coordinate))
             {
                 serialized = null;

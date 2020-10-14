@@ -1,4 +1,5 @@
 using HotChocolate.Language;
+using HotChocolate.Types.Spatial.Serialization;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
@@ -12,7 +13,8 @@ namespace HotChocolate.Types.Spatial
 
         public GeometryType(
             NameString name,
-            BindingBehavior bind = BindingBehavior.Explicit) : base(name, bind)
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, bind)
         {
         }
 

@@ -1,10 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.Spatial;
 using NetTopologySuite;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonLineStringSerializer : GeoJsonInputObjectSerializer<LineString>
     {
@@ -23,7 +21,7 @@ namespace HotChocolate.Types
                 throw Serializer_Parse_CoordinatesIsInvalid();
             }
 
-            if (crs is { })
+            if (crs is not null)
             {
                 GeometryFactory factory =
                     NtsGeometryServices.Instance.CreateGeometryFactory(crs.Value);

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 
 namespace HotChocolate.Stitching.Merge.Handlers
 {

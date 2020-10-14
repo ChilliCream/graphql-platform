@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonMultiLineStringTypeTests
     {
@@ -13,7 +13,12 @@ namespace HotChocolate.Types.Spatial.Tests
             new[]
             {
                 new LineString(
-                    new[] {new Coordinate(10, 10), new Coordinate(20, 20), new Coordinate(10, 40)}),
+                    new[]
+                    {
+                        new Coordinate(10, 10),
+                        new Coordinate(20, 20),
+                        new Coordinate(10, 40)
+                    }),
                 new LineString(
                     new[]
                     {
@@ -27,6 +32,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task MultiLineString_Execution_Output()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -43,6 +49,7 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { type coordinates bbox crs }}");
+
             // assert
             result.MatchSnapshot();
         }
@@ -50,6 +57,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public async Task MultiLineString_Execution_With_Fragments()
         {
+            // arrange
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .AddSpatialTypes()
@@ -61,17 +69,18 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 "{ test { ... on MultiLineString { type coordinates bbox crs }}}");
+
             // assert
             result.MatchSnapshot();
         }
 
         [Fact]
-        public void MultiLineString_Execution_Tests()
-        {
-            ISchema schema = SchemaBuilder.New()
+        public void MultiLineString_Execution_Tests() =>
+            SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonMultiLineStringType>()
@@ -80,9 +89,8 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Name("Query")
                         .Field("test")
                         .Resolver(_geom))
-                .Create();
-
-            schema.ToString().MatchSnapshot();
-        }
+                .Create()
+                .Print()
+                .MatchSnapshot();
     }
 }

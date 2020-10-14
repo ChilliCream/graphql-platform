@@ -8,11 +8,10 @@ namespace HotChocolate.Types.Spatial
     {
         protected override void Configure(IObjectTypeDescriptor<MultiLineString> descriptor)
         {
-            descriptor.Name(MultiLineStringTypeName);
-
-            descriptor.BindFieldsExplicitly();
-
-            descriptor.Implements<GeoJsonInterface>();
+            descriptor
+                .Name(MultiLineStringTypeName)
+                .Implements<GeoJsonInterfaceType>()
+                .BindFieldsExplicitly();
 
             descriptor
                 .Field(x => x.Coordinates)

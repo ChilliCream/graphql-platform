@@ -7,7 +7,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonMultiLineStringInputTests
     {
@@ -34,25 +34,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     new IntValueNode(20)),
                 new ListValueNode(
                     new IntValueNode(30),
-                    new IntValueNode(10))
-            ));
-
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
-                    .Resolver("ghi"))
-            .Create();
-
-        private InputObjectType CreateInputType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
-        }
+                    new IntValueNode(10))));
 
         [Fact]
         public void ParseLiteral_MultiLineString_With_Valid_Coordinates()
@@ -116,8 +98,10 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
@@ -127,6 +111,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -137,6 +123,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -150,6 +138,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -165,6 +155,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -176,13 +168,12 @@ namespace HotChocolate.Types.Spatial.Tests
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonMultiLineStringInput>())
+                        .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<MultiLineString>("arg").ToString()))
                 .Create();
 
@@ -198,14 +189,26 @@ namespace HotChocolate.Types.Spatial.Tests
         }
 
         [Fact]
-        public void Schema_Tests()
+        public void Schema_Tests() =>
+            CreateSchema()
+                .Print()
+                .MatchSnapshot();
+
+        private ISchema CreateSchema() => SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonMultiLineStringInputType>())
+                    .Resolver("ghi"))
+            .Create();
+
+        private InputObjectType CreateInputType()
         {
-            // arrange
-            // act
             ISchema schema = CreateSchema();
 
-            // assert
-            schema.ToString().MatchSnapshot();
+            return schema.GetType<InputObjectType>("GeoJSONMultiLineStringInput");
         }
     }
 }

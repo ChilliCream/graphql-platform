@@ -6,7 +6,7 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonLineStringSerializerTests
     {
@@ -21,14 +21,21 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(40),
                 new IntValueNode(40)));
 
-        private Geometry _geometry = new LineString(
-            new[] { new Coordinate(30, 10), new Coordinate(10, 30), new Coordinate(40, 40) });
+        private readonly Geometry _geometry = new LineString(
+            new[]
+            {
+                new Coordinate(30, 10),
+                new Coordinate(10, 30),
+                new Coordinate(40, 40)
+            });
 
         private readonly string _geometryType = "LineString";
 
         private readonly object _geometryParsed = new[]
         {
-            new[] { 30.0, 10.0 }, new[] { 10.0, 30.0 }, new[] { 40.0, 40.0 }
+            new[] { 30.0, 10.0 },
+            new[] { 10.0, 30.0 },
+            new[] { 40.0, 40.0 }
         };
 
         [Theory]
@@ -62,6 +69,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             object? result = type.Serialize(_geometry);
 
@@ -76,6 +84,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.Serialize(""));
@@ -88,6 +97,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<ArgumentNullException>(() => type.IsInstanceOfType(null!));
@@ -99,6 +109,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(new ObjectValueNode()));
@@ -111,6 +122,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(NullValueNode.Default));
@@ -123,11 +135,13 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.False(
                 type.IsInstanceOfType(
-                    GeometryFactory.Default.CreateGeometryCollection(new[] { new Point(1, 2) })));
+                    GeometryFactory.Default.CreateGeometryCollection(
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -137,6 +151,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.True(type.IsInstanceOfType(_geometry));
@@ -149,6 +164,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.False(type.IsInstanceOfType("foo"));
@@ -161,6 +177,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Null(type.ParseLiteral(NullValueNode.Default));
@@ -173,6 +190,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<InvalidOperationException>(() => type.ParseLiteral(new ListValueNode()));
@@ -213,6 +231,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -228,6 +247,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -258,6 +278,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Equal(NullValueNode.Default, type.ParseValue(null));
@@ -286,6 +307,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             IValueNode literal = type.ParseResult(_geometry);
 
@@ -300,6 +322,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.ParseResult(""));
@@ -312,6 +335,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Equal(NullValueNode.Default, type.ParseValue(null));
@@ -339,6 +363,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             IValueNode literal = type.ParseValue(_geometry);
 
@@ -353,6 +378,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.ParseValue(""));
@@ -390,6 +416,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             object? result = type.Deserialize(_geometry);
 
@@ -404,6 +431,7 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
+
             // act
             // assert
             Assert.Throws<SerializationException>(() => type.Deserialize(""));

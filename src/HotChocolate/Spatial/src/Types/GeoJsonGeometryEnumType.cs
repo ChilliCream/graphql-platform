@@ -7,17 +7,37 @@ namespace HotChocolate.Types.Spatial
     {
         protected override void Configure(IEnumTypeDescriptor<GeoJsonGeometryType> descriptor)
         {
-            descriptor.BindValuesExplicitly();
+            descriptor
+                .Name(EnumTypeTypeName)
+                .BindValuesExplicitly();
 
-            descriptor.Name(EnumTypeTypeName);
+            descriptor
+                .Value(Point)
+                .Name(nameof(Point));
 
-            descriptor.Value(Point).Name(nameof(Point));
-            descriptor.Value(MultiPoint).Name(nameof(MultiPoint));
-            descriptor.Value(LineString).Name(nameof(LineString));
-            descriptor.Value(MultiLineString).Name(nameof(MultiLineString));
-            descriptor.Value(Polygon).Name(nameof(Polygon));
-            descriptor.Value(MultiPolygon).Name(nameof(MultiPolygon));
-            descriptor.Value(GeometryCollection).Name(nameof(GeometryCollection));
+            descriptor
+                .Value(MultiPoint)
+                .Name(nameof(MultiPoint));
+
+            descriptor
+                .Value(LineString)
+                .Name(nameof(LineString));
+
+            descriptor
+                .Value(MultiLineString)
+                .Name(nameof(MultiLineString));
+
+            descriptor
+                .Value(Polygon)
+                .Name(nameof(Polygon));
+
+            descriptor
+                .Value(MultiPolygon)
+                .Name(nameof(MultiPolygon));
+
+            descriptor
+                .Value(GeometryCollection)
+                .Name(nameof(GeometryCollection));
         }
     }
 }

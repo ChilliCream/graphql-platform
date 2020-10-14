@@ -5,7 +5,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Utilities
 {
-    internal class ObjectValueToDictionaryConverter
+    public class ObjectValueToDictionaryConverter
         : SyntaxWalkerBase<IValueNode, Action<object>>
     {
         public Dictionary<string, object> Convert(ObjectValueNode objectValue)
@@ -16,8 +16,7 @@ namespace HotChocolate.Utilities
             }
 
             Dictionary<string, object> dict = null;
-            Action<object> setValue =
-                value => dict = (Dictionary<string, object>)value;
+            Action<object> setValue = value => dict = (Dictionary<string, object>)value;
             VisitObjectValue(objectValue, setValue);
             return dict;
         }

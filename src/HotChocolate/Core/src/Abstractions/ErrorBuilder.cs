@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 #nullable enable
@@ -196,7 +197,7 @@ namespace HotChocolate
 
         public static ErrorBuilder FromError(IError error) => new ErrorBuilder(error);
 
-        public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object> dict)
+        public static ErrorBuilder FromDictionary(IReadOnlyDictionary<string, object?> dict)
         {
             if (dict is null)
             {

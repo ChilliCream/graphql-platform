@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using static HotChocolate.Types.Spatial.GeoJsonGeometryType;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
     internal class GeoJsonTypeSerializer : GeoJsonSerializerBase<GeoJsonGeometryType>
     {
@@ -22,8 +21,7 @@ namespace HotChocolate.Types
             };
 
         private static readonly IDictionary<GeoJsonGeometryType, string> _valueLookup =
-            new Dictionary<GeoJsonGeometryType,
-                string>
+            new Dictionary<GeoJsonGeometryType, string>
             {
                 { Point, nameof(Point) },
                 { MultiPoint, nameof(MultiPoint) },
@@ -31,7 +29,7 @@ namespace HotChocolate.Types
                 { MultiLineString, nameof(MultiLineString) },
                 { Polygon, nameof(Polygon) },
                 { MultiPolygon, nameof(MultiPolygon) },
-                { GeometryCollection, nameof(GeometryCollection) }
+                { GeometryCollection, nameof(GeometryCollection) },
             };
 
         public override bool TrySerialize(object? runtimeValue, out object? resultValue)

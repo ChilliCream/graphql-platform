@@ -1,7 +1,7 @@
 using System;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class MockObjectType : ObjectType
     {

@@ -6,29 +6,25 @@ using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Types.Spatial.WellKnownTypeNames;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonMultiPointSerializerTests
     {
         private readonly IValueNode _coordinatesSyntaxNode = new ListValueNode(
             new ListValueNode(
                 new IntValueNode(10),
-                new IntValueNode(40)
-            ),
+                new IntValueNode(40)),
             new ListValueNode(
                 new IntValueNode(40),
-                new IntValueNode(30)
-            ),
+                new IntValueNode(30)),
             new ListValueNode(
                 new IntValueNode(20),
-                new IntValueNode(20)
-            ),
+                new IntValueNode(20)),
             new ListValueNode(
                 new IntValueNode(30),
-                new IntValueNode(10)
-            ));
+                new IntValueNode(10)));
 
-        private Geometry _geometry = new MultiPoint(
+        private readonly Geometry _geometry = new MultiPoint(
             new[]
             {
                 new Point(new Coordinate(10, 40)),
@@ -52,7 +48,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Serialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Serialize(null));
         }
 
@@ -62,7 +62,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var dictionary = new Dictionary<string, object>();
 
             // act
@@ -150,7 +149,8 @@ namespace HotChocolate.Types.Spatial.Tests
             // assert
             Assert.False(
                 type.IsInstanceOfType(
-                    GeometryFactory.Default.CreateGeometryCollection(new[] { new Point(1, 2) })));
+                    GeometryFactory.Default.CreateGeometryCollection(
+                        new Geometry[] { new Point(1, 2) })));
         }
 
         [Theory]
@@ -212,7 +212,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -234,7 +233,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
                 _coordinatesSyntaxNode);
@@ -242,6 +240,7 @@ namespace HotChocolate.Types.Spatial.Tests
             var valueNode = new ObjectValueNode(coordField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -252,12 +251,12 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var crsField = new ObjectFieldNode(WellKnownFields.CrsFieldName, 0);
             var valueNode = new ObjectValueNode(typeField, crsField);
 
             // act
+            // assert
             Assert.Throws<SerializationException>(() => type.ParseLiteral(valueNode));
         }
 
@@ -268,7 +267,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var typeField = new ObjectFieldNode(WellKnownFields.TypeFieldName, _geometryType);
             var coordField = new ObjectFieldNode(
                 WellKnownFields.CoordinatesFieldName,
@@ -302,7 +300,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -359,7 +356,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -402,7 +398,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [InlineData(GeometryTypeName)]
         public void Deserialize_Should_Pass_When_SerializeNullValue(string typeName)
         {
+            // arrange
             INamedInputType type = CreateInputType(typeName);
+
+            // act
+            // assert
             Assert.Null(type.Deserialize(null));
         }
 
@@ -413,7 +413,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             object? serialized = type.Serialize(_geometry);
 
             // act
@@ -458,7 +457,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -480,7 +478,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -501,7 +498,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.CoordinatesFieldName, _geometryParsed },
@@ -520,7 +516,6 @@ namespace HotChocolate.Types.Spatial.Tests
         {
             // arrange
             INamedInputType type = CreateInputType(typeName);
-
             var serialized = new Dictionary<string, object>
             {
                 { WellKnownFields.TypeFieldName, _geometryType },
@@ -563,7 +558,6 @@ namespace HotChocolate.Types.Spatial.Tests
         private static void AssertGeometry(object? obj, int? crs = null)
         {
             Assert.Equal(4, Assert.IsType<MultiPoint>(obj).NumPoints);
-
             Assert.Equal(10, Assert.IsType<MultiPoint>(obj).Coordinates[0].X);
             Assert.Equal(40, Assert.IsType<MultiPoint>(obj).Coordinates[0].Y);
             Assert.Equal(40, Assert.IsType<MultiPoint>(obj).Coordinates[1].X);

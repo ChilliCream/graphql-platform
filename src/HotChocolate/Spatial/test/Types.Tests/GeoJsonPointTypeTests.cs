@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPointTypeTests
     {
@@ -88,7 +88,6 @@ namespace HotChocolate.Types.Spatial.Tests
         public void Point_Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
@@ -100,6 +99,7 @@ namespace HotChocolate.Types.Spatial.Tests
                         .Resolver(_geom))
                 .Create();
 
+            // act
             // assert
             schema.ToString().MatchSnapshot();
         }

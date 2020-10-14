@@ -18,7 +18,7 @@ namespace HotChocolate.Configuration
 
             SchemaBuilder.New()
                 .AddQueryType<Foo>()
-                .AddTypeInterceptor(new TypeScopeInterceptor(types))
+                .TryAddTypeInterceptor(new TypeScopeInterceptor(types))
                 .Create()
                 .Print()
                 .MatchSnapshot();

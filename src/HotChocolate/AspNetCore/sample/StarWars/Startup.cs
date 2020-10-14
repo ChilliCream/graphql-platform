@@ -38,14 +38,14 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGraphQL();
-                endpoints.MapGraphQL("/hello", schemaName: "hello_world");
-                endpoints.MapGraphQL("/filtering", schemaName: "filtering");
-            });
+            app
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGraphQL();
+                    endpoints.MapGraphQL("/hello", schemaName: "hello_world");
+                    endpoints.MapGraphQL("/filtering", schemaName: "filtering");
+                });
         }
     }
 

@@ -3,8 +3,7 @@
 namespace HotChocolate
 {
     [AttributeUsage(AttributeTargets.Parameter)]
-    public sealed class ServiceAttribute
-        : Attribute
+    public sealed class ServiceAttribute : Attribute
     {
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -120,6 +121,14 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod);
+
+        /// <summary>
+        /// Specifies an object type field which is bound to a resolver type.
+        /// </summary>
+        /// <param name="propertyOrMethod">
+        /// The member that shall be used as a field.
+        /// </param>
+        IObjectFieldDescriptor Field(MemberInfo propertyOrMethod);
 
         IObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class;

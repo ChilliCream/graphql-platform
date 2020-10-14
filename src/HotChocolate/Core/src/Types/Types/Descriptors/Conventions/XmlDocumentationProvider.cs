@@ -13,8 +13,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class XmlDocumentationProvider
-        : IDocumentationProvider
+    public class XmlDocumentationProvider : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
         private const string _exceptionElementName = "exception";
@@ -28,15 +27,9 @@ namespace HotChocolate.Types.Descriptors
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
 
-        public XmlDocumentationProvider(
-            IXmlDocumentationFileResolver fileResolver)
+        public XmlDocumentationProvider(IXmlDocumentationFileResolver fileResolver)
         {
-            if (fileResolver is null)
-            {
-                throw new ArgumentNullException(nameof(fileResolver));
-            }
-
-            _fileResolver = fileResolver;
+            _fileResolver = fileResolver ?? throw new ArgumentNullException(nameof(fileResolver));
         }
 
         public string? GetDescription(Type type) =>

@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
-using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 using static HotChocolate.Types.Spatial.ThrowHelper;
 using static HotChocolate.Types.Spatial.WellKnownFields;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Spatial.Serialization
 {
-    internal abstract class GeoJsonInputObjectSerializer<T> : GeoJsonSerializerBase<T>
+    internal abstract class GeoJsonInputObjectSerializer<T>
+        : GeoJsonSerializerBase<T>
         where T : Geometry
     {
         private readonly GeoJsonGeometryType _geometryType;
@@ -68,7 +68,6 @@ namespace HotChocolate.Types
                             throw Serializer_CouldNotSerialize();
                         }
                     }
-
 
                     resultValue = new Dictionary<string, object>
                     {
@@ -146,7 +145,6 @@ namespace HotChocolate.Types
                         TypeFieldName,
                         GeoJsonTypeSerializer.Default.ParseResult(_geometryType))
                 };
-
 
                 if (dict.TryGetValue(CoordinatesFieldName, out var value) &&
                     value is IList coordinates)

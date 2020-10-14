@@ -4,7 +4,7 @@ namespace HotChocolate.Stitching
 {
     public class DelegateDirective
     {
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         public NameString Schema { get; set; }
     }

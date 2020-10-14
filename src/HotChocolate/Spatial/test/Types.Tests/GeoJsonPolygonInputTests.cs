@@ -7,7 +7,7 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial.Tests
+namespace HotChocolate.Types.Spatial
 {
     public class GeoJsonPolygonInputTests
     {
@@ -28,26 +28,10 @@ namespace HotChocolate.Types.Spatial.Tests
                 new IntValueNode(30),
                 new IntValueNode(10)));
 
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonPolygonInput>())
-                    .Resolver("ghi"))
-            .Create();
-
-        private InputObjectType CreateInputType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
-        }
-
         [Fact]
         public void ParseLiteral_Polygon_With_Single_Ring()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -74,6 +58,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Polygon_With_CRS()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -102,18 +87,24 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Polygon_Is_Null()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
         [Fact]
         public void ParseLiteral_Polygon_Is_Not_ObjectType_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -121,8 +112,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Polygon_With_Missing_Fields_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -133,8 +127,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Polygon_With_Empty_Coordinates_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -145,8 +142,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Polygon_With_Wrong_Geometry_Type_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -158,13 +158,12 @@ namespace HotChocolate.Types.Spatial.Tests
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonPolygonInput>())
+                        .Argument("arg", a => a.Type<GeoJsonPolygonInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<Polygon>("arg").ToString()))
                 .Create();
 
@@ -187,6 +186,23 @@ namespace HotChocolate.Types.Spatial.Tests
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        private ISchema CreateSchema() => SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonPolygonInputType>())
+                    .Resolver("ghi"))
+            .Create();
+
+        private InputObjectType CreateInputType()
+        {
+            ISchema schema = CreateSchema();
+
+            return schema.GetType<InputObjectType>("GeoJSONPolygonInput");
         }
     }
 }
