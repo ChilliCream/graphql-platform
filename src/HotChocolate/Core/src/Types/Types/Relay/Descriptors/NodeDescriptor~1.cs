@@ -29,8 +29,13 @@ namespace HotChocolate.Types.Relay.Descriptors
                 .OnBeforeCreate(OnCompleteDefinition);
         }
 
-        protected void OnCompleteDefinition(ObjectTypeDefinition definition)
+        private void OnCompleteDefinition(ObjectTypeDefinition definition)
         {
+            if (Definition.Resolver is null)
+            {
+                ResolveNodeWith<TNode>();
+            }
+
             if (Definition.Resolver is not null)
             {
                 definition.ContextData[WellKnownContextData.NodeResolver] =
@@ -78,7 +83,7 @@ namespace HotChocolate.Types.Relay.Descriptors
             if (member is MethodInfo || member is PropertyInfo)
             {
                 Definition.IdMember = member;
-                return new NodeDescriptor<TNode, TId>(Definition, ConfigureNodeField);
+                return new NodeDescriptor<TNode, TId>(Context, Definition, ConfigureNodeField);
             }
 
             throw new ArgumentException(
@@ -120,6 +125,14 @@ namespace HotChocolate.Types.Relay.Descriptors
             throw new ArgumentException(
                 TypeResources.NodeDescriptor_MustBeMethod,
                 nameof(member));
+        }
+
+        public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(typeof(TResolver)));
+
+        public IObjectFieldDescriptor ResolveNodeWith(Type type)
+        {
+            throw new NotImplementedException();
         }
     }
 }

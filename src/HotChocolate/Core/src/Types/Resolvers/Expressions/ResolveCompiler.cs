@@ -37,6 +37,12 @@ namespace HotChocolate.Resolvers.Expressions
 
             if (descriptor.Field.Member is not null)
             {
+                if (descriptor.Field.Member is PropertyInfo p && p.GetMethod.IsStatic ||
+                    descriptor.Field.Member is MethodInfo m && m.IsStatic)
+                {
+                    
+                }
+
                 FieldResolverDelegate resolver = CreateResolver(
                     resolverInstance,
                     descriptor.Field.Member,

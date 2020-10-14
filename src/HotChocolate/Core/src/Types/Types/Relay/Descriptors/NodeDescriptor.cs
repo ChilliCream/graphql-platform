@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
@@ -51,5 +52,15 @@ namespace HotChocolate.Types.Relay.Descriptors
         public IObjectFieldDescriptor NodeResolver<TId>(
             NodeResolverDelegate<object, TId> nodeResolver) =>
             ResolveNode(nodeResolver);
+
+        public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IObjectFieldDescriptor ResolveNodeWith(Type type)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

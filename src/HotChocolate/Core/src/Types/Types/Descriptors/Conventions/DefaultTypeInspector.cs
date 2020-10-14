@@ -241,6 +241,51 @@ namespace HotChocolate.Types.Descriptors
             return null;
         }
 
+        public virtual MemberInfo? GetNodeIdMember(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return GetMembers(type)
+                .FirstOrDefault(
+                    member =>
+                        member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+        {
+            if (nodeType == null)
+            {
+                throw new ArgumentNullException(nameof(nodeType));
+            }
+
+            resolverType ??= nodeType;
+
+            return GetMembers(resolverType)
+                .OfType<MethodInfo>()
+                .FirstOrDefault(
+                    member =>
+                        member.Name.Equals(
+                            "Get",
+                            StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals(
+                            "Get",
+                            StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals(
+                            "GetAsync",
+                            StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals(
+                            $"Get{nodeType.Name}",
+                            StringComparison.OrdinalIgnoreCase) &&
+                        member.Name.Equals(
+                            $"Get{nodeType.Name}Async",
+                            StringComparison.OrdinalIgnoreCase));
+        }
+
         /// <inheritdoc />
         public Type ExtractNamedType(Type type)
         {
@@ -566,9 +611,9 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsIgnored(MemberInfo member)
         {
-            if (IsCloneMember(member) || 
-                IsToString(member) || 
-                IsGetHashCode(member) || 
+            if (IsCloneMember(member) ||
+                IsToString(member) ||
+                IsGetHashCode(member) ||
                 IsEquals(member))
             {
                 return true;

@@ -4,6 +4,7 @@ using System.Reflection;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -15,12 +16,16 @@ namespace HotChocolate.Types.Relay.Descriptors
         private readonly Func<IObjectFieldDescriptor> _configureNodeField;
 
         public NodeDescriptor(
+            IDescriptorContext context,
             NodeDefinition definition,
             Func<IObjectFieldDescriptor> configureNodeField)
         {
+            Context = context;
             Definition = definition;
             _configureNodeField = configureNodeField;
         }
+
+        private IDescriptorContext Context { get; }
 
         private NodeDefinition Definition { get; }
 
@@ -93,5 +98,13 @@ namespace HotChocolate.Types.Relay.Descriptors
                         new FieldMember("_", "_", method)));
             return ResolveNode(resolver.Resolver);
         }
+
+        public IObjectFieldDescriptor ResolveNodeWith(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(typeof(TResolver)));
     }
 }
