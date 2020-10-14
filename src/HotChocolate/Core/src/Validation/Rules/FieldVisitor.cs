@@ -45,6 +45,22 @@ namespace HotChocolate.Validation.Rules
                 TryMergeFieldsInSet(context, context.FieldSets[node.SelectionSet]);
             }
 
+            if ((node.SelectionSet?.Selections.Count ?? 0) == 0)
+            {
+                ObjectType? operationType = node.Operation switch
+                {
+                    OperationType.Query => context.Schema.QueryType,
+                    OperationType.Mutation => context.Schema.MutationType,
+                    OperationType.Subscription => context.Schema.SubscriptionType,
+                    _ => throw new InvalidOperationException(),
+                };
+
+                if (operationType is { })
+                {
+                    context.Errors.Add(context.NoSelectionOnRootType(node, operationType));
+                }
+            }
+
             return base.Leave(node, context);
         }
 
