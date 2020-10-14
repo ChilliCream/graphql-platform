@@ -21,7 +21,7 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(
                     c =>
                         c.Name("Query")
@@ -49,7 +49,7 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(
                     c => c
                         .Name("Query")
