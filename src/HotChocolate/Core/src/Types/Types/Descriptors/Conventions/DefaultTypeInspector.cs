@@ -730,7 +730,7 @@ namespace HotChocolate.Types.Descriptors
             defaultValue = null;
             if (IsRecord(property.DeclaringType!))
             {
-                ConstructorInfo[] constructors = recordType.GetConstructors();
+                ConstructorInfo[] constructors = property.DeclaringType!.GetConstructors();
 
                 if (constructors.Length == 1)
                 {
