@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -11,7 +13,7 @@ namespace HotChocolate.Types.Relay.Descriptors
     {
         private readonly IObjectTypeDescriptor _typeDescriptor;
 
-        public NodeDescriptor(IObjectTypeDescriptor descriptor)
+        public NodeDescriptor(IObjectTypeDescriptor descriptor, Type? nodeType = null)
             : base(descriptor.Extend().Context)
         {
             _typeDescriptor = descriptor;
@@ -20,6 +22,8 @@ namespace HotChocolate.Types.Relay.Descriptors
                 .Implements<NodeType>()
                 .Extend()
                 .OnBeforeCreate(OnCompleteDefinition);
+
+            Definition.NodeType = nodeType;
         }
 
         private void OnCompleteDefinition(ObjectTypeDefinition definition)
@@ -45,6 +49,22 @@ namespace HotChocolate.Types.Relay.Descriptors
                     .Use<IdMiddleware>();
         }
 
+        public INodeDescriptor IdField(MemberInfo propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            if (propertyOrMethod is PropertyInfo or MethodInfo)
+            {
+                Definition.IdMember = propertyOrMethod;
+                return this;
+            }
+
+            throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
+        }
+
         public IObjectFieldDescriptor NodeResolver(
             NodeResolverDelegate<object, object> nodeResolver) =>
             ResolveNode(nodeResolver);
@@ -53,14 +73,14 @@ namespace HotChocolate.Types.Relay.Descriptors
             NodeResolverDelegate<object, TId> nodeResolver) =>
             ResolveNode(nodeResolver);
 
-        public IObjectFieldDescriptor ResolveNodeWith<TResolver>()
-        {
-            throw new NotImplementedException();
-        }
+        public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? typeof(TResolver),
+                typeof(TResolver)));
 
-        public IObjectFieldDescriptor ResolveNodeWith(Type type)
-        {
-            throw new NotImplementedException();
-        }
+        public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                Definition.NodeType ?? type,
+                type));
     }
 }

@@ -1082,5 +1082,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("SchemaBuilder_AddRootType_TypeAlreadyRegistered", resourceCulture);
             }
         }
+        
+        internal static string NodeDescriptor_IdField_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
     }
 }

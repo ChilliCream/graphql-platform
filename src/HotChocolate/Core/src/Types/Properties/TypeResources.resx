@@ -641,4 +641,7 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
     <value>The root type `{0}` has already been registered.</value>
   </data>
+  <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
+    <value>The ID field must be a property or a method.</value>
+  </data>
 </root>

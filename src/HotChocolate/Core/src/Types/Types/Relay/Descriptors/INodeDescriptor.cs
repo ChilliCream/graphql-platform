@@ -9,6 +9,8 @@ namespace HotChocolate.Types.Relay.Descriptors
 {
     public interface INodeDescriptor : IDescriptor
     {
+        INodeDescriptor IdField(MemberInfo propertyOrMethod);
+
         [Obsolete("Use ResolveNode.")]
         IObjectFieldDescriptor NodeResolver(
             NodeResolverDelegate<object, object> nodeResolver);

@@ -12,6 +12,8 @@ namespace HotChocolate.Types.Relay.Descriptors
         INodeDescriptor<TNode, TId> IdField<TId>(
             Expression<Func<TNode, TId>> propertyOrMethod);
 
+        INodeDescriptor<TNode> IdField(MemberInfo propertyOrMethod);
+
         [Obsolete("Use ResolveNode.")]
         IObjectFieldDescriptor NodeResolver(
             NodeResolverDelegate<TNode, object> nodeResolver);

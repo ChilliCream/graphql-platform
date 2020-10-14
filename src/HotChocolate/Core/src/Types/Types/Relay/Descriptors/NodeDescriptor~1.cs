@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+using static HotChocolate.Properties.TypeResources;
 
 #nullable enable
 
@@ -49,13 +48,7 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             if (Definition.IdMember is null)
             {
-                Definition.IdMember = Context.TypeInspector
-                    .GetMembers(Definition.NodeType)
-                    .OfType<MethodInfo>()
-                    .FirstOrDefault(t => string.Equals(
-                        t.Name,
-                        NodeType.Names.Id,
-                        StringComparison.OrdinalIgnoreCase));
+                Definition.IdMember = Context.TypeInspector.GetNodeIdMember(typeof(TNode));
             }
 
             return Definition.IdMember is null
@@ -80,15 +73,29 @@ namespace HotChocolate.Types.Relay.Descriptors
 
             MemberInfo member = propertyOrMethod.TryExtractMember();
 
-            if (member is MethodInfo || member is PropertyInfo)
+            if (member is MethodInfo or PropertyInfo)
             {
                 Definition.IdMember = member;
                 return new NodeDescriptor<TNode, TId>(Context, Definition, ConfigureNodeField);
             }
 
-            throw new ArgumentException(
-                TypeResources.NodeDescriptor_IdMember,
-                nameof(member));
+            throw new ArgumentException(NodeDescriptor_IdMember, nameof(member));
+        }
+
+        public INodeDescriptor<TNode> IdField(MemberInfo propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            if (propertyOrMethod is MethodInfo or PropertyInfo)
+            {
+                Definition.IdMember = propertyOrMethod;
+                return this;
+            }
+
+            throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
         }
 
         public IObjectFieldDescriptor NodeResolver(
@@ -122,17 +129,17 @@ namespace HotChocolate.Types.Relay.Descriptors
                 return ResolveNode(resolver.Resolver);
             }
 
-            throw new ArgumentException(
-                TypeResources.NodeDescriptor_MustBeMethod,
-                nameof(member));
+            throw new ArgumentException(NodeDescriptor_MustBeMethod, nameof(member));
         }
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
-            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(typeof(TResolver)));
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                typeof(TNode),
+                typeof(TResolver)));
 
-        public IObjectFieldDescriptor ResolveNodeWith(Type type)
-        {
-            throw new NotImplementedException();
-        }
+        public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                typeof(TNode),
+                type));
     }
 }

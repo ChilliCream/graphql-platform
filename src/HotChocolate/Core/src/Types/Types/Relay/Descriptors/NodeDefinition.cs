@@ -3,6 +3,8 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
+#nullable enable
+
 namespace HotChocolate.Types.Relay.Descriptors
 {
     public class NodeDefinition : DefinitionBase

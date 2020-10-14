@@ -99,12 +99,14 @@ namespace HotChocolate.Types.Relay.Descriptors
             return ResolveNode(resolver.Resolver);
         }
 
-        public IObjectFieldDescriptor ResolveNodeWith(Type type)
-        {
-            throw new NotImplementedException();
-        }
-
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
-            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(typeof(TResolver)));
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                typeof(TNode),
+                typeof(TResolver)));
+
+        public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
+            ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
+                typeof(TNode),
+                type));
     }
 }
