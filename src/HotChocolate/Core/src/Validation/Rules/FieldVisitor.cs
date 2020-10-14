@@ -71,7 +71,7 @@ namespace HotChocolate.Validation.Rules
                 {
                     fields.Add(new FieldInfo(context.Types.Peek(), of.Type, node));
 
-                    if (node.SelectionSet is null)
+                    if (node.SelectionSet is null || node.SelectionSet.Selections.Count == 0)
                     {
                         if (of.Type.NamedType().IsCompositeType())
                         {
