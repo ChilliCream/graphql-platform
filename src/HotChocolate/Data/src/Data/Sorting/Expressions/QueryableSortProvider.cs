@@ -56,7 +56,8 @@ namespace HotChocolate.Data.Sorting.Expressions
                     source = e.AsQueryable();
                 }
 
-                if (source != null && argument.Type is ListType lt &&
+                if (source != null &&
+                    argument.Type is ListType lt &&
                     lt.ElementType is ISortInputType sortInput)
                 {
                     var visitorContext = new QueryableSortContext(
