@@ -43,9 +43,13 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor
                 .BindRuntimeType<Point, PointFilterType>();
             descriptor
-                .BindRuntimeType<Polygon, PolygonFilterType>();
+                .BindRuntimeType<MultiPoint, MultiPointFilterType>();
             descriptor
                 .BindRuntimeType<LineString, LineStringFilterType>();
+            descriptor
+                .BindRuntimeType<MultiLineString, MultiLineStringFilterType>();
+            descriptor
+                .BindRuntimeType<Polygon, PolygonFilterType>();
             descriptor
                 .BindRuntimeType<MultiPolygon, MultiPolygonFilterType>();
 
