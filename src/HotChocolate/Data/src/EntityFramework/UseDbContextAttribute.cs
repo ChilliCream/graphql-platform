@@ -1,8 +1,10 @@
 using System;
 using System.Reflection;
+using HotChocolate.Data.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.EntityFrameworkCore;
+using static HotChocolate.Data.Properties.EntityFrameworkResources;
 
 namespace HotChocolate.Data
 {
@@ -30,7 +32,7 @@ namespace HotChocolate.Data
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
                         .SetMessage(
-                            "The `{0}` must inherit from `Microsoft.EntityFrameworkCore`.",
+                            UseDbContextAttribute_OnConfigure_NoDbContextType,
                             _dbContext.FullName ?? _dbContext.Name)
                         .SetExtension(nameof(member), member)
                         .Build());

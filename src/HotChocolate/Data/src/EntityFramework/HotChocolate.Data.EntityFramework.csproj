@@ -16,4 +16,19 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-rc.2.20475.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\EntityFrameworkResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EntityFrameworkResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\EntityFrameworkResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EntityFrameworkResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

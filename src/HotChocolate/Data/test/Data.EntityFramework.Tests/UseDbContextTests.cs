@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
@@ -74,6 +75,24 @@ namespace HotChocolate.Data
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task DbContextType_Is_Object()
+        {
+            // arrange
+            // act
+            async Task CreateSchema() =>
+                await new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                    .AddGraphQL()
+                    .AddQueryType<InvalidQuery>()
+                    .BuildSchemaAsync();
+
+            // assert
+            SchemaException exception = await Assert.ThrowsAsync<SchemaException>(CreateSchema);
+            exception.Errors.First().Message.MatchSnapshot();
         }
     }
 }

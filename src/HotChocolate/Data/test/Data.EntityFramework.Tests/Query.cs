@@ -14,4 +14,15 @@ namespace HotChocolate.Data
         public async Task<Author> GetAuthor([ScopedService]BookContext context) =>
             await context.Authors.FirstOrDefaultAsync();
     }
+
+    public class InvalidQuery
+    {
+        [UseDbContext(typeof(object))]
+        public IQueryable<Author> GetAuthors([ScopedService]BookContext context) =>
+            context.Authors;
+
+        [UseDbContext(typeof(object))]
+        public async Task<Author> GetAuthor([ScopedService]BookContext context) =>
+            await context.Authors.FirstOrDefaultAsync();
+    }
 }
