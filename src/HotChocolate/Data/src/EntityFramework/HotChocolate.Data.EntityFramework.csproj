@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <PackageId>HotChocolate.Data.EntityFramework</PackageId>
-    <AssemblyName>HotChocolate.Data</AssemblyName>
+    <AssemblyName>HotChocolate.Data.EntityFramework</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
