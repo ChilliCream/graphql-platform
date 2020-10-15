@@ -129,6 +129,12 @@ namespace HotChocolate.Validation.Properties {
             }
         }
         
+        internal static string ErrorHelper_NoSelectionOnRootType {
+            get {
+                return ResourceManager.GetString("ErrorHelper_NoSelectionOnRootType", resourceCulture);
+            }
+        }
+        
         internal static string ErrorHelper_FieldIsRequiredButNull {
             get {
                 return ResourceManager.GetString("ErrorHelper_FieldIsRequiredButNull", resourceCulture);

@@ -1,0 +1,21 @@
+﻿[
+  {
+    "Message": "`catOrDog` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 21
+      }
+    ],
+    "Extensions": {
+      "declaringType": "Query",
+      "field": "catOrDog",
+      "type": "CatOrDog",
+      "responseName": "catOrDog",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  }
+]

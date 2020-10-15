@@ -140,6 +140,9 @@
   <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
     <value>`{0}` is an object, interface or union type field. Leaf selections on objects, interfaces, and unions without subfields are disallowed.</value>
   </data>
+  <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
+    <value>Operation `{0}` has a empty selection set. Root types without subfields are disallowed.</value>
+  </data>
   <data name="ErrorHelper_FieldIsRequiredButNull" xml:space="preserve">
     <value>`{0}` is a required field and cannot be null.</value>
   </data>
