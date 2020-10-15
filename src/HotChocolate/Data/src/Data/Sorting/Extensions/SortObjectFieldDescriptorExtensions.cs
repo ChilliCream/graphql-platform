@@ -167,6 +167,8 @@ namespace HotChocolate.Data
                         throw SortObjectFieldDescriptorExtensions_CannotInfer();
                     }
 
+                    argumentType = typeof(ListType<>).MakeGenericType(argumentType);
+
                     var argumentDefinition = new ArgumentDefinition
                     {
                         Name = argumentPlaceholder,
