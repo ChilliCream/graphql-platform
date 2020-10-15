@@ -5,16 +5,15 @@
     <AssemblyName>HotChocolate.Data</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <NoWarn>$(NoWarn);CA1062</NoWarn>
-    <TargetFrameworks>net5.0; netcoreapp3.1; netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-rc.2.20475.6" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0-rc.2.20475.5" />
   </ItemGroup>
 
 </Project>

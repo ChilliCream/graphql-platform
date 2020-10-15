@@ -46,6 +46,39 @@ namespace HotChocolate.Data
             // assert
             result.ToJson().MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Execute_Single()
+        {
+            // arrange
+            IServiceProvider services =
+                new ServiceCollection()
+                    .AddPooledDbContextFactory<BookContext>(
+                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                    .AddGraphQL()
+                    .AddQueryType<Query>()
+                    .Services
+                    .BuildServiceProvider();
+
+            IRequestExecutor executor =
+                await services.GetRequiredService<IRequestExecutorResolver>()
+                    .GetRequestExecutorAsync();
+
+            IDbContextFactory<BookContext> contextFactory =
+                services.GetRequiredService<IDbContextFactory<BookContext>>();
+
+            await using (BookContext context = contextFactory.CreateDbContext())
+            {
+                await context.Authors.AddAsync(new Author { Name = "foo" });
+                await context.SaveChangesAsync();
+            }
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync("{ author { name } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
     }
 
     public class Query
@@ -61,6 +94,10 @@ namespace HotChocolate.Data
 
     public class BookContext : DbContext
     {
+        public BookContext(DbContextOptions options) : base(options)
+        {
+        }
+
         public DbSet<Book> Books { get; set; } = default!;
 
         public DbSet<Author> Authors { get; set; } = default!;

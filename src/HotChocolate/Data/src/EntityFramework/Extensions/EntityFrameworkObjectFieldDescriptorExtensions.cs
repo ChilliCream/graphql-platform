@@ -38,7 +38,8 @@ namespace HotChocolate.Types
                 .Extend()
                 .OnBeforeNaming((c, d) =>
                 {
-                    if (typeof(IQueryable).IsAssignableFrom(d.ResultType) &&
+                    if (d.ResultType is not null &&
+                        typeof(IQueryable).IsAssignableFrom(d.ResultType) &&
                         d.ResultType.IsGenericType)
                     {
                         Type entity = d.ResultType.GenericTypeArguments[0];
