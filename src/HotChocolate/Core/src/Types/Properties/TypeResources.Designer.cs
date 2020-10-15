@@ -489,6 +489,18 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string NodeDescriptor_MustBeMethod {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_MustBeMethod", resourceCulture);
+            }
+        }
+        
+        internal static string NodeDescriptor_IdMember {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_IdMember", resourceCulture);
+            }
+        }
+        
         internal static string ObjectTypeDescriptor_Resolver_SchemaType {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
@@ -1068,6 +1080,12 @@ namespace HotChocolate.Properties {
         internal static string SchemaBuilder_AddRootType_TypeAlreadyRegistered {
             get {
                 return ResourceManager.GetString("SchemaBuilder_AddRootType_TypeAlreadyRegistered", resourceCulture);
+            }
+        }
+        
+        internal static string NodeDescriptor_IdField_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
             }
         }
     }

@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         , IHasRuntimeType
     {
         protected internal ObjectTypeDescriptorBase(
-            IDescriptorContext context, 
+            IDescriptorContext context,
             Type clrType)
             : base(context, clrType)
         {
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Descriptors
                     Definition.FieldBindingType,
                     p =>
                     {
-                        ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
+                        var descriptor = ObjectFieldDescriptor.New(
                             Context, p, Definition.RuntimeType, Definition.FieldBindingType);
                         Fields.Add(descriptor);
                         return descriptor.CreateDefinition();
@@ -65,13 +65,13 @@ namespace HotChocolate.Types.Descriptors
                 {
                     subscribeResolver = new HashSet<string>();
 
-                    foreach(MemberInfo member in all) 
+                    foreach(MemberInfo member in all)
                     {
                         if(member.IsDefined(typeof(SubscribeAttribute)))
                         {
-                            SubscribeAttribute attribute = 
+                            SubscribeAttribute attribute =
                                 member.GetCustomAttribute<SubscribeAttribute>();
-                            if(attribute.With is not null) 
+                            if(attribute.With is not null)
                             {
                                 subscribeResolver.Add(attribute.With);
                             }

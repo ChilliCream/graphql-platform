@@ -242,6 +242,79 @@ namespace HotChocolate.Types.Descriptors
             return null;
         }
 
+        public virtual MemberInfo? GetNodeIdMember(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return GetMembers(type)
+                .FirstOrDefault(
+                    member =>
+                        member.Name.Equals("Id", StringComparison.OrdinalIgnoreCase) ||
+                        member.Name.Equals("GetId", StringComparison.OrdinalIgnoreCase) ||
+                        member.Name.Equals("GetIdAsync", StringComparison.OrdinalIgnoreCase));
+        }
+
+        public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+        {
+            if (nodeType == null)
+            {
+                throw new ArgumentNullException(nameof(nodeType));
+            }
+
+            // if we are inspecting the node type itself the method mus be static and does
+            // not need to include the node name.
+            if (resolverType is null)
+            {
+                return nodeType
+                    .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                    .OfType<MethodInfo>()
+                    .FirstOrDefault(m => IsPossibleNodeResolver(m, nodeType));
+            }
+
+            // if we have a resolver type on the other hand the load method must
+            // include the type name and can be an instance method.
+            // first we will check for static load methods.
+            MethodInfo? method = resolverType
+                .GetMembers(BindingFlags.Static | BindingFlags.Public)
+                .OfType<MethodInfo>()
+                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+
+            if (method is not null)
+            {
+                return method;
+            }
+
+            // if there is no static load method we will move on the check
+            // for instance load methods.
+            return GetMembers(resolverType)
+                .OfType<MethodInfo>()
+                .FirstOrDefault(m => IsPossibleExternalNodeResolver(m, nodeType));
+        }
+
+        private static bool IsPossibleNodeResolver(
+            MemberInfo member,
+            Type nodeType) =>
+            member.Name.Equals(
+                "Get",
+                StringComparison.OrdinalIgnoreCase) ||
+            member.Name.Equals(
+                "GetAsync",
+                StringComparison.OrdinalIgnoreCase) ||
+            IsPossibleExternalNodeResolver(member, nodeType);
+
+        private static bool IsPossibleExternalNodeResolver(
+            MemberInfo member,
+            Type nodeType) =>
+            member.Name.Equals(
+                $"Get{nodeType.Name}",
+                StringComparison.OrdinalIgnoreCase) ||
+            member.Name.Equals(
+                $"Get{nodeType.Name}Async",
+                StringComparison.OrdinalIgnoreCase);
+
         /// <inheritdoc />
         public Type ExtractNamedType(Type type)
         {
@@ -555,7 +628,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     return method.GetParameters()
                         .Where(t => t.ParameterType == typeof(object))
-                        .All(t => HasConfiguration(t));
+                        .All(HasConfiguration);
                 }
 
                 return true;
@@ -609,7 +682,7 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsRecord(IReadOnlyList<MemberInfo> members)
         {
-            for (int i = 0; i < members.Count; i++)
+            for (var i = 0; i < members.Count; i++)
             {
                 if (IsCloneMember(members[i]))
                 {
