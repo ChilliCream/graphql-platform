@@ -37,14 +37,8 @@ namespace HotChocolate.Spatial.Data.Filters
 
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Id = 1, Bar = _truePolygon }, new Foo { Id = 0, Bar = _falsePolygon }
-        };
-
-        private static readonly FooNullable[] _fooNullableEntities =
-        {
-            new FooNullable { Bar = _truePolygon },
-            new FooNullable { Bar = null },
-            new FooNullable { Bar = _falsePolygon }
+            new Foo { Id = 1, Bar = _truePolygon },
+            new Foo { Id = 2, Bar = _falsePolygon }
         };
 
         public QueryableFilterVisitorSpatialTests(PostgreSqlResource<PostgisConfig> resource)
@@ -93,7 +87,7 @@ namespace HotChocolate.Spatial.Data.Filters
                                         type: Point,
                                         coordinates: [-1, -1]
                                     },
-                                    eq: false
+                                    eq: true
                                 }
                             }
                         }){
@@ -102,69 +96,14 @@ namespace HotChocolate.Spatial.Data.Filters
                     }")
                     .Create());
 
-            res2.MatchSqlSnapshot("0");
+            res2.MatchSqlSnapshot("2");
         }
 
-        // [Fact]
+        [Fact]
         public async Task Create_BooleanNotEqual_Expression()
         {
             // arrange
             IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: true}}){ bar}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("true");
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("false");
-        }
-
-        // [Fact]
-        public async Task Create_NullableBooleanEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor? tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
-
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
-                    .Create());
-
-            res1.MatchSqlSnapshot("true");
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
-                    .Create());
-
-            res2.MatchSqlSnapshot("false");
-
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: null}}){ bar}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
-        }
-
-        // [Fact]
-        public async Task Create_NullableBooleanNotEqual_Expression()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema<FooNullable, FooNullableFilterType>(
-                _fooNullableEntities);
 
             // act
             // assert
@@ -177,10 +116,9 @@ namespace HotChocolate.Spatial.Data.Filters
                                 contains: {
                                     geometry: {
                                         type: Point,
-                                        coordinates: [-109.31324, 37.87099]
-                                        crs: 4326
+                                        coordinates: [1, 1]
                                     },
-                                    eq: true
+                                    neq: true
                                 }
                             }
                         }){
@@ -189,23 +127,83 @@ namespace HotChocolate.Spatial.Data.Filters
                     }")
                     .Create());
 
-            res1.MatchSqlSnapshot("true");
+            res1.MatchSqlSnapshot("2");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: false}}){ bar}}")
+                    .SetQuery(
+                        @"{
+                        root(where: {
+                            bar: {
+                                contains: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [-1, -1]
+                                    },
+                                    neq: true
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
                     .Create());
 
-            res2.MatchSqlSnapshot("false");
-
-            IExecutionResult res3 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { neq: null}}){ bar}}")
-                    .Create());
-
-            res3.MatchSqlSnapshot("null");
+            res2.MatchSqlSnapshot("1");
         }
 
+        [Fact]
+        public async Task Create_ComparableGreaterThan_Expression()
+        {
+            // arrange
+            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [1, 1]
+                                    },
+                                    gt: 1
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                    .Create());
+
+            res1.MatchSqlSnapshot("2");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                        root(where: {
+                            bar: {
+                                distance: {
+                                    geometry: {
+                                        type: Point,
+                                        coordinates: [-1, -1]
+                                    },
+                                    gt: 1
+                                }
+                            }
+                        }){
+                            id
+                        }
+                    }")
+                    .Create());
+
+            res2.MatchSqlSnapshot("1");
+        }
         public class Foo
         {
             public int Id { get; set; }
@@ -213,20 +211,8 @@ namespace HotChocolate.Spatial.Data.Filters
             public Polygon Bar { get; set; } = null!;
         }
 
-        public class FooNullable
-        {
-            public int Id { get; set; }
-
-            public Polygon? Bar { get; set; }
-        }
-
         public class FooFilterType
             : FilterInputType<Foo>
-        {
-        }
-
-        public class FooNullableFilterType
-            : FilterInputType<FooNullable>
         {
         }
     }
