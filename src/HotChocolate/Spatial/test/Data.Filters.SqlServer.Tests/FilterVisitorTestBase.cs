@@ -17,38 +17,37 @@ namespace HotChocolate.Spatial.Data.Filters
 {
     public class FilterVisitorTestBase
     {
-        private PostgreSqlResource<PostgisConfig> _resouce;
+        private PostgreSqlResource<PostgisConfig> _resource;
 
-        public FilterVisitorTestBase(PostgreSqlResource<PostgisConfig> resouce)
+        public FilterVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
         {
-            _resouce = resouce;
+            _resource = resource;
         }
 
         private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
             params TResult[] results)
             where TResult : class
         {
-            var dbContext = new DatabaseContext<TResult>(_resouce);
+            var dbContext = new DatabaseContext<TResult>(_resource);
 
             try
             {
+                Console.WriteLine(results);
                 var sql = dbContext.Database.GenerateCreateScript();
-                _resouce.RunSqlScriptAsync("CREATE EXTENSION postgis;\n" + sql, "postgis")
+
+                _resource.RunSqlScriptAsync(sql, "postgis")
                     .GetAwaiter()
                     .GetResult();
                 dbContext.AddRange(results);
+                dbContext.SaveChanges();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            dbContext.SaveChanges();
-
             return ctx => dbContext.Data.AsQueryable();
         }
-
-        protected T[] CreateEntity<T>(params T[] entities) => entities;
 
         protected IRequestExecutor CreateSchema<TEntity, T>(
             TEntity[] entities,
