@@ -182,4 +182,16 @@
   <data name="ProjectionConventionDescriptor_MustImplementIProjectionProvider" xml:space="preserve">
     <value>A projection provider has to implement `IProjectionProvider`.</value>
   </data>
+  <data name="ProjectionProvider_CreateMoreThanOneError" xml:space="preserve">
+    <value>Sequence contains more than one element.</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectFiltering" xml:space="preserve">
+    <value>Could not project filters on field</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectSorting" xml:space="preserve">
+    <value>Could not project sorting on field</value>
+  </data>
+  <data name="ProjectionConvention_CouldNotProject" xml:space="preserve">
+    <value>Projection Visitor is in invalid state. Projection failed!</value>
+  </data>
 </root>

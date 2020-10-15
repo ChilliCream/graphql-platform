@@ -115,12 +115,26 @@ namespace HotChocolate.Data
                 .SetExtension(nameof(fieldHandler), fieldHandler)
                 .Build();
 
-        public static IError CreateMoreThanOneError(IResolverContext context) =>
+        public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
             ErrorBuilder.New()
-                .SetMessage("Sequence contains more than one element.")
+                .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
                 .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
                 .SetPath(context.Path)
                 .AddLocation(context.FieldSelection)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectFiltering(
+            IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
+                .AddLocation(node)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectSorting(
+            IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
+                .AddLocation(node)
                 .Build();
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Projections.Expressions
 {
@@ -39,8 +40,7 @@ namespace HotChocolate.Data.Projections.Expressions
                 return scope.Project<T>();
             }
 
-            // TODO
-            throw new InvalidOperationException();
+            throw ProjectionConvention_CouldNotProject();
         }
     }
 }

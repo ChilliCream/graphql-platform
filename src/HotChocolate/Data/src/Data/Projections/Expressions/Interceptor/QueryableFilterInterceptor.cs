@@ -8,6 +8,7 @@ using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Filters.Expressions.QueryableFilterProvider;
 
 namespace HotChocolate.Data.Projections.Handlers
@@ -60,7 +61,8 @@ namespace HotChocolate.Data.Projections.Handlers
                 {
                     context.PushInstance(
                         Expression.Constant(Array.CreateInstance(filterInputType.RuntimeType, 0)));
-                    // TODO: Report error and replace with empty array
+                    context.ReportError(
+                        ProjectionProvider_CouldNotProjectFiltering(valueNode));
                 }
             }
         }

@@ -206,5 +206,12 @@ namespace HotChocolate.Data
                         convention.FullName ?? convention.Name)
                     .SetExtension(nameof(scope), scope)
                     .Build());
+
+        public static SchemaException ProjectionConvention_CouldNotProject() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.ProjectionConvention_CouldNotProject)
+                    .Build());
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Projections
 {
@@ -35,7 +36,7 @@ namespace HotChocolate.Data.Projections
 
                 if (await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    context.Result = ErrorHelper.CreateMoreThanOneError(context);
+                    context.Result = ProjectionProvider_CreateMoreThanOneError(context);
                 }
             }
             else if (context.Result is IEnumerable<T> e)
@@ -50,7 +51,7 @@ namespace HotChocolate.Data.Projections
                             }
                             catch (InvalidOperationException)
                             {
-                                return ErrorHelper.CreateMoreThanOneError(context);
+                                return ProjectionProvider_CreateMoreThanOneError(context);
                             }
                         },
                         context.RequestAborted)

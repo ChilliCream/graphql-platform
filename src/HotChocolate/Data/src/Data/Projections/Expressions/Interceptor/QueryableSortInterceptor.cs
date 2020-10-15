@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Data.Projections.Expressions;
 using HotChocolate.Data.Projections.Expressions.Handlers;
@@ -8,6 +7,7 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Types;
+using static HotChocolate.Data.ErrorHelper;
 using static HotChocolate.Data.Sorting.Expressions.QueryableSortProvider;
 
 namespace HotChocolate.Data.Projections.Handlers
@@ -53,7 +53,8 @@ namespace HotChocolate.Data.Projections.Handlers
                 {
                     context.PushInstance(
                         Expression.Constant(Array.CreateInstance(sortInputType.RuntimeType, 0)));
-                    // TODO: Report error and replace with empty array
+                    context.ReportError(
+                        ProjectionProvider_CouldNotProjectSorting(valueNode));
                 }
             }
         }

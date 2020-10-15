@@ -362,5 +362,29 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("ProjectionConventionDescriptor_MustImplementIProjectionProvider", resourceCulture);
             }
         }
+        
+        internal static string ProjectionProvider_CreateMoreThanOneError {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CreateMoreThanOneError", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectFiltering {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectFiltering", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectSorting {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectSorting", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_CouldNotProject {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_CouldNotProject", resourceCulture);
+            }
+        }
     }
 }
