@@ -268,6 +268,22 @@ namespace HotChocolate.Validation
                 }
             ",
             t => Assert.Equal(
+                "Operation `takesCat` has a empty selection set. Root types without subfields " +
+                "are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesDogBang` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesListOfPet` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
+                "Operation `takesCatOrDog` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message),
+            t => Assert.Equal(
                 "The type of variable `cat` is not an input type.",
                 t.Message),
             t => Assert.Equal(

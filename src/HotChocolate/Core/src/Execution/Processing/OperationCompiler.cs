@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -6,6 +7,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Execution.ThrowHelper;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -30,6 +32,36 @@ namespace HotChocolate.Execution.Processing
             ObjectType rootType,
             IEnumerable<ISelectionOptimizer>? optimizers = null)
         {
+            if (operationId == null)
+            {
+                throw new ArgumentNullException(nameof(operationId));
+            }
+
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (rootType == null)
+            {
+                throw new ArgumentNullException(nameof(rootType));
+            }
+
+            if (operation.SelectionSet.Selections.Count == 0)
+            {
+                throw OperationCompiler_NoOperationSelections(operation);
+            }
+
             var fragments = new FragmentCollection(schema, document);
             var compiler = new OperationCompiler(schema, fragments);
             var selectionSetLookup = new Dictionary<SelectionSetNode, SelectionVariants>();
@@ -177,6 +209,13 @@ namespace HotChocolate.Execution.Processing
 
             if (context.Type.Fields.TryGetField(fieldName, out IObjectField? field))
             {
+                if ((selection.SelectionSet is null ||
+                    selection.SelectionSet.Selections.Count == 0) &&
+                    field.Type.NamedType().IsCompositeType())
+                {
+                    throw OperationCompiler_NoCompositeSelections(selection);
+                }
+
                 if (context.Fields.TryGetValue(responseName, out Selection? preparedSelection))
                 {
                     preparedSelection.AddSelection(selection, includeCondition);
@@ -226,6 +265,11 @@ namespace HotChocolate.Execution.Processing
             {
                 FragmentDefinitionNode fragmentDefinition = fragmentInfo.FragmentDefinition!;
 
+                if (fragmentDefinition.SelectionSet.Selections.Count == 0)
+                {
+                    throw OperationCompiler_FragmentNoSelections(fragmentDefinition);
+                }
+
                 if (fragmentSpread.IsDeferrable() &&
                     AllowFragmentDeferral(context, fragmentSpread, fragmentDefinition))
                 {
@@ -255,6 +299,11 @@ namespace HotChocolate.Execution.Processing
             InlineFragmentNode inlineFragment,
             SelectionIncludeCondition? includeCondition)
         {
+            if (inlineFragment.SelectionSet.Selections.Count == 0)
+            {
+                throw OperationCompiler_FragmentNoSelections(inlineFragment);
+            }
+
             if (_fragments.GetFragment(context.Type, inlineFragment) is { } fragmentInfo &&
                 DoesTypeApply(fragmentInfo.TypeCondition, context.Type))
             {

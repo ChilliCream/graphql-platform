@@ -254,5 +254,28 @@ namespace HotChocolate.Execution
         public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
             new GraphQLException(
                 ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
+
+        public static GraphQLException OperationCompiler_FragmentNoSelections(
+            ISyntaxNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("Fragment selection set is empty.")
+                .AddLocation(syntaxNode)
+                .Build());
+
+        public static GraphQLException OperationCompiler_NoCompositeSelections(
+            FieldNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The composite field `{0}` has no selections.",
+                    syntaxNode.Alias?.Value ?? syntaxNode.Name.Value)
+                .AddLocation(syntaxNode)
+                .Build());
+
+        public static GraphQLException OperationCompiler_NoOperationSelections(
+            OperationDefinitionNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("The operation has no selections.")
+                .AddLocation(syntaxNode)
+                .Build());
     }
 }
