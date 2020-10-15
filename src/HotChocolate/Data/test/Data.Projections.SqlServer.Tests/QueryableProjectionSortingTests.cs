@@ -63,7 +63,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         {
                             Foo = new FooDeep { BarShort = 12, BarString = "a" }
                         },
-                    ObjectArray = new List<BarDeepNullable>
+                    ObjectArray = new List<BarDeepNullable?>
                     {
                         new BarDeepNullable
                         {
@@ -76,8 +76,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         new BarDeepNullable
                         {
                             Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        },
-                        null
+                        }
                     }
                 }
             },
@@ -94,7 +93,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         {
                             Foo = new FooDeep { BarShort = 12, BarString = "a" }
                         },
-                    ObjectArray = new List<BarDeepNullable>
+                    ObjectArray = new List<BarDeepNullable?>
                     {
                         new BarDeepNullable
                         {
@@ -107,8 +106,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         new BarDeepNullable
                         {
                             Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        },
-                        null
+                        }
                     }
                 }
             },
@@ -125,7 +123,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         {
                             Foo = new FooDeep { BarShort = 12, BarString = "a" }
                         },
-                    ObjectArray = new List<BarDeepNullable>
+                    ObjectArray = new List<BarDeepNullable?>
                     {
                         new BarDeepNullable
                         {
@@ -138,8 +136,7 @@ namespace HotChocolate.Data.Projections.Expressions
                         new BarDeepNullable
                         {
                             Foo = new FooDeep { BarShort = 3, BarString = "a" }
-                        },
-                        null
+                        }
                     }
                 }
             },
@@ -231,7 +228,9 @@ namespace HotChocolate.Data.Projections.Expressions
         public async Task Create_DeepFilterObjectTwoProjections_Nullable()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+            IRequestExecutor tester = _cache.CreateSchema(
+                _barNullableEntities,
+                OnModelCreatingNullable);
 
             // act
             // assert
@@ -265,7 +264,9 @@ namespace HotChocolate.Data.Projections.Expressions
         public async Task Create_ListObjectDifferentLevelProjection_Nullable()
         {
             // arrange
-            IRequestExecutor tester = _cache.CreateSchema(_barNullableEntities, OnModelCreating);
+            IRequestExecutor tester = _cache.CreateSchema(
+                _barNullableEntities,
+                OnModelCreatingNullable);
 
             // act
             // assert
@@ -301,6 +302,14 @@ namespace HotChocolate.Data.Projections.Expressions
             modelBuilder.Entity<Foo>().HasMany(x => x.ObjectArray);
             modelBuilder.Entity<Foo>().HasOne(x => x.NestedObject);
             modelBuilder.Entity<Bar>().HasOne(x => x.Foo);
+        }
+
+        public static void OnModelCreatingNullable(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<FooNullable>().HasMany(x => x.ObjectArray);
+            modelBuilder.Entity<FooNullable>().HasOne(x => x.NestedObject);
+            modelBuilder.Entity<BarNullable>().HasOne(x => x.Foo);
+            modelBuilder.Entity<FooDeep>();
         }
 
         public class Foo
