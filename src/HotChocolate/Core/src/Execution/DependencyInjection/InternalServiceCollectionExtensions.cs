@@ -8,6 +8,7 @@ using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.DataLoader;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Types.Relay;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -67,7 +68,11 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection TryAddRequestExecutorResolver(
             this IServiceCollection services)
         {
-            services.TryAddSingleton<IRequestExecutorResolver, RequestExecutorResolver>();
+            services.TryAddSingleton<RequestExecutorResolver>();
+            services.TryAddSingleton<IRequestExecutorResolver>(
+                sp => sp.GetRequiredService<RequestExecutorResolver>());
+            services.TryAddSingleton<IInternalRequestExecutorResolver>(
+                sp => sp.GetRequiredService<RequestExecutorResolver>());
             return services;
         }
 
@@ -95,6 +100,15 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped<BatchScheduler>();
             services.TryAddScoped<IBatchScheduler>(sp => sp.GetRequiredService<BatchScheduler>());
             services.TryAddScoped<IBatchDispatcher>(sp => sp.GetRequiredService<BatchScheduler>());
+            return services;
+        }
+
+        internal static IServiceCollection TryAddRequestContextAccessor(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<DefaultRequestContextAccessor>();
+            services.TryAddSingleton<IRequestContextAccessor>(
+                sp => sp.GetRequiredService<DefaultRequestContextAccessor>());
             return services;
         }
 

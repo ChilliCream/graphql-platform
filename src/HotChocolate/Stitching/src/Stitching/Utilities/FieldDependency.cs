@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             unchecked
             {
-                int hash = TypeName.GetHashCode() * 397;
+                var hash = TypeName.GetHashCode() * 397;
                 hash = hash ^ (FieldName.GetHashCode() * 7);
                 return hash;
             }

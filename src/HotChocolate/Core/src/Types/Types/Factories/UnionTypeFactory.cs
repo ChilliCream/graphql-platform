@@ -32,8 +32,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Extend().OnBeforeCreate(
-                        t => t.RuntimeType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(t => t.RuntimeType = bindingInfo.SourceType);
                 }
 
                 foreach (NamedTypeNode namedType in node.Types)

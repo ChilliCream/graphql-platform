@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "Detected a non-null violation in argument \u0060name\u0060.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 12
+        }
+      ],
+      "extensions": {
+        "responseName": "sayHello",
+        "errorPath": [
+          "name"
+        ]
+      }
+    }
+  ]
+}

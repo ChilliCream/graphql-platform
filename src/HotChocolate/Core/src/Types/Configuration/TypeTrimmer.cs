@@ -153,7 +153,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void VisitDirectives(Types.IHasDirectives hasDirectives)
+        private void VisitDirectives(IHasDirectives hasDirectives)
         {
             foreach (DirectiveType type in hasDirectives.Directives.Select(t => t.Type))
             {

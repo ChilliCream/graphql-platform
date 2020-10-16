@@ -1,4 +1,3 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using static HotChocolate.Utilities.ErrorHelper;
 
 #nullable enable
 
@@ -134,22 +134,7 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in invalidFields)
             {
-                // TODO : resources
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Unable to infer or resolve the type of " +
-                        "field {0}.{1}. Try to explicitly provide the " +
-                        "type like the following: " +
-                        "`descriptor.Field(\"field\")" +
-                        ".Type<List<StringType>>()`.",
-                        Name,
-                        field.Name))
-                    .SetCode(ErrorCodes.Schema.NoFieldType)
-                    .SetTypeSystemObject(this)
-                    .SetPath(Path.New(Name).Append(field.Name))
-                    .SetExtension(TypeErrorFields.Definition, field)
-                    .Build());
+                context.ReportError(ObjectType_UnableToInferOrResolveType(Name, this, field));
             }
 
             return invalidFields.Length == 0;

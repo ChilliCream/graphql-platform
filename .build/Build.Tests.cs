@@ -75,7 +75,7 @@ partial class Build : NukeBuild
                         files: new string[] { x }));
             }
         });
-
+        
     Target Cover => _ => _.DependsOn(Restore)
         .Produces(TestResultDirectory / "*.trx")
         .Produces(TestResultDirectory / "*.xml")
@@ -124,6 +124,18 @@ partial class Build : NukeBuild
             .CombineWith(TestProjects, (_, v) => _
                 .SetProjectFile(v)
                 .SetLogger($"trx;LogFileName={v.Name}.trx"));
+
+    IEnumerable<DotNetTestSettings> CoverNoBuildSettingsOnly50(DotNetTestSettings settings) =>
+        TestBaseSettings(settings)
+            .SetNoBuild(true)
+            .EnableCollectCoverage()
+            .SetCoverletOutputFormat(CoverletOutputFormat.opencover)
+            .SetExcludeByFile("*.Generated.cs")
+            .SetFramework("net5.0")
+            .CombineWith(TestProjects, (_, v) => _
+                .SetProjectFile(v)
+                .SetLogger($"trx;LogFileName={v.Name}.trx")
+                .SetCoverletOutput(TestResultDirectory / $"{v.Name}.xml"));
 
     IEnumerable<DotNetTestSettings> CoverNoBuildSettings(DotNetTestSettings settings) =>
         TestBaseSettings(settings)

@@ -12,6 +12,7 @@ namespace HotChocolate.Execution
 {
     internal sealed class RequestExecutor : IRequestExecutor
     {
+        private readonly DefaultRequestContextAccessor _requestContextAccessor;
         private readonly IServiceProvider _applicationServices;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConverter _converter;
@@ -22,6 +23,7 @@ namespace HotChocolate.Execution
 
         public RequestExecutor(
             ISchema schema,
+            DefaultRequestContextAccessor requestContextAccessor,
             IServiceProvider applicationServices,
             IServiceProvider executorServices,
             IErrorHandler errorHandler,
@@ -32,6 +34,8 @@ namespace HotChocolate.Execution
         {
             Schema = schema ??
                 throw new ArgumentNullException(nameof(schema));
+            _requestContextAccessor = requestContextAccessor ?? 
+                throw new ArgumentNullException(nameof(requestContextAccessor));
             _applicationServices = applicationServices ??
                 throw new ArgumentNullException(nameof(applicationServices));
             Services = executorServices ??
@@ -78,6 +82,8 @@ namespace HotChocolate.Execution
                 {
                     RequestAborted = cancellationToken
                 };
+
+                _requestContextAccessor.RequestContext = context;
 
                 await _requestDelegate(context).ConfigureAwait(false);
 
