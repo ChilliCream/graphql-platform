@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <Folder Include="Cyper\__snapshots__\" />
-    <Folder Include="__snapshots__\" />
   </ItemGroup>
 
   <ItemGroup>
