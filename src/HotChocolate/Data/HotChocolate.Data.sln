@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30524.135
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{91887A91-7B1C-4287-A1E0-BD4E0DAF24C7}"
 	ProjectSection(SolutionItems) = preProject
@@ -18,53 +18,59 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "demo", "demo", "{82DFB0FB-F
 		demo\Directory.Build.props = demo\Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data", "src\Data\HotChocolate.Data.csproj", "{D68A0AB9-871A-487B-8D12-1A7544D81B9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data", "src\Data\HotChocolate.Data.csproj", "{D68A0AB9-871A-487B-8D12-1A7544D81B9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.Tests", "test\Data.Filters.Tests\HotChocolate.Data.Filters.Tests.csproj", "{90B143EF-CD51-4490-B4CB-58C5ABEB17D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Filters.Tests", "test\Data.Filters.Tests\HotChocolate.Data.Filters.Tests.csproj", "{90B143EF-CD51-4490-B4CB-58C5ABEB17D2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".referenced", ".referenced", "{882EC02D-5E1D-41F5-AD9F-AA06E31D133A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Abstractions", "..\Core\src\Abstractions\HotChocolate.Abstractions.csproj", "{69E80153-5C67-4508-9CB9-63406BC4FE8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Abstractions", "..\Core\src\Abstractions\HotChocolate.Abstractions.csproj", "{69E80153-5C67-4508-9CB9-63406BC4FE8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{D914371B-323B-4B6F-BC3D-661EF5ED69F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Execution", "..\Core\src\Execution\HotChocolate.Execution.csproj", "{D914371B-323B-4B6F-BC3D-661EF5ED69F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language", "..\Language\src\Language\HotChocolate.Language.csproj", "{82F05EB8-4EA3-4D46-B4FD-420F922D4DA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language", "..\Language\src\Language\HotChocolate.Language.csproj", "{82F05EB8-4EA3-4D46-B4FD-420F922D4DA1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language.SyntaxTree", "..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj", "{EBC11A05-4742-44C5-9F4E-43ABCC692038}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.SyntaxTree", "..\Language\src\Language.SyntaxTree\HotChocolate.Language.SyntaxTree.csproj", "{EBC11A05-4742-44C5-9F4E-43ABCC692038}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language.Utf8", "..\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj", "{F21851FD-E8F4-4C63-9967-39B739B7F549}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Utf8", "..\Language\src\Language.Utf8\HotChocolate.Language.Utf8.csproj", "{F21851FD-E8F4-4C63-9967-39B739B7F549}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Language.Visitors", "..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj", "{8CD098BD-B489-4FEA-9CA1-675F5D572803}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Language.Visitors", "..\Language\src\Language.Visitors\HotChocolate.Language.Visitors.csproj", "{8CD098BD-B489-4FEA-9CA1-675F5D572803}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Tests.Utilities", "..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj", "{146690C8-1837-44B0-9879-319E5C1F04E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Tests.Utilities", "..\Core\test\Utilities\HotChocolate.Tests.Utilities.csproj", "{146690C8-1837-44B0-9879-319E5C1F04E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Types", "..\Core\src\Types\HotChocolate.Types.csproj", "{5431D3EB-9DF0-4745-9A26-337A82975C67}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Types", "..\Core\src\Types\HotChocolate.Types.csproj", "{5431D3EB-9DF0-4745-9A26-337A82975C67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Validation", "..\Core\src\Validation\HotChocolate.Validation.csproj", "{08BB54FC-501B-4CC3-8398-C3D1071E5DF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Validation", "..\Core\src\Validation\HotChocolate.Validation.csproj", "{08BB54FC-501B-4CC3-8398-C3D1071E5DF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Core", "..\Core\src\Core\HotChocolate.Core.csproj", "{9B2561AC-54E4-4610-A690-8E5B8DE5DC86}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Core", "..\Core\src\Core\HotChocolate.Core.csproj", "{9B2561AC-54E4-4610-A690-8E5B8DE5DC86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Utilities", "..\Utilities\src\Utilities\HotChocolate.Utilities.csproj", "{4FA82DB2-AF64-4AF3-94F3-00E97DC0B8E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Utilities", "..\Utilities\src\Utilities\HotChocolate.Utilities.csproj", "{4FA82DB2-AF64-4AF3-94F3-00E97DC0B8E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions", "..\Core\src\Subscriptions\HotChocolate.Subscriptions.csproj", "{676D0FA6-899C-4DD6-B24A-2E41C145355E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions", "..\Core\src\Subscriptions\HotChocolate.Subscriptions.csproj", "{676D0FA6-899C-4DD6-B24A-2E41C145355E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Subscriptions.InMemory", "..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj", "{3D9A5709-1CD1-4F07-B473-CE05D6E97113}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Subscriptions.InMemory", "..\Core\src\Subscriptions.InMemory\HotChocolate.Subscriptions.InMemory.csproj", "{3D9A5709-1CD1-4F07-B473-CE05D6E97113}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenDonut", "..\..\GreenDonut\src\Core\GreenDonut.csproj", "{75FE6381-6AE3-4F29-9777-B488D872BFAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\..\GreenDonut\src\Core\GreenDonut.csproj", "{75FE6381-6AE3-4F29-9777-B488D872BFAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Fetching", "..\Core\src\Fetching\HotChocolate.Fetching.csproj", "{F6C7A00A-3C18-4EC1-BF7E-7F0BF83E7B6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Fetching", "..\Core\src\Fetching\HotChocolate.Fetching.csproj", "{F6C7A00A-3C18-4EC1-BF7E-7F0BF83E7B6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Utilities.Introspection", "..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj", "{E6D5EF36-0EA5-4CCA-B42A-030B26BFCEDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Utilities.Introspection", "..\Utilities\src\Utilities.Introspection\HotChocolate.Utilities.Introspection.csproj", "{E6D5EF36-0EA5-4CCA-B42A-030B26BFCEDC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.InMemory.Tests", "test\Data.Filters.InMemory.Tests\HotChocolate.Data.Filters.InMemory.Tests.csproj", "{CCCD4A40-EA4F-4AF7-91A7-3D8DC14D186C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Filters.InMemory.Tests", "test\Data.Filters.InMemory.Tests\HotChocolate.Data.Filters.InMemory.Tests.csproj", "{CCCD4A40-EA4F-4AF7-91A7-3D8DC14D186C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Filters.SqlServer.Tests", "test\Data.Filters.SqlServer.Tests\HotChocolate.Data.Filters.SqlServer.Tests.csproj", "{9B858A08-741A-4C11-A243-3739C4E57B15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Filters.SqlServer.Tests", "test\Data.Filters.SqlServer.Tests\HotChocolate.Data.Filters.SqlServer.Tests.csproj", "{9B858A08-741A-4C11-A243-3739C4E57B15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Sorting.Tests", "test\Data.Sorting.Tests\HotChocolate.Data.Sorting.Tests.csproj", "{A7269FAC-8C91-46BA-B292-221E8DE32BD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Sorting.Tests", "test\Data.Sorting.Tests\HotChocolate.Data.Sorting.Tests.csproj", "{A7269FAC-8C91-46BA-B292-221E8DE32BD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Sorting.InMemory.Tests", "test\Data.Sorting.InMemory.Tests\HotChocolate.Data.Sorting.InMemory.Tests.csproj", "{E5E0D684-4FF6-4124-8ADB-9E96A3FDA6FA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Sorting.InMemory.Tests", "test\Data.Sorting.InMemory.Tests\HotChocolate.Data.Sorting.InMemory.Tests.csproj", "{E5E0D684-4FF6-4124-8ADB-9E96A3FDA6FA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data.Sorting.SqlLite.Tests", "test\Data.Sorting.SqlLite.Tests\HotChocolate.Data.Sorting.SqlLite.Tests.csproj", "{D445A9BB-D068-496A-B261-609799F95915}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Sorting.SqlLite.Tests", "test\Data.Sorting.SqlLite.Tests\HotChocolate.Data.Sorting.SqlLite.Tests.csproj", "{D445A9BB-D068-496A-B261-609799F95915}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Neo4j", "src\Neo4j\HotChocolate.Data.Neo4j.csproj", "{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HotChocolate.Data.Neo4j.Tests", "test\Data.Neo4j.Tests\HotChocolate.Data.Neo4j.Tests.csproj", "{D77AE546-1289-414A-AB59-C2E96AD9C1FE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Neo4jDemo", "demo\Neo4jDemo\Neo4jDemo.csproj", "{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,34 +80,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{D68A0AB9-871A-487B-8D12-1A7544D81B9E} = {91887A91-7B1C-4287-A1E0-BD4E0DAF24C7}
-		{90B143EF-CD51-4490-B4CB-58C5ABEB17D2} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
-		{69E80153-5C67-4508-9CB9-63406BC4FE8B} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{D914371B-323B-4B6F-BC3D-661EF5ED69F4} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{82F05EB8-4EA3-4D46-B4FD-420F922D4DA1} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{EBC11A05-4742-44C5-9F4E-43ABCC692038} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{F21851FD-E8F4-4C63-9967-39B739B7F549} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{8CD098BD-B489-4FEA-9CA1-675F5D572803} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{146690C8-1837-44B0-9879-319E5C1F04E9} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{5431D3EB-9DF0-4745-9A26-337A82975C67} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{08BB54FC-501B-4CC3-8398-C3D1071E5DF0} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{9B2561AC-54E4-4610-A690-8E5B8DE5DC86} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{4FA82DB2-AF64-4AF3-94F3-00E97DC0B8E3} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{676D0FA6-899C-4DD6-B24A-2E41C145355E} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{3D9A5709-1CD1-4F07-B473-CE05D6E97113} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{75FE6381-6AE3-4F29-9777-B488D872BFAE} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{F6C7A00A-3C18-4EC1-BF7E-7F0BF83E7B6E} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{E6D5EF36-0EA5-4CCA-B42A-030B26BFCEDC} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
-		{CCCD4A40-EA4F-4AF7-91A7-3D8DC14D186C} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
-		{9B858A08-741A-4C11-A243-3739C4E57B15} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
-		{A7269FAC-8C91-46BA-B292-221E8DE32BD3} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
-		{E5E0D684-4FF6-4124-8ADB-9E96A3FDA6FA} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
-		{D445A9BB-D068-496A-B261-609799F95915} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D68A0AB9-871A-487B-8D12-1A7544D81B9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -380,5 +358,75 @@ Global
 		{D445A9BB-D068-496A-B261-609799F95915}.Release|x64.Build.0 = Release|Any CPU
 		{D445A9BB-D068-496A-B261-609799F95915}.Release|x86.ActiveCfg = Release|Any CPU
 		{D445A9BB-D068-496A-B261-609799F95915}.Release|x86.Build.0 = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|x64.Build.0 = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Debug|x86.Build.0 = Debug|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|x64.ActiveCfg = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|x64.Build.0 = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|x86.ActiveCfg = Release|Any CPU
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634}.Release|x86.Build.0 = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|x64.Build.0 = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Debug|x86.Build.0 = Debug|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|x64.ActiveCfg = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|x64.Build.0 = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE}.Release|x86.Build.0 = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Debug|x86.Build.0 = Debug|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|x64.Build.0 = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|x86.ActiveCfg = Release|Any CPU
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D68A0AB9-871A-487B-8D12-1A7544D81B9E} = {91887A91-7B1C-4287-A1E0-BD4E0DAF24C7}
+		{90B143EF-CD51-4490-B4CB-58C5ABEB17D2} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{69E80153-5C67-4508-9CB9-63406BC4FE8B} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{D914371B-323B-4B6F-BC3D-661EF5ED69F4} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{82F05EB8-4EA3-4D46-B4FD-420F922D4DA1} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{EBC11A05-4742-44C5-9F4E-43ABCC692038} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{F21851FD-E8F4-4C63-9967-39B739B7F549} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{8CD098BD-B489-4FEA-9CA1-675F5D572803} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{146690C8-1837-44B0-9879-319E5C1F04E9} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{5431D3EB-9DF0-4745-9A26-337A82975C67} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{08BB54FC-501B-4CC3-8398-C3D1071E5DF0} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{9B2561AC-54E4-4610-A690-8E5B8DE5DC86} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{4FA82DB2-AF64-4AF3-94F3-00E97DC0B8E3} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{676D0FA6-899C-4DD6-B24A-2E41C145355E} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{3D9A5709-1CD1-4F07-B473-CE05D6E97113} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{75FE6381-6AE3-4F29-9777-B488D872BFAE} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{F6C7A00A-3C18-4EC1-BF7E-7F0BF83E7B6E} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{E6D5EF36-0EA5-4CCA-B42A-030B26BFCEDC} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
+		{CCCD4A40-EA4F-4AF7-91A7-3D8DC14D186C} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{9B858A08-741A-4C11-A243-3739C4E57B15} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{A7269FAC-8C91-46BA-B292-221E8DE32BD3} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{E5E0D684-4FF6-4124-8ADB-9E96A3FDA6FA} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{D445A9BB-D068-496A-B261-609799F95915} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{57A30A57-0DA3-4D02-AC84-C0AC51CBD634} = {91887A91-7B1C-4287-A1E0-BD4E0DAF24C7}
+		{D77AE546-1289-414A-AB59-C2E96AD9C1FE} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{F54C2337-5732-4C17-BBA7-9CB16FE65D5D} = {82DFB0FB-FE6E-45FD-86B4-3EAD8CED837A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F279E1B-C782-4F93-86A8-403BDAD53E57}
 	EndGlobalSection
 EndGlobal

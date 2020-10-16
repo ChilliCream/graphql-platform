@@ -25,15 +25,6 @@ namespace HotChocolate.Data.Neo4j
             _writer.Append(text);
         }
 
-        /// <summary>
-        /// Appends char.
-        /// </summary>
-        /// <param name="c">The character.</param>
-        public void Write(char c)
-        {
-            _writer.Append(c);
-        }
-
         public string Print()
         {
             return _writer.ToString();

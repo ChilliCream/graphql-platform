@@ -1,6 +1,6 @@
 namespace HotChocolate.Data.Neo4j
 {
-    public class ClauseOperator
+    internal static class ClauseOperator
     {
         // Mathematical operators
         public const string Addition = "+";

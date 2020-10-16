@@ -9,17 +9,17 @@ namespace HotChocolate.Data.Neo4j
         /// <summary>
         /// Is the query of type write or read.
         /// </summary>
-        public bool IsWrite { get; }
+        public bool IsWrite { get; private set; }
 
         /// <summary>
         /// The query text.
         /// </summary>
-        public string Text { get; }
+        public string Text { get; private set; }
 
         /// <summary>
         /// The query parameters.
         /// </summary>
-        public CypherParameters? Parameters { get; }
+        public CypherParameters? Parameters { get; private set; }
 
         /// <summary>
         /// Query constructor
@@ -46,35 +46,35 @@ namespace HotChocolate.Data.Neo4j
 
         public override string ToString() => Text;
 
-        public async Task<IResultCursor> ExecuteAsync(Neo4jClient client)
-        {
-            if (client.Connection == default)
-            {
-                throw new InvalidOperationException();
-            }
+        //public async Task<IResultCursor> ExecuteAsync()
+        //{
+        //    if (client.Connection == default)
+        //    {
+        //        throw new InvalidOperationException();
+        //    }
 
-            IAsyncSession session = client.Connection.AsyncSession();
-            IResultCursor cursor;
+        //    IAsyncSession session = client.Connection.AsyncSession();
+        //    IResultCursor cursor;
 
-            if (IsWrite)
-            {
-                cursor = Parameters != default ?
-                    await session.WriteTransactionAsync(async tx => await tx.RunAsync(Text, Parameters)
-                        .ConfigureAwait(false)).ConfigureAwait(false) :
-                            await session.WriteTransactionAsync(async tx => await tx.RunAsync(Text)
-                            .ConfigureAwait(false)).ConfigureAwait(false);
+        //    if (IsWrite)
+        //    {
+        //        cursor = Parameters != default ?
+        //            await session.WriteTransactionAsync(async tx => await tx.RunAsync(Text, Parameters)
+        //                .ConfigureAwait(false)).ConfigureAwait(false) :
+        //                    await session.WriteTransactionAsync(async tx => await tx.RunAsync(Text)
+        //                    .ConfigureAwait(false)).ConfigureAwait(false);
 
-            }
-            else
-            {
-                cursor = Parameters != default ?
-                    await session.ReadTransactionAsync(async tx => await tx.RunAsync(Text, Parameters)
-                        .ConfigureAwait(false)).ConfigureAwait(false) :
-                            await session.ReadTransactionAsync(async tx => await tx.RunAsync(Text)
-                                .ConfigureAwait(false)).ConfigureAwait(false);
-            }
+        //    }
+        //    else
+        //    {
+        //        cursor = Parameters != default ?
+        //            await session.ReadTransactionAsync(async tx => await tx.RunAsync(Text, Parameters)
+        //                .ConfigureAwait(false)).ConfigureAwait(false) :
+        //                    await session.ReadTransactionAsync(async tx => await tx.RunAsync(Text)
+        //                        .ConfigureAwait(false)).ConfigureAwait(false);
+        //    }
 
-            return cursor;
-        }
+        //    return cursor;
+        //}
     }
 }

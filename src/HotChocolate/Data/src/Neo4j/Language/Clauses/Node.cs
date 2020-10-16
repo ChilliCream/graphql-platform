@@ -1,16 +1,17 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HotChocolate.Data.Neo4j
 {
     public class Node : IVisitable
     {
         private readonly string _alias;
-        private readonly NodeLabels _labels;
+        private readonly NodeLabels _labels = new NodeLabels();
         //private readonly Properties? _poperties;
+
+        public Node(string label)
+        {
+            _labels.AddLabel(label);
+        }
 
         public Node(string alias, NodeLabels labels)
         {

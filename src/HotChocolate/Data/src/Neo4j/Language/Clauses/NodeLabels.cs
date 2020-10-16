@@ -6,6 +6,8 @@ namespace HotChocolate.Data.Neo4j
     {
         private readonly List<string> _values = new List<string>();
 
+        public NodeLabels() { }
+
         public NodeLabels(List<string> values)
         {
             _values.AddRange(values);

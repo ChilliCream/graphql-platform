@@ -5,8 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HotChocolate" Version="11.0.0-preview.148" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="11.0.0-preview.148" />
+    <PackageReference Include="HotChocolate" Version="11.0.0-preview.151" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.0.0-preview.151" />
+    <PackageReference Include="HotChocolate.Data" Version="11.0.0-preview.151" />
+    <PackageReference Include="Neo4jMapper" Version="1.0.12" />
+    <PackageReference Include="ServiceStack.Text" Version="5.9.2" />
   </ItemGroup>
 
   <ItemGroup>

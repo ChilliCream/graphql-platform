@@ -21,6 +21,11 @@ namespace HotChocolate.Data.Neo4j
 
         public void Leave(Node node)
         {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
             _writer.Write(")");
         }
 
@@ -34,6 +39,16 @@ namespace HotChocolate.Data.Neo4j
         }
 
         public void Leave(Match match)
+        {
+            _writer.Write(" ");
+        }
+
+        public void Enter(Return @return)
+        {
+            _writer.Write($"RETURN ({@return.Node.Alias})");
+        }
+
+        public void Leave(Return @return)
         {
             _writer.Write(" ");
         }
