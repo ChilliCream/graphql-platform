@@ -13,6 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.11.2" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="MongoDbResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>MongoDbResources.Designer.cs</LastGenOutput>
@@ -25,10 +29,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>MongoDbResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.11.2" />
   </ItemGroup>
 
 </Project>

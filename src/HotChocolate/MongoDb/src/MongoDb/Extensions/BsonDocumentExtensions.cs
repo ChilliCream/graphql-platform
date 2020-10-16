@@ -17,5 +17,11 @@ namespace HotChocolate.MongoDb
         {
             return bsonQuery.Render(DocumentSerializer, SerializerRegistry);
         }
+
+        public static BsonDocument DefaultRender(
+            this SortDefinition<BsonDocument> bsonQuery)
+        {
+            return bsonQuery.Render(DocumentSerializer, SerializerRegistry);
+        }
     }
 }

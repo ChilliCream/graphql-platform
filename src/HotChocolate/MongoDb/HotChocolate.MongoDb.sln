@@ -55,6 +55,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.Data", "..\Dat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.MongoDb.Data.Filters.Tests", "test\MongoDb.Data.Filters.Tests\HotChocolate.MongoDb.Data.Filters.Tests.csproj", "{82E3F151-5E59-456B-A17D-9C6D48DB4E5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HotChocolate.MongoDb.Data.Sorting.Tests", "test\MongoDb.Data.Sorting.Tests\HotChocolate.MongoDb.Data.Sorting.Tests.csproj", "{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,7 @@ Global
 		{E6D5EF36-0EA5-4CCA-B42A-030B26BFCEDC} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
 		{E40ED04D-DB78-401B-BB42-2BEBA36574BA} = {882EC02D-5E1D-41F5-AD9F-AA06E31D133A}
 		{82E3F151-5E59-456B-A17D-9C6D48DB4E5D} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2} = {4EE990B2-C327-46DA-8FE8-F95AC228E47F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D68A0AB9-871A-487B-8D12-1A7544D81B9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -317,5 +320,17 @@ Global
 		{82E3F151-5E59-456B-A17D-9C6D48DB4E5D}.Release|x64.Build.0 = Release|Any CPU
 		{82E3F151-5E59-456B-A17D-9C6D48DB4E5D}.Release|x86.ActiveCfg = Release|Any CPU
 		{82E3F151-5E59-456B-A17D-9C6D48DB4E5D}.Release|x86.Build.0 = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|x64.Build.0 = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Debug|x86.Build.0 = Debug|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|x64.ActiveCfg = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|x64.Build.0 = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{09FF661D-7B8E-4BA4-B5C3-54703B8D77F2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

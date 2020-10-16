@@ -3,7 +3,7 @@ using HotChocolate.Data.Filters;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public static class FilterConventionDescriptorExtensions
+    public static class MongoDbFilterConventionDescriptorExtensions
     {
         public static IFilterConventionDescriptor AddMongoDbDefaults(
             this IFilterConventionDescriptor descriptor) =>

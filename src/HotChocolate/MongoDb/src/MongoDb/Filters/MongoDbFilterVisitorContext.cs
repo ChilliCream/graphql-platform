@@ -19,6 +19,7 @@ namespace HotChocolate.MongoDb.Data.Filters
         public FilterDefinitionBuilder<BsonDocument> Builder { get; } =
             new FilterDefinitionBuilder<BsonDocument>();
 
+        //Todo Remove
         public Stack<IExtendedType> RuntimeTypes { get; }
 
         public override FilterScope<FilterDefinition<BsonDocument>> CreateScope() =>
