@@ -18,5 +18,27 @@
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
     },
     "Exception": null
+  },
+  {
+    "Message": "The specified value type of field `name` does not match the field type.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "findDog2"
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 47
+      }
+    ],
+    "Extensions": {
+      "fieldName": "name",
+      "fieldType": "String!",
+      "locationType": "String!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null
   }
 ]
