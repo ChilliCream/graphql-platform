@@ -17,28 +17,28 @@ namespace HotChocolate.Types
         : IntegerTypeBase<int>
     {
         public IntType()
-            : this(int.MinValue, int.MaxValue)
+            : this(ScalarNames.Int,
+                TypeResources.IntType_Description,
+                bind: BindingBehavior.Implicit)
         {
         }
 
         public IntType(int min, int max)
-            : this(ScalarNames.Int, min, max)
-        {
-            Description = TypeResources.IntType_Description;
-        }
-
-        public IntType(NameString name)
-            : this(name, int.MinValue, int.MaxValue)
+            : this(ScalarNames.Int,
+                TypeResources.IntType_Description,
+                min,
+                max,
+                BindingBehavior.Implicit)
         {
         }
 
-        public IntType(NameString name, int min, int max)
-            : base(name, min, max, BindingBehavior.Implicit)
-        {
-        }
-
-        public IntType(NameString name, string description, int min, int max)
-            : base(name, min, max, BindingBehavior.Implicit)
+        public IntType(
+            NameString name,
+            string? description = null,
+            int min = int.MinValue,
+            int max = int.MaxValue,
+            BindingBehavior bind = BindingBehavior.Explicit)
+            : base(name, min, max, bind)
         {
             Description = description;
         }

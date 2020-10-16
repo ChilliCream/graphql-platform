@@ -287,7 +287,7 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
+                if (IsInstanceOfType(context, locationType, valueNode))
                 {
                     return Skip;
                 }

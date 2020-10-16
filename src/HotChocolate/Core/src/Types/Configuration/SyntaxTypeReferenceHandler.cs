@@ -13,6 +13,7 @@ namespace HotChocolate.Configuration
         : ITypeRegistrarHandler
     {
         private readonly ITypeInspector _typeInspector;
+        private readonly HashSet<string> _handled = new HashSet<string>();
 
         public SyntaxTypeReferenceHandler(ITypeInspector typeInspector)
         {
@@ -26,9 +27,9 @@ namespace HotChocolate.Configuration
             foreach (SyntaxTypeReference typeReference in
                 typeReferences.OfType<SyntaxTypeReference>())
             {
-                if (Scalars.TryGetScalar(
-                    typeReference.Type.NamedType().Name.Value,
-                    out Type? scalarType))
+                string name = typeReference.Type.NamedType().Name.Value;
+                if (_handled.Add(name) &&
+                    Scalars.TryGetScalar(name, out Type? scalarType))
                 {
                     ExtendedTypeReference namedTypeReference =
                         _typeInspector.GetTypeRef(scalarType);
