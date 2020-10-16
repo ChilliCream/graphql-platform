@@ -4,10 +4,10 @@ namespace HotChocolate.Data.Filters
 {
     public interface IFilterFieldDefinition
     {
-        MemberInfo? Member { get; set; }
+        MemberInfo? Member { get; }
 
-        IFilterFieldHandler? Handler { get; set; }
+        IFilterFieldHandler? Handler { get; }
 
-        string? Scope { get; set; }
+        string? Scope { get; }
     }
 }
