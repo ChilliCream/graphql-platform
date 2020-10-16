@@ -87,7 +87,7 @@ namespace HotChocolate.Data.Sorting
             }
             else
             {
-                throw new InvalidOperationException();
+                return Continue;
             }
 
             return Break;
@@ -104,7 +104,7 @@ namespace HotChocolate.Data.Sorting
             }
             else
             {
-                throw new InvalidOperationException();
+                return Continue;
             }
 
             return Break;
