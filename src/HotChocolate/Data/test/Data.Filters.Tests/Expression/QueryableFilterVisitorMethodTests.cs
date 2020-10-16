@@ -19,8 +19,8 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_MethodSimple_Expression()
         {
             // arrange
-            IValueNode? value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
-            ExecutorBuilder? tester = CreateProviderTester(
+            IValueNode value = Syntax.ParseValueLiteral("{ simple: { eq:\"a\" }}");
+            ExecutorBuilder tester = CreateProviderTester(
                 new FooFilterType(),
                 new FilterConvention(
                     x =>
@@ -36,7 +36,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     }));
 
             // act
-            Func<Foo, bool>? func = tester.Build<Foo>(value);
+            Func<Foo, bool> func = tester.Build<Foo>(value);
 
             // assert
             var a = new Foo { Bar = "a" };
@@ -50,7 +50,7 @@ namespace HotChocolate.Data.Filters.Expressions
         public void Create_MethodComplex_Expression()
         {
             // arrange
-            ExecutorBuilder? tester = CreateProviderTester(
+            ExecutorBuilder tester = CreateProviderTester(
                 new FooFilterType(),
                 new FilterConvention(
                     x =>
@@ -65,14 +65,14 @@ namespace HotChocolate.Data.Filters.Expressions
                                     .AddDefaultFieldHandlers()));
                     }));
 
-            IValueNode? valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode valueTrue = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ complex: {parameter:\"a\", eq:\"a\" }}");
 
-            IValueNode? valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            IValueNode valueFalse = Utf8GraphQLParser.Syntax.ParseValueLiteral(
                 "{ complex: {parameter:\"a\", eq:\"b\" }}");
             // act
-            Func<Foo, bool>? funcTrue = tester.Build<Foo>(valueTrue);
-            Func<Foo, bool>? funcFalse = tester.Build<Foo>(valueFalse);
+            Func<Foo, bool> funcTrue = tester.Build<Foo>(valueTrue);
+            Func<Foo, bool> funcFalse = tester.Build<Foo>(valueFalse);
 
             // assert
             var a = new Foo();
@@ -95,8 +95,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
             public override bool CanHandle(
                 ITypeDiscoveryContext context,
-                FilterInputTypeDefinition typeDefinition,
-                FilterFieldDefinition fieldDefinition)
+                IFilterInputTypeDefinition typeDefinition,
+                IFilterFieldDefinition fieldDefinition)
             {
                 return fieldDefinition is FilterOperationFieldDefinition { Id: 155 };
             }
@@ -105,7 +105,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 QueryableFilterContext context,
                 IFilterField field,
                 ObjectFieldNode node,
-                out ISyntaxVisitorAction? action)
+                out ISyntaxVisitorAction action)
             {
                 if (node.Value.IsNull())
                 {
@@ -136,12 +136,12 @@ namespace HotChocolate.Data.Filters.Expressions
         {
             private static readonly MethodInfo Method = typeof(Foo).GetMethod(nameof(Foo.Complex))!;
 
-            private IExtendedType? _extendedType;
+            private IExtendedType _extendedType = null!;
 
             public override bool CanHandle(
                 ITypeDiscoveryContext context,
-                FilterInputTypeDefinition typeDefinition,
-                FilterFieldDefinition fieldDefinition)
+                IFilterInputTypeDefinition typeDefinition,
+                IFilterFieldDefinition fieldDefinition)
             {
                 _extendedType ??= context.TypeInspector.GetReturnType(Method);
 
@@ -152,7 +152,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 QueryableFilterContext context,
                 IFilterField field,
                 ObjectFieldNode node,
-                out ISyntaxVisitorAction? action)
+                out ISyntaxVisitorAction action)
             {
                 if (node.Value.IsNull())
                 {
@@ -172,7 +172,7 @@ namespace HotChocolate.Data.Filters.Expressions
                 if (field.Type is StringOperationFilterInput operationType &&
                     node.Value is ObjectValueNode objectValue)
                 {
-                    IValueNode? parameterNode = null;
+                    IValueNode parameterNode = null!;
 
                     for (var i = 0; i < objectValue.Fields.Count; i++)
                     {
@@ -187,7 +187,7 @@ namespace HotChocolate.Data.Filters.Expressions
                         throw new InvalidOperationException();
                     }
 
-                    object? value =
+                    object value =
                         operationType.Fields["parameter"].Type.ParseLiteral(parameterNode);
 
                     Expression nestedProperty = Expression.Call(
@@ -201,7 +201,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     return true;
                 }
 
-                action = null;
+                action = null!;
                 return false;
             }
         }

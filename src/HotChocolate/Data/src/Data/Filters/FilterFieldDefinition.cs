@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Filters
     public class FilterFieldDefinition
         : InputFieldDefinition
         , IHasScope
+        , IFilterFieldDefinition
     {
         public MemberInfo? Member { get; set; }
 
