@@ -1,21 +1,18 @@
 ﻿{
   "errors": [
     {
-      "message": "The specified argument value does not match the argument type.",
+      "message": "Detected a non-null violation in argument \u0060name\u0060.",
       "locations": [
         {
           "line": 1,
-          "column": 18
+          "column": 12
         }
       ],
-      "path": [
-        "sayHello"
-      ],
       "extensions": {
-        "argument": "name",
-        "argumentValue": "null",
-        "locationType": "String!",
-        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+        "responseName": "sayHello",
+        "errorPath": [
+          "name"
+        ]
       }
     }
   ]
