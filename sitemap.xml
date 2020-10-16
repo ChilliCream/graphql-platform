@@ -75,8 +75,8 @@
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/schema-first</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/stitching</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/tooling</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
-<url> <loc>https://chillicream.com/docs/greendonut/v10/advanced-concepts</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/greendonut/v10/advanced-concepts/diagnostics</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
+<url> <loc>https://chillicream.com/docs/greendonut/v10/advanced-concepts</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/advanced/dotnet-cli</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/advanced</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
 <url> <loc>https://chillicream.com/docs/hotchocolate/v10/data-fetching/filters</loc> <changefreq>daily</changefreq> <priority>0.7</priority> </url>
