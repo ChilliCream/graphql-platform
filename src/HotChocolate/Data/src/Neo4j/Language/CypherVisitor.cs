@@ -55,7 +55,9 @@ namespace HotChocolate.Data.Neo4j
 
         public void Enter(NodeLabels labels)
         {
-            _writer.Write(string.Join($"{Symbols.NodeLabelStart}", labels.GetLabels()));
+            foreach(var label in labels.GetLabels()){
+                _writer.Write($"{Symbols.NodeLabelStart}{label}");
+            }
         }
 
         public void Leave(NodeLabels labels)

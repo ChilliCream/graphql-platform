@@ -9,18 +9,18 @@ namespace HotChocolate.Data.Neo4j.Tests
         public void Match_Optional_Default()
         {
             Node node = new Node("Speaker").Named("m");
-            var match = new Match(node);
+            var match = new Cypher().Match(node);
 
-            match.MatchSnapshot();
+            match.Print().MatchSnapshot();
         }
 
         [Fact]
         public void Match_Optional_True()
         {
             Node node = new Node("Speaker").Named("m");
-            var match = new Match(node, true);
+            var match = new Cypher().Match(node, true);
 
-            match.MatchSnapshot();
+            match.Print().MatchSnapshot();
         }
     }
 }

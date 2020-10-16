@@ -11,7 +11,7 @@ namespace HotChocolate.Data.Neo4j.Tests
             Node m = new Node("Speaker").Named("m");
             Cypher cypher = new Cypher().Match(m).Return(m);
 
-            cypher.MatchSnapshot();
+            cypher.Print().MatchSnapshot();
         }
     }
 }

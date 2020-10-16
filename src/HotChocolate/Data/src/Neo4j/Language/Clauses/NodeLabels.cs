@@ -20,7 +20,8 @@ namespace HotChocolate.Data.Neo4j
 
         public void Visit(CypherVisitor visitor)
         {
-            
+            visitor.Enter(this);
+            visitor.Leave(this);
         }
 
         public List<string> GetLabels() => _values;
