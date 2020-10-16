@@ -1312,7 +1312,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The first an most simple way to protect your api is to define how many items a page can have when you are using pagination. We added for this the scalar type <code class="language-text">PaginationAmount</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="87801884635622670000"
+              data-toaster-id="66675876351311730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1320,7 +1320,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`SchemaBuilder.New()
   .AddType(new PaginationAmountType(50))
   ...
-  .Create();`, `87801884635622670000`)"
+  .Create();`, `66675876351311730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1336,12 +1336,12 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>After doing this, you'll want to "bind back" <code class="language-text">IntType</code> as the default <code class="language-text">int</code> representation by doing:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="23793110168154354000"
+              data-toaster-id="99039826586850400000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`  .BindClrType<int, IntType>`, `23793110168154354000`)"
+              onClick="copyToClipboard(`  .BindClrType<int, IntType>`, `99039826586850400000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1358,7 +1358,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Many GraphQL schemas expose cyclic graphs allowing for recursive queries like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="54590396207078195000"
+              data-toaster-id="60509214450840650000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1385,7 +1385,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
       }
     }
   }
-}`, `54590396207078195000`)"
+}`, `60509214450840650000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1428,14 +1428,14 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>The complexity of a field is annotated with the cost directive.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71747994447251790000"
+              data-toaster-id="7538073702375847000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Foo {
   bar: [Bar] @cost(complexity: 5)
-}`, `71747994447251790000`)"
+}`, `7538073702375847000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1451,14 +1451,14 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Take a paging field for instance in which you can pass the amount of items that you want to load, than you could define that field as a multiplier of your complexity:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="70955020645047020000"
+              data-toaster-id="90994755986572350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Foo {
   bar(take:Int): [Bar] @cost(complexity: 5 multipliers:[take])
-}`, `70955020645047020000`)"
+}`, `90994755986572350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1475,7 +1475,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>On the <code class="language-text">QueryExecutionBuilder</code> you can call the extension function <code class="language-text">AddComplexityCalculation</code> in order to add you own custom execution function.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="79909334266393460000"
+              data-toaster-id="84562923189720270000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1503,7 +1503,7 @@ public readonly struct ComplexityContext
     public ICollection<IOutputField> Path { get; }
     public IVariableCollection Variables { get; }
     public CostDirective Cost { get; }
-}`, `79909334266393460000`)"
+}`, `84562923189720270000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1536,7 +1536,7 @@ public readonly struct ComplexityContext
     <span class="token keyword">public</span> <span class="token return-type class-name">IVariableCollection</span> Variables <span class="token punctuation">{</span> <span class="token keyword">get</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
     <span class="token keyword">public</span> <span class="token return-type class-name">CostDirective</span> Cost <span class="token punctuation">{</span> <span class="token keyword">get</span><span class="token punctuation">;</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span></code></pre></div>
-<p>All of the execution options are listed <a href="/docs/hotchocolate/v10/schema/options">here</a>.</p></div></article></div><aside class="doc-page-elements__Aside-c2lr7n-1 gSCiWz"><div class="doc-page-elements__FixedContainer-c2lr7n-0 fBuChN"><header class="doc-page-pane-header__Header-sc-1i87nrk-0 fbGPDm"><h5 class="doc-page-pane-header__Title-sc-1i87nrk-1 itjFEf">About this article</h5><svg class="doc-page-pane-header__CloseButton-sc-1i87nrk-2 iQxQCE" viewBox="0 0 352 512"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg></header><section class="doc-page-community__Container-sc-12dq8k-0 cHcRUT"><h6 class="doc-page-community__Title-sc-12dq8k-1 iAmqOt">Help us improving our content</h6><ol class="doc-page-community__CommunityItems-sc-12dq8k-2 ixpPKf"><li class="doc-page-community__CommunityItem-sc-12dq8k-3 jpWYRB"><a href="https://github.com/ChilliCream/hotchocolate/blob/master/website/src/docs/hotchocolate/v10/security/security.md" target="_blank" rel="noopener noreferrer" class="doc-page-community__CommunityLink-sc-12dq8k-4 jEchJz"><span class="icon-container__IconContainer-sc-1749kar-0 hFjJFN"><svg viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg></span>Edit on GitHub</a></li><li class="doc-page-community__CommunityItem-sc-12dq8k-3 jpWYRB"><a href="https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q" target="_blank" rel="noopener noreferrer" class="doc-page-community__CommunityLink-sc-12dq8k-4 jEchJz"><span class="icon-container__IconContainer-sc-1749kar-0 hFjJFN"><svg viewBox="0 0 448 512"><path d="M94.12 315.1c0 25.9-21.16 47.06-47.06 47.06S0 341 0 315.1c0-25.9 21.16-47.06 47.06-47.06h47.06v47.06zm23.72 0c0-25.9 21.16-47.06 47.06-47.06s47.06 21.16 47.06 47.06v117.84c0 25.9-21.16 47.06-47.06 47.06s-47.06-21.16-47.06-47.06V315.1zm47.06-188.98c-25.9 0-47.06-21.16-47.06-47.06S139 32 164.9 32s47.06 21.16 47.06 47.06v47.06H164.9zm0 23.72c25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06H47.06C21.16 243.96 0 222.8 0 196.9s21.16-47.06 47.06-47.06H164.9zm188.98 47.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06h-47.06V196.9zm-23.72 0c0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06V79.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06V196.9zM283.1 385.88c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06v-47.06h47.06zm0-23.72c-25.9 0-47.06-21.16-47.06-47.06 0-25.9 21.16-47.06 47.06-47.06h117.84c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06H283.1z"></path></svg></span>Discuss on Slack</a></li></ol></section><section class="article-sections__Container-dv409r-0 iWuLBF"><h6 class="article-sections__Title-dv409r-1 kgdGZX">In this article</h6><div class="article-sections__Content-dv409r-2 iQrzcV"><ul>
+<p>All of the execution options are listed <a href="/docs/hotchocolate/v10/execution-engine/execution-options/">here</a>.</p></div></article></div><aside class="doc-page-elements__Aside-c2lr7n-1 gSCiWz"><div class="doc-page-elements__FixedContainer-c2lr7n-0 fBuChN"><header class="doc-page-pane-header__Header-sc-1i87nrk-0 fbGPDm"><h5 class="doc-page-pane-header__Title-sc-1i87nrk-1 itjFEf">About this article</h5><svg class="doc-page-pane-header__CloseButton-sc-1i87nrk-2 iQxQCE" viewBox="0 0 352 512"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"></path></svg></header><section class="doc-page-community__Container-sc-12dq8k-0 cHcRUT"><h6 class="doc-page-community__Title-sc-12dq8k-1 iAmqOt">Help us improving our content</h6><ol class="doc-page-community__CommunityItems-sc-12dq8k-2 ixpPKf"><li class="doc-page-community__CommunityItem-sc-12dq8k-3 jpWYRB"><a href="https://github.com/ChilliCream/hotchocolate/blob/master/website/src/docs/hotchocolate/v10/security/security.md" target="_blank" rel="noopener noreferrer" class="doc-page-community__CommunityLink-sc-12dq8k-4 jEchJz"><span class="icon-container__IconContainer-sc-1749kar-0 hFjJFN"><svg viewBox="0 0 496 512"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg></span>Edit on GitHub</a></li><li class="doc-page-community__CommunityItem-sc-12dq8k-3 jpWYRB"><a href="https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q" target="_blank" rel="noopener noreferrer" class="doc-page-community__CommunityLink-sc-12dq8k-4 jEchJz"><span class="icon-container__IconContainer-sc-1749kar-0 hFjJFN"><svg viewBox="0 0 448 512"><path d="M94.12 315.1c0 25.9-21.16 47.06-47.06 47.06S0 341 0 315.1c0-25.9 21.16-47.06 47.06-47.06h47.06v47.06zm23.72 0c0-25.9 21.16-47.06 47.06-47.06s47.06 21.16 47.06 47.06v117.84c0 25.9-21.16 47.06-47.06 47.06s-47.06-21.16-47.06-47.06V315.1zm47.06-188.98c-25.9 0-47.06-21.16-47.06-47.06S139 32 164.9 32s47.06 21.16 47.06 47.06v47.06H164.9zm0 23.72c25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06H47.06C21.16 243.96 0 222.8 0 196.9s21.16-47.06 47.06-47.06H164.9zm188.98 47.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06s-21.16 47.06-47.06 47.06h-47.06V196.9zm-23.72 0c0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06V79.06c0-25.9 21.16-47.06 47.06-47.06 25.9 0 47.06 21.16 47.06 47.06V196.9zM283.1 385.88c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06-25.9 0-47.06-21.16-47.06-47.06v-47.06h47.06zm0-23.72c-25.9 0-47.06-21.16-47.06-47.06 0-25.9 21.16-47.06 47.06-47.06h117.84c25.9 0 47.06 21.16 47.06 47.06 0 25.9-21.16 47.06-47.06 47.06H283.1z"></path></svg></span>Discuss on Slack</a></li></ol></section><section class="article-sections__Container-dv409r-0 iWuLBF"><h6 class="article-sections__Title-dv409r-1 kgdGZX">In this article</h6><div class="article-sections__Content-dv409r-2 iQrzcV"><ul>
 <li><a id="toc-pagination-amount" href="/docs/hotchocolate/v10/security/security/#pagination-amount">Pagination Amount</a></li>
 <li><a id="toc-execution-timeout" href="/docs/hotchocolate/v10/security/security/#execution-timeout">Execution Timeout</a></li>
 <li><a id="toc-query-depth" href="/docs/hotchocolate/v10/security/security/#query-depth">Query Depth</a></li>
