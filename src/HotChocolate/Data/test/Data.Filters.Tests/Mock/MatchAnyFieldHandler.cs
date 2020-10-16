@@ -9,7 +9,7 @@ namespace HotChocolate.Data.Filters
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition) => true;
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition) => true;
     }
 }
