@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate
 {
-    public interface IQuery<T> : IQuery
+    public interface IExecutable<T> : IExecutable
     {
         new ValueTask<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken);
     }
