@@ -40,10 +40,10 @@ namespace HotChocolate.Data.Filters
             Func<Foo, bool>? func = executor.Build<Foo>(value);
 
             // assert
-            var a = new Foo {Bar = "a"};
+            var a = new Foo { Bar = "a" };
             Assert.True(func(a));
 
-            var b = new Foo {Bar = "b"};
+            var b = new Foo { Bar = "b" };
             Assert.False(func(b));
         }
 
@@ -223,7 +223,56 @@ namespace HotChocolate.Data.Filters
 #endif
         }
 
-        protected ISchema CreateSchemaWith(IFilterInputType type, FilterConvention convention)
+        [Fact]
+        public void FilterConvention_Should_Work_With_Extensions()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                });
+
+            var extension1 = new FilterConventionExtension(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Provider(provider);
+                });
+
+            var extension2 = new FilterConventionExtension(
+                descriptor =>
+                {
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+            var type = new FooFilterType();
+
+            //act
+            ISchema schema = CreateSchemaWith(type, convention, extension1, extension2);
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo, bool> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new Foo { Bar = "a" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.False(func(b));
+        }
+
+        protected ISchema CreateSchemaWith(
+            IFilterInputType type,
+            FilterConvention convention,
+            params FilterConventionExtension[] extensions)
         {
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
@@ -235,6 +284,11 @@ namespace HotChocolate.Data.Filters
                             .Type<StringType>()
                             .Resolver("bar"))
                 .AddType(type);
+
+            foreach (var extension in extensions)
+            {
+                builder.AddConvention<IFilterConvention>(extension);
+            }
 
             return builder.Create();
         }

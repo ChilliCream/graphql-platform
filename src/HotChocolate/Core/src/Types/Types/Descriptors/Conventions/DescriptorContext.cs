@@ -12,7 +12,10 @@ namespace HotChocolate.Types.Descriptors
     {
         private readonly Dictionary<(Type, string?), IConvention> _conventions =
             new Dictionary<(Type, string?), IConvention>();
-        private readonly IReadOnlyDictionary<(Type, string?), CreateConvention> _convFactories;
+
+        private readonly IReadOnlyDictionary<(Type, string?), List<CreateConvention>>
+            _convFactories;
+
         private readonly IServiceProvider _services;
 
         private INamingConventions? _naming;
@@ -22,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
 
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            IReadOnlyDictionary<(Type, string?), CreateConvention> convFactories,
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>> convFactories,
             IServiceProvider services,
             IDictionary<string, object?> contextData,
             SchemaBuilder.LazySchema schema,
@@ -57,6 +60,7 @@ namespace HotChocolate.Types.Descriptors
                     _naming = GetConventionOrDefault<INamingConventions>(
                         () => new DefaultNamingConventions(Options.UseXmlDocumentation));
                 }
+
                 return _naming;
             }
         }
@@ -70,6 +74,7 @@ namespace HotChocolate.Types.Descriptors
                     _inspector = this.GetConventionOrDefault<ITypeInspector>(
                         new DefaultTypeInspector());
                 }
+
                 return _inspector;
             }
         }
@@ -109,7 +114,8 @@ namespace HotChocolate.Types.Descriptors
             where T : class, IConvention
         {
             if (_conventions.TryGetValue(
-                (typeof(T), scope), out IConvention? conv))
+                (typeof(T), scope),
+                out IConvention? conv))
             {
                 if (conv is T casted)
                 {
@@ -120,17 +126,59 @@ namespace HotChocolate.Types.Descriptors
 
             if (_convFactories.TryGetValue(
                 (typeof(T), scope),
-                out CreateConvention? factory))
+                out List<CreateConvention>? factories))
             {
-                conv = factory(_services);
-                if (conv is Convention init)
+                Convention createdConvention = null;
+                List<IConventionExtension> extensions = new List<IConventionExtension>();
+                for (var i = 0; i < factories.Count; i++)
                 {
-                    var conventionContext = new ConventionContext(init, scope, _services, this);
-                    init.Initialize(conventionContext);
-                    _conventions[(typeof(T), scope)] = init;
+                    conv = factories[i](_services);
+                    if (conv is Convention init)
+                    {
+                        if (init is IConventionExtension extension)
+                        {
+                            var conventionContext = new ConventionContext(
+                                extension,
+                                scope,
+                                _services,
+                                this);
+
+                            init.Initialize(conventionContext);
+                            extensions.Add(extension);
+                        }
+                        else
+                        {
+                            if (createdConvention is null)
+                            {
+                                createdConvention = init;
+                            }
+                            else
+                            {
+                                //TODO: ThrowHelper
+                                throw new InvalidOperationException();
+                            }
+                        }
+                    }
                 }
 
-                if (conv is T casted)
+                if (createdConvention is {})
+                {
+                    var conventionContext = new ConventionContext(
+                        createdConvention,
+                        scope,
+                        _services,
+                        this);
+                    createdConvention.Initialize(conventionContext);
+                    for (var m = 0; m < extensions.Count; m++)
+                    {
+                        extensions[m].Merge(conventionContext, createdConvention);
+                    }
+
+                    createdConvention.OnComplete(conventionContext);
+                    _conventions[(typeof(T), scope)] = createdConvention;
+                }
+
+                if (createdConvention is T casted)
                 {
                     convention = casted;
                     return true;
@@ -144,7 +192,7 @@ namespace HotChocolate.Types.Descriptors
         internal static DescriptorContext Create(
             IReadOnlySchemaOptions? options = null,
             IServiceProvider? services = null,
-            IReadOnlyDictionary<(Type, string?), CreateConvention>? conventions = null,
+            IReadOnlyDictionary<(Type, string?), List<CreateConvention>>? conventions = null,
             IDictionary<string, object?>? contextData = null,
             SchemaBuilder.LazySchema? schema = null,
             ISchemaInterceptor? schemaInterceptor = null,
@@ -152,7 +200,7 @@ namespace HotChocolate.Types.Descriptors
         {
             return new DescriptorContext(
                 options ?? new SchemaOptions(),
-                conventions ?? new Dictionary<(Type, string?), CreateConvention>(),
+                conventions ?? new Dictionary<(Type, string?), List<CreateConvention>>(),
                 services ?? new EmptyServiceProvider(),
                 contextData ?? new Dictionary<string, object?>(),
                 schema ?? new SchemaBuilder.LazySchema(),

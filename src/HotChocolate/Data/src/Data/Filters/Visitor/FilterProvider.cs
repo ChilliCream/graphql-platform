@@ -32,7 +32,7 @@ namespace HotChocolate.Data.Filters
 
         public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
-        public void Initialize(IConventionContext context)
+        public new void Initialize(IConventionContext context)
         {
             base.Initialize(context);
         }
@@ -52,11 +52,9 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            FilterProviderDefinition definition)
+        public override void OnComplete(IConventionContext context)
         {
-            if (definition.Handlers.Count == 0)
+            if (Definition.Handlers.Count == 0)
             {
                 throw FilterProvider_NoHandlersConfigured(this);
             }
@@ -68,7 +66,7 @@ namespace HotChocolate.Data.Filters
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
-            foreach ((Type Type, IFilterFieldHandler? Instance) handler in definition.Handlers)
+            foreach ((Type Type, IFilterFieldHandler? Instance) handler in Definition.Handlers)
             {
                 switch (handler.Instance)
                 {

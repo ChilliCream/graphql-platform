@@ -73,29 +73,27 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            SortConventionDefinition definition)
+        public override void OnComplete(IConventionContext context)
         {
-            if (definition.Provider is null)
+            if (Definition?.Provider is null)
             {
-                throw SortConvention_NoProviderFound(GetType(), definition.Scope);
+                throw SortConvention_NoProviderFound(GetType(), Definition?.Scope);
             }
 
-            if (definition.ProviderInstance is null)
+            if (Definition.ProviderInstance is null)
             {
                 _provider =
-                    context.Services.GetOrCreateService<ISortProvider>(definition.Provider) ??
-                    throw SortConvention_NoProviderFound(GetType(), definition.Scope);
+                    context.Services.GetOrCreateService<ISortProvider>(Definition.Provider) ??
+                    throw SortConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
-                _provider = definition.ProviderInstance;
+                _provider = Definition.ProviderInstance;
             }
 
             _namingConventions = context.DescriptorContext.Naming;
 
-            _operations = definition.Operations.ToDictionary(
+            _operations = Definition.Operations.ToDictionary(
                 x => x.Id,
                 SortOperation.FromDefinition);
 
@@ -107,15 +105,17 @@ namespace HotChocolate.Data.Sorting
                 }
             }
 
-            _bindings = definition.Bindings;
-            _defaultBinding = definition.DefaultBinding;
-            _inputTypeConfigs = definition.Configurations;
-            _enumTypeConfigs = definition.EnumConfigurations;
-            _argumentName = definition.ArgumentName;
+            _bindings = Definition.Bindings;
+            _defaultBinding = Definition.DefaultBinding;
+            _inputTypeConfigs = Definition.Configurations;
+            _enumTypeConfigs = Definition.EnumConfigurations;
+            _argumentName = Definition.ArgumentName;
 
             if (_provider is ISortProviderConvention init)
             {
                 init.Initialize(context);
+                // Todo Merge
+                init.OnComplete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;

@@ -58,16 +58,14 @@ namespace HotChocolate.Data.Sorting
             return descriptor.CreateDefinition();
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            SortProviderDefinition definition)
+        public override void OnComplete(IConventionContext context)
         {
-            if (definition.Handlers.Count == 0)
+            if (Definition?.Handlers.Count == 0)
             {
                 throw SortProvider_NoFieldHandlersConfigured(this);
             }
 
-            if (definition.Handlers.Count == 0)
+            if (Definition.Handlers.Count == 0)
             {
                 throw SortProvider_NoOperationHandlersConfigured(this);
             }
@@ -79,7 +77,7 @@ namespace HotChocolate.Data.Sorting
                     (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
-            foreach ((Type Type, ISortFieldHandler? Instance) handler in definition.Handlers)
+            foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
             {
                 switch (handler.Instance)
                 {
@@ -99,7 +97,7 @@ namespace HotChocolate.Data.Sorting
             }
 
             foreach ((Type Type, ISortOperationHandler? Instance) handler
-                in definition.OperationHandlers)
+                in Definition.OperationHandlers)
             {
                 switch (handler.Instance)
                 {

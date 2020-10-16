@@ -14,12 +14,91 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
+    public class FilterConventionExtension
+        : ConventionExtension<FilterConventionDefinition>
+    {
+        private Action<IFilterConventionDescriptor>? _configure;
+
+        protected FilterConventionExtension()
+        {
+            _configure = Configure;
+        }
+
+        public FilterConventionExtension(Action<IFilterConventionDescriptor> configure)
+        {
+            _configure = configure ??
+                throw new ArgumentNullException(nameof(configure));
+        }
+
+        protected override FilterConventionDefinition CreateDefinition(
+            IConventionContext context)
+        {
+            if (_configure is null)
+            {
+                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
+            }
+
+            var descriptor = FilterConventionDescriptor.New(
+                context.DescriptorContext,
+                context.Scope);
+
+            _configure(descriptor);
+            _configure = null;
+
+            return descriptor.CreateDefinition();
+        }
+
+        protected virtual void Configure(IFilterConventionDescriptor descriptor)
+        {
+        }
+
+        public override void Merge(IConventionContext context, Convention convention)
+        {
+            if (convention is FilterConvention filterConvention &&
+                Definition is {} &&
+                filterConvention.Definition is {})
+            {
+                foreach (KeyValuePair<Type, Type> binding in Definition.Bindings)
+                {
+                    filterConvention.Definition.Bindings[binding.Key] = binding.Value;
+                }
+
+                foreach (KeyValuePair<ITypeReference, List<ConfigureFilterInputType>> configuration
+                    in Definition.Configurations)
+                {
+                    filterConvention.Definition.Configurations[configuration.Key] =
+                        configuration.Value;
+                }
+
+                foreach (var operation in Definition.Operations)
+                {
+                    filterConvention.Definition.Operations.Add(operation);
+                }
+
+                if (Definition.ArgumentName != FilterConventionDefinition.DefaultArgumentName)
+                {
+                    filterConvention.Definition.ArgumentName = Definition.ArgumentName;
+                }
+
+                if (Definition.Provider is {})
+                {
+                    filterConvention.Definition.Provider = Definition.Provider;
+                }
+
+                if (Definition.ProviderInstance is {})
+                {
+                    filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
     public class FilterConvention
-        : Convention<FilterConventionDefinition>
-        , IFilterConvention
+        : Convention<FilterConventionDefinition>,
+          IFilterConvention
     {
         private const string _typePostFix = "FilterInput";
 
@@ -32,6 +111,8 @@ namespace HotChocolate.Data.Filters
         private NameString _argumentName;
         private IFilterProvider _provider = default!;
         private ITypeInspector _typeInspector = default!;
+
+        internal new FilterConventionDefinition? Definition => base.Definition;
 
         protected FilterConvention()
         {
@@ -66,37 +147,37 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            FilterConventionDefinition definition)
+        public override void OnComplete(IConventionContext context)
         {
-            if (definition.Provider is null)
+            if (Definition?.Provider is null)
             {
-                throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                throw FilterConvention_NoProviderFound(GetType(), Definition?.Scope);
             }
 
-            if (definition.ProviderInstance is null)
+            if (Definition.ProviderInstance is null)
             {
                 _provider =
-                    context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
-                    throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                    context.Services.GetOrCreateService<IFilterProvider>(Definition.Provider) ??
+                    throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
-                _provider = definition.ProviderInstance;
+                _provider = Definition.ProviderInstance;
             }
 
             _namingConventions = context.DescriptorContext.Naming;
-            _operations = definition.Operations.ToDictionary(
+            _operations = Definition.Operations.ToDictionary(
                 x => x.Id,
                 FilterOperation.FromDefinition);
-            _bindings = definition.Bindings;
-            _configs = definition.Configurations;
-            _argumentName = definition.ArgumentName;
+            _bindings = Definition.Bindings;
+            _configs = Definition.Configurations;
+            _argumentName = Definition.ArgumentName;
 
             if (_provider is IFilterProviderConvention init)
             {
                 init.Initialize(context);
+                // TODO Merge
+                init.OnComplete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;

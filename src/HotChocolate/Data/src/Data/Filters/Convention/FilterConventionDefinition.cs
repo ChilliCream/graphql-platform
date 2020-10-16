@@ -7,9 +7,11 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterConventionDefinition : IHasScope
     {
+        public static readonly string DefaultArgumentName = "where";
+
         public string? Scope { get; set; }
 
-        public string ArgumentName { get; set; } = "where";
+        public string ArgumentName { get; set; } = DefaultArgumentName;
 
         public Type? Provider { get; set; }
 

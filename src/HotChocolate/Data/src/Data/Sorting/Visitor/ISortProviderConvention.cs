@@ -5,5 +5,7 @@ namespace HotChocolate.Data.Sorting
     internal interface ISortProviderConvention
     {
         void Initialize(IConventionContext context);
+
+        void OnComplete(IConventionContext context);
     }
 }
