@@ -60,8 +60,18 @@ namespace HotChocolate.Execution
             // act
             IRequestExecutor a = proxy.InnerExecutor;
             resolver.EvictRequestExecutor();
-            await Task.Delay(100);
+
+            var i = 0;
             IRequestExecutor b = proxy.InnerExecutor;
+            while (ReferenceEquals(a, b))
+            {
+                await Task.Delay(100);
+                b = proxy.InnerExecutor;
+                if (i++ > 10)
+                {
+                    break;
+                }
+            }
 
             // assert
             Assert.NotSame(a, b);
