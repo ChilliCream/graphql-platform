@@ -101,6 +101,20 @@ namespace HotChocolate
             public const string MaxRequestSize = "MAX_REQUEST_SIZE";
         }
 
+        public static class Stitching
+        {
+            public const string HttpRequestException = "HCXXXX";
+
+            public const string UnknownRequestException = "HCXXXX";
+
+            public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
+            public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
+            public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
+            public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
+            public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
+            public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
+        }
+
         public static class Validation
         {
             public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";

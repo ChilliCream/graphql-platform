@@ -7,6 +7,7 @@ namespace HotChocolate
         | AttributeTargets.Interface
         | AttributeTargets.Property
         | AttributeTargets.Method
+        | AttributeTargets.Enum
         | AttributeTargets.Parameter
         | AttributeTargets.Field)]
     public sealed class GraphQLDescriptionAttribute

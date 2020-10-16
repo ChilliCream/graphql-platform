@@ -16,6 +16,7 @@ namespace HotChocolate
         : IHasDirectives
         , IHasName
         , IHasDescription
+        , IHasReadOnlyContextData
         , ITypeSystemMember
     {
         /// <summary>

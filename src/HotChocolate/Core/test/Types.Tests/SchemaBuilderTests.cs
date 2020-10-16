@@ -1093,7 +1093,7 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddTypeInterceptor((Type)null);
+                .TryAddTypeInterceptor((Type)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -1105,7 +1105,7 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddTypeInterceptor((ITypeInitializationInterceptor)null);
+                .TryAddTypeInterceptor((ITypeInitializationInterceptor)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -1117,7 +1117,7 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddTypeInterceptor(typeof(string));
+                .TryAddTypeInterceptor(typeof(string));
 
             // assert
             Assert.Throws<ArgumentException>(action);
@@ -1129,7 +1129,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddTypeInterceptor(typeof(MyInterceptor))
+                .TryAddTypeInterceptor(typeof(MyInterceptor))
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
@@ -1150,7 +1150,7 @@ namespace HotChocolate
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddTypeInterceptor<MyInterceptor>()
+                .TryAddTypeInterceptor<MyInterceptor>()
                 .AddQueryType(d => d
                     .Name("Query")
                     .Field("foo")
@@ -1572,8 +1572,9 @@ namespace HotChocolate
                     .Name("Query")
                     .Field("foo")
                     .Resolver("bar"))
-                .OnBeforeCreate(c => c.ContextData["name"] = c.ContextData["name"] + "1")
-                .AddTypeInterceptor(new DelegateTypeInterceptor(
+                .TryAddSchemaInterceptor(new DummySchemaInterceptor(
+                    c => c.ContextData["name"] = c.ContextData["name"] + "1"))
+                .TryAddTypeInterceptor(new DelegateTypeInterceptor(
                     onAfterRegisterDependencies: (c, d, cd) =>
                     {
                         if (d is ObjectTypeDefinition def && def.Name.Equals("Query"))
@@ -1757,6 +1758,21 @@ namespace HotChocolate
             {
                 contextData.Add("touched", true);
             }
+        }
+
+        public class DummySchemaInterceptor : SchemaInterceptor 
+        {
+            private readonly Action<IDescriptorContext> _onBeforeCreate;
+
+            public DummySchemaInterceptor(Action<IDescriptorContext> onBeforeCreate)
+            {
+                _onBeforeCreate = onBeforeCreate;
+            }
+
+            public override void OnBeforeCreate(
+                IDescriptorContext context, 
+                ISchemaBuilder schemaBuilder) =>
+                _onBeforeCreate(context);
         }
     }
 }

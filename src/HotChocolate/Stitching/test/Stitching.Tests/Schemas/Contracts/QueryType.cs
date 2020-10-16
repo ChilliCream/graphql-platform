@@ -22,7 +22,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<DateTimeType>()
                 .Resolver(ctx =>
                 {
-                    DateTime dateTime = ctx.Argument<DateTime>("d");
+                    DateTime dateTime = ctx.ArgumentValue<DateTime>("d");
                     return dateTime;
                 });
         }

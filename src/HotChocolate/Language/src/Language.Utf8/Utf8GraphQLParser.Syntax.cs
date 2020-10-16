@@ -96,6 +96,31 @@ namespace HotChocolate.Language
                 bool constant = true) =>
                 new Utf8GraphQLParser(reader).ParseObject(constant);
 
+            /// <summary>
+            /// Parses a GraphQL type reference e.g. [String!]
+            /// </summary>
+            public static ITypeNode ParseTypeReference(
+                string sourceText) =>
+                Parse(
+                    sourceText,
+                    parser => parser.ParseTypeReference());
+
+            /// <summary>
+            /// Parses a GraphQL type reference e.g. [String!]
+            /// </summary>
+            public static ITypeNode ParseTypeReference(
+                ReadOnlySpan<byte> sourceText) =>
+                Parse(
+                    sourceText,
+                    parser => parser.ParseTypeReference());
+
+            /// <summary>
+            /// Parses a GraphQL type reference e.g. [String!]
+            /// </summary>
+            public static ITypeNode ParseTypeReference(
+                Utf8GraphQLReader reader) =>
+                new Utf8GraphQLParser(reader).ParseTypeReference();
+
             private static unsafe T Parse<T>(
                 string sourceText,
                 ParseSyntax<T> parse,

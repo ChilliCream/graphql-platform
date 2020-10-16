@@ -1,0 +1,41 @@
+type Query {
+  me: Customer
+}
+
+type Customer {
+  id: ID!
+  name: String!
+  consultant: Consultant
+}
+
+type Consultant {
+  id: ID!
+  name: String!
+  contracts: [Contract!] 
+}
+
+interface Contract {
+  id: ID!
+  customerId: ID! 
+  consultantId: ID!
+  customer: Customer
+  consultant: Consultant
+}
+
+type LifeInsuranceContract implements Contract {
+  id: ID!
+  premium: Float
+  customerId: ID! 
+  consultantId: ID!
+  customer: Customer
+  consultant: Consultant
+}
+
+type SomeOtherContract implements Contract {
+  id: ID!
+  expiryDate: DateTime
+  customerId: ID!
+  consultantId: ID!
+  customer: Customer
+  consultant: Consultant
+}

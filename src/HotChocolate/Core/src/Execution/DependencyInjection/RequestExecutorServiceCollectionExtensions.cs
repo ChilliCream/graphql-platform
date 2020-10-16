@@ -33,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()
+                .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
                 .TryAddIdSerializer();
 

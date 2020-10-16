@@ -123,5 +123,25 @@ namespace HotChocolate.Utilities
                 .SetTypeSystemObject(type)
                 .SetExtension(nameof(otherType), otherType)
                 .Build());
+
+        public static SchemaException NodeAttribute_NodeResolverNotFound(
+            Type type,
+            string nodeResolver) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified node resolver `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    nodeResolver)
+                .Build());
+
+        public static SchemaException NodeAttribute_IdFieldNotFound(
+            Type type,
+            string idField) =>
+            new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "The specified id field `{0}` does not exist on `{1}`.",
+                    type.FullName ?? type.Name,
+                    idField)
+                .Build());
     }
 }

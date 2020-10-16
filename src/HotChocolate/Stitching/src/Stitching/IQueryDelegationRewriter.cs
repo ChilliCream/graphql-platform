@@ -6,7 +6,7 @@ namespace HotChocolate.Stitching
     /// <summary>
     /// This interface provides the query delegation rewriter hooks.
     /// Implement this interface in order to customize the query
-    /// rewrite logic of the querey delegation rewriter.
+    /// rewrite logic of the query delegation rewriter.
     /// </summary>
     public interface IQueryDelegationRewriter
     {

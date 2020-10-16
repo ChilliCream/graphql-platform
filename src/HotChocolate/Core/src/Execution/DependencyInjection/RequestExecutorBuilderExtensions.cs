@@ -49,9 +49,16 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ConfigureSchemaAsync(
             this IRequestExecutorBuilder builder,
             Func<ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
@@ -75,12 +82,19 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
+        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/>
+        /// will be the same application's root service provider instance.
         /// </remarks>
         public static IRequestExecutorBuilder ConfigureSchema(
             this IRequestExecutorBuilder builder,
@@ -105,12 +119,19 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
+        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/>
+        /// will be the same application's root service provider instance.
         /// </remarks>
         public static IRequestExecutorBuilder ConfigureSchemaAsync(
             this IRequestExecutorBuilder builder,
@@ -136,8 +157,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="modify">
+        /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ModifyRequestOptions(
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorOptions> modify)

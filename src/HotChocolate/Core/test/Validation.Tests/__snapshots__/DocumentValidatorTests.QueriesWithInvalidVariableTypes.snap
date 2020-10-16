@@ -1,5 +1,73 @@
 ﻿[
   {
+    "Message": "Operation `takesCat` has a empty selection set. Root types without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 2,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operation": "takesCat",
+      "type": "Query",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "Operation `takesDogBang` has a empty selection set. Root types without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 6,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operation": "takesDogBang",
+      "type": "Query",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "Operation `takesListOfPet` has a empty selection set. Root types without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 10,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operation": "takesListOfPet",
+      "type": "Query",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
+    "Message": "Operation `takesCatOrDog` has a empty selection set. Root types without subfields are disallowed.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 14,
+        "Column": 17
+      }
+    ],
+    "Extensions": {
+      "operation": "takesCatOrDog",
+      "type": "Query",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types"
+    },
+    "Exception": null
+  },
+  {
     "Message": "The type of variable `cat` is not an input type.",
     "Code": null,
     "Path": null,

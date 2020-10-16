@@ -218,6 +218,23 @@ namespace HotChocolate.Validation
                 .Build();
         }
 
+        public static IError NoSelectionOnRootType(
+            this IDocumentValidatorContext context,
+            OperationDefinitionNode node,
+            IType fieldType)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_NoSelectionOnRootType,
+                    node.Name?.Value ?? "Unnamed")
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("operation", node.Name?.Value ?? "Unnamed")
+                .SetExtension("type", fieldType.Print())
+                .SpecifiedBy("sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types")
+                .Build();
+        }
+
         public static IError FieldIsRequiredButNull(
             this IDocumentValidatorContext context,
             ISyntaxNode node,

@@ -1,4 +1,5 @@
 using HotChocolate.Types.Relay;
+using static HotChocolate.Types.WellKnownContextData;
 
 namespace HotChocolate
 {
@@ -10,7 +11,7 @@ namespace HotChocolate
         public static ISchemaBuilder EnableRelaySupport(
             this ISchemaBuilder schemaBuilder) =>
             schemaBuilder
-                .SetContextData(RelayConstants.IsRelaySupportEnabled, 1)
+                .SetContextData(IsRelaySupportEnabled, 1)
                 .TryAddTypeInterceptor<NodeFieldTypeInterceptor>()
                 .AddType<NodeType>();
     }
