@@ -22,31 +22,5 @@
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Input-Object-Required-Fields"
     },
     "Exception": null
-  },
-  {
-    "Message": "The specified value type of field `nonNullField` does not match the field type.",
-    "Code": null,
-    "Path": {
-      "Parent": {
-        "Parent": null,
-        "Depth": 0,
-        "Name": "arguments"
-      },
-      "Depth": 1,
-      "Name": "complexArgField"
-    },
-    "Locations": [
-      {
-        "Line": 6,
-        "Column": 43
-      }
-    ],
-    "Extensions": {
-      "fieldName": "nonNullField",
-      "fieldType": "Boolean!",
-      "locationType": "Boolean!",
-      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
-    },
-    "Exception": null
   }
 ]

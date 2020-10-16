@@ -60,7 +60,7 @@ namespace HotChocolate.Validation.Rules
 
             if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is IComplexOutputType ot &&
-                ot.Fields.TryGetField(node.Name.Value, out IOutputField of))
+                ot.Fields.TryGetField(node.Name.Value, out IOutputField? of))
             {
                 context.OutputFields.Push(of);
                 context.Types.Push(of.Type);
@@ -131,7 +131,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Directives.TryPeek(out DirectiveType directive))
             {
-                if (directive.Arguments.TryGetField(node.Name.Value, out Argument argument))
+                if (directive.Arguments.TryGetField(node.Name.Value, out Argument? argument))
                 {
                     context.InputFields.Push(argument);
                     context.Types.Push(argument.Type);
@@ -143,7 +143,7 @@ namespace HotChocolate.Validation.Rules
 
             if (context.OutputFields.TryPeek(out IOutputField field))
             {
-                if (field.Arguments.TryGetField(node.Name.Value, out IInputField argument))
+                if (field.Arguments.TryGetField(node.Name.Value, out IInputField? argument))
                 {
                     context.InputFields.Push(argument);
                     context.Types.Push(argument.Type);
@@ -221,7 +221,7 @@ namespace HotChocolate.Validation.Rules
         {
             if (context.Types.TryPeek(out IType type) &&
                 type.NamedType() is InputObjectType it &&
-                it.Fields.TryGetField(node.Name.Value, out InputField field))
+                it.Fields.TryGetField(node.Name.Value, out InputField? field))
             {
                 if (field.Type.IsNonNullType() &&
                     node.Value.IsNull())
@@ -287,7 +287,7 @@ namespace HotChocolate.Validation.Rules
             if (context.Types.TryPeek(out IType currentType) &&
                 currentType is IInputType locationType)
             {
-                if (IsInstanceOfType(context, locationType, valueNode))
+                if (valueNode.IsNull() || IsInstanceOfType(context, locationType, valueNode))
                 {
                     return Skip;
                 }

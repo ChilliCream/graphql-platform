@@ -84,11 +84,13 @@ namespace HotChocolate.Stitching.Integration
 
         private class DocumentRewriter : SchemaSyntaxRewriter<object>
         {
-            protected override FieldDefinitionNode RewriteFieldDefinition(FieldDefinitionNode node, object context)
+            protected override FieldDefinitionNode RewriteFieldDefinition(
+                FieldDefinitionNode node,
+                object context)
             {
                 if(node.Type.NamedType().Name.Value.EndsWith("Connection") &&
-                   node.Arguments.Any(t => StringExtensions.EqualsOrdinal(t.Name.Value, "first") &&
-                                           TypeNodeExtensions.NamedType(t.Type).Name.Value.EqualsOrdinal("Int")))
+                    node.Arguments.Any(t => t.Name.Value.EqualsOrdinal("first") &&
+                    t.Type.NamedType().Name.Value.EqualsOrdinal("Int")))
                 {
                     var arguments = node.Arguments.ToList();
 

@@ -166,10 +166,7 @@ namespace HotChocolate.Validation
                 }
             ",
                 t => Assert.Equal(
-                    $"The argument `nonNullBooleanArg` is required.",
-                    t.Message),
-                t => Assert.Equal(
-                    "The specified argument value does not match the argument type.",
+                    "The argument `nonNullBooleanArg` is required.",
                     t.Message));
         }
 
@@ -548,9 +545,6 @@ namespace HotChocolate.Validation
             ",
             t => Assert.Equal(
                 "`name` is a required field and cannot be null.",
-                t.Message),
-            t => Assert.Equal(
-                "The specified value type of field `name` does not match the field type.",
                 t.Message));
         }
 
