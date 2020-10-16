@@ -1,0 +1,11 @@
+{
+    me {
+        id
+        name
+        consultant {
+            ... on Consultant {
+                name
+            }
+        }
+    }
+}

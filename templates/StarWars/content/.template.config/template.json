@@ -10,6 +10,7 @@
   "name": "HotChocolate GraphQL Star Wars Demo",
   "shortName": "starwars",
   "tags": {
-    "type": "Solution"
+    "language": "C#",
+    "type": "project"
   }
 }

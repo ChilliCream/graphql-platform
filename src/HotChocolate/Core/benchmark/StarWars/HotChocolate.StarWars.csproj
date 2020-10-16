@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.StarWars</AssemblyName>
     <RootNamespace>HotChocolate.StarWars</RootNamespace>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

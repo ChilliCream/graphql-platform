@@ -9,19 +9,20 @@ namespace HotChocolate.Types.Filters
     public class FilterInputTypeTest
         : TypeTestBase
     {
-
         [Fact]
         public void FilterInputType_DynamicName()
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType(
-                new FilterInputType<Foo>(d => d
-                    .Name(dep => dep.Name + "Foo")
-                    .DependsOn<StringType>()
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s.AddType(
+                    new FilterInputType<Foo>(
+                        d => d
+                            .Name(dep => dep.Name + "Foo")
+                            .DependsOn<StringType>()
+                            .Filter(x => x.Bar)
+                            .BindFiltersExplicitly()
+                            .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -32,13 +33,15 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s.AddType(
-                new FilterInputType<Foo>(d => d
-                    .Name(dep => dep.Name + "Foo")
-                    .DependsOn(typeof(StringType))
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s.AddType(
+                    new FilterInputType<Foo>(
+                        d => d
+                            .Name(dep => dep.Name + "Foo")
+                            .DependsOn(typeof(StringType))
+                            .Filter(x => x.Bar)
+                            .BindFiltersExplicitly()
+                            .AllowEquals())));
 
 
             // assert
@@ -50,13 +53,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddDirectiveType<FooDirectiveType>()
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Directive("foo")
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Directive("foo")
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -67,13 +73,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddDirectiveType<FooDirectiveType>()
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Directive(new NameString("foo"))
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Directive(new NameString("foo"))
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -84,13 +93,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddDirectiveType<FooDirectiveType>()
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Directive(new DirectiveNode("foo"))
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Directive(new DirectiveNode("foo"))
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -101,13 +113,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddDirectiveType<FooDirectiveType>()
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Directive(new FooDirective())
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Directive(new FooDirective())
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -118,13 +133,16 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddDirectiveType<FooDirectiveType>()
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Directive<FooDirective>()
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddDirectiveType<FooDirectiveType>()
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Directive<FooDirective>()
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -135,12 +153,15 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Description("Test")
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Description("Test")
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -151,12 +172,15 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            ISchema schema = CreateSchema(s => s
-                .AddType(new FilterInputType<Foo>(d => d
-                    .Name("Test")
-                    .Filter(x => x.Bar)
-                    .BindFiltersExplicitly()
-                    .AllowEquals())));
+            ISchema schema = CreateSchema(
+                s => s
+                    .AddType(
+                        new FilterInputType<Foo>(
+                            d => d
+                                .Name("Test")
+                                .Filter(x => x.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -168,10 +192,99 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d
-                    .Name("Test")
-                    .Field(x => x.Books())
-                    .UseFiltering())
+                .AddQueryType<Query>(
+                    d => d
+                        .Name("Test")
+                        .Field(x => x.Books())
+                        .UseFiltering())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_ImplicitBinding()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .AddType(new ObjectType<Foo>(x => x.Field(x => x.Bar)))
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<ObjectType<Foo>>()
+                            .Resolver("bar")
+                            .UseFiltering<Foo>(x => x.BindFieldsImplicitly()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_ImplicitBinding_BindFields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Explicit)
+                .AddType(new ObjectType<Foo>(x => x.Field(x => x.Bar)))
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<ObjectType<Foo>>()
+                            .Resolver("bar")
+                            .UseFiltering<Foo>(x => x.BindFields(BindingBehavior.Implicit)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_ExplicitBinding()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Implicit)
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<ObjectType<Bar>>()
+                            .Resolver("bar")
+                            .UseFiltering<Bar>(
+                                x => x.BindFields(BindingBehavior.Explicit)
+                                    .Filter(y => y.Baz)
+                                    .AllowContains()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_ExplicitBinding_BindFields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .ModifyOptions(x => x.DefaultBindingBehavior = BindingBehavior.Implicit)
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<ObjectType<Bar>>()
+                            .Resolver("bar")
+                            .UseFiltering<Bar>(
+                                x => x.BindFields(BindingBehavior.Explicit)
+                                    .Filter(y => y.Baz)
+                                    .AllowContains()))
                 .Create();
 
             // assert
@@ -190,11 +303,20 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        public class FooDirective { }
+        public class FooDirective
+        {
+        }
 
         public class Foo
         {
             public string Bar { get; set; }
+        }
+
+        public class Bar
+        {
+            public string Baz { get; set; }
+
+            public string Qux { get; set; }
         }
 
         public class Query
@@ -206,14 +328,14 @@ namespace HotChocolate.Types.Filters
         public class Book
         {
             public int Id { get; set; }
-            
+
             [GraphQLNonNullType]
             public string Title { get; set; }
-            
+
             public int Pages { get; set; }
-            
+
             public int Chapters { get; set; }
-            
+
             [GraphQLNonNullType]
             public Author Author { get; set; }
         }
@@ -222,7 +344,7 @@ namespace HotChocolate.Types.Filters
         {
             [GraphQLType(typeof(NonNullType<IdType>))]
             public int Id { get; set; }
-            
+
             [GraphQLNonNullType]
             public string Name { get; set; }
         }

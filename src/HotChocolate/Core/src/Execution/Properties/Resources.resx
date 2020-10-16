@@ -234,4 +234,7 @@
   <data name="ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message" xml:space="preserve">
     <value>Make sure that you have registered an IBatchDispatcher with your scoped request services.</value>
   </data>
+  <data name="OperationCompiler_Compile_SelectionSetIsEmpty" xml:space="preserve">
+    <value>The operation selection set is empty.</value>
+  </data>
 </root>

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -134,17 +133,16 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in invalidFields)
             {
-                // TODO : resources
+                // TODO : ErrorHelper
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
+                    .SetMessage(
                         "Unable to infer or resolve the type of " +
                         "field {0}.{1}. Try to explicitly provide the " +
                         "type like the following: " +
                         "`descriptor.Field(\"field\")" +
                         ".Type<List<StringType>>()`.",
                         Name,
-                        field.Name))
+                        field.Name)
                     .SetCode(ErrorCodes.Schema.NoFieldType)
                     .SetTypeSystemObject(this)
                     .SetPath(Path.New(Name).Append(field.Name))

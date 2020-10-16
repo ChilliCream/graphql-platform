@@ -29,7 +29,7 @@ namespace HotChocolate.Configuration
                 {
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                new AggregateTypeInitializationInterceptor(),
+                new AggregateTypeInterceptor(),
                 false);
 
             // act
@@ -73,7 +73,7 @@ namespace HotChocolate.Configuration
                 {
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                new AggregateTypeInitializationInterceptor());
+                new AggregateTypeInterceptor());
 
             // act
             IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
@@ -116,7 +116,7 @@ namespace HotChocolate.Configuration
                 {
                     _typeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
-                new AggregateTypeInitializationInterceptor());
+                new AggregateTypeInterceptor());
 
             // act
             IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
@@ -160,7 +160,7 @@ namespace HotChocolate.Configuration
                     _typeInspector.GetTypeRef(typeof(ObjectType<Foo>), TypeContext.Output),
                     _typeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
-                new AggregateTypeInitializationInterceptor());
+                new AggregateTypeInterceptor());
 
             // act
             IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
@@ -203,7 +203,7 @@ namespace HotChocolate.Configuration
                 {
                     _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
                 },
-                new AggregateTypeInitializationInterceptor());
+                new AggregateTypeInterceptor());
 
             // act
             IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();
@@ -238,7 +238,7 @@ namespace HotChocolate.Configuration
                     _typeInspector.GetTypeRef(typeof(QueryWithInferError), TypeContext.Output),
                     _typeInspector.GetTypeRef(typeof(QueryWithInferError2), TypeContext.Output),
                 },
-                new AggregateTypeInitializationInterceptor());
+                new AggregateTypeInterceptor());
 
             // act
             IReadOnlyList<ISchemaError> errors = typeDiscoverer.DiscoverTypes();

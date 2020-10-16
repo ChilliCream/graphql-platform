@@ -19,6 +19,8 @@ class Helpers
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
         Path.Combine("HotChocolate", "MongoDb")
+        Path.Combine("HotChocolate", "Stitching"),
+        Path.Combine("HotChocolate", "Spatial")
     };
 
     public static IEnumerable<string> GetAllProjects(string sourceDirectory)
