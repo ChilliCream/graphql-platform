@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace HotChocolate
 {
-    public interface IQuery
+    public interface IExecutable
     {
         ValueTask<object> ExecuteAsync(CancellationToken cancellationToken);
 

@@ -167,7 +167,7 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(ImmutableQueue<>)
                         || typeDefinition == typeof(ImmutableStack<>)
                         || typeDefinition == typeof(ImmutableHashSet<>)
-                        || typeDefinition == typeof(IQuery<>))
+                        || typeDefinition == typeof(IExecutable<>))
                     {
                         return true;
                     }
