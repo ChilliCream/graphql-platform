@@ -166,7 +166,7 @@ namespace HotChocolate.Validation
                 }
             ",
                 t => Assert.Equal(
-                    $"The argument `nonNullBooleanArg` is required.",
+                    "The argument `nonNullBooleanArg` is required.",
                     t.Message));
         }
 
