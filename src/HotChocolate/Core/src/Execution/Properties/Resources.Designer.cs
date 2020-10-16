@@ -284,5 +284,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("OperationCompiler_Compile_SelectionSetIsEmpty", resourceCulture);
             }
         }
+        
+        internal static string ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
     }
 }

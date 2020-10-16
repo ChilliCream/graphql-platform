@@ -237,4 +237,7 @@
   <data name="OperationCompiler_Compile_SelectionSetIsEmpty" xml:space="preserve">
     <value>The operation selection set is empty.</value>
   </data>
+  <data name="ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The query cannot be null or empty.</value>
+  </data>
 </root>
