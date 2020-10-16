@@ -1,0 +1,116 @@
+schema {
+  query: Query
+}
+
+type Query {
+  contractAdvisor(advisorRequest: AdvisorRequestInput! = null): Advisor!
+  contractAdvisors(advisorRequests: [AdvisorRequestInput!]! = null): [Advisor!]!
+  digisAdvisor(contractNumber: String! = null): Advisor!
+  evContractAdvisor(contractId: String! = null): Advisor!
+  fzContractAdvisor(contractId: String! = null): Advisor!
+  mortgageAdvisor(mortgageNumber: String = null): Advisor!
+  nvsAdvisor(contractNumber: String! = null): Advisor!
+  swissLifeGeneralInfo: SwissLifeGeneralInfo!
+  threeAContractAdvisor(contractId: String! = null): Advisor!
+  zmaContractAdvisor(contractId: String! = null): Advisor!
+}
+
+type SwissLifeAdvisor implements Advisor {
+  agency: GeneralAgency
+  email: String
+  firstName: String!
+  id: ID!
+  "Translated"
+  jobDescription: String
+  lastName: String!
+  phoneNumber: String
+  pictureUrl: String
+}
+
+type BrokerCompany implements Advisor {
+  companyName: String! @deprecated(reason: "Use Name instead.")
+  email: String
+  id: ID!
+  name: BrokerCompanyName!
+  phoneNumber: String
+  pictureUrl: String
+  url: String
+}
+
+type GeneralAgency implements Advisor {
+  address: Address @deprecated(reason: "Not used on Front")
+  agencyName: String!
+  email: String
+  id: ID!
+  phoneNumber: String
+  pictureUrl: String
+  url: String
+}
+
+type SwissLifeGeneralInfo implements Advisor {
+  email: String
+  id: ID!
+  name: String!
+  phoneNumber: String
+  phoneNumbers: [SwissLifePhoneNumber]!
+  pictureUrl: String
+}
+
+enum ApplyPolicy {
+  BEFORE_RESOLVER
+  AFTER_RESOLVER
+}
+
+interface Advisor {
+  email: String
+  id: ID!
+  phoneNumber: String
+  pictureUrl: String
+}
+
+type SwissLifePhoneNumber {
+  "Translated"
+  label: String!
+  phoneNumber: String!
+}
+
+enum TranslatableLanguage {
+  NOTSET
+  DE
+  FR
+  IT
+  EN
+}
+
+type BrokerCompanyName {
+  additionalName: String
+  displayName: String!
+  name: String!
+}
+
+input AdvisorRequestInput {
+  sourceRelevantId: String! = null
+  sourceSystem: SourceSystem! = null
+}
+
+type Address {
+  city: String!
+  country: String!
+  streetName: String!
+  streetNumber: String!
+  zipCode: String!
+}
+
+enum SourceSystem {
+  HSSAG
+  DIGIS
+  NVS
+  NVS_FZP
+  EV
+  LPZZMA
+  LPZFZ
+  LPZ
+}
+
+directive @authorize("Defines when when the resolver shall be executed.By default the resolver is executed after the policy has determined that the current user is allowed to access the field." apply: ApplyPolicy! = BEFORE_RESOLVER "The name of the authorization policy that determines access to the annotated resource." policy: String = null "Roles that are allowed to access the annotated resource." roles: [String!] = null) repeatable on SCHEMA | OBJECT | FIELD_DEFINITION
+

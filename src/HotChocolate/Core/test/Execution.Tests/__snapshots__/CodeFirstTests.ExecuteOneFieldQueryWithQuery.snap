@@ -1,0 +1,14 @@
+﻿{
+  "Label": null,
+  "Path": null,
+  "Data": {
+    "query": [
+      "foo",
+      "bar"
+    ]
+  },
+  "Errors": null,
+  "Extensions": null,
+  "ContextData": null,
+  "HasNext": null
+}

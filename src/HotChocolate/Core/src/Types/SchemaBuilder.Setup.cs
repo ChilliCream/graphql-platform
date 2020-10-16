@@ -112,10 +112,12 @@ namespace HotChocolate
                         builder,
                         OperationType.Query,
                         visitor.QueryTypeName);
+
                     RegisterOperationName(
                         builder,
                         OperationType.Mutation,
                         visitor.MutationTypeName);
+
                     RegisterOperationName(
                         builder,
                         OperationType.Subscription,
@@ -334,7 +336,7 @@ namespace HotChocolate
 
                 Dictionary<OperationType, ITypeReference> operations =
                     builder._operations.ToDictionary(
-                        t => t.Key, 
+                        t => t.Key,
                         t => t.Value(context.TypeInspector));
 
                 definition.QueryType = ResolveOperation(

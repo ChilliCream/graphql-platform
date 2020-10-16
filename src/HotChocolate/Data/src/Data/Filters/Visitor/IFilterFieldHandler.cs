@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Filters
     {
         bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition);
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition);
     }
 }

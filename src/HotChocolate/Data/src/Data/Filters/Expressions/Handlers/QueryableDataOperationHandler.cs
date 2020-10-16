@@ -8,8 +8,8 @@ namespace HotChocolate.Data.Filters.Expressions
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition)
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
         {
             return fieldDefinition is FilterOperationFieldDefinition def &&
                 def.Id == DefaultOperations.Data;

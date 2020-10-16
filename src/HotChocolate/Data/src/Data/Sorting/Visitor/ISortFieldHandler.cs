@@ -6,7 +6,7 @@ namespace HotChocolate.Data.Sorting
     {
         bool CanHandle(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition);
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition);
     }
 }
