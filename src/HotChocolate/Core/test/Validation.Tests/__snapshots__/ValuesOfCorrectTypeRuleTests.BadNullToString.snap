@@ -1,0 +1,24 @@
+﻿[
+  {
+    "Message": "The specified argument value does not match the argument type.",
+    "Code": null,
+    "Path": {
+      "Parent": null,
+      "Depth": 0,
+      "Name": "nonNull"
+    },
+    "Locations": [
+      {
+        "Line": 3,
+        "Column": 32
+      }
+    ],
+    "Extensions": {
+      "argument": "a",
+      "argumentValue": "null",
+      "locationType": "String!",
+      "specifiedBy": "http://spec.graphql.org/June2018/#sec-Values-of-Correct-Type"
+    },
+    "Exception": null
+  }
+]

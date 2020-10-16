@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Sorting
         /// <inheritdoc />
         public abstract bool CanHandle(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition);
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition);
     }
 }

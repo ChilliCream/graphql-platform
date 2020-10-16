@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -44,6 +46,22 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task ExecuteOneFieldQueryWithQuery()
+        {
+            // arrange
+            var schema = Schema.Create(
+                c => c.RegisterType<QueryTypeWithMethod>());
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ query }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteWithUnionType()
         {
             // arrange
@@ -51,13 +69,16 @@ namespace HotChocolate
 
             // act
             IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    @"{
-                        fooOrBar {
-                            ... on Bar { nameBar }
-                            ... on Foo { nameFoo }
+                await schema.MakeExecutable()
+                    .ExecuteAsync(
+                        @"
+                        {
+                            fooOrBar {
+                                ... on Bar { nameBar }
+                                ... on Foo { nameFoo }
+                            }
                         }
-                    }");
+                        ");
 
             // assert
             Assert.Null(result.Errors);
@@ -263,6 +284,11 @@ namespace HotChocolate
                 return "Hello World!";
             }
 
+            public IExecutable<string> GetQuery()
+            {
+                return MockQuery<string>.From("foo", "bar");
+            }
+
             public string TestProp => "Hello World!";
         }
 
@@ -285,6 +311,7 @@ namespace HotChocolate
             {
                 descriptor.Name("Query");
                 descriptor.Field(t => t.GetTest()).Name("test");
+                descriptor.Field(t => t.GetQuery()).Name("query");
             }
         }
 
@@ -433,6 +460,33 @@ namespace HotChocolate
                 descriptor.Field(t => t.GetNames())
                     .Type<ListType<StringType>>();
             }
+        }
+
+        public class MockQuery<T> : IExecutable<T>
+        {
+            private readonly IReadOnlyList<T> _list;
+
+            private MockQuery(IEnumerable<T> list)
+            {
+                _list = list.ToArray();
+            }
+
+            async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
+            {
+                return await ExecuteAsync(cancellationToken);
+            }
+
+            public ValueTask<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<IReadOnlyList<T>>(_list);
+            }
+
+            public string Print()
+            {
+                return _list.ToString();
+            }
+
+            public static MockQuery<T> From(params T[] items) => new MockQuery<T>(items);
         }
     }
 }
