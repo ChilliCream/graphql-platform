@@ -14,7 +14,7 @@ namespace HotChocolate.Execution.Processing
     public class OperationCompilerTests
     {
         [Fact]
-        public void Prepare_One_Field()
+        public void Compile_OperationId_Null()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -30,7 +30,152 @@ namespace HotChocolate.Execution.Processing
             OperationDefinitionNode operationDefinition =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            var fragments = new FragmentCollection(schema, document);
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    null!,
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Compile_Document_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    null!,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Compile_Operation_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    null!,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Compile_Schema_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    null!,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Compile_OperationType_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    null!);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(Action);
+        }
+
+        [Fact]
+        public void Prepare_One_Field()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ foo }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
 
             // act
             IPreparedOperation operation =
@@ -92,6 +237,36 @@ namespace HotChocolate.Execution.Processing
         }
 
         [Fact]
+        public void Prepare_Empty_Operation_SelectionSet()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("foo"))
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse("{ }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<GraphQLException>(Action);
+        }
+
+        [Fact]
         public void Prepare_Inline_Fragment()
         {
             // arrange
@@ -129,7 +304,7 @@ namespace HotChocolate.Execution.Processing
             Assert.Equal("hero", hero.ResponseName);
 
             Assert.Collection(
-                operation.GetSelectionSet(hero.SelectionSet, schema.GetType<ObjectType>("Droid"))
+                operation.GetSelectionSet(hero.SelectionSet!, schema.GetType<ObjectType>("Droid"))
                     .Selections,
                 selection => Assert.Equal("name", selection.ResponseName),
                 selection => Assert.Equal("primaryFunction", selection.ResponseName));
@@ -241,7 +416,7 @@ namespace HotChocolate.Execution.Processing
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
             // act
-            Action action = () =>
+            void Action() =>
                 OperationCompiler.Compile(
                     "a",
                     document,
@@ -252,7 +427,7 @@ namespace HotChocolate.Execution.Processing
             // assert
             Assert.Equal(
                 "Field `bar` does not exist on type `Query`.",
-                Assert.Throws<GraphQLException>(action).Message);
+                Assert.Throws<GraphQLException>(Action).Message);
         }
 
         [Fact]
@@ -361,10 +536,7 @@ namespace HotChocolate.Execution.Processing
             // arrange
             var variables = new Mock<IVariableValueCollection>();
             variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>()))
-                .Returns((NameString name) =>
-                {
-                    return name.Equals("q");
-                });
+                .Returns((NameString name) => name.Equals("q"));
 
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
@@ -609,8 +781,6 @@ namespace HotChocolate.Execution.Processing
             OperationDefinitionNode operationDefinition =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            var fragments = new FragmentCollection(schema, document);
-
             // act
             var operation =
                 (Operation)OperationCompiler.Compile(
@@ -680,8 +850,6 @@ namespace HotChocolate.Execution.Processing
         public void Defer_Inline_Fragment()
         {
             // arrange
-            var variables = new Mock<IVariableValueCollection>();
-
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create();
@@ -714,7 +882,7 @@ namespace HotChocolate.Execution.Processing
             ObjectType droid = schema.GetType<ObjectType>("Droid");
 
             Assert.Collection(
-                operation.GetSelectionSet(rootField.SelectionSet, droid).Fragments,
+                operation.GetSelectionSet(rootField.SelectionSet!, droid).Fragments,
                 f =>
                 {
                     Assert.Equal(SyntaxKind.InlineFragment, f.SyntaxNode.Kind);
@@ -740,8 +908,6 @@ namespace HotChocolate.Execution.Processing
         public void Defer_Fragment_Spread()
         {
             // arrange
-            var variables = new Mock<IVariableValueCollection>();
-
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create();
@@ -753,7 +919,7 @@ namespace HotChocolate.Execution.Processing
                         ... Foo @defer
                     }
                 }
-                
+
                 fragment Foo on Droid {
                     id
                 }
@@ -777,7 +943,7 @@ namespace HotChocolate.Execution.Processing
             ObjectType droid = schema.GetType<ObjectType>("Droid");
 
             Assert.Collection(
-                operation.GetSelectionSet(rootField.SelectionSet, droid).Fragments,
+                operation.GetSelectionSet(rootField.SelectionSet!, droid).Fragments,
                 f =>
                 {
                     Assert.Equal(SyntaxKind.FragmentDefinition, f.SyntaxNode.Kind);
@@ -795,8 +961,6 @@ namespace HotChocolate.Execution.Processing
         public void Reuse_Selection()
         {
             // arrange
-            var variables = new Mock<IVariableValueCollection>();
-
             ISchema schema = SchemaBuilder.New()
                 .AddStarWarsTypes()
                 .Create();
@@ -816,8 +980,6 @@ namespace HotChocolate.Execution.Processing
             OperationDefinitionNode operationDefinition =
                 document.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            var fragments = new FragmentCollection(schema, document);
-
             // act
             IPreparedOperation operation =
                 OperationCompiler.Compile(
@@ -831,6 +993,110 @@ namespace HotChocolate.Execution.Processing
             operation
                 .Print()
                 .MatchSnapshot();
+        }
+
+        [Fact]
+        public void FragmentSpread_SelectionsSet_Empty()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query foo($v: Boolean){
+                    hero(episode: EMPIRE) {
+                        name @include(if: $v)
+                        ... abc
+                    }
+                }
+
+                fragment abc on Droid { }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<GraphQLException>(Action);
+        }
+
+        [Fact]
+        public void InlineFragment_SelectionsSet_Empty()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query foo($v: Boolean){
+                    hero(episode: EMPIRE) {
+                        name @include(if: $v)
+                        ... on Droid { }
+                    }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<GraphQLException>(Action);
+        }
+
+        [Fact]
+        public void CompositeType_SelectionsSet_Empty()
+        {
+            // arrange
+            var variables = new Mock<IVariableValueCollection>();
+            variables.Setup(t => t.GetVariable<bool>(It.IsAny<NameString>())).Returns(false);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddStarWarsTypes()
+                .Create();
+
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                @"query foo($v: Boolean) {
+                    hero(episode: EMPIRE) { }
+                }");
+
+            OperationDefinitionNode operationDefinition =
+                document.Definitions.OfType<OperationDefinitionNode>().Single();
+
+            // act
+            void Action() =>
+                OperationCompiler.Compile(
+                    "a",
+                    document,
+                    operationDefinition,
+                    schema,
+                    schema.QueryType);
+
+            // assert
+            Assert.Throws<GraphQLException>(Action);
         }
 
         public class Foo

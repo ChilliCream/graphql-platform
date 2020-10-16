@@ -192,6 +192,31 @@ namespace HotChocolate.Types.Descriptors
         MemberInfo? GetEnumValueMember(object value);
 
         /// <summary>
+        /// Gets the member that represents the node ID.
+        /// </summary>
+        /// <param name="type">
+        /// The type from which the node ID shall be inferred.
+        /// </param>
+        /// <returns>
+        /// The member that represents node ID or <c>null</c>.
+        /// </returns>
+        MemberInfo? GetNodeIdMember(Type type);
+
+        /// <summary>
+        /// Gets the method that represents the node resolver.
+        /// </summary>
+        /// <param name="nodeType">
+        /// The type which represents a node.
+        /// </param>
+        /// <param name="resolverType">
+        /// The type which provides a resolver to load a node by its id.
+        /// </param>
+        /// <returns>
+        /// The member that represents node resolver or <c>null</c>.
+        /// </returns>
+        MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null);
+
+        /// <summary>
         /// Extracts the named type from a type structure.
         /// </summary>
         /// <param name="type">The original type structure.</param>

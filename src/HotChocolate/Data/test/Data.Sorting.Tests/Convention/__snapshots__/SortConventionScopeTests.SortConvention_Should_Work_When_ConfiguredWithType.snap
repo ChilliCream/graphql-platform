@@ -7,8 +7,8 @@ type Foo {
 }
 
 type QueryType {
-  foos(order: FooSortInput): [Foo]
-  foosBar(order: Bar_FooSortInput): [Foo]
+  foos(order: [FooSortInput]): [Foo]
+  foosBar(order: [Bar_FooSortInput]): [Foo]
 }
 
 input Bar_FooSortInput {

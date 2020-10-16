@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -521,7 +522,7 @@ namespace HotChocolate.Stitching.Integration
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                     .BuildRequestExecutorAsync();
 
-            var variables = new Dictionary<string, object> 
+            var variables = new Dictionary<string, object>
             {
                 { "v", new FloatValueNode(1.2f) }
             };
@@ -581,9 +582,9 @@ namespace HotChocolate.Stitching.Integration
                     .AddRemoteSchema(Context.CustomerSchema)
                     .AddTypeExtensionsFromString(
                         @"extend type Customer {
-                            int: Int! 
+                            int: Int!
                                 @delegate(
-                                    schema: ""contract"", 
+                                    schema: ""contract"",
                                     path: ""int(i:$fields:someInt)"")
                         }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -616,9 +617,9 @@ namespace HotChocolate.Stitching.Integration
                     .AddRemoteSchema(Context.CustomerSchema)
                     .AddTypeExtensionsFromString(
                         @"extend type Customer {
-                            guid: Uuid! 
+                            guid: Uuid!
                                 @delegate(
-                                    schema: ""contract"", 
+                                    schema: ""contract"",
                                     path: ""guid(guid:$fields:someGuid)"")
                         }")
                     .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)

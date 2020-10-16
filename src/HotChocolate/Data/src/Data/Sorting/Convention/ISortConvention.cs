@@ -128,8 +128,8 @@ namespace HotChocolate.Data.Sorting
 
         bool TryGetFieldHandler(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler);
 
         bool TryGetOperationHandler(

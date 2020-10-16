@@ -28,38 +28,72 @@ namespace HotChocolate.Resolvers.Expressions
 
         public FieldResolver Compile(ResolverDescriptor descriptor)
         {
-            MethodInfo resolverMethod = descriptor.ResolverType is null
-                ? Parent.MakeGenericMethod(descriptor.SourceType)
-                : Resolver.MakeGenericMethod(descriptor.ResolverType);
-
-            Expression resolverInstance = Expression.Call(
-                Context, resolverMethod);
-
-            if (descriptor.Field.Member is { })
+            if (descriptor.Field.Member is not null)
             {
-                FieldResolverDelegate resolver = CreateResolver(
-                    resolverInstance,
-                    descriptor.Field.Member,
-                    descriptor.SourceType);
+                FieldResolverDelegate resolver;
+
+                if (descriptor.Field.Member is MethodInfo m && m.IsStatic)
+                {
+                    resolver = CreateResolver(
+                        descriptor.Field.Member,
+                        descriptor.SourceType);
+                }
+                else
+                {
+                    resolver = CreateResolver(
+                        CreateResolverInstance(descriptor),
+                        descriptor.Field.Member,
+                        descriptor.SourceType);
+                }
 
                 return new FieldResolver(
                     descriptor.Field.TypeName,
                     descriptor.Field.FieldName,
                     resolver);
             }
-            else if (descriptor.Field.Expression is LambdaExpression lambda)
+
+            if (descriptor.Field.Expression is LambdaExpression lambda)
             {
-                Expression<FieldResolverDelegate> resolver =
-                    Expression.Lambda<FieldResolverDelegate>(
-                        HandleResult(
-                            Expression.Invoke(lambda, resolverInstance),
-                            lambda.ReturnType),
-                        Context);
+                var resolver = Expression.Lambda<FieldResolverDelegate>(
+                    HandleResult(
+                        Expression.Invoke(lambda, CreateResolverInstance(descriptor)),
+                        lambda.ReturnType),
+                    Context);
 
                 return new FieldResolver(
                     descriptor.Field.TypeName,
                     descriptor.Field.FieldName,
                     resolver.Compile());
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private Expression CreateResolverInstance(ResolverDescriptor descriptor)
+        {
+            MethodInfo resolverMethod = descriptor.ResolverType is null
+                ? Parent.MakeGenericMethod(descriptor.SourceType)
+                : Resolver.MakeGenericMethod(descriptor.ResolverType);
+
+            return Expression.Call(Context, resolverMethod);
+        }
+
+        private FieldResolverDelegate CreateResolver(
+            MemberInfo member,
+            Type sourceType)
+        {
+            if (member is null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            if (member is MethodInfo method)
+            {
+                IEnumerable<Expression> parameters =
+                    CreateParameters(method.GetParameters(), sourceType);
+                MethodCallExpression resolverExpression = Expression.Call(method, parameters);
+                Expression handleResult = HandleResult(resolverExpression, method.ReturnType);
+                return Expression.Lambda<FieldResolverDelegate>(handleResult, Context).Compile();
             }
 
             throw new NotSupportedException();

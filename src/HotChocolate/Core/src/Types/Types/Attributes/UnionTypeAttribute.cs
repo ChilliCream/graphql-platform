@@ -12,6 +12,11 @@ namespace HotChocolate.Types
     public sealed class UnionTypeAttribute
         : UnionTypeDescriptorAttribute
     {
+        public UnionTypeAttribute(string? name = null)
+        {
+            Name = name;
+        }
+
         public string? Name { get; set; }
 
         public override void OnConfigure(
