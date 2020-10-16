@@ -60,9 +60,9 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IAsyncEnumerable<string>), "[String]")]
         [InlineData(typeof(IEnumerable<string>), "[String]")]
         [InlineData(typeof(IQueryable<string>), "[String]")]
-        [InlineData(typeof(IQuery<string>), "[String]")]
-        [InlineData(typeof(IQuery<int>), "[String!]")]
-        [InlineData(typeof(IQuery<int?>), "[String]")]
+        [InlineData(typeof(IExecutable<string>), "[String]")]
+        [InlineData(typeof(IExecutable<int>), "[String!]")]
+        [InlineData(typeof(IExecutable<int?>), "[String]")]
         [Theory]
         public void CreateTypeInfoFromRuntimeType(
             Type clrType,
@@ -87,7 +87,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IEnumerable<string>), "[String]")]
         [InlineData(typeof(IReadOnlyCollection<string>), "[String]")]
         [InlineData(typeof(IReadOnlyList<string>), "[String]")]
-        [InlineData(typeof(IQuery<string>), "[String]")]
+        [InlineData(typeof(IExecutable<string>), "[String]")]
         [InlineData(typeof(string[]), "[String]")]
         [Theory]
         public void SupportedListTypes(Type clrType, string expectedTypeName)
@@ -597,13 +597,13 @@ namespace HotChocolate.Internal
 
             public ICollection<string>? NullableCollectionNonNullElement() => default;
 
-            public IQuery<string> NonNullQueryNonNullElement() => default!;
+            public IExecutable<string> NonNullQueryNonNullElement() => default!;
 
-            public IQuery<string?> NonNullQueryNullableElement() => default!;
+            public IExecutable<string?> NonNullQueryNullableElement() => default!;
 
-            public IQuery<string?>? NullableQueryNullableElement() => default;
+            public IExecutable<string?>? NullableQueryNullableElement() => default;
 
-            public IQuery<string>? NullableQueryNonNullElement() => default;
+            public IExecutable<string>? NullableQueryNonNullElement() => default;
 
             public string[] NonNullArrayNonNullElement() => default!;
 

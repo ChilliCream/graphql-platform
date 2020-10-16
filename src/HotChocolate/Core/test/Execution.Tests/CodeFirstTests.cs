@@ -284,7 +284,7 @@ namespace HotChocolate
                 return "Hello World!";
             }
 
-            public IQuery<string> GetQuery()
+            public IExecutable<string> GetQuery()
             {
                 return MockQuery<string>.From("foo", "bar");
             }
@@ -462,7 +462,7 @@ namespace HotChocolate
             }
         }
 
-        public class MockQuery<T> : IQuery<T>
+        public class MockQuery<T> : IExecutable<T>
         {
             private readonly IReadOnlyList<T> _list;
 
@@ -471,7 +471,7 @@ namespace HotChocolate
                 _list = list.ToArray();
             }
 
-            async ValueTask<object> IQuery.ExecuteAsync(CancellationToken cancellationToken)
+            async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
             {
                 return await ExecuteAsync(cancellationToken);
             }

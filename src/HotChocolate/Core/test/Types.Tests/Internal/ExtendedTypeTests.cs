@@ -301,7 +301,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IEnumerable<string>), "IEnumerable<String>", "String")]
         [InlineData(typeof(IReadOnlyCollection<string>), "IReadOnlyCollection<String>", "String")]
         [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
-        [InlineData(typeof(IQuery<string>), "IQuery<String>", "String")]
+        [InlineData(typeof(IExecutable<string>), "IExecutable<String>", "String")]
         [InlineData(typeof(string[]), "[String]", "String")]
         [InlineData(
             typeof(Task<IAsyncEnumerable<string>>),
@@ -329,7 +329,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(CustomStringList2<string>))]
         [InlineData(typeof(ImmutableArray<string>))]
         [InlineData(typeof(IEnumerable<string>))]
-        [InlineData(typeof(IQuery<string>))]
+        [InlineData(typeof(IExecutable<string>))]
         [InlineData(typeof(Task<IAsyncEnumerable<string>>))]
         [InlineData(typeof(ValueTask<IAsyncEnumerable<string>>))]
         [Theory]
@@ -376,12 +376,12 @@ namespace HotChocolate.Internal
         }
 
         [Fact]
-        public void From_IQueryScalar()
+        public void From_IExecutableScalar()
         {
             // arrange
             // act
             ExtendedType dict = ExtendedType.FromType(
-                typeof(IQuery<string>),
+                typeof(IExecutable<string>),
                 _cache);
 
             // assert
