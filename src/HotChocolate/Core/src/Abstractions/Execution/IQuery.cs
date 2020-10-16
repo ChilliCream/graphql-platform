@@ -6,7 +6,7 @@ using System.Threading;
 namespace HotChocolate.Execution
 {
     /// <summary>
-    /// Represent a executable query.
+    /// Represents an executable query.
     /// </summary>
     public interface IQuery
     {
