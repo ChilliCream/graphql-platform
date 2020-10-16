@@ -141,6 +141,33 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task SingleRequest_Defer_Results()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientRawResult result =
+                await server.PostRawAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    { 
+                        hero(episode: NEW_HOPE) 
+                        { 
+                            name 
+                            ... on Droid @defer(label: ""my_id"")
+                            { 
+                                id 
+                            } 
+                        } 
+                    }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange
@@ -576,20 +603,20 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
-                            }
-                        }"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
+                            }"
                     },
                     new ClientQueryRequest
                     {
                         Query = @"
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     }
                 });
 
@@ -609,18 +636,17 @@ namespace HotChocolate.AspNetCore
                     new ClientQueryRequest
                     {
                         Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                            @"query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman");
 
@@ -671,19 +697,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=[" + s);
@@ -703,19 +728,18 @@ namespace HotChocolate.AspNetCore
                 await server.PostOperationAsync(
                     new ClientQueryRequest
                     {
-                        Query =
-                            @"
-                        query getHero {
-                            hero(episode: EMPIRE) {
-                                id @export
+                        Query = @"
+                            query getHero {
+                                hero(episode: EMPIRE) {
+                                    id @export
+                                }
                             }
-                        }
 
-                        query getHuman {
-                            human(id: $id) {
-                                name
-                            }
-                        }"
+                            query getHuman {
+                                human(id: $id) {
+                                    name
+                                }
+                            }"
                     },
                     "getHero, getHuman",
                     createOperationParameter: s => "batchOperations=" + s);

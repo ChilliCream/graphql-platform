@@ -9,11 +9,13 @@ namespace HotChocolate.Stitching
         protected override void Configure(
             IDirectiveTypeDescriptor<SourceDirective> descriptor)
         {
-            descriptor.Name(DirectiveNames.Source)
-                .Description(StitchingResources
-                    .SourceDirectiveType_Description);
+            descriptor
+                .Name(DirectiveNames.Source)
+                .Description(StitchingResources.SourceDirectiveType_Description)
+                .Repeatable();
 
-            descriptor.Location(DirectiveLocation.Enum)
+            descriptor
+                .Location(DirectiveLocation.Enum)
                 .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.Interface)
                 .Location(DirectiveLocation.Union)
@@ -23,15 +25,15 @@ namespace HotChocolate.Stitching
                 .Location(DirectiveLocation.ArgumentDefinition)
                 .Location(DirectiveLocation.EnumValue);
 
-            descriptor.Repeatable();
-
-            descriptor.Argument(t => t.Name)
+            descriptor
+                .Argument(t => t.Name)
                 .Name(DirectiveFieldNames.Source_Name)
                 .Type<NonNullType<NameType>>()
                 .Description(StitchingResources
                     .SourceDirectiveType_Name_Description);
 
-            descriptor.Argument(t => t.Schema)
+            descriptor
+                .Argument(t => t.Schema)
                 .Name(DirectiveFieldNames.Source_Schema)
                 .Type<NonNullType<NameType>>()
                 .Description(StitchingResources

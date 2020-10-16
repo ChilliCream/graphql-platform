@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Stitching</PackageId>
+    <AssemblyName>HotChocolate.Stitching</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching</RootNamespace>
+    <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -68,11 +68,41 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void DirectQueryOnObjectWithoutSubFieldsEmptySelection()
+        {
+            ExpectErrors(@"
+                query directQueryOnObjectWithoutSubFields {
+                    human {}
+                }
+            ",
+            t => Assert.Equal(
+                "`human` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
         public void DirectQueryOnInterfaceWithoutSubFields()
         {
             ExpectErrors(@"
                 query directQueryOnInterfaceWithoutSubFields {
                     pet
+                }
+            ",
+            t => Assert.Equal(
+                "`pet` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
+        public void DirectQueryOnInterfaceWithoutSubFieldsEmptySelection()
+        {
+            ExpectErrors(@"
+                query directQueryOnInterfaceWithoutSubFields {
+                    pet {}
                 }
             ",
             t => Assert.Equal(
@@ -98,6 +128,21 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void DirectQueryOnUnionWithoutSubFieldsEmptySelection()
+        {
+            ExpectErrors(@"
+                query directQueryOnUnionWithoutSubFields {
+                    catOrDog {}
+                }
+            ",
+            t => Assert.Equal(
+                "`catOrDog` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
         public void InterfaceTypeMissingSelection()
         {
             ExpectErrors(@"
@@ -109,6 +154,93 @@ namespace HotChocolate.Validation
                 "`pets` is an object, interface or union type " +
                 "field. Leaf selections on objects, interfaces, and " +
                 "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
+        public void InterfaceTypeMissingSelectionEmptySelection()
+        {
+            ExpectErrors(@"
+                {
+                    human { pets {} }
+                }
+            ",
+            t => Assert.Equal(
+                "`pets` is an object, interface or union type " +
+                "field. Leaf selections on objects, interfaces, and " +
+                "unions without subfields are disallowed.",
+                t.Message));
+        }
+
+        [Fact]
+        public void EmptyQueryType()
+        {
+            ExpectErrors(@"
+                { }
+            ",
+            t => Assert.Equal(
+                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message));
+        }
+        
+        [Fact]
+        public void EmptyNamedQueryType()
+        {
+            ExpectErrors(@"
+                query Foo { }
+            ",
+            t => Assert.Equal(
+                "Operation `Foo` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message));
+        }
+        
+        [Fact]
+        public void EmptyMutationType()
+        {
+            ExpectErrors(@"
+                mutation { }
+            ",
+            t => Assert.Equal(
+                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message));
+        }
+        
+        [Fact]
+        public void EmptyNamedMutationType()
+        {
+            ExpectErrors(@"
+                mutation Foo { }
+            ",
+            t => Assert.Equal(
+                "Operation `Foo` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message));
+        }
+        
+        [Fact]
+        public void EmptySubscriptionType()
+        {
+            ExpectErrors(@"
+                subscription { }
+            ",
+            t => Assert.Equal(
+                "Operation `Unnamed` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
+                t.Message));
+        }
+        
+        [Fact]
+        public void EmptyNamedSubscriptionType()
+        {
+            ExpectErrors(@"
+                subscription Foo { }
+            ",
+            t => Assert.Equal(
+                "Operation `Foo` has a empty selection set. Root types without " +
+                "subfields are disallowed.",
                 t.Message));
         }
 

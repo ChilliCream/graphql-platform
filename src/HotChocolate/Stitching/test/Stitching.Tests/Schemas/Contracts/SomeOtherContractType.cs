@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
@@ -8,6 +10,18 @@ namespace HotChocolate.Stitching.Schemas.Contracts
         protected override void Configure(
             IObjectTypeDescriptor<SomeOtherContract> descriptor)
         {
+            descriptor
+                .AsNode()
+                .IdField(t => t.Id)
+                .NodeResolver((ctx, id) =>
+                {
+                    return Task.FromResult(
+                        ctx.Service<ContractStorage>()
+                            .Contracts
+                            .OfType<SomeOtherContract>()
+                            .FirstOrDefault(t => t.Id.Equals(id)));
+                });
+
             descriptor.Interface<ContractType>();
 
             descriptor.Field(t => t.Id)

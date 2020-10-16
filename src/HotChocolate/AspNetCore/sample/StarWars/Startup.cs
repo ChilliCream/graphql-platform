@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace StarWars
                 .AddGraphQLServer()
                     .AddStarWarsTypes()
                     .AddStarWarsRepositories()
+                    .AddTypeExtension<SlowTypeExtension>()
                 .AddGraphQLServer("hello_world")
                     .AddQueryType(d => d
                         .Name("Query")
@@ -36,14 +38,24 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
+            app
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGraphQL();
+                    endpoints.MapGraphQL("/hello", schemaName: "hello_world");
+                    endpoints.MapGraphQL("/filtering", schemaName: "filtering");
+                });
+        }
+    }
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGraphQL();
-                endpoints.MapGraphQL("/hello", schemaName: "hello_world");
-                endpoints.MapGraphQL("/filtering", schemaName: "filtering");
-            });
+    [ExtendObjectType("Droid")]
+    public class SlowTypeExtension
+    {
+        public async Task<string> SlowAsync()
+        {
+            await Task.Delay(3000);
+            return "hello";
         }
     }
 }

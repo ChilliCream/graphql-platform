@@ -1,3 +1,4 @@
+using System.Text;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -40,6 +41,62 @@ namespace HotChocolate.Language
         {
             IValueNode literal = Utf8GraphQLParser.Syntax.ParseValueLiteral("$foo", false);
             Assert.IsType<VariableNode>(literal);
+        }
+
+        [Fact]
+        public static void ParseTypeReference()
+        {
+            // arrange
+            string sourceText = "[[String!]]";
+
+            // act
+            ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
+
+            // assert
+            Assert.Equal(
+                "String",
+                Assert.IsType<NamedTypeNode>(
+                    Assert.IsType<NonNullTypeNode>(
+                        Assert.IsType<ListTypeNode>(
+                            Assert.IsType<ListTypeNode>(type).Type).Type).Type).Name.Value);
+        }
+
+        [Fact]
+        public static void ParseTypeReference_Span()
+        {
+            // arrange
+            byte[] sourceText =  Encoding.UTF8.GetBytes("[[String!]]");
+            
+            // act
+            ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(sourceText);
+
+            // assert
+            Assert.Equal(
+                "String",
+                Assert.IsType<NamedTypeNode>(
+                    Assert.IsType<NonNullTypeNode>(
+                        Assert.IsType<ListTypeNode>(
+                            Assert.IsType<ListTypeNode>(type).Type).Type).Type).Name.Value);
+        }
+
+        [Fact]
+        public static void ParseTypeReference_Reader()
+        {
+            // arrange
+            byte[] sourceText =  Encoding.UTF8.GetBytes("[[String!]]");
+            var reader = new Utf8GraphQLReader(sourceText);
+            reader.MoveNext();
+            
+            // act
+            ITypeNode type = Utf8GraphQLParser.Syntax.ParseTypeReference(reader);
+
+            // assert
+            Assert.Equal(
+                "String",
+                Assert.IsType<NamedTypeNode>(
+                    Assert.IsType<NonNullTypeNode>(
+                        Assert.IsType<ListTypeNode>(
+                            Assert.IsType<ListTypeNode>(type).Type).Type).Type).Name.Value);
         }
     }
 }

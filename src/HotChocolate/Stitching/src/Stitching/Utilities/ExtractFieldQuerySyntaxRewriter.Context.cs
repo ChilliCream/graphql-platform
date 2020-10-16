@@ -6,15 +6,14 @@ using HotChocolate.Types;
 namespace HotChocolate.Stitching.Utilities
 {
     public partial class ExtractFieldQuerySyntaxRewriter
-        : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
     {
         public class Context
         {
             public Context(
                 NameString schema,
-                INamedOutputType typeContext,
-                DocumentNode document,
-                OperationDefinitionNode operation)
+                INamedOutputType? typeContext,
+                DocumentNode? document,
+                OperationDefinitionNode? operation)
             {
                 Schema = schema;
                 Variables = new Dictionary<string, VariableDefinitionNode>();
@@ -27,13 +26,13 @@ namespace HotChocolate.Stitching.Utilities
 
             public NameString Schema { get; }
 
-            public DocumentNode Document { get; }
+            public DocumentNode? Document { get; }
 
-            public OperationDefinitionNode Operation { get; }
+            public OperationDefinitionNode? Operation { get; }
 
             public IDictionary<string, VariableDefinitionNode> Variables { get; }
 
-            public INamedOutputType TypeContext { get; set; }
+            public INamedOutputType? TypeContext { get; set; }
 
             public DirectiveType Directive { get; set; }
 

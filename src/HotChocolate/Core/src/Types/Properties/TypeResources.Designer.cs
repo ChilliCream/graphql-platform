@@ -489,6 +489,18 @@ namespace HotChocolate.Properties {
             }
         }
         
+        internal static string NodeDescriptor_MustBeMethod {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_MustBeMethod", resourceCulture);
+            }
+        }
+        
+        internal static string NodeDescriptor_IdMember {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_IdMember", resourceCulture);
+            }
+        }
+        
         internal static string ObjectTypeDescriptor_Resolver_SchemaType {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
@@ -1020,6 +1032,60 @@ namespace HotChocolate.Properties {
         internal static string RegisteredType_CompletionContext_Already_Set {
             get {
                 return ResourceManager.GetString("RegisteredType_CompletionContext_Already_Set", resourceCulture);
+            }
+        }
+        
+        internal static string DeferDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string DeferDirectiveType_Label_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_Label_Description", resourceCulture);
+            }
+        }
+        
+        internal static string DeferDirectiveType_If_Description {
+            get {
+                return ResourceManager.GetString("DeferDirectiveType_If_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_Label_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_Label_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_InitialCount_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_InitialCount_Description", resourceCulture);
+            }
+        }
+        
+        internal static string StreamDirectiveType_If_Description {
+            get {
+                return ResourceManager.GetString("StreamDirectiveType_If_Description", resourceCulture);
+            }
+        }
+        
+        internal static string SchemaBuilder_AddRootType_TypeAlreadyRegistered {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_AddRootType_TypeAlreadyRegistered", resourceCulture);
+            }
+        }
+        
+        internal static string NodeDescriptor_IdField_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("NodeDescriptor_IdField_MustBePropertyOrMethod", resourceCulture);
             }
         }
     }

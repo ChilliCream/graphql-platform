@@ -124,7 +124,7 @@ namespace HotChocolate.Execution.Pipeline
                                 operationContext, _operationContextPool);
                             operationContext = null;
 
-                            context.Result = new DeferredResult
+                            context.Result = new DeferredQueryResult
                             (
                                 result,
                                 new DeferredTaskExecutor(operationContextOwner),

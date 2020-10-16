@@ -44,16 +44,26 @@ namespace HotChocolate.Execution.Processing
 
         public int ProposedTaskCount { get; }
 
+        public IEnumerable<ISelectionVariants> SelectionVariants =>
+            _selectionSets.Values;
+
         public ISelectionSet GetRootSelectionSet() =>
             RootSelectionVariants.GetSelectionSet(RootType);
 
         public ISelectionSet GetSelectionSet(
             SelectionSetNode selectionSet,
-            ObjectType typeContext)
+            IObjectType typeContext)
         {
             return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
                 ? variants.GetSelectionSet(typeContext)
                 : SelectionSet.Empty;
+        }
+
+        public IEnumerable<IObjectType> GetPossibleTypes(SelectionSetNode selectionSet)
+        {
+            return _selectionSets.TryGetValue(selectionSet, out SelectionVariants? variants)
+                ? variants.GetPossibleTypes()
+                : Enumerable.Empty<IObjectType>();
         }
 
         public string Print()
@@ -82,22 +92,22 @@ namespace HotChocolate.Execution.Processing
 
                     if (selection.IncludeConditions is { })
                     {
-                        foreach (SelectionIncludeCondition visibility in selection.IncludeConditions)
+                        foreach (SelectionIncludeCondition condition in selection.IncludeConditions)
                         {
-                            if (visibility.Skip is { })
+                            if (condition.Skip is { })
                             {
                                 directives.Add(
                                     new DirectiveNode(
                                         "skip",
-                                        new ArgumentNode("if", visibility.Skip)));
+                                        new ArgumentNode("if", condition.Skip)));
                             }
 
-                            if (visibility.Include is { })
+                            if (condition.Include is { })
                             {
                                 directives.Add(
                                     new DirectiveNode(
                                         "include",
-                                        new ArgumentNode("if", visibility.Include)));
+                                        new ArgumentNode("if", condition.Include)));
                             }
                         }
                     }

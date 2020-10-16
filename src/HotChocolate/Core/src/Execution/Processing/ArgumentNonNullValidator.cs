@@ -54,7 +54,10 @@ namespace HotChocolate.Execution.Processing
             return default;
         }
 
-        private static ValidationResult ValidateObject(InputObjectType type, ObjectValueNode value, Path path)
+        private static ValidationResult ValidateObject(
+            InputObjectType type,
+            ObjectValueNode value,
+            Path path)
         {
             var fields = new Dictionary<NameString, IValueNode>();
 

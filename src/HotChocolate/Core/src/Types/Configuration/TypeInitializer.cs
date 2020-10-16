@@ -39,7 +39,6 @@ namespace HotChocolate.Configuration
             TypeRegistry typeRegistry,
             IReadOnlyList<ITypeReference> initialTypes,
             IReadOnlyList<Type> externalResolverTypes,
-            ITypeInterceptor interceptor,
             IsOfTypeFallback? isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
@@ -51,12 +50,11 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(initialTypes));
             _externalResolverTypes = externalResolverTypes ??
                 throw new ArgumentNullException(nameof(externalResolverTypes));
-            _interceptor = interceptor ??
-                throw new ArgumentNullException(nameof(interceptor));
             _isOfType = isOfType;
             _isQueryType = isQueryType ??
                 throw new ArgumentNullException(nameof(isQueryType));
 
+            _interceptor = descriptorContext.TypeInterceptor;
             _typeInspector = descriptorContext.TypeInspector;
             _typeLookup = new TypeLookup(_typeInspector, _typeRegistry);
             _typeReferenceResolver = new TypeReferenceResolver(
@@ -247,11 +245,11 @@ namespace HotChocolate.Configuration
                 foreach (NameString typeName in extensions.Select(t => t.Type.Name).Distinct())
                 {
                     RegisteredType? type = types.FirstOrDefault(t => t.Type.Name.Equals(typeName));
-                    if(type is not null && type.Type is INamedType namedType) 
+                    if(type is not null && type.Type is INamedType namedType)
                     {
                         MergeTypeExtension(
-                            extensions.Where(t => t.Type.Name.Equals(typeName)), 
-                            type, 
+                            extensions.Where(t => t.Type.Name.Equals(typeName)),
+                            type,
                             namedType);
                     }
                 }

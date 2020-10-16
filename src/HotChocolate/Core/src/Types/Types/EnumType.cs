@@ -220,6 +220,5 @@ namespace HotChocolate.Types
             runtimeValue = null;
             return false;
         }
-
     }
 }

@@ -341,6 +341,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
     <value>A field-expression must be a property-expression or a method-call-expression.</value>
   </data>
+  <data name="NodeDescriptor_MustBeMethod" xml:space="preserve">
+    <value>A node-resolver-expression must be a method-call-expression.</value>
+  </data>
+  <data name="NodeDescriptor_IdMember" xml:space="preserve">
+    <value>An ID-member must be a property-expression or a method-call-expression.</value>
+  </data>
   <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
     <value>Schema types cannot be used as resolver types.</value>
   </data>
@@ -610,5 +616,32 @@ Type: `{0}`</value>
   </data>
   <data name="RegisteredType_CompletionContext_Already_Set" xml:space="preserve">
     <value>The completion context can only be set once.</value>
+  </data>
+  <data name="DeferDirectiveType_Description" xml:space="preserve">
+    <value>The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`.</value>
+  </data>
+  <data name="DeferDirectiveType_Label_Description" xml:space="preserve">
+    <value>If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to.</value>
+  </data>
+  <data name="DeferDirectiveType_If_Description" xml:space="preserve">
+    <value>Deferred when true.</value>
+  </data>
+  <data name="StreamDirectiveType_Description" xml:space="preserve">
+    <value>The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`.</value>
+  </data>
+  <data name="StreamDirectiveType_Label_Description" xml:space="preserve">
+    <value>If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to.</value>
+  </data>
+  <data name="StreamDirectiveType_InitialCount_Description" xml:space="preserve">
+    <value>The initial elements that shall be send down to the consumer.</value>
+  </data>
+  <data name="StreamDirectiveType_If_Description" xml:space="preserve">
+    <value>Streamed when true.</value>
+  </data>
+  <data name="SchemaBuilder_AddRootType_TypeAlreadyRegistered" xml:space="preserve">
+    <value>The root type `{0}` has already been registered.</value>
+  </data>
+  <data name="NodeDescriptor_IdField_MustBePropertyOrMethod" xml:space="preserve">
+    <value>The ID field must be a property or a method.</value>
   </data>
 </root>

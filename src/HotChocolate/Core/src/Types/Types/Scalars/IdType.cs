@@ -88,7 +88,7 @@ namespace HotChocolate.Types
         {
             if (runtimeValue is null)
             {
-                return new NullValueNode(null);
+                return NullValueNode.Default;
             }
 
             if (runtimeValue is string s)
@@ -105,7 +105,7 @@ namespace HotChocolate.Types
         {
             if (resultValue is null)
             {
-                return new NullValueNode(null);
+                return NullValueNode.Default;
             }
 
             if (resultValue is string s)

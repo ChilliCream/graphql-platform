@@ -36,29 +36,7 @@ namespace HotChocolate.Execution.Processing
             return fragment;
         }
 
-        private FragmentInfo? CreateFragment(string fragmentName)
-        {
-            for (var i = 0; i < _document.Definitions.Count; i++)
-            {
-                if (_document.Definitions[i] is FragmentDefinitionNode fragment &&
-                    string.Equals(fragment.Name.Value, fragmentName, StringComparison.Ordinal))
-                {
-                    if (_schema.TryGetType(fragment.TypeCondition.Name.Value, out INamedType type))
-                    {
-                        return new FragmentInfo(
-                            type, 
-                            fragment.SelectionSet, 
-                            fragment.Directives,
-                            null,
-                            fragment);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public FragmentInfo? GetFragment(IObjectType parentType, InlineFragmentNode inlineFragment)
+        public FragmentInfo GetFragment(IObjectType parentType, InlineFragmentNode inlineFragment)
         {
             if (parentType is null)
             {
@@ -72,7 +50,8 @@ namespace HotChocolate.Execution.Processing
 
             _inlineFragments ??= new Dictionary<(InlineFragmentNode, string?), FragmentInfo>();
             INamedType typeCondition = ResolveTypeCondition(parentType, inlineFragment);
-            var key = (inlineFragment, typeCondition.Name.Value);
+            (InlineFragmentNode inlineFragment, string Value) key =
+                (inlineFragment, typeCondition.Name.Value);
 
             if (!_inlineFragments.TryGetValue(key, out FragmentInfo? fragment))
             {
@@ -86,6 +65,26 @@ namespace HotChocolate.Execution.Processing
             }
 
             return fragment;
+        }
+
+        private FragmentInfo? CreateFragment(string fragmentName)
+        {
+            for (var i = 0; i < _document.Definitions.Count; i++)
+            {
+                if (_document.Definitions[i] is FragmentDefinitionNode fragment &&
+                    string.Equals(fragment.Name.Value, fragmentName, StringComparison.Ordinal) &&
+                    _schema.TryGetType(fragment.TypeCondition.Name.Value, out INamedType type))
+                {
+                    return new FragmentInfo(
+                        type,
+                        fragment.SelectionSet,
+                        fragment.Directives,
+                        null,
+                        fragment);
+                }
+            }
+
+            return null;
         }
 
         private INamedType ResolveTypeCondition(

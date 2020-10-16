@@ -1,0 +1,8 @@
+﻿query exec_batch($__0__id: ID, $__1__id: ID) {
+  __0__customer: customer(id: $__0__id) {
+    name
+  }
+  __1__customer: customer(id: $__1__id) {
+    id
+  }
+}

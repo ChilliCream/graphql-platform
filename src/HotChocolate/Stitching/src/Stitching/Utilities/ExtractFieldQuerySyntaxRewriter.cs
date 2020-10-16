@@ -85,7 +85,7 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(current.Name.Value, out IOutputField field))
+                && type.Fields.TryGetField(current.Name.Value, out IOutputField? field))
             {
                 Context cloned = context.Clone();
                 cloned.OutputField = field;
