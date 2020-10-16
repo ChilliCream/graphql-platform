@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using static HotChocolate.Execution.Properties.Resources;
 
 namespace HotChocolate.Execution
 {
@@ -38,7 +39,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 
@@ -60,7 +61,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 
@@ -82,7 +83,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 
@@ -113,7 +114,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 
@@ -163,7 +164,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 
@@ -186,7 +187,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(query))
             {
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
+                    ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty,
                     nameof(query));
             }
 

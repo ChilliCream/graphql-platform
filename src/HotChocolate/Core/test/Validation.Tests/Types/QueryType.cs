@@ -35,6 +35,10 @@ namespace HotChocolate.Validation.Types
 
             descriptor.Field(t => t.GetDogOrHuman())
                 .Type<DogOrHumanType>();
+
+            descriptor.Field("nonNull")
+                .Argument("a", a => a.Type<NonNullType<StringType>>().DefaultValue("abc"))
+                .Resolve("foo");
         }
     }
 }

@@ -194,6 +194,13 @@ namespace HotChocolate.Execution.Serialization
 
         private static void WritePathValue(Utf8JsonWriter writer, Path path)
         {
+            if (path is RootPathSegment)
+            {
+                writer.WriteStartArray();
+                writer.WriteEndArray();
+                return;
+            }
+
             writer.WriteStartArray();
 
             IReadOnlyList<object> list = path.ToList();
@@ -400,7 +407,7 @@ namespace HotChocolate.Execution.Serialization
                     break;
 
                 case Path p:
-                    WritePath(writer, p);
+                    WritePathValue(writer, p);
                     break;
 
                 default:
