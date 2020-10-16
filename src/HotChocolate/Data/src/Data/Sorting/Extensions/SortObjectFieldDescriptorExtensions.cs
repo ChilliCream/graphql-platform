@@ -178,10 +178,10 @@ namespace HotChocolate.Data
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, defintion) =>
+                            .Configure((context, def) =>
                                 CompileMiddleware(
                                     context,
-                                    definition,
+                                    def,
                                     argumentTypeReference,
                                     placeholder,
                                     scope))
@@ -193,7 +193,7 @@ namespace HotChocolate.Data
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
                             .Definition(definition)
-                            .Configure((context, defintion) =>
+                            .Configure((context, _) =>
                                 argumentDefinition.Name =
                                     context.GetSortConvention(scope).GetArgumentName())
                             .On(ApplyConfigurationOn.Naming)
