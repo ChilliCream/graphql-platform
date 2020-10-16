@@ -8,19 +8,14 @@ namespace HotChocolate.Types.Descriptors
     internal sealed class ConventionContext : IConventionContext
     {
         public ConventionContext(
-            IConvention convention,
             string? scope,
             IServiceProvider services,
             IDescriptorContext descriptorContext)
         {
-            Convention = convention;
             Scope = scope;
             Services = services;
             DescriptorContext = descriptorContext;
         }
-
-        /// <inheritdoc />
-        public IConvention Convention { get; }
 
         /// <inheritdoc />
         public string? Scope { get; }
@@ -39,5 +34,14 @@ namespace HotChocolate.Types.Descriptors
         {
             throw new NotImplementedException();
         }
+
+        public static ConventionContext Create(
+            string? scope,
+            IServiceProvider services,
+            IDescriptorContext descriptorContext) =>
+            new ConventionContext(
+                scope,
+                services,
+                descriptorContext);
     }
 }

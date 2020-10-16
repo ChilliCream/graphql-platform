@@ -128,8 +128,9 @@ namespace HotChocolate.Types.Descriptors
                 (typeof(T), scope),
                 out List<CreateConvention>? factories))
             {
-                Convention createdConvention = null;
+                Convention? createdConvention = null;
                 List<IConventionExtension> extensions = new List<IConventionExtension>();
+
                 for (var i = 0; i < factories.Count; i++)
                 {
                     conv = factories[i](_services);
@@ -137,13 +138,6 @@ namespace HotChocolate.Types.Descriptors
                     {
                         if (init is IConventionExtension extension)
                         {
-                            var conventionContext = new ConventionContext(
-                                extension,
-                                scope,
-                                _services,
-                                this);
-
-                            init.Initialize(conventionContext);
                             extensions.Add(extension);
                         }
                         else
@@ -163,18 +157,13 @@ namespace HotChocolate.Types.Descriptors
 
                 if (createdConvention is {})
                 {
-                    var conventionContext = new ConventionContext(
-                        createdConvention,
-                        scope,
-                        _services,
-                        this);
-                    createdConvention.Initialize(conventionContext);
-                    for (var m = 0; m < extensions.Count; m++)
-                    {
-                        extensions[m].Merge(conventionContext, createdConvention);
-                    }
+                    ConventionContext conventionContext =
+                        ConventionContext.Create(scope, _services, this);
 
+                    createdConvention.Initialize(conventionContext);
+                    MergeExtensions(conventionContext, createdConvention, extensions);
                     createdConvention.OnComplete(conventionContext);
+
                     _conventions[(typeof(T), scope)] = createdConvention;
                 }
 
@@ -187,6 +176,22 @@ namespace HotChocolate.Types.Descriptors
 
             convention = default;
             return false;
+        }
+
+        private static void MergeExtensions(
+            IConventionContext context,
+            Convention convention,
+            IList<IConventionExtension> extensions)
+        {
+            for (var m = 0; m < extensions.Count; m++)
+            {
+                if (extensions[m] is Convention extensionConvention)
+                {
+                    extensionConvention.Initialize(context);
+                    extensions[m].Merge(context, convention);
+                    extensionConvention.OnComplete(context);
+                }
+            }
         }
 
         internal static DescriptorContext Create(
