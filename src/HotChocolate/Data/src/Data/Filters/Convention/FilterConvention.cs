@@ -66,8 +66,17 @@ namespace HotChocolate.Data.Filters
                 foreach (KeyValuePair<ITypeReference, List<ConfigureFilterInputType>> configuration
                     in Definition.Configurations)
                 {
-                    filterConvention.Definition.Configurations[configuration.Key] =
-                        configuration.Value;
+                    if (filterConvention.Definition.Configurations.TryGetValue(
+                        configuration.Key,
+                        out var configurations))
+                    {
+                        configurations.AddRange(configuration.Value);
+                    }
+                    else
+                    {
+                        filterConvention.Definition.Configurations[configuration.Key] =
+                            configuration.Value;
+                    }
                 }
 
                 foreach (var operation in Definition.Operations)
