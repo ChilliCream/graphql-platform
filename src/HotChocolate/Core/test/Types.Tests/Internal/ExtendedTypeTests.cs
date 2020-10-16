@@ -301,6 +301,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IEnumerable<string>), "IEnumerable<String>", "String")]
         [InlineData(typeof(IReadOnlyCollection<string>), "IReadOnlyCollection<String>", "String")]
         [InlineData(typeof(IReadOnlyList<string>), "IReadOnlyList<String>", "String")]
+        [InlineData(typeof(IQuery<string>), "IQuery<String>", "String")]
         [InlineData(typeof(string[]), "[String]", "String")]
         [InlineData(
             typeof(Task<IAsyncEnumerable<string>>),
@@ -328,6 +329,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(CustomStringList2<string>))]
         [InlineData(typeof(ImmutableArray<string>))]
         [InlineData(typeof(IEnumerable<string>))]
+        [InlineData(typeof(IQuery<string>))]
         [InlineData(typeof(Task<IAsyncEnumerable<string>>))]
         [InlineData(typeof(ValueTask<IAsyncEnumerable<string>>))]
         [Theory]
@@ -345,10 +347,10 @@ namespace HotChocolate.Internal
         }
 
         [Fact]
-        public void NullableOptionalNullableString() 
+        public void NullableOptionalNullableString()
         {
             // arrange
-            MethodInfo member = 
+            MethodInfo member =
                 typeof(Nullability).GetMethod(nameof(Nullability.NullableOptionalNullableString))!;
 
             // act
@@ -359,10 +361,10 @@ namespace HotChocolate.Internal
         }
 
         [Fact]
-        public void OptionalNullableOptionalNullableString() 
+        public void OptionalNullableOptionalNullableString()
         {
             // arrange
-            MethodInfo member = 
+            MethodInfo member =
                 typeof(Nullability)
                     .GetMethod(nameof(Nullability.OptionalNullableOptionalNullableString))!;
 
@@ -371,6 +373,20 @@ namespace HotChocolate.Internal
 
             // assert
             Assert.Equal("Optional<Optional<String>>!", type.ToString());
+        }
+
+        [Fact]
+        public void From_IQueryScalar()
+        {
+            // arrange
+            // act
+            ExtendedType dict = ExtendedType.FromType(
+                typeof(IQuery<string>),
+                _cache);
+
+            // assert
+            Assert.True(dict.IsList);
+            Assert.True(dict.IsArrayOrList);
         }
 
         private class CustomStringList1
@@ -394,11 +410,11 @@ namespace HotChocolate.Internal
 #nullable enable
 
         public class Nullability
-        { 
-            public Nullable<Optional<string?>> NullableOptionalNullableString() => 
+        {
+            public Nullable<Optional<string?>> NullableOptionalNullableString() =>
                 throw new NotImplementedException();
 
-            public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() => 
+            public Optional<Nullable<Optional<string?>>> OptionalNullableOptionalNullableString() =>
                 throw new NotImplementedException();
         }
 

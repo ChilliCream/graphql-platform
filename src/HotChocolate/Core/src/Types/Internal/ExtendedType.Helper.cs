@@ -166,7 +166,8 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(ImmutableList<>)
                         || typeDefinition == typeof(ImmutableQueue<>)
                         || typeDefinition == typeof(ImmutableStack<>)
-                        || typeDefinition == typeof(ImmutableHashSet<>))
+                        || typeDefinition == typeof(ImmutableHashSet<>)
+                        || typeDefinition == typeof(IQuery<>))
                     {
                         return true;
                     }

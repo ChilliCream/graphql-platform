@@ -60,6 +60,9 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IAsyncEnumerable<string>), "[String]")]
         [InlineData(typeof(IEnumerable<string>), "[String]")]
         [InlineData(typeof(IQueryable<string>), "[String]")]
+        [InlineData(typeof(IQuery<string>), "[String]")]
+        [InlineData(typeof(IQuery<int>), "[String!]")]
+        [InlineData(typeof(IQuery<int?>), "[String]")]
         [Theory]
         public void CreateTypeInfoFromRuntimeType(
             Type clrType,
@@ -84,6 +87,7 @@ namespace HotChocolate.Internal
         [InlineData(typeof(IEnumerable<string>), "[String]")]
         [InlineData(typeof(IReadOnlyCollection<string>), "[String]")]
         [InlineData(typeof(IReadOnlyList<string>), "[String]")]
+        [InlineData(typeof(IQuery<string>), "[String]")]
         [InlineData(typeof(string[]), "[String]")]
         [Theory]
         public void SupportedListTypes(Type clrType, string expectedTypeName)
@@ -152,6 +156,61 @@ namespace HotChocolate.Internal
             Assert.Equal("[String!]", typeInfo.CreateType(new StringType()).Print());
         }
 
+        [Fact]
+        public void NonNullQueryNonNullElement()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.NonNullQueryNonNullElement));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("[String!]!", typeInfo.CreateType(new StringType()).Print());
+        }
+
+        [Fact]
+        public void NonNullQueryNullableElement()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.NonNullQueryNullableElement));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("[String]!", typeInfo.CreateType(new StringType()).Print());
+        }
+
+        [Fact]
+        public void NullableQueryNullableElement()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.NullableQueryNullableElement));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("[String]", typeInfo.CreateType(new StringType()).Print());
+        }
+
+        [Fact]
+        public void NullableQueryNonNullElement()
+        {
+            // arrange
+            MethodInfo methodInfo =
+                typeof(Nullability).GetMethod(nameof(Nullability.NullableQueryNonNullElement));
+
+            // act
+            var typeInfo = TypeInfo.Create(_typeInspector.GetReturnType(methodInfo!), _cache);
+
+            // assert
+            Assert.Equal("[String!]", typeInfo.CreateType(new StringType()).Print());
+        }
         [Fact]
         public void NonNullCollectionNonNullElement()
         {
@@ -538,6 +597,14 @@ namespace HotChocolate.Internal
 
             public ICollection<string>? NullableCollectionNonNullElement() => default;
 
+            public IQuery<string> NonNullQueryNonNullElement() => default!;
+
+            public IQuery<string?> NonNullQueryNullableElement() => default!;
+
+            public IQuery<string?>? NullableQueryNullableElement() => default;
+
+            public IQuery<string>? NullableQueryNonNullElement() => default;
+
             public string[] NonNullArrayNonNullElement() => default!;
 
             public string?[] NonNullArrayNullableElement() => default!;
@@ -549,7 +616,7 @@ namespace HotChocolate.Internal
             public List<List<string?>?>? NestedList() => default;
 
             public Optional<string?> OptionalNullableString() => default;
-            
+
             public Nullable<Optional<string?>> NullableOptionalNullableString() => default;
         }
 
