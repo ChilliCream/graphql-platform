@@ -1,18 +1,51 @@
 using System;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Validation;
 using HotChocolate.Validation.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static partial class RequestExecutorBuilderExtensions
     {
-        public static IRequestExecutorBuilder ConfigureValidation(
+        /// <summary>
+        /// Adds a query validation rule to the schema.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type of the validator.
+        /// </typeparam>
+        /// <returns>
+        /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+        /// configuration.
+        /// </returns>
+        public static IRequestExecutorBuilder AddValidationRule<T>(
+            this IRequestExecutorBuilder builder)
+            where T : DocumentValidatorVisitor, new() =>
+            ConfigureValidation(builder, b => b.TryAddValidationRule<T>());
+
+        /// <summary>
+        /// Adds a query validation rule to the schema.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="factory">
+        /// The factory that creates the validator instance.
+        /// </param>
+        /// <typeparam name="T">
+        /// The type of the validator.
+        /// </typeparam>
+        /// <returns>
+        /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+        /// configuration.
+        /// </returns>
+        public static IRequestExecutorBuilder AddValidationRule<T>(
             this IRequestExecutorBuilder builder,
-            Action<IValidationBuilder> configure)
-        {
-            configure(builder.Services.AddValidation(builder.Name));
-            return builder;
-        }
+            Func<IServiceProvider, ValidationOptions, T> factory)
+            where T : DocumentValidatorVisitor  =>
+            ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
 
         public static IRequestExecutorBuilder AddMaxComplexityRule(
             this IRequestExecutorBuilder builder,
@@ -23,5 +56,13 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             int maxAllowedExecutionDepth) =>
             ConfigureValidation(builder, b => b.AddMaxExecutionDepthRule(maxAllowedExecutionDepth));
+
+        private static IRequestExecutorBuilder ConfigureValidation(
+            IRequestExecutorBuilder builder,
+            Action<IValidationBuilder> configure)
+        {
+            configure(builder.Services.AddValidation(builder.Name));
+            return builder;
+        }
     }
 }
