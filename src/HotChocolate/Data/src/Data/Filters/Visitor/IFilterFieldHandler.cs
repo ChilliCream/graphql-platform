@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters
         /// <returns>Returns true if the field can be handled</returns>
         bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition);
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition);
     }
 }

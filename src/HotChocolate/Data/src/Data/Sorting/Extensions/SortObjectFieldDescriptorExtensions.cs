@@ -169,6 +169,8 @@ namespace HotChocolate.Data
                             throw SortObjectFieldDescriptorExtensions_CannotInfer();
                         }
 
+                        argumentType = typeof(ListType<>).MakeGenericType(argumentType);
+
                         var argumentDefinition = new ArgumentDefinition
                         {
                             Name = argumentPlaceholder,
@@ -184,10 +186,10 @@ namespace HotChocolate.Data
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, def) =>
                                         CompileMiddleware(
                                             context,
-                                            definition,
+                                            def,
                                             argumentTypeReference,
                                             placeholder,
                                             scope))
@@ -200,7 +202,7 @@ namespace HotChocolate.Data
                                 .New<ObjectFieldDefinition>()
                                 .Definition(definition)
                                 .Configure(
-                                    (context, defintion) =>
+                                    (context, _) =>
                                         argumentDefinition.Name =
                                             context.GetSortConvention(scope).GetArgumentName())
                                 .On(ApplyConfigurationOn.Naming)

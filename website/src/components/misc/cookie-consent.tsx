@@ -16,7 +16,11 @@ export const CookieConsent: FunctionComponent = () => {
   const consentCookieValue = cookies[cookieName];
 
   const clickDismiss = () => {
-    setCookie(cookieName, "true", { path: "/" });
+    const expires = new Date();
+
+    expires.setFullYear(new Date().getFullYear() + 1);
+
+    setCookie(cookieName, "true", { path: "/", expires });
   };
 
   useEffect(() => {

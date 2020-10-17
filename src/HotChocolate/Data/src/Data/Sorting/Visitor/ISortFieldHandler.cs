@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting
         /// <returns>Returns true if the field can be handled</returns>
         bool CanHandle(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition);
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition);
     }
 }

@@ -126,7 +126,7 @@ namespace HotChocolate.Types
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Default);
@@ -158,13 +158,13 @@ namespace HotChocolate.Types
 
         private static void RegisterFieldDependencies(
             this ITypeDiscoveryContext context,
-            IEnumerable<OutputFieldDefinitionBase> fields)
+            IReadOnlyList<OutputFieldDefinitionBase> fields)
         {
             foreach (OutputFieldDefinitionBase field in fields)
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Default);
@@ -173,10 +173,10 @@ namespace HotChocolate.Types
                 context.RegisterDependencyRange(
                     field.Directives.Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
-
-                RegisterFieldDependencies(context,
-                    fields.SelectMany(t => t.Arguments).ToList());
             }
+
+            RegisterFieldDependencies(context,
+                fields.SelectMany(t => t.Arguments));
         }
 
         private static void RegisterFieldDependencies(
@@ -187,7 +187,7 @@ namespace HotChocolate.Types
             {
                 RegisterAdditionalDependencies(context, field);
 
-                if (field.Type != null)
+                if (field.Type is not null)
                 {
                     context.RegisterDependency(field.Type,
                         TypeDependencyKind.Completed);

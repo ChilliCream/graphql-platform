@@ -1,0 +1,17 @@
+﻿{
+  "errors": [
+    {
+      "message": "Variable \u0060a\u0060 is required.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 8
+        }
+      ],
+      "extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION",
+        "variable": "a"
+      }
+    }
+  ]
+}

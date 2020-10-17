@@ -66,7 +66,8 @@ namespace HotChocolate.Data.Sorting.Expressions
                 }
 
                 if (source != null &&
-                    argument.Type is ISortInputType sortInput &&
+                    argument.Type is ListType lt &&
+                    lt.ElementType is ISortInputType sortInput &&
                     context.Field.ContextData.TryGetValue(
                         ContextVisitSortArgumentKey,
                         out object? executorObj) &&

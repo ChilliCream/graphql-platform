@@ -22,15 +22,16 @@ namespace HotChocolate.Execution
                         a: String! = ""bar""
                     }
                 ")
-                .Use(next => context => default(ValueTask))
+                .Use(next => context => default)
                 .Create();
 
             IInputField field = schema.QueryType.Fields["test"].Arguments["bar"];
 
             // act
-            var report = ArgumentNonNullValidator.Validate(
-                field,
-                new ObjectValueNode(), Path.New("root"));
+            ArgumentNonNullValidator.ValidationResult report =
+                ArgumentNonNullValidator.Validate(
+                    field,
+                    new ObjectValueNode(), Path.New("root"));
 
             // assert
             Assert.False(report.HasErrors);

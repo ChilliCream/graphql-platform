@@ -7,24 +7,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
         : DefinitionBase
         , IHasDirectiveDefinition
     {
-        private ITypeReference type;
-
         /// <summary>
         /// Gets the field type.
         /// </summary>
-        public ITypeReference Type
-        {
-            get => type;
-            set
-            {
-                if(type is ExtendedTypeReference r && 
-                    r.Type.Kind == ExtendedTypeKind.Extended) 
-                {
-                    
-                }
-                type = value;
-            }
-        }
+        public ITypeReference Type { get; set; }
 
         /// <summary>
         /// Defines if this field is ignored and will

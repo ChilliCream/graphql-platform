@@ -7,7 +7,7 @@ type Foo {
 }
 
 type Query {
-  foos(order: BarSortInput): [Foo!]!
+  foos(order: [BarSortInput]): [Foo!]!
 }
 
 input BarSortInput {

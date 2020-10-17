@@ -249,8 +249,8 @@ namespace HotChocolate.Data.Sorting
 
         public bool TryGetFieldHandler(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler)
         {
             foreach (ISortFieldHandler sortFieldHandler in _provider.FieldHandlers)
