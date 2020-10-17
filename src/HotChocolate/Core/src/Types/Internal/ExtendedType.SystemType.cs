@@ -20,7 +20,7 @@ namespace HotChocolate.Internal
                     && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     Type inner = type.GetGenericArguments()[0];
-                    
+
                     return new ExtendedType(
                         inner,
                         ExtendedTypeKind.Runtime,
@@ -50,7 +50,7 @@ namespace HotChocolate.Internal
             }
 
             public static IReadOnlyList<ExtendedType> GetGenericArguments(
-                Type type, 
+                Type type,
                 TypeCache cache)
             {
                 if (type.IsGenericType)

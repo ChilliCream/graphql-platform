@@ -8,15 +8,36 @@ namespace HotChocolate.Execution.Processing
     {
         public static ValidationResult Validate(IInputField field, IValueNode? value, Path path)
         {
-            if (value.IsNull())
+            // if no value was provided
+            if (value is null)
             {
+                // the type is a non-null type and no default value has been set we mark this
+                // field as violation.
                 if (field.Type.IsNonNullType() && field.DefaultValue.IsNull())
                 {
                     return new ValidationResult(field.Type, path);
                 }
+
+                // if the field has a default value or nullable everything is fine and we
+                // return success.
                 return default;
             }
 
+            // if null was explicitly set
+            if (value is NullValueNode)
+            {
+                // and the field type is a non-null type we will mark the field value
+                // as violation.
+                if (field.Type.IsNonNullType())
+                {
+                    return new ValidationResult(field.Type, path);
+                }
+
+                // if the field is nullable we will mark the field as valid.
+                return default;
+            }
+
+            // if the field has a value we traverse it and make sure the value is correct.
             return ValidateInnerType(field.Type, value, path);
         }
 
@@ -40,10 +61,8 @@ namespace HotChocolate.Execution.Processing
                 {
                     return ValidateList(listType, listValue, path);
                 }
-                else
-                {
-                    Validate(listType.ElementType, value, path);
-                }
+
+                Validate(listType.ElementType, value, path);
             }
 
             if (innerType is InputObjectType inputType && value is ObjectValueNode ov)
@@ -61,7 +80,7 @@ namespace HotChocolate.Execution.Processing
         {
             var fields = new Dictionary<NameString, IValueNode>();
 
-            for (int i = 0; i < value.Fields.Count; i++)
+            for (var i = 0; i < value.Fields.Count; i++)
             {
                 ObjectFieldNode field = value.Fields[i];
                 fields[field.Name.Value] = field.Value;
@@ -88,7 +107,7 @@ namespace HotChocolate.Execution.Processing
         private static ValidationResult ValidateList(ListType type, ListValueNode list, Path path)
         {
             IType elementType = type.ElementType();
-            int i = 0;
+            var i = 0;
 
             foreach (IValueNode element in list.Items)
             {
