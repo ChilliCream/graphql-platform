@@ -40,8 +40,6 @@ namespace HotChocolate.Data.Sorting
         private ITypeInspector _typeInspector = default!;
         private Type? _defaultBinding;
 
-        internal new SortConventionDefinition? Definition => base.Definition;
-
         protected SortConvention()
         {
             _configure = Configure;
@@ -52,6 +50,8 @@ namespace HotChocolate.Data.Sorting
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
+
+        internal new SortConventionDefinition? Definition => base.Definition;
 
         protected override SortConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -124,8 +124,8 @@ namespace HotChocolate.Data.Sorting
 
             _typeInspector = context.DescriptorContext.TypeInspector;
 
-            // It is important to always call base to continue the cleanup and the disposal of
-            // the definition
+            // It is important to always call base to continue the cleanup and the disposal of the
+            // definition
             base.OnComplete(context);
         }
 

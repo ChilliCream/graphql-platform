@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters
 {
@@ -36,7 +37,7 @@ namespace HotChocolate.Data.Filters
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(DataResources.FilterProvider_NoConfigurationSpecified);
+                throw new InvalidOperationException(FilterProvider_NoConfigurationSpecified);
             }
 
             var descriptor = FilterProviderDescriptor<TContext>.New();
@@ -51,7 +52,7 @@ namespace HotChocolate.Data.Filters
 
         public override void Merge(IConventionContext context, Convention convention)
         {
-            if (Definition is {} &&
+            if (Definition is not null &&
                 convention is FilterProvider<TContext> conv &&
                 conv.Definition is {} target)
             {

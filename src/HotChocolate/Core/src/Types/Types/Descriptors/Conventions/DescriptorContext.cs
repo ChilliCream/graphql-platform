@@ -103,23 +103,26 @@ namespace HotChocolate.Types.Descriptors
 
             CreateConventions<T>(
                 scope,
-                out Convention? createdConvention,
+                out IConvention? createdConvention,
                 out IList<IConventionExtension>? extensions);
 
-            createdConvention ??= _services.GetService(typeof(T)) as Convention;
-            createdConvention ??= defaultConvention() as Convention;
+            createdConvention ??= createdConvention as T;
+            createdConvention ??= _services.GetService(typeof(T)) as T;
+            createdConvention ??= defaultConvention();
 
-            if (createdConvention is T createdConventionOfT)
+            if (createdConvention is Convention init)
             {
                 ConventionContext conventionContext =
                     ConventionContext.Create(scope, _services, this);
 
-                createdConvention.Initialize(conventionContext);
-                MergeExtensions(conventionContext, createdConvention, extensions);
-                createdConvention.OnComplete(conventionContext);
+                init.Initialize(conventionContext);
+                MergeExtensions(conventionContext, init, extensions);
+                init.OnComplete(conventionContext);
+            }
 
-                _conventions[(typeof(T), scope)] = createdConvention;
-
+            if (createdConvention is T createdConventionOfT)
+            {
+                _conventions[(typeof(T), scope)] = createdConventionOfT;
                 return createdConventionOfT;
             }
 
@@ -127,8 +130,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         private void CreateConventions<T>(
-            string scope,
-            out Convention? createdConvention,
+            string? scope,
+            out IConvention? createdConvention,
             out IList<IConventionExtension> extensions)
         {
             createdConvention = null;
@@ -141,25 +144,22 @@ namespace HotChocolate.Types.Descriptors
                 for (var i = 0; i < factories.Count; i++)
                 {
                     IConvention conv = factories[i](_services);
-                    if (conv is Convention init)
+                    if (conv is IConventionExtension extension)
                     {
-                        if (init is IConventionExtension extension)
+                        extensions.Add(extension);
+                    }
+                    else
+                    {
+                        if (createdConvention is not null)
                         {
-                            extensions.Add(extension);
+                            throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
+                                typeof(T),
+                                createdConvention,
+                                conv,
+                                scope);
                         }
-                        else
-                        {
-                            if (createdConvention is not null)
-                            {
-                                throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
-                                    typeof(T),
-                                    createdConvention,
-                                    init,
-                                    scope);
-                            }
 
-                            createdConvention = init;
-                        }
+                        createdConvention = conv;
                     }
                 }
             }

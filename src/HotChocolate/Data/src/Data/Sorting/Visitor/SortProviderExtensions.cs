@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Sorting
 {
@@ -36,7 +37,7 @@ namespace HotChocolate.Data.Sorting
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(DataResources.SortProvider_NoConfigurationSpecified);
+                throw new InvalidOperationException(SortProvider_NoConfigurationSpecified);
             }
 
             var descriptor = SortProviderDescriptor<TContext>.New();

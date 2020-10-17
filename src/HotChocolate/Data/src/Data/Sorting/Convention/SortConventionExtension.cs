@@ -54,8 +54,8 @@ namespace HotChocolate.Data.Sorting
         public override void Merge(IConventionContext context, Convention convention)
         {
             if (convention is SortConvention sortConvention &&
-                Definition is {} &&
-                sortConvention.Definition is {})
+                Definition is not null &&
+                sortConvention.Definition is not null)
             {
                 ExtensionHelpers.MergeDictionary(
                     Definition.Bindings,
@@ -82,17 +82,17 @@ namespace HotChocolate.Data.Sorting
                     sortConvention.Definition.ArgumentName = Definition.ArgumentName;
                 }
 
-                if (Definition.Provider is {})
+                if (Definition.Provider is not null)
                 {
                     sortConvention.Definition.Provider = Definition.Provider;
                 }
 
-                if (Definition.ProviderInstance is {})
+                if (Definition.ProviderInstance is not null)
                 {
                     sortConvention.Definition.ProviderInstance = Definition.ProviderInstance;
                 }
 
-                if (Definition.DefaultBinding is {})
+                if (Definition.DefaultBinding is not null)
                 {
                     sortConvention.Definition.DefaultBinding = Definition.DefaultBinding;
                 }

@@ -53,8 +53,8 @@ namespace HotChocolate.Data.Filters
         public override void Merge(IConventionContext context, Convention convention)
         {
             if (convention is FilterConvention filterConvention &&
-                Definition is {} &&
-                filterConvention.Definition is {})
+                Definition is not null &&
+                filterConvention.Definition is not null)
             {
                 ExtensionHelpers.MergeDictionary(
                     Definition.Bindings,
@@ -77,12 +77,12 @@ namespace HotChocolate.Data.Filters
                     filterConvention.Definition.ArgumentName = Definition.ArgumentName;
                 }
 
-                if (Definition.Provider is {})
+                if (Definition.Provider is not null)
                 {
                     filterConvention.Definition.Provider = Definition.Provider;
                 }
 
-                if (Definition.ProviderInstance is {})
+                if (Definition.ProviderInstance is not null)
                 {
                     filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
                 }

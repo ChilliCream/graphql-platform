@@ -18,8 +18,8 @@ namespace HotChocolate.Data.Filters
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
     public class FilterConvention
-        : Convention<FilterConventionDefinition>,
-          IFilterConvention
+        : Convention<FilterConventionDefinition>
+        , IFilterConvention
     {
         private const string _typePostFix = "FilterInput";
 
@@ -33,8 +33,6 @@ namespace HotChocolate.Data.Filters
         private IFilterProvider _provider = default!;
         private ITypeInspector _typeInspector = default!;
 
-        internal new FilterConventionDefinition? Definition => base.Definition;
-
         protected FilterConvention()
         {
             _configure = Configure;
@@ -45,6 +43,8 @@ namespace HotChocolate.Data.Filters
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
+
+        internal new FilterConventionDefinition? Definition => base.Definition;
 
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
@@ -105,8 +105,8 @@ namespace HotChocolate.Data.Filters
 
             _typeInspector = context.DescriptorContext.TypeInspector;
 
-            // It is important to always call base to continue the cleanup and the disposal of
-            // the definition
+            // It is important to always call base to continue the cleanup and the disposal of the
+            // definition
             base.OnComplete(context);
         }
 
