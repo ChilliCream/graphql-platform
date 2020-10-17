@@ -1,1 +1,1 @@
-﻿{ "BarShort" : { "$not" : { "$lt" : 13 } } }
+﻿{ "$match" : { "BarShort" : { "$not" : { "$lt" : 13 } } } }

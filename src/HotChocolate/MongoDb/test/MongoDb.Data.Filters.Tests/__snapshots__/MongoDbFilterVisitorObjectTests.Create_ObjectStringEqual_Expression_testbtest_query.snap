@@ -1,1 +1,1 @@
-﻿{ "Foo.BarString" : { "$eq" : "testbtest" } }
+﻿{ "$match" : { "Foo.BarString" : { "$eq" : "testbtest" } } }

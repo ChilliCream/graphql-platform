@@ -1,1 +1,1 @@
-﻿{ "BarEnum" : { "$in" : [null, 0] } }
+﻿{ "$match" : { "BarEnum" : { "$in" : [null, 0] } } }

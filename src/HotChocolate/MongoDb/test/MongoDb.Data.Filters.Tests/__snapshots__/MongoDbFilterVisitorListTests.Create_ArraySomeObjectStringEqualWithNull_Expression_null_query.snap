@@ -1,1 +1,1 @@
-﻿{ "FooNested" : { "$elemMatch" : { "Bar" : { "$eq" : null } } } }
+﻿{ "$match" : { "FooNested" : { "$elemMatch" : { "Bar" : { "$eq" : null } } } } }

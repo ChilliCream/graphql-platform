@@ -1,1 +1,1 @@
-﻿{ "Foo.BarEnum" : { "$in" : [1, 0] } }
+﻿{ "$match" : { "Foo.BarEnum" : { "$in" : [1, 0] } } }

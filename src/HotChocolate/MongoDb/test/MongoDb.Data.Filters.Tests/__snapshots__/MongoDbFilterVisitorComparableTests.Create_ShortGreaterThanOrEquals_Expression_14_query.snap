@@ -1,1 +1,1 @@
-﻿{ "BarShort" : { "$gte" : 14 } }
+﻿{ "$match" : { "BarShort" : { "$gte" : 14 } } }

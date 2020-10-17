@@ -1,1 +1,1 @@
-﻿{ "Bar" : { "$nin" : ["testatest"] } }
+﻿{ "$match" : { "Bar" : { "$nin" : ["testatest"] } } }

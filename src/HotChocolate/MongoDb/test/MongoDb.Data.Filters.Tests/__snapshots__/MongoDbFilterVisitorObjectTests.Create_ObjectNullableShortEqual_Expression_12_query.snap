@@ -1,1 +1,1 @@
-﻿{ "Foo.BarShort" : { "$eq" : 12 } }
+﻿{ "$match" : { "Foo.BarShort" : { "$eq" : 12 } } }

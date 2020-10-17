@@ -9,7 +9,7 @@ using Xunit;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class QueryableFilterVisitorListTests
+    public class MongoDbFilterVisitorListTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -62,7 +62,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             }
         };
 
-        public QueryableFilterVisitorListTests(MongoResource resource)
+        public MongoDbFilterVisitorListTests(MongoResource resource)
         {
             Init(resource);
         }

@@ -1,1 +1,1 @@
-﻿{ "Foo.ObjectArray" : { "$elemMatch" : { "Foo.BarString" : { "$eq" : "a" } } } }
+﻿{ "$match" : { "Foo.ObjectArray" : { "$elemMatch" : { "Foo.BarString" : { "$eq" : "a" } } } } }

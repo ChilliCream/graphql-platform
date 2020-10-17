@@ -1,1 +1,1 @@
-﻿{ "BarEnum" : -1 }
+﻿{ "$match" : { }, "$sort" : { "BarEnum" : -1 } }

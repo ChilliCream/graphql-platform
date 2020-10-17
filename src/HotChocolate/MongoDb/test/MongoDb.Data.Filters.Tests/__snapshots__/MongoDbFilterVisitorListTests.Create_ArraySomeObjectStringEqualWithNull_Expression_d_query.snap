@@ -1,1 +1,1 @@
-﻿{ "FooNested" : { "$elemMatch" : { "Bar" : { "$eq" : "d" } } } }
+﻿{ "$match" : { "FooNested" : { "$elemMatch" : { "Bar" : { "$eq" : "d" } } } } }

@@ -8,7 +8,7 @@ using Squadron;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class QueryableFilterVisitorBooleanTests
+    public class MongoDbFilterVisitorBooleanTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -24,7 +24,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             new FooNullable { Bar = false }
         };
 
-        public QueryableFilterVisitorBooleanTests(MongoResource resource)
+        public MongoDbFilterVisitorBooleanTests(MongoResource resource)
         {
             Init(resource);
         }

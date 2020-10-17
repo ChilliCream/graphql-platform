@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class QueryableFilterVisitorStringTests
+    public class MongoDbFilterVisitorStringTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -24,7 +24,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             new FooNullable { Bar = null }
         };
 
-        public QueryableFilterVisitorStringTests(MongoResource resource)
+        public MongoDbFilterVisitorStringTests(MongoResource resource)
         {
             Init(resource);
         }

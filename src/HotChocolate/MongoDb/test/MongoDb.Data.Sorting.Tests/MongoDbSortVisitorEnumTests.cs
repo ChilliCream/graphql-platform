@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.MongoDb.Data.Sorting.Expressions
 {
-    public class QueryableSortVisitorEnumTests
+    public class MongoDbSortVisitorEnumTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -29,7 +29,7 @@ namespace HotChocolate.MongoDb.Data.Sorting.Expressions
             new FooNullable { BarEnum = FooEnum.QUX }
         };
 
-        public QueryableSortVisitorEnumTests(
+        public MongoDbSortVisitorEnumTests(
             MongoResource resource)
         {
             Init(resource);

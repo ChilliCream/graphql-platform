@@ -18,7 +18,7 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         protected string? FileName { get; set; } = Guid.NewGuid().ToString("N") + ".db";
 
-        private Func<IResolverContext, Task<IEnumerable<TResult>>> BuildResolver<TResult>(
+        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
             MongoResource mongoResource,
             params TResult[] results)
             where TResult : class
@@ -33,20 +33,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
             collection.InsertMany(results);
 
-            return async ctx =>
-            {
-                if (ctx.LocalContextData.TryGetValue(
-                        nameof(FilterDefinition<TResult>),
-                        out var def) &&
-                    def is BsonDocument filter)
-                {
-                    ctx.ContextData["query"] = filter.ToString();
-                    List<TResult> result = await collection.Find(filter).ToListAsync();
-                    return result;
-                }
-
-                return new List<TResult>();
-            };
+            return ctx => collection.AsExecutable();
         }
 
         protected IRequestExecutor CreateSchema<TEntity, T>(
@@ -56,7 +43,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
-            Func<IResolverContext, Task<IEnumerable<TEntity>>> resolver = BuildResolver(
+            Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
                 mongoResource,
                 entities);
 
@@ -67,6 +54,15 @@ namespace HotChocolate.MongoDb.Data.Filters
                         .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
+                        .Use(next => async context =>
+                        {
+                            await next(context);
+                            if (context.Result is IExecutable executable)
+                            {
+                                context.ContextData["query"] = executable.Print();
+                            }
+
+                        })
                         .UseFiltering<T>());
 
             ISchema schema = builder.Create();

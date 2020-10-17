@@ -1,1 +1,1 @@
-﻿{ "Foo.BarBool" : { "$eq" : null } }
+﻿{ "$match" : { "Foo.BarBool" : { "$eq" : null } } }

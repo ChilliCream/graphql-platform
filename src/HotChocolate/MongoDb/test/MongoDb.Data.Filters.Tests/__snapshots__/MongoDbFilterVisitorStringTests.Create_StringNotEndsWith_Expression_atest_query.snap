@@ -1,1 +1,1 @@
-﻿{ "Bar" : { "$not" : { "$regex" : /atest$/ } } }
+﻿{ "$match" : { "Bar" : { "$not" : { "$regex" : /atest$/ } } } }

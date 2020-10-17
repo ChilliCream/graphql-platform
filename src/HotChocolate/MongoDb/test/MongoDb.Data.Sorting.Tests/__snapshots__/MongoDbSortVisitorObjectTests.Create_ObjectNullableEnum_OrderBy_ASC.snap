@@ -4,7 +4,6 @@
       {
         "foo": null
       },
-      null,
       {
         "foo": {
           "barEnum": "FOO"

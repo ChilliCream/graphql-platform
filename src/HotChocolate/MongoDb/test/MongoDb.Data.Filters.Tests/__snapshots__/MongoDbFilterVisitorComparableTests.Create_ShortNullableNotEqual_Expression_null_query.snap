@@ -1,1 +1,1 @@
-﻿{ "BarShort" : { "$ne" : null } }
+﻿{ "$match" : { "BarShort" : { "$ne" : null } } }

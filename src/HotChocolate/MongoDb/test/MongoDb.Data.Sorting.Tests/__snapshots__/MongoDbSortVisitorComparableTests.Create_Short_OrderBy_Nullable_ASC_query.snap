@@ -1,1 +1,1 @@
-﻿{ "BarShort" : 1 }
+﻿{ "$match" : { }, "$sort" : { "BarShort" : 1 } }

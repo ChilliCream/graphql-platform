@@ -1,1 +1,1 @@
-﻿{ "Foo.ObjectArray" : { "$exists" : true, "$ne" : null, "$eq" : [] } }
+﻿{ "$match" : { "Foo.ObjectArray" : { "$exists" : true, "$ne" : null, "$eq" : [] } } }

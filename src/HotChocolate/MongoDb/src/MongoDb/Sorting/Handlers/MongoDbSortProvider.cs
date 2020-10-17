@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.MongoDb.Data.Sorting;
+using HotChocolate.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using MongoDB.Bson;
@@ -39,21 +40,17 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                 IInputField argument = context.Field.Arguments[argumentName];
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
-                if (filter is not NullValueNode && argument.Type is ISortInputType filterInput)
+                if (filter is not NullValueNode &&
+
+                    argument.Type is ListType listType &&
+                    listType.ElementType is SortInputType sortInputType)
                 {
-                    visitorContext = new MongoDbSortVisitorContext(filterInput);
+                    visitorContext = new MongoDbSortVisitorContext(sortInputType);
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (visitorContext.TryCreateQuery(out BsonDocument? order))
-                    {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(SortDefinition<TEntityType>),
-                                order);
-                    }
-
-                    if (visitorContext.Errors.Count > 0)
+                    if (!visitorContext.TryCreateQuery(out BsonDocument? order)||
+                        visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
                         foreach (IError error in visitorContext.Errors)
@@ -63,7 +60,17 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                     }
                     else
                     {
+                        context.LocalContextData =
+                            context.LocalContextData.SetItem(
+                                nameof(SortDefinition<TEntityType>),
+                                order);
+
                         await next(context).ConfigureAwait(false);
+
+                        if (context.Result is IMongoExecutable executable)
+                        {
+                            context.Result = executable.WithSorting(order);
+                        }
                     }
                 }
             }

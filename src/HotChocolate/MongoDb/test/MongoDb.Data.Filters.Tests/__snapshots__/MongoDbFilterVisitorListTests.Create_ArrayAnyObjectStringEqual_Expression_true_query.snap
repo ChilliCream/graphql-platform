@@ -1,1 +1,1 @@
-﻿{ "FooNested" : { "$exists" : true, "$nin" : [[], null] } }
+﻿{ "$match" : { "FooNested" : { "$exists" : true, "$nin" : [[], null] } } }

@@ -1,1 +1,1 @@
-﻿{ "Foo.BarString" : { "$in" : ["testatest"] } }
+﻿{ "$match" : { "Foo.BarString" : { "$in" : ["testatest"] } } }

@@ -1,1 +1,1 @@
-﻿{ "BarEnum" : { "$eq" : 1 } }
+﻿{ "$match" : { "BarEnum" : { "$eq" : 1 } } }

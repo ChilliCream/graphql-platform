@@ -8,7 +8,7 @@ using Squadron;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
-    public class QueryableFilterVisitorEnumTests
+    public class MongoDbFilterVisitorEnumTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -29,7 +29,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             new FooNullable { BarEnum = FooEnum.QUX }
         };
 
-        public QueryableFilterVisitorEnumTests(MongoResource resource)
+        public MongoDbFilterVisitorEnumTests(MongoResource resource)
         {
             Init(resource);
         }

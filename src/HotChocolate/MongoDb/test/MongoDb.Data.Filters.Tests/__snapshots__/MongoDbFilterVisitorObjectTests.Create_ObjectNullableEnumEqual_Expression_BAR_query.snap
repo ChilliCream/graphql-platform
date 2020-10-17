@@ -1,1 +1,1 @@
-﻿{ "Foo.BarEnum" : { "$eq" : 1 } }
+﻿{ "$match" : { "Foo.BarEnum" : { "$eq" : 1 } } }

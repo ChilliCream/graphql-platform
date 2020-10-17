@@ -1,1 +1,1 @@
-﻿{ "Bar" : { "$eq" : null } }
+﻿{ "$match" : { "Bar" : { "$eq" : null } } }

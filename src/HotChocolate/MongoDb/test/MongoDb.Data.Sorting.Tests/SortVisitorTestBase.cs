@@ -19,7 +19,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
     {
         protected string? FileName { get; } = Guid.NewGuid().ToString("N") + ".db";
 
-        private Func<IResolverContext, Task<IEnumerable<TResult>>> BuildResolver<TResult>(
+        private Func<IResolverContext, IExecutable<TResult>> BuildResolver<TResult>(
             MongoResource mongoResource,
             params TResult[] results)
             where TResult : class
@@ -34,22 +34,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
 
             collection.InsertMany(results);
 
-            return async ctx =>
-            {
-                if (ctx.LocalContextData.TryGetValue(
-                        nameof(SortDefinition<TResult>),
-                        out object? def) &&
-                    def is BsonDocument filter)
-                {
-                    ctx.ContextData["query"] = filter.ToString();
-                    List<TResult> result = await (await collection.FindAsync(
-                        FilterDefinition<TResult>.Empty,
-                        new FindOptions<TResult> { Sort = filter })).ToListAsync();
-                    return result;
-                }
-
-                return new List<TResult>();
-            };
+            return ctx => collection.AsExecutable();
         }
 
         protected IRequestExecutor CreateSchema<TEntity, T>(
@@ -59,7 +44,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
             where TEntity : class
             where T : SortInputType<TEntity>
         {
-            Func<IResolverContext, Task<IEnumerable<TEntity>>> resolver = BuildResolver(
+            Func<IResolverContext, IExecutable<TEntity>> resolver = BuildResolver(
                 mongoResource,
                 entities);
 
@@ -70,6 +55,15 @@ namespace HotChocolate.MongoDb.Data.Sorting
                         .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
+                        .Use(
+                            next => async context =>
+                            {
+                                await next(context);
+                                if (context.Result is IExecutable executable)
+                                {
+                                    context.ContextData["query"] = executable.Print();
+                                }
+                            })
                         .UseSorting<T>());
 
             ISchema schema = builder.Create();

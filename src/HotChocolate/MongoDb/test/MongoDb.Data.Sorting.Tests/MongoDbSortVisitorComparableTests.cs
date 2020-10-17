@@ -8,7 +8,7 @@ using Xunit;
 
 namespace HotChocolate.MongoDb.Data.Sorting
 {
-    public class QueryableSortVisitorComparableTests
+    public class MongoDbSortVisitorComparableTests
         : SchemaCache,
           IClassFixture<MongoResource>
     {
@@ -27,7 +27,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
             new FooNullable { BarShort = 13 }
         };
 
-        public QueryableSortVisitorComparableTests(MongoResource resource)
+        public MongoDbSortVisitorComparableTests(MongoResource resource)
         {
             Init(resource);
         }

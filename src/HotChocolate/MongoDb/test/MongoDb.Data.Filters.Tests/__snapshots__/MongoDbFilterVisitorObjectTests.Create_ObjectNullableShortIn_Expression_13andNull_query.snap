@@ -1,1 +1,1 @@
-﻿{ "Foo.BarShort" : { "$in" : [13, null] } }
+﻿{ "$match" : { "Foo.BarShort" : { "$in" : [13, null] } } }

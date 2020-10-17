@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
+using HotChocolate.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using MongoDB.Bson;
@@ -45,15 +46,8 @@ namespace HotChocolate.MongoDb.Data.Filters
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (visitorContext.TryCreateQuery(out BsonDocument? whereQuery))
-                    {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(FilterDefinition<TEntityType>),
-                                whereQuery);
-                    }
-
-                    if (visitorContext.Errors.Count > 0)
+                    if (!visitorContext.TryCreateQuery(out BsonDocument? whereQuery) ||
+                        visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
                         foreach (IError error in visitorContext.Errors)
@@ -63,7 +57,17 @@ namespace HotChocolate.MongoDb.Data.Filters
                     }
                     else
                     {
+                        context.LocalContextData =
+                            context.LocalContextData.SetItem(
+                                nameof(FilterDefinition<TEntityType>),
+                                whereQuery);
+
                         await next(context).ConfigureAwait(false);
+
+                        if (context.Result is IMongoExecutable executable)
+                        {
+                            context.Result = executable.WithFiltering(whereQuery);
+                        }
                     }
                 }
             }
