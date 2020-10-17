@@ -172,6 +172,17 @@ namespace HotChocolate.Utilities
                         first.GetType().FullName ?? first.GetType().Name,
                         other.GetType().FullName ?? other.GetType().Name)
                     .Build());
+
+        public static SchemaException Convention_ConventionCouldNotBeCreated(
+            Type conventionType,
+            string? scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Convention of type {0} in scope {1} could not be created",
+                        conventionType.FullName ?? conventionType.Name,
+                        scope ?? "default")
+                    .Build());
 #nullable disable
     }
 }

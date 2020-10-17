@@ -95,45 +95,52 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(defaultConvention));
             }
 
-            if (!TryGetConvention(scope, out T? convention))
+            if (_conventions.TryGetValue((typeof(T), scope), out IConvention? conv) &&
+                conv is T castedConvention)
             {
-                convention = _services.GetService(typeof(T)) as T;
+                return castedConvention;
             }
 
-            if (convention is null)
+            CreateConventions<T>(
+                scope,
+                out Convention? createdConvention,
+                out IList<IConventionExtension>? extensions);
+
+            createdConvention ??= _services.GetService(typeof(T)) as Convention;
+            createdConvention ??= defaultConvention() as Convention;
+
+            if (createdConvention is T createdConventionOfT)
             {
-                convention = defaultConvention();
+                ConventionContext conventionContext =
+                    ConventionContext.Create(scope, _services, this);
+
+                createdConvention.Initialize(conventionContext);
+                MergeExtensions(conventionContext, createdConvention, extensions);
+                createdConvention.OnComplete(conventionContext);
+
+                _conventions[(typeof(T), scope)] = createdConvention;
+
+                return createdConventionOfT;
             }
 
-            return convention;
+            throw ThrowHelper.Convention_ConventionCouldNotBeCreated(typeof(T), scope);
         }
 
-        private bool TryGetConvention<T>(
-            string? scope,
-            [NotNullWhen(true)] out T? convention)
-            where T : class, IConvention
+        private void CreateConventions<T>(
+            string scope,
+            out Convention? createdConvention,
+            out IList<IConventionExtension> extensions)
         {
-            if (_conventions.TryGetValue(
-                (typeof(T), scope),
-                out IConvention? conv))
-            {
-                if (conv is T casted)
-                {
-                    convention = casted;
-                    return true;
-                }
-            }
+            createdConvention = null;
+            extensions = new List<IConventionExtension>();
 
             if (_convFactories.TryGetValue(
                 (typeof(T), scope),
                 out List<CreateConvention>? factories))
             {
-                Convention? createdConvention = null;
-                List<IConventionExtension> extensions = new List<IConventionExtension>();
-
                 for (var i = 0; i < factories.Count; i++)
                 {
-                    conv = factories[i](_services);
+                    IConvention conv = factories[i](_services);
                     if (conv is Convention init)
                     {
                         if (init is IConventionExtension extension)
@@ -142,11 +149,7 @@ namespace HotChocolate.Types.Descriptors
                         }
                         else
                         {
-                            if (createdConvention is null)
-                            {
-                                createdConvention = init;
-                            }
-                            else
+                            if (createdConvention is not null)
                             {
                                 throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
                                     typeof(T),
@@ -154,31 +157,12 @@ namespace HotChocolate.Types.Descriptors
                                     init,
                                     scope);
                             }
+
+                            createdConvention = init;
                         }
                     }
                 }
-
-                if (createdConvention is {})
-                {
-                    ConventionContext conventionContext =
-                        ConventionContext.Create(scope, _services, this);
-
-                    createdConvention.Initialize(conventionContext);
-                    MergeExtensions(conventionContext, createdConvention, extensions);
-                    createdConvention.OnComplete(conventionContext);
-
-                    _conventions[(typeof(T), scope)] = createdConvention;
-                }
-
-                if (createdConvention is T casted)
-                {
-                    convention = casted;
-                    return true;
-                }
             }
-
-            convention = default;
-            return false;
         }
 
         private static void MergeExtensions(
