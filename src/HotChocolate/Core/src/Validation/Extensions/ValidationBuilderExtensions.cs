@@ -120,7 +120,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.ConfigureValidation(m =>
                 m.Modifiers.Add(o => o.ComplexityCalculation = calculation));
 
-        public static IValidationBuilder TryAddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder)
             where T : DocumentValidatorVisitor, new()
         {
@@ -134,7 +134,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }));
         }
 
-        public static IValidationBuilder TryAddValidationRule<T>(
+        public static IValidationBuilder TryAddValidationVisitor<T>(
             this IValidationBuilder builder,
             Func<IServiceProvider, ValidationOptions, T> factory)
             where T : DocumentValidatorVisitor

@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public static partial class RequestExecutorBuilderExtensions
     {
         /// <summary>
-        /// Adds a query validation rule to the schema.
+        /// Adds a query validation visitor to the schema.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
@@ -20,13 +20,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
         /// configuration.
         /// </returns>
-        public static IRequestExecutorBuilder AddValidationRule<T>(
+        public static IRequestExecutorBuilder AddValidationVisitor<T>(
             this IRequestExecutorBuilder builder)
             where T : DocumentValidatorVisitor, new() =>
-            ConfigureValidation(builder, b => b.TryAddValidationRule<T>());
+            ConfigureValidation(builder, b => b.TryAddValidationVisitor<T>());
 
         /// <summary>
-        /// Adds a query validation rule to the schema.
+        /// Adds a query validation visitor to the schema.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
@@ -41,11 +41,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
         /// configuration.
         /// </returns>
-        public static IRequestExecutorBuilder AddValidationRule<T>(
+        public static IRequestExecutorBuilder AddValidationVisitor<T>(
             this IRequestExecutorBuilder builder,
             Func<IServiceProvider, ValidationOptions, T> factory)
             where T : DocumentValidatorVisitor  =>
-            ConfigureValidation(builder, b => b.TryAddValidationRule(factory));
+            ConfigureValidation(builder, b => b.TryAddValidationVisitor(factory));
 
         public static IRequestExecutorBuilder AddMaxComplexityRule(
             this IRequestExecutorBuilder builder,
