@@ -33,11 +33,5 @@ namespace HotChocolate.Types.Descriptors
 
         /// <inheritdoc />
         public IDescriptorContext DescriptorContext { get; }
-
-        /// <inheritdoc />
-        public void ReportError(ISchemaError error)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

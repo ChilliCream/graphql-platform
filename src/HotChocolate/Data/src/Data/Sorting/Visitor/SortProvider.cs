@@ -89,9 +89,7 @@ namespace HotChocolate.Data.Sorting
                         _fieldHandlers.Add(service);
                         break;
                     case null:
-                        context.ReportError(
-                            SortProvider_UnableToCreateFieldHandler(this, handler.Type));
-                        break;
+                        throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
                     case ISortFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;
@@ -109,9 +107,7 @@ namespace HotChocolate.Data.Sorting
                         _operationHandlers.Add(service);
                         break;
                     case null:
-                        context.ReportError(
-                            SortProvider_UnableToCreateOperationHandler(this, handler.Type));
-                        break;
+                        throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
                     case ISortOperationHandler<TContext> casted:
                         _operationHandlers.Add(casted);
                         break;
