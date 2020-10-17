@@ -18,7 +18,7 @@ class Helpers
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
-        Path.Combine("HotChocolate", "MongoDb")
+        Path.Combine("HotChocolate", "MongoDb"),
         Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Spatial")
     };
