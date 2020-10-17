@@ -17,6 +17,11 @@ namespace HotChocolate.Data
                 && m.GetParameters().Length == 2
                 && m.GetParameters()[0].ParameterType == typeof(IObjectFieldDescriptor));
 
+        public UseSortingAttribute(Type? sortingType = null)
+        {
+            Type = sortingType;
+        }
+
         /// <summary>
         /// Gets or sets the sort type which specifies the sort object structure.
         /// </summary>

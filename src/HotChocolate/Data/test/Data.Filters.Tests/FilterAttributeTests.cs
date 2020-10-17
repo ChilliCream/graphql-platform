@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -42,6 +45,20 @@ namespace HotChocolate.Data.Filters
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<Query2>()
+                .AddFiltering()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Schema_With_FilterAttributes()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query4>()
                 .AddFiltering()
                 .Create();
 
@@ -94,6 +111,19 @@ namespace HotChocolate.Data.Filters
             };
         }
 
+        public class Query4
+        {
+            [UseFiltering]
+            public IEnumerable<Bar> Bars { get; } = new[]
+            {
+                new Bar { Baz = 1 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+                new Bar { Baz = 2 },
+            };
+        }
+
         public class FooFilterType : FilterInputType<Foo>
         {
             protected override void Configure(IFilterInputTypeDescriptor<Foo> descriptor)
@@ -111,6 +141,37 @@ namespace HotChocolate.Data.Filters
 
             [GraphQLType(typeof(IntType))]
             public int? Qux { get; set; }
+        }
+
+        [FilterTest]
+        public class Bar
+        {
+            public long Baz { get; set; }
+
+            [IgnoreFilterField]
+            public int? ShouldNotBeVisible { get; set; }
+        }
+
+        public class FilterTestAttribute : FilterInputTypeDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IFilterInputTypeDescriptor descriptor,
+                Type type)
+            {
+                descriptor.Name("ItWorks");
+            }
+        }
+
+        public class IgnoreFilterFieldAttribute : FilterFieldDescriptorAttribute
+        {
+            public override void OnConfigure(
+                IDescriptorContext context,
+                IFilterFieldDescriptor descriptor,
+                MemberInfo member)
+            {
+                descriptor.Ignore();
+            }
         }
     }
 }
