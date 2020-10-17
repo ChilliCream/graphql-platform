@@ -78,7 +78,9 @@ namespace HotChocolate.Data
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        DataResources.FilterDescriptorContextExtensions_NoConvention,
+                        scope is null
+                            ? DataResources.FilterDescriptorContextExtensions_NoConvention_Default
+                            : DataResources.FilterDescriptorContextExtensions_NoConvention,
                         scope ?? "none")
                     .SetExtension(nameof(scope), scope)
                     .Build());
@@ -108,7 +110,9 @@ namespace HotChocolate.Data
             new SchemaException(
                 SchemaErrorBuilder.New()
                     .SetMessage(
-                        DataResources.SortDescriptorContextExtensions_NoConvention,
+                        scope is null
+                            ? DataResources.SortDescriptorContextExtensions_NoConvention_Default
+                            : DataResources.SortDescriptorContextExtensions_NoConvention,
                         scope ?? "none")
                     .SetExtension(nameof(scope), scope)
                     .Build());
