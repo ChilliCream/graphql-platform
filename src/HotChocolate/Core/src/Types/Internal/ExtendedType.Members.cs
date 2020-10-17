@@ -40,7 +40,8 @@ namespace HotChocolate.Internal
                     method,
                     () => Rewrite(
                         CreateExtendedType(context, helper.GetFlags(method), method.ReturnType),
-                        method, cache));
+                        method,
+                        cache));
 
                 ParameterInfo[] parameters = method.GetParameters();
                 var parameterTypes = new Dictionary<ParameterInfo, IExtendedType>();
@@ -203,6 +204,7 @@ namespace HotChocolate.Internal
                             state = flags[0];
                         }
                     }
+
                     return state;
                 }
             }

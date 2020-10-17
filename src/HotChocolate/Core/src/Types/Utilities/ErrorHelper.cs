@@ -1,6 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 
 #nullable enable
 
@@ -10,7 +11,7 @@ namespace HotChocolate.Utilities
     {
         public static ISchemaError CompleteInterfacesHelper_UnableToResolveInterface(
             ITypeSystemObject interfaceOrObject,
-            ISyntaxNode? node)=> 
+            ISyntaxNode? node)=>
             SchemaErrorBuilder.New()
                 .SetMessage("COULD NOT RESOLVE INTERFACE")
                 .SetCode(ErrorCodes.Schema.MissingType)
@@ -38,7 +39,7 @@ namespace HotChocolate.Utilities
             Types.DirectiveLocation location,
             ITypeSystemObject type,
             DirectiveNode? syntaxNode,
-            object source) => 
+            object source) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
                     TypeResources.DirectiveCollection_LocationNotAllowed,
@@ -55,7 +56,7 @@ namespace HotChocolate.Utilities
             ITypeSystemObject type,
             DirectiveNode? syntaxNode,
             object source,
-            string argumentName) => 
+            string argumentName) =>
             SchemaErrorBuilder.New()
                 .SetMessage(
                     "The argument `{0}` value type is wrong.",
@@ -100,6 +101,23 @@ namespace HotChocolate.Utilities
                 .SetTypeSystemObject(type)
                 .AddSyntaxNode(syntaxNode)
                 .SetExtension("Source", source)
+                .Build();
+
+        public static ISchemaError ObjectType_UnableToInferOrResolveType(
+            NameString typeName, ObjectType type, ObjectFieldDefinition field) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    "Unable to infer or resolve the type of " +
+                    "field {0}.{1}. Try to explicitly provide the " +
+                    "type like the following: " +
+                    "`descriptor.Field(\"field\")" +
+                    ".Type<List<StringType>>()`.",
+                    typeName,
+                    field.Name)
+                .SetCode(ErrorCodes.Schema.NoFieldType)
+                .SetTypeSystemObject(type)
+                .SetPath(Path.New(typeName).Append(field.Name))
+                .SetExtension(TypeErrorFields.Definition, field)
                 .Build();
     }
 }
