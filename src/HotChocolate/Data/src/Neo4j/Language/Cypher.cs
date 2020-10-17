@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.Data.Neo4j.Language;
 using Neo4j.Driver;
+using Neo4jMapper;
+using System.Threading;
 
 namespace HotChocolate.Data.Neo4j
 {
-    public class Cypher
+    public class Cypher<T> : IExecutable<T>, IDisposable
     {
-        private IAsyncSession? _asyncSession;
-        private bool _isRead = true;
+        private readonly IAsyncSession _asyncSession;
         private readonly CypherVisitor _cypherVisitor = new CypherVisitor();
-        private readonly CypherContext _cypherContext = new CypherContext();
-        private List<IVisitable> _clauses = new List<IVisitable>();
-
-        public Cypher() { }
+        private readonly List<IVisitable> _clauses = new List<IVisitable>();
 
         public Cypher(IAsyncSession asyncSession)
         {
@@ -26,7 +23,7 @@ namespace HotChocolate.Data.Neo4j
             return new Node(alias, labels);
         }
 
-        public Cypher Match(Node node, bool optional = false)
+        public Cypher<T> Match(Node node, bool optional = false)
         {
             var clause = new Match(node, optional);
             _clauses.Add(clause);
@@ -34,25 +31,32 @@ namespace HotChocolate.Data.Neo4j
             return this;
         }
 
-        public Cypher Return(Node node)
+        public Cypher<T> Return(Node node)
         {
             _clauses.Add(new Return(node));
             return this;
-        }
-
-        public async Task<IResultCursor> ExecuteAsync()
-        {
-            if (_asyncSession == default)
-            {
-                throw new ArgumentException(nameof(_asyncSession));
-            }
-            return await _asyncSession.RunAsync(new Query(Print())).ConfigureAwait(false);
         }
 
         public string Print()
         {
             _clauses.ForEach(c => c.Visit(_cypherVisitor));
            return _cypherVisitor.ToString();
+        }
+
+        async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
+        {
+            return await ExecuteAsync(cancellationToken);
+        }
+
+        public async ValueTask<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken)
+        {
+            IResultCursor cursor = await _asyncSession.RunAsync(new Query(Print())).ConfigureAwait(false);
+            return await cursor.MapAsync<T>().ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

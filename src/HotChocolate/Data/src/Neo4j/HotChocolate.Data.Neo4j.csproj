@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="10.1.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="5.0.0-rc.1.20451.17" />
     <PackageReference Include="Neo4j.Driver" Version="4.1.1" />
+    <PackageReference Include="Neo4jMapper.Core" Version="1.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Execution\HotChocolate.Execution.csproj" />
   </ItemGroup>
   
 </Project>

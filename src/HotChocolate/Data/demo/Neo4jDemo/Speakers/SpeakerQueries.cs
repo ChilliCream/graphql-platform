@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Data;
 using HotChocolate.Data.Neo4j;
 using HotChocolate.Types;
 using Neo4j.Driver;
 using Neo4jDemo.Extensions;
 using Neo4jMapper;
+using System;
 
 namespace Neo4jDemo
 {
@@ -24,15 +26,10 @@ namespace Neo4jDemo
 
         [UseSession]
         [UseFiltering]
-        public async Task<List<Speaker>> Speakers([ScopedService] IAsyncSession session)
+        public IExecutable<Speaker> Speakers([ScopedService] IAsyncSession session)
         {
             Node m = new Node("Speaker").Named("m");
-            IResultCursor cursor = await new Cypher(session)
-                                                        .Match(m)
-                                                        .Return(m)
-                                                        .ExecuteAsync();
-
-            return await cursor.MapAsync<Speaker>();
+            return new Cypher<Speaker>(session).Match(m).Return(m);
         }
     }
 }

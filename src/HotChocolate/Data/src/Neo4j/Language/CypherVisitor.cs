@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Data.Neo4j
 {
-    public class CypherVisitor
+    public class CypherVisitor : IDisposable
     {
         private readonly CypherWriter _writer = new CypherWriter();
 
@@ -50,6 +50,11 @@ namespace HotChocolate.Data.Neo4j
 
         public void Leave(Return @return)
         {
+            if (@return is null)
+            {
+                throw new ArgumentNullException(nameof(@return));
+            }
+
             _writer.Write(" ");
         }
 
@@ -89,6 +94,11 @@ namespace HotChocolate.Data.Neo4j
         public override string ToString()
         {
             return _writer.Print();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }
