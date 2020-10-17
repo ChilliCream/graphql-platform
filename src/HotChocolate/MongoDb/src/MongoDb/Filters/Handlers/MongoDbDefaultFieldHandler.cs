@@ -13,8 +13,8 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition) =>
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition) =>
             !(fieldDefinition is FilterOperationFieldDefinition) &&
             fieldDefinition.Member is not null;
 

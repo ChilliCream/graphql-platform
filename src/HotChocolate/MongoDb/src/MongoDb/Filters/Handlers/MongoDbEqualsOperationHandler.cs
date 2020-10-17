@@ -11,8 +11,8 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition)
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
         {
             return fieldDefinition is FilterOperationFieldDefinition operationField &&
                 operationField.Id is DefaultOperations.Equals;
