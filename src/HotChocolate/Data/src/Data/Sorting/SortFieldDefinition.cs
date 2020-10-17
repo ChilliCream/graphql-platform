@@ -1,12 +1,11 @@
 using System.Reflection;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting
 {
     public class SortFieldDefinition
         : InputFieldDefinition
-        , IHasScope
+        , ISortFieldDefinition
     {
         public MemberInfo? Member { get; set; }
 

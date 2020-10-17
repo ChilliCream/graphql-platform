@@ -27,12 +27,12 @@ namespace HotChocolate.Types
             return new NodeDescriptor<T>(descriptor);
         }
 
-        [Obsolete("Use ImplementNode.")]
+        [Obsolete("Use ImplementsNode.")]
         public static INodeDescriptor AsNode(
             this IObjectTypeDescriptor descriptor) =>
             ImplementsNode(descriptor);
 
-        [Obsolete("Use ImplementNode.")]
+        [Obsolete("Use ImplementsNode.")]
         public static INodeDescriptor<T> AsNode<T>(
             this IObjectTypeDescriptor<T> descriptor) =>
             ImplementsNode<T>(descriptor);

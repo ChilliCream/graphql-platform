@@ -1,12 +1,11 @@
 using System;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Data.Sorting
 {
     public class SortInputTypeDefinition
         : InputObjectTypeDefinition
-        , IHasScope
+        , ISortInputTypeDefinition
     {
         public Type? EntityType { get; set; }
 
