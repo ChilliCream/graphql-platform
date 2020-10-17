@@ -148,8 +148,11 @@ namespace HotChocolate.Types.Descriptors
                             }
                             else
                             {
-                                //TODO: ThrowHelper
-                                throw new InvalidOperationException();
+                                throw ThrowHelper.Convention_TwoConventionsRegisteredForScope(
+                                    typeof(T),
+                                    createdConvention,
+                                    init,
+                                    scope);
                             }
                         }
                     }
