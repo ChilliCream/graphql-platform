@@ -7,7 +7,7 @@ namespace Microsoft.Extensions.DependencyInjection
     public static partial class RequestExecutorBuilderExtensions
     {
         public static IRequestExecutorBuilder ConfigureValidation(
-            IRequestExecutorBuilder builder,
+            this IRequestExecutorBuilder builder,
             Action<IValidationBuilder> configure)
         {
             configure(builder.Services.AddValidation(builder.Name));
