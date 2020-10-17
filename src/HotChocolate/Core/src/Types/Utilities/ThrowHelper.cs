@@ -155,6 +155,7 @@ namespace HotChocolate.Utilities
                         idField)
                     .Build());
 
+#nullable enable
         public static SchemaException Convention_TwoConventionsRegisteredForScope(
             Type conventionType,
             IConvention first,
@@ -171,5 +172,6 @@ namespace HotChocolate.Utilities
                         first.GetType().FullName ?? first.GetType().Name,
                         other.GetType().FullName ?? other.GetType().Name)
                     .Build());
+#nullable disable
     }
 }
