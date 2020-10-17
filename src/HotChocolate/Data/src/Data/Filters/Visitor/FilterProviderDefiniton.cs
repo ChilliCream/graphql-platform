@@ -5,7 +5,7 @@ namespace HotChocolate.Data.Filters
 {
     public class FilterProviderDefinition
     {
-        public IList<(Type Handler, IFilterFieldHandler? HandlerInstance)> Handlers { get; } =
+        public List<(Type Handler, IFilterFieldHandler? HandlerInstance)> Handlers { get; } =
             new List<(Type Handler, IFilterFieldHandler? HandlerInstance)>();
     }
 }

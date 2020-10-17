@@ -14,94 +14,6 @@ using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Filters
 {
-    public class FilterConventionExtension
-        : ConventionExtension<FilterConventionDefinition>
-    {
-        private Action<IFilterConventionDescriptor>? _configure;
-
-        protected FilterConventionExtension()
-        {
-            _configure = Configure;
-        }
-
-        public FilterConventionExtension(Action<IFilterConventionDescriptor> configure)
-        {
-            _configure = configure ??
-                throw new ArgumentNullException(nameof(configure));
-        }
-
-        protected override FilterConventionDefinition CreateDefinition(
-            IConventionContext context)
-        {
-            if (_configure is null)
-            {
-                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
-            }
-
-            var descriptor = FilterConventionDescriptor.New(
-                context.DescriptorContext,
-                context.Scope);
-
-            _configure(descriptor);
-            _configure = null;
-
-            return descriptor.CreateDefinition();
-        }
-
-        protected virtual void Configure(IFilterConventionDescriptor descriptor)
-        {
-        }
-
-        public override void Merge(IConventionContext context, Convention convention)
-        {
-            if (convention is FilterConvention filterConvention &&
-                Definition is {} &&
-                filterConvention.Definition is {})
-            {
-                foreach (KeyValuePair<Type, Type> binding in Definition.Bindings)
-                {
-                    filterConvention.Definition.Bindings[binding.Key] = binding.Value;
-                }
-
-                foreach (KeyValuePair<ITypeReference, List<ConfigureFilterInputType>> configuration
-                    in Definition.Configurations)
-                {
-                    if (filterConvention.Definition.Configurations.TryGetValue(
-                        configuration.Key,
-                        out var configurations))
-                    {
-                        configurations.AddRange(configuration.Value);
-                    }
-                    else
-                    {
-                        filterConvention.Definition.Configurations[configuration.Key] =
-                            configuration.Value;
-                    }
-                }
-
-                foreach (var operation in Definition.Operations)
-                {
-                    filterConvention.Definition.Operations.Add(operation);
-                }
-
-                if (Definition.ArgumentName != FilterConventionDefinition.DefaultArgumentName)
-                {
-                    filterConvention.Definition.ArgumentName = Definition.ArgumentName;
-                }
-
-                if (Definition.Provider is {})
-                {
-                    filterConvention.Definition.Provider = Definition.Provider;
-                }
-
-                if (Definition.ProviderInstance is {})
-                {
-                    filterConvention.Definition.ProviderInstance = Definition.ProviderInstance;
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
@@ -156,7 +68,7 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        public override void OnComplete(IConventionContext context)
+        protected override void OnComplete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -184,12 +96,18 @@ namespace HotChocolate.Data.Filters
 
             if (_provider is IFilterProviderConvention init)
             {
+                IReadOnlyList<IFilterProviderExtension> extensions =
+                    CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
-                // TODO Merge
+                MergeExtensions(context, init, extensions);
                 init.OnComplete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
+
+            // It is important to always call base to continue the cleanup and the disposal of
+            // the definition
+            base.OnComplete(context);
         }
 
 
@@ -340,6 +258,43 @@ namespace HotChocolate.Data.Filters
 
             type = null;
             return false;
+        }
+
+        private static IReadOnlyList<IFilterProviderExtension> CollectExtensions(
+            IServiceProvider serviceProvider,
+            FilterConventionDefinition definition)
+        {
+            List<IFilterProviderExtension> extensions = new List<IFilterProviderExtension>();
+            extensions.AddRange(definition.ProviderExtensions);
+            foreach (var extensionType in definition.ProviderExtensionsTypes)
+            {
+                if (serviceProvider.GetService(extensionType) is
+                    IFilterProviderExtension createdExtension)
+                {
+                    extensions.Add(createdExtension);
+                }
+            }
+
+            return extensions;
+        }
+
+        private static void MergeExtensions(
+            IConventionContext context,
+            IFilterProviderConvention provider,
+            IReadOnlyList<IFilterProviderExtension> extensions)
+        {
+            if (provider is Convention providerConvention)
+            {
+                for (var m = 0; m < extensions.Count; m++)
+                {
+                    if (extensions[m] is IFilterProviderConvention extensionConvention)
+                    {
+                        extensionConvention.Initialize(context);
+                        extensions[m].Merge(context, providerConvention);
+                        extensionConvention.OnComplete(context);
+                    }
+                }
+            }
         }
     }
 }

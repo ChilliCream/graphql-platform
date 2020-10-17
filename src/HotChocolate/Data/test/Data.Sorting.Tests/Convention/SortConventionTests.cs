@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Sorting
             var type = new FooSortType();
 
             //act
-            SchemaException? error =
+            SchemaException error =
                 Assert.Throws<SchemaException>(() => CreateSchemaWith(type, convention));
 
             Assert.Single(error.Errors);

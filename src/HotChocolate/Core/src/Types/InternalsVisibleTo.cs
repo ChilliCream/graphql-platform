@@ -12,3 +12,4 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("HotChocolate.Types.Sorting.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.AspNetCore.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Data.Filters.Tests")]
+[assembly: InternalsVisibleTo("HotChocolate.Data.Sorting.Tests")]

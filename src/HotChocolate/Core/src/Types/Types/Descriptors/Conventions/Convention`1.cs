@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Descriptors
             MarkInitialized();
         }
 
-        public override void OnComplete(IConventionContext context)
+        protected internal override void OnComplete(IConventionContext context)
         {
             _definition = null;
         }

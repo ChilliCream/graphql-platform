@@ -10,13 +10,14 @@ using static HotChocolate.Data.ErrorHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>
-        , IFilterProvider
-        , IFilterProviderConvention
+        : Convention<FilterProviderDefinition>,
+          IFilterProvider,
+          IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
             new List<IFilterFieldHandler<TContext>>();
+
         private Action<IFilterProviderDescriptor<TContext>>? _configure;
 
         protected FilterProvider()
@@ -30,12 +31,9 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
+        internal new FilterProviderDefinition? Definition => base.Definition;
 
-        public new void Initialize(IConventionContext context)
-        {
-            base.Initialize(context);
-        }
+        public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers => _fieldHandlers;
 
         protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
         {
@@ -52,7 +50,17 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
-        public override void OnComplete(IConventionContext context)
+        void IFilterProviderConvention.Initialize(IConventionContext context)
+        {
+            base.Initialize(context);
+        }
+
+        void IFilterProviderConvention.OnComplete(IConventionContext context)
+        {
+            OnComplete(context);
+        }
+
+        protected override void OnComplete(IConventionContext context)
         {
             if (Definition.Handlers.Count == 0)
             {
@@ -60,10 +68,10 @@ namespace HotChocolate.Data.Filters
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                (typeof(IFilterProvider), this),
-                (typeof(IConventionContext), context),
-                (typeof(IDescriptorContext), context.DescriptorContext),
-                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                    (typeof(IFilterProvider), this),
+                    (typeof(IConventionContext), context),
+                    (typeof(IDescriptorContext), context.DescriptorContext),
+                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, IFilterFieldHandler? Instance) handler in Definition.Handlers)
@@ -73,14 +81,14 @@ namespace HotChocolate.Data.Filters
                     case null when services.TryGetOrCreateService(
                         handler.Type,
                         out IFilterFieldHandler<TContext>? service):
-                        _fieldHandlers .Add(service);
+                        _fieldHandlers.Add(service);
                         break;
                     case null:
                         context.ReportError(
                             FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
                         break;
                     case IFilterFieldHandler<TContext> casted:
-                        _fieldHandlers .Add(casted);
+                        _fieldHandlers.Add(casted);
                         break;
                 }
             }

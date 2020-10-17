@@ -34,6 +34,8 @@ namespace HotChocolate.Data.Sorting
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        internal new SortProviderDefinition? Definition => base.Definition;
+
         public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
 
         public IReadOnlyCollection<ISortOperationHandler> OperationHandlers => _operationHandlers;
@@ -58,7 +60,17 @@ namespace HotChocolate.Data.Sorting
             return descriptor.CreateDefinition();
         }
 
-        public override void OnComplete(IConventionContext context)
+        void ISortProviderConvention.Initialize(IConventionContext context)
+        {
+            base.Initialize(context);
+        }
+
+        void ISortProviderConvention.OnComplete(IConventionContext context)
+        {
+            OnComplete(context);
+        }
+
+        protected override void OnComplete(IConventionContext context)
         {
             if (Definition?.Handlers.Count == 0)
             {

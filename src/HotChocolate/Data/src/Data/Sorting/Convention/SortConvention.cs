@@ -40,6 +40,8 @@ namespace HotChocolate.Data.Sorting
         private ITypeInspector _typeInspector = default!;
         private Type? _defaultBinding;
 
+        internal new SortConventionDefinition? Definition => base.Definition;
+
         protected SortConvention()
         {
             _configure = Configure;
@@ -73,7 +75,7 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
-        public override void OnComplete(IConventionContext context)
+        protected override void OnComplete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -113,12 +115,18 @@ namespace HotChocolate.Data.Sorting
 
             if (_provider is ISortProviderConvention init)
             {
+                IReadOnlyList<ISortProviderExtension> extensions =
+                    CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
-                // Todo Merge
+                MergeExtensions(context, init, extensions);
                 init.OnComplete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
+
+            // It is important to always call base to continue the cleanup and the disposal of
+            // the definition
+            base.OnComplete(context);
         }
 
 
@@ -291,6 +299,43 @@ namespace HotChocolate.Data.Sorting
 
             type = null;
             return false;
+        }
+
+        private static IReadOnlyList<ISortProviderExtension> CollectExtensions(
+            IServiceProvider serviceProvider,
+            SortConventionDefinition definition)
+        {
+            List<ISortProviderExtension> extensions = new List<ISortProviderExtension>();
+            extensions.AddRange(definition.ProviderExtensions);
+            foreach (var extensionType in definition.ProviderExtensionsTypes)
+            {
+                if (serviceProvider.GetService(extensionType) is
+                    ISortProviderExtension createdExtension)
+                {
+                    extensions.Add(createdExtension);
+                }
+            }
+
+            return extensions;
+        }
+
+        private static void MergeExtensions(
+            IConventionContext context,
+            ISortProviderConvention provider,
+            IReadOnlyList<ISortProviderExtension> extensions)
+        {
+            if (provider is Convention providerConvention)
+            {
+                for (var m = 0; m < extensions.Count; m++)
+                {
+                    if (extensions[m] is ISortProviderConvention extensionConvention)
+                    {
+                        extensionConvention.Initialize(context);
+                        extensions[m].Merge(context, providerConvention);
+                        extensionConvention.OnComplete(context);
+                    }
+                }
+            }
         }
     }
 }
