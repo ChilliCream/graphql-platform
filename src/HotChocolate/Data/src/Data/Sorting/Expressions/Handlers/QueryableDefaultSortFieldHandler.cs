@@ -8,7 +8,7 @@ using HotChocolate.Language.Visitors;
 
 namespace HotChocolate.Data.Sorting.Expressions
 {
-    public class QueryableDefaultFieldHandler
+    public class QueryableDefaultSortFieldHandler
         : SortFieldHandler<QueryableSortContext, QueryableSortOperation>
     {
         public override bool CanHandle(

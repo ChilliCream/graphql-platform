@@ -42,7 +42,7 @@ namespace HotChocolate.Data
         public void Merge_Should_Merge_HandlersAndPrependExtensionHandlers()
         {
             // arrange
-            var firstFieldHandler = new QueryableDefaultFieldHandler();
+            var firstFieldHandler = new QueryableDefaultSortFieldHandler();
             var extensionFieldHandler = new MockFieldHandler();
             var convention = new MockProvider(x => x.AddFieldHandler(firstFieldHandler));
             var extension = new MockProviderExtensions(
@@ -66,7 +66,7 @@ namespace HotChocolate.Data
                 x => Assert.Equal(firstFieldHandler, x.HandlerInstance));
         }
 
-        private class MockFieldHandler : QueryableDefaultFieldHandler
+        private class MockFieldHandler : QueryableDefaultSortFieldHandler
         {
 
         }

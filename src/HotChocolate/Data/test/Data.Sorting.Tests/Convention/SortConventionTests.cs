@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Sorting
                 descriptor =>
                 {
                     descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -28,24 +28,24 @@ namespace HotChocolate.Data.Sorting
                     descriptor.Provider(provider);
                 });
 
-            IValueNode? value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
             var type = new FooSortType();
 
             //act
-            ISchema schema = CreateSchemaWith(type, convention);
+            CreateSchemaWith(type, convention);
             var executor = new ExecutorBuilder(type);
 
             Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
 
             // assert
-            var a = new[] {new Foo {Bar = "a"}, new Foo {Bar = "b"}, new Foo {Bar = "c"}};
+            var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
             Assert.Collection(
                 func(a),
                 x => Assert.Equal("a", x.Bar),
                 x => Assert.Equal("b", x.Bar),
                 x => Assert.Equal("c", x.Bar));
 
-            var b = new[] {new Foo {Bar = "c"}, new Foo {Bar = "b"}, new Foo {Bar = "a"}};
+            var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
             Assert.Collection(
                 func(b),
                 x => Assert.Equal("a", x.Bar),
@@ -60,7 +60,7 @@ namespace HotChocolate.Data.Sorting
             var provider = new QueryableSortProvider(
                 descriptor =>
                 {
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -117,7 +117,7 @@ namespace HotChocolate.Data.Sorting
                 descriptor =>
                 {
                     descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -145,7 +145,7 @@ namespace HotChocolate.Data.Sorting
                 descriptor =>
                 {
                     descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -173,7 +173,7 @@ namespace HotChocolate.Data.Sorting
                 descriptor =>
                 {
                     descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -201,7 +201,7 @@ namespace HotChocolate.Data.Sorting
                 descriptor =>
                 {
                     descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
-                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
                 });
 
             var convention = new SortConvention(
@@ -221,7 +221,159 @@ namespace HotChocolate.Data.Sorting
             error.Errors[0].Message.MatchSnapshot();
         }
 
-        protected ISchema CreateSchemaWith(ISortInputType type, SortConvention convention)
+        [Fact]
+        public void SortConvention_Should_Work_With_Extensions()
+        {
+            // arrange
+            var provider = new QueryableSortProvider(
+                descriptor =>
+                {
+                    descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                });
+
+            var convention = new SortConvention(
+                descriptor =>
+                {
+                });
+
+            var extension1 = new SortConventionExtension(
+                descriptor =>
+                {
+                    descriptor.Operation(DefaultSortOperations.Ascending).Name("ASC");
+                    descriptor.Provider(provider);
+                });
+
+            var extension2 = new SortConventionExtension(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestEnumType>();
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+            var type = new FooSortType();
+
+            //act
+            CreateSchemaWith(type, convention, extension1, extension2);
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+            Assert.Collection(
+                func(a),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+
+            var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+            Assert.Collection(
+                func(b),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+        }
+
+        [Fact]
+        public void SortConvention_Should_Work_With_ExtensionsType()
+        {
+            // arrange
+            var provider = new QueryableSortProvider(
+                descriptor =>
+                {
+                    descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                });
+
+            var convention = new SortConvention(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestEnumType>();
+                    descriptor.Provider(provider);
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+            var type = new FooSortType();
+
+            //act
+            CreateSchemaWithTypes(
+                type,
+                convention,
+                typeof(MockSortExtensionConvention));
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+            Assert.Collection(
+                func(a),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+
+            var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+            Assert.Collection(
+                func(b),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+        }
+
+        [Fact]
+        public void SortConvention_Should_Work_With_ProviderExtensionsType()
+        {
+            // arrange
+            var provider = new QueryableSortProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableDefaultSortFieldHandler>();
+                });
+
+            var convention = new SortConvention(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestEnumType>();
+                    descriptor.Provider(provider);
+                });
+
+            var extension1 = new SortConventionExtension(
+                descriptor =>
+                {
+                    descriptor.Operation(DefaultSortOperations.Ascending).Name("ASC");
+                    descriptor.AddProviderExtension<MockSortProviderExtensionConvention>();
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: ASC}");
+            var type = new FooSortType();
+
+            //act
+            CreateSchemaWith(type, convention, extension1);
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo[], Foo[]> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new[] { new Foo { Bar = "a" }, new Foo { Bar = "b" }, new Foo { Bar = "c" } };
+            Assert.Collection(
+                func(a),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+
+            var b = new[] { new Foo { Bar = "c" }, new Foo { Bar = "b" }, new Foo { Bar = "a" } };
+            Assert.Collection(
+                func(b),
+                x => Assert.Equal("a", x.Bar),
+                x => Assert.Equal("b", x.Bar),
+                x => Assert.Equal("c", x.Bar));
+        }
+
+        protected ISchema CreateSchemaWithTypes(
+            ISortInputType type,
+            SortConvention convention,
+            params Type[] extensions)
         {
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<ISortConvention>(convention)
@@ -234,7 +386,53 @@ namespace HotChocolate.Data.Sorting
                             .Resolver("bar"))
                 .AddType(type);
 
+            foreach (var extension in extensions)
+            {
+                builder.AddConvention<ISortConvention>(extension);
+            }
+
             return builder.Create();
+        }
+
+        protected ISchema CreateSchemaWith(
+            ISortInputType type,
+            SortConvention convention,
+            params SortConventionExtension[] extensions)
+        {
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddConvention<ISortConvention>(convention)
+                .AddSorting()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<StringType>()
+                            .Resolver("bar"))
+                .AddType(type);
+
+            foreach (var extension in extensions)
+            {
+                builder.AddConvention<ISortConvention>(extension);
+            }
+
+            return builder.Create();
+        }
+
+        public class MockSortProviderExtensionConvention : QueryableSortProviderExtension
+        {
+            protected override void Configure(
+                ISortProviderDescriptor<QueryableSortContext> descriptor)
+            {
+                descriptor.AddOperationHandler<QueryableAscendingSortOperationHandler>();
+            }
+        }
+
+        public class MockSortExtensionConvention : SortConventionExtension
+        {
+            protected override void Configure(ISortConventionDescriptor descriptor)
+            {
+                descriptor.Operation(DefaultSortOperations.Ascending).Name("ASC");
+            }
         }
 
         public class TestEnumType : SortEnumType

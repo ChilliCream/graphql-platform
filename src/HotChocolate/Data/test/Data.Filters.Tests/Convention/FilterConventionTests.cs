@@ -256,7 +256,7 @@ namespace HotChocolate.Data.Filters
             var type = new FooFilterType();
 
             //act
-            ISchema schema = CreateSchemaWith(type, convention, extension1, extension2);
+            CreateSchemaWith(type, convention, extension1, extension2);
             var executor = new ExecutorBuilder(type);
 
             Func<Foo, bool> func = executor.Build<Foo>(value);
@@ -267,6 +267,109 @@ namespace HotChocolate.Data.Filters
 
             var b = new Foo { Bar = "b" };
             Assert.False(func(b));
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Work_With_ExtensionsType()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Provider(provider);
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+            var type = new FooFilterType();
+
+            //act
+            CreateSchemaWithTypes(
+                type,
+                convention,
+                typeof(MockFilterExtensionConvention));
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo, bool> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new Foo { Bar = "a" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void FilterConvention_Should_Work_With_ProviderExtensionsType()
+        {
+            // arrange
+            var provider = new QueryableFilterProvider(
+                descriptor =>
+                {
+                    descriptor.AddFieldHandler<QueryableDefaultFieldHandler>();
+                });
+
+            var convention = new FilterConvention(
+                descriptor =>
+                {
+                    descriptor.BindRuntimeType<string, TestOperationFilterType>();
+                    descriptor.Provider(provider);
+                });
+
+            var extension1 = new FilterConventionExtension(
+                descriptor =>
+                {
+                    descriptor.Operation(DefaultOperations.Equals).Name("eq");
+                    descriptor.AddProviderExtension<MockFilterProviderExtensionConvention>();
+                });
+
+            IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral("{ bar: { eq:\"a\" }}");
+            var type = new FooFilterType();
+
+            //act
+            CreateSchemaWith(type, convention, extension1);
+            var executor = new ExecutorBuilder(type);
+
+            Func<Foo, bool> func = executor.Build<Foo>(value);
+
+            // assert
+            var a = new Foo { Bar = "a" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.False(func(b));
+        }
+
+        protected ISchema CreateSchemaWithTypes(
+            IFilterInputType type,
+            FilterConvention convention,
+            params Type[] extensions)
+        {
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddConvention<IFilterConvention>(convention)
+                .AddFiltering()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Type<StringType>()
+                            .Resolver("bar"))
+                .AddType(type);
+
+            foreach (var extension in extensions)
+            {
+                builder.AddConvention<IFilterConvention>(extension);
+            }
+
+            return builder.Create();
         }
 
         protected ISchema CreateSchemaWith(
@@ -291,6 +394,23 @@ namespace HotChocolate.Data.Filters
             }
 
             return builder.Create();
+        }
+
+        public class MockFilterProviderExtensionConvention : QueryableFilterProviderExtensions
+        {
+            protected override void Configure(
+                IFilterProviderDescriptor<QueryableFilterContext> descriptor)
+            {
+                descriptor.AddFieldHandler<QueryableStringEqualsHandler>();
+            }
+        }
+
+        public class MockFilterExtensionConvention : FilterConventionExtension
+        {
+            protected override void Configure(IFilterConventionDescriptor descriptor)
+            {
+                descriptor.Operation(DefaultOperations.Equals).Name("eq");
+            }
         }
 
         public class TestOperationFilterType : StringOperationFilterInput

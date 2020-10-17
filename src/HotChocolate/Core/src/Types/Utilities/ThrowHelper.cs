@@ -165,8 +165,8 @@ namespace HotChocolate.Utilities
                 SchemaErrorBuilder.New()
                     .SetMessage(
                         "There are two conventions registered for {0} in scope {1}. Only one " +
-                        "convention is allowed. Use convention extensions if additional configuration " +
-                        "is needed. Colliding conventions are {2} and {3}",
+                        "convention is allowed. Use convention extensions if additional " +
+                        "configuration is needed. Colliding conventions are {2} and {3}",
                         conventionType.FullName ?? conventionType.Name,
                         scope ?? "default",
                         first.GetType().FullName ?? first.GetType().Name,

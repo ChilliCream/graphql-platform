@@ -309,8 +309,9 @@ namespace HotChocolate.Data.Sorting
             extensions.AddRange(definition.ProviderExtensions);
             foreach (var extensionType in definition.ProviderExtensionsTypes)
             {
-                if (serviceProvider.GetService(extensionType) is
-                    ISortProviderExtension createdExtension)
+                if (serviceProvider.TryGetOrCreateService<ISortProviderExtension>(
+                    extensionType,
+                    out var createdExtension))
                 {
                     extensions.Add(createdExtension);
                 }

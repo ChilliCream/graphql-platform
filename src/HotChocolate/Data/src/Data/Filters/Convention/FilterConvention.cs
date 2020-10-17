@@ -268,8 +268,9 @@ namespace HotChocolate.Data.Filters
             extensions.AddRange(definition.ProviderExtensions);
             foreach (var extensionType in definition.ProviderExtensionsTypes)
             {
-                if (serviceProvider.GetService(extensionType) is
-                    IFilterProviderExtension createdExtension)
+                if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
+                    extensionType,
+                    out var createdExtension))
                 {
                     extensions.Add(createdExtension);
                 }

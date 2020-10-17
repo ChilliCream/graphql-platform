@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Data.Utilities;
 using HotChocolate.Types.Descriptors;
+using static HotChocolate.Data.DataResources;
 
 namespace HotChocolate.Data.Filters
 {
@@ -28,7 +29,7 @@ namespace HotChocolate.Data.Filters
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(DataResources.FilterConvention_NoConfigurationSpecified);
+                throw new InvalidOperationException(FilterConvention_NoConfigurationSpecified);
             }
 
             var descriptor = FilterConventionDescriptor.New(
