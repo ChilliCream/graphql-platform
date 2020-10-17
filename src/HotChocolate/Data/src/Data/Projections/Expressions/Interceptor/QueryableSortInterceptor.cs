@@ -38,7 +38,8 @@ namespace HotChocolate.Data.Projections.Handlers
                         context.Context.ReportError,
                         out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs) &&
                 coercedArgs.TryGetValue(argumentName, out var argumentValue) &&
-                argumentValue.Argument.Type is ISortInputType sortInputType &&
+                argumentValue.Argument.Type is ListType lt &&
+                lt.ElementType is ISortInputType sortInputType &&
                 argumentValue.ValueLiteral is {} valueNode)
             {
                 QueryableSortContext sortContext =
