@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -260,6 +261,11 @@ namespace HotChocolate.Data
             public IReadOnlyCollection<IFilterFieldHandler> FieldHandlers { get; } = null!;
 
             public FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
             {
                 throw new NotImplementedException();
             }
