@@ -11,11 +11,6 @@ namespace HotChocolate.Types.Descriptors
     public interface IConventionContext : IHasScope
     {
         /// <summary>
-        /// The convention that is being initialized.
-        /// </summary>
-        IConvention Convention { get; }
-
-        /// <summary>
         /// The schema level services.
         /// </summary>
         IServiceProvider Services { get; }
@@ -31,13 +26,5 @@ namespace HotChocolate.Types.Descriptors
         /// The descriptor context that is passed through the initialization process.
         /// </summary>
         IDescriptorContext DescriptorContext { get; }
-
-        /// <summary>
-        /// Report a schema initialization error.
-        /// </summary>
-        /// <param name="error">
-        /// The error that occurred during initialization.
-        /// </param>
-        void ReportError(ISchemaError error);
     }
 }
