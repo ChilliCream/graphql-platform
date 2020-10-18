@@ -12,7 +12,8 @@ namespace HotChocolate.Data
     {
         private static readonly MethodInfo _useDbContext =
             typeof(EntityFrameworkObjectFieldDescriptorExtensions)
-                .GetMethod(nameof(EntityFrameworkObjectFieldDescriptorExtensions.UseDbContext),
+                .GetMethod(
+                    nameof(EntityFrameworkObjectFieldDescriptorExtensions.UseDbContext),
                     BindingFlags.Public | BindingFlags.Static)!;
 
         private readonly Type _dbContext;

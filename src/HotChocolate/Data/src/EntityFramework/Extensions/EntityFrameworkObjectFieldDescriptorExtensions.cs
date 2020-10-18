@@ -47,6 +47,15 @@ namespace HotChocolate.Types
 
                         var index = d.MiddlewareComponents.IndexOf(placeholder);
                         d.MiddlewareComponents[index] = Create(middleware);
+
+                    }
+                    else if (d.ResultType is not null &&
+                        typeof(IExecutable).IsAssignableFrom(d.ResultType))
+                    {
+                        Type middleware = typeof(ExecuableMiddleware);
+
+                        var index = d.MiddlewareComponents.IndexOf(placeholder);
+                        d.MiddlewareComponents[index] = Create(middleware);
                     }
                     else
                     {

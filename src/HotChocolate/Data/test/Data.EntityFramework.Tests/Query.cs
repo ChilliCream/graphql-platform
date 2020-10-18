@@ -11,6 +11,10 @@ namespace HotChocolate.Data
             context.Authors;
 
         [UseDbContext(typeof(BookContext))]
+        public IExecutable<Author> GetAuthorsExecutable([ScopedService] BookContext context) =>
+            new MockExecutable<Author>(context.Authors);
+
+        [UseDbContext(typeof(BookContext))]
         public async Task<Author> GetAuthor([ScopedService]BookContext context) =>
             await context.Authors.FirstOrDefaultAsync();
     }
