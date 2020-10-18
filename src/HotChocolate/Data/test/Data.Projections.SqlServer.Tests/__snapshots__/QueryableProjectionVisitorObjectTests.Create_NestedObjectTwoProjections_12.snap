@@ -1,0 +1,26 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "nestedObject": {
+            "foo": {
+              "barString": "a",
+              "barShort": 12
+            }
+          }
+        }
+      },
+      {
+        "foo": {
+          "nestedObject": {
+            "foo": {
+              "barString": "d",
+              "barShort": 12
+            }
+          }
+        }
+      }
+    ]
+  }
+}

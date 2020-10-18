@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -76,12 +77,12 @@ namespace HotChocolate.Data.Filters
                     case null when services.TryGetOrCreateService(
                         handler.Type,
                         out IFilterFieldHandler<TContext>? service):
-                        _fieldHandlers .Add(service);
+                        _fieldHandlers.Add(service);
                         break;
                     case null:
                         throw FilterProvider_UnableToCreateFieldHandler(this, handler.Type);
                     case IFilterFieldHandler<TContext> casted:
-                        _fieldHandlers .Add(casted);
+                        _fieldHandlers.Add(casted);
                         break;
                 }
             }
@@ -90,5 +91,11 @@ namespace HotChocolate.Data.Filters
         protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
         public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+
+        public virtual void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+        }
     }
 }

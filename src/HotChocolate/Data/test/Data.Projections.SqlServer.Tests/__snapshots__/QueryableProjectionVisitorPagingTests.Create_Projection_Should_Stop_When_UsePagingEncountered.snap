@@ -1,0 +1,34 @@
+﻿{
+  "data": {
+    "root": {
+      "nodes": [
+        {
+          "bar": true,
+          "paging": {
+            "nodes": [
+              {
+                "barBaz": "a_a"
+              },
+              {
+                "barBaz": "a_b"
+              }
+            ]
+          }
+        },
+        {
+          "bar": false,
+          "paging": {
+            "nodes": [
+              {
+                "barBaz": "a_a"
+              },
+              {
+                "barBaz": "a_b"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

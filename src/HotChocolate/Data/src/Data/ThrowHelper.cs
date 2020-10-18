@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -221,6 +222,35 @@ namespace HotChocolate.Data
                         sortConvention.Scope ?? "Default")
                     .SetExtension(nameof(sortConvention), sortConvention)
                     .SetExtension(nameof(sortOperation), sortOperation)
+                    .Build());
+
+        public static SchemaException ProjectionProvider_NoHandlersConfigured(
+            IProjectionProvider projectionConvention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.ProjectionProvider_NoHandlersConfigured,
+                        projectionConvention.GetType().FullName ??
+                        projectionConvention.GetType().Name)
+                    .SetExtension(nameof(projectionConvention), projectionConvention)
+                    .Build());
+
+        public static SchemaException ProjectionConvention_NoProviderFound(
+            Type convention,
+            string? scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.ProjectionConvention_NoProviderFound,
+                        convention.FullName ?? convention.Name)
+                    .SetExtension(nameof(scope), scope)
+                    .Build());
+
+        public static SchemaException ProjectionConvention_CouldNotProject() =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.ProjectionConvention_CouldNotProject)
                     .Build());
     }
 }

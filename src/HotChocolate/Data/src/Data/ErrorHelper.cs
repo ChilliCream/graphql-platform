@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using HotChocolate.Data.Filters;
+using HotChocolate.Data.Projections;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Data
@@ -54,5 +56,39 @@ namespace HotChocolate.Data
                 .SetExtension("sortType", sortType.Visualize())
                 .Build();
         }
+
+        public static ISchemaError ProjectionConvention_UnableToCreateFieldHandler(
+            IProjectionProvider convention,
+            Type fieldHandler) =>
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    DataResources.FilterProvider_UnableToCreateFieldHandler,
+                    fieldHandler.FullName ?? fieldHandler.Name,
+                    convention.GetType().FullName ?? convention.GetType().Name)
+                .SetExtension(nameof(convention), convention)
+                .SetExtension(nameof(fieldHandler), fieldHandler)
+                .Build();
+
+        public static IError ProjectionProvider_CreateMoreThanOneError(IResolverContext context) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
+                .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
+                .SetPath(context.Path)
+                .AddLocation(context.FieldSelection)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectFiltering(
+            IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectFiltering)
+                .AddLocation(node)
+                .Build();
+
+        public static IError ProjectionProvider_CouldNotProjectSorting(
+            IValueNode node) =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CouldNotProjectSorting)
+                .AddLocation(node)
+                .Build();
     }
 }
