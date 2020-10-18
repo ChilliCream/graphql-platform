@@ -1221,7 +1221,7 @@ data-styled.g102[id="blog-article__Container-sc-7c8ya8-0"]{content:"jvsAAt,"}/*!
 <p>The first service is handling the message stream and has the following schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="17288737037533196000"
+              data-toaster-id="39880225848351290000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1250,7 +1250,7 @@ type NewMessageInput {
 
 type NewMessagePayload {
   message: Message
-}`, `17288737037533196000`)"
+}`, `39880225848351290000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1287,7 +1287,7 @@ type NewMessagePayload {
 <p>The second service is handling the users of the services and has the following schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84784124035422270000"
+              data-toaster-id="87912301703948100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1323,7 +1323,7 @@ type ResetPasswordPayload {
 type User {
   id: ID!
   username: String!
-}`, `84784124035422270000`)"
+}`, `87912301703948100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1367,7 +1367,7 @@ type User {
 <p>Last but not least we have a third service handling the message analytics. In our example case we keep it simple and our analytics service just tracks three different counters per message. The schema for this service looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="41579575801673440000"
+              data-toaster-id="28887484172107624000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1387,7 +1387,7 @@ enum CounterType {
   VIEWS
   LIKES
   REPLIES
-}`, `41579575801673440000`)"
+}`, `28887484172107624000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1421,12 +1421,12 @@ enum CounterType {
 <p>If you do not have the <em>Hot Chocolate</em> GraphQL server template installed execute first the following command.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="18414254317421963000"
+              data-toaster-id="4383297440188038700"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet new -i HotChocolate.Templates.Server`, `18414254317421963000`)"
+              onClick="copyToClipboard(`dotnet new -i HotChocolate.Templates.Server`, `4383297440188038700`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1439,14 +1439,14 @@ enum CounterType {
 <p>After that we will create a new folder and add a new server to that folder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52934417259776810000"
+              data-toaster-id="58629379647828770000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`mkdir stitching-demo
 cd stitching-demo
-dotnet new graphql-server`, `52934417259776810000`)"
+dotnet new graphql-server`, `58629379647828770000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1462,12 +1462,12 @@ dotnet new graphql-server</code></pre></div>
 <p>In order to make this server a stitching server we now have to add the <em>Hot Chocolate</em> stitching engine.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="29927204746795864000"
+              data-toaster-id="66666128836712480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet add package HotChocolate.Stitching`, `29927204746795864000`)"
+              onClick="copyToClipboard(`dotnet add package HotChocolate.Stitching`, `66666128836712480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1484,7 +1484,7 @@ dotnet new graphql-server</code></pre></div>
 <p>The endpoints are declared by using a named <code class="language-text">HttpClient</code> via the HttpClient factory that is included with ASP.net core.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="45599815232367755000"
+              data-toaster-id="63533766479016075000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1500,7 +1500,7 @@ services.AddHttpClient(&quot;users&quot;, (sp, client) =>
 services.AddHttpClient(&quot;analytics&quot;, (sp, client) =>
 {
   client.BaseAddress = new Uri(&quot;http://127.0.0.1:5052&quot;);
-});`, `45599815232367755000`)"
+});`, `63533766479016075000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1527,7 +1527,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 </blockquote>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="31903331426549930000"
+              data-toaster-id="73417040146476680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1537,7 +1537,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 services.AddGraphQL(sp => Schema.Create(c =>
 {
     c.RegisterQueryType<Query>();
-}));`, `31903331426549930000`)"
+}));`, `73417040146476680000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1556,7 +1556,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>The stitching builder is the main API to configure a stitched GraphQL schema (GraphQL gateway). In order to have a simple auto-merge we have just to provide all the necessary schema names and the stitching layer will fetch the remote schemas via introspection on the first call to the stitched schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44613556151582830000"
+              data-toaster-id="57192367838878350000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1564,7 +1564,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
               onClick="copyToClipboard(`services.AddStitchedSchema(builder => builder
   .AddSchemaFromHttp(&quot;messages&quot;)
   .AddSchemaFromHttp(&quot;users&quot;)
-  .AddSchemaFromHttp(&quot;analytics&quot;));`, `44613556151582830000`)"
+  .AddSchemaFromHttp(&quot;analytics&quot;));`, `57192367838878350000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1582,7 +1582,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>In order to declare this custom scalar we can register the extended scalar set like with a regular <em>Hot Chocolate</em> GraphQL schema through the <code class="language-text">AddSchemaConfiguration</code>-method on the stitching builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="63757652073761510000"
+              data-toaster-id="93706223669934060000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1594,7 +1594,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
   .AddSchemaConfiguration(c =>
   {
     c.RegisterExtendedScalarTypes();
-  })`, `63757652073761510000`)"
+  })`, `93706223669934060000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1617,7 +1617,7 @@ services<span class="token punctuation">.</span><span class="token function">Add
 <p>With this in place our stitched schema now looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60402814097365060000"
+              data-toaster-id="35106636785640542000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1687,7 +1687,7 @@ enum CounterType {
   VIEWS
   LIKES
   REPLIES
-}`, `60402814097365060000`)"
+}`, `35106636785640542000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1768,7 +1768,7 @@ enum CounterType {
 <p>Further, the user type should expose the message stream of the user, this way we could fetch the messages of the signed in user like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="99379477274653250000"
+              data-toaster-id="4627165100121777000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1780,7 +1780,7 @@ enum CounterType {
       tags
     }
   }
-}`, `99379477274653250000`)"
+}`, `4627165100121777000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1800,7 +1800,7 @@ enum CounterType {
 <p>In order to extend types in a stitched schema we can use the new GraphQL extend syntax that was introduced with the 2018 spec.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="26592029671095220000"
+              data-toaster-id="56894144584843570000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1812,7 +1812,7 @@ enum CounterType {
 extend type User {
   messages: [Message!]
   @delegate(schema: &quot;messages&quot;, path: &quot;messages(userId: \$fields:Id)&quot;)
-}`, `26592029671095220000`)"
+}`, `56894144584843570000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1835,12 +1835,12 @@ extend type User {
 <p>The <code class="language-text">path</code>-argument on the <code class="language-text">delegate</code> directive specifies how to fetch the data from the remote schema. The selection path can have multiple levels. So, if we wanted to fetch just the username we could do that like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="84583680468961210000"
+              data-toaster-id="80124620691712260000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`user(id: \$contextData:UserId).username`, `84583680468961210000`)"
+              onClick="copyToClipboard(`user(id: \$contextData:UserId).username`, `80124620691712260000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1879,7 +1879,7 @@ extend type User {
 <p>In our case let`s say we are loading it from a file called <code class="language-text">Extensions.graphql</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="68295350033051670000"
+              data-toaster-id="83009034778068480000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1892,7 +1892,7 @@ extend type User {
   .AddSchemaConfiguration(c =>
   {
     c.RegisterExtendedScalarTypes();
-  })`, `68295350033051670000`)"
+  })`, `83009034778068480000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1913,7 +1913,7 @@ extend type User {
 <p>Now with all of this in place our schema looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="91736359732502560000"
+              data-toaster-id="48650996623714730000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1985,7 +1985,7 @@ enum CounterType {
   VIEWS
   LIKES
   REPLIES
-}`, `91736359732502560000`)"
+}`, `48650996623714730000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2066,7 +2066,7 @@ enum CounterType {
 <p>Though this is nice, we would like to go even further and enhance our <code class="language-text">Message</code> type like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="52984747461308420000"
+              data-toaster-id="6598779230239904000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2081,7 +2081,7 @@ enum CounterType {
   views: Int!
   likes: Int!
   replies: Int!
-}`, `52984747461308420000`)"
+}`, `6598779230239904000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2107,7 +2107,7 @@ enum CounterType {
 <p>In order to remove a field or a type we can tell the stitching builder to ignore them by calling one of the ignore extension methods.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="16173461270776568000"
+              data-toaster-id="5389098899561362000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2123,7 +2123,7 @@ enum CounterType {
   .AddSchemaConfiguration(c =>
   {
     c.RegisterExtendedScalarTypes();
-  })`, `16173461270776568000`)"
+  })`, `5389098899561362000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2150,7 +2150,7 @@ enum CounterType {
 <p>With that we have removed the types from our stitched schema. Now, let us move on to extend our message type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="15302533373978687000"
+              data-toaster-id="46373765710600830000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2162,7 +2162,7 @@ enum CounterType {
   likes: Int! @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
   replies: Int!
   @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
-}`, `15302533373978687000`)"
+}`, `46373765710600830000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2182,7 +2182,7 @@ enum CounterType {
 <p>Since we introduced a new field <code class="language-text">createdBy</code> that basically overwrites the field that we have already declared on our original <code class="language-text">Message</code> type, we need to rename the original field <code class="language-text">createdBy</code> to <code class="language-text">createdById</code> so that we are still able to use it.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="73407909625570755000"
+              data-toaster-id="17684547147983020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2199,7 +2199,7 @@ enum CounterType {
   .AddSchemaConfiguration(c =>
   {
     c.RegisterExtendedScalarTypes();
-  })`, `73407909625570755000`)"
+  })`, `17684547147983020000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2227,7 +2227,7 @@ enum CounterType {
 <p>Our new schema now looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95461204678294370000"
+              data-toaster-id="13957374928767386000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2289,7 +2289,7 @@ type User {
   id: ID!
   username: String!
   messages: [Message!]
-}`, `95461204678294370000`)"
+}`, `13957374928767386000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2369,7 +2369,7 @@ type User {
 <p>So, in order to fetch a hidden field every time a certain type is requested we would want to overwrite <code class="language-text">OnRewriteSelectionSet</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33993626783894192000"
+              data-toaster-id="43176727018533190000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2400,7 +2400,7 @@ type User {
 
         return selectionSet;
     }
-}`, `33993626783894192000`)"
+}`, `43176727018533190000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2441,12 +2441,12 @@ type User {
 <p>Query delegation rewriters are registered with the dependency injection and not with our stitching builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="72017432527068420000"
+              data-toaster-id="88274874514911510000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddQueryDelegationRewriter<AddCreatedByIdQueryRewriter>();`, `72017432527068420000`)"
+              onClick="copyToClipboard(`services.AddQueryDelegationRewriter<AddCreatedByIdQueryRewriter>();`, `88274874514911510000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2464,7 +2464,7 @@ type User {
 <p>A field middleware has to be declared via the stitching builder.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75518038032305300000"
+              data-toaster-id="69779855924096860000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2495,7 +2495,7 @@ type User {
                 context.ScopedContextData.SetItem(&quot;createdById&quot;, value);
         }
     })
-  })`, `75518038032305300000`)"
+  })`, `69779855924096860000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2537,7 +2537,7 @@ type User {
 <p>With all of this in place we can now rewrite our <code class="language-text">Message</code> type extension and access the <code class="language-text">createdById</code> from the scoped context data:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="77460011805457630000"
+              data-toaster-id="75767523920165900000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2549,7 +2549,7 @@ type User {
   likes: Int! @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
   replies: Int!
   @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
-}`, `77460011805457630000`)"
+}`, `75767523920165900000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2581,12 +2581,12 @@ type User {
 <p>Apart from the source schema rewriters we can also rewrite the schema document after it has been merged:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="97199213495295120000"
+              data-toaster-id="38957787348537720000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`IStitchingBuilder AddMergedDocumentRewriter(Func<DocumentNode, DocumentNode> rewrite);`, `97199213495295120000`)"
+              onClick="copyToClipboard(`IStitchingBuilder AddMergedDocumentRewriter(Func<DocumentNode, DocumentNode> rewrite);`, `38957787348537720000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2600,12 +2600,12 @@ type User {
 <p>Also, if we just wanted to validate the schema for merge errors or collect information on the rewritten schema we are able to add schema visitors that run after all schema modifications are done.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34857146797672000000"
+              data-toaster-id="75657563092455130000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`IStitchingBuilder AddMergedDocumentVisitor(Action<DocumentNode> visit);`, `34857146797672000000`)"
+              onClick="copyToClipboard(`IStitchingBuilder AddMergedDocumentVisitor(Action<DocumentNode> visit);`, `75657563092455130000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2625,12 +2625,12 @@ type User {
 <p>In order to pass on the incoming <code class="language-text">Authorization</code> header to our registered HttpClients we need to first register the HttpContext accessor from ASP.net core.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="89395895842913370000"
+              data-toaster-id="43780694250355960000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddHttpContextAccessor();`, `89395895842913370000`)"
+              onClick="copyToClipboard(`services.AddHttpContextAccessor();`, `43780694250355960000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2643,7 +2643,7 @@ type User {
 <p>Next, we need to update our HttpClient factory declaration:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="74383866952470990000"
+              data-toaster-id="66837323951807230000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2661,7 +2661,7 @@ type User {
     }
 
     client.BaseAddress = new Uri(&quot;http://127.0.0.1:5050&quot;);
-});`, `74383866952470990000`)"
+});`, `66837323951807230000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2690,7 +2690,7 @@ type User {
 <p>The stitching layer transparently batches queries to the remote schemas. So, if you extend types like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8394411941703605000"
+              data-toaster-id="55488626147408530000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2700,7 +2700,7 @@ type User {
   likes: Int! @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
   replies: Int!
   @delegate(schema: &quot;analytics&quot;, path: &quot;analytics(id: \$fields:id)&quot;)
-}`, `8394411941703605000`)"
+}`, `55488626147408530000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2722,7 +2722,7 @@ type User {
 <p>Query 1:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71559931157522640000"
+              data-toaster-id="20841551586123375000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2734,7 +2734,7 @@ type User {
       id
     }
   }
-}`, `71559931157522640000`)"
+}`, `20841551586123375000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2754,7 +2754,7 @@ type User {
 <p>Query 2:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="60035040787643250000"
+              data-toaster-id="40877757405228384000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2766,7 +2766,7 @@ type User {
       id
     }
   }
-}`, `60035040787643250000`)"
+}`, `40877757405228384000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2786,7 +2786,7 @@ type User {
 <p>We would merge those two queries into one:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92431220510976180000"
+              data-toaster-id="62894773343126495000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2804,7 +2804,7 @@ type User {
       id
     }
   }
-}`, `92431220510976180000`)"
+}`, `62894773343126495000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2840,7 +2840,7 @@ type User {
 <p>The top‐level mutation fields are executed serially which guarantees that the top-level fields are executed one after the other.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="8152107984917900000"
+              data-toaster-id="31323308944318427000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2852,7 +2852,7 @@ type User {
   addUserToGroup(userName: &quot;foo&quot;, groupName: &quot;bar&quot;) {
     someFields
   }
-}`, `8152107984917900000`)"
+}`, `31323308944318427000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2874,7 +2874,7 @@ type User {
 <p>Let's put that in a context.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58500521514306820000"
+              data-toaster-id="6384931570694264000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2897,7 +2897,7 @@ type User {
   username: String!
   messages: [Message!]
   @delegate(schema: &quot;messages&quot;, path: &quot;messages(userId: \$fields:Id)&quot;)
-}`, `58500521514306820000`)"
+}`, `6384931570694264000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2929,7 +2929,7 @@ type User {
 <p>This also means that we cannot group mutations like we could group queries. So, something like the following would not work since it is not spec-compliant:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="83785573736804580000"
+              data-toaster-id="79947180150050100000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -2940,7 +2940,7 @@ type User {
 
 type UserMutations {
   newUser(input: NewUserInput): NewUserPayload
-}`, `83785573736804580000`)"
+}`, `79947180150050100000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -2960,14 +2960,14 @@ type UserMutations {
 <p>The stitching engine provides a lot of extension points, but if we wanted to write the stitching for one specific resolver by ourselves then we could do that by using the <code class="language-text">IStitchingContext</code> which is a scoped service and can be resolved through the resolver context.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78464240365635290000"
+              data-toaster-id="40195926748289335000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`IStitchingContext stitchingContext = context.Service<IStichingContext>();
 IRemoteQueryClient remoteQueryClient = stitchingContext.GetRemoteQueryClient(&quot;messages&quot;);
-IExecutionResult result = remoteQueryClient.ExecuteAsync(&quot;{ foo { bar } }&quot;)`, `78464240365635290000`)"
+IExecutionResult result = remoteQueryClient.ExecuteAsync(&quot;{ foo { bar } }&quot;)`, `40195926748289335000`)"
             >
               <div
                 class="gatsby-code-button"
