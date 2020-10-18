@@ -90,9 +90,8 @@ namespace HotChocolate.Data.Projections.Expressions.Handlers
                 context.PopInstance(),
                 type);
 
-            parentScope.Level.Peek()
-                .Enqueue(
-                    Expression.Bind(field.Member, select));
+            parentScope.Level.Peek().Enqueue(
+                Expression.Bind(field.Member, select));
 
             action = SelectionVisitor.Continue;
             return true;
