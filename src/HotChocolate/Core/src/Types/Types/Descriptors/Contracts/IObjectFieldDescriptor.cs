@@ -86,5 +86,7 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
+
+        IObjectFieldDescriptor ConfigureContextData(Action<ExtensionData> configure);
     }
 }
