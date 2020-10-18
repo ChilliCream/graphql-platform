@@ -83,10 +83,11 @@ namespace HotChocolate.Data.Filters
                         out IFilterFieldHandler<TContext>? service):
                         _fieldHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
-                        break;
+
                     case IFilterFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;

@@ -26,13 +26,5 @@ namespace HotChocolate.Types.Descriptors
         /// The descriptor context that is passed through the initialization process.
         /// </summary>
         IDescriptorContext DescriptorContext { get; }
-
-        /// <summary>
-        /// Report a schema initialization error.
-        /// </summary>
-        /// <param name="error">
-        /// The error that occurred during initialization.
-        /// </param>
-        void ReportError(ISchemaError error);
     }
 }

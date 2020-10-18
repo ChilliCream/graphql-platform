@@ -98,10 +98,11 @@ namespace HotChocolate.Data.Sorting
                         out ISortFieldHandler<TContext>? service):
                         _fieldHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             SortProvider_UnableToCreateFieldHandler(this, handler.Type));
-                        break;
+
                     case ISortFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;
@@ -118,10 +119,11 @@ namespace HotChocolate.Data.Sorting
                         out ISortOperationHandler<TContext>? service):
                         _operationHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             SortProvider_UnableToCreateOperationHandler(this, handler.Type));
-                        break;
+
                     case ISortOperationHandler<TContext> casted:
                         _operationHandlers.Add(casted);
                         break;
