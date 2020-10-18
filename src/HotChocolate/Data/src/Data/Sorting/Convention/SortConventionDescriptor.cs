@@ -192,13 +192,15 @@ namespace HotChocolate.Data.Sorting
             return this;
         }
 
-        public ISortConventionDescriptor AddProviderExtension<TExtension>() where TExtension : class, ISortProviderExtension
+        public ISortConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, ISortProviderExtension
         {
             Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
             return this;
         }
 
-        public ISortConventionDescriptor AddProviderExtension<TExtension>(TExtension provider) where TExtension : class, ISortProviderExtension
+        public ISortConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, ISortProviderExtension
         {
             Definition.ProviderExtensions.Add(provider);
             return this;

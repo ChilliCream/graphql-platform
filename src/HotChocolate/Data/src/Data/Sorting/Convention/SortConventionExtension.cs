@@ -69,13 +69,21 @@ namespace HotChocolate.Data.Sorting
                     Definition.EnumConfigurations,
                     sortConvention.Definition.EnumConfigurations);
 
-                sortConvention.Definition.Operations.AddRange(Definition.Operations);
+                for (var i = 0; i < Definition.Operations.Count; i++)
+                {
+                    sortConvention.Definition.Operations.Add(Definition.Operations[i]);
+                }
 
-                sortConvention.Definition.ProviderExtensions.AddRange(
-                    Definition.ProviderExtensions);
+                for (var i = 0; i < Definition.ProviderExtensions.Count; i++)
+                {
+                    sortConvention.Definition.ProviderExtensions.Add(Definition.ProviderExtensions[i]);
+                }
 
-                sortConvention.Definition.ProviderExtensionsTypes.AddRange(
-                    Definition.ProviderExtensionsTypes);
+                for (var i = 0; i < Definition.ProviderExtensionsTypes.Count; i++)
+                {
+                    sortConvention.Definition.ProviderExtensionsTypes.Add(
+                        Definition.ProviderExtensionsTypes[i]);
+                }
 
                 if (Definition.ArgumentName != SortConventionDefinition.DefaultArgumentName)
                 {

@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Sorting
 
         public Type? DefaultBinding { get; set; }
 
-        public List<SortOperationConventionDefinition> Operations { get; } =
+        public IList<SortOperationConventionDefinition> Operations { get; } =
             new List<SortOperationConventionDefinition>();
 
         public IDictionary<Type, Type> Bindings { get; } = new Dictionary<Type, Type>();
@@ -32,9 +32,9 @@ namespace HotChocolate.Data.Sorting
             = new Dictionary<ITypeReference, List<ConfigureSortEnumType>>(
                 TypeReferenceComparer.Default);
 
-        public List<ISortProviderExtension> ProviderExtensions { get; } =
+        public IList<ISortProviderExtension> ProviderExtensions { get; } =
             new List<ISortProviderExtension>();
 
-        public List<Type> ProviderExtensionsTypes { get; } = new List<Type>();
+        public IList<Type> ProviderExtensionsTypes { get; } = new List<Type>();
     }
 }

@@ -77,16 +77,16 @@ namespace HotChocolate.Data.Sorting
                 throw SortProvider_NoFieldHandlersConfigured(this);
             }
 
-            if (Definition.Handlers.Count == 0)
+            if (Definition.OperationHandlers.Count == 0)
             {
                 throw SortProvider_NoOperationHandlersConfigured(this);
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                    (typeof(ISortProvider), this),
-                    (typeof(IConventionContext), context),
-                    (typeof(IDescriptorContext), context.DescriptorContext),
-                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                (typeof(ISortProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)

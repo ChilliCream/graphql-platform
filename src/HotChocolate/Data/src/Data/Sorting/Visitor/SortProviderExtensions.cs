@@ -59,8 +59,15 @@ namespace HotChocolate.Data.Sorting
                 // Provider extensions should be applied by default before the default handlers, as
                 // the interceptor picks up the first handler. A provider extension should adds more
                 // specific handlers than the default providers
-                target.Handlers.InsertRange(0, Definition.Handlers);
-                target.OperationHandlers.InsertRange(0, Definition.OperationHandlers);
+                for (var i = Definition.Handlers.Count - 1; i >= 0 ; i--)
+                {
+                    target.Handlers.Insert(0, Definition.Handlers[i]);
+                }
+
+                for (var i = Definition.OperationHandlers.Count - 1; i >= 0 ; i--)
+                {
+                    target.OperationHandlers.Insert(0, Definition.OperationHandlers[i]);
+                }
             }
         }
     }

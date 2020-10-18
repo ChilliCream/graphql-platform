@@ -10,7 +10,8 @@ namespace HotChocolate.Data.Sorting.Expressions
         }
 
         public QueryableSortProviderExtension(
-            Action<ISortProviderDescriptor<QueryableSortContext>> configure) : base(configure)
+            Action<ISortProviderDescriptor<QueryableSortContext>> configure)
+            : base(configure)
         {
         }
     }
