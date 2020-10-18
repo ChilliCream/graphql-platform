@@ -8,8 +8,8 @@ using MongoDB.Driver.Linq;
 namespace HotChocolate.MongoDb.Execution
 {
     public abstract class MongoExecutable<T>
-        : IExecutable<T>,
-          IMongoExecutable
+        : IExecutable<T>
+        , IMongoExecutable
     {
         protected FilterDefinition<BsonDocument> Filters { get; private set; } =
             FilterDefinition<BsonDocument>.Empty;
