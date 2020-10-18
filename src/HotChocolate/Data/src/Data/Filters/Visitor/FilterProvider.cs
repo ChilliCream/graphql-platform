@@ -10,9 +10,9 @@ using static HotChocolate.Data.ErrorHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>,
-          IFilterProvider,
-          IFilterProviderConvention
+        : Convention<FilterProviderDefinition>
+        , IFilterProvider
+        , IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
@@ -68,10 +68,10 @@ namespace HotChocolate.Data.Filters
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                    (typeof(IFilterProvider), this),
-                    (typeof(IConventionContext), context),
-                    (typeof(IDescriptorContext), context.DescriptorContext),
-                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                (typeof(IFilterProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
             foreach ((Type Type, IFilterFieldHandler? Instance) handler in Definition.Handlers)
