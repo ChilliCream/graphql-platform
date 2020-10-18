@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Data.Filters
 {

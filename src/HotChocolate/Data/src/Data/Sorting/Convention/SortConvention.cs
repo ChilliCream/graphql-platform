@@ -233,6 +233,9 @@ namespace HotChocolate.Data.Sorting
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
+        public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
+            _provider.ConfigureField(_argumentName, descriptor);
+
         public bool TryGetOperationHandler(
             ITypeDiscoveryContext context,
             EnumTypeDefinition typeDefinition,
