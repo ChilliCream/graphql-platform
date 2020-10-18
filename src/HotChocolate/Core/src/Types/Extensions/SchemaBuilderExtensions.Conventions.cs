@@ -10,6 +10,32 @@ namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
+        public static ISchemaBuilder AddConvention<T>(
+            this ISchemaBuilder builder,
+            Type type,
+            string? scope = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddConvention(typeof(T), type, scope);
+        }
+
+        public static ISchemaBuilder AddConvention<T>(
+            this ISchemaBuilder builder,
+            CreateConvention conventionFactory,
+            string? scope = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddConvention(typeof(T), conventionFactory, scope);
+        }
+
         public static ISchemaBuilder AddConvention(
             this ISchemaBuilder builder,
             Type convention,
@@ -230,6 +256,13 @@ namespace HotChocolate
             string? scope = null)
             where T : IConvention =>
             builder.TryAddConvention(typeof(T), conventionFactory, scope);
+
+        public static ISchemaBuilder TryAddConvention<T>(
+            this ISchemaBuilder builder,
+            Type type,
+            string? scope = null)
+            where T : IConvention =>
+            builder.TryAddConvention(typeof(T), type, scope);
 
         public static ISchemaBuilder TryAddConvention<T>(
             this ISchemaBuilder builder,

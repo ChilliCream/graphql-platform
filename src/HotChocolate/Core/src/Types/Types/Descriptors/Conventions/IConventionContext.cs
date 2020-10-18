@@ -11,11 +11,6 @@ namespace HotChocolate.Types.Descriptors
     public interface IConventionContext : IHasScope
     {
         /// <summary>
-        /// The convention that is being initialized.
-        /// </summary>
-        IConvention Convention { get; }
-
-        /// <summary>
         /// The schema level services.
         /// </summary>
         IServiceProvider Services { get; }

@@ -63,23 +63,20 @@ namespace HotChocolate.Data.Projections
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            ProjectionProviderDefinition definition)
+        protected override void OnComplete(IConventionContext context)
         {
-            if (definition.Handlers.Count == 0)
+            if (Definition.Handlers.Count == 0)
             {
                 throw ProjectionProvider_NoHandlersConfigured(this);
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
                 (typeof(IConventionContext), context),
-                (typeof(IProjectionProvider), context.Convention),
                 (typeof(IDescriptorContext), context.DescriptorContext),
                 (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
-            foreach ((Type type, IProjectionFieldHandler? instance) in definition.Handlers)
+            foreach ((Type type, IProjectionFieldHandler? instance) in Definition.Handlers)
             {
                 switch (instance)
                 {
@@ -88,17 +85,18 @@ namespace HotChocolate.Data.Projections
                         out IProjectionFieldHandler? service):
                         _fieldHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             ProjectionConvention_UnableToCreateFieldHandler(this, type));
-                        break;
+
                     default:
                         _fieldHandlers.Add(instance);
                         break;
                 }
             }
 
-            foreach ((var type, IProjectionFieldInterceptor? instance) in definition.Interceptors)
+            foreach ((var type, IProjectionFieldInterceptor? instance) in Definition.Interceptors)
             {
                 switch (instance)
                 {
@@ -107,17 +105,18 @@ namespace HotChocolate.Data.Projections
                         out IProjectionFieldInterceptor? service):
                         _fieldInterceptors.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             ProjectionConvention_UnableToCreateFieldHandler(this, type));
-                        break;
+
                     default:
                         _fieldInterceptors.Add(instance);
                         break;
                 }
             }
 
-            foreach ((var type, IProjectionOptimizer? instance) in definition.Optimizers)
+            foreach ((var type, IProjectionOptimizer? instance) in Definition.Optimizers)
             {
                 switch (instance)
                 {
@@ -126,10 +125,11 @@ namespace HotChocolate.Data.Projections
                         out IProjectionOptimizer? service):
                         _optimizer.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
+                        throw new SchemaException(
                             ProjectionConvention_UnableToCreateFieldHandler(this, type));
-                        break;
+
                     default:
                         _optimizer.Add(instance);
                         break;
