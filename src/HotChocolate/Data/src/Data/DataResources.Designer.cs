@@ -189,6 +189,12 @@ namespace HotChocolate.Data {
             }
         }
         
+        internal static string FilterDescriptorContextExtensions_NoConvention_Default {
+            get {
+                return ResourceManager.GetString("FilterDescriptorContextExtensions_NoConvention_Default", resourceCulture);
+            }
+        }
+        
         internal static string SortProvider_NoFieldHandlersConfigured {
             get {
                 return ResourceManager.GetString("SortProvider_NoFieldHandlersConfigured", resourceCulture);
@@ -204,6 +210,12 @@ namespace HotChocolate.Data {
         internal static string SortDescriptorContextExtensions_NoConvention {
             get {
                 return ResourceManager.GetString("SortDescriptorContextExtensions_NoConvention", resourceCulture);
+            }
+        }
+        
+        internal static string SortDescriptorContextExtensions_NoConvention_Default {
+            get {
+                return ResourceManager.GetString("SortDescriptorContextExtensions_NoConvention_Default", resourceCulture);
             }
         }
         

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<(Type, string), CreateConvention>();
+            var conventions = new Dictionary<(Type, string), List<CreateConvention>>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
                 naming);
@@ -42,9 +42,9 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
-            var conventions = new Dictionary<(Type, string), CreateConvention>
+            var conventions = new Dictionary<(Type, string), List<CreateConvention>>
             {
-                { (typeof(INamingConventions), null), s => naming }
+                { (typeof(INamingConventions), null), new List<CreateConvention>{s => naming} }
             };
 
             // act
@@ -69,7 +69,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
-            var conventions = new Dictionary<(Type, string), CreateConvention>();
+            var conventions = new Dictionary<(Type, string), List<CreateConvention>>();
             var services = new DictionaryServiceProvider(
                 typeof(ITypeInspector),
                 inspector);

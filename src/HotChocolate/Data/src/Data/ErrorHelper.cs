@@ -29,52 +29,6 @@ namespace HotChocolate.Data
                 .Build();
         }
 
-        public static ISchemaError FilterField_RuntimeType_Unknown(FilterField field) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.FilterField_FilterField_TypeUnknown,
-                    field.DeclaringType.Name,
-                    field.Name)
-                .SetTypeSystemObject(field.DeclaringType)
-                .SetExtension(nameof(field), field)
-                .Build();
-
-        public static ISchemaError FilterProvider_UnableToCreateFieldHandler(
-            IFilterProvider filterProvider,
-            Type fieldHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.FilterProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
-                    filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
-                .SetExtension(nameof(filterProvider), filterProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
-                .Build();
-
-        public static ISchemaError SortProvider_UnableToCreateFieldHandler(
-            ISortProvider sortProvider,
-            Type fieldHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.SortProvider_UnableToCreateFieldHandler,
-                    fieldHandler.FullName ?? fieldHandler.Name,
-                    sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
-                .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(fieldHandler), fieldHandler)
-                .Build();
-
-        public static ISchemaError SortProvider_UnableToCreateOperationHandler(
-            ISortProvider sortProvider,
-            Type operationHandler) =>
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.SortProvider_UnableToCreateOperationHandler,
-                    operationHandler.FullName ?? operationHandler.Name,
-                    sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
-                .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(operationHandler), operationHandler)
-                .Build();
-
         public static IError SortingVisitor_ListValues(ISortField field, ListValueNode node) =>
             ErrorBuilder.New()
                 .SetMessage(
