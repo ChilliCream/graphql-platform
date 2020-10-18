@@ -11,7 +11,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Types
 {
     public static class FilterObjectFieldDescriptorExtensions
     {

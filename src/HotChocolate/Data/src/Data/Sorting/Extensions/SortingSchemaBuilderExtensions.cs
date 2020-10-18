@@ -1,14 +1,15 @@
 using System;
+using HotChocolate.Data.Sorting;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate
 {
     /// <summary>
-    /// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
+    /// Provides Sorting extensions for the <see cref="ISchemaBuilder"/>.
     /// </summary>
-    public static class SchemaBuilderExtensions
+    public static class SortingSchemaBuilderExtensions
     {
         /// <summary>
-        /// Adds filtering support.
+        /// Adds Sorting support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
@@ -16,12 +17,11 @@ namespace HotChocolate.Data.Filters
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering(
-            this ISchemaBuilder builder) =>
-            AddFiltering(builder, x => x.AddDefaults());
+        public static ISchemaBuilder AddSorting(this ISchemaBuilder builder) =>
+            AddSorting(builder, x => x.AddDefaults());
 
         /// <summary>
-        /// Adds filtering support.
+        /// Adds Sorting support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
@@ -30,40 +30,40 @@ namespace HotChocolate.Data.Filters
         /// Configures the convention.
         /// </param>
         /// <param name="name">
-        /// The filter convention name.
+        /// The sort convention name.
         /// </param>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering(
+        public static ISchemaBuilder AddSorting(
             this ISchemaBuilder builder,
-            Action<IFilterConventionDescriptor> configure,
+            Action<ISortConventionDescriptor> configure,
             string? name = null) =>
             builder
-                .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
+                .TryAddConvention<ISortConvention>(sp => new SortConvention(configure), name)
+                .TryAddTypeInterceptor<SortTypeInterceptor>();
 
         /// <summary>
-        /// Adds filtering support.
+        /// Adds Sorting support.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="ISchemaBuilder"/>.
         /// </param>
         /// <param name="name">
-        /// The filter convention name.
+        /// The sort convention name.
         /// </param>
         /// <typeparam name="TConvention">
-        /// The concrete filter convention type.
+        /// The concrete sort convention type.
         /// </typeparam>
         /// <returns>
         /// Returns the <see cref="ISchemaBuilder"/>.
         /// </returns>
-        public static ISchemaBuilder AddFiltering<TConvention>(
+        public static ISchemaBuilder AddSorting<TConvention>(
             this ISchemaBuilder builder,
             string? name = null)
-            where TConvention : class, IFilterConvention =>
+            where TConvention : class, ISortConvention =>
             builder
-                .TryAddConvention<IFilterConvention, TConvention>(name)
-                .TryAddTypeInterceptor<FilterTypeInterceptor>();
+                .TryAddConvention<ISortConvention, TConvention>(name)
+                .TryAddTypeInterceptor<SortTypeInterceptor>();
     }
 }

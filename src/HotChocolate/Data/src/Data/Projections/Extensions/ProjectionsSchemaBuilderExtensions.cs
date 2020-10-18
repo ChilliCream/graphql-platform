@@ -1,11 +1,12 @@
 using System;
+using HotChocolate.Data.Projections;
 
-namespace HotChocolate.Data.Projections
+namespace HotChocolate
 {
     /// <summary>
     /// Provides filtering extensions for the <see cref="ISchemaBuilder"/>.
     /// </summary>
-    public static class SchemaBuilderExtensions
+    public static class ProjectionsSchemaBuilderExtensions
     {
         /// <summary>
         /// Adds filtering support.
