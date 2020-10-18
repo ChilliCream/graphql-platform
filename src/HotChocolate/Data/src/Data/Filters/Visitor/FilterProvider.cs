@@ -11,9 +11,9 @@ using static HotChocolate.Data.ErrorHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>
-        , IFilterProvider
-        , IFilterProviderConvention
+        : Convention<FilterProviderDefinition>,
+          IFilterProvider,
+          IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
@@ -86,9 +86,8 @@ namespace HotChocolate.Data.Filters
                         break;
 
                     case null:
-                        throw new SchemaException(
-                            FilterProvider_UnableToCreateFieldHandler(this, handler.Type));
-
+                        throw FilterProvider_UnableToCreateFieldHandler(this, handler.Type);
+                        
                     case IFilterFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;

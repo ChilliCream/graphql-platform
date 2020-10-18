@@ -86,6 +86,45 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(scope), scope)
                     .Build());
 
+        public static SchemaException FilterProvider_UnableToCreateFieldHandler(
+            IFilterProvider filterProvider,
+            Type fieldHandler) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.FilterProvider_UnableToCreateFieldHandler,
+                        fieldHandler.FullName ?? fieldHandler.Name,
+                        filterProvider.GetType().FullName ?? filterProvider.GetType().Name)
+                    .SetExtension(nameof(filterProvider), filterProvider)
+                    .SetExtension(nameof(fieldHandler), fieldHandler)
+                    .Build());
+
+        public static SchemaException SortProvider_UnableToCreateFieldHandler(
+            ISortProvider sortProvider,
+            Type fieldHandler) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.SortProvider_UnableToCreateFieldHandler,
+                        fieldHandler.FullName ?? fieldHandler.Name,
+                        sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
+                    .SetExtension(nameof(sortProvider), sortProvider)
+                    .SetExtension(nameof(fieldHandler), fieldHandler)
+                    .Build());
+
+        public static SchemaException SortProvider_UnableToCreateOperationHandler(
+            ISortProvider sortProvider,
+            Type operationHandler) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.SortProvider_UnableToCreateOperationHandler,
+                        operationHandler.FullName ?? operationHandler.Name,
+                        sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
+                    .SetExtension(nameof(sortProvider), sortProvider)
+                    .SetExtension(nameof(operationHandler), operationHandler)
+                    .Build());
+
         public static SchemaException SortProvider_NoFieldHandlersConfigured(
             ISortProvider filterProvider) =>
             new SchemaException(
@@ -214,8 +253,7 @@ namespace HotChocolate.Data
         public static SchemaException ProjectionConvention_CouldNotProject() =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage(
-                        DataResources.ProjectionConvention_CouldNotProject)
+                    .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                     .Build());
     }
 }
