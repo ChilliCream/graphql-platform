@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
 

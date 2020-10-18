@@ -149,6 +149,17 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public void Register(NameString typeName, ExtendedTypeReference typeReference)
+        {
+            if (typeReference is null)
+            {
+                throw new ArgumentNullException(nameof(typeReference));
+            }
+
+            typeName.EnsureNotEmpty(nameof(typeName));
+            _nameRefs[typeName] = typeReference;
+        }
+
         public void Register(NameString typeName, RegisteredType registeredType)
         {
             if (registeredType is null)

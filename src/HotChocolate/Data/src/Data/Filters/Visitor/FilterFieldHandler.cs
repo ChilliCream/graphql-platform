@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Filters
         /// <inheritdoc />
         public abstract bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition);
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition);
     }
 }

@@ -11,6 +11,10 @@ namespace HotChocolate.Data.Sorting.Expressions
     public class QueryableSortProvider
         : SortProvider<QueryableSortContext>
     {
+        public const string ContextArgumentNameKey = "SortArgumentName";
+        public const string ContextVisitSortArgumentKey = nameof(VisitSortArgument);
+        public const string SkipSortingKey = "SkipSorting";
+
         public QueryableSortProvider()
         {
         }
@@ -40,7 +44,12 @@ namespace HotChocolate.Data.Sorting.Expressions
                 IValueNode sort = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no sort is defined we can stop here and yield back control.
-                if (sort.IsNull())
+                if (sort.IsNull() ||
+                    (context.LocalContextData.TryGetValue(
+                            SkipSortingKey,
+                            out object? skipObject) &&
+                        skipObject is bool skip &&
+                        skip))
                 {
                     return;
                 }
@@ -56,14 +65,18 @@ namespace HotChocolate.Data.Sorting.Expressions
                     source = e.AsQueryable();
                 }
 
-                if (source != null && argument.Type is ISortInputType sortInput)
+                if (source != null &&
+                    argument.Type is ListType lt &&
+                    lt.ElementType is ISortInputType sortInput &&
+                    context.Field.ContextData.TryGetValue(
+                        ContextVisitSortArgumentKey,
+                        out object? executorObj) &&
+                    executorObj is VisitSortArgument executor)
                 {
-                    var visitorContext = new QueryableSortContext(
+                    QueryableSortContext visitorContext = executor(
+                        sort,
                         sortInput,
                         source is EnumerableQuery);
-
-                    // rewrite GraphQL input object into expression tree.
-                    Visitor.Visit(sort, visitorContext);
 
                     // compile expression tree
                     if (visitorContext.Errors.Count > 0)
@@ -81,5 +94,38 @@ namespace HotChocolate.Data.Sorting.Expressions
                 }
             }
         }
+
+        public override void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+            QueryableSortContext VisitSortArgumentExecutor(
+                IValueNode valueNode,
+                ISortInputType filterInput,
+                bool inMemory)
+            {
+                var visitorContext = new QueryableSortContext(
+                    filterInput,
+                    inMemory);
+
+                // rewrite GraphQL input object into expression tree.
+                Visitor.Visit(valueNode, visitorContext);
+
+                return visitorContext;
+            }
+
+            descriptor.ConfigureContextData(
+                contextData =>
+                {
+                    contextData[ContextVisitSortArgumentKey] =
+                        (VisitSortArgument)VisitSortArgumentExecutor;
+                    contextData[ContextArgumentNameKey] = argumentName;
+                });
+        }
     }
+
+    public delegate QueryableSortContext VisitSortArgument(
+        IValueNode filterValueNode,
+        ISortInputType filterInputType,
+        bool inMemory);
 }

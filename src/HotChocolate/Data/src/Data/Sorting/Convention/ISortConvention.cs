@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -128,8 +129,8 @@ namespace HotChocolate.Data.Sorting
 
         bool TryGetFieldHandler(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler);
 
         bool TryGetOperationHandler(
@@ -150,5 +151,14 @@ namespace HotChocolate.Data.Sorting
         /// for the specified entity type.
         /// </returns>
         FieldMiddleware CreateExecutor<TEntityType>();
+
+        /// <summary>
+        /// Configures the field where the filters are applied. This can be used to add context
+        /// data to the field.
+        /// </summary>
+        /// <param name="fieldDescriptor">
+        /// the field descriptor where the filtering is applied
+        /// </param>
+        void ConfigureField(IObjectFieldDescriptor fieldDescriptor);
     }
 }
