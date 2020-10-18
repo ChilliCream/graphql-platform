@@ -9,8 +9,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition)
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is BooleanOperationFilterInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&

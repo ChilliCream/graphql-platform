@@ -26,11 +26,13 @@ import AeiLogoSvg from "../images/companies/aei.svg";
 import AtminaLogoSvg from "../images/companies/atmina.svg";
 import AutoguruLogoSvg from "../images/companies/autoguru.svg";
 import CarmmunityLogoSvg from "../images/companies/carmmunity.svg";
+import E2mLogoSvg from "../images/companies/e2m.svg";
 import GiaLogoSvg from "../images/companies/gia.svg";
 import MotiviewLogoSvg from "../images/companies/motiview.svg";
 import PushpayLogoSvg from "../images/companies/pushpay.svg";
 import Seven2OneLogoSvg from "../images/companies/seven-2-one.svg";
 import SwissLifeLogoSvg from "../images/companies/swiss-life.svg";
+import ZioskLogoSvg from "../images/companies/ziosk.svg";
 import ContactUsSvg from "../images/contact-us.svg";
 import DashboardSvg from "../images/dashboard.svg";
 import GetStartedSvg from "../images/get-started.svg";
@@ -212,6 +214,11 @@ const IndexPage: FunctionComponent = () => {
                   <CarmmunityLogoSvg />
                 </Link>
               </Logo>
+              <Logo width={90}>
+                <Link to="https://www.e2m.energy">
+                  <E2mLogoSvg />
+                </Link>
+              </Logo>
               <Logo width={120}>
                 <Link to="https://gia.ch">
                   <GiaLogoSvg />
@@ -235,6 +242,11 @@ const IndexPage: FunctionComponent = () => {
               <Logo width={110}>
                 <Link to="https://www.swisslife.ch">
                   <SwissLifeLogoSvg />
+                </Link>
+              </Logo>
+              <Logo width={120}>
+                <Link to="https://www.ziosk.com">
+                  <ZioskLogoSvg />
                 </Link>
               </Logo>
             </Logos>
