@@ -45,6 +45,8 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        internal new FilterConventionDefinition? Definition => base.Definition;
+
         protected override FilterConventionDefinition CreateDefinition(
             IConventionContext context)
         {
@@ -67,40 +69,46 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            FilterConventionDefinition definition)
+        protected override void OnComplete(IConventionContext context)
         {
-            if (definition.Provider is null)
+            if (Definition?.Provider is null)
             {
-                throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                throw FilterConvention_NoProviderFound(GetType(), Definition?.Scope);
             }
 
-            if (definition.ProviderInstance is null)
+            if (Definition.ProviderInstance is null)
             {
                 _provider =
-                    context.Services.GetOrCreateService<IFilterProvider>(definition.Provider) ??
-                    throw FilterConvention_NoProviderFound(GetType(), definition.Scope);
+                    context.Services.GetOrCreateService<IFilterProvider>(Definition.Provider) ??
+                    throw FilterConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
-                _provider = definition.ProviderInstance;
+                _provider = Definition.ProviderInstance;
             }
 
             _namingConventions = context.DescriptorContext.Naming;
-            _operations = definition.Operations.ToDictionary(
+            _operations = Definition.Operations.ToDictionary(
                 x => x.Id,
                 FilterOperation.FromDefinition);
-            _bindings = definition.Bindings;
-            _configs = definition.Configurations;
-            _argumentName = definition.ArgumentName;
+            _bindings = Definition.Bindings;
+            _configs = Definition.Configurations;
+            _argumentName = Definition.ArgumentName;
 
             if (_provider is IFilterProviderConvention init)
             {
+                IReadOnlyList<IFilterProviderExtension> extensions =
+                    CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
+                MergeExtensions(context, init, extensions);
+                init.OnComplete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
+
+            // It is important to always call base to continue the cleanup and the disposal of the
+            // definition
+            base.OnComplete(context);
         }
 
 
@@ -254,6 +262,44 @@ namespace HotChocolate.Data.Filters
 
             type = null;
             return false;
+        }
+
+        private static IReadOnlyList<IFilterProviderExtension> CollectExtensions(
+            IServiceProvider serviceProvider,
+            FilterConventionDefinition definition)
+        {
+            List<IFilterProviderExtension> extensions = new List<IFilterProviderExtension>();
+            extensions.AddRange(definition.ProviderExtensions);
+            foreach (var extensionType in definition.ProviderExtensionsTypes)
+            {
+                if (serviceProvider.TryGetOrCreateService<IFilterProviderExtension>(
+                    extensionType,
+                    out var createdExtension))
+                {
+                    extensions.Add(createdExtension);
+                }
+            }
+
+            return extensions;
+        }
+
+        private static void MergeExtensions(
+            IConventionContext context,
+            IFilterProviderConvention provider,
+            IReadOnlyList<IFilterProviderExtension> extensions)
+        {
+            if (provider is Convention providerConvention)
+            {
+                for (var m = 0; m < extensions.Count; m++)
+                {
+                    if (extensions[m] is IFilterProviderConvention extensionConvention)
+                    {
+                        extensionConvention.Initialize(context);
+                        extensions[m].Merge(context, providerConvention);
+                        extensionConvention.OnComplete(context);
+                    }
+                }
+            }
         }
     }
 }
