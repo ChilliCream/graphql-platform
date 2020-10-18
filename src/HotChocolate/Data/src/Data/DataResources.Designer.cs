@@ -326,5 +326,65 @@ namespace HotChocolate.Data {
                 return ResourceManager.GetString("FilterVisitor_InvalidField", resourceCulture);
             }
         }
+        
+        internal static string ProjectionProvider_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_UnableToCreateFieldHandler {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_UnableToCreateFieldHandler", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_NoHandlersConfigured {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_NoHandlersConfigured", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_NoConfigurationSpecified {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoConfigurationSpecified", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_NoProviderFound {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_NoProviderFound", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConventionDescriptor_MustImplementIProjectionProvider {
+            get {
+                return ResourceManager.GetString("ProjectionConventionDescriptor_MustImplementIProjectionProvider", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CreateMoreThanOneError {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CreateMoreThanOneError", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectFiltering {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectFiltering", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionProvider_CouldNotProjectSorting {
+            get {
+                return ResourceManager.GetString("ProjectionProvider_CouldNotProjectSorting", resourceCulture);
+            }
+        }
+        
+        internal static string ProjectionConvention_CouldNotProject {
+            get {
+                return ResourceManager.GetString("ProjectionConvention_CouldNotProject", resourceCulture);
+            }
+        }
     }
 }

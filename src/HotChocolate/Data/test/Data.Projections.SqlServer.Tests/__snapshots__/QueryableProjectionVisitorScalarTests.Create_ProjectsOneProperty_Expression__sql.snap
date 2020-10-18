@@ -1,0 +1,2 @@
+﻿SELECT "d"."Baz"
+FROM "Data" AS "d"
