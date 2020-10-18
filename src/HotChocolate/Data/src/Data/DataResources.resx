@@ -170,4 +170,34 @@
   <data name="FilterVisitor_InvalidField" xml:space="preserve">
     <value>Filter visitor encountered invalid field</value>
   </data>
+  <data name="ProjectionProvider_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="ProjectionProvider_UnableToCreateFieldHandler" xml:space="preserve">
+    <value>Unable to create field handler `{0}` for projection convention `{1}`.</value>
+  </data>
+  <data name="ProjectionProvider_NoHandlersConfigured" xml:space="preserve">
+    <value>The projection convention `{0}` does not specify and field handler.</value>
+  </data>
+  <data name="ProjectionConvention_NoConfigurationSpecified" xml:space="preserve">
+    <value>No configuration was specified.</value>
+  </data>
+  <data name="ProjectionConvention_NoProviderFound" xml:space="preserve">
+    <value>There is no provider defined for the projection convention `{0}`.</value>
+  </data>
+  <data name="ProjectionConventionDescriptor_MustImplementIProjectionProvider" xml:space="preserve">
+    <value>A projection provider has to implement `IProjectionProvider`.</value>
+  </data>
+  <data name="ProjectionProvider_CreateMoreThanOneError" xml:space="preserve">
+    <value>Sequence contains more than one element.</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectFiltering" xml:space="preserve">
+    <value>Could not project filters on field</value>
+  </data>
+  <data name="ProjectionProvider_CouldNotProjectSorting" xml:space="preserve">
+    <value>Could not project sorting on field</value>
+  </data>
+  <data name="ProjectionConvention_CouldNotProject" xml:space="preserve">
+    <value>Projection Visitor is in invalid state. Projection failed!</value>
+  </data>
 </root>

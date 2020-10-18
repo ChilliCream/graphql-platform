@@ -48,7 +48,7 @@ namespace HotChocolate.Types
         /// </param>
         IObjectTypeDescriptor<T> BindFields(BindingBehavior behavior);
 
-           /// <summary>
+        /// <summary>
         /// Defines that all fields have to be specified explicitly.
         /// </summary>
         IObjectTypeDescriptor<T> BindFieldsExplicitly();
