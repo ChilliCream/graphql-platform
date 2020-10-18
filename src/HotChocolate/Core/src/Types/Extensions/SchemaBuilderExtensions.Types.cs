@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
+using System.Reflection;
 
 namespace HotChocolate
 {
@@ -597,6 +598,31 @@ namespace HotChocolate
             }
 
             return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
+        }
+        
+        public static ISchemaBuilder AddSchemaTypesFromAssembly(this ISchemaBuilder builder, Assembly assembly)
+        {
+            if (builder is null)
+                throw new ArgumentNullException(nameof(builder));
+
+            return builder.AddTypesFromAssembly<ObjectType>(assembly);
+        }
+        
+        public static ISchemaBuilder AddTypesFromAssembly<TBaseType>(this ISchemaBuilder builder, Assembly assembly)
+        {
+            if (builder is null)
+                throw new ArgumentNullException(nameof(builder));
+
+            if (assembly is null)
+                throw new ArgumentNullException(nameof(assembly));
+
+            foreach (Type type in assembly.GetTypes())
+            {
+                if (type.IsSubclassOf(typeof(TBaseType)))
+                    builder.AddType(type);
+            }
+
+            return builder;
         }
     }
 }
