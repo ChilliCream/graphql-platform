@@ -16,7 +16,6 @@ namespace HotChocolate.MongoDb.Execution
 
         protected SortDefinition<BsonDocument>? Sorting { get; private set; }
 
-
         protected FindOptions<T>? Options { get; private set; }
 
         public IMongoExecutable WithOptions(FindOptions<T> options)
