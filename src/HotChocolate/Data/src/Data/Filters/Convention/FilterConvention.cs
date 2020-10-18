@@ -8,6 +8,7 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -198,10 +199,13 @@ namespace HotChocolate.Data.Filters
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
+        public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
+            _provider.ConfigureField(_argumentName, descriptor);
+
         public bool TryGetHandler(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition,
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out IFilterFieldHandler? handler)
         {
             foreach (IFilterFieldHandler filterFieldHandler in _provider.FieldHandlers)

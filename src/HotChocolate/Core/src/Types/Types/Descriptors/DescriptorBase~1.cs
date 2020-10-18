@@ -46,6 +46,11 @@ namespace HotChocolate.Types.Descriptors
             return Definition;
         }
 
+        public void ConfigureContextData(Action<ExtensionData> configure)
+        {
+            configure(Definition.ContextData);
+        }
+
         protected virtual void OnCreateDefinition(T definition)
         {
         }
@@ -88,7 +93,7 @@ namespace HotChocolate.Types.Descriptors
             OnBeforeNaming(configure);
 
         private INamedDependencyDescriptor OnBeforeNaming(
-           Action<ITypeCompletionContext, T> configure)
+            Action<ITypeCompletionContext, T> configure)
         {
             if (configure is null)
             {

@@ -225,6 +225,9 @@ namespace HotChocolate.Data.Sorting
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>(_argumentName);
 
+        public virtual void ConfigureField(IObjectFieldDescriptor descriptor) =>
+            _provider.ConfigureField(_argumentName, descriptor);
+
         public bool TryGetOperationHandler(
             ITypeDiscoveryContext context,
             EnumTypeDefinition typeDefinition,
@@ -246,8 +249,8 @@ namespace HotChocolate.Data.Sorting
 
         public bool TryGetFieldHandler(
             ITypeDiscoveryContext context,
-            SortInputTypeDefinition typeDefinition,
-            SortFieldDefinition fieldDefinition,
+            ISortInputTypeDefinition typeDefinition,
+            ISortFieldDefinition fieldDefinition,
             [NotNullWhen(true)] out ISortFieldHandler? handler)
         {
             foreach (ISortFieldHandler sortFieldHandler in _provider.FieldHandlers)
