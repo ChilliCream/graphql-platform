@@ -116,14 +116,14 @@ namespace HotChocolate.Data
             ISortProvider sortProvider,
             Type operationHandler) =>
             new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    DataResources.SortProvider_UnableToCreateOperationHandler,
-                    operationHandler.FullName ?? operationHandler.Name,
-                    sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
-                .SetExtension(nameof(sortProvider), sortProvider)
-                .SetExtension(nameof(operationHandler), operationHandler)
-                .Build());
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.SortProvider_UnableToCreateOperationHandler,
+                        operationHandler.FullName ?? operationHandler.Name,
+                        sortProvider.GetType().FullName ?? sortProvider.GetType().Name)
+                    .SetExtension(nameof(sortProvider), sortProvider)
+                    .SetExtension(nameof(operationHandler), operationHandler)
+                    .Build());
 
         public static SchemaException SortProvider_NoFieldHandlersConfigured(
             ISortProvider filterProvider) =>
@@ -253,8 +253,7 @@ namespace HotChocolate.Data
         public static SchemaException ProjectionConvention_CouldNotProject() =>
             new SchemaException(
                 SchemaErrorBuilder.New()
-                    .SetMessage(
-                        DataResources.ProjectionConvention_CouldNotProject)
+                    .SetMessage(DataResources.ProjectionConvention_CouldNotProject)
                     .Build());
     }
 }
