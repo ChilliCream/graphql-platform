@@ -112,9 +112,9 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             string? scope)
         {
-            IProjectionProvider convention =
+            IProjectionConvention convention =
                 context.DescriptorContext.GetProjectionConvention(scope);
-            RegisterOptimizer(definition.ContextData, new ProjectionOptimizer(convention));
+            RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
             definition.ContextData[ProjectionContextIdentifier] = true;
 
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(
-            IProjectionProvider convention) =>
+            IProjectionConvention convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }

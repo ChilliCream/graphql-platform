@@ -6,14 +6,13 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
-using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>,
-          IFilterProvider,
-          IFilterProviderConvention
+        : Convention<FilterProviderDefinition>
+        , IFilterProvider
+        , IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
@@ -87,7 +86,7 @@ namespace HotChocolate.Data.Filters
 
                     case null:
                         throw FilterProvider_UnableToCreateFieldHandler(this, handler.Type);
-                        
+
                     case IFilterFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;

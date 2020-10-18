@@ -6,12 +6,11 @@ namespace HotChocolate.Data.Projections
 {
     public class ProjectionOptimizer : ISelectionOptimizer
     {
-        private readonly IProjectionProvider _convention;
+        private readonly IProjectionProvider _provider;
 
-        public ProjectionOptimizer(
-            IProjectionProvider convention)
+        public ProjectionOptimizer(IProjectionProvider provider)
         {
-            _convention = convention;
+            _provider = provider;
         }
 
         public void OptimizeSelectionSet(SelectionOptimizerContext context)
@@ -24,7 +23,7 @@ namespace HotChocolate.Data.Projections
                 foreach (var field in fieldsToProcess)
                 {
                     context.Fields[field] =
-                        _convention.RewriteSelection(context, context.Fields[field]);
+                        _provider.RewriteSelection(context, context.Fields[field]);
                     processedFields.Add(field);
                 }
             }

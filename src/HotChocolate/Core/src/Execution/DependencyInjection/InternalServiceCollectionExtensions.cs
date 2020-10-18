@@ -52,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddTransient<OperationContext>();
             services.TryAddSingleton<ObjectPool<OperationContext>>(
                 sp => new OperationContextPool(
-                    () => sp.GetRequiredService<OperationContext>(),
+                    sp.GetRequiredService<OperationContext>,
                 maximumRetained));
             return services;
         }

@@ -72,15 +72,14 @@ namespace HotChocolate.Data.Projections
             if (_provider is IProjectionProviderConvention init)
             {
                 init.Initialize(context);
+                init.OnComplete(context);
             }
         }
 
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>();
 
-        public Selection RewriteSelection(
-            SelectionOptimizerContext context,
-            Selection selection) =>
-            _provider.RewriteSelection(context, selection);
+        public ISelectionOptimizer CreateOptimizer() =>
+            new ProjectionOptimizer(_provider);
     }
 }

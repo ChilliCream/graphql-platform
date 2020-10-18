@@ -63,6 +63,11 @@ namespace HotChocolate.Data.Projections
         {
         }
 
+        void IProjectionProviderConvention.OnComplete(IConventionContext context)
+        {
+            OnComplete(context);
+        }
+
         protected override void OnComplete(IConventionContext context)
         {
             if (Definition.Handlers.Count == 0)
@@ -170,6 +175,11 @@ namespace HotChocolate.Data.Projections
             }
 
             return selection;
+        }
+
+        void IProjectionProviderConvention.Initialize(IConventionContext context)
+        {
+            base.Initialize(context);
         }
 
         public new void Initialize(IConventionContext context)

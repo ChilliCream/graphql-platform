@@ -6,16 +6,17 @@ namespace HotChocolate.Data.Projections
 {
     public static class ProjectionDescriptorContextExtensions
     {
-        public static IProjectionProvider GetProjectionConvention(
+        public static IProjectionConvention GetProjectionConvention(
             this ITypeSystemObjectContext context,
             string? scope = null) =>
             context.DescriptorContext.GetProjectionConvention(scope);
 
-        public static IProjectionProvider GetProjectionConvention(
+        public static IProjectionConvention GetProjectionConvention(
             this IDescriptorContext context,
             string? scope = null) =>
-            context.GetConventionOrDefault<IProjectionProvider>(
-                () => throw new Exception(),
+            context.GetConventionOrDefault<IProjectionConvention>(
+                // TODO : this need a better exception.
+                () => throw new Exception("Projection provider not found."),
                 scope);
     }
 }
