@@ -5,13 +5,12 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Internal;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Types
 {
     public static class SortObjectFieldDescriptorExtensions
     {

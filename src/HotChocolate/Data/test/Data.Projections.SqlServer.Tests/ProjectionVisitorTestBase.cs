@@ -47,14 +47,14 @@ namespace HotChocolate.Data.Projections
 
         public IRequestExecutor CreateSchema<TEntity>(
             TEntity[] entities,
-            ProjectionProvider? convention = null,
+            ProjectionProvider? provider = null,
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
             ObjectType<TEntity>? objectType = null)
             where TEntity : class
         {
-            convention ??= new QueryableProjectionProvider(
-                x => x.AddDefaults());
+            provider ??= new QueryableProjectionProvider(x => x.AddDefaults());
+            var convention = new ProjectionConvention(x => x.Provider(provider));
 
             Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(
                 onModelCreating,
@@ -68,7 +68,7 @@ namespace HotChocolate.Data.Projections
             }
 
             builder
-                .AddConvention<IProjectionProvider>(convention)
+                .AddConvention<IProjectionConvention>(convention)
                 .AddProjections()
                 .AddFiltering()
                 .AddSorting()

@@ -3,7 +3,7 @@ using HotChocolate.Execution.Processing;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using static HotChocolate.Data.ThrowHelper; 
+using static HotChocolate.Data.ThrowHelper;
 
 namespace HotChocolate.Data.Projections
 {
@@ -51,38 +51,35 @@ namespace HotChocolate.Data.Projections
         {
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            ProjectionConventionDefinition definition)
+        protected override void OnComplete(IConventionContext context)
         {
-            if (definition.Provider is null)
+            if (Definition.Provider is null)
             {
-                throw ProjectionConvention_NoProviderFound(GetType(), definition.Scope);
+                throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
             }
 
-            if (definition.ProviderInstance is null)
+            if (Definition.ProviderInstance is null)
             {
                 _provider =
-                    context.Services.GetOrCreateService<IProjectionProvider>(definition.Provider) ??
-                        throw ProjectionConvention_NoProviderFound(GetType(), definition.Scope);
+                    context.Services.GetOrCreateService<IProjectionProvider>(Definition.Provider) ??
+                        throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
-                _provider = definition.ProviderInstance;
+                _provider = Definition.ProviderInstance;
             }
 
             if (_provider is IProjectionProviderConvention init)
             {
                 init.Initialize(context);
+                init.OnComplete(context);
             }
         }
 
         public FieldMiddleware CreateExecutor<TEntityType>() =>
             _provider.CreateExecutor<TEntityType>();
 
-        public Selection RewriteSelection(
-            SelectionOptimizerContext context,
-            Selection selection) =>
-            _provider.RewriteSelection(context, selection);
+        public ISelectionOptimizer CreateOptimizer() =>
+            new ProjectionOptimizer(_provider);
     }
 }

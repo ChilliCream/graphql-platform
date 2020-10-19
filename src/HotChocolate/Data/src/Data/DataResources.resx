@@ -93,7 +93,10 @@
     <value>The filter type cannot be inferred from `System.Object`.</value>
   </data>
   <data name="FilterDescriptorContextExtensions_NoConvention" xml:space="preserve">
-    <value>No filter convention found for scope `{0}`.</value>
+    <value>No filter convention found for scope `{0}`. Register a convention with `AddConvention&lt;IFilterConvention, TYourConvention&gt;("{0}")` on the schema builder.</value>
+  </data>
+  <data name="FilterDescriptorContextExtensions_NoConvention_Default" xml:space="preserve">
+    <value>No default filter convention found. Call `AddFiltering()` on the schema builder.</value>
   </data>
   <data name="SortProvider_NoFieldHandlersConfigured" xml:space="preserve">
     <value>The sort provider `{0}` does not specify and field handler.</value>
@@ -102,7 +105,10 @@
     <value>The sort provider `{0}` does not specify and operation handler.</value>
   </data>
   <data name="SortDescriptorContextExtensions_NoConvention" xml:space="preserve">
-    <value>No sorting convention found for scope `{0}`.</value>
+    <value>No sorting convention found for scope `{0}`. Register a convention with `AddConvention&lt;ISortConvention, TYourConvention&gt;("{0}")` on the schema builder.</value>
+  </data>
+  <data name="SortDescriptorContextExtensions_NoConvention_Default" xml:space="preserve">
+    <value>No default sorting convention found. Call `AddSorting()` on the schema builder.</value>
   </data>
   <data name="SortInterceptor_NoFieldHandlerFoundForField" xml:space="preserve">
     <value>For the field {0} of type {1} was no field handler found.</value>
