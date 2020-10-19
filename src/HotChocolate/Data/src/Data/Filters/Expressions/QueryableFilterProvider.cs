@@ -9,10 +9,18 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Data.Filters.Expressions
 {
+    public delegate QueryableFilterContext VisitFilterArgument(
+        IValueNode filterValueNode,
+        IFilterInputType filterInputType,
+        bool inMemory);
+
     public class QueryableFilterProvider
         : FilterProvider<QueryableFilterContext>
     {
-        public static readonly string ContextDataKeys = nameof(QueryableFilterProvider);
+        public static readonly string ContextArgumentNameKey = "FilterArgumentName";
+        public static readonly string ContextVisitFilterArgumentKey = nameof(VisitFilterArgument);
+        public static readonly string SkipFilteringKey = "SkipFiltering";
+        public static readonly string ContextValueNodeKey = nameof(QueryableFilterProvider);
 
         public QueryableFilterProvider()
         {
@@ -41,13 +49,18 @@ namespace HotChocolate.Data.Filters.Expressions
                 // next we get the filter argument. If the filter argument is already on the context
                 // we use this. This enabled overriding the context with LocalContextData
                 IInputField argument = context.Field.Arguments[argumentName];
-                IValueNode filter = context.LocalContextData.ContainsKey(ContextDataKeys) &&
-                    context.LocalContextData[ContextDataKeys] is IValueNode node
+                IValueNode filter = context.LocalContextData.ContainsKey(ContextValueNodeKey) &&
+                    context.LocalContextData[ContextValueNodeKey] is IValueNode node
                         ? node
                         : context.ArgumentLiteral<IValueNode>(argumentName);
 
                 // if no filter is defined we can stop here and yield back control.
-                if (filter.IsNull())
+                if (filter.IsNull() ||
+                    (context.LocalContextData.TryGetValue(
+                            SkipFilteringKey,
+                            out object? skipObject) &&
+                        skipObject is bool skip &&
+                        skip))
                 {
                     return;
                 }
@@ -63,14 +76,17 @@ namespace HotChocolate.Data.Filters.Expressions
                     source = e.AsQueryable();
                 }
 
-                if (source != null && argument.Type is IFilterInputType filterInput)
+                if (source != null &&
+                    argument.Type is IFilterInputType filterInput &&
+                    context.Field.ContextData.TryGetValue(
+                        ContextVisitFilterArgumentKey,
+                        out object? executorObj) &&
+                    executorObj is VisitFilterArgument executor)
                 {
-                    var visitorContext = new QueryableFilterContext(
+                    QueryableFilterContext visitorContext = executor(
+                        filter,
                         filterInput,
                         source is EnumerableQuery);
-
-                    // rewrite GraphQL input object into expression tree.
-                    Visitor.Visit(filter, visitorContext);
 
                     // compile expression tree
                     if (visitorContext.TryCreateLambda(
@@ -91,6 +107,34 @@ namespace HotChocolate.Data.Filters.Expressions
                     }
                 }
             }
+        }
+
+        public override void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+            QueryableFilterContext VisitFilterArgumentExecutor(
+                IValueNode valueNode,
+                IFilterInputType filterInput,
+                bool inMemory)
+            {
+                var visitorContext = new QueryableFilterContext(
+                    filterInput,
+                    inMemory);
+
+                // rewrite GraphQL input object into expression tree.
+                Visitor.Visit(valueNode, visitorContext);
+
+                return visitorContext;
+            }
+
+            descriptor.ConfigureContextData(
+                contextData =>
+                {
+                    contextData[ContextVisitFilterArgumentKey] =
+                        (VisitFilterArgument)VisitFilterArgumentExecutor;
+                    contextData[ContextArgumentNameKey] = argumentName;
+                });
         }
     }
 }

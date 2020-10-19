@@ -1,0 +1,2 @@
+﻿SELECT "d"."Bar"
+FROM "Data" AS "d"

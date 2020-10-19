@@ -1,6 +1,6 @@
 using HotChocolate.Types;
 
-namespace HotChocolate.Integration.Directives
+namespace HotChocolate.Execution.Integration.Directives
 {
     public class ConstantDirectiveType
         : DirectiveType
