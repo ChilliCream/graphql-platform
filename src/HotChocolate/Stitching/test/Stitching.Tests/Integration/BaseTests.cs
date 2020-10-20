@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -630,6 +631,51 @@ namespace HotChocolate.Stitching.Integration
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
                         guid
                     }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Foo()
+        {
+            // "/Users/michael/local/PublicSpeaking/channel9_2020/3-schema-stitching/gateway/"
+
+            var services = new ServiceCollection();
+
+            services.AddHttpClient("accounts", c => c.BaseAddress = new Uri("http://localhost:5051/graphql"));
+            services.AddHttpClient("inventory", c => c.BaseAddress = new Uri("http://localhost:5052/graphql"));
+            services.AddHttpClient("products", c => c.BaseAddress = new Uri("http://localhost:5053/graphql"));
+            services.AddHttpClient("review", c => c.BaseAddress = new Uri("http://localhost:5054/graphql"));
+
+            var builder = services
+                .AddGraphQLServer()
+                .AddRemoteSchema("accounts", ignoreRootTypes: true)
+                .AddRemoteSchema("inventory", ignoreRootTypes: true)
+                .AddRemoteSchema("products", ignoreRootTypes: true)
+                // .AddTypeExtensionsFromString("type Query { }")
+                // .AddRemoteSchema("review", ignoreRootTypes: true)
+                .AddHttpRequestInterceptor((httpContext, executor, builder, ct) =>
+                {
+                    builder.SetProperty("userId", 1);
+                    return default;
+                })
+                .AddTypeExtensionsFromString("type Query { }")
+                .AddTypeExtensionsFromFile("/users/michael/local/PublicSpeaking/channel9_2020/3-schema-stitching/accounts/Stitching.graphql")
+                .AddTypeExtensionsFromFile("/users/michael/local/PublicSpeaking/channel9_2020/3-schema-stitching/products/Stitching.graphql")
+                .AddTypeExtensionsFromFile("/users/michael/local/PublicSpeaking/channel9_2020/3-schema-stitching/inventory/Stitching.graphql");
+
+            IRequestExecutor executor = await builder.BuildRequestExecutorAsync();
+            // .AddTypeExtensionsFromFile("../reviews/Stitching.graphql");
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                  topProducts(first: 5) {
+                    inStock
+                    shippingEstimate
+                  }
                 }");
 
             // assert
