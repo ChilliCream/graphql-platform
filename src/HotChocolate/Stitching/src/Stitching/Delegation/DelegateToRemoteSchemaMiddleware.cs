@@ -181,7 +181,14 @@ namespace HotChocolate.Stitching.Delegation
 
                 if (current is IReadOnlyDictionary<string, object?> obj)
                 {
-                    obj.TryGetValue(component.Name.Value, out current);
+                    if (reversePath.IsEmpty)
+                    {
+                        current = obj.First().Value;
+                    }
+                    else
+                    {
+                        obj.TryGetValue(component.Name.Value, out current);
+                    }
                 }
                 else if (current is IList list)
                 {

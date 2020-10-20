@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Stitching.Integration
 {

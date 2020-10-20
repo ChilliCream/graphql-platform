@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Descriptors
         [InlineData("Foo", "FOO")]
         [InlineData("FooBar", "FOO_BAR")]
         [InlineData("FooBarBaz", "FOO_BAR_BAZ")]
+        [InlineData("FOO_BAR_BAZ", "FOO_BAR_BAZ")]
         [InlineData("FOOBAR", "FOOBAR")]
         [InlineData("F", "F")]
         [InlineData("f", "F")]
@@ -22,7 +23,6 @@ namespace HotChocolate.Types.Descriptors
             // assert
             Assert.Equal(expectedSchemaName, schemaName.Value);
         }
-
 
         [InlineData(true)]
         [InlineData(1)]
