@@ -19,7 +19,7 @@ using HotChocolate.Utilities.Introspection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class HotChocolateStitchingRequestExecutorExtensions
+    public static partial class HotChocolateStitchingRequestExecutorExtensions
     {
         /// <summary>
         /// This middleware delegates GraphQL requests to a different GraphQL server using
