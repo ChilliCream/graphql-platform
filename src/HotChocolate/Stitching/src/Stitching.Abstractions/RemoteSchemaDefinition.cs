@@ -1,30 +1,25 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
-    public interface ISchemaRepositoryObserver : IAsyncDisposable
-    {
-        event EventHandler SchemaUpdated;
-
-        Task InitializeAsync(CancellationToken cancellationToken);
-
-        IReadOnlyList<RemoteSchema> GetSchemas();
-    }
-
-    public interface ISchemaRepository
-    {
-        Task PublishSchemaAsync(RemoteSchema schema);
-    }
-
     /// <summary>
-    /// Describes a remote schema.
+    /// Defines a remote schema and how it shall be stitched into the Hot Chocolate gateway.
     /// </summary>
-    public class RemoteSchema
+    public class RemoteSchemaDefinition
     {
+        public RemoteSchemaDefinition(
+            NameString name,
+            DocumentNode document,
+            IEnumerable<DocumentNode>? extensionDocuments = null)
+        {
+            Name = name;
+            Document = document;
+            ExtensionDocuments = extensionDocuments?.ToArray() ?? Array.Empty<DocumentNode>();
+        }
+
         /// <summary>
         /// Gets the name of the schema.
         /// </summary>
@@ -36,14 +31,14 @@ namespace HotChocolate.Stitching
         public DocumentNode Document { get; }
 
         /// <summary>
-        /// Gets the documents that descrobe how type are being merged 
+        /// Gets the documents that describes how type are being merged
         /// into types from other services.
         /// </summary>
         public IReadOnlyList<DocumentNode> ExtensionDocuments { get; }
     }
 
     /*
-        extend schema 
+        extend schema
             @_removeType(name: "abc" schema: "{optional}")
             @_renameType(name: "abc", newName: "def" schema: "{optional}")
             @_renameField(type: "abc" name: "abc", newName: "def" schema: "{optional}")
@@ -51,5 +46,6 @@ namespace HotChocolate.Stitching
             @_removeQueryType(schema: "{optional}")
             @_removeMutationType(schema: "{optional}")
             @_removeSubscriptionType(schema: "{optional}")
+            @_rewriteType(name: "abc", newName: "def" schema: "{optional}")
     */
 }

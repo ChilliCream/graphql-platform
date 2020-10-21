@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using HotChocolate.Configuration;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
@@ -26,14 +25,14 @@ namespace HotChocolate.Execution
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly ConcurrentDictionary<string, RegisteredExecutor> _executors =
             new ConcurrentDictionary<string, RegisteredExecutor>();
-        private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
+        private readonly IRequestExecutorOptionsMonitor _optionsMonitor;
         private readonly IServiceProvider _applicationServices;
         private bool _disposed;
 
         public event EventHandler<RequestExecutorEvictedEventArgs>? RequestExecutorEvicted;
 
         public RequestExecutorResolver(
-            IOptionsMonitor<RequestExecutorFactoryOptions> optionsMonitor,
+            IRequestExecutorOptionsMonitor optionsMonitor,
             IServiceProvider serviceProvider)
         {
             _optionsMonitor = optionsMonitor ??
@@ -75,16 +74,32 @@ namespace HotChocolate.Execution
 
             if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
             {
+                RequestExecutorFactoryOptions options =
+                    await _optionsMonitor.GetAsync(schemaName, cancellationToken)
+                        .ConfigureAwait(false);
+
                 IServiceProvider schemaServices =
-                    await CreateSchemaServicesAsync(schemaName, cancellationToken)
+                    await CreateSchemaServicesAsync(schemaName, options, cancellationToken)
                         .ConfigureAwait(false);
 
                 re = new RegisteredExecutor
                 (
                     schemaServices.GetRequiredService<IRequestExecutor>(),
                     schemaServices,
-                    schemaServices.GetRequiredService<IDiagnosticEvents>()
+                    schemaServices.GetRequiredService<IDiagnosticEvents>(),
+                    options
                 );
+
+                foreach (OnRequestExecutorCreatedAction action in options.OnRequestExecutorCreated)
+                {
+                    action.Action?.Invoke(re.Executor);
+
+                    if (action.AsyncAction is not null)
+                    {
+                        await action.AsyncAction.Invoke(re.Executor, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                }
 
                 re.DiagnosticEvents.ExecutorCreated(schemaName, re.Executor);
                 _executors.TryAdd(schemaName, re);
@@ -101,18 +116,39 @@ namespace HotChocolate.Execution
             {
                 re.DiagnosticEvents.ExecutorEvicted(schemaName, re.Executor);
 
+                BeginRunEvictionEvents(re);
+
                 RequestExecutorEvicted?.Invoke(
                     this,
                     new RequestExecutorEvictedEventArgs(schemaName, re.Executor));
             }
         }
 
+        private void BeginRunEvictionEvents(RegisteredExecutor registeredExecutor)
+        {
+            Task.Run(async () =>
+            {
+                foreach (OnRequestExecutorEvictedAction action in
+                    registeredExecutor.FactoryOptions.OnRequestExecutorEvicted)
+                {
+                    action.Action?.Invoke(registeredExecutor.Executor);
+
+                    if (action.AsyncAction is not null)
+                    {
+                        await action.AsyncAction.Invoke(
+                            registeredExecutor.Executor,
+                            CancellationToken.None)
+                            .ConfigureAwait(false);
+                    }
+                }
+            });
+        }
+
         private async Task<IServiceProvider> CreateSchemaServicesAsync(
             NameString schemaName,
-            CancellationToken cancellationToken = default)
+            RequestExecutorFactoryOptions options,
+            CancellationToken cancellationToken)
         {
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(schemaName);
-
             var lazy = new SchemaBuilder.LazySchema();
 
             RequestExecutorOptions executorOptions =
@@ -302,11 +338,13 @@ namespace HotChocolate.Execution
             public RegisteredExecutor(
                 IRequestExecutor executor,
                 IServiceProvider services,
-                IDiagnosticEvents diagnosticEvents)
+                IDiagnosticEvents diagnosticEvents,
+                RequestExecutorFactoryOptions factoryOptions)
             {
                 Executor = executor;
                 Services = services;
                 DiagnosticEvents = diagnosticEvents;
+                FactoryOptions = factoryOptions;
             }
 
             public IRequestExecutor Executor { get; }
@@ -314,6 +352,8 @@ namespace HotChocolate.Execution
             public IServiceProvider Services { get; }
 
             public IDiagnosticEvents DiagnosticEvents { get; }
+
+            public RequestExecutorFactoryOptions FactoryOptions { get; }
         }
 
         private sealed class SetSchemaNameInterceptor : TypeInterceptor
@@ -330,8 +370,8 @@ namespace HotChocolate.Execution
 
             public override void OnBeforeCompleteName(
                 ITypeCompletionContext completionContext,
-                DefinitionBase definition,
-                IDictionary<string, object> contextData)
+                DefinitionBase? definition,
+                IDictionary<string, object?> contextData)
             {
                 definition.Name = _schemaName;
             }
