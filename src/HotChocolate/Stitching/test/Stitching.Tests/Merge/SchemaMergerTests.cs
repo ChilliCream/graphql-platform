@@ -133,7 +133,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode schema = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameType("A", "A", "Xyz")
+                .RenameType("A", "Xyz", "A")
                 .Merge();
 
             // assert
@@ -322,7 +322,7 @@ namespace HotChocolate.Stitching.Merge
             // act
             DocumentNode merged = SchemaMerger.New()
                 .AddSchema("A", initial)
-                .RenameType("A", "B", "Foo")
+                .RenameType("B", "Foo", "A")
                 .Merge();
 
             // assert
