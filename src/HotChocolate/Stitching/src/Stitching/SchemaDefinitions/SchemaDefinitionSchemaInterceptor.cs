@@ -1,7 +1,7 @@
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Stitching.Types
+namespace HotChocolate.Stitching.SchemaDefinitions
 {
     internal class SchemaDefinitionSchemaInterceptor : SchemaInterceptor
     {

@@ -8,7 +8,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Stitching.Types
+namespace HotChocolate.Stitching.SchemaDefinitions
 {
     public class PublishSchemaDefinitionDescriptor : IPublishSchemaDefinitionDescriptor
     {
@@ -95,7 +95,7 @@ namespace HotChocolate.Stitching.Types
 
         public IPublishSchemaDefinitionDescriptor IgnoreRootTypes()
         {
-            _schemaDirectives.Add(new DirectiveNode("_removeRootTypes"));
+            _schemaDirectives.Add(new DirectiveNode(DirectiveNames.RemoveRootTypes));
             return this;
         }
 
@@ -103,8 +103,8 @@ namespace HotChocolate.Stitching.Types
             NameString typeName)
         {
             _schemaDirectives.Add(new DirectiveNode(
-                "_removeType",
-                new ArgumentNode("typeName", typeName.Value)));
+                DirectiveNames.RemoveType,
+                new ArgumentNode(DirectiveFieldNames.RemoveType_TypeName, typeName)));
             return this;
         }
 
@@ -113,9 +113,9 @@ namespace HotChocolate.Stitching.Types
             NameString newTypeName)
         {
             _schemaDirectives.Add(new DirectiveNode(
-                "_renameType",
-                new ArgumentNode("typeName", typeName.Value),
-                new ArgumentNode("newTypeName", newTypeName.Value)));
+                DirectiveNames.RenameType,
+                new ArgumentNode(DirectiveFieldNames.RenameType_TypeName, typeName),
+                new ArgumentNode(DirectiveFieldNames.RenameType_NewTypeName, newTypeName)));
             return this;
         }
 
@@ -125,10 +125,10 @@ namespace HotChocolate.Stitching.Types
             NameString newFieldName)
         {
             _schemaDirectives.Add(new DirectiveNode(
-                "_renameField",
-                new ArgumentNode("typeName", typeName.Value),
-                new ArgumentNode("fieldName", fieldName.Value),
-                new ArgumentNode("newFieldName", newFieldName.Value)));
+                DirectiveNames.RenameField,
+                new ArgumentNode(DirectiveFieldNames.RenameField_TypeName, typeName),
+                new ArgumentNode(DirectiveFieldNames.RenameField_FieldName, fieldName),
+                new ArgumentNode(DirectiveFieldNames.RenameField_NewFieldName, newFieldName)));
             return this;
         }
 

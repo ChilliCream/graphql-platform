@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 
-namespace HotChocolate.Stitching.Types
+namespace HotChocolate.Stitching.SchemaDefinitions
 {
     public class SchemaDefinitionType : ObjectType<RemoteSchemaDefinition>
     {

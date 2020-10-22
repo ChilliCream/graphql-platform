@@ -5,14 +5,12 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
+using static HotChocolate.Stitching.SchemaDefinitions.SchemaDefinitionFieldNames;
 
-namespace HotChocolate.Stitching.Types
+namespace HotChocolate.Stitching.SchemaDefinitions
 {
     internal class SchemaDefinitionTypeInterceptor : TypeInterceptor
     {
-        private const string _schemaDefinition = "_schemaDefinition";
-        private const string _configuration = "configuration";
-
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
@@ -28,14 +26,14 @@ namespace HotChocolate.Stitching.Types
 
                 var descriptor = ObjectFieldDescriptor.New(
                     completionContext.DescriptorContext,
-                    _schemaDefinition);
+                    SchemaDefinitionField);
 
                 descriptor
-                    .Argument(_configuration, a => a.Type<NonNullType<StringType>>())
+                    .Argument(ConfigurationArgument, a => a.Type<NonNullType<StringType>>())
                     .Type<SchemaDefinitionType>()
                     .Resolve(ctx =>
                     {
-                        string name = ctx.ArgumentValue<string>(_configuration);
+                        string name = ctx.ArgumentValue<string>(ConfigurationArgument);
 
                         return ctx.Schema.ContextData
                             .GetSchemaDefinitions()

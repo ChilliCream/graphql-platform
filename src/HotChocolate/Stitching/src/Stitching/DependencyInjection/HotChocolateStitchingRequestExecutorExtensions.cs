@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Requests;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities.Introspection;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -89,11 +91,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         .GetRequiredService<IHttpClientFactory>()
                         .CreateClient(schemaName);
 
-                    // The introspection client will do all the hard work to negotiate
-                    // the features this schema supports and convert the introspection
-                    // result into a parsed GraphQL SDL document.
-                    return await new IntrospectionClient()
-                        .DownloadSchemaAsync(httpClient, cancellationToken)
+                    // Next we will fetch the schema definition which contains the
+                    // schema document and other configuration
+                    return await new IntrospectionHelper(httpClient, schemaName)
+                        .GetSchemaDefinitionAsync(cancellationToken)
                         .ConfigureAwait(false);
                 },
                 ignoreRootTypes);
@@ -116,7 +117,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 builder,
                 schemaName,
                 (services, cancellationToken) =>
-                    new ValueTask<DocumentNode>(Utf8GraphQLParser.Parse(schemaSdl)),
+                    new ValueTask<RemoteSchemaDefinition>(
+                        new RemoteSchemaDefinition(
+                            schemaName,
+                            Utf8GraphQLParser.Parse(schemaSdl))),
                 ignoreRootTypes);
         }
 
@@ -148,7 +152,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         .ConfigureAwait(false);
 #endif
 
-                    return Utf8GraphQLParser.Parse(schemaSdl);
+                    return new RemoteSchemaDefinition(
+                        schemaName,
+                        Utf8GraphQLParser.Parse(schemaSdl));
                 },
                 ignoreRootTypes);
         }
@@ -156,7 +162,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddRemoteSchema(
             this IRequestExecutorBuilder builder,
             NameString schemaName,
-            Func<IServiceProvider, CancellationToken, ValueTask<DocumentNode>> loadSchema,
+            Func<IServiceProvider, CancellationToken, ValueTask<RemoteSchemaDefinition>> loadSchema,
             bool ignoreRootTypes = false)
         {
             if (builder is null)
@@ -192,11 +198,17 @@ namespace Microsoft.Extensions.DependencyInjection
                     async (services, schemaBuilder, cancellationToken) =>
                     {
                         // No we need to load the schema document.
-                        DocumentNode document =
+                        RemoteSchemaDefinition schemaDef =
                             await loadSchema(services, cancellationToken)
                                 .ConfigureAwait(false);
 
-                        document = document.RemoveBuiltInTypes();
+                        DocumentNode document = schemaDef.Document.RemoveBuiltInTypes();
+
+                        // We store the schema definition on the schema building context
+                        // and copy it to the schema once that is built.
+                        schemaBuilder
+                            .SetContextData(typeof(RemoteSchemaDefinition).FullName, schemaDef)
+                            .TryAddTypeInterceptor<CopySchemaDefinitionTypeInterceptor>();
 
                         // The document is used to create a SDL-first schema ...
                         schemaBuilder.AddDocument(document);
@@ -233,6 +245,32 @@ namespace Microsoft.Extensions.DependencyInjection
                         .AddRemoteExecutor(schemaName, autoProxy)
                         .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
                         .TryAddTypeInterceptor<StitchingTypeInterceptor>();
+
+                    var schemaDefinition =
+                        (RemoteSchemaDefinition)autoProxy.Schema
+                            .ContextData[typeof(RemoteSchemaDefinition).FullName];
+
+                    var extensionsRewriter = new SchemaExtensionsRewriter();
+
+                    foreach (var extensionDocument in schemaDefinition.ExtensionDocuments)
+                    {
+                        var doc = (DocumentNode)extensionsRewriter
+                            .Rewrite(extensionDocument, schemaName.Value);
+
+                        SchemaExtensionNode? schemaExtension =
+                            doc.Definitions.OfType<SchemaExtensionNode>().FirstOrDefault();
+
+                        if (schemaExtension is not null &&
+                            schemaExtension.Directives.Count == 0 &&
+                            schemaExtension.OperationTypes.Count == 0)
+                        {
+                            var definitions = doc.Definitions.ToList();
+                            definitions.Remove(schemaExtension);
+                            doc = doc.WithDefinitions(definitions);
+                        }
+
+                        schemaBuilder.AddTypeExtensions(doc);
+                    }
                 });
 
             // Last but not least, we will setup the stitching context which will

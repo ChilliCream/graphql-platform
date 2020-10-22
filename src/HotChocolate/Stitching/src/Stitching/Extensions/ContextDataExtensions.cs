@@ -349,7 +349,7 @@ namespace HotChocolate.Stitching
         public static IReadOnlyList<RemoteSchemaDefinition> GetSchemaDefinitions(
             this IReadOnlyDictionary<string, object?> contextData)
         {
-            if (contextData.TryGetValue(SchemaDefinitions, out object? o) &&
+            if (contextData.TryGetValue(WellKnownContextData.SchemaDefinitions, out object? o) &&
                 o is IReadOnlyList<RemoteSchemaDefinition> schemaDefinitions)
             {
                 return schemaDefinitions;
@@ -361,14 +361,18 @@ namespace HotChocolate.Stitching
         public static List<RemoteSchemaDefinition> GetOrAddSchemaDefinitions(
             this IDescriptorContext descriptorContext)
         {
-            if (descriptorContext.ContextData.TryGetValue(SchemaDefinitions, out object? o) &&
+            if (descriptorContext.ContextData.TryGetValue(
+                WellKnownContextData.SchemaDefinitions,
+                out object? o) &&
                 o is List<RemoteSchemaDefinition> schemaDefinitions)
             {
                 return schemaDefinitions;
             }
 
             schemaDefinitions = new List<RemoteSchemaDefinition>();
-            descriptorContext.ContextData.Add(SchemaDefinitions, schemaDefinitions);
+            descriptorContext.ContextData.Add(
+                WellKnownContextData.SchemaDefinitions,
+                schemaDefinitions);
             return schemaDefinitions;
         }
     }

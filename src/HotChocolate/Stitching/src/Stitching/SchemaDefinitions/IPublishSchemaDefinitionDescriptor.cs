@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace HotChocolate.Stitching.Types
+namespace HotChocolate.Stitching.SchemaDefinitions
 {
     public interface IPublishSchemaDefinitionDescriptor
     {
