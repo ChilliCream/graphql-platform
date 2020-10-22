@@ -39,7 +39,7 @@ namespace HotChocolate.Stitching.Utilities
             {
                 // if a schema definition with the requested configuration name is
                 // available we will use it instead of the introspection result.
-                RemoteSchemaDefinition schemaDefinition =
+                RemoteSchemaDefinition? schemaDefinition =
                     await FetchSchemaDefinitionAsync(cancellationToken)
                         .ConfigureAwait(false);
                 if (schemaDefinition is not null)

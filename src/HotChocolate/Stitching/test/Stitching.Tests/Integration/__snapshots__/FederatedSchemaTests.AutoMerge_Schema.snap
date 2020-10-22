@@ -33,6 +33,7 @@ type Customer implements Node @source(name: "Customer", schema: "customer") {
   someInt: Int!
   someGuid: Uuid!
   kind: CustomerKind!
+  contracts: [Contract!] @delegate(path: "contracts(customerId:$fields:id)", schema: "customer")
 }
 
 "A connection to a list of items."

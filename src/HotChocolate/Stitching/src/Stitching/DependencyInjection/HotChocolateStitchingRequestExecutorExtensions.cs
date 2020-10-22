@@ -207,7 +207,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         // We store the schema definition on the schema building context
                         // and copy it to the schema once that is built.
                         schemaBuilder
-                            .SetContextData(typeof(RemoteSchemaDefinition).FullName, schemaDef)
+                            .SetContextData(typeof(RemoteSchemaDefinition).FullName!, schemaDef)
                             .TryAddTypeInterceptor<CopySchemaDefinitionTypeInterceptor>();
 
                         // The document is used to create a SDL-first schema ...
@@ -248,7 +248,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     var schemaDefinition =
                         (RemoteSchemaDefinition)autoProxy.Schema
-                            .ContextData[typeof(RemoteSchemaDefinition).FullName];
+                            .ContextData[typeof(RemoteSchemaDefinition).FullName!]!;
 
                     var extensionsRewriter = new SchemaExtensionsRewriter();
 
