@@ -80,10 +80,12 @@ namespace HotChocolate.Stitching.Utilities
             }
 
             FieldDefinitionNode? schemaDefinitionField = queryType.Fields
-                .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(SchemaDefinitionFieldNames.SchemaDefinitionField));
+                .FirstOrDefault(t => t.Name.Value.EqualsOrdinal(
+                    SchemaDefinitionFieldNames.SchemaDefinitionField));
 
             return schemaDefinitionField?.Arguments
-                       .Any(t => t.Name.Value.EqualsOrdinal(SchemaDefinitionFieldNames.ConfigurationArgument)) ??
+                    .Any(t => t.Name.Value.EqualsOrdinal(
+                        SchemaDefinitionFieldNames.ConfigurationArgument)) ??
                    false;
         }
 
@@ -100,7 +102,7 @@ namespace HotChocolate.Stitching.Utilities
                                     extensionDocuments
                                 }}
                             }}")
-                    .SetVariableValue("configuration", _configuration.Value)
+                    .SetVariableValue("configuration", new StringValueNode(_configuration.Value))
                     .Create();
 
             HttpRequestMessage requestMessage = await HttpRequestClient
@@ -127,16 +129,19 @@ namespace HotChocolate.Stitching.Utilities
 
             if (result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField] is IReadOnlyDictionary<string, object?> o &&
                 o.TryGetValue("name", out object? n) &&
-                n is string name &&
+                n is StringValueNode name &&
                 o.TryGetValue("document", out object? d) &&
-                d is string document &&
+                d is StringValueNode document &&
                 o.TryGetValue("extensionDocuments", out object? e) &&
                 e is IReadOnlyList<object> extensionDocuments)
             {
                 return new RemoteSchemaDefinition(
-                    name,
-                    Utf8GraphQLParser.Parse(document),
-                    extensionDocuments.OfType<string>().Select(Utf8GraphQLParser.Parse));
+                    name.Value,
+                    Utf8GraphQLParser.Parse(document.Value),
+                    extensionDocuments
+                        .OfType<StringValueNode>()
+                        .Select(t => t.Value)
+                        .Select(Utf8GraphQLParser.Parse));
             }
 
             return null;

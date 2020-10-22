@@ -1,16 +1,11 @@
-using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
 using System.Collections.Generic;
 using HotChocolate.AspNetCore.Utilities;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Language;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using Microsoft.AspNetCore.Builder;
@@ -56,10 +51,9 @@ namespace HotChocolate.Stitching.Integration
                     .PublishSchemaDefinition(c => c
                         .SetName(Context.CustomerSchema)
                         .AddTypeExtensionsFromString(
-                            @"extend type Query {
-                                consultant: Consultant
-                                    @delegate(
-                                        path: ""customer(id:\""Q3VzdG9tZXIKZDE=\"").consultant"")
+                            @"extend type Customer {
+                                contracts: [Contract!]
+                                    @delegate(path: ""contracts(customerId:$fields:id)"")
                             }")),
                 app => app
                     .UseWebSockets()

@@ -88,7 +88,10 @@ namespace HotChocolate.Stitching.SchemaDefinitions
         public IPublishSchemaDefinitionDescriptor AddTypeExtensionsFromString(string schemaSdl)
         {
             _builder.ConfigureSchema(
-                s => s.AddTypeExtensions(Utf8GraphQLParser.Parse(schemaSdl), _key));
+                s =>
+                {
+                    s.AddTypeExtensions(Utf8GraphQLParser.Parse(schemaSdl), _key);
+                });
 
             return this;
         }
