@@ -5,24 +5,18 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Merge.Rewriters
 {
-    internal class RemoveTypeRewriter
-        : IDocumentRewriter
+    internal class RemoveTypeRewriter : IDocumentRewriter
     {
-        public RemoveTypeRewriter(NameString typeName)
+        public RemoveTypeRewriter(NameString typeName, NameString? schemaName = null)
         {
             TypeName = typeName.EnsureNotEmpty(nameof(typeName));
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
         }
-
-        public RemoveTypeRewriter(NameString schemaName, NameString typeName)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            TypeName = typeName.EnsureNotEmpty(nameof(typeName));
-        }
-
-        public NameString? SchemaName { get; }
 
         public NameString TypeName { get; }
 
+        public NameString? SchemaName { get; }
+        
         public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
         {
             if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
@@ -30,12 +24,11 @@ namespace HotChocolate.Stitching.Merge.Rewriters
                 return document;
             }
 
-            ITypeDefinitionNode typeDefinition = document.Definitions
+            ITypeDefinitionNode? typeDefinition = document.Definitions
                 .OfType<ITypeDefinitionNode>()
-                .FirstOrDefault(t =>
-                    TypeName.Equals(t.GetOriginalName(schema.Name)));
+                .FirstOrDefault(t => TypeName.Equals(t.GetOriginalName(schema.Name)));
 
-            if (typeDefinition == null)
+            if (typeDefinition is null)
             {
                 return document;
             }

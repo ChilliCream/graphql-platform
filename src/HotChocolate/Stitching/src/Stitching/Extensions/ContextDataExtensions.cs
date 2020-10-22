@@ -330,18 +330,20 @@ namespace HotChocolate.Stitching
 
         public static ISchemaBuilder AddNameLookup(
             this ISchemaBuilder schemaBuilder,
-            NameString typeName, NameString sourceSchema, NameString sourceName)
+            NameString originalTypeName,
+            NameString newTypeName,
+            NameString schemaName)
         {
             return schemaBuilder.SetContextData(NameLookup, current =>
             {
                 if (current is IDictionary<(NameString, NameString), NameString> dict)
                 {
-                    dict[(typeName, sourceSchema)] = sourceName;
+                    dict[(newTypeName, schemaName)] = originalTypeName;
                 }
 
                 return new Dictionary<(NameString, NameString), NameString>
                 {
-                    { (typeName, sourceSchema), sourceName }
+                    { (newTypeName, schemaName), originalTypeName }
                 };
             });
         }

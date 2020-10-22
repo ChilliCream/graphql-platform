@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,5 +40,36 @@ namespace HotChocolate.Stitching
         /// </returns>
         ValueTask<ISchemaRepositoryObserver> CreateObserverAsync(
             CancellationToken cancellationToken = default);
+    }
+
+    public interface IGatewayConfigurationPublisher
+    {
+        NameString Name { get; }
+
+        /// <summary>
+        /// Publishes the repository to a gateway schema repository
+        /// from which a Hot Chocolate schema stitching gateway
+        /// can pull the schema.
+        /// </summary>
+        /// <param name="schema">
+        /// The remote schema definition.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The <see cref="CancellationToken" />.
+        /// </param>
+        ValueTask PublishSchemaAsync(
+            RemoteSchemaDefinition schema,
+            CancellationToken cancellationToken = default);
+    }
+
+
+
+    public interface IGatewayConfigurationObserver
+    {
+        NameString Name { get; }
+
+        ValueTask ConnectAsync(CancellationToken cancellationToken);
+
+        IReadOnlyList<RemoteSchemaDefinition> RemoteSchemaDefinitions { get; }
     }
 }
