@@ -68,7 +68,7 @@ namespace HotChocolate.Types
             IDescriptor descriptor,
             ICustomAttributeProvider element)
         {
-            if (element is MemberInfo m)
+            if (element is MemberInfo)
             {
                 if (descriptor is IObjectFieldDescriptor ofd)
                 {

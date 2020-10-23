@@ -209,6 +209,8 @@ namespace HotChocolate.Execution
 
             var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
 
+            schemaBuilder.AddServices(serviceProvider);
+
             foreach (SchemaBuilderAction action in options.SchemaBuilderActions)
             {
                 if (action.Action is { } configure)
@@ -222,9 +224,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            schemaBuilder
-                .TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName))
-                .AddServices(serviceProvider);
+            schemaBuilder.TryAddTypeInterceptor(new SetSchemaNameInterceptor(schemaName));
 
             ISchema schema = schemaBuilder.Create();
             AssertSchemaNameValid(schema, schemaName);

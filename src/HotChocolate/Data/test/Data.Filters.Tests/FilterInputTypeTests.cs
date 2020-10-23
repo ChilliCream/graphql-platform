@@ -243,6 +243,40 @@ namespace HotChocolate.Data.Tests
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegistered()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Resolve(new List<Foo>())
+                        .UseFiltering("Foo"));
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Resolve(new List<Foo>())
+                        .UseFiltering());
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
         public class FooDirectiveType
             : DirectiveType<FooDirective>
         {

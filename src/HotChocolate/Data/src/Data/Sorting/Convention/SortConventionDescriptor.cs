@@ -192,6 +192,20 @@ namespace HotChocolate.Data.Sorting
             return this;
         }
 
+        public ISortConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, ISortProviderExtension
+        {
+            Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+            return this;
+        }
+
+        public ISortConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, ISortProviderExtension
+        {
+            Definition.ProviderExtensions.Add(provider);
+            return this;
+        }
+
         /// <summary>
         /// Creates a new descriptor for <see cref="SortConvention"/>
         /// </summary>
