@@ -5,7 +5,7 @@ namespace HotChocolate.Stitching.Merge
 {
     internal static class SchemaInfoExtensions
     {
-        public static ObjectTypeDefinitionNode GetRootType(
+        public static ObjectTypeDefinitionNode? GetRootType(
             this ISchemaInfo schema,
             OperationType operation)
         {

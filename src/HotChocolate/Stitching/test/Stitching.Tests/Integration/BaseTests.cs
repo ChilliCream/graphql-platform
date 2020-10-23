@@ -636,5 +636,28 @@ namespace HotChocolate.Stitching.Integration
             // assert
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Add_Dummy_Directive()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            // act
+            ISchema schema =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"directive @foo on FIELD_DEFINITION")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildSchemaAsync();
+
+            // assert
+            Assert.NotNull(schema.GetDirectiveType("foo"));
+        }
     }
 }
