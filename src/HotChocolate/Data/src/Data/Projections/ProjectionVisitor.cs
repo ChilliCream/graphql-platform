@@ -134,7 +134,8 @@ namespace HotChocolate.Data.Projections
 
                 foreach (var selection in selections)
                 {
-                    if (selection.Field.Name.Value is "nodes" &&
+                    if ((selection.Field.Name.Value is "nodes" ||
+                            selection.Field.Name.Value is "items") &&
                         selection.SyntaxNode.SelectionSet is not null)
                     {
                         context.SelectionSetNodes.Push(
