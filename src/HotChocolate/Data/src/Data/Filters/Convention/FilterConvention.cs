@@ -8,7 +8,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -19,8 +18,8 @@ namespace HotChocolate.Data.Filters
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
     public class FilterConvention
-        : Convention<FilterConventionDefinition>
-        , IFilterConvention
+        : Convention<FilterConventionDefinition>,
+          IFilterConvention
     {
         private const string _typePostFix = "FilterInput";
 
@@ -99,7 +98,7 @@ namespace HotChocolate.Data.Filters
             {
                 IReadOnlyList<IFilterProviderExtension> extensions =
                     CollectExtensions(context.Services, Definition);
-                init.Initialize(context);
+                init.Initialize(context, this);
                 MergeExtensions(context, init, extensions);
                 init.OnComplete(context);
             }
@@ -283,7 +282,7 @@ namespace HotChocolate.Data.Filters
             return extensions;
         }
 
-        private static void MergeExtensions(
+        private void MergeExtensions(
             IConventionContext context,
             IFilterProviderConvention provider,
             IReadOnlyList<IFilterProviderExtension> extensions)
@@ -294,7 +293,7 @@ namespace HotChocolate.Data.Filters
                 {
                     if (extensions[m] is IFilterProviderConvention extensionConvention)
                     {
-                        extensionConvention.Initialize(context);
+                        extensionConvention.Initialize(context, this);
                         extensions[m].Merge(context, providerConvention);
                         extensionConvention.OnComplete(context);
                     }
