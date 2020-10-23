@@ -56,13 +56,14 @@ namespace HotChocolate.Types.Factories
             foreach (EnumValueDefinitionNode value in values)
             {
                 IEnumValueDescriptor valueDescriptor =
-                    typeDescriptor.Value(value.Name.Value)
-                        .Description(value.Description?.Value);
+                    typeDescriptor
+                        .Value(value.Name.Value)
+                        .Description(value.Description?.Value)
+                        .Name(value.Name.Value);
 
-                string deprecactionReason = value.DeprecationReason();
-                if (!string.IsNullOrEmpty(deprecactionReason))
+                if (value.DeprecationReason() is { Length: > 0 } s)
                 {
-                    valueDescriptor.Deprecated(deprecactionReason);
+                    valueDescriptor.Deprecated(s);
                 }
 
                 foreach (DirectiveNode directive in value.Directives)
