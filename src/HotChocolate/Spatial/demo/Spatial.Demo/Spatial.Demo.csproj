@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Types\HotChocolate.Types.Spatial.csproj" />
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Spatial.csproj" />
+    <ProjectReference Include="..\..\..\Data\src\EntityFramework\HotChocolate.Data.EntityFramework.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -13,15 +13,21 @@ namespace Spatial.Demo
 {
     public class Startup
     {
-        public static readonly ILoggerFactory loggerFactory = LoggerFactory.Create(x => x.AddConsole());
+        public static readonly ILoggerFactory loggerFactory =
+            LoggerFactory.Create(x => x.AddConsole());
+
         private const string connectionString =
             "Database=opensgid;Host=opensgid.agrc.utah.gov;Username=agrc;Password=agrc";
+
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContextPool<ApplicationDbContext>(options =>
-                    options.UseNpgsql(connectionString, o =>
-                        o.UseNetTopologySuite())
-                    .UseLoggerFactory(loggerFactory)
+            services.AddDbContextPool<ApplicationDbContext>(
+                    options =>
+                        options.UseNpgsql(
+                                connectionString,
+                                o =>
+                                    o.UseNetTopologySuite())
+                            .UseLoggerFactory(loggerFactory)
                 )
                 .AddGraphQLServer()
                 .AddSpatialTypes()

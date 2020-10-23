@@ -6,10 +6,10 @@ namespace Spatial.Demo
 {
     public class Query
     {
-        [UseApplicationDbContext]
-        [ToListAsync]
+        [UseDbContext(typeof(ApplicationDbContext))]
         [UseFiltering]
-        public IQueryable<County> GetCounties([ScopedService] ApplicationDbContext context)
-            => context.Counties;
+        public IQueryable<County> GetCounties(
+            [ScopedService] ApplicationDbContext context) =>
+            context.Counties;
     }
 }
