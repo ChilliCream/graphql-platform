@@ -62,7 +62,13 @@ namespace HotChocolate.Spatial.Data.Filters
                                 within: {
                                     geometry: {
                                         type: Polygon,
-                                        coordinates: [[20 20],[ 140 20],[ 120 100],[ 20 100 ],[ 20 20]]
+                                        coordinates: [
+                                            [20 20],
+                                            [140 20],
+                                            [120 100],
+                                            [20 100 ],
+                                            [20 20]
+                                        ]
                                     },
                                     eq: true
                                 }
@@ -84,7 +90,13 @@ namespace HotChocolate.Spatial.Data.Filters
                                 within: {
                                     geometry: {
                                         type: Polygon,
-                                        coordinates: [[20 20],[ 140 20],[ 120 100],[ 20 100 ],[ 20 20]]
+                                        coordinates: [
+                                            [20 20],
+                                            [140 20],
+                                            [120 100],
+                                            [20 100 ],
+                                            [20 20]
+                                        ]
                                     },
                                     eq: false
                                 }
