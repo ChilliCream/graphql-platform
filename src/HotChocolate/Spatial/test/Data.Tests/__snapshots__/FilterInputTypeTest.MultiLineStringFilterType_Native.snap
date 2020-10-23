@@ -132,6 +132,31 @@ input GeometryWithinOperationTypeFilterInput {
   neq: Boolean
 }
 
+input MultiLineStringFilterInput {
+  and: [MultiLineStringFilterInput!]
+  or: [MultiLineStringFilterInput!]
+  area: ComparableOperationFilterInputOfDoubleFilterInput
+  boundary: GeometryFilterInput
+  centroid: PointFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  envelope: GeometryFilterInput
+  geometryType: StringOperationFilterInput
+  interiorPoint: PointFilterInput
+  isSimple: BooleanOperationFilterInput
+  isValid: BooleanOperationFilterInput
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  pointOnSurface: PointFilterInput
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  contains: GeometryContainsOperationTypeFilterInput
+  distance: GeometryDistanceOperationTypeFilterInput
+  intersects: GeometryIntersectsOperationTypeFilterInput
+  overlaps: GeometryOverlapsOperationTypeFilterInput
+  touches: GeometryTouchesOperationTypeFilterInput
+  within: GeometryWithinOperationTypeFilterInput
+}
+
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
