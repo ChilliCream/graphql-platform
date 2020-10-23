@@ -41,37 +41,6 @@ input ComparableOperationFilterInputOfInt32FilterInput {
   nlte: Int
 }
 
-input CoordinateFilterInput {
-  and: [CoordinateFilterInput!]
-  or: [CoordinateFilterInput!]
-  x: ComparableOperationFilterInputOfDoubleFilterInput
-  y: ComparableOperationFilterInputOfDoubleFilterInput
-  z: ComparableOperationFilterInputOfDoubleFilterInput
-  m: ComparableOperationFilterInputOfDoubleFilterInput
-  item: ComparableOperationFilterInputOfDoubleFilterInput
-  coordinateValue: CoordinateFilterInput
-}
-
-input CoordinateSequenceFactoryFilterInput {
-  and: [CoordinateSequenceFactoryFilterInput!]
-  or: [CoordinateSequenceFactoryFilterInput!]
-  ordinates: EnumOperationFilterInputOfOrdinatesFilterInput
-}
-
-input CoordinateSequenceFilterInput {
-  and: [CoordinateSequenceFilterInput!]
-  or: [CoordinateSequenceFilterInput!]
-  dimension: ComparableOperationFilterInputOfInt32FilterInput
-  measures: ComparableOperationFilterInputOfInt32FilterInput
-  spatial: ComparableOperationFilterInputOfInt32FilterInput
-  ordinates: EnumOperationFilterInputOfOrdinatesFilterInput
-  hasZ: BooleanOperationFilterInput
-  hasM: BooleanOperationFilterInput
-  zOrdinateIndex: ComparableOperationFilterInputOfInt32FilterInput
-  mOrdinateIndex: ComparableOperationFilterInputOfInt32FilterInput
-  count: ComparableOperationFilterInputOfInt32FilterInput
-}
-
 input EnumOperationFilterInputOfDimensionFilterInput {
   eq: Dimension
   neq: Dimension
@@ -86,117 +55,136 @@ input EnumOperationFilterInputOfOgcGeometryTypeFilterInput {
   nin: [OgcGeometryType!]
 }
 
-input EnumOperationFilterInputOfOrdinatesFilterInput {
-  eq: Ordinates
-  neq: Ordinates
-  in: [Ordinates!]
-  nin: [Ordinates!]
-}
-
-input EnumOperationFilterInputOfPrecisionModelsFilterInput {
-  eq: PrecisionModels
-  neq: PrecisionModels
-  in: [PrecisionModels!]
-  nin: [PrecisionModels!]
-}
-
-input EnvelopeFilterInput {
-  and: [EnvelopeFilterInput!]
-  or: [EnvelopeFilterInput!]
-  isNull: BooleanOperationFilterInput
-  width: ComparableOperationFilterInputOfDoubleFilterInput
-  height: ComparableOperationFilterInputOfDoubleFilterInput
-  minX: ComparableOperationFilterInputOfDoubleFilterInput
-  maxX: ComparableOperationFilterInputOfDoubleFilterInput
-  minY: ComparableOperationFilterInputOfDoubleFilterInput
-  maxY: ComparableOperationFilterInputOfDoubleFilterInput
-  area: ComparableOperationFilterInputOfDoubleFilterInput
-  minExtent: ComparableOperationFilterInputOfDoubleFilterInput
-  maxExtent: ComparableOperationFilterInputOfDoubleFilterInput
-  centre: CoordinateFilterInput
-}
-
 input GeometryContainsOperationTypeFilterInput {
-  data: Geometry!
+  geometry: Geometry!
+  buffer: Float
   eq: Boolean
   neq: Boolean
 }
 
-input GeometryFactoryFilterInput {
-  and: [GeometryFactoryFilterInput!]
-  or: [GeometryFactoryFilterInput!]
-  precisionModel: PrecisionModelFilterInput
-  coordinateSequenceFactory: CoordinateSequenceFactoryFilterInput
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
+input GeometryDistanceOperationTypeFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Float
+  neq: Float
+  in: [Float!]
+  nin: [Float!]
+  gt: Float
+  ngt: Float
+  gte: Float
+  ngte: Float
+  lt: Float
+  nlt: Float
+  lte: Float
+  nlte: Float
 }
 
+"A representation of a planar, linear vector geometry."
 input GeometryFilterInput {
   and: [GeometryFilterInput!]
   or: [GeometryFilterInput!]
+  "Returns the area of this Geometry.\nAreal Geometries have a non-zero area.\nThey override this function to compute the area.\nOthers return 0.0\n\n\n**Returns:**\nThe area of the Geometry."
   area: ComparableOperationFilterInputOfDoubleFilterInput
+  "Returns the boundary, or an empty geometry of appropriate dimension\nif this Geometry is empty.\nFor a discussion of this function, see the OpenGIS Simple\nFeatures Specification. As stated in SFS Section 2.1.13.1, \"the boundary\nof a Geometry is a set of Geometries of the next lower dimension.\"\n\n\n**Returns:**\nThe closure of the combinatorial boundary of this Geometry."
   boundary: GeometryFilterInput
+  "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
+  "Returns the dimension of this geometry.\n\n\n**Returns:**\n\nThe topological dimensions of this geometry"
   dimension: EnumOperationFilterInputOfDimensionFilterInput
+  "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
+  "Returns the name of this Geometry's actual class.\n\n\n**Returns:**\nThe name of this Geometrys actual class."
   geometryType: StringOperationFilterInput
+  "Computes an interior point of this Geometry.\n\n\n**Returns:**\nA Point which is in the interior of this Geometry."
   interiorPoint: PointFilterInput
+  "Tests whether this Geometry is simple.\n\nThe SFS definition of simplicity\nfollows the general rule that a Geometry is simple if it has no points of\nself-tangency, self-intersection or other anomalous points.\n\nSimplicity is defined for each Geometry subclass as follows:\n\nValid polygonal geometries are simple, since their rings\nmust not self-intersect. IsSimple\ntests for this condition and reports false if it is not met.\n(This is a looser test than checking for validity).\nLinear rings have the same semantics.\nLinear geometries are simple iff they do not self-intersect at points\nother than boundary points.\nZero-dimensional geometries (points) are simple iff they have no\nrepeated points.\nEmpty Geometrys are always simple.\n\n\n\n**Returns:**\ntrue if this Geometry is simple"
   isSimple: BooleanOperationFilterInput
+  "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
   isValid: BooleanOperationFilterInput
+  "Returns the length of this Geometry.\nLinear geometries return their length.\nAreal geometries return their perimeter.\nThey override this function to compute the length.\nOthers return 0.0\n\n\n**Returns:**\nThe length of the Geometry."
   length: ComparableOperationFilterInputOfDoubleFilterInput
+  "Returns the count of this Geometrys vertices. The Geometry\ns contained by composite Geometrys must be\nGeometry's; that is, they must implement NumPoints.\n\n\n**Returns:**\nThe number of vertices in this Geometry."
   numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  "Gets the OGC geometry type"
   ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
   pointOnSurface: PointFilterInput
+  "Sets the ID of the Spatial Reference System used by the Geometry."
   sRID: ComparableOperationFilterInputOfInt32FilterInput
   contains: GeometryContainsOperationTypeFilterInput
+  distance: GeometryDistanceOperationTypeFilterInput
+  intersects: GeometryIntersectsOperationTypeFilterInput
+  overlaps: GeometryOverlapsOperationTypeFilterInput
+  touches: GeometryTouchesOperationTypeFilterInput
+  within: GeometryWithinOperationTypeFilterInput
 }
 
-input ListFilterInputOfFilterInputTypeOfCoordinateFilterInput {
-  all: CoordinateFilterInput
-  none: CoordinateFilterInput
-  some: CoordinateFilterInput
-  any: Boolean
+input GeometryIntersectsOperationTypeFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Boolean
+  neq: Boolean
 }
 
+input GeometryOverlapsOperationTypeFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Boolean
+  neq: Boolean
+}
+
+input GeometryTouchesOperationTypeFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Boolean
+  neq: Boolean
+}
+
+input GeometryWithinOperationTypeFilterInput {
+  geometry: Geometry!
+  buffer: Float
+  eq: Boolean
+  neq: Boolean
+}
+
+"Represents a single point.\n\nA Point is topologically valid if and only if:\n\nThe coordinate which defines it if any) is a valid coordinate\n(i.e. does not have an NaN X- or Y-ordinate"
 input PointFilterInput {
   and: [PointFilterInput!]
   or: [PointFilterInput!]
-  coordinateSequence: CoordinateSequenceFilterInput
-  coordinates: ListFilterInputOfFilterInputTypeOfCoordinateFilterInput
-  numPoints: ComparableOperationFilterInputOfInt32FilterInput
-  isEmpty: BooleanOperationFilterInput
-  dimension: EnumOperationFilterInputOfDimensionFilterInput
-  boundaryDimension: EnumOperationFilterInputOfDimensionFilterInput
+  m: ComparableOperationFilterInputOfDoubleFilterInput
   x: ComparableOperationFilterInputOfDoubleFilterInput
   y: ComparableOperationFilterInputOfDoubleFilterInput
-  coordinate: CoordinateFilterInput
-  geometryType: StringOperationFilterInput
-  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
-  boundary: GeometryFilterInput
   z: ComparableOperationFilterInputOfDoubleFilterInput
-  m: ComparableOperationFilterInputOfDoubleFilterInput
-  factory: GeometryFactoryFilterInput
-  sRID: ComparableOperationFilterInputOfInt32FilterInput
-  precisionModel: PrecisionModelFilterInput
-  numGeometries: ComparableOperationFilterInputOfInt32FilterInput
-  isSimple: BooleanOperationFilterInput
-  isValid: BooleanOperationFilterInput
+  "Returns the area of this Geometry.\nAreal Geometries have a non-zero area.\nThey override this function to compute the area.\nOthers return 0.0\n\n\n**Returns:**\nThe area of the Geometry."
   area: ComparableOperationFilterInputOfDoubleFilterInput
-  length: ComparableOperationFilterInputOfDoubleFilterInput
+  "Gets the boundary of this geometry.\nZero-dimensional geometries have no boundary by definition,\nso an empty GeometryCollection is returned."
+  boundary: GeometryFilterInput
+  "Computes the centroid of this Geometry.\nThe centroid\nis equal to the centroid of the set of component Geometries of highest\ndimension (since the lower-dimension geometries contribute zero\n\"weight\" to the centroid).\n\nThe centroid of an empty geometry is POINT EMPTY.\n\n\n**Returns:**\nA Point which is the centroid of this Geometry."
   centroid: PointFilterInput
-  interiorPoint: PointFilterInput
-  pointOnSurface: PointFilterInput
+  dimension: EnumOperationFilterInputOfDimensionFilterInput
+  "Gets a geometry representing the envelope (bounding box) of this Geometry.\n\n\n**Returns:**\n\nA Geometry representing the envelope of this Geometry"
   envelope: GeometryFilterInput
-  envelopeInternal: EnvelopeFilterInput
-  isRectangle: BooleanOperationFilterInput
-}
-
-input PrecisionModelFilterInput {
-  and: [PrecisionModelFilterInput!]
-  or: [PrecisionModelFilterInput!]
-  isFloating: BooleanOperationFilterInput
-  maximumSignificantDigits: ComparableOperationFilterInputOfInt32FilterInput
-  scale: ComparableOperationFilterInputOfDoubleFilterInput
-  precisionModelType: EnumOperationFilterInputOfPrecisionModelsFilterInput
+  "Returns the name of this object's interface.\n\n\n**Returns:**\n\"Point\""
+  geometryType: StringOperationFilterInput
+  "Computes an interior point of this Geometry.\n\n\n**Returns:**\nA Point which is in the interior of this Geometry."
+  interiorPoint: PointFilterInput
+  "Tests whether this Geometry is simple.\n\nThe SFS definition of simplicity\nfollows the general rule that a Geometry is simple if it has no points of\nself-tangency, self-intersection or other anomalous points.\n\nSimplicity is defined for each Geometry subclass as follows:\n\nValid polygonal geometries are simple, since their rings\nmust not self-intersect. IsSimple\ntests for this condition and reports false if it is not met.\n(This is a looser test than checking for validity).\nLinear rings have the same semantics.\nLinear geometries are simple iff they do not self-intersect at points\nother than boundary points.\nZero-dimensional geometries (points) are simple iff they have no\nrepeated points.\nEmpty Geometrys are always simple.\n\n\n\n**Returns:**\ntrue if this Geometry is simple"
+  isSimple: BooleanOperationFilterInput
+  "Tests whether this Geometry is topologically\nvalid, according to the OGC SFS specification.\nFor validity rules see the documentation for the specific geometry subclass.\n\n\n**Returns:**\ntrue if this Geometry is valid."
+  isValid: BooleanOperationFilterInput
+  "Returns the length of this Geometry.\nLinear geometries return their length.\nAreal geometries return their perimeter.\nThey override this function to compute the length.\nOthers return 0.0\n\n\n**Returns:**\nThe length of the Geometry."
+  length: ComparableOperationFilterInputOfDoubleFilterInput
+  numPoints: ComparableOperationFilterInputOfInt32FilterInput
+  "Gets the OGC geometry type"
+  ogcGeometryType: EnumOperationFilterInputOfOgcGeometryTypeFilterInput
+  pointOnSurface: PointFilterInput
+  "Sets the ID of the Spatial Reference System used by the Geometry."
+  sRID: ComparableOperationFilterInputOfInt32FilterInput
+  contains: GeometryContainsOperationTypeFilterInput
+  distance: GeometryDistanceOperationTypeFilterInput
+  intersects: GeometryIntersectsOperationTypeFilterInput
+  overlaps: GeometryOverlapsOperationTypeFilterInput
+  touches: GeometryTouchesOperationTypeFilterInput
+  within: GeometryWithinOperationTypeFilterInput
 }
 
 input StringOperationFilterInput {
@@ -214,81 +202,56 @@ input StringOperationFilterInput {
   nendsWith: String
 }
 
+"Provides constants representing the dimensions of a point, a curve and a surface."
 enum Dimension {
+  "Dimension value of a point (0)."
   POINT
+  "Dimension value of a curve (1)."
   CURVE
+  "Dimension value of a surface (2)."
   SURFACE
+  "Dimension value for any dimension (= {False, True})."
   DONTCARE
+  "Dimension value of non-empty geometries (= {Point,Curve,A})."
   TRUE
+  "Dimension value of a empty point (-1)."
   FALSE
 }
 
+"Enumeration of OGC Geometry Types"
 enum OgcGeometryType {
+  "Point."
   POINT
+  "LineString."
   LINE_STRING
+  "Polygon."
   POLYGON
+  "MultiPoint."
   MULTI_POINT
+  "MultiLineString."
   MULTI_LINE_STRING
+  "MultiPolygon."
   MULTI_POLYGON
+  "GeometryCollection."
   GEOMETRY_COLLECTION
+  "CircularString"
   CIRCULAR_STRING
+  "CompoundCurve"
   COMPOUND_CURVE
+  "CurvePolygon"
   CURVE_POLYGON
+  "MultiCurve"
   MULTI_CURVE
+  "MultiSurface"
   MULTI_SURFACE
+  "Curve"
   CURVE
+  "Surface"
   SURFACE
+  "PolyhedralSurface"
   POLYHEDRAL_SURFACE
+  "TIN"
   TIN
-}
-
-enum Ordinates {
-  NONE
-  SPATIAL1
-  SPATIAL2
-  XY
-  Z
-  XYZ
-  SPATIAL4
-  SPATIAL5
-  SPATIAL6
-  SPATIAL7
-  SPATIAL8
-  SPATIAL9
-  SPATIAL10
-  SPATIAL11
-  SPATIAL12
-  SPATIAL13
-  SPATIAL14
-  SPATIAL15
-  SPATIAL16
-  ALL_SPATIAL_ORDINATES
-  M
-  XYM
-  XYZM
-  MEASURE2
-  MEASURE3
-  MEASURE4
-  MEASURE5
-  MEASURE6
-  MEASURE7
-  MEASURE8
-  MEASURE9
-  MEASURE10
-  MEASURE11
-  MEASURE12
-  MEASURE13
-  MEASURE14
-  MEASURE15
-  MEASURE16
-  ALL_MEASURE_ORDINATES
-  ALL_ORDINATES
-}
-
-enum PrecisionModels {
-  FLOATING
-  FLOATING_SINGLE
-  FIXED
 }
 
 "The `Boolean` scalar type represents `true` or `false`."

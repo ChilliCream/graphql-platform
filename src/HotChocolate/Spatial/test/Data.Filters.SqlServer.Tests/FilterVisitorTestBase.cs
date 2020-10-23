@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using GreenDonut;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
@@ -24,38 +26,33 @@ namespace HotChocolate.Spatial.Data.Filters
             _resource = resource;
         }
 
-        private Func<IResolverContext, IEnumerable<TResult>> BuildResolver<TResult>(
-            params TResult[] results)
+        private async Task<Func<IResolverContext, IEnumerable<TResult>>>
+            BuildResolverAsync<TResult>(
+                params TResult[] results)
             where TResult : class
         {
-            var dbContext = new DatabaseContext<TResult>(_resource);
+            var databaseName = Guid.NewGuid().ToString("N");
+            var dbContext = new DatabaseContext<TResult>(_resource, databaseName);
 
-            try
-            {
-                Console.WriteLine(results);
-                var sql = dbContext.Database.GenerateCreateScript();
-
-                _resource.RunSqlScriptAsync(sql, "postgis")
-                    .GetAwaiter()
-                    .GetResult();
-                dbContext.AddRange(results);
-                dbContext.SaveChanges();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            var sql = dbContext.Database.GenerateCreateScript();
+            await _resource.CreateDatabaseAsync(databaseName);
+            await _resource.RunSqlScriptAsync(
+                "CREATE EXTENSION postgis;\n" + sql,
+                databaseName);
+            dbContext.AddRange(results);
+            dbContext.SaveChanges();
 
             return ctx => dbContext.Data.AsQueryable();
         }
 
-        protected IRequestExecutor CreateSchema<TEntity, T>(
+        protected async Task<IRequestExecutor> CreateSchemaAsync<TEntity, T>(
             TEntity[] entities,
             FilterConvention? convention = null)
             where TEntity : class
             where T : FilterInputType<TEntity>
         {
-            Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
+            Func<IResolverContext, IEnumerable<TEntity>> resolver =
+                await BuildResolverAsync(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddSpatialTypes()
@@ -92,8 +89,7 @@ namespace HotChocolate.Spatial.Data.Filters
                             })
                         .UseFiltering<T>());
 
-            ISchema? schema = builder.Create();
-
+            ISchema schema = builder.Create();
             return new ServiceCollection()
                 .Configure<RequestExecutorFactoryOptions>(
                     Schema.DefaultName,

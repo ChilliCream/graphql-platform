@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Spatial.Data.Filters
 {
-    public class QueryableFilterVisitorSpatialTests
+    public class QueryableFilterVisitorContainsTests
         : SchemaCache,
           IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
@@ -37,20 +37,19 @@ namespace HotChocolate.Spatial.Data.Filters
 
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Id = 1, Bar = _truePolygon },
-            new Foo { Id = 2, Bar = _falsePolygon }
+            new Foo { Id = 1, Bar = _truePolygon }, new Foo { Id = 2, Bar = _falsePolygon }
         };
 
-        public QueryableFilterVisitorSpatialTests(PostgreSqlResource<PostgisConfig> resource)
+        public QueryableFilterVisitorContainsTests(PostgreSqlResource<PostgisConfig> resource)
             : base(resource)
         {
         }
 
         [Fact]
-        public async Task Create_BooleanEqual_Expression()
+        public async Task Create_Contains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
@@ -100,10 +99,10 @@ namespace HotChocolate.Spatial.Data.Filters
         }
 
         [Fact]
-        public async Task Create_BooleanNotEqual_Expression()
+        public async Task Create_NotContains_Expression()
         {
             // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
+            IRequestExecutor tester = await CreateSchemaAsync<Foo, FooFilterType>(_fooEntities);
 
             // act
             // assert
@@ -152,58 +151,7 @@ namespace HotChocolate.Spatial.Data.Filters
             res2.MatchSqlSnapshot("1");
         }
 
-        [Fact]
-        public async Task Create_ComparableGreaterThan_Expression()
-        {
-            // arrange
-            IRequestExecutor tester = CreateSchema<Foo, FooFilterType>(_fooEntities);
 
-            // act
-            // assert
-            IExecutionResult res1 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                        root(where: {
-                            bar: {
-                                distance: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [1, 1]
-                                    },
-                                    gt: 1
-                                }
-                            }
-                        }){
-                            id
-                        }
-                    }")
-                    .Create());
-
-            res1.MatchSqlSnapshot("2");
-
-            IExecutionResult res2 = await tester.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery(
-                        @"{
-                        root(where: {
-                            bar: {
-                                distance: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [-1, -1]
-                                    },
-                                    gt: 1
-                                }
-                            }
-                        }){
-                            id
-                        }
-                    }")
-                    .Create());
-
-            res2.MatchSqlSnapshot("1");
-        }
         public class Foo
         {
             public int Id { get; set; }

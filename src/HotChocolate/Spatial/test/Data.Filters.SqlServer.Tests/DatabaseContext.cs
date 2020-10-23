@@ -9,11 +9,13 @@ namespace HotChocolate.Spatial.Data.Filters
         where T : class
     {
         private readonly PostgreSqlResource<PostgisConfig> _resource;
+        private readonly string _databaseName;
         private bool _disposed;
 
-        public DatabaseContext(PostgreSqlResource<PostgisConfig> resource)
+        public DatabaseContext(PostgreSqlResource<PostgisConfig> resource, string databaseName)
         {
             _resource = resource;
+            _databaseName = databaseName;
         }
 
         public DbSet<T> Data { get; set; } = default!;
@@ -21,7 +23,7 @@ namespace HotChocolate.Spatial.Data.Filters
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseNpgsql(
-                _resource.ConnectionString,
+                _resource.GetConnectionString(_databaseName),
                 o =>
                     o.UseNetTopologySuite());
         }
