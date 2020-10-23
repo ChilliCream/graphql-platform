@@ -1,0 +1,27 @@
+﻿{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [
+        {
+          "line": 6,
+          "column": 19
+        }
+      ],
+      "path": [
+        "topProducts"
+      ],
+      "extensions": {
+        "message": "There is no schema with the given name \u0060Products\u0060.",
+        "stackTrace": "   at HotChocolate.Stitching.Requests.StitchingContext.GetRemoteRequestExecutor(NameString schemaName) in /Users/michael/GitHub/hc/src/HotChocolate/Stitching/src/Stitching/Requests/StitchingContext.cs:line 50\n   at HotChocolate.Stitching.Requests.StitchingContext.GetRemoteSchema(NameString schemaName) in /Users/michael/GitHub/hc/src/HotChocolate/Stitching/src/Stitching/Requests/StitchingContext.cs:line 57\n   at HotChocolate.Stitching.Delegation.DelegateToRemoteSchemaMiddleware.ResolveScopedVariables(IResolverContext context, NameString schemaName, OperationType operationType, IImmutableStack\u00601 reversePath, ExtractFieldQuerySyntaxRewriter rewriter) in /Users/michael/GitHub/hc/src/HotChocolate/Stitching/src/Stitching/Delegation/DelegateToRemoteSchemaMiddleware.cs:line 326\n   at HotChocolate.Stitching.Delegation.DelegateToRemoteSchemaMiddleware.CreateQuery(IMiddlewareContext context, NameString schemaName, IImmutableStack\u00601 path, IImmutableStack\u00601 reversePath) in /Users/michael/GitHub/hc/src/HotChocolate/Stitching/src/Stitching/Delegation/DelegateToRemoteSchemaMiddleware.cs:line 116\n   at HotChocolate.Stitching.Delegation.DelegateToRemoteSchemaMiddleware.InvokeAsync(IMiddlewareContext context) in /Users/michael/GitHub/hc/src/HotChocolate/Stitching/src/Stitching/Delegation/DelegateToRemoteSchemaMiddleware.cs:line 57\n   at HotChocolate.Utilities.MiddlewareCompiler\u00601.ExpressionHelper.AwaitTaskHelper(Task task) in /Users/michael/GitHub/hc/src/HotChocolate/Utilities/src/Utilities/MiddlewareCompiler.cs:line 167\n   at HotChocolate.Execution.Processing.ResolverTask.ExecuteResolverPipelineAsync() in /Users/michael/GitHub/hc/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 65\n   at HotChocolate.Execution.Processing.ResolverTask.TryExecuteAsync() in /Users/michael/GitHub/hc/src/HotChocolate/Core/src/Execution/Processing/ResolverTask.cs:line 51"
+      }
+    }
+  ],
+  "data": {
+    "me": {
+      "name": "Ada Lovelace",
+      "birthdate": "1815-12-10T00:00:00.000\u002B00:35"
+    },
+    "topProducts": null
+  }
+}

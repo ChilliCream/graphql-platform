@@ -8,21 +8,16 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal class RemoveFieldRewriter
         : ITypeRewriter
     {
-        public RemoveFieldRewriter(FieldReference field)
+        public RemoveFieldRewriter(FieldReference field, NameString? schemaName = null)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
         }
-
-        public RemoveFieldRewriter(NameString schemaName, FieldReference field)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            Field = field ?? throw new ArgumentNullException(nameof(field));
-        }
-
-        public NameString? SchemaName { get; }
 
         public FieldReference Field { get; }
 
+        public NameString? SchemaName { get; }
+        
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,
             ITypeDefinitionNode typeDefinition)

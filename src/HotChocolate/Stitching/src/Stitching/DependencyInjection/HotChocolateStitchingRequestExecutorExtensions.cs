@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,11 +16,13 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Requests;
+using HotChocolate.Stitching.Utilities;
+using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class HotChocolateStitchingRequestExecutorExtensions
+    public static partial class HotChocolateStitchingRequestExecutorExtensions
     {
         /// <summary>
         /// This middleware delegates GraphQL requests to a different GraphQL server using
@@ -89,11 +92,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         .GetRequiredService<IHttpClientFactory>()
                         .CreateClient(schemaName);
 
-                    // The introspection client will do all the hard work to negotiate
-                    // the features this schema supports and convert the introspection
-                    // result into a parsed GraphQL SDL document.
-                    return await new IntrospectionClient()
-                        .DownloadSchemaAsync(httpClient, cancellationToken)
+                    // Next we will fetch the schema definition which contains the
+                    // schema document and other configuration
+                    return await new IntrospectionHelper(httpClient, schemaName)
+                        .GetSchemaDefinitionAsync(cancellationToken)
                         .ConfigureAwait(false);
                 },
                 ignoreRootTypes);
@@ -116,7 +118,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 builder,
                 schemaName,
                 (services, cancellationToken) =>
-                    new ValueTask<DocumentNode>(Utf8GraphQLParser.Parse(schemaSdl)),
+                    new ValueTask<RemoteSchemaDefinition>(
+                        new RemoteSchemaDefinition(
+                            schemaName,
+                            Utf8GraphQLParser.Parse(schemaSdl))),
                 ignoreRootTypes);
         }
 
@@ -148,7 +153,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         .ConfigureAwait(false);
 #endif
 
-                    return Utf8GraphQLParser.Parse(schemaSdl);
+                    return new RemoteSchemaDefinition(
+                        schemaName,
+                        Utf8GraphQLParser.Parse(schemaSdl));
                 },
                 ignoreRootTypes);
         }
@@ -156,7 +163,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IRequestExecutorBuilder AddRemoteSchema(
             this IRequestExecutorBuilder builder,
             NameString schemaName,
-            Func<IServiceProvider, CancellationToken, ValueTask<DocumentNode>> loadSchema,
+            Func<IServiceProvider, CancellationToken, ValueTask<RemoteSchemaDefinition>> loadSchema,
             bool ignoreRootTypes = false)
         {
             if (builder is null)
@@ -192,11 +199,17 @@ namespace Microsoft.Extensions.DependencyInjection
                     async (services, schemaBuilder, cancellationToken) =>
                     {
                         // No we need to load the schema document.
-                        DocumentNode document =
+                        RemoteSchemaDefinition schemaDef =
                             await loadSchema(services, cancellationToken)
                                 .ConfigureAwait(false);
 
-                        document = document.RemoveBuiltInTypes();
+                        DocumentNode document = schemaDef.Document.RemoveBuiltInTypes();
+
+                        // We store the schema definition on the schema building context
+                        // and copy it to the schema once that is built.
+                        schemaBuilder
+                            .SetContextData(typeof(RemoteSchemaDefinition).FullName!, schemaDef)
+                            .TryAddTypeInterceptor<CopySchemaDefinitionTypeInterceptor>();
 
                         // The document is used to create a SDL-first schema ...
                         schemaBuilder.AddDocument(document);
@@ -233,6 +246,78 @@ namespace Microsoft.Extensions.DependencyInjection
                         .AddRemoteExecutor(schemaName, autoProxy)
                         .TryAddSchemaInterceptor<StitchingSchemaInterceptor>()
                         .TryAddTypeInterceptor<StitchingTypeInterceptor>();
+
+                    var schemaDefinition =
+                        (RemoteSchemaDefinition)autoProxy.Schema
+                            .ContextData[typeof(RemoteSchemaDefinition).FullName!]!;
+
+                    var extensionsRewriter = new SchemaExtensionsRewriter();
+
+                    foreach (var extensionDocument in schemaDefinition.ExtensionDocuments)
+                    {
+                        var doc = (DocumentNode)extensionsRewriter
+                            .Rewrite(extensionDocument, schemaName.Value);
+
+                        SchemaExtensionNode? schemaExtension =
+                            doc.Definitions.OfType<SchemaExtensionNode>().FirstOrDefault();
+
+                        if (schemaExtension is not null &&
+                            schemaExtension.Directives.Count == 0 &&
+                            schemaExtension.OperationTypes.Count == 0)
+                        {
+                            var definitions = doc.Definitions.ToList();
+                            definitions.Remove(schemaExtension);
+                            doc = doc.WithDefinitions(definitions);
+                        }
+
+                        schemaBuilder.AddTypeExtensions(doc);
+                    }
+
+                    foreach (var schemaAction in extensionsRewriter.SchemaActions)
+                    {
+                        switch (schemaAction.Name.Value)
+                        {
+                            case DirectiveNames.RemoveRootTypes:
+                                builder.IgnoreRootTypes(schemaName);
+                                break;
+
+                            case DirectiveNames.RemoveType:
+                                builder.IgnoreType(
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RemoveType_TypeName),
+                                    schemaName);
+                                break;
+
+                            case DirectiveNames.RenameType:
+                                builder.RenameType(
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameType_TypeName),
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameType_NewTypeName),
+                                    schemaName);
+                                break;
+
+                            case DirectiveNames.RenameField:
+                                builder.RenameField(
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameField_TypeName),
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameField_TypeName),
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameField_FieldName),
+                                    GetArgumentValue(
+                                        schemaAction,
+                                        DirectiveFieldNames.RenameField_NewFieldName),
+                                    schemaName);
+                                break;
+                        }
+                    }
                 });
 
             // Last but not least, we will setup the stitching context which will
@@ -349,8 +434,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(rewriter));
             }
 
-            return builder.ConfigureSchema(
-                s => s.AddTypeRewriter(rewriter));
+            return builder.ConfigureSchema(s => s.AddTypeRewriter(rewriter));
         }
 
         /// <summary>
@@ -551,6 +635,9 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="builder">
         /// The <see cref="IRequestExecutorBuilder"/>.
         /// </param>
+        /// <param name="schemaName">
+        /// The schema to which this rewriter applies to.
+        /// </param>
         /// <returns>
         /// Returns the <see cref="IRequestExecutorBuilder"/>.
         /// </returns>
@@ -558,289 +645,207 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <paramref name="builder"/> is <c>null</c>.
         /// </exception>
         public static IRequestExecutorBuilder IgnoreRootTypes(
-            this IRequestExecutorBuilder builder)
+            this IRequestExecutorBuilder builder,
+            NameString? schemaName = null)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
+
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
 
             return builder.AddDocumentRewriter(
                 new RemoveRootTypeRewriter());
         }
 
+        /// <summary>
+        /// Removes a file from the schema document that is being imported.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="typeName">
+        /// The type that shall be removed from the schema document.
+        /// </param>
+        /// <param name="schemaName">
+        /// The schema to which this rewriter applies to.
+        /// </param>
+        /// <returns>
+        /// Returns the <see cref="IRequestExecutorBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="builder"/> is <c>null</c>.
+        /// </exception>
         public static IRequestExecutorBuilder IgnoreType(
             this IRequestExecutorBuilder builder,
-            NameString typeName)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            typeName.EnsureNotEmpty(nameof(typeName));
-
-            return builder.AddDocumentRewriter(
-                new RemoveTypeRewriter(typeName));
-        }
-
-        public static IRequestExecutorBuilder IgnoreType(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            NameString typeName)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            schemaName.EnsureNotEmpty(nameof(schemaName));
-            typeName.EnsureNotEmpty(nameof(typeName));
-
-            return builder.AddDocumentRewriter(
-                new RemoveTypeRewriter(schemaName, typeName));
-        }
-
-        public static IRequestExecutorBuilder IgnoreField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
             NameString typeName,
-            NameString fieldName) =>
-            IgnoreField(builder, schemaName,
-                new FieldReference(typeName, fieldName));
-
-        public static IRequestExecutorBuilder IgnoreField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            FieldReference field)
+            NameString? schemaName = null)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (field == null)
+            typeName.EnsureNotEmpty(nameof(typeName));
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
+
+            return builder.AddDocumentRewriter(
+                new RemoveTypeRewriter(typeName, schemaName));
+        }
+
+        public static IRequestExecutorBuilder IgnoreField(
+            this IRequestExecutorBuilder builder,
+            NameString typeName,
+            NameString fieldName,
+            NameString? schemaName = null) =>
+            IgnoreField(builder, new FieldReference(typeName, fieldName), schemaName);
+
+        public static IRequestExecutorBuilder IgnoreField(
+            this IRequestExecutorBuilder builder,
+            FieldReference field,
+            NameString? schemaName = null)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
-            schemaName.EnsureNotEmpty(nameof(schemaName));
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
 
-            return builder.AddTypeRewriter(
-                new RemoveFieldRewriter(schemaName, field));
+            return builder.AddTypeRewriter(new RemoveFieldRewriter(field, schemaName));
         }
 
         public static IRequestExecutorBuilder RenameType(
             this IRequestExecutorBuilder builder,
             NameString originalTypeName,
-            NameString newTypeName)
+            NameString newTypeName,
+            NameString? schemaName = null)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
             originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
             newTypeName.EnsureNotEmpty(nameof(newTypeName));
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
 
             return builder.AddTypeRewriter(
-                new RenameTypeRewriter(originalTypeName, newTypeName));
-        }
-
-        public static IRequestExecutorBuilder RenameType(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            NameString originalTypeName,
-            NameString newTypeName)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            schemaName.EnsureNotEmpty(nameof(schemaName));
-            originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
-            newTypeName.EnsureNotEmpty(nameof(newTypeName));
-
-            return builder.AddTypeRewriter(
-                new RenameTypeRewriter(
-                    schemaName, originalTypeName, newTypeName));
+                new RenameTypeRewriter(originalTypeName, newTypeName, schemaName));
         }
 
         public static IRequestExecutorBuilder RewriteType(
             this IRequestExecutorBuilder builder,
-            NameString sourceSchema,
-            NameString sourceType,
-            NameString typeName)
+            NameString originalTypeName,
+            NameString newTypeName,
+            NameString schemaName)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
-            sourceType.EnsureNotEmpty(nameof(sourceType));
-            typeName.EnsureNotEmpty(nameof(typeName));
+            originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
+            newTypeName.EnsureNotEmpty(nameof(newTypeName));
+            schemaName.EnsureNotEmpty(nameof(schemaName));
 
             return builder.ConfigureSchema(
-                s => s.AddNameLookup(typeName, sourceSchema, sourceType));
+                s => s.AddNameLookup(originalTypeName, newTypeName, schemaName));
         }
 
         public static IRequestExecutorBuilder RenameField(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
-            NameString newFieldName) =>
-            RenameField(builder,
+            NameString newFieldName,
+            NameString? schemaName = null) =>
+            RenameField(
+                builder,
                 new FieldReference(typeName, fieldName),
-                newFieldName);
+                newFieldName,
+                schemaName);
 
         public static IRequestExecutorBuilder RenameField(
             this IRequestExecutorBuilder builder,
             FieldReference field,
-            NameString newFieldName)
+            NameString newFieldName,
+            NameString? schemaName = null)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (field == null)
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
             newFieldName.EnsureNotEmpty(nameof(newFieldName));
 
             return builder.AddTypeRewriter(
-                new RenameFieldRewriter(
-                    field, newFieldName));
+                new RenameFieldRewriter(field, newFieldName, schemaName));
         }
 
         public static IRequestExecutorBuilder RenameField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            NameString typeName,
-            NameString fieldName,
-            NameString newFieldName) =>
-            RenameField(builder,
-                schemaName,
-                new FieldReference(typeName, fieldName),
-                newFieldName);
-
-        public static IRequestExecutorBuilder RenameField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            FieldReference field,
-            NameString newFieldName)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (field == null)
-            {
-                throw new ArgumentNullException(nameof(field));
-            }
-
-            schemaName.EnsureNotEmpty(nameof(schemaName));
-            newFieldName.EnsureNotEmpty(nameof(newFieldName));
-
-            return builder.AddTypeRewriter(
-                new RenameFieldRewriter(
-                    schemaName, field, newFieldName));
-        }
-
-        public static IRequestExecutorBuilder RenameFieldArgument(
             this IRequestExecutorBuilder builder,
             NameString typeName,
             NameString fieldName,
             NameString argumentName,
-            NameString newArgumentName) =>
+            NameString newArgumentName,
+            NameString? schemaName = null) =>
             RenameField(builder,
                 new FieldReference(typeName, fieldName),
                 argumentName,
-                newArgumentName);
+                newArgumentName,
+                schemaName);
 
         public static IRequestExecutorBuilder RenameField(
             this IRequestExecutorBuilder builder,
             FieldReference field,
             NameString argumentName,
-            NameString newArgumentName)
+            NameString newArgumentName,
+            NameString? schemaName = null)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (field == null)
+            if (field is null)
             {
                 throw new ArgumentNullException(nameof(field));
             }
 
             argumentName.EnsureNotEmpty(nameof(argumentName));
             newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
+            schemaName?.EnsureNotEmpty(nameof(schemaName));
 
             return builder.AddTypeRewriter(
                 new RenameFieldArgumentRewriter(
                     field,
                     argumentName,
-                    newArgumentName));
-        }
-
-        public static IRequestExecutorBuilder RenameField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            NameString typeName,
-            NameString fieldName,
-            NameString argumentName,
-            NameString newArgumentName) =>
-            RenameField(builder,
-                schemaName,
-                new FieldReference(typeName, fieldName),
-                argumentName,
-                newArgumentName);
-
-        public static IRequestExecutorBuilder RenameField(
-            this IRequestExecutorBuilder builder,
-            NameString schemaName,
-            FieldReference field,
-            NameString argumentName,
-            NameString newArgumentName)
-        {
-            if (builder == null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (field == null)
-            {
-                throw new ArgumentNullException(nameof(field));
-            }
-
-            schemaName.EnsureNotEmpty(nameof(schemaName));
-            argumentName.EnsureNotEmpty(nameof(argumentName));
-            newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
-
-            return builder.AddTypeRewriter(
-                new RenameFieldArgumentRewriter(
-                    schemaName,
-                    field,
-                    argumentName,
-                    newArgumentName));
+                    newArgumentName,
+                    schemaName));
         }
 
         public static IRequestExecutorBuilder AddTypeRewriter(
             this IRequestExecutorBuilder builder,
             RewriteTypeDefinitionDelegate rewrite)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (rewrite == null)
+            if (rewrite is null)
             {
                 throw new ArgumentNullException(nameof(rewrite));
             }
@@ -852,12 +857,12 @@ namespace Microsoft.Extensions.DependencyInjection
             this IRequestExecutorBuilder builder,
             RewriteDocumentDelegate rewrite)
         {
-            if (builder == null)
+            if (builder is null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            if (rewrite == null)
+            if (rewrite is null)
             {
                 throw new ArgumentNullException(nameof(rewrite));
             }
@@ -890,6 +895,35 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return builder.AddDirectiveMergeRule(
                 SchemaMergerExtensions.CreateDirectiveMergeRule<T>());
+        }
+
+        private static string GetArgumentValue(DirectiveNode directive, string argumentName)
+        {
+            ArgumentNode? type = directive.Arguments
+                .FirstOrDefault(a => a.Name.Value.EqualsOrdinal(
+                    DirectiveFieldNames.RemoveType_TypeName));
+
+            if (type is null)
+            {
+                // TODO : throw helper
+                throw new SchemaException(SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "`{0}` is not specified.",
+                        argumentName)
+                    .Build());
+            }
+
+            if (type.Value is StringValueNode sv)
+            {
+                return sv.Value;
+            }
+
+            // TODO : throw helper
+            throw new SchemaException(SchemaErrorBuilder.New()
+                .SetMessage(
+                    "`{0}` must have a string value.",
+                    argumentName)
+                .Build());
         }
     }
 }

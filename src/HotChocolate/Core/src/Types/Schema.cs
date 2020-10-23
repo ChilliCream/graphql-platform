@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -176,6 +177,11 @@ namespace HotChocolate
             _directiveTypes.TryGetValue(
                 directiveName.EnsureNotEmpty(nameof(directiveName)),
                 out directiveType);
+
+        /// <summary>
+        /// Generates a schema document.
+        /// </summary>
+        public DocumentNode ToDocument() => SchemaSerializer.SerializeSchema(this);
 
         /// <summary>
         /// Returns the schema SDL representation.

@@ -104,7 +104,7 @@ namespace HotChocolate.Stitching.Integration
                         first.WithType(RewriteType(first.Type, "PaginationAmount"));
 
                     arguments[arguments.IndexOf(last)] =
-                        first.WithType(RewriteType(first.Type, "PaginationAmount"));
+                        last.WithType(RewriteType(first.Type, "PaginationAmount"));
 
                     node = node.WithArguments(arguments);
                 }

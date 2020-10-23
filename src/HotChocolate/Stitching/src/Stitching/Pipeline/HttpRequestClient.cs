@@ -73,25 +73,16 @@ namespace HotChocolate.Stitching.Pipeline
 
                 responseMessage.EnsureSuccessStatusCode();
 
-                using Stream stream = await responseMessage.Content
-                    .ReadAsStreamAsync()
+                IQueryResult result =
+                    await ParseResponseMessageAsync(responseMessage, cancellationToken)
                     .ConfigureAwait(false);
 
-                IReadOnlyDictionary<string, object?> response =
-                    await BufferHelper.ReadAsync(
-                            stream,
-                            ParseResponse,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-
-                IQueryResult result = HttpResponseDeserializer.Deserialize(response);
-
                 return await _requestInterceptor.OnReceivedResultAsync(
-                        targetSchema,
-                        request,
-                        result,
-                        responseMessage,
-                        cancellationToken)
+                    targetSchema,
+                    request,
+                    result,
+                    responseMessage,
+                    cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (HttpRequestException ex)
@@ -116,10 +107,9 @@ namespace HotChocolate.Stitching.Pipeline
             }
         }
 
-        private async ValueTask<HttpRequestMessage> CreateRequestAsync(
+        internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
             IQueryRequest request,
-            NameString targetSchema,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken)
         {
             using var writer = new ArrayWriter();
             await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
@@ -135,6 +125,36 @@ namespace HotChocolate.Stitching.Pipeline
                     Headers = { { _contentType.Key, _contentType.Value } }
                 }
             };
+
+            return requestMessage;
+        }
+
+        internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
+            HttpResponseMessage responseMessage,
+            CancellationToken cancellationToken)
+        {
+            using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+
+            IReadOnlyDictionary<string, object?> response =
+                await BufferHelper.ReadAsync(
+                        stream,
+                        ParseResponse,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+            return HttpResponseDeserializer.Deserialize(response);
+        }
+
+        private async ValueTask<HttpRequestMessage> CreateRequestAsync(
+            IQueryRequest request,
+            NameString targetSchema,
+            CancellationToken cancellationToken = default)
+        {
+            HttpRequestMessage requestMessage =
+                await CreateRequestMessageAsync(request, cancellationToken)
+                .ConfigureAwait(false);
 
             await _requestInterceptor
                 .OnCreateRequestAsync(targetSchema, request, requestMessage, cancellationToken)
@@ -155,7 +175,7 @@ namespace HotChocolate.Stitching.Pipeline
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("query", request.Query!.AsSpan());
 
-            if (request.OperationName is { })
+            if (request.OperationName is not null)
             {
                 jsonWriter.WriteString("operationName", request.OperationName);
             }

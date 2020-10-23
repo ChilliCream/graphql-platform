@@ -47,8 +47,8 @@ namespace HotChocolate.Stitching.Integration
         {
             var connections = new Dictionary<string, HttpClient>
             {
-                {CustomerSchema, CreateCustomerService().CreateClient()},
-                {ContractSchema, CreateContractService().CreateClient()}
+                { CustomerSchema, CreateCustomerService().CreateClient() },
+                { ContractSchema, CreateContractService().CreateClient() }
             };
 
             return CreateRemoteSchemas(connections);
