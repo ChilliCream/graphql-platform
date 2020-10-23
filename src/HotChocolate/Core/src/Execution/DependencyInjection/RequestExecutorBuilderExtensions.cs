@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 
@@ -332,6 +333,78 @@ namespace Microsoft.Extensions.DependencyInjection
                 options => options.SchemaServices.Add(configureServices));
         }
 
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
+            this IRequestExecutorBuilder builder,
+            Action<IRequestExecutor> action)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return builder.Configure(o => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(action)));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
+            this IRequestExecutorBuilder builder,
+            Action<IServiceProvider, IRequestExecutor> action)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(e => action(s, e))));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
+            this IRequestExecutorBuilder builder,
+            Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+
+            return builder.Configure(o => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(asyncAction)));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+
+            return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction((e, ct) => asyncAction(s, e, ct))));
+        }
+
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorFactoryOptions> configure)
@@ -347,10 +420,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(
                 services => new ConfigureNamedOptions<RequestExecutorFactoryOptions>(
                     builder.Name,
-                    options =>
-                    {
-                        configure(services, options);
-                    }));
+                    options => configure(services, options)));
 
             return builder;
         }

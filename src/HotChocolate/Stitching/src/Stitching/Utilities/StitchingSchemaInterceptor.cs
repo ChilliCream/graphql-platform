@@ -2,12 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Types;
@@ -15,10 +13,9 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
 using IHasName = HotChocolate.Types.IHasName;
-using WellKnownContextData = HotChocolate.Stitching.WellKnownContextData;
 using static HotChocolate.Stitching.DirectiveFieldNames;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.Stitching.Utilities
 {
     internal class StitchingSchemaInterceptor : SchemaInterceptor
     {
@@ -195,13 +192,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     foreach (NameString schemaName in schemaNames)
                     {
-                        nameLookup[(rewriter.NewTypeName, schemaName)] = 
+                        nameLookup[(rewriter.NewTypeName, schemaName)] =
                             rewriter.OriginalTypeName;
                     }
                 }
                 else
                 {
-                    nameLookup[(rewriter.NewTypeName, rewriter.SchemaName.Value)] = 
+                    nameLookup[(rewriter.NewTypeName, rewriter.SchemaName.Value)] =
                         rewriter.OriginalTypeName;
                 }
             }

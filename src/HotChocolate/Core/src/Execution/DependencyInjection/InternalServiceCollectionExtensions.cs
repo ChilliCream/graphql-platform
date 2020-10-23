@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using GreenDonut;
@@ -8,13 +9,25 @@ using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using HotChocolate.DataLoader;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class InternalServiceCollectionExtensions
     {
+        internal static IServiceCollection TryAddRequestExecutorFactoryOptionsMonitor(
+            this IServiceCollection services)
+        {
+            services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
+                sp => new DefaultRequestExecutorOptionsMonitor(
+                    sp.GetRequiredService<IOptionsMonitor<RequestExecutorFactoryOptions>>(),
+                    sp.GetRequiredService<IEnumerable<IRequestExecutorOptionsProvider>>()));
+            return services;
+        }
+
         internal static IServiceCollection TryAddVariableCoercion(
             this IServiceCollection services)
         {
