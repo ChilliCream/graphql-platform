@@ -1,16 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Stitching.WellKnownContextData;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace HotChocolate.Stitching.Utilities
 {
     public class StitchingTypeInterceptor : TypeInterceptor
     {

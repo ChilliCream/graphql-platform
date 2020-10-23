@@ -11,36 +11,22 @@ namespace HotChocolate.Stitching.Merge.Rewriters
         public RenameFieldArgumentRewriter(
             FieldReference field,
             NameString argumentName,
-            NameString newArgumentName)
+            NameString newArgumentName,
+            NameString? schemaName = null)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
-            ArgumentName = argumentName
-                .EnsureNotEmpty(nameof(argumentName));
-            NewArgumentName = newArgumentName
-                .EnsureNotEmpty(nameof(newArgumentName));
+            ArgumentName = argumentName.EnsureNotEmpty(nameof(argumentName));
+            NewArgumentName = newArgumentName.EnsureNotEmpty(nameof(newArgumentName));
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
         }
-
-        public RenameFieldArgumentRewriter(
-            NameString schemaName,
-            FieldReference field,
-            NameString argumentName,
-            NameString newArgumentName)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            Field = field ?? throw new ArgumentNullException(nameof(field));
-            ArgumentName = argumentName
-                .EnsureNotEmpty(nameof(argumentName));
-            NewArgumentName = newArgumentName
-                .EnsureNotEmpty(nameof(newArgumentName));
-        }
-
-        public NameString? SchemaName { get; }
 
         public FieldReference Field { get; }
 
         public NameString ArgumentName { get; }
 
         public NameString NewArgumentName { get; }
+
+        public NameString? SchemaName { get; }
 
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,
