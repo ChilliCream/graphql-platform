@@ -1,29 +1,28 @@
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace HotChocolate.Stitching.Schemas.Accounts
+namespace HotChocolate.Stitching.Schemas.Products
 {
-    public static class AccountsSchemaRequestExecutorBuilderExtensions
+    public static class ProductsSchemaRequestExecutorBuilderExtensions
     {
-        public static IRequestExecutorBuilder AddAccountsSchema(
+        public static IRequestExecutorBuilder AddProductsSchema(
             this IRequestExecutorBuilder builder)
         {
             builder.Services
-                .AddSingleton<UserRepository>();
+                .AddSingleton<ProductRepository>();
 
             return builder
-                .AddGraphQLServer()
                 .AddQueryType<Query>()
                 .PublishSchemaDefinition(c => c
-                    .SetName("accounts")
+                    .SetName("products")
                     .IgnoreRootTypes()
                     .AddTypeExtensionsFromString(
                         @"extend type Query {
-                             me: User! @delegate(path: ""user(id: 1)"")
+                            topProducts(first: Int = 5): [Product] @delegate
                         }
 
                         extend type Review {
-                            author: User @delegate(path: ""user(id: $fields:authorId)"")
+                            product: Product @delegate(path: ""product(upc: $fields:upc)"")
                         }"));
         }
     }

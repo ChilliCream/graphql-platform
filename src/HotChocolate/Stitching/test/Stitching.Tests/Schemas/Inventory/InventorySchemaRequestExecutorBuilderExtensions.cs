@@ -1,5 +1,4 @@
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Stitching.Schemas.Accounts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.Schemas.Inventory
@@ -10,7 +9,7 @@ namespace HotChocolate.Stitching.Schemas.Inventory
             this IRequestExecutorBuilder builder)
         {
             builder.Services
-                .AddSingleton<UserRepository>();
+                .AddSingleton<InventoryInfoRepository>();
 
             return builder
                 .AddQueryType<Query>()
