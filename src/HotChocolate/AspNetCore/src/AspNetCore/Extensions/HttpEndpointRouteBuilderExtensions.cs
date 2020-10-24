@@ -19,13 +19,15 @@ namespace Microsoft.AspNetCore.Builder
         public static IEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
             PathString path,
-            NameString schemaName = default)
+            NameString schemaName = default,
+            ToolConfiguration? configuration = default)
         {
             if (endpointRouteBuilder is null)
             {
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
+            configuration ??= new ToolConfiguration();
             path = path.ToString().TrimEnd('/');
 
             RoutePattern pattern = RoutePatternFactory.Parse(path + "/{**slug}");
@@ -38,7 +40,10 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
-                .UseMiddleware<ToolConfigurationFileMiddleware>(schemaNameOrDefault, path)
+                .UseMiddleware<ToolConfigurationFileMiddleware>(
+                    schemaNameOrDefault,
+                    path,
+                    configuration)
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
                 .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
 

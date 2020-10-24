@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore
             };
         private const string _configFile = "/bcp-config.json";
         private readonly IContentTypeProvider _contentTypeProvider;
-        private readonly ToolConfiguration? _configuration;
+        private readonly ToolConfiguration _configuration;
         private readonly PathString _matchUrl;
 
         public ToolConfigurationFileMiddleware(
@@ -37,12 +37,13 @@ namespace HotChocolate.AspNetCore
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
             NameString schemaName,
-            PathString matchUrl)
+            PathString matchUrl,
+            ToolConfiguration configuration)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
             _contentTypeProvider = new FileExtensionContentTypeProvider();
             _matchUrl = matchUrl;
-            //_configuration = configuration;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -61,9 +62,9 @@ namespace HotChocolate.AspNetCore
                     endpointPath,
                     context.Request.IsHttps,
                     false);
-                ToolConfigurationOutput config = new ToolConfigurationOutput(schemaEndpoint)
+                var config = new BananaCakePopConfiguration(schemaEndpoint)
                 {
-                    DefaultDocument = _configuration?.DefaultDocument,
+                    DefaultDocument = _configuration.DefaultDocument,
                     EndpointEditable = false,
                 };
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
@@ -107,9 +108,9 @@ namespace HotChocolate.AspNetCore
             return response.WriteAsync(serializedValue, cancellationToken);
         }
 
-        private class ToolConfigurationOutput
+        private class BananaCakePopConfiguration
         {
-            public ToolConfigurationOutput(string schemaEndpoint)
+            public BananaCakePopConfiguration(string schemaEndpoint)
             {
                 SchemaEndpoint = schemaEndpoint;
             }
