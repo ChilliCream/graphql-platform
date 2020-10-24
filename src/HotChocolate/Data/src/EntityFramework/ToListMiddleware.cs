@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Pagination;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotChocolate.Data

@@ -18,8 +18,11 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                        b => b.UseInMemoryDatabase("Data Source=books1.db"))
                     .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
                     .AddQueryType<Query>()
                     .Services
                     .BuildServiceProvider();
@@ -51,7 +54,7 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                        b => b.UseInMemoryDatabase("Data Source=books2.db"))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
@@ -100,7 +103,7 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                        b => b.UseInMemoryDatabase("Data Source=books3.db"))
                     .AddGraphQL()
                     .AddFiltering()
                     .AddSorting()
@@ -148,8 +151,11 @@ namespace HotChocolate.Data
             IServiceProvider services =
                 new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                        b => b.UseInMemoryDatabase("Data Source=books4.db"))
                     .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
                     .AddQueryType<Query>()
                     .Services
                     .BuildServiceProvider();
@@ -182,8 +188,11 @@ namespace HotChocolate.Data
             async Task CreateSchema() =>
                 await new ServiceCollection()
                     .AddPooledDbContextFactory<BookContext>(
-                        b => b.UseInMemoryDatabase("Data Source=books.db"))
+                        b => b.UseInMemoryDatabase("Data Source=books5.db"))
                     .AddGraphQL()
+                    .AddFiltering()
+                    .AddSorting()
+                    .AddProjections()
                     .AddQueryType<InvalidQuery>()
                     .BuildSchemaAsync();
 
