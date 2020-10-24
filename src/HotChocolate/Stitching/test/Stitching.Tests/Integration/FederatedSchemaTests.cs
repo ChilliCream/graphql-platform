@@ -10,6 +10,7 @@ using HotChocolate.Stitching.Schemas.Accounts;
 using HotChocolate.Stitching.Schemas.Inventory;
 using HotChocolate.Stitching.Schemas.Products;
 using HotChocolate.Stitching.Schemas.Reviews;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -49,6 +50,79 @@ namespace HotChocolate.Stitching.Integration
 
             // assert
             schema.Print().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query"))
+                    .AddRemoteSchema(Accounts)
+                    .AddRemoteSchema(Inventory)
+                    .AddRemoteSchema(Products)
+                    .AddRemoteSchema(Reviews)
+                    .BuildRequestExecutorAsync();
+            
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    me {
+                        id
+                        name 
+                        reviews { 
+                            body
+                            product {
+                                upc
+                            }
+                        }
+                    }
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_AddLocal_Field_Execute()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                    .AddRemoteSchema(Accounts)
+                    .AddRemoteSchema(Inventory)
+                    .AddRemoteSchema(Products)
+                    .AddRemoteSchema(Reviews)
+                    .BuildRequestExecutorAsync();
+            
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    me {
+                        id
+                        name 
+                        reviews { 
+                            body
+                            product {
+                                upc
+                            }
+                        }
+                    }
+                    local
+                }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
         }
 
         public TestServer CreateAccountsService() =>
