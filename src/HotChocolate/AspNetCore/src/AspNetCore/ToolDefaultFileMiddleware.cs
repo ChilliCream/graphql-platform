@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Net.Http.Headers;
 using HotChocolate.AspNetCore.Utilities;
-using Microsoft.Extensions.Primitives;
 
 namespace HotChocolate.AspNetCore
 {
@@ -17,9 +16,9 @@ namespace HotChocolate.AspNetCore
     public class ToolDefaultFileMiddleware
     {
         private const string _defaultFile = "index.html";
-        private readonly RequestDelegate _next;
         private readonly IFileProvider _fileProvider;
         private readonly PathString _matchUrl;
+        private readonly RequestDelegate _next;
 
         /// <summary>
         /// Creates a new instance of the DefaultFilesMiddleware.

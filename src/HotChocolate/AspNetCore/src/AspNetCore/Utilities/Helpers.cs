@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -16,6 +17,19 @@ namespace HotChocolate.AspNetCore.Utilities
         internal static bool IsGetOrHeadMethod(string method)
         {
             return HttpMethods.IsGet(method) || HttpMethods.IsHead(method);
+        }
+
+        internal static bool LookupContentType(
+            IContentTypeProvider contentTypeProvider,
+            PathString subPath,
+            out string contentType)
+        {
+            if (contentTypeProvider.TryGetContentType(subPath.Value, out contentType))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         internal static bool PathEndsInSlash(PathString path)
