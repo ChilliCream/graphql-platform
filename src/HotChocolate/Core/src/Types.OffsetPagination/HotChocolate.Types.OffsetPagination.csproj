@@ -4,7 +4,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <PackageId>HotChocolate.Types.OffsetPagination</PackageId>
     <AssemblyName>HotChocolate.Types.OffsetPagination</AssemblyName>
@@ -36,6 +36,5 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>OffsetResources.resx</DependentUpon>
     </Compile>
-  </ItemGroup>  
-
+  </ItemGroup>
 </Project>
