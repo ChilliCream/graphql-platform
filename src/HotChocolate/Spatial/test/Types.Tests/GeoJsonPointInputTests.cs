@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Spatial.Tests
                 d => d
                     .Name("Query")
                     .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonPointInput>())
+                    .Argument("arg", a => a.Type<GeoJsonPointInputType>())
                     .Resolver("ghi"))
             .Create();
 
@@ -49,7 +49,9 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point)));
 
             // assert
@@ -65,7 +67,9 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point)));
 
             // assert
@@ -81,7 +85,9 @@ namespace HotChocolate.Types.Spatial.Tests
             // act
             object? result = type.ParseLiteral(
                 new ObjectValueNode(
-                    new ObjectFieldNode("type", new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
+                    new ObjectFieldNode(
+                        "type",
+                        new EnumValueNode(nameof(GeoJsonGeometryType.Point))),
                     new ObjectFieldNode("coordinates", _point),
                     new ObjectFieldNode("crs", 26912)));
 
@@ -156,7 +162,7 @@ namespace HotChocolate.Types.Spatial.Tests
                     d => d
                         .Name("Query")
                         .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonPointInput>())
+                        .Argument("arg", a => a.Type<GeoJsonPointInputType>())
                         .Resolver(ctx => ctx.ArgumentValue<Point>("arg").ToString()))
                 .Create();
 
