@@ -7,19 +7,13 @@
         },
         {
           "name": "bar"
-        },
-        {
-          "name": "foo"
-        },
-        {
-          "name": "bar"
         }
       ],
       "pageInfo": {
         "hasNextPage": false,
         "hasPreviousPage": false
       },
-      "totalCount": 4
+      "totalCount": 2
     }
   }
 }
