@@ -20,6 +20,7 @@ namespace StrawberryShake.Serializers
                 new UrlValueSerializer(),
                 new UuidValueSerializer(),
                 new UuidValueSerializer(WellKnownScalars.Guid),
+                new PaginationAmountSerializer()
             };
     }
 }

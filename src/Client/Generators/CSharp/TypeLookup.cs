@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -55,6 +56,7 @@ namespace StrawberryShake.Generators.CSharp
                 new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
+                new LeafTypeInfo("PaginationAmount", typeof(int), typeof(int))
             }.ToDictionary(t => t.TypeName);
 
             _nullableRef = _languageVersion == LanguageVersion.CSharp_8_0;

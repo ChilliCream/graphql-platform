@@ -44,7 +44,8 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo(ScalarNames.Decimal, typeof(decimal), typeof(decimal)),
                 new LeafTypeInfo(ScalarNames.Uuid, typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
-                new LeafTypeInfo(ScalarNames.Url, typeof(Uri), typeof(string))
+                new LeafTypeInfo(ScalarNames.Url, typeof(Uri), typeof(string)),
+                new LeafTypeInfo(ScalarNames.PaginationAmount, typeof(int), typeof(int))
             }.ToDictionary(t => t.TypeName);
 
         private readonly ClientGeneratorOptions _options = new ClientGeneratorOptions();
