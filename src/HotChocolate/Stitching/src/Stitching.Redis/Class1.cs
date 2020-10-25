@@ -8,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.Redis
 {
-    public class Class1 : IRequestExecutorOptionsProvider
+    public class RedisExecutorOptionsProvider : IRequestExecutorOptionsProvider
     {
         private NameString _schemaName;
 
-        public Class1(NameString schemaName)
+        public RedisExecutorOptionsProvider(NameString schemaName)
         {
             _schemaName = schemaName;
         }
@@ -41,8 +41,7 @@ namespace HotChocolate.Stitching.Redis
                 RequestExecutorFactoryOptions options =
                     await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
                         .ConfigureAwait(false);
-                list.Add(new NamedRequestExecutorFactoryOptions(schemaDefinition.Name, options));
-
+                // list.Add(new NamedRequestExecutorFactoryOptions(schemaDefinition.Name, options));
             }
 
             return list;
@@ -55,6 +54,6 @@ namespace HotChocolate.Stitching.Redis
 
 
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
-            CancellationToken) => throw new NotImplementedException();
+            CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

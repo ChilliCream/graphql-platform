@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Configuration
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
+        /*
         public NamedRequestExecutorFactoryOptions(
             NameString schemaName,
             RequestExecutorFactoryOptions options)
@@ -27,6 +28,7 @@ namespace HotChocolate.Execution.Configuration
 
             }
         }
+        */
 
         public NameString SchemaName { get; }
 
