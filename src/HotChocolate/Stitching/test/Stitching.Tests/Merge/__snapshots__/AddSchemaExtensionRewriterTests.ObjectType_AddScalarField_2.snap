@@ -1,0 +1,8 @@
+﻿type Foo {
+  bar: String
+  baz: Int
+}
+
+extend type Baz {
+  a: String
+}

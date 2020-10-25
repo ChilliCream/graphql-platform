@@ -59,7 +59,7 @@ namespace HotChocolate.Execution.Configuration
                     {
                         _disposables.Add(provider.OnChange(OnChange));
 
-                        IEnumerable<NamedRequestExecutorFactoryOptions> allOptions =
+                        IEnumerable<INamedRequestExecutorFactoryOptions> allOptions =
                             await provider.GetOptionsAsync(cancellationToken)
                                 .ConfigureAwait(false);
 
