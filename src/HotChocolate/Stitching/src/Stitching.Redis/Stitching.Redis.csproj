@@ -1,7 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>HotChocolate.Stitching.Redis</PackageId>
+    <AssemblyName>HotChocolate.Stitching.Redis</AssemblyName>
+    <RootNamespace>HotChocolate.Stitching.Redis</RootNamespace>
+    <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\Stitching.Abstractions\HotChocolate.Stitching.Abstractions.csproj" />
+    <ProjectReference Include="..\Stitching\HotChocolate.Stitching.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StackExchange.Redis" Version="2.1.30" />
+  </ItemGroup>
 
 </Project>
