@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
@@ -18,7 +19,7 @@ namespace HotChocolate.AspNetCore
             TValue value,
             CancellationToken cancellationToken = default)
         {
-            response.ContentType = "application/json; charset=utf-8";
+            response.ContentType = ContentType.Json;
             response.StatusCode = 200;
 
             return JsonSerializer.SerializeAsync(

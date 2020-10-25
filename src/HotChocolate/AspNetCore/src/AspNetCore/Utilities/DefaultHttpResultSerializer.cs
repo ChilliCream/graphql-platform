@@ -11,11 +11,6 @@ namespace HotChocolate.AspNetCore.Utilities
 {
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
-        private const string _multiPartContentType =
-            "multipart/mixed; boundary=\"-\"";
-        private const string _jsonContentType =
-            "application/json; charset=utf-8";
-
         private readonly JsonQueryResultSerializer _jsonSerializer =
             new JsonQueryResultSerializer();
         private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer =
@@ -44,20 +39,20 @@ namespace HotChocolate.AspNetCore.Utilities
             switch (result)
             {
                 case QueryResult:
-                    return _jsonContentType;
+                    return ContentType.Json;
 
                 case DeferredQueryResult:
                     return _deferSerialization == HttpResultSerialization.JsonArray
-                        ? _jsonContentType
-                        : _multiPartContentType;
+                        ? ContentType.Json
+                        : ContentType.MultiPart;
 
                 case BatchQueryResult:
                     return _batchSerialization == HttpResultSerialization.JsonArray
-                        ? _jsonContentType
-                        : _multiPartContentType;
+                        ? ContentType.Json
+                        : ContentType.MultiPart;
 
                 default:
-                    return _jsonContentType;
+                    return ContentType.Json;
             }
         }
 
