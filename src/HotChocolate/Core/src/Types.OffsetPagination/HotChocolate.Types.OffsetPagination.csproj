@@ -37,4 +37,5 @@
       <DependentUpon>OffsetResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+  
 </Project>
