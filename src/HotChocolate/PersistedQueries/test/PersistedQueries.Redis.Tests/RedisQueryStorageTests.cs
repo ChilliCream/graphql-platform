@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.PersistedQueries.FileSystem;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Squadron;
