@@ -36,9 +36,8 @@ namespace HotChocolate.Types.Pagination
         protected int MaxPageSize { get; }
 
         /// <summary>
-        /// Result should include total count
+        /// Result should include total count.
         /// </summary>
-        /// <value></value>
         protected bool IncludeTotalCount { get; }
 
         /// <summary>
