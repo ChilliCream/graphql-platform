@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
@@ -23,11 +25,10 @@ namespace HotChocolate.AspNetCore
             TestServer server = CreateStarWarsServer("/graphql");
 
             // act
-            HttpResponseMessage response = await server.CreateClient().GetAsync(
-                TestServerExtensions.CreateUrl("/bcp-config.json"));
+            Result result = await GetAsync(server);
 
             // assert
-            response.MatchSnapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -42,11 +43,33 @@ namespace HotChocolate.AspNetCore
                 builder => builder.WithToolOptions(options));
 
             // act
-            HttpResponseMessage response = await server.CreateClient().GetAsync(
-                TestServerExtensions.CreateUrl("/bcp-config.json"));
+            Result result = await GetAsync(server);
 
             // assert
-            response.MatchSnapshot();
+            result.MatchSnapshot();
+        }
+
+        private async Task<Result> GetAsync(TestServer server)
+        {
+            HttpResponseMessage response = await server.CreateClient().GetAsync(
+                TestServerExtensions.CreateUrl("/graphql/bcp-config.json"));
+            string content = await response.Content.ReadAsStringAsync();
+
+            return new Result
+            {
+                Content = content,
+                ContentType = response.Content.Headers.ContentType,
+                StatusCode = response.StatusCode,
+            };
+        }
+
+        private class Result
+        {
+            public string Content { get; set; }
+
+            public MediaTypeHeaderValue ContentType { get; set; }
+
+            public HttpStatusCode StatusCode { get; set; }
         }
     }
 }

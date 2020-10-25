@@ -7,6 +7,12 @@ namespace HotChocolate.AspNetCore
 {
     internal static class HttpResponseExtensions
     {
+        private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
+        {
+            IgnoreNullValues = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
         internal static Task WriteAsJsonAsync<TValue>(
             this HttpResponse response,
             TValue value,
@@ -15,7 +21,11 @@ namespace HotChocolate.AspNetCore
             response.ContentType = "application/json; charset=utf-8";
             response.StatusCode = 200;
 
-            return JsonSerializer.SerializeAsync(response.Body, value, null, cancellationToken);
+            return JsonSerializer.SerializeAsync(
+                response.Body,
+                value,
+                _serializerOptions,
+                cancellationToken);
         }
     }
 }

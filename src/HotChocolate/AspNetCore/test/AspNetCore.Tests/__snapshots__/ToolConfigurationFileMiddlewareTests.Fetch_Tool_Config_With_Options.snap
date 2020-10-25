@@ -1,0 +1,14 @@
+﻿{
+  "Content": "{\"schemaEndpoint\":\"http://localhost:5000/graphql\",\"subscriptionEndpoint\":\"ws://localhost:5000/graphql\",\"endpointEditable\":false,\"defaultDocument\":\"# foo\"}",
+  "ContentType": {
+    "CharSet": "utf-8",
+    "Parameters": [
+      {
+        "Name": "charset",
+        "Value": "utf-8"
+      }
+    ],
+    "MediaType": "application/json"
+  },
+  "StatusCode": "OK"
+}
