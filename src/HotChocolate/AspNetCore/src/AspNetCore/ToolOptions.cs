@@ -1,6 +1,6 @@
 namespace HotChocolate.AspNetCore
 {
-    public class ToolConfiguration
+    public class ToolOptions
     {
         public string? DefaultDocument { get; set; }
     }

@@ -1,49 +1,32 @@
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
 using Microsoft.AspNetCore.StaticFiles;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.AspNetCore
 {
     /// <summary>
     /// This middleware handles the Banana Cake Pop configuration file request.
     /// </summary>
-    public class ToolConfigurationFileMiddleware
+    public class ToolOptionsFileMiddleware
         : MiddlewareBase
     {
-        private static readonly DefaultContractResolver _contractResolver =
-            new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy()
-            };
-        private static readonly JsonSerializerSettings _serializationSettings =
-            new JsonSerializerSettings
-            {
-                ContractResolver = _contractResolver,
-                NullValueHandling = NullValueHandling.Ignore,
-            };
         private const string _configFile = "/bcp-config.json";
         private readonly IContentTypeProvider _contentTypeProvider;
-        private readonly ToolConfiguration _configuration;
         private readonly PathString _matchUrl;
 
-        public ToolConfigurationFileMiddleware(
+        public ToolOptionsFileMiddleware(
             HttpRequestDelegate next,
             IRequestExecutorResolver executorResolver,
             IHttpResultSerializer resultSerializer,
             NameString schemaName,
-            PathString matchUrl,
-            ToolConfiguration configuration)
+            PathString matchUrl)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
             _contentTypeProvider = new FileExtensionContentTypeProvider();
             _matchUrl = matchUrl;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -52,10 +35,11 @@ namespace HotChocolate.AspNetCore
         /// <returns></returns>
         public async Task Invoke(HttpContext context)
         {
-            if (Helpers.IsGetOrHeadMethod(context.Request.Method) &&
-                Helpers.TryMatchPath(context, _matchUrl, false, out PathString subPath) &&
+            if (context.Request.IsGetOrHeadMethod() &&
+                context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
                 subPath.Value == _configFile)
             {
+                ToolOptions? options = context.GetEndpoint()?.Metadata.GetMetadata<ToolOptions>();
                 string endpointPath = context.Request.Path.Value!.Replace(_configFile, "");
                 string schemaEndpoint = CreateEndpointUri(
                     context.Request.Host.Value,
@@ -64,7 +48,7 @@ namespace HotChocolate.AspNetCore
                     false);
                 var config = new BananaCakePopConfiguration(schemaEndpoint)
                 {
-                    DefaultDocument = _configuration.DefaultDocument,
+                    DefaultDocument = options?.DefaultDocument,
                     EndpointEditable = false,
                 };
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
@@ -78,7 +62,7 @@ namespace HotChocolate.AspNetCore
                         true);
                 }
 
-                await WriteAsJsonAsync(context.Response, config, context.RequestAborted);
+                await context.Response.WriteAsJsonAsync(config, context.RequestAborted);
             }
             else
             {
@@ -93,19 +77,6 @@ namespace HotChocolate.AspNetCore
             scheme = isSecure ? $"{scheme}s" : scheme;
 
             return $"{scheme}://{host}{path}";
-        }
-
-        private Task WriteAsJsonAsync<TValue>(
-            HttpResponse response,
-            TValue value,
-            CancellationToken cancellationToken = default)
-        {
-            response.ContentType = "application/json; charset=utf-8";
-            response.StatusCode = 200;
-
-            string serializedValue = JsonConvert.SerializeObject(value, _serializationSettings);
-
-            return response.WriteAsync(serializedValue, cancellationToken);
         }
 
         private class BananaCakePopConfiguration

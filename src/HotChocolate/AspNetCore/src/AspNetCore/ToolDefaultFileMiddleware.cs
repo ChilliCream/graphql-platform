@@ -55,11 +55,12 @@ namespace HotChocolate.AspNetCore
         /// <returns></returns>
         public Task Invoke(HttpContext context)
         {
-            if (Helpers.IsGetOrHeadMethod(context.Request.Method) &&
-                Helpers.AcceptHeaderContainsHtml(context.Request.Headers) &&
-                Helpers.TryMatchPath(context, _matchUrl, true, out PathString subPath))
+            if (context.Request.IsGetOrHeadMethod() &&
+                context.Request.AcceptHeaderContainsHtml() &&
+                context.Request.TryMatchPath(_matchUrl, true, out PathString subPath))
             {
                 var dirContents = _fileProvider.GetDirectoryContents(subPath.Value);
+
                 if (dirContents.Exists)
                 {
                     // Check if any of our default files exist.
@@ -70,13 +71,16 @@ namespace HotChocolate.AspNetCore
                     {
                         // If the path matches a directory but does not end in a slash, redirect to add the slash.
                         // This prevents relative links from breaking.
-                        if (!Helpers.PathEndsInSlash(context.Request.Path))
+                        if (!context.Request.PathEndsInSlash())
                         {
                             context.Response.StatusCode = StatusCodes.Status301MovedPermanently;
+
                             var request = context.Request;
                             var redirect = UriHelper.BuildAbsolute(request.Scheme, request.Host,
                                 request.PathBase, request.Path + "/", request.QueryString);
+
                             context.Response.Headers[HeaderNames.Location] = redirect;
+
                             return Task.CompletedTask;
                         }
 

@@ -57,9 +57,9 @@ namespace HotChocolate.AspNetCore
         /// <returns></returns>
         public Task Invoke(HttpContext context)
         {
-            if (Helpers.IsGetOrHeadMethod(context.Request.Method) &&
-                Helpers.TryMatchPath(context, _matchUrl, false, out PathString subPath) &&
-                Helpers.LookupContentType(_contentTypeProvider, subPath, out var contentType))
+            if (context.Request.IsGetOrHeadMethod() &&
+                context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+                _contentTypeProvider.TryGetContentType(subPath.Value, out string contentType))
             {
                 return TryServeStaticFile(context, contentType, subPath);
             }
