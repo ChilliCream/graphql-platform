@@ -155,7 +155,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (fields is not null)
                 {
-                    fields.Add(current);
+                    fields.Add(current.WithValue(value));
                 }
                 else if (!ReferenceEquals(current.Value, value))
                 {
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution.Processing
 
                 if (values is not null)
                 {
-                    values.Add(current);
+                    values.Add(value);
                 }
                 else if (!ReferenceEquals(current.Value, value))
                 {
