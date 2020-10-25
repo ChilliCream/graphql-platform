@@ -1,0 +1,6 @@
+{
+  "schemaEndpoint": "http://localhost:5009/graphql",
+  "subscriptionEndpoint": "ws://localhost:5009/graphql",
+  "defaultDocument": "query Sample {\r\n  hero(episode: NEW_HOPE)\r\n  {\r\n    name\r\n  }\r\n}",
+  "endpointEditable": false
+}
