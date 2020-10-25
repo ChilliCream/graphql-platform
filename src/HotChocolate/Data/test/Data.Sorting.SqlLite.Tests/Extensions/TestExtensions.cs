@@ -13,12 +13,13 @@ namespace HotChocolate.Data.Sorting
         {
             if (result is { })
             {
-                result.MatchSnapshot(snapshotName);
                 if (result.ContextData is { } &&
                     result.ContextData.TryGetValue("sql", out var queryResult))
                 {
                     queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_sql"));
                 }
+
+                result.MatchSnapshot(snapshotName);
             }
         }
     }

@@ -5,9 +5,9 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Pagination
 {
     /// <summary>
-    /// Represents an offset paging handler, which can be implemented to 
-    /// create optimized pagination for data sources. 
-    /// 
+    /// Represents an offset paging handler, which can be implemented to
+    /// create optimized pagination for data sources.
+    ///
     /// The paging handler will be used by the paging middleware to slice the data.
     /// </summary>
     public abstract class OffsetPagingHandler : IPagingHandler
@@ -16,6 +16,7 @@ namespace HotChocolate.Types.Pagination
         {
             DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
             MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
+            IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
 
             if (MaxPageSize < DefaultPageSize)
             {
@@ -35,8 +36,13 @@ namespace HotChocolate.Types.Pagination
         protected int MaxPageSize { get; }
 
         /// <summary>
-        /// Ensures that the arguments passed in by the user are valid and 
-        /// do not try to consume more items per page as specified by 
+        /// Result should include total count.
+        /// </summary>
+        protected bool IncludeTotalCount { get; }
+
+        /// <summary>
+        /// Ensures that the arguments passed in by the user are valid and
+        /// do not try to consume more items per page as specified by
         /// <see cref="MaxPageSize"/>.
         /// </summary>
         /// <param name="context">
@@ -76,7 +82,7 @@ namespace HotChocolate.Types.Pagination
         /// The paging arguments provided by the user.
         /// </param>
         /// <returns>
-        /// The <see cref="CollectionSegment"/> representing 
+        /// The <see cref="CollectionSegment"/> representing
         /// the slice of items belonging to the requested page.
         /// </returns>
         protected abstract ValueTask<CollectionSegment> SliceAsync(

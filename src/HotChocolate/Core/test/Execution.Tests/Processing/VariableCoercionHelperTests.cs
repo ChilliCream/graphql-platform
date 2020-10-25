@@ -624,5 +624,128 @@ namespace HotChocolate.Execution.Processing
                 .ToList()
                 .MatchSnapshot();
         }
+
+        [Fact]
+        public void CoerceVariableValues_Should_CoerceEnumList_AsEnumValues()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: [FooInput]): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(next => context => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    new ListTypeNode(new NamedTypeNode("FooInput")),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ListValueNode(
+                        new ObjectValueNode(
+                            new ObjectFieldNode("enum", "Foo")),
+                        new ObjectValueNode(
+                            new ObjectFieldNode("enum", "Bar")))
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValue>();
+
+            var helper = new VariableCoercionHelper();
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal(
+                        "[ { enum: Foo }, { enum: Bar } ]",
+                        t.Value.ValueLiteral!.ToString());
+                });
+        }
+
+        [Fact]
+        public void CoerceVariableValues_Should_CoerceEnumObject_AsEnumValues()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"
+                    type Query {
+                        test(list: FooInput): String
+                    }
+
+                    input FooInput {
+                        enum: TestEnum
+                        enum2: TestEnum
+                    }
+
+                    enum TestEnum {
+                        Foo
+                        Bar
+                    }")
+                .Use(next => context => default)
+                .Create();
+
+            var variableDefinitions = new List<VariableDefinitionNode>
+            {
+                new VariableDefinitionNode(
+                    null,
+                    new VariableNode("abc"),
+                    new NamedTypeNode("FooInput"),
+                    null,
+                    Array.Empty<DirectiveNode>())
+            };
+
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "abc",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("enum", "Foo"),
+                        new ObjectFieldNode("enum2", "Bar"))
+                }
+            };
+
+            var coercedValues = new Dictionary<string, VariableValue>();
+
+            var helper = new VariableCoercionHelper();
+
+            // act
+            helper.CoerceVariableValues(
+                schema, variableDefinitions, variableValues, coercedValues);
+
+            // assert
+            Assert.Collection(coercedValues,
+                t =>
+                {
+                    Assert.Equal("abc", t.Key);
+                    Assert.Equal("{ enum: Foo, enum2: Bar }", t.Value.ValueLiteral!.ToString());
+                });
+        }
     }
 }
