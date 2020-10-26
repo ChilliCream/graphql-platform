@@ -17,6 +17,7 @@ namespace HotChocolate.Data.Projections
             T[] entities,
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
+            bool useOffsetPaging = false,
             ObjectType<T>? objectType = null)
             where T : class
         {
@@ -26,6 +27,7 @@ namespace HotChocolate.Data.Projections
                 k => base.CreateSchema(
                     entities,
                     usePaging: usePaging,
+                    useOffsetPaging: useOffsetPaging,
                     onModelCreating: onModelCreating,
                     objectType: objectType));
         }

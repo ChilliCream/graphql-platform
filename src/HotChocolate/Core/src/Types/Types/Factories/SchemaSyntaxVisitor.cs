@@ -52,8 +52,7 @@ namespace HotChocolate.Types.Factories
 
         public string Description { get; private set; }
 
-        public IReadOnlyCollection<DirectiveNode> Directives
-        { get; private set; }
+        public IReadOnlyCollection<DirectiveNode> Directives { get; private set; }
 
         public IReadOnlyList<ITypeReference> Types => _types;
 
@@ -61,7 +60,7 @@ namespace HotChocolate.Types.Factories
             ObjectTypeDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _objectTypeFactory.Create(_bindingLookup, node)));
         }
 
@@ -69,7 +68,7 @@ namespace HotChocolate.Types.Factories
             ObjectTypeExtensionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _objectTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
@@ -77,7 +76,7 @@ namespace HotChocolate.Types.Factories
             InterfaceTypeDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _interfaceTypeFactory.Create(_bindingLookup, node)));
         }
 
@@ -85,7 +84,7 @@ namespace HotChocolate.Types.Factories
             InterfaceTypeExtensionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _interfaceTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
@@ -93,7 +92,7 @@ namespace HotChocolate.Types.Factories
             UnionTypeDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _unionTypeFactory.Create(_bindingLookup, node)));
         }
 
@@ -101,7 +100,7 @@ namespace HotChocolate.Types.Factories
             UnionTypeExtensionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _unionTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
@@ -109,7 +108,7 @@ namespace HotChocolate.Types.Factories
             InputObjectTypeDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _inputObjectTypeFactory.Create(_bindingLookup, node)));
         }
 
@@ -117,7 +116,7 @@ namespace HotChocolate.Types.Factories
             InputObjectTypeExtensionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _inputObjectTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
@@ -125,7 +124,7 @@ namespace HotChocolate.Types.Factories
             EnumTypeDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _enumTypeFactory.Create(_bindingLookup, node)));
         }
 
@@ -133,7 +132,7 @@ namespace HotChocolate.Types.Factories
             EnumTypeExtensionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _enumTypeExtensionFactory.Create(_bindingLookup, node)));
         }
 
@@ -141,7 +140,7 @@ namespace HotChocolate.Types.Factories
             DirectiveDefinitionNode node,
             object context)
         {
-            _types.Add(SchemaTypeReference.Create(
+            _types.Add(TypeReference.Create(
                 _directiveTypeFactory.Create(_bindingLookup, node)));
         }
 

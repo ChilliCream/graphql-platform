@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types;
 using HotChocolate.Execution;
-using HotChocolate.PersistedQueries.FileSystem;
 using Snapshooter.Xunit;
 using Squadron;
 using StackExchange.Redis;
