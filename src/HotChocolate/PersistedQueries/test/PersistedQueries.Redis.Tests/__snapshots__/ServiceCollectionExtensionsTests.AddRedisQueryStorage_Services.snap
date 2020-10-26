@@ -8,7 +8,7 @@
     "Value": null
   },
   {
-    "Key": "HotChocolate.PersistedQueries.FileSystem.RedisQueryStorage",
+    "Key": "HotChocolate.PersistedQueries.Redis.RedisQueryStorage",
     "Value": null
   }
 ]

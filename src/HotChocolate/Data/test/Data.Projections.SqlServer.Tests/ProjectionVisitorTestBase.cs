@@ -50,6 +50,7 @@ namespace HotChocolate.Data.Projections
             ProjectionProvider? provider = null,
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
+            bool useOffsetPaging = false,
             ObjectType<TEntity>? objectType = null)
             where TEntity : class
         {
@@ -84,6 +85,11 @@ namespace HotChocolate.Data.Projections
                             if (usePaging)
                             {
                                 descriptor.UsePaging<ObjectType<TEntity>>();
+                            }
+
+                            if (useOffsetPaging)
+                            {
+                                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
                             }
 
                             descriptor
