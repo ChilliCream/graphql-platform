@@ -17,10 +17,10 @@ namespace HotChocolate.AspNetCore
     /// </summary>
     public class ToolStaticFileMiddleware
     {
+        private readonly IContentTypeProvider _contentTypeProvider;
+        private readonly IFileProvider _fileProvider;
         private readonly PathString _matchUrl;
         private readonly RequestDelegate _next;
-        private readonly IFileProvider _fileProvider;
-        private readonly IContentTypeProvider _contentTypeProvider;
 
         /// <summary>
         /// Creates a new instance of the StaticFileMiddleware.
@@ -57,27 +57,14 @@ namespace HotChocolate.AspNetCore
         /// <returns></returns>
         public Task Invoke(HttpContext context)
         {
-            if (Helpers.IsGetOrHeadMethod(context.Request.Method) &&
-                Helpers.TryMatchPath(context, _matchUrl, false, out PathString subPath) &&
-                LookupContentType(_contentTypeProvider, subPath, out var contentType))
+            if (context.Request.IsGetOrHeadMethod() &&
+                context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
+                _contentTypeProvider.TryGetContentType(subPath.Value, out string contentType))
             {
                 return TryServeStaticFile(context, contentType, subPath);
             }
 
             return _next(context);
-        }
-
-        internal static bool LookupContentType(
-            IContentTypeProvider contentTypeProvider,
-            PathString subPath,
-            out string contentType)
-        {
-            if (contentTypeProvider.TryGetContentType(subPath.Value, out contentType))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private Task TryServeStaticFile(HttpContext context, string contentType, PathString subPath)
