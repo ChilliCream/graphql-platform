@@ -7,5 +7,20 @@ type QueryWithDateTime {
   dateTime(time: DateTime!): DateTime!
 }
 
+"The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
+directive @defer("If this argument label has a value other than null, it will be passed on to the result of this defer directive. This label is intended to give client applications a way to identify to which fragment a deferred result belongs to." label: String "Deferred when true." if: Boolean) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+"Directs the executor to include this field or fragment only when the `if` argument is true."
+directive @include("Included when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip("Skipped when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The `@stream` directive may be provided for a field of `List` type so that the backend can leverage technology such as asynchronous iterators to provide a partial list in the initial response, and additional list items in subsequent responses. `@include` and `@skip` take precedence over `@stream`."
+directive @stream("If this argument label has a value other than null, it will be passed on to the result of this stream directive. This label is intended to give client applications a way to identify to which fragment a streamed result belongs to." label: String "The initial elements that shall be send down to the consumer." initialCount: Int! "Streamed when true." if: Boolean!) on FIELD
+
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
