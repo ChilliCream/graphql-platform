@@ -4,9 +4,11 @@ namespace HotChocolate.AspNetCore.Utilities
 {
     public static class ContentType
     {
-        public const string GraphQL = "application/graphql";
+        public const string GraphQL = "application/graphql; charset=utf-8";
 
-        public const string Json = "application/json";
+        public const string Json = "application/json; charset=utf-8";
+
+        public const string MultiPart = "multipart/mixed; boundary=\"-\"";
 
         public static ReadOnlySpan<char> JsonSpan() => new char[]
         {
