@@ -215,7 +215,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         schemaBuilder.AddDocument(document);
 
                         // ... which will fail if any resolver is actually used ...
-                        // todo : how to bind resolvers
                         schemaBuilder.Use(next => context => throw new NotSupportedException());
                     })
                 // ... instead we are using a special request pipeline that does everything like
