@@ -6,7 +6,6 @@ using HotChocolate.MongoDb.Data.Sorting;
 using HotChocolate.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
@@ -24,9 +23,9 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
         {
         }
 
-        protected virtual SortVisitor<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>
+        protected virtual SortVisitor<MongoDbSortVisitorContext, SortDefinition>
             Visitor { get; } =
-            new SortVisitor<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>();
+                new SortVisitor<MongoDbSortVisitorContext, SortDefinition>();
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
@@ -41,7 +40,6 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 if (filter is not NullValueNode &&
-
                     argument.Type is ListType listType &&
                     listType.ElementType is SortInputType sortInputType)
                 {
@@ -49,7 +47,7 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out BsonDocument? order)||
+                    if (!visitorContext.TryCreateQuery(out SortDefinition<TEntityType>? sortDefinition) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();
@@ -60,16 +58,11 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                     }
                     else
                     {
-                        context.LocalContextData =
-                            context.LocalContextData.SetItem(
-                                nameof(SortDefinition<TEntityType>),
-                                order);
-
                         await next(context).ConfigureAwait(false);
 
-                        if (context.Result is IMongoExecutable executable)
+                        if (context.Result is IAggregateFluentExecutable<TEntityType> aggregateFluentExecutable)
                         {
-                            context.Result = executable.WithSorting(order);
+                            context.Result = aggregateFluentExecutable.Sort(sortDefinition);
                         }
                     }
                 }

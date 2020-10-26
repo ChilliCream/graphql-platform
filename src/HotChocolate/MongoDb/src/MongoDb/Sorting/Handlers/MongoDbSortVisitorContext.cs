@@ -6,13 +6,11 @@ using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
 {
-    public class MongoDbSortVisitorContext : SortVisitorContext<SortDefinition<BsonDocument>>
+    public class MongoDbSortVisitorContext : SortVisitorContext<SortDefinition>
     {
         public MongoDbSortVisitorContext(ISortInputType initialType)
             : base(initialType)
         {
         }
-
-        public Stack<string> Path { get; } = new Stack<string>();
     }
 }

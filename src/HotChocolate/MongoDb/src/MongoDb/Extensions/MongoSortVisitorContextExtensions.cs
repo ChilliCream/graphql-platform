@@ -1,28 +1,41 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using HotChocolate.Data.Sorting;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Sorting
 {
     internal static class MongoSortVisitorContextExtensions
     {
-        public static string GetPath(this MongoDbSortVisitorContext ctx) =>
-            string.Join(".", ctx.Path.Reverse());
-
-        public static bool TryCreateQuery(
+        public static bool TryCreateQuery<TEntityType>(
             this MongoDbSortVisitorContext context,
-            [NotNullWhen(true)] out BsonDocument? query)
+            [NotNullWhen(true)] out SortDefinition<TEntityType>? sortDefinition)
         {
-            query = null;
+            sortDefinition = null;
 
             if (context.Operations.Count == 0)
             {
                 return false;
             }
 
-            query = Builders<BsonDocument>.Sort.Combine(context.Operations).DefaultRender();
+            var sortDefinitionBuilder = Builders<TEntityType>.Sort;
+            var sortDefinitions = new List<SortDefinition<TEntityType>>();
+
+            foreach (var o in context.Operations)
+            {
+                if (o.Direction == DefaultSortOperations.Ascending)
+                {
+                    sortDefinitions.Add(sortDefinitionBuilder.Ascending(new ExpressionFieldDefinition<TEntityType>(o.LambdaExpression)));
+                }
+                else
+                {
+                    sortDefinitions.Add(sortDefinitionBuilder.Descending(new ExpressionFieldDefinition<TEntityType>(o.LambdaExpression)));
+                }
+            }
+
+            sortDefinition = sortDefinitionBuilder.Combine(sortDefinitions);
+
             return true;
         }
     }

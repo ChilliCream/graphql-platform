@@ -1,18 +1,16 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using HotChocolate.MongoDb.Data.Sorting;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers;
 using HotChocolate.Types.Descriptors.Definitions;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Sorting.Handlers
 {
     public abstract class MongoDbSortOperationHandlerBase
-        : SortOperationHandler<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>
+        : SortOperationHandler<MongoDbSortVisitorContext, SortDefinition>
     {
         private readonly int _mongoSortValue;
         private readonly int _operation;
@@ -49,12 +47,10 @@ namespace HotChocolate.MongoDb.Sorting.Handlers
                 return false;
             }
 
-            context.Operations.Enqueue(
-                new BsonDocumentSortDefinition<BsonDocument>(
-                    new BsonDocument(
-                        context.GetPath(),
-                        _mongoSortValue
-                    )));
+            var entityParam = Expression.Parameter(field.Member.ReflectedType, "e");
+            var lambaExpression = Expression.Lambda(Expression.MakeMemberAccess(entityParam, field.Member),
+                                                    entityParam);
+            context.Operations.Enqueue(new SortDefinition(lambaExpression, _operation));
 
             action = SyntaxVisitor.Continue;
             return true;

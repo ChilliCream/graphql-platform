@@ -64,9 +64,9 @@ namespace HotChocolate.MongoDb.Data.Filters
 
                         await next(context).ConfigureAwait(false);
 
-                        if (context.Result is IMongoExecutable executable)
+                        if (context.Result is IAggregateFluentExecutable<TEntityType> aggregateFluentExecutable)
                         {
-                            context.Result = executable.WithFiltering(whereQuery);
+                            context.Result = aggregateFluentExecutable.Match(whereQuery);
                         }
                     }
                 }

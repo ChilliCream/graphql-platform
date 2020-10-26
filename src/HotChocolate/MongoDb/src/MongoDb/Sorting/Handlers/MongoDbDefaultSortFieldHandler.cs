@@ -4,13 +4,11 @@ using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Sorting.Handlers
 {
     public class MongoDbDefaultSortFieldHandler
-        : SortFieldHandler<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>
+        : SortFieldHandler<MongoDbSortVisitorContext, SortDefinition>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
@@ -33,7 +31,6 @@ namespace HotChocolate.MongoDb.Sorting.Handlers
                 return true;
             }
 
-            context.Path.Push(field.GetName());
             action = SyntaxVisitor.Continue;
             return true;
         }
@@ -44,8 +41,6 @@ namespace HotChocolate.MongoDb.Sorting.Handlers
             ObjectFieldNode node,
             [NotNullWhen(true)] out ISyntaxVisitorAction? action)
         {
-            context.Path.Pop();
-
             action = SyntaxVisitor.Continue;
             return true;
         }
