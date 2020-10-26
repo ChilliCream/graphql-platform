@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Data.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,8 @@ namespace HotChocolate.Data
     {
         private static readonly MethodInfo _useDbContext =
             typeof(EntityFrameworkObjectFieldDescriptorExtensions)
-                .GetMethod(nameof(EntityFrameworkObjectFieldDescriptorExtensions.UseDbContext),
+                .GetMethod(
+                    nameof(EntityFrameworkObjectFieldDescriptorExtensions.UseDbContext),
                     BindingFlags.Public | BindingFlags.Static)!;
 
         private readonly Type _dbContext;

@@ -276,6 +276,133 @@ namespace HotChocolate.Data.Projections
             res1.MatchSqlSnapshot();
         }
 
+        [Fact]
+        public async Task CreateOffsetPaging_ProjectsTwoProperties_Items_WithArgs()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(take:10, skip:1){ items { bar baz } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateOffsetPaging_ProjectsTwoProperties_Items()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items { bar baz } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateOffsetPaging_ProjectsOneProperty_Items()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items { baz } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+
+        [Fact]
+        public async Task CreateOffsetPagingNullable_ProjectsTwoProperties_Items()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooNullableEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items { bar baz } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateOffsetPagingNullable_ProjectsOneProperty_Items()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooNullableEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items { baz } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateOffsetPaging_Projection_Should_Stop_When_UseProjectionEncountered()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items{ bar list { barBaz } } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateOffsetPaging_Projection_Should_Stop_When_UsePagingEncountered()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(
+                _fooEntities,
+                useOffsetPaging: true);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root{ items{ bar paging { nodes {barBaz }} } }}")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
         public class Foo
         {
             public int Id { get; set; }
