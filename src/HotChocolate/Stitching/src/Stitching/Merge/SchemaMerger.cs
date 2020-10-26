@@ -119,8 +119,7 @@ namespace HotChocolate.Stitching.Merge
         private IReadOnlyList<ISchemaInfo> CreateSchemaInfos()
         {
             List<SchemaInfo> original = _schemas
-                .Select(t => new SchemaInfo(t.Key,
-                    PrepareSchemaDocument(t.Value, t.Key)))
+                .Select(t => new SchemaInfo(t.Key, PrepareSchemaDocument(t.Value, t.Key)))
                 .ToList();
 
             if (_docRewriters.Count == 0 && _typeRewriters.Count == 0)
@@ -166,7 +165,6 @@ namespace HotChocolate.Stitching.Merge
                 {
                     if (!IsIntrospectionType(typeDefinition))
                     {
-                        // add source directive
                         definitions.Add(typeDefinition.Rename(
                             typeDefinition.Name.Value, schemaName));
                     }
@@ -179,12 +177,10 @@ namespace HotChocolate.Stitching.Merge
             return document.WithDefinitions(definitions);
         }
 
-        private static bool IsIntrospectionType(
-            ITypeDefinitionNode typeDefinition)
+        private static bool IsIntrospectionType(ITypeDefinitionNode typeDefinition)
         {
-            // we should check this against the actual kown list of intro types.
-            return typeDefinition.Name.Value
-                .StartsWith("__", StringComparison.Ordinal);
+            // we should check this against the actual known list of intro types.
+            return typeDefinition.Name.Value.StartsWith("__", StringComparison.Ordinal);
         }
 
         private DocumentNode RewriteDocument(
@@ -218,8 +214,7 @@ namespace HotChocolate.Stitching.Merge
                 {
                     foreach (ITypeRewriter rewriter in _typeRewriters)
                     {
-                        typeDefinition = rewriter.Rewrite(
-                            schema, typeDefinition);
+                        typeDefinition = rewriter.Rewrite(schema, typeDefinition);
                     }
                     definitions.Add(typeDefinition);
                 }
