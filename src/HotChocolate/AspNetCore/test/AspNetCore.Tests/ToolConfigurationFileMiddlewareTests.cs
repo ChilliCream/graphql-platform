@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
 using Snapshooter.Xunit;
 using Xunit;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
@@ -37,7 +38,13 @@ namespace HotChocolate.AspNetCore
             // arrange
             ToolOptions options = new ToolOptions
             {
-                DefaultDocument = "# foo"
+                Document = "# foo",
+                Credentials = DefaultCredentials.SameOrigin,
+                HttpHeaders = new HeaderDictionary
+                {
+                    { "Content-Type", "application/json" }
+                },
+                HttpMethod = DefaultHttpMethod.Get
             };
             TestServer server = CreateStarWarsServer("/graphql",
                 builder => builder.WithToolOptions(options));

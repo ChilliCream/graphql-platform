@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
@@ -48,10 +49,17 @@ namespace HotChocolate.AspNetCore
                     false);
                 var config = new BananaCakePopConfiguration(schemaEndpoint)
                 {
-                    DefaultDocument = options?.DefaultDocument,
                     EndpointEditable = false,
                 };
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
+
+                if (options is { })
+                {
+                    config.Document = options.Document;
+                    config.Credentials = ConvertCredentialsToString(options.Credentials);
+                    config.HttpHeaders = ConvertHttpHeadersToDictionary(options.HttpHeaders);
+                    config.HttpMethod = ConvertHttpMethodToString(options.HttpMethod);
+                }
 
                 if (schema.SubscriptionType is { })
                 {
@@ -68,6 +76,57 @@ namespace HotChocolate.AspNetCore
             {
                 await NextAsync(context);
             }
+        }
+
+        private string? ConvertCredentialsToString(DefaultCredentials? credentials)
+        {
+            if (credentials is { })
+            {
+                switch (credentials)
+                {
+                    case DefaultCredentials.Include:
+                        return "include";
+                    case DefaultCredentials.Omit:
+                        return "omit";
+                    case DefaultCredentials.SameOrigin:
+                        return "same-origin";
+                }
+            }
+
+            return null;
+        }
+
+        private IDictionary<string, string>? ConvertHttpHeadersToDictionary(IHeaderDictionary? httpHeaders)
+        {
+            if (httpHeaders is { })
+            {
+                var result = new Dictionary<string, string>();
+
+                foreach (var (key, value) in httpHeaders)
+                {
+                    result.Add(key, value.ToString());
+                }
+
+                return result;
+            }
+
+            return null;
+        }
+
+        private string? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
+        {
+            if (httpMethod is { })
+            {
+                switch (httpMethod)
+                {
+                    case DefaultHttpMethod.Get:
+                        return "GET";
+                    case DefaultHttpMethod.Post:
+                        return "POST";
+                }
+            }
+
+            return null;
         }
 
         private string CreateEndpointUri(string host, string path, bool isSecure, bool isWebSocket)
@@ -92,7 +151,13 @@ namespace HotChocolate.AspNetCore
 
             public bool? EndpointEditable { get; set; }
 
-            public string? DefaultDocument { get; set; }
+            public string? Document { get; set; }
+
+            public string? Credentials { get; set; }
+
+            public IDictionary<string, string>? HttpHeaders { get; set; }
+
+            public string? HttpMethod { get; set; }
         }
     }
 }
