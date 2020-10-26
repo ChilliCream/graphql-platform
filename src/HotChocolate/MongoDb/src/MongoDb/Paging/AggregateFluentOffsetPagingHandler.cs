@@ -1,5 +1,4 @@
-﻿using Cashflow.Cloud.GraphQLServer.MongoDb.Execution;
-using HotChocolate;
+using HotChocolate.MongoDb.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Pagination;
 using MongoDB.Driver;
@@ -27,9 +26,9 @@ namespace HotChocolate.MongoDb.Paging
             if (aggregateFluent == null)
             {
                 throw new GraphQLException("Cannot handle the specified data source.");
-            }    
+            }
 
-            var original = aggregateFluent;
+            IAggregateFluentExecutable<TItemType>? original = aggregateFluent;
 
             if (arguments.Skip.HasValue)
             {
@@ -38,7 +37,7 @@ namespace HotChocolate.MongoDb.Paging
 
             aggregateFluent = aggregateFluent.Limit(arguments.Take + 1);
 
-            var items = await aggregateFluent.ToListAsync(context.RequestAborted);
+            List<TItemType>? items = await aggregateFluent.ToListAsync(context.RequestAborted);
 
             var pageInfo = new CollectionSegmentInfo(
                 items.Count == arguments.Take + 1,

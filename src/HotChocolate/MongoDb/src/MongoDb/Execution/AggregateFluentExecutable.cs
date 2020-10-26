@@ -1,6 +1,3 @@
-using HotChocolate;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -69,13 +66,7 @@ namespace HotChocolate.MongoDb.Execution
 
         async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
         {
-            var cursor = await ToCursorAsync().ConfigureAwait(false);
-            return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        async ValueTask<IReadOnlyList<T>> IExecutable<T>.ExecuteAsync(CancellationToken cancellationToken)
-        {
-            var cursor = await ToCursorAsync().ConfigureAwait(false);
+            IAsyncCursor<T>? cursor = await ToCursorAsync().ConfigureAwait(false);
             return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
         }
     }

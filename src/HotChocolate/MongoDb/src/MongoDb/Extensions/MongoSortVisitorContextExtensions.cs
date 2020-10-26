@@ -19,10 +19,10 @@ namespace HotChocolate.MongoDb.Data.Sorting
                 return false;
             }
 
-            var sortDefinitionBuilder = Builders<TEntityType>.Sort;
+            SortDefinitionBuilder<TEntityType>? sortDefinitionBuilder = Builders<TEntityType>.Sort;
             var sortDefinitions = new List<SortDefinition<TEntityType>>();
 
-            foreach (var o in context.Operations)
+            foreach (SortDefinition? o in context.Operations)
             {
                 if (o.Direction == DefaultSortOperations.Ascending)
                 {
