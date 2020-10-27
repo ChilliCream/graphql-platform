@@ -94,7 +94,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Collection(
-                Assert.Throws<QueryException>(a).Errors,
+                Assert.Throws<GraphQLException>(a).Errors,
                 t => Assert.Equal(ErrorCodes.Stitching.FieldNotDefined, t.Code));
         }
 
