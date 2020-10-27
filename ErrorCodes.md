@@ -7,3 +7,4 @@
 | HC0005 | Apollo Federation | The requires attribute is used and the fieldset is set to `null` or `string.Empty`.                        |
 | HC0006 | Schema Stitching  | The HTTP request failed.                                                                                   |
 | HC0007 | Schema Stitching  | Unknown error happened while fetching from a downstream service.                                           |
+| HC0008 | Execution         | An unexpected error happened during execution task processing.                                             |

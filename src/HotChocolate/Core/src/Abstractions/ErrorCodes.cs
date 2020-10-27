@@ -24,6 +24,7 @@ namespace HotChocolate
             public const string InvalidType = "EXEC_INVALID_TYPE";
             public const string SyntaxError = "EXEC_SYNTAX_ERROR";
             public const string QueryNotFound = "QUERY_NOT_FOUND";
+            public const string TaskProcessingError = "HC0008";
         }
 
         public static class Schema
@@ -82,24 +83,8 @@ namespace HotChocolate
         {
             public const string FilterObjectType = "FILTER_OBJECT_TYPE";
             public const string FilterFieldDescriptorType = "FILTER_FIELD_DESCRIPTOR_TYPE";
-            public const string NoOperationNameFound = "FILTER_CONVENTION_NO_OPERATION_NAME_FOUND";
         }
 
-        public static class Sorting
-        {
-            public const string SortObjectType = "SORT_OBJECT_TYPE";
-        }
-
-        public static class Serialization
-        {
-            public const string ResultTypeNotSupported = "RESULT_TYPE_NOT_SUPPORTED";
-        }
-
-        public static class Server
-        {
-            public const string RequestInvalid = "INVALID_REQUEST";
-            public const string MaxRequestSize = "MAX_REQUEST_SIZE";
-        }
 
         public static class Stitching
         {
@@ -113,17 +98,6 @@ namespace HotChocolate
             public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
             public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
             public const string ArgumentNotFound = "STITCHING_DEL_ARGUMENT_NOT_FOUND";
-        }
-
-        public static class Validation
-        {
-            public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
-        }
-
-        public static class Utilities
-        {
-            public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
-            public const string NoConverter = "EXEC_VAR_NO_CONVERTER";
         }
     }
 }
