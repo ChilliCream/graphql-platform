@@ -71,6 +71,7 @@ namespace HotChocolate.Stitching.Pipeline
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
+                // TODO : we should rework this an try to inspect the payload for graphql errors.
                 responseMessage.EnsureSuccessStatusCode();
 
                 IQueryResult result =

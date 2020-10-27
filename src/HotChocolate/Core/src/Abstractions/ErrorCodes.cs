@@ -103,9 +103,9 @@ namespace HotChocolate
 
         public static class Stitching
         {
-            public const string HttpRequestException = "HCXXXX";
+            public const string HttpRequestException = "HC0006";
 
-            public const string UnknownRequestException = "HCXXXX";
+            public const string UnknownRequestException = "HC0007";
 
             public const string ArgumentNotDefined = "STITCHING_ARG_NOT_DEFINED";
             public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
