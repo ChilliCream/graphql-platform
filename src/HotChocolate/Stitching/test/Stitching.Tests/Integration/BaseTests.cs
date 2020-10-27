@@ -603,6 +603,41 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
+        public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            int: Int!
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""int(i:$fields:someInt)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
+                        int
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task AutoMerge_Execute_GuidField()
         {
             // arrange
