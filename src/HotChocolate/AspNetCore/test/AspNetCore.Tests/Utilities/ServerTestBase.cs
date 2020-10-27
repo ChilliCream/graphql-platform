@@ -19,7 +19,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected virtual TestServer CreateStarWarsServer(
             string pattern = "/graphql",
-            Action<IEndpointConventionBuilder> configureConventions = default)
+            Action<IGraphQLEndpointConventionBuilder> configureConventions = default)
         {
             return ServerFactory.Create(
                 services => services
@@ -57,7 +57,7 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseRouting()
                     .UseEndpoints(endpoints =>
                     {
-                        IEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+                        IGraphQLEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
 
                         if (configureConventions is { })
                         {

@@ -8,15 +8,15 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Builder
 {
-    public static class HttpEndpointRouteBuilderExtensions
+    public static class EndpointRouteBuilderExtensions
     {
-        public static IEndpointConventionBuilder MapGraphQL(
+        public static IGraphQLEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
             string path = "/graphql",
             NameString schemaName = default) =>
-            MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
+                MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
-        public static IEndpointConventionBuilder MapGraphQL(
+        public static IGraphQLEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
             PathString path,
             NameString schemaName = default)
@@ -42,9 +42,11 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
                 .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
 
-            return endpointRouteBuilder
+            IEndpointConventionBuilder endpointConventionBuilder = endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
                 .WithDisplayName("Hot Chocolate GraphQL Pipeline");
+
+            return new GraphQLEndpointConventionBuilder(endpointConventionBuilder);
         }
 
         [Obsolete("Use the new routing API.")]
@@ -73,8 +75,8 @@ namespace Microsoft.AspNetCore.Builder
 
         private static IFileProvider CreateFileProvider()
         {
-            Type type = typeof(HttpEndpointRouteBuilderExtensions);
-            string resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
+            var type = typeof(EndpointRouteBuilderExtensions);
+            var resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
 
             return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
         }
