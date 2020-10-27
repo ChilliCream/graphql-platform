@@ -1314,12 +1314,12 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>But let's start at the beginning with this. In order to add authorization capabilities to our schema add the following package to our project:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55158146085069170000"
+              data-toaster-id="6784512282821864000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`dotnet add package HotChocolate.AspNetCore.Authorization`, `55158146085069170000`)"
+              onClick="copyToClipboard(`dotnet add package HotChocolate.AspNetCore.Authorization`, `6784512282821864000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1332,7 +1332,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to use the <code class="language-text">@authorize</code>-directive we have to register it like the following with our schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="25492444299390770000"
+              data-toaster-id="77243714889580720000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1341,7 +1341,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
   ...
   .AddAuthorizeDirectiveType()
   ...
-  .Create();`, `25492444299390770000`)"
+  .Create();`, `77243714889580720000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1360,7 +1360,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>SDL-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="6908331711358540000"
+              data-toaster-id="77742243739611710000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1368,7 +1368,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
               onClick="copyToClipboard(`type Person @authorize {
   name: String!
   address: Address!
-}`, `6908331711358540000`)"
+}`, `77742243739611710000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1384,7 +1384,7 @@ data-styled.g147[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Pure Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="11796096659841116000"
+              data-toaster-id="92982315118520680000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1394,7 +1394,7 @@ public class Person
 {
     public string Name { get; }
     public Address Address { get; }
-}`, `11796096659841116000`)"
+}`, `92982315118520680000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1412,7 +1412,7 @@ public class Person
 <p>Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="34388951565212443000"
+              data-toaster-id="58008333926687940000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1424,7 +1424,7 @@ public class Person
         descriptor.Authorize();
         descriptor.Field(t => t.Address).Authorize();
     }
-}`, `34388951565212443000`)"
+}`, `58008333926687940000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1452,7 +1452,7 @@ public class Person
 <p>SDL-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="4334524885618140700"
+              data-toaster-id="66000757482612740000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1460,7 +1460,7 @@ public class Person
               onClick="copyToClipboard(`type Person @authorize(roles: &quot;foo&quot;) {
   name: String!
   address: Address! @authorize(roles: [&quot;foo&quot;, &quot;bar&quot;])
-}`, `4334524885618140700`)"
+}`, `66000757482612740000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1476,7 +1476,7 @@ public class Person
 <p>Pure Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35754979057267390000"
+              data-toaster-id="70763701634447670000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1488,7 +1488,7 @@ public class Person
 
     [Authorize(Roles = new[] { &quot;foo&quot;, &quot;bar&quot; })]
     public Address Address { get; }
-}`, `35754979057267390000`)"
+}`, `70763701634447670000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1508,7 +1508,7 @@ public class Person
 <p>Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="63001679714967330000"
+              data-toaster-id="71053536618337260000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1520,7 +1520,7 @@ public class Person
         descriptor.Authorize(new [] {&quot;foo&quot;});
         descriptor.Field(t => t.Address).Authorize(new [] {&quot;foo&quot;, &quot;bar&quot;});
     }
-}`, `63001679714967330000`)"
+}`, `71053536618337260000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1543,7 +1543,7 @@ public class Person
 <p>SDL-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="75828626420085340000"
+              data-toaster-id="97784065947386950000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1551,7 +1551,7 @@ public class Person
               onClick="copyToClipboard(`type Person @authorize(policy: &quot;AllEmployees&quot;) {
   name: String!
   address: Address! @authorize(policy: &quot;SalesDepartment&quot;)
-}`, `75828626420085340000`)"
+}`, `97784065947386950000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1567,7 +1567,7 @@ public class Person
 <p>Pure Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44129062615609025000"
+              data-toaster-id="63865887224054490000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1579,7 +1579,7 @@ public class Person
 
     [Authorize(Policy = &quot;SalesDepartment&quot;)]
     public Address Address { get; }
-}`, `44129062615609025000`)"
+}`, `63865887224054490000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1599,7 +1599,7 @@ public class Person
 <p>Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="71447324939163930000"
+              data-toaster-id="74108480131588800000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1611,7 +1611,7 @@ public class Person
         descriptor.Authorize(&quot;AllEmployees&quot;);
         descriptor.Field(t => t.Address).Authorize(&quot;SalesDepartment&quot;);
     }
-}`, `71447324939163930000`)"
+}`, `74108480131588800000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1636,7 +1636,7 @@ public class Person
 <p>SDL-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="90719344380047540000"
+              data-toaster-id="61960059420144620000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1647,7 +1647,7 @@ public class Person
   @authorize(policy: &quot;AllEmployees&quot;)
   @authorize(policy: &quot;SalesDepartment&quot;)
   @authorize(roles: &quot;FooBar&quot;)
-}`, `90719344380047540000`)"
+}`, `61960059420144620000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1666,7 +1666,7 @@ public class Person
 <p>Pure Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="78052301380756850000"
+              data-toaster-id="6692221110346775000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1679,7 +1679,7 @@ public class Person
     [Authorize(Policy = &quot;SalesDepartment&quot;)]
     [Authorize(Policy = &quot;FooBar&quot;)]
     public Address Address { get; }
-}`, `78052301380756850000`)"
+}`, `6692221110346775000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1700,7 +1700,7 @@ public class Person
 <p>Code-First:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="33370607835304854000"
+              data-toaster-id="56672359941056880000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1714,7 +1714,7 @@ public class Person
           .Authorize(&quot;SalesDepartment&quot;)
           .Authorize(&quot;FooBar&quot;);
     }
-}`, `33370607835304854000`)"
+}`, `56672359941056880000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1738,7 +1738,7 @@ public class Person
 <p>So, in order to define those requirements we can define policies that essentially describe and validate our requirements and the rules that enforce them.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="35064372955475490000"
+              data-toaster-id="29624161677772020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1748,7 +1748,7 @@ public class Person
     options.AddPolicy(&quot;HasCountry&quot;, policy =>
         policy.RequireAssertion(context =>
             context.User.HasClaim(c => (c.Type == ClaimTypes.Country))));
-});`, `35064372955475490000`)"
+});`, `29624161677772020000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1767,7 +1767,7 @@ public class Person
 <p>One important aspect with policies is also that we are passing the resolver context as resource into the policy so that we have access to all the data of our resolver.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="96389770248779040000"
+              data-toaster-id="96622051931790410000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1797,7 +1797,7 @@ services.AddAuthorization(options =>
         policy => policy.Requirements.Add(new SalesDepartmentRequirement()));
 });
 
-services.AddSingleton<IAuthorizationHandler, SalesDepartmentAuthorizationHandler>();`, `96389770248779040000`)"
+services.AddSingleton<IAuthorizationHandler, SalesDepartmentAuthorizationHandler>();`, `96622051931790410000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1840,7 +1840,7 @@ services<span class="token punctuation">.</span><span class="token generic-metho
 <p>So, we could use an authentication-middleware in ASP.NET core to add all the user meta-data that we need to our claim-identity or we could hook up some code in our middleware and add additional meta-data or even modify the <code class="language-text">ClaimsPrincipal</code>.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="55251325781116800000"
+              data-toaster-id="61807944006874000000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1851,7 +1851,7 @@ services<span class="token punctuation">.</span><span class="token generic-metho
     identity.AddClaim(new Claim(ClaimTypes.Country, &quot;us&quot;));
     ctx.User.AddIdentity(identity);
     return Task.CompletedTask;
-});`, `55251325781116800000`)"
+});`, `61807944006874000000`)"
             >
               <div
                 class="gatsby-code-button"
