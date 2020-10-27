@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace HotChocolate.Execution
 {
     /// <summary>
@@ -10,6 +12,6 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Starts the execution of this task.
         /// </summary>
-        void BeginExecute();
+        void BeginExecute(CancellationToken cancellationToken);
     }
 }

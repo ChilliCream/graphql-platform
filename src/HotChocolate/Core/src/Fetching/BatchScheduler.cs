@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
@@ -73,15 +74,15 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
-            public void BeginExecute()
+            public void BeginExecute(CancellationToken cancellationToken)
             {
                 _context.Started();
-                _task = ExecuteAsync();
+                _task = ExecuteAsync(cancellationToken);
             }
 
             public bool IsCompleted => _task.IsCompleted;
 
-            private async ValueTask ExecuteAsync()
+            private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
                 try
                 {
@@ -89,6 +90,11 @@ namespace HotChocolate.Fetching
                     {
                         foreach (Func<ValueTask> task in _tasks)
                         {
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                return;
+                            }
+
                             try
                             {
                                 await task.Invoke().ConfigureAwait(false);
