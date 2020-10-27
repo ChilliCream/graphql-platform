@@ -46,7 +46,8 @@ namespace HotChocolate
         }
 
         public static DocumentNode SerializeSchema(
-            ISchema schema)
+            ISchema schema,
+            bool includeSpecScalars = false)
         {
             if (schema is null)
             {
@@ -75,7 +76,7 @@ namespace HotChocolate
             IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
                 schema.Types
                 .OfType<ScalarType>()
-                .Where(t => !BuiltInTypes.IsBuiltInType(t.Name))
+                .Where(t => includeSpecScalars || !BuiltInTypes.IsBuiltInType(t.Name))
                 .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(SerializeScalarType);
 
