@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Tests;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Integration.EmbeddedResolvers
+namespace HotChocolate.Execution.Integration.EmbeddedResolvers
 {
     public class EmbeddedResolverTests
     {

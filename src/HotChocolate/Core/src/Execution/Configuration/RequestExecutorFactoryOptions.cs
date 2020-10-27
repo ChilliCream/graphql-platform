@@ -24,5 +24,11 @@ namespace HotChocolate.Execution.Configuration
 
         public IList<Action<IServiceCollection>> SchemaServices { get; } =
             new List<Action<IServiceCollection>>();
+
+        public IList<OnRequestExecutorCreatedAction> OnRequestExecutorCreated { get; } =
+            new List<OnRequestExecutorCreatedAction>();
+
+        public IList<OnRequestExecutorEvictedAction> OnRequestExecutorEvicted { get; } =
+            new List<OnRequestExecutorEvictedAction>();
     }
 }

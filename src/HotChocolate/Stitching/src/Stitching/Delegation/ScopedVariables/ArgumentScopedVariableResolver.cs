@@ -1,11 +1,12 @@
 using System;
 using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Stitching.ThrowHelper;
+using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
@@ -16,12 +17,12 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             ScopedVariableNode variable,
             IInputType targetType)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (variable == null)
+            if (variable is null)
             {
                 throw new ArgumentNullException(nameof(variable));
             }
@@ -29,23 +30,19 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             if (!ScopeNames.Arguments.Equals(variable.Scope.Value))
             {
                 throw new ArgumentException(
-                    StitchingResources.ArgumentScopedVariableResolver_CannotHandleVariable,
+                    ArgumentScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
             IInputField? argument = context.Field.Arguments.FirstOrDefault(
                 t => t.Name.Value.EqualsOrdinal(variable.Name.Value));
 
-            if (argument == null)
+            if (argument is null)
             {
-                throw new QueryException(ErrorBuilder.New()
-                    .SetMessage(
-                        StitchingResources.ArgumentScopedVariableResolver_InvalidArgumentName,
-                        variable.Name.Value)
-                    .SetCode(ErrorCodes.Stitching.ArgumentNotDefined)
-                    .SetPath(context.Path)
-                    .AddLocation(context.FieldSelection)
-                    .Build());
+                throw ArgumentScopedVariableResolver_InvalidArgumentName(
+                    variable.Name.Value,
+                    context.FieldSelection,
+                    context.Path);
             }
 
             return new VariableValue

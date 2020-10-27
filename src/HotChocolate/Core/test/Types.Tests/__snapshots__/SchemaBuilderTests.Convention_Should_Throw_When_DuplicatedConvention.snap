@@ -1,0 +1,3 @@
+﻿For more details look at the `Errors` property.
+
+1. There are two conventions registered for HotChocolate.SchemaBuilderTests+IMockConvention in scope default. Only one convention is allowed. Use convention extensions if additional configuration is needed. Colliding conventions are HotChocolate.SchemaBuilderTests+MockConvention and HotChocolate.SchemaBuilderTests+MockConvention

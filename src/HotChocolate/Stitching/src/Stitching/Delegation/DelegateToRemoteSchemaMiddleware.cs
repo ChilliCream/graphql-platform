@@ -64,7 +64,7 @@ namespace HotChocolate.Stitching.Delegation
                 UpdateContextData(context, result, delegateDirective);
 
                 object? value = ExtractData(result.Data, reversePath, context.ResponseName);
-                context.Result = new SerializedData(value);
+                context.Result = value is null or NullValueNode ? null : new SerializedData(value);
                 if (result.Errors is not null)
                 {
                     ReportErrors(delegateDirective.Schema, context, result.Errors);
@@ -181,7 +181,14 @@ namespace HotChocolate.Stitching.Delegation
 
                 if (current is IReadOnlyDictionary<string, object?> obj)
                 {
-                    obj.TryGetValue(component.Name.Value, out current);
+                    if (reversePath.IsEmpty)
+                    {
+                        current = obj.First().Value;
+                    }
+                    else
+                    {
+                        obj.TryGetValue(component.Name.Value, out current);
+                    }
                 }
                 else if (current is IList list)
                 {

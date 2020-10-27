@@ -12,5 +12,5 @@ type ghi {
 
 union def = ghi
 
-"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
-scalar String
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE

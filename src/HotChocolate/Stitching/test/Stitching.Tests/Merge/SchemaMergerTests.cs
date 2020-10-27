@@ -133,7 +133,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode schema = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameType("A", "A", "Xyz")
+                .RenameType("A", "Xyz", "A")
                 .Merge();
 
             // assert
@@ -223,7 +223,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode schema = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .IgnoreField("A", new FieldReference("A", "b1"))
+                .IgnoreField(new FieldReference("A", "b1"), "A")
                 .Merge();
 
             // assert
@@ -268,7 +268,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode schema = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("A", "b1"), "b11")
+                .RenameField(new FieldReference("A", "b1"), "b11", "A")
                 .Merge();
 
             // assert
@@ -322,7 +322,7 @@ namespace HotChocolate.Stitching.Merge
             // act
             DocumentNode merged = SchemaMerger.New()
                 .AddSchema("A", initial)
-                .RenameType("A", "B", "Foo")
+                .RenameType("B", "Foo", "A")
                 .Merge();
 
             // assert
@@ -369,7 +369,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode a = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .RenameField(new FieldReference("B", "c"), "c123", "A")
                 .Merge();
 
             // assert
@@ -395,7 +395,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode a = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("B", "c"), "c123")
+                .RenameField(new FieldReference("B", "c"), "c123", "A")
                 .Merge();
 
             // assert
@@ -421,7 +421,7 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode a = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("D", "c"), "c123")
+                .RenameField(new FieldReference("D", "c"), "c123", "A")
                 .Merge();
 
             // assert
@@ -447,17 +447,17 @@ namespace HotChocolate.Stitching.Merge
             DocumentNode a = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("B", "c"), "c123")
-                .RenameField("A", new FieldReference("C", "c"), "c456")
-                .RenameField("A", new FieldReference("D", "c"), "c789")
+                .RenameField(new FieldReference("B", "c"), "c123", "A")
+                .RenameField(new FieldReference("C", "c"), "c456", "A")
+                .RenameField(new FieldReference("D", "c"), "c789", "A")
                 .Merge();
 
             DocumentNode b = SchemaMerger.New()
                 .AddSchema("A", schema_a)
                 .AddSchema("B", schema_b)
-                .RenameField("A", new FieldReference("B", "c"), "c123")
-                .RenameField("A", new FieldReference("D", "c"), "c789")
-                .RenameField("A", new FieldReference("C", "c"), "c456")
+                .RenameField(new FieldReference("B", "c"), "c123", "A")
+                .RenameField(new FieldReference("D", "c"), "c789", "A")
+                .RenameField(new FieldReference("C", "c"), "c456", "A")
                 .Merge();
 
             // assert

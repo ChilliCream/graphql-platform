@@ -80,6 +80,8 @@ namespace HotChocolate.Stitching.Integration
             Assert.Equal(
                 "PaginationAmount",
                 type.Fields["accountTransactions"].Arguments["first"].Type.NamedType().Name.Value);
+
+            Assert.True(executor.Schema.TryGetDirectiveType("translatable", out _));
         }
 
         private class DocumentRewriter : SchemaSyntaxRewriter<object>
@@ -104,7 +106,7 @@ namespace HotChocolate.Stitching.Integration
                         first.WithType(RewriteType(first.Type, "PaginationAmount"));
 
                     arguments[arguments.IndexOf(last)] =
-                        first.WithType(RewriteType(first.Type, "PaginationAmount"));
+                        last.WithType(RewriteType(first.Type, "PaginationAmount"));
 
                     node = node.WithArguments(arguments);
                 }

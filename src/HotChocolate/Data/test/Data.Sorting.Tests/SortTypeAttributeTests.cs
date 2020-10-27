@@ -61,7 +61,7 @@ namespace HotChocolate.Data.Sorting
         {
             public static string TypeName { get; } = "ThisIsATest";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor d,
                 ICustomAttributeProvider element)
@@ -78,14 +78,14 @@ namespace HotChocolate.Data.Sorting
         {
             public static string Field { get; } = "FieldField";
 
-            protected override void TryConfigure(
+            protected internal override void TryConfigure(
                 IDescriptorContext context,
                 IDescriptor descriptor,
                 ICustomAttributeProvider element)
             {
-                if (descriptor is SortFieldDescriptor SortFieldDescriptor)
+                if (descriptor is SortFieldDescriptor sortFieldDescriptor)
                 {
-                    SortFieldDescriptor.Name(Field);
+                    sortFieldDescriptor.Name(Field);
                 }
             }
         }

@@ -1,3 +1,3 @@
 ﻿For more details look at the `Errors` property.
 
-1. For the value asc of type TestEnumType was no operation handler found.
+1. The sort provider `HotChocolate.Data.Sorting.Expressions.QueryableSortProvider` does not specify and operation handler.

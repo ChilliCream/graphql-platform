@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 
@@ -97,7 +96,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             if (context.TypeContext is IComplexOutputType type
                 && type.Fields.TryGetField(node.Name.Value,
-                    out IOutputField field))
+                    out IOutputField? field))
             {
                 CollectDelegationDependencies(context, type, field);
                 CollectComputeDependencies(context, type, field);
@@ -109,10 +108,10 @@ namespace HotChocolate.Stitching.Utilities
             Types.IHasName type,
             IOutputField field)
         {
-            IDirective directive = field.Directives[DirectiveNames.Delegate]
+            IDirective? directive = field.Directives[DirectiveNames.Delegate]
                 .FirstOrDefault();
 
-            if (directive != null)
+            if (directive is not null)
             {
                 CollectFieldNames(
                     directive.ToObject<DelegateDirective>(),
@@ -126,26 +125,21 @@ namespace HotChocolate.Stitching.Utilities
             IComplexOutputType type,
             IOutputField field)
         {
-            IDirective directive = field.Directives[DirectiveNames.Computed]
+            IDirective? directive = field.Directives[DirectiveNames.Computed]
                 .FirstOrDefault();
 
-            if (directive != null)
-            {
-                NameString[] dependantOn = directive
-                    .ToObject<ComputedDirective>()
-                    .DependantOn;
+            NameString[]? dependantOn = directive?.ToObject<ComputedDirective>().DependantOn;
 
-                if (dependantOn != null)
+            if (dependantOn != null)
+            {
+                foreach (string fieldName in dependantOn)
                 {
-                    foreach (string fieldName in dependantOn)
+                    if (type.Fields.TryGetField(
+                        fieldName,
+                        out IOutputField dependency))
                     {
-                        if (type.Fields.TryGetField(
-                            fieldName,
-                            out IOutputField dependency))
-                        {
-                            context.Dependencies.Add(new FieldDependency(
-                                type.Name, dependency.Name));
-                        }
+                        context.Dependencies.Add(new FieldDependency(
+                            type.Name, dependency.Name));
                     }
                 }
             }

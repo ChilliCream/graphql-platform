@@ -1,15 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Integration.StarWarsCodeFirst
+namespace HotChocolate.Execution.Integration.StarWarsCodeFirst
 {
     public class StarWarsCodeFirstTests
     {
@@ -302,6 +301,32 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 }",
                 request: r => r
                     .SetVariableValue("ep", new EnumValueNode("JEDI"))
+                    .SetVariableValue("review", new ObjectValueNode(
+                        new ObjectFieldNode("stars", new IntValueNode(5)),
+                        new ObjectFieldNode("commentary",
+                            new StringValueNode("This is a great movie!")))))
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task GraphQLOrgTwoMutationsExample()
+        {
+            Snapshot.FullName();
+            await ExpectValid(@"
+                mutation CreateReviewForEpisode(
+                    $ep: Episode!, $ep2: Episode!, $review: ReviewInput!) {
+                    createReview(episode: $ep, review: $review) {
+                        stars
+                        commentary
+                    }
+                    b: createReview(episode: $ep2, review: $review) {
+                        stars
+                        commentary
+                    }
+                }",
+                request: r => r
+                    .SetVariableValue("ep", new EnumValueNode("JEDI"))
+                    .SetVariableValue("ep2", new EnumValueNode("JEDI"))
                     .SetVariableValue("review", new ObjectValueNode(
                         new ObjectFieldNode("stars", new IntValueNode(5)),
                         new ObjectFieldNode("commentary",

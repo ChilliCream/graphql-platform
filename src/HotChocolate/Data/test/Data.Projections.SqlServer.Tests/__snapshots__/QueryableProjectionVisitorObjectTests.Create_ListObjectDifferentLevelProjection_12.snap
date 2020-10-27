@@ -1,0 +1,30 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest",
+          "objectArray": [
+            {
+              "foo": {
+                "barShort": 12
+              }
+            }
+          ]
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest",
+          "objectArray": [
+            {
+              "foo": {
+                "barShort": 14
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

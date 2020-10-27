@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Data.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Microsoft.EntityFrameworkCore;
