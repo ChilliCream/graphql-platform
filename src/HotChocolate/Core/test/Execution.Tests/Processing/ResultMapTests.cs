@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -54,15 +55,15 @@ namespace HotChocolate.Execution.Processing
             var resultMap = new ResultMap();
             resultMap.EnsureCapacity(capacity);
             resultMap.SetValue(0, "abc", "def");
-            resultMap.SetValue(1, "def", "def");
-            resultMap.SetValue(2, "ghi", "def");
+            resultMap.SetValue(capacity / 2, "def", "def");
+            resultMap.SetValue(capacity - 1, "ghi", "def");
 
             // act
-            ResultValue value = resultMap.GetValue("def", out int index);
+            ResultValue value = resultMap.GetValue("def", out var index);
 
             // assert
             Assert.Equal("def", value.Name);
-            Assert.Equal(1, index);
+            Assert.Equal(capacity / 2, index);
         }
 
         [Fact]
