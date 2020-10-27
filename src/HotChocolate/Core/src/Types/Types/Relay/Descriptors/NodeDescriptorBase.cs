@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Relay.Descriptors
         }
 
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, object>> method)
+            Expression<Func<TResolver, object?>> method)
         {
             if (method is null)
             {
