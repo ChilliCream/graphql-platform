@@ -139,7 +139,7 @@ namespace HotChocolate
         /// <summary>
         /// Generates a schema document.
         /// </summary>
-        DocumentNode ToDocument();
+        DocumentNode ToDocument(bool includeSpecScalars = false);
 
         /// <summary>
         /// Prints the schema SDL representation.

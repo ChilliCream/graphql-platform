@@ -181,7 +181,8 @@ namespace HotChocolate
         /// <summary>
         /// Generates a schema document.
         /// </summary>
-        public DocumentNode ToDocument() => SchemaSerializer.SerializeSchema(this);
+        public DocumentNode ToDocument(bool includeSpecScalars = false) =>
+            SchemaSerializer.SerializeSchema(this, includeSpecScalars);
 
         /// <summary>
         /// Returns the schema SDL representation.

@@ -108,38 +108,14 @@ namespace HotChocolate.Types.Relay.Descriptors
             ResolveNode<TId>(
                 async (ctx, id) => (await nodeResolver(ctx, id).ConfigureAwait(false))!);
 
-        public IObjectFieldDescriptor ResolveNodeWith<TResolver>(
-            Expression<Func<TResolver, TNode>> method)
-        {
-            if (method is null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            MemberInfo member = method.TryExtractMember();
-
-            if (member is MethodInfo m)
-            {
-                FieldResolver resolver =
-                    ResolverCompiler.Resolve.Compile(
-                        new ResolverDescriptor(
-                            typeof(TResolver),
-                            typeof(object),
-                            new FieldMember("_", "_", m)));
-                return ResolveNode(resolver.Resolver);
-            }
-
-            throw new ArgumentException(NodeDescriptor_MustBeMethod, nameof(member));
-        }
-
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
-                typeof(TResolver)));
+                typeof(TResolver))!);
 
         public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 typeof(TNode),
-                type));
+                type)!);
     }
 }

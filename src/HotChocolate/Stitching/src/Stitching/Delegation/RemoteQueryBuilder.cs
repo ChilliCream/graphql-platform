@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Delegation
@@ -138,11 +137,9 @@ namespace HotChocolate.Stitching.Delegation
             }
 
             FieldNode requestField = _requestField;
-            if (_additionalFields.Count != 0
-                && requestField.SelectionSet != null)
+            if (_additionalFields.Count != 0 && requestField.SelectionSet is not null)
             {
-                var selections = new List<ISelectionNode>(
-                    requestField.SelectionSet.Selections);
+                var selections = new List<ISelectionNode>(requestField.SelectionSet.Selections);
                 selections.AddRange(_additionalFields);
                 requestField = requestField.WithSelectionSet(
                     requestField.SelectionSet.WithSelections(selections));
@@ -182,7 +179,7 @@ namespace HotChocolate.Stitching.Delegation
                 .Where(t => usedVariables.Contains(t.Variable.Name.Value))
                 .ToList();
 
-            for (int i = 0; i < variables.Count; i++)
+            for (var i = 0; i < variables.Count; i++)
             {
                 VariableDefinitionNode variable = variables[i];
                 NameString typeName = variable.Type.NamedType().Name.Value;
@@ -194,13 +191,12 @@ namespace HotChocolate.Stitching.Delegation
                 }
             }
 
-            var fields = new FieldNode[] { current };
+            FieldNode[] fields = { current };
 
             OperationDefinitionNode operationDefinition =
                 CreateOperation(_operationName, operation, fields, variables);
 
-            var definitions = new List<IDefinitionNode>();
-            definitions.Add(operationDefinition);
+            var definitions = new List<IDefinitionNode> { operationDefinition };
             definitions.AddRange(_fragments);
 
             return new DocumentNode(null, definitions);

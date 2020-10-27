@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
+using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
@@ -31,12 +32,12 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
 
             if (!ScopeNames.ContextData.Equals(variable.Scope.Value))
             {
-                throw new ArgumentException(StitchingResources
-                    .ContextDataScopedVariableResolver_CannotHandleVariable,
+                throw new ArgumentException(
+                    ContextDataScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
-            context.ContextData.TryGetValue(variable.Name.Value, out object data);
+            context.ContextData.TryGetValue(variable.Name.Value, out object? data);
 
             IValueNode literal = data switch
             {

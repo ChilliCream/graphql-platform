@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Delegation.ScopedVariables;
@@ -94,7 +93,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Collection(
-                Assert.Throws<QueryException>(a).Errors,
+                Assert.Throws<GraphQLException>(a).Errors,
                 t => Assert.Equal(ErrorCodes.Stitching.FieldNotDefined, t.Code));
         }
 

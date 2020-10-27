@@ -497,9 +497,7 @@ namespace HotChocolate.Stitching.Integration
             result.MatchSnapshot();
         }
 
-        // the issue here is that the schema document does not contain the scalars.
-        // so we need to add the scalars to the schema afterwards.
-        [Fact(Skip = "Fix scalar rename issue")]
+        [Fact]
         public async Task AutoMerge_Execute_RenameScalar()
         {
             // arrange
@@ -596,6 +594,41 @@ namespace HotChocolate.Stitching.Integration
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        int
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            int: Int!
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""int(i:$fields:someInt)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
                         int
                     }
                 }");
