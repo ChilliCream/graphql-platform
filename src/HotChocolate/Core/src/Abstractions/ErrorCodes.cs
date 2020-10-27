@@ -24,6 +24,7 @@ namespace HotChocolate
             public const string InvalidType = "EXEC_INVALID_TYPE";
             public const string QueryNotFound = "QUERY_NOT_FOUND";
             public const string TaskProcessingError = "HC0008";
+            public const string SyntaxError = "HC0014";
         }
 
         public static class Server
