@@ -22,9 +22,17 @@ namespace HotChocolate
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
             public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
             public const string InvalidType = "EXEC_INVALID_TYPE";
-            public const string SyntaxError = "EXEC_SYNTAX_ERROR";
             public const string QueryNotFound = "QUERY_NOT_FOUND";
             public const string TaskProcessingError = "HC0008";
+        }
+
+        public static class Server
+        {
+            public const string RequestInvalid = "HC0009";
+            public const string MaxRequestSize = "HC0010";
+            public const string SyntaxError = "HC0011";
+            public const string UnexpectedRequestParserError = "HC0012";
+            public const string QueryAndIdMissing = "HC0013";
         }
 
         public static class Schema

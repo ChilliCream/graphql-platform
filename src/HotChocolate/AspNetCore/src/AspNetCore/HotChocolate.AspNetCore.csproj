@@ -22,6 +22,18 @@
   <ItemGroup>
     <None Remove="Resources\**\*" />
     <EmbeddedResource Include="Resources\**\*" />
+    <EmbeddedResource Update="Properties\AspNetCoreResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AspNetCoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\AspNetCoreResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AspNetCoreResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

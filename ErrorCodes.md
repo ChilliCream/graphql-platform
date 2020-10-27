@@ -8,3 +8,8 @@
 | HC0006 | Schema Stitching  | The HTTP request failed.                                                                                   |
 | HC0007 | Schema Stitching  | Unknown error happened while fetching from a downstream service.                                           |
 | HC0008 | Execution         | An unexpected error happened during execution task processing.                                             |
+| HC0009 | Server            | The GraphQL request structure is invalid.                                                                  |
+| HC0010 | Server            | The request is larger then maximum allowed request size.                                                   |
+| HC0011 | Server            | The GraphQL document has syntax errors.                                                                    |
+| HC0012 | Server            | Unexpected request parser error.                                                                           |
+| HC0013 | Server            | The query and the id is missing from the GraphQL request.                                                  |
