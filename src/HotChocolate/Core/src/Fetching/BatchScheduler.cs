@@ -74,13 +74,15 @@ namespace HotChocolate.Fetching
                 _tasks = tasks;
             }
 
+            public bool IsCompleted => _task.IsCompleted;
+
+            public bool IsCanceled { get; private set; }
+
             public void BeginExecute(CancellationToken cancellationToken)
             {
                 _context.Started();
                 _task = ExecuteAsync(cancellationToken);
             }
-
-            public bool IsCompleted => _task.IsCompleted;
 
             private async ValueTask ExecuteAsync(CancellationToken cancellationToken)
             {
@@ -108,6 +110,7 @@ namespace HotChocolate.Fetching
                 }
                 finally
                 {
+                    IsCanceled = cancellationToken.IsCancellationRequested;
                     _context.Completed();
                 }
             }
