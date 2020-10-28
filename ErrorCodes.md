@@ -14,7 +14,7 @@
 | HC0012 | Server            | Unexpected request parser error.                                                                           |
 | HC0013 | Server            | The query and the id is missing from the GraphQL request.                                                  |
 | HC0014 | Execution         | The GraphQL document has syntax errors.                                                                    |
-| HC0015 | Execution         | The query request contains no document.                                                                    |
+| HC0015 | Execution         | No query document was provided and the provided query id is unknown.                                       |
 | HC0016 | Execution         | Variable `xyz` got an invalid value.                                                                       |
 | HC0017 | Execution         | Variable `xyz` is not an input type.                                                                       |
 | HC0018 | Execution         | Variable `xyz` is required.                                                                                |
