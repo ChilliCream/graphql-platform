@@ -1,16 +1,11 @@
-using System.IO;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Execution.Serialization;
 using HotChocolate.StarWars;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class DeferTests
     {

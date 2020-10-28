@@ -1,14 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate
+namespace HotChocolate.Execution.Instrumentation
 {
     public class DiagnosticsEventsTests
     {

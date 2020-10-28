@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using static HotChocolate.Stitching.Properties.StitchingResources;

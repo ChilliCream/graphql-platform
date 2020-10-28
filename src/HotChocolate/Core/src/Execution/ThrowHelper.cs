@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
                     .SetMessage(
                         ThrowHelper_VariableIsNotAnInputType_Message,
                         variableDefinition.Variable.Name.Value)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetCode(ErrorCodes.Execution.MustBeInputType)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
                     .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
