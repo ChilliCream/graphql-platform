@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -31,18 +32,7 @@ namespace HotChocolate.Data.Projections.Expressions
                 await next(context).ConfigureAwait(false);
 
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source is not null)
+                if (context.Result is not null)
                 {
                     var visitorContext =
                         new QueryableProjectionContext(
@@ -51,7 +41,17 @@ namespace HotChocolate.Data.Projections.Expressions
                             context.Field.Type.UnwrapRuntimeType());
                     var visitor = new QueryableProjectionVisitor();
                     visitor.Visit(visitorContext);
-                    context.Result = source.Select(visitorContext.Project<TEntityType>());
+                    Expression<Func<TEntityType, TEntityType>> projection = visitorContext
+                        .Project<TEntityType>();
+
+                    context.Result = context.Result switch
+                    {
+                        IQueryable<TEntityType> q => q.Select(projection),
+                        IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
+                        IQueryableProjectionExecutable<TEntityType> ex =>
+                            ex.ApplyProjection(projection),
+                        _ => context.Result
+                    };
                 }
             }
         }

@@ -6,7 +6,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
-using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Sorting
 {
@@ -102,7 +101,7 @@ namespace HotChocolate.Data.Sorting
 
                     case null:
                         throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
-                        
+
                     case ISortFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;
@@ -122,7 +121,7 @@ namespace HotChocolate.Data.Sorting
 
                     case null:
                         throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
-                        
+
                     case ISortOperationHandler<TContext> casted:
                         _operationHandlers.Add(casted);
                         break;

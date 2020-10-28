@@ -16,7 +16,8 @@ namespace HotChocolate.Data.Filters.Expressions
         public Func<T, bool> Build<T>(IValueNode filter)
         {
             var visitorContext = new QueryableFilterContext(_inputType, true);
-            var visitor = new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator());
+            var visitor =
+                new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator());
 
             visitor.Visit(filter, visitorContext);
 

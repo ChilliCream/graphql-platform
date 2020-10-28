@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Projections
 {
@@ -20,41 +17,14 @@ namespace HotChocolate.Data.Projections
         {
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is IAsyncEnumerable<T> ae)
+            if (context.Result is ISingleOrDefaultExecutable ae)
             {
-                await using IAsyncEnumerator<T> enumerator =
-                    ae.GetAsyncEnumerator(context.RequestAborted);
-
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = enumerator.Current;
-                }
-                else
-                {
-                    context.Result = default(T)!;
-                }
-
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = ProjectionProvider_CreateMoreThanOneError(context);
-                }
+                context.Result = ae.SingleOrDefault();
             }
-            else if (context.Result is IEnumerable<T> e)
+            else
             {
-                context.Result = await Task
-                    .Run<object?>(
-                        () =>
-                        {
-                            try
-                            {
-                                return e.SingleOrDefault();
-                            }
-                            catch (InvalidOperationException)
-                            {
-                                return ProjectionProvider_CreateMoreThanOneError(context);
-                            }
-                        },
-                        context.RequestAborted)
+                context.Result = await SingleOrDefaultExecutor
+                    .ExecuteAsync<T>(context, context.Result, context.RequestAborted)
                     .ConfigureAwait(false);
             }
         }

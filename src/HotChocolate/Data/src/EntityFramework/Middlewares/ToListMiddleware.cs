@@ -24,6 +24,10 @@ namespace HotChocolate.Data
                     .ToListAsync(context.RequestAborted)
                     .ConfigureAwait(false);
             }
+            else if (context.Result is IExecutable executable)
+            {
+                context.Result = await executable.ExecuteAsync(context.RequestAborted);
+            }
         }
     }
 }

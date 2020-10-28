@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -5,6 +6,8 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
 {
+    public delegate ValueTask<IPage> ApplyPagingToResultAsync(object source, CancellationToken ct);
+
     public interface IPagingHandler
     {
         /// <summary>

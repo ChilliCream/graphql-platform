@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections;
 using HotChocolate.Data;
 using HotChocolate.Resolvers;
 using Microsoft.EntityFrameworkCore;
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
                 .OnBeforeNaming((c, d) =>
                 {
                     if (d.ResultType is not null &&
-                        typeof(IQueryable).IsAssignableFrom(d.ResultType) &&
+                        typeof(IEnumerable).IsAssignableFrom(d.ResultType) &&
                         d.ResultType.IsGenericType)
                     {
                         Type entity = d.ResultType.GenericTypeArguments[0];

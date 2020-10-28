@@ -65,34 +65,35 @@ namespace HotChocolate.Data.Filters.Expressions
                     return;
                 }
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source != null &&
+                if (context.Result != null &&
                     argument.Type is IFilterInputType filterInput &&
                     context.Field.ContextData.TryGetValue(
                         ContextVisitFilterArgumentKey,
                         out object? executorObj) &&
                     executorObj is VisitFilterArgument executor)
                 {
+                    var inMemory =
+                        context.Result is IQueryableFilteringExecutable<TEntityType> executable &&
+                        executable.IsInMemory() ||
+                        context.Result is not IQueryable;
+
                     QueryableFilterContext visitorContext = executor(
                         filter,
                         filterInput,
-                        source is EnumerableQuery);
+                        inMemory);
 
                     // compile expression tree
                     if (visitorContext.TryCreateLambda(
                         out Expression<Func<TEntityType, bool>>? where))
                     {
-                        context.Result = source.Where(where);
+                        context.Result = context.Result switch
+                        {
+                            IQueryable<TEntityType> q => q.Where(where),
+                            IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
+                            IQueryableFilteringExecutable<TEntityType> ex =>
+                                ex.ApplyFiltering(where),
+                            _ => context.Result
+                        };
                     }
                     else
                     {

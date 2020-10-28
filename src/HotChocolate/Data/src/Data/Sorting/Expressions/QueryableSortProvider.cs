@@ -54,18 +54,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     return;
                 }
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source != null &&
+                if (context.Result != null &&
                     argument.Type is ListType lt &&
                     lt.ElementType is ISortInputType sortInput &&
                     context.Field.ContextData.TryGetValue(
@@ -73,10 +62,15 @@ namespace HotChocolate.Data.Sorting.Expressions
                         out object? executorObj) &&
                     executorObj is VisitSortArgument executor)
                 {
+                    var inMemory =
+                        context.Result is IQueryableSortingExecutable<TEntityType> executable &&
+                        executable.IsInMemory() ||
+                        context.Result is not IQueryable;
+
                     QueryableSortContext visitorContext = executor(
                         sort,
                         sortInput,
-                        source is EnumerableQuery);
+                        inMemory);
 
                     // compile expression tree
                     if (visitorContext.Errors.Count > 0)
@@ -89,7 +83,14 @@ namespace HotChocolate.Data.Sorting.Expressions
                     }
                     else
                     {
-                        context.Result = visitorContext.Sort(source);
+                        context.Result = context.Result switch
+                        {
+                            IQueryable<TEntityType> q => visitorContext.Sort(q),
+                            IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
+                            IQueryableSortingExecutable<TEntityType> ex =>
+                                ex.ApplySorting(visitorContext.Sort),
+                            _ => context.Result
+                        };
                     }
                 }
             }
