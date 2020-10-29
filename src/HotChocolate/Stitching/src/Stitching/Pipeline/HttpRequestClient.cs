@@ -65,10 +65,12 @@ namespace HotChocolate.Stitching.Pipeline
             CancellationToken cancellationToken)
         {
             string? errorResponse = null;
+            string? uri = null;
 
             try
             {
                 using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
+                uri = httpClient.BaseAddress.ToString();
 
                 using HttpResponseMessage responseMessage = await httpClient
                     .SendAsync(requestMessage, cancellationToken)
@@ -116,6 +118,8 @@ namespace HotChocolate.Stitching.Pipeline
                     .SetCode(ErrorCodes.Stitching.HttpRequestException)
                     .SetExtension("request", json)
                     .SetExtension("response", errorResponse)
+                    .SetExtension("targetSchema", targetSchema.Value)
+                    .SetExtension("uri", uri)
                     .Build();
 
                 return QueryResultBuilder.CreateError(error);

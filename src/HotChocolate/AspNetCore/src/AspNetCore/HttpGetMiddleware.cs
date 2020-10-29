@@ -74,7 +74,7 @@ namespace HotChocolate.AspNetCore
 
             // in any case we will have a valid GraphQL result at this point that can be written
             // to the HTTP response stream.
-            Debug.Assert(result is not null, "No GraphQL result was created.");
+            Debug.Assert(result is not null!, "No GraphQL result was created.");
             await WriteResultAsync(context.Response, result, statusCode, context.RequestAborted);
         }
     }

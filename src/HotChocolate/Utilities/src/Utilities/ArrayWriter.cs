@@ -12,7 +12,7 @@ namespace HotChocolate.Utilities
         private int _capacity;
         private int _start;
         private bool _disposed;
-        
+
         public ArrayWriter()
         {
             _buffer = ArrayPool<byte>.Shared.Rent(_initialBufferSize);
@@ -52,7 +52,7 @@ namespace HotChocolate.Utilities
             {
                 byte[] buffer = _buffer;
 
-                int newSize = buffer.Length * 2;
+                var newSize = buffer.Length * 2;
                 if (neededCapacity > buffer.Length)
                 {
                     newSize += neededCapacity;
