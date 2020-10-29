@@ -64,6 +64,8 @@ namespace HotChocolate.Stitching.Pipeline
             NameString targetSchema,
             CancellationToken cancellationToken)
         {
+            string? errorResponse = null;
+
             try
             {
                 using HttpClient httpClient = _clientFactory.CreateClient(targetSchema);
@@ -72,12 +74,26 @@ namespace HotChocolate.Stitching.Pipeline
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    try
+                    {
+                        errorResponse = await responseMessage.Content
+                            .ReadAsStringAsync()
+                            .ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // debug
+                    }
+                }
+
                 // TODO : we should rework this an try to inspect the payload for graphql errors.
                 responseMessage.EnsureSuccessStatusCode();
 
                 IQueryResult result =
                     await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                    .ConfigureAwait(false);
+                        .ConfigureAwait(false);
 
                 return await _requestInterceptor.OnReceivedResultAsync(
                     targetSchema,
@@ -98,7 +114,8 @@ namespace HotChocolate.Stitching.Pipeline
 
                 IError error = _errorHandler.CreateUnexpectedError(ex)
                     .SetCode(ErrorCodes.Stitching.HttpRequestException)
-                    .SetExtension("json", json)
+                    .SetExtension("request", json)
+                    .SetExtension("response", errorResponse)
                     .Build();
 
                 return QueryResultBuilder.CreateError(error);
