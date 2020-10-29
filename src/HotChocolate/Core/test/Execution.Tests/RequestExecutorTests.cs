@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Xunit;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Execution
 {
     public class RequestExecutorTests
     {
