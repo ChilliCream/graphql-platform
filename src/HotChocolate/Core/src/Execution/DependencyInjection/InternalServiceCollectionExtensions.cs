@@ -54,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             int maximumRetained = 16)
         {
             services.TryAddSingleton<ObjectPool<ResolverTask>>(
-                sp => new BufferedObjectPool<ResolverTask>(t => t.Reset()));
+                sp => new ResolverTaskPool());
             return services;
         }
 

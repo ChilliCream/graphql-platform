@@ -16,7 +16,7 @@ namespace HotChocolate.Execution.Processing
         private class OperationContextPoolPolicy
             : IPooledObjectPolicy<OperationContext>
         {
-            private Func<OperationContext> _factory;
+            private readonly Func<OperationContext> _factory;
 
             public OperationContextPoolPolicy(Func<OperationContext> factory)
             {
