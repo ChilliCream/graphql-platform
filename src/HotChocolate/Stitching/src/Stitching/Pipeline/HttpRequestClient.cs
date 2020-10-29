@@ -2,7 +2,9 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,12 +73,13 @@ namespace HotChocolate.Stitching.Pipeline
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
-                // TODO : we should rework this an try to inspect the payload for graphql errors.
-                responseMessage.EnsureSuccessStatusCode();
-
-                IQueryResult result =
-                    await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                    .ConfigureAwait(false);
+                IQueryResult? result =
+                    responseMessage.IsSuccessStatusCode
+                        ? await ParseResponseMessageAsync(responseMessage, cancellationToken)
+                            .ConfigureAwait(false)
+                        : await TryParseResponseMessageAsync(
+                            request, responseMessage, cancellationToken)
+                            .ConfigureAwait(false);
 
                 return await _requestInterceptor.OnReceivedResultAsync(
                     targetSchema,
@@ -85,14 +88,6 @@ namespace HotChocolate.Stitching.Pipeline
                     responseMessage,
                     cancellationToken)
                     .ConfigureAwait(false);
-            }
-            catch (HttpRequestException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetCode(ErrorCodes.Stitching.HttpRequestException)
-                    .Build();
-
-                return QueryResultBuilder.CreateError(error);
             }
             catch(Exception ex)
             {
@@ -128,6 +123,63 @@ namespace HotChocolate.Stitching.Pipeline
             };
 
             return requestMessage;
+        }
+
+        private async ValueTask<IQueryResult> TryParseResponseMessageAsync(
+            IQueryRequest request,
+            HttpResponseMessage responseMessage,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                IQueryResult? result =
+                    await ParseResponseMessageAsync(responseMessage, cancellationToken)
+                        .ConfigureAwait(false);
+
+                if (result is not null)
+                {
+                    IError error =
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The HTTP response did not indicate success. StatusCode: {0}",
+                                responseMessage.StatusCode)
+                            .SetCode(ErrorCodes.Stitching.HttpRequestException)
+                            .Build();
+                    result = QueryResultBuilder.CreateError(error);
+                }
+
+                if (responseMessage.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    IQueryResultBuilder builder = QueryResultBuilder.FromResult(result);
+
+                    using var writer = new ArrayWriter();
+                    await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
+
+                    WriteJsonRequest(writer, jsonWriter, request);
+                    await jsonWriter.FlushAsync(cancellationToken).ConfigureAwait(false);
+
+                    string json =
+                        Encoding.UTF8.GetString(writer.GetInternalBuffer(), 0, writer.Length);
+
+                    IError error =
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "Bad request.",
+                                responseMessage.StatusCode)
+                            .SetCode(ErrorCodes.Stitching.HttpRequestException)
+                            .SetExtension("request", json)
+                            .Build();
+
+                    builder.AddError(error);
+                    return builder.Create();
+                }
+
+                return result;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
