@@ -74,7 +74,7 @@ namespace HotChocolate.Stitching.Pipeline
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
-                if (responseMessage.IsSuccessStatusCode)
+                if (!responseMessage.IsSuccessStatusCode)
                 {
                     try
                     {
