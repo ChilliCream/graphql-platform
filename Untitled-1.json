@@ -1,0 +1,304 @@
+{
+  "errors": [
+    {
+      "message": "Unexpected Execution Error",
+      "locations": [{ "line": 107, "column": 3 }],
+      "path": ["me", "notifications"],
+      "extensions": {
+        "code": "HCXXXX",
+        "remote": {
+          "message": "Unexpected Execution Error",
+          "extensions": { "code": "HCXXXX" }
+        },
+        "schemaName": "InboxClient"
+      }
+    }
+  ],
+  "data": {
+    "me": {
+      "profile": {
+        "personalData": {
+          "gender": "FEMALE",
+          "firstName": "Andrea",
+          "lastName": "Wydler"
+        }
+      },
+      "contracts": [
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPVEl3TXpBek1URT0.xm2TN9m9-j0BTGiq-41_Vwrj3uiNbv9dW0ChyZ3fweybFtVRIAyKul9O0BsgbScYSi5WUzDbHsUI1zJ_N3B9Pw",
+          "active": false,
+          "number": "9203.0311",
+          "contractId": "00992030311",
+          "productName": "Swiss Life Crescendo",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": true
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPRGN3TmpFNE5qaz0.nFPQZRg-bryAMaGotniHbghoPe3u385LsVET73wRUFBBSpiWfshxoNiX9hbNAjWt9gw32VpLlgjCRlu4JMausQ",
+          "active": false,
+          "number": "8706.1869",
+          "contractId": "00987061869",
+          "productName": "Swiss Life Gemischte Versicherung",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": true
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXhNRFEzTURFeU16WT0.9bmxETjHn7DHZgTtHmTNo1T9x_9aNtaOhjGuiDCaya8e1PYumT3bFFRMICMwMM0f98PQ1WRJhKy83D0-VRAz_Q",
+          "active": true,
+          "number": "104.701.236",
+          "contractId": "00104701236",
+          "productName": "Swiss Life FlexSave Invest",
+          "totalBalance": 110480.7,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXlNREEwTmpnMU56RT0.krNBKvPGvu5SAKBKJJEjKf5-lucg5AajPWVIwqhv_aWw-GigYBBfYUxxm9jmKVh6siN5DNVAwb3IWoj0lWtQFw",
+          "active": true,
+          "number": "200.468.571",
+          "contractId": "00200468571",
+          "productName": "Swiss Life Premium Select",
+          "totalBalance": 60033.5,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXhNREV3TXpFd01EVT0.6pET31ogzJETQJbJthwy-BWfwRzh6Az8G1dualaWN3LyrDgyBu7jqLYefEV0wXlUmyuazraU5t4JQN5l6b3RDQ",
+          "active": false,
+          "number": "101.031.005",
+          "contractId": "00101031005",
+          "productName": "Swiss Life Calmo",
+          "totalBalance": 130394,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPVFF4TURFd05EQT0.oUEuBhbthNZqvNWTHTjkn6AYFWZw_EifKKFzPKPAcac2KCH_dA-MLtln7Mu1q1TGaFEKlkqcVzedqZcTDw6DwQ",
+          "active": false,
+          "number": "9410.1040",
+          "contractId": "00994101040",
+          "productName": "Swiss Life Forte",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPRGN3TmpFNE5qZz0.iSCVkj64N4Om4_IafwfViHwQwedoxV5xgNKSE9Pxs7nWRw8So0Wvd5BfjsHM7546TePDdI98R3mjRCo1mTxH-A",
+          "active": false,
+          "number": "8706.1868",
+          "contractId": "00987061868",
+          "productName": "Swiss Life Gemischte Versicherung",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPVEF3TmpBMU56TT0.ceCdB1b5tekPam_eqLIHOFdhqGau0pc5ZX_2iGBMPAa_3TwqmnyHTLeiC-5Mim83aY2sGUycxqzp8DXcx3e56A",
+          "active": false,
+          "number": "9006.0573",
+          "contractId": "00990060573",
+          "productName": "Swiss Life Gemischte Versicherung",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXhNREV3TXpBNU9URT0.YaJ2TYUkhTlRBRXdlLlnuOHjULjGK5JVtsdFkEWgzLJwGM7K2p_raTimW5PeuNdJWHKPNCJHKlMeCaINVvf7mQ",
+          "active": false,
+          "number": "101.030.991",
+          "contractId": "00101030991",
+          "productName": "Swiss Life Harvest",
+          "totalBalance": 47109.2,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXhNREE1TURNMk1EYz0.NZna4nOpiiXQEYf9Y4_eLbRSSBnDBiI-e5ey8rZiGIyNa-dxpC-dBwZCjy-vZnYq-G0A4kdrjB_mx2XVM8RXew",
+          "active": false,
+          "number": "100.903.607",
+          "contractId": "00100903607",
+          "productName": "Swiss Life Index",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQXhNREF3TXpNek16WT0.C6ctuRwba7_ZmrfNkaWpf0oTvX7e3UTKNyQ0BBk3Q9zwbzekwrh0De2O9OCbYmnnkI48M3QMiEM4QBVcbtyIDQ",
+          "active": false,
+          "number": "100.033.336",
+          "contractId": "00100033336",
+          "productName": "Swiss Life Top Harvest",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION",
+          "isThreeA": false
+        },
+        {
+          "__typename": "EvAccount",
+          "id": "UlhaQlkyTnZkVzUwQ21Rd01EQXdNREF3TURBd01EQXhNREEyTkRVeE5nPT0.edNNmbK37MDAUKGuQ-VQ2Av3TG4D42MwdZOoIKfFeXuPJvnKWMN45m9vTTYJVq21PaeijKj8Y5Q4m53BD-Bmrw",
+          "active": false,
+          "number": "10064516",
+          "contractId": "00000000000010064516",
+          "productName": "Verrechnungssteuerfreies Pr\u00E4miendepot",
+          "totalBalance": 0,
+          "currency": "CHF",
+          "category": "PERSONALPENSION"
+        }
+      ],
+      "id": "b6d8b25f05bc45478d91dc15e34430fd",
+      "notifications": null,
+      "advisors": [
+        {
+          "__typename": "SwissLifeGeneralInfo",
+          "id": "U3dpc3NMaWZlR2VuZXJhbEluZm8KZFN3aXNzTGlmZQ==",
+          "phoneNumber": null,
+          "email": null,
+          "pictureUrl": "",
+          "name": "SwissLife",
+          "phoneNumbers": [
+            {
+              "phoneNumber": "00800 873 873 00",
+              "label": "F\u00FCr Fragen zur privaten Vorsorge"
+            },
+            {
+              "phoneNumber": "\u002B41 43 284 33 11",
+              "label": "F\u00FCr Fragen zur beruflichen Vorsorge"
+            }
+          ]
+        }
+      ],
+      "threeA": [
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPVEl3TXpBek1URT0.xm2TN9m9-j0BTGiq-41_Vwrj3uiNbv9dW0ChyZ3fweybFtVRIAyKul9O0BsgbScYSi5WUzDbHsUI1zJ_N3B9Pw",
+          "type": "EvContract",
+          "number": "9203.0311",
+          "category": "PERSONALPENSION",
+          "productName": "Swiss Life Crescendo",
+          "active": false,
+          "contractId": "00992030311",
+          "maximumAmount": 6826,
+          "annualPremium": 0,
+          "currency": "CHF",
+          "bvgMismatch": false
+        },
+        {
+          "__typename": "EvContract",
+          "id": "UlhaRGIyNTBjbUZqZEFwa01EQTVPRGN3TmpFNE5qaz0.nFPQZRg-bryAMaGotniHbghoPe3u385LsVET73wRUFBBSpiWfshxoNiX9hbNAjWt9gw32VpLlgjCRlu4JMausQ",
+          "type": "EvContract",
+          "number": "8706.1869",
+          "category": "PERSONALPENSION",
+          "productName": "Swiss Life Gemischte Versicherung",
+          "active": false,
+          "contractId": "00987061869",
+          "maximumAmount": 6826,
+          "annualPremium": 0,
+          "currency": "CHF",
+          "bvgMismatch": false
+        }
+      ],
+      "outline": null,
+      "pfcontracts": [],
+      "envelopes": {
+        "edges": [
+          {
+            "node": {
+              "id": "Q3VzdG9tZXJFbnZlbG9wZQpkZjAxNTkyOTgtNTU1Mi05MDUwLTAwMDAtMDE3MTE4NzM3MTMwXzdmNzRhNTgxLWQ4M2MtNDcwNi1iYWFjLTAzZWUzOTliYTY0Zg==",
+              "contractNumber": "200.468.571",
+              "envelopeId": "f0159298-5552-9050-0000-017118737130",
+              "envelopeDate": "2020-06-25T22:00:00.000Z",
+              "envelopeTitle": "Steuerwert",
+              "documents": [
+                {
+                  "__typename": "EvDocument",
+                  "id": "RXZEb2N1bWVudApkZjAxNTkyOTgtNTU1Mi05NzUwLTAwMDAtMDE3MTI1NDMyNDM1",
+                  "contractNumber": "200.468.571",
+                  "documentId": "f0159298-5552-9750-0000-017125432435",
+                  "documentType": "Steuerwert",
+                  "documentCategory": "Steuerrelevante Dokumente",
+                  "documentDate": "2020-06-25T22:00:00.000Z",
+                  "isTaxRelevant": true
+                }
+              ]
+            }
+          },
+          {
+            "node": {
+              "id": "Q3VzdG9tZXJFbnZlbG9wZQpkZjAxNTkyOTgtNTU1Mi05OTcwLTAwMDAtMDE3MTQ0NjczMjM0XzdmNzRhNTgxLWQ4M2MtNDcwNi1iYWFjLTAzZWUzOTliYTY0Zg==",
+              "contractNumber": "104.701.236",
+              "envelopeId": "f0159298-5552-9970-0000-017144673234",
+              "envelopeDate": "2020-06-25T22:00:00.000Z",
+              "envelopeTitle": "Steuerwert",
+              "documents": [
+                {
+                  "__typename": "EvDocument",
+                  "id": "RXZEb2N1bWVudApkZjAxNTkyOTgtNTU1My0wNjIwLTAwMDAtMDE3MTUzOTU3NDc4",
+                  "contractNumber": "104.701.236",
+                  "documentId": "f0159298-5553-0620-0000-017153957478",
+                  "documentType": "Steuerwert",
+                  "documentCategory": "Steuerrelevante Dokumente",
+                  "documentDate": "2020-06-25T22:00:00.000Z",
+                  "isTaxRelevant": true
+                }
+              ]
+            }
+          },
+          {
+            "node": {
+              "id": "Q3VzdG9tZXJFbnZlbG9wZQpkNzJiM2JlMzctMTUxYS00ZGNhLTlmMDUtMzQyNDgyOTdjZGI1XzdmNzRhNTgxLWQ4M2MtNDcwNi1iYWFjLTAzZWUzOTliYTY0Zg==",
+              "contractNumber": "104.701.236",
+              "envelopeId": "72b3be37-151a-4dca-9f05-34248297cdb5",
+              "envelopeDate": "2020-02-04T23:00:00.000Z",
+              "envelopeTitle": "Leistungsblatt",
+              "documents": [
+                {
+                  "__typename": "EvDocument",
+                  "id": "RXZEb2N1bWVudApkMmQxMzI1MTQtMzYzYS00Zjg1LTlmMjAtZTYxYWRhZjJmYjEy",
+                  "contractNumber": "104.701.236",
+                  "documentId": "2d132514-363a-4f85-9f20-e61adaf2fb12",
+                  "documentType": "Brief an Kunden",
+                  "documentCategory": "Korrespondenz",
+                  "documentDate": "2020-02-04T23:00:00.000Z",
+                  "isTaxRelevant": false
+                },
+                {
+                  "__typename": "EvDocument",
+                  "id": "RXZEb2N1bWVudApkYzEyZjQ2NDItYmRhNC00ODMzLWE1Y2ItMzA4NjFhMjIxYzk5",
+                  "contractNumber": "104.701.236",
+                  "documentId": "c12f4642-bda4-4833-a5cb-30861a221c99",
+                  "documentType": "Leistungsblatt",
+                  "documentCategory": "Aktuelle Werte",
+                  "documentDate": "2020-02-04T23:00:00.000Z",
+                  "isTaxRelevant": false
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
