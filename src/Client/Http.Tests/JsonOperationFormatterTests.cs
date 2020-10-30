@@ -12,13 +12,6 @@ namespace StrawberryShake.Http
 {
     public class JsonOperationFormatterTests
     {
-        private readonly ITestOutputHelper _output;
-
-        public JsonOperationFormatterTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Fact]
         public void Serialize_To_Json_With_Document()
         {
@@ -143,9 +136,7 @@ namespace StrawberryShake.Http
             formatter.Serialize(operation, messageWriter, formatterOptions);
 
             // assert
-            var serialized = Encoding.UTF8.GetString(messageWriter.Body.Span);
-            _output.WriteLine(serialized);
-            serialized.MatchSnapshot();
+            Encoding.UTF8.GetString(messageWriter.Body.Span).MatchSnapshot();
         }
 
         private class Operation
