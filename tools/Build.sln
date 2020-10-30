@@ -143,6 +143,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Transport.Http", "..\src\Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Transport.WebSockets", "..\src\Client\Transport.WebSockets\Transport.WebSockets.csproj", "{5A46ACFE-F104-4D1B-AAB6-99D7A5678FD6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Voyager", "..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj", "{A36313EC-2CE4-4844-AB03-60FB7431A95D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -837,6 +839,18 @@ Global
 		{5A46ACFE-F104-4D1B-AAB6-99D7A5678FD6}.Release|x64.Build.0 = Release|Any CPU
 		{5A46ACFE-F104-4D1B-AAB6-99D7A5678FD6}.Release|x86.ActiveCfg = Release|Any CPU
 		{5A46ACFE-F104-4D1B-AAB6-99D7A5678FD6}.Release|x86.Build.0 = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|x64.Build.0 = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Debug|x86.Build.0 = Debug|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|x64.ActiveCfg = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|x64.Build.0 = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|x86.ActiveCfg = Release|Any CPU
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -909,6 +923,7 @@ Global
 		{29A0E672-2911-4131-82D6-20147F6863F0} = {753999A3-9E0D-4B05-956B-37483F3C0038}
 		{3946BF20-E034-466F-9D43-AA74975A2657} = {753999A3-9E0D-4B05-956B-37483F3C0038}
 		{5A46ACFE-F104-4D1B-AAB6-99D7A5678FD6} = {753999A3-9E0D-4B05-956B-37483F3C0038}
+		{A36313EC-2CE4-4844-AB03-60FB7431A95D} = {9D46414A-A55B-4119-BA69-E52DFED19128}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5A88C22-6FA8-4D86-9611-D6B69ADB807C}

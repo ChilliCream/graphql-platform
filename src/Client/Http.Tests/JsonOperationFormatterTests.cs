@@ -6,11 +6,19 @@ using Snapshooter.Xunit;
 using StrawberryShake.Serializers;
 using StrawberryShake.Transport;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace StrawberryShake.Http
 {
     public class JsonOperationFormatterTests
     {
+        private readonly ITestOutputHelper _output;
+
+        public JsonOperationFormatterTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+
         [Fact]
         public void Serialize_To_Json_With_Document()
         {
@@ -119,6 +127,27 @@ namespace StrawberryShake.Http
             Encoding.UTF8.GetString(messageWriter.Body.Span).MatchSnapshot();
         }
 
+        [Fact]
+        public void Serialize_To_Json_With_Array_Variable()
+        {
+            // arrange
+            var serializerResolver = new Mock<IValueSerializerResolver>();
+            serializerResolver.Setup(t => t.GetValueSerializer(It.IsAny<string>()))
+                .Returns(new StringValueSerializer());
+            var formatter = new JsonOperationFormatter(serializerResolver.Object);
+            var formatterOptions = new OperationFormatterOptions();
+            var operation = new OperationWithArrayVariable();
+            var messageWriter = new MessageWriter();
+
+            // act
+            formatter.Serialize(operation, messageWriter, formatterOptions);
+
+            // assert
+            var serialized = Encoding.UTF8.GetString(messageWriter.Body.Span);
+            _output.WriteLine(serialized);
+            serialized.MatchSnapshot();
+        }
+
         private class Operation
             : IOperation
         {
@@ -147,6 +176,21 @@ namespace StrawberryShake.Http
 
             public IReadOnlyList<VariableValue> GetVariableValues() =>
                 new[] { new VariableValue("Foo", "Bar", "123") };
+        }
+
+        private class OperationWithArrayVariable
+            : IOperation
+        {
+            public string Name => "abc";
+
+            public IDocument Document { get; } = new Document();
+
+            public OperationKind Kind { get; } = OperationKind.Subscription;
+
+            public Type ResultType => typeof(OnReview);
+
+            public IReadOnlyList<VariableValue> GetVariableValues() =>
+                new[] { new VariableValue("Foo", "[String!]!", new[] { "123", "456" }) };
         }
 
         private class Document

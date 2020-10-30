@@ -180,7 +180,7 @@ namespace StrawberryShake.Http
                     serialized.Add(SerializeVariable(element, serializer));
                 }
 
-                return serializer;
+                return serialized;
             }
 
             return serializer.Serialize(obj);
@@ -217,7 +217,7 @@ namespace StrawberryShake.Http
                         {
                             WriteValue(item, writer);
                         }
-
+                        
                         writer.WriteEndArray();
                         break;
 
