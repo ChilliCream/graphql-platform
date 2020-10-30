@@ -25,10 +25,9 @@ namespace HotChocolate.Types.Pagination
 
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is IPagingExecutable executable)
+            if (context.Result is IExecutable executable)
             {
-                context.Result = executable.ApplyPaging(
-                    (result, ct) => _pagingHandler.SliceAsync(context, result));
+                context.Result = _pagingHandler.ApplyExecutable(context, executable);
             }
             else if (context.Result is not null)
             {

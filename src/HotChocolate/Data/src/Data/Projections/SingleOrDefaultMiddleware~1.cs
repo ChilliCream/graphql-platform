@@ -19,7 +19,7 @@ namespace HotChocolate.Data.Projections
 
             if (context.Result is ISingleOrDefaultExecutable ae)
             {
-                context.Result = ae.SingleOrDefault();
+                context.Result = ae.AddSingleOrDefault();
             }
             else
             {

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -673,35 +675,60 @@ namespace HotChocolate.Types.Pagination
     }
 
     public class MockExecutable<T>
-        : IPagingExecutable
-        , IExecutable<T>
+        : IExecutable<T>
+        , IOffsetPagingExecutable
     {
         private readonly IEnumerable<T> _source;
-        private ApplyPagingToResultAsync? _handler;
+        private OffsetPagingArguments? _offsetPagingArguments;
+        private bool _includeTotalCount;
 
         public MockExecutable(IEnumerable<T> source)
         {
             _source = source;
         }
 
-        public void ApplyPaging(ApplyPagingToResultAsync? handler)
+        public ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
         {
-            _handler = handler;
-        }
-
-        public async ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
-        {
-            if (_handler is not null)
+            if (_offsetPagingArguments is not null)
             {
-                return await _handler(_source, cancellationToken);
+                IQueryable<T> slicedSource =
+                    QueryableOffsetPagingHandler<T>.SliceSource(
+                        _source,
+                        _offsetPagingArguments.Value,
+                        out IQueryable<T> original);
+
+                List<T> items = new List<T>();
+                foreach (T item in slicedSource)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
+
+                    items.Add(item);
+                }
+
+                return new ValueTask<object?>(
+                    QueryableOffsetPagingHandler<T>.CreateCollectionSegment(
+                        _offsetPagingArguments ?? throw new Exception(),
+                        _includeTotalCount,
+                        items,
+                        original));
             }
 
-            return _source;
+            return new ValueTask<object?>(_source);
         }
 
         public string Print()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+        public IExecutable AddPaging(
+            PagingOptions options,
+            OffsetPagingArguments? arguments,
+            bool includeTotalCount)
+        {
+            _offsetPagingArguments = arguments;
+            _includeTotalCount = includeTotalCount;
+            return this;
         }
     }
 }

@@ -40,19 +40,66 @@ namespace HotChocolate.Types.Pagination
             var count = await Task.Run(source.Count, cancellationToken)
                 .ConfigureAwait(false);
 
-            int? after = arguments.After is { } a
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(a)
-                : null;
-
-            int? before = arguments.Before is { } b
-                ? (int?)IndexEdge<TEntity>.DeserializeCursor(b)
-                : null;
+            IQueryable<TEntity> edges = SliceSource(source, arguments, out var offset);
 
             IReadOnlyList<IndexEdge<TEntity>> selectedEdges =
-                await GetSelectedEdgesAsync(
-                    source, arguments.First, arguments.Last, after, before, cancellationToken)
+                await ExecuteQueryableAsync(edges, offset, cancellationToken)
                     .ConfigureAwait(false);
 
+            return CreateConnection(selectedEdges, count);
+        }
+
+        protected virtual ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteQueryableAsync(
+            IQueryable<TEntity> queryable,
+            int offset,
+            CancellationToken cancellationToken)
+        {
+            return ExecuteAsync(queryable, offset, cancellationToken);
+        }
+
+        public static async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteAsync(
+            IQueryable<TEntity> queryable,
+            int offset,
+            CancellationToken cancellationToken)
+        {
+            var list = new List<IndexEdge<TEntity>>();
+
+            if (queryable is IAsyncEnumerable<TEntity> enumerable)
+            {
+                var index = offset;
+                await foreach (TEntity item in enumerable.WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    list.Add(IndexEdge<TEntity>.Create(item, index++));
+                }
+            }
+            else
+            {
+                await Task.Run(
+                        () =>
+                        {
+                            var index = offset;
+                            foreach (TEntity item in queryable)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
+
+                                list.Add(IndexEdge<TEntity>.Create(item, index++));
+                            }
+                        },
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return list;
+        }
+
+        public static Connection CreateConnection(
+            IReadOnlyList<IndexEdge<TEntity>> selectedEdges,
+            int count)
+        {
             IndexEdge<TEntity>? firstEdge = selectedEdges.Count == 0
                 ? null
                 : selectedEdges[0];
@@ -74,22 +121,31 @@ namespace HotChocolate.Types.Pagination
                 ct => new ValueTask<int>(pageInfo.TotalCount ?? 0));
         }
 
-        private async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> GetSelectedEdgesAsync(
-            IQueryable<TEntity> allEdges,
-            int? first,
-            int? last,
-            int? after,
-            int? before,
-            CancellationToken cancellationToken)
-        {
-            IQueryable<TEntity> edges = GetEdgesToReturn(
-                allEdges, first, last, after, before,
-                out var offset);
 
-            return await ExecuteQueryableAsync(edges, offset, cancellationToken);
+        public static IQueryable<TEntity> SliceSource(
+            IQueryable<TEntity> source,
+            CursorPagingArguments arguments,
+            out int offset)
+        {
+            int? after = arguments.After is { } a
+                ? (int?)IndexEdge<TEntity>.DeserializeCursor(a)
+                : null;
+
+            int? before = arguments.Before is { } b
+                ? (int?)IndexEdge<TEntity>.DeserializeCursor(b)
+                : null;
+
+            IQueryable<TEntity> edges = GetEdgesToReturn(
+                source,
+                arguments.First,
+                arguments.Last,
+                after,
+                before,
+                out offset);
+            return edges;
         }
 
-        private IQueryable<TEntity> GetEdgesToReturn(
+        private static IQueryable<TEntity> GetEdgesToReturn(
             IQueryable<TEntity> allEdges,
             int? first,
             int? last,
@@ -118,18 +174,20 @@ namespace HotChocolate.Types.Pagination
             return edges;
         }
 
-        protected virtual IQueryable<TEntity> GetFirstEdges(
-            IQueryable<TEntity> edges, int first,
+        private static IQueryable<TEntity> GetFirstEdges(
+            IQueryable<TEntity> edges,
+            int first,
             ref int offset)
         {
             if (first < 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(first));
             }
+
             return edges.Take(first);
         }
 
-        protected virtual IQueryable<TEntity> GetLastEdges(
+        private static IQueryable<TEntity> GetLastEdges(
             IQueryable<TEntity> edges,
             int last,
             ref int offset)
@@ -154,7 +212,7 @@ namespace HotChocolate.Types.Pagination
             return temp;
         }
 
-        protected virtual IQueryable<TEntity> ApplyCursorToEdges(
+        private static IQueryable<TEntity> ApplyCursorToEdges(
             IQueryable<TEntity> allEdges,
             int? after,
             int? before)
@@ -172,43 +230,6 @@ namespace HotChocolate.Types.Pagination
             }
 
             return edges;
-        }
-
-        protected virtual async ValueTask<IReadOnlyList<IndexEdge<TEntity>>> ExecuteQueryableAsync(
-            IQueryable<TEntity> queryable,
-            int offset,
-            CancellationToken cancellationToken)
-        {
-            var list = new List<IndexEdge<TEntity>>();
-
-            if (queryable is IAsyncEnumerable<TEntity> enumerable)
-            {
-                var index = offset;
-                await foreach (TEntity item in enumerable.WithCancellation(cancellationToken)
-                    .ConfigureAwait(false))
-                {
-                    list.Add(IndexEdge<TEntity>.Create(item, index++));
-                }
-            }
-            else
-            {
-                await Task.Run(() =>
-                    {
-                        var index = offset;
-                        foreach (TEntity item in queryable)
-                        {
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                break;
-                            }
-                            list.Add(IndexEdge<TEntity>.Create(item, index++));
-                        }
-                    },
-                    cancellationToken)
-                .ConfigureAwait(false);
-            }
-
-            return list;
         }
     }
 }

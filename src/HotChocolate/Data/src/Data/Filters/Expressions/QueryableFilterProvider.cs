@@ -75,7 +75,8 @@ namespace HotChocolate.Data.Filters.Expressions
                     var inMemory =
                         context.Result is IQueryableFilteringExecutable<TEntityType> executable &&
                         executable.IsInMemory() ||
-                        context.Result is not IQueryable;
+                        context.Result is not IQueryable ||
+                        context.Result is EnumerableQuery;
 
                     QueryableFilterContext visitorContext = executor(
                         filter,
@@ -91,7 +92,7 @@ namespace HotChocolate.Data.Filters.Expressions
                             IQueryable<TEntityType> q => q.Where(where),
                             IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
                             IQueryableFilteringExecutable<TEntityType> ex =>
-                                ex.ApplyFiltering(where),
+                                ex.AddFiltering(where),
                             _ => context.Result
                         };
                     }

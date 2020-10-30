@@ -1,4 +1,3 @@
-using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 
@@ -6,8 +5,6 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
 {
-    public delegate ValueTask<IPage> ApplyPagingToResultAsync(object source, CancellationToken ct);
-
     public interface IPagingHandler
     {
         /// <summary>
@@ -21,6 +18,20 @@ namespace HotChocolate.Types.Pagination
         /// If context is not valid a <see cref="GraphQLException"/> is expected.
         /// </exception>
         void ValidateContext(IResolverContext context);
+
+        /// <summary>
+        /// Applies the current handler to the an <see cref="IExecutable"/>.
+        /// </summary>
+        /// <param name="context">
+        /// The current resolver context.
+        /// </param>
+        /// <param name="executable">
+        /// The executable that the handler is applied to
+        /// </param>
+        /// <returns>
+        /// Returns the changed or original <see cref="IExecutable"/>
+        /// </returns>
+        IExecutable ApplyExecutable(IResolverContext context, IExecutable executable);
 
         /// <summary>
         /// Slices the <paramref name="source"/> and returns a page from it.

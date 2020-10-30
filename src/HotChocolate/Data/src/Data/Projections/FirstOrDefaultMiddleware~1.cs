@@ -20,7 +20,7 @@ namespace HotChocolate.Data.Projections
             await _next(context).ConfigureAwait(false);
             if (context.Result is IFirstOrDefaultExecutable ae)
             {
-                context.Result = ae.FirstOrDefault();
+                context.Result = ae.AddFirstOrDefault();
             }
             else
             {

@@ -16,17 +16,20 @@ namespace HotChocolate.Data
         : IExecutable<T>
         , IFirstOrDefaultExecutable
         , ISingleOrDefaultExecutable
-        , IPagingExecutable
+        , IOffsetPagingExecutable
+        , ICursorPagingExecutable
         , IQueryableFilteringExecutable<T>
         , IQueryableProjectionExecutable<T>
         , IQueryableSortingExecutable<T>
     {
         private bool _firstOrDefault;
         private bool _singleOrDefault;
-        private ApplyPagingToResultAsync? _pagingHandler;
         private Expression<Func<T, bool>>? _filterExpression;
         private Func<IQueryable<T>, IQueryable<T>>? _sortExpression;
         private Expression<Func<T, T>>? _projectionExpression;
+        private OffsetPagingArguments? _offsetPagingArguments;
+        private CursorPagingArguments? _cursorPagingArguments;
+        private bool _offsetPagingIncludeTotalCount;
 
         public EnumerableExecutable(IEnumerable<T> source)
         {
@@ -37,43 +40,55 @@ namespace HotChocolate.Data
 
         public bool IsInMemory() => Source is not IQueryable;
 
-        public IExecutable ApplyPaging(ApplyPagingToResultAsync? handler)
-        {
-            _pagingHandler = handler;
-            return this;
-        }
-
-        public IExecutable ApplySorting(Func<IQueryable<T>, IQueryable<T>>? sort)
+        public IExecutable AddSorting(Func<IQueryable<T>, IQueryable<T>>? sort)
         {
             _sortExpression = sort;
             return this;
         }
 
-        public IExecutable ApplyFiltering(Expression<Func<T, bool>>? filter)
+        public IExecutable AddFiltering(Expression<Func<T, bool>>? filter)
         {
             _filterExpression = filter;
             return this;
         }
 
-        public IExecutable ApplyProjection(Expression<Func<T, T>>? projection)
+        public IExecutable AddProjections(Expression<Func<T, T>>? projection)
         {
             _projectionExpression = projection;
             return this;
         }
 
-        public IExecutable FirstOrDefault(bool mode = true)
+        public IExecutable AddFirstOrDefault(bool mode = true)
         {
             _firstOrDefault = mode;
             return this;
         }
 
-        public IExecutable SingleOrDefault(bool mode = true)
+        public IExecutable AddSingleOrDefault(bool mode = true)
         {
             _singleOrDefault = mode;
             return this;
         }
 
-        public async ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
+        public IExecutable AddPaging(
+            PagingOptions options,
+            OffsetPagingArguments? arguments,
+            bool includeTotalCount)
+        {
+            _offsetPagingArguments = arguments;
+            _offsetPagingIncludeTotalCount = includeTotalCount;
+            return this;
+        }
+
+        public IExecutable AddPaging(
+            PagingOptions options,
+            CursorPagingArguments? arguments)
+        {
+            _cursorPagingArguments = arguments;
+            return this;
+        }
+
+        public virtual async ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
         {
             IQueryable<T> result;
             if (Source is IQueryable<T> q)
@@ -87,44 +102,152 @@ namespace HotChocolate.Data
 
             if (_sortExpression is not null)
             {
-                result = _sortExpression(result);
+                result = ApplySorting(result, _sortExpression);
             }
 
             if (_filterExpression is not null)
             {
-                result = result.Where(_filterExpression);
+                result = ApplyFiltering(result, _filterExpression);
             }
 
             if (_projectionExpression is not null)
             {
-                result = result.Select(_projectionExpression);
+                result = ApplyProjections(result, _projectionExpression);
             }
 
             if (_firstOrDefault)
             {
-                return await FirstOrDefaultExecutor
-                    .ExecuteAsync<T>(result, cancellationToken)
+                return await ApplyFirstOrDefaultAsync(result, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             if (_singleOrDefault)
             {
-                return await FirstOrDefaultExecutor
-                    .ExecuteAsync<T>(result, cancellationToken)
+                return await ApplySingleOrDefaultAsync(result, cancellationToken)
                     .ConfigureAwait(false);
             }
 
-            if (_pagingHandler is not null)
+            if (_offsetPagingArguments is not null)
             {
-                return await _pagingHandler(result, cancellationToken).ConfigureAwait(false);
+                return await ApplyOffsetPagingAsync(
+                        result,
+                        _offsetPagingArguments.Value,
+                        _offsetPagingIncludeTotalCount,
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
 
-            return result.ToList();
+            if (_cursorPagingArguments is not null)
+            {
+                return await ApplyCursorPagingAsync(
+                        result,
+                        _cursorPagingArguments.Value,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            return await ApplyToListAsync(result, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public string Print()
         {
             return Source.ToString() ?? "";
+        }
+
+        protected virtual async Task<object?> ApplySingleOrDefaultAsync(
+            IQueryable<T> result,
+            CancellationToken cancellationToken)
+        {
+            return await SingleOrDefaultExecutor
+                .ExecuteAsync<T>(null, result, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        protected virtual async Task<object?> ApplyFirstOrDefaultAsync(
+            IQueryable<T> result,
+            CancellationToken cancellationToken)
+        {
+            return await FirstOrDefaultExecutor
+                .ExecuteAsync<T>(result, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        protected virtual IQueryable<T> ApplyProjections(
+            IQueryable<T> result,
+            Expression<Func<T, T>> projectionExpression)
+        {
+            result = result.Select(projectionExpression);
+            return result;
+        }
+
+        protected virtual IQueryable<T> ApplyFiltering(
+            IQueryable<T> result,
+            Expression<Func<T, bool>> filterExpression)
+        {
+            result = result.Where(filterExpression);
+            return result;
+        }
+
+        protected virtual IQueryable<T> ApplySorting(
+            IQueryable<T> result,
+            Func<IQueryable<T>, IQueryable<T>> sortExpression)
+        {
+            result = sortExpression(result);
+            return result;
+        }
+
+        protected virtual ValueTask<object> ApplyToListAsync(
+            IQueryable<T> result,
+            CancellationToken cancellationToken)
+        {
+            return new ValueTask<object>(result.ToList());
+        }
+
+        protected virtual async Task<object> ApplyCursorPagingAsync(
+            IQueryable<T> result,
+            CursorPagingArguments cursorPagingArguments,
+            CancellationToken cancellationToken)
+        {
+            var count = await Task.Run(result.Count, cancellationToken)
+                .ConfigureAwait(false);
+
+            IQueryable<T> edges =
+                QueryableCursorPagingHandler<T>.SliceSource(
+                    result,
+                    cursorPagingArguments,
+                    out var offset);
+
+            IReadOnlyList<IndexEdge<T>> selectedEdges =
+                await QueryableCursorPagingHandler<T>
+                    .ExecuteAsync(edges, offset, cancellationToken)
+                    .ConfigureAwait(false);
+
+            return QueryableCursorPagingHandler<T>.CreateConnection(selectedEdges, count);
+        }
+
+        protected virtual async Task<object> ApplyOffsetPagingAsync(
+            IQueryable<T> result,
+            OffsetPagingArguments offsetPagingArguments,
+            bool offsetPagingIncludeTotalCount,
+            CancellationToken cancellationToken)
+        {
+            IQueryable<T> slicedSource =
+                QueryableOffsetPagingHandler<T>.SliceSource(
+                    result,
+                    offsetPagingArguments,
+                    out IQueryable<T> original);
+
+            List<T> items =
+                await QueryableOffsetPagingHandler<T>.ExecuteAsync(
+                    slicedSource,
+                    cancellationToken);
+
+            return QueryableOffsetPagingHandler<T>.CreateCollectionSegment(
+                offsetPagingArguments,
+                offsetPagingIncludeTotalCount,
+                items,
+                original);
         }
     }
 }

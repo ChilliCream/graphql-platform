@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -745,27 +746,39 @@ namespace HotChocolate.Types.Pagination
     }
 
     public class MockExecutable<T>
-        : IPagingExecutable
+        : ICursorPagingExecutable
         , IExecutable<T>
     {
-        private readonly IEnumerable<T> _source;
-        private ApplyPagingToResultAsync? _handler;
+        private readonly IQueryable<T> _source;
+        private CursorPagingArguments? _arguments;
 
         public MockExecutable(IEnumerable<T> source)
         {
-            _source = source;
-        }
-
-        public void ApplyPaging(ApplyPagingToResultAsync? handler)
-        {
-            _handler = handler;
+            _source = source is IQueryable<T> q ? q : source.AsQueryable();
         }
 
         public async ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
         {
-            if (_handler is not null)
+            if (_arguments is not null)
             {
-                return await _handler(_source, cancellationToken);
+                var count = await Task.Run(_source.Count, cancellationToken)
+                    .ConfigureAwait(false);
+
+                IQueryable<T> edges = QueryableCursorPagingHandler<T>.SliceSource(
+                    _source,
+                    _arguments.Value,
+                    out var offset);
+
+                var list = new List<IndexEdge<T>>();
+                var index = offset;
+                foreach (T item in edges)
+                {
+                    if (cancellationToken.IsCancellationRequested) break;
+
+                    list.Add(IndexEdge<T>.Create(item, index++));
+                }
+
+                return QueryableCursorPagingHandler<T>.CreateConnection(list, count);
             }
 
             return _source;
@@ -774,6 +787,12 @@ namespace HotChocolate.Types.Pagination
         public string Print()
         {
             throw new System.NotImplementedException();
+        }
+
+        public IExecutable AddPaging(PagingOptions options, CursorPagingArguments? arguments)
+        {
+            _arguments = arguments;
+            return this;
         }
     }
 }

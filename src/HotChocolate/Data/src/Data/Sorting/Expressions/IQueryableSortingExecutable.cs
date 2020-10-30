@@ -24,6 +24,6 @@ namespace HotChocolate.Data.Sorting.Expressions
         /// Sets the delegate that applies sorting to the source data. If the delegate is null it
         /// will skip sorting
         /// </param>
-        IExecutable ApplySorting(Func<IQueryable<T>,IQueryable<T>>? sort);
+        IExecutable AddSorting(Func<IQueryable<T>,IQueryable<T>>? sort);
     }
 }

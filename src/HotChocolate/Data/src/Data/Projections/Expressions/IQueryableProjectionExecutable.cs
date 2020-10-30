@@ -16,6 +16,6 @@ namespace HotChocolate.Data.Projections.Expressions
         /// Sets the expression that filters the source data. If the expression is null it will skip
         /// filtering
         /// </param>
-        IExecutable ApplyProjection(Expression<Func<T, T>>? projection);
+        IExecutable AddProjections(Expression<Func<T, T>>? projection);
     }
 }

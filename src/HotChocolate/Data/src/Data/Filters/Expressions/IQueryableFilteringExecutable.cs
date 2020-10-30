@@ -26,6 +26,6 @@ namespace HotChocolate.Data.Filters
         /// Sets the expression that filters the source data. If the expression is null it will skip
         /// filtering
         /// </param>
-        IExecutable ApplyFiltering(Expression<Func<T, bool>>? filter);
+        IExecutable AddFiltering(Expression<Func<T, bool>>? filter);
     }
 }

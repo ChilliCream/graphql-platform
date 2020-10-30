@@ -26,71 +26,26 @@ namespace HotChocolate.Types.Pagination
             object source,
             OffsetPagingArguments arguments)
         {
-            IQueryable<TItemType> queryable = source switch
-            {
-                IQueryable<TItemType> q => q,
-                IEnumerable<TItemType> e => e.AsQueryable(),
-                _ => throw new GraphQLException("Cannot handle the specified data source.")
-            };
+            IQueryable<TItemType> slicedSource =
+                SliceSource(source, arguments, out IQueryable<TItemType> original);
 
-            IQueryable<TItemType> original = queryable;
-
-            if (arguments.Skip.HasValue)
-            {
-                queryable = queryable.Skip(arguments.Skip.Value);
-            }
-
-            queryable = queryable.Take(arguments.Take + 1);
             List<TItemType> items =
-                await ExecuteQueryableAsync(queryable, context.RequestAborted)
+                await ExecuteQueryableAsync(slicedSource, context.RequestAborted)
                     .ConfigureAwait(false);
-            var pageInfo = new CollectionSegmentInfo(
-                items.Count == arguments.Take + 1,
-                (arguments.Skip ?? 0) > 0);
 
-            if (items.Count > arguments.Take)
-            {
-                items.RemoveAt(arguments.Take);
-            }
+            var includeTotalCount = IncludeTotalCount && ShouldIncludeTotalCount(context);
 
-            Func<CancellationToken, ValueTask<int>> getTotalCount =
-                ct => throw new InvalidOperationException();
-
-            // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
-            // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
-            if (IncludeTotalCount &&
-                context.Field.Type is ObjectType objectType &&
-                context.FieldSelection.SelectionSet is {} selectionSet)
-            {
-                IReadOnlyList<IFieldSelection> selections = context
-                    .GetSelections(objectType, selectionSet, true);
-
-                var includeTotalCount = false;
-                for (var i = 0; i < selections.Count; i++)
-                {
-                    if (selections[i].Field.Name.Value is "totalCount")
-                    {
-                        includeTotalCount = true;
-                        break;
-                    }
-                }
-
-                // When totalCount is included in the selection set we prefetch it, then capture the
-                // count in a variable, to pass it into the clojure
-                if (includeTotalCount)
-                {
-                    var captureCount = original.Count();
-                    getTotalCount = ct => new ValueTask<int>(captureCount);
-                }
-            }
-
-            return new CollectionSegment(
-                (IReadOnlyCollection<object>)items,
-                pageInfo,
-                getTotalCount);
+            return CreateCollectionSegment(arguments, includeTotalCount, items, original);
         }
 
-        protected virtual async ValueTask<List<TItemType>> ExecuteQueryableAsync(
+        protected virtual ValueTask<List<TItemType>> ExecuteQueryableAsync(
+            IQueryable<TItemType> queryable,
+            CancellationToken cancellationToken)
+        {
+            return ExecuteAsync(queryable, cancellationToken);
+        }
+
+        public static async ValueTask<List<TItemType>> ExecuteAsync(
             IQueryable<TItemType> queryable,
             CancellationToken cancellationToken)
         {
@@ -106,22 +61,80 @@ namespace HotChocolate.Types.Pagination
             }
             else
             {
-                await Task.Run(() =>
-                {
-                    foreach (TItemType item in queryable)
-                    {
-                        if (cancellationToken.IsCancellationRequested)
+                await Task.Run(
+                        () =>
                         {
-                            break;
-                        }
+                            foreach (TItemType item in queryable)
+                            {
+                                if (cancellationToken.IsCancellationRequested)
+                                {
+                                    break;
+                                }
 
-                        list.Add(item);
-                    }
-
-                }).ConfigureAwait(false);
+                                list.Add(item);
+                            }
+                        })
+                    .ConfigureAwait(false);
             }
 
             return list;
+        }
+
+        public static IQueryable<TItemType> SliceSource(
+            object source,
+            OffsetPagingArguments arguments,
+            out IQueryable<TItemType> original)
+        {
+            IQueryable<TItemType> queryable = source switch
+            {
+                IQueryable<TItemType> q => q,
+                IEnumerable<TItemType> e => e.AsQueryable(),
+                _ => throw new GraphQLException("Cannot handle the specified data source.")
+            };
+
+            original = queryable;
+
+            if (arguments.Skip.HasValue)
+            {
+                queryable = queryable.Skip(arguments.Skip.Value);
+            }
+
+            queryable = queryable.Take(arguments.Take + 1);
+            return queryable;
+        }
+
+        public static CollectionSegment CreateCollectionSegment(
+            OffsetPagingArguments arguments,
+            bool includeTotalCount,
+            List<TItemType> items,
+            IQueryable<TItemType> original)
+        {
+            var pageInfo = new CollectionSegmentInfo(
+                items.Count == arguments.Take + 1,
+                (arguments.Skip ?? 0) > 0);
+
+            if (items.Count > arguments.Take)
+            {
+                items.RemoveAt(arguments.Take);
+            }
+
+            Func<CancellationToken, ValueTask<int>> getTotalCount =
+                ct => throw new InvalidOperationException();
+
+            // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
+            // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
+            // When totalCount is included in the selection set we prefetch it, then capture the
+            // count in a variable, to pass it into the clojure
+            if (includeTotalCount)
+            {
+                var captureCount = original.Count();
+                getTotalCount = ct => new ValueTask<int>(captureCount);
+            }
+
+            return new CollectionSegment(
+                (IReadOnlyCollection<object>)items,
+                pageInfo,
+                getTotalCount);
         }
     }
 }
