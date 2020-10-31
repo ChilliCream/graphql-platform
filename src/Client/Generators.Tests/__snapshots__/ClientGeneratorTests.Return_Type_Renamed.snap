@@ -156,15 +156,13 @@ namespace StrawberryShake.Client
             JsonElement obj = parent.GetProperty(field);
 
             int objLength = obj.GetArrayLength();
-            var list = new IBar[objLength];
-            for (int objIndex = 0; objIndex < objLength; objIndex++)
+            var list = new List<IBar>(objLength);
+            foreach (JsonElement element in obj.EnumerateArray())
             {
-                JsonElement element = obj[objIndex];
-                list[objIndex] = new Bar
+                list.Add(new Bar
                 (
                     DeserializeString(element, "baz")
-                );
-
+                ));
             }
 
             return list;

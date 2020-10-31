@@ -274,28 +274,21 @@ namespace StrawberryShake.Generators.CSharp
                 .ConfigureAwait(false);
 
             await writer.WriteIndentedLineAsync(
-                "var {0} = new {1}[{2}];",
+                "var {0} = new List<{1}>({2});",
                 listField,
                 resultTypeName,
                 lengthField)
                 .ConfigureAwait(false);
 
             await writer.WriteIndentedLineAsync(
-                "for (int {0} = 0; {0} < {1}; {0}++)",
-                indexField,
-                lengthField)
+                "foreach (JsonElement {0} in {1}.EnumerateArray())",
+                elementField,
+                jsonElement)
                 .ConfigureAwait(false);
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             using (writer.WriteBraces())
             {
-                await writer.WriteIndentedLineAsync(
-                    "JsonElement {0} = {1}[{2}];",
-                    elementField,
-                    jsonElement,
-                    indexField)
-                    .ConfigureAwait(false);
-
                 if (elementType.IsListType())
                 {
                     await WriteListAsync(
@@ -363,17 +356,18 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(string.Format(
-                "{0}[{1}] = ",
-                listField,
-                indexField))
+                "{0}.Add(",
+                listField))
                 .ConfigureAwait(false);
             await WriteCreateObjectAsync(
                 writer,
                 methodDescriptor,
                 possibleType,
                 jsonElement,
-                typeLookup)
+                typeLookup,
+                false)
                 .ConfigureAwait(false);
+            await writer.WriteAsync(");").ConfigureAwait(false);
         }
 
         private async Task WriteCreateObjectAsync(
@@ -381,7 +375,8 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             IResultParserTypeDescriptor possibleType,
             string jsonElement,
-            ITypeLookup typeLookup)
+            ITypeLookup typeLookup,
+            bool finishWithCommaAndNewLine = true)
         {
             await writer.WriteAsync("new ").ConfigureAwait(false);
             await writer.WriteAsync(possibleType.ResultDescriptor.Name).ConfigureAwait(false);
@@ -403,8 +398,11 @@ namespace StrawberryShake.Generators.CSharp
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(')').ConfigureAwait(false);
-            await writer.WriteAsync(';').ConfigureAwait(false);
-            await writer.WriteLineAsync().ConfigureAwait(false);
+            if (finishWithCommaAndNewLine)
+            {
+                await writer.WriteAsync(';').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+            }
         }
 
         private async Task WriteObjectPropertyDeserializationAsync(
