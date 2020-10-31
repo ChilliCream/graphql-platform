@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -128,9 +129,15 @@ namespace HotChocolate.Stitching.Pipeline
             HttpResponseMessage responseMessage,
             CancellationToken cancellationToken)
         {
+#if NET5_0
+            await using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+#else
             using Stream stream = await responseMessage.Content
                 .ReadAsStreamAsync()
                 .ConfigureAwait(false);
+#endif
 
             try
             {
@@ -161,9 +168,15 @@ namespace HotChocolate.Stitching.Pipeline
             HttpResponseMessage responseMessage,
             CancellationToken cancellationToken)
         {
+#if NET5_0
+            await using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+#else
             using Stream stream = await responseMessage.Content
                 .ReadAsStreamAsync()
                 .ConfigureAwait(false);
+#endif
 
             IReadOnlyDictionary<string, object?> response =
                 await BufferHelper.ReadAsync(
@@ -292,7 +305,7 @@ namespace HotChocolate.Stitching.Pipeline
 
                     default:
                         throw new NotSupportedException(
-                            "Unknown variable value kind.");
+                            StitchingResources.HttpRequestClient_UnknownVariableValueKind);
                 }
             }
         }

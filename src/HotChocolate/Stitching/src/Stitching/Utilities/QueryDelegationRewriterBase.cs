@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     public class QueryDelegationRewriterBase
         : IQueryDelegationRewriter

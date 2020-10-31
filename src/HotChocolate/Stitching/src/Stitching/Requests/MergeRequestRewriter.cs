@@ -8,7 +8,6 @@ namespace HotChocolate.Stitching.Requests
     internal class MergeRequestRewriter : QuerySyntaxRewriter<bool>
     {
         private static readonly NameNode _defaultName = new NameNode("exec_batch");
-        private static readonly HashSet<string> _emptySet = new HashSet<string>();
 
         private readonly List<FieldNode> _fields = new List<FieldNode>();
         private readonly Dictionary<string, VariableDefinitionNode> _variables =

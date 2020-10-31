@@ -121,15 +121,11 @@ namespace HotChocolate.Stitching.Utilities
 
             if (result.Errors is { Count: > 1 })
             {
-                // TODO : throw helper
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("Unable to fetch schema definition.")
-                        .SetExtension("errors", result.Errors)
-                        .Build());
+                throw ThrowHelper.IntrospectionHelper_UnableToFetchSchemaDefinition(result.Errors);
             }
 
-            if (result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField]
+            if (result.Data is not null &&
+                result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField]
                     is IReadOnlyDictionary<string, object?> o &&
                 o.TryGetValue("name", out object? n) &&
                 n is StringValueNode name &&

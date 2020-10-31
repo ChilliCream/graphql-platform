@@ -112,7 +112,7 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (field.TryGetSourceDirective(context.Schema,
-                out SourceDirective sourceDirective))
+                out SourceDirective? sourceDirective))
             {
                 if (current.Alias == null)
                 {
@@ -162,7 +162,7 @@ namespace HotChocolate.Stitching.Utilities
 
             FieldNode current = node;
 
-            for (int i = 0; i < _rewriters.Length; i++)
+            for (var i = 0; i < _rewriters.Length; i++)
             {
                 current = _rewriters[i].OnRewriteField(
                     context.Schema,

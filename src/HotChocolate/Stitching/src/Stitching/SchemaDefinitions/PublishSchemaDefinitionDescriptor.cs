@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+#if NETSTANDARD2_0
 using System.Threading.Tasks;
+#endif
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -47,7 +49,6 @@ namespace HotChocolate.Stitching.SchemaDefinitions
                         .ReadAllBytesAsync(fileName, ct)
                         .ConfigureAwait(false);
 #endif
-
                     s.AddTypeExtensions(Utf8GraphQLParser.Parse(content), _key);
                 });
 
@@ -65,16 +66,14 @@ namespace HotChocolate.Stitching.SchemaDefinitions
 
                     if (stream is null)
                     {
-                        // todo : throw helper
-                        throw new SchemaException(
-                            SchemaErrorBuilder.New()
-                                .SetMessage(
-                                    "The resource `{0}` was not found!",
-                                    key)
-                                .Build());
+                        throw ThrowHelper.PublishSchemaDefinitionDescriptor_ResourceNotFound(key);
                     }
 
+#if NET5_0
+                    await using (stream)
+#else
                     using (stream)
+#endif
                     {
                         var buffer = new byte[stream.Length];
                         await stream.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
