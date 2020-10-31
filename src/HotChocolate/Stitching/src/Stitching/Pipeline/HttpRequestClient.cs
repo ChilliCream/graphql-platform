@@ -309,7 +309,9 @@ namespace HotChocolate.Stitching.Pipeline
             if (number.Length > 1)
             {
                 number = number.Slice(1);
-                number.CopyTo(arrayWriter.GetSpan(number.Length));
+                Span<byte> span = arrayWriter.GetSpan(number.Length);
+                number.CopyTo(span);
+                arrayWriter.Advance(number.Length);
             }
         }
     }
