@@ -1,1 +1,1 @@
-﻿Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1[HotChocolate.Data.Projections.Expressions.QueryableSingleOrDefaultTests+Bar]
+﻿Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[HotChocolate.Data.Projections.Expressions.QueryableSingleOrDefaultTests+Bar]
