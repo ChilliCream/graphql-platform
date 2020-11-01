@@ -27,22 +27,22 @@ namespace HotChocolate.Data
             return new QueryableExecutable<T>(source);
         }
 
-        public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        public virtual ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
             return new ValueTask<IList>(Source.ToList());
         }
 
-        public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        public virtual ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
         {
             return new ValueTask<object?>(Source.FirstOrDefault());
         }
 
-        public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        public virtual ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
         {
             return new ValueTask<object?>(Source.SingleOrDefault());
         }
 
-        public string Print()
+        public virtual string Print()
         {
             return Source.ToString() ?? "";
         }
