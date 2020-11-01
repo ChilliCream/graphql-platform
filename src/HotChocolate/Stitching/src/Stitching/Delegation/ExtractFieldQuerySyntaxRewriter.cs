@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Delegation
 {
     public partial class ExtractFieldQuerySyntaxRewriter
         : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>

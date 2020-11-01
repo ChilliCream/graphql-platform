@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.Design;
 
 namespace HotChocolate.Execution.Configuration
 {
@@ -15,20 +16,13 @@ namespace HotChocolate.Execution.Configuration
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        /*
         public NamedRequestExecutorFactoryOptions(
             NameString schemaName,
             RequestExecutorFactoryOptions options)
         {
             SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _configure = o =>
-            {
-                options.Pipeline
-
-
-            }
+            _configure = options.CopyTo;
         }
-        */
 
         public NameString SchemaName { get; }
 
