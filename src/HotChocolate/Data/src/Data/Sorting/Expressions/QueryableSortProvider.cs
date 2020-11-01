@@ -54,29 +54,23 @@ namespace HotChocolate.Data.Sorting.Expressions
                     return;
                 }
 
-                IQueryable<TEntityType>? source = null;
-
-                if (context.Result is IQueryable<TEntityType> q)
-                {
-                    source = q;
-                }
-                else if (context.Result is IEnumerable<TEntityType> e)
-                {
-                    source = e.AsQueryable();
-                }
-
-                if (source != null &&
-                    argument.Type is ListType lt &&
+                if (argument.Type is ListType lt &&
                     lt.ElementType is ISortInputType sortInput &&
                     context.Field.ContextData.TryGetValue(
                         ContextVisitSortArgumentKey,
                         out object? executorObj) &&
                     executorObj is VisitSortArgument executor)
                 {
+                    var inMemory =
+                        context.Result is IQueryableExecutable<TEntityType> executable &&
+                        executable.InMemory ||
+                        context.Result is not IQueryable ||
+                        context.Result is EnumerableQuery;
+
                     QueryableSortContext visitorContext = executor(
                         sort,
                         sortInput,
-                        source is EnumerableQuery);
+                        inMemory);
 
                     // compile expression tree
                     if (visitorContext.Errors.Count > 0)
@@ -89,7 +83,14 @@ namespace HotChocolate.Data.Sorting.Expressions
                     }
                     else
                     {
-                        context.Result = visitorContext.Sort(source);
+                        context.Result = context.Result switch
+                        {
+                            IQueryable<TEntityType> q => visitorContext.Sort(q),
+                            IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
+                            IQueryableExecutable<TEntityType> ex =>
+                                ex.WithSource(visitorContext.Sort(ex.Source)),
+                            _ => context.Result
+                        };
                     }
                 }
             }
