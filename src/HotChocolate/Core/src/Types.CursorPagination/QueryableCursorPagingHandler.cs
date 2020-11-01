@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Data;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
@@ -19,17 +20,22 @@ namespace HotChocolate.Types.Pagination
             object source,
             CursorPagingArguments arguments)
         {
-            if (source is IQueryable<TEntity> queryable)
+            return source switch
             {
-                return ResolveAsync(queryable, arguments, context.RequestAborted);
-            }
-
-            if (source is IEnumerable<TEntity> enumerable)
-            {
-                return ResolveAsync(enumerable.AsQueryable(), arguments, context.RequestAborted);
-            }
-
-            throw new GraphQLException("Cannot handle the specified data source.");
+                IQueryable<TEntity> queryable => ResolveAsync(
+                    queryable,
+                    arguments,
+                    context.RequestAborted),
+                IEnumerable<TEntity> enumerable => ResolveAsync(
+                    enumerable.AsQueryable(),
+                    arguments,
+                    context.RequestAborted),
+                IQueryableExecutable<TEntity> executable => ResolveAsync(
+                    executable.Source,
+                    arguments,
+                    context.RequestAborted),
+                _ => throw new GraphQLException("Cannot handle the specified data source.")
+            };
         }
 
         private async ValueTask<Connection> ResolveAsync(
