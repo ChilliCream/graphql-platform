@@ -15,13 +15,10 @@ namespace HotChocolate.Data
 
         public IQueryable<T> Source { get; }
 
+        object IExecutable.Source => Source;
+
         public bool InMemory { get; }
 
-        /// <summary>
-        /// Returns a new enumerable executable with the provided source
-        /// </summary>
-        /// <param name="source">The source that should be set</param>
-        /// <returns>The new instance of an enumerable executable</returns>
         public QueryableExecutable<T> WithSource(IQueryable<T> source)
         {
             return new QueryableExecutable<T>(source);

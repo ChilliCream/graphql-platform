@@ -13,6 +13,11 @@ namespace HotChocolate
     public interface IExecutable
     {
         /// <summary>
+        /// The current state of the executable
+        /// </summary>
+        object Source { get; }
+
+        /// <summary>
         /// Executes the executable and returns a list
         /// </summary>
         /// <param name="cancellationToken">

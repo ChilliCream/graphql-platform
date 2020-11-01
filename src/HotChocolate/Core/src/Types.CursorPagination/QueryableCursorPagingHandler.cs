@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Data;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
@@ -22,18 +21,12 @@ namespace HotChocolate.Types.Pagination
         {
             return source switch
             {
-                IQueryable<TEntity> queryable => ResolveAsync(
-                    queryable,
-                    arguments,
-                    context.RequestAborted),
-                IEnumerable<TEntity> enumerable => ResolveAsync(
-                    enumerable.AsQueryable(),
-                    arguments,
-                    context.RequestAborted),
-                IQueryableExecutable<TEntity> executable => ResolveAsync(
-                    executable.Source,
-                    arguments,
-                    context.RequestAborted),
+                IQueryable<TEntity> queryable =>
+                    ResolveAsync(queryable, arguments, context.RequestAborted),
+                IEnumerable<TEntity> enumerable =>
+                    ResolveAsync(enumerable.AsQueryable(), arguments, context.RequestAborted),
+                IExecutable<TEntity> ex when ex.Source is IQueryable<TEntity> executableSource =>
+                    ResolveAsync(executableSource, arguments, context.RequestAborted),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
         }

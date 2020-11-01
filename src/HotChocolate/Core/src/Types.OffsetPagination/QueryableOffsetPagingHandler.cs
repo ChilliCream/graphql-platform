@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Data;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Pagination
@@ -31,7 +30,8 @@ namespace HotChocolate.Types.Pagination
             {
                 IQueryable<TItemType> q => q,
                 IEnumerable<TItemType> e => e.AsQueryable(),
-                IQueryableExecutable<TItemType> e => e.Source,
+                IExecutable<TItemType> e when e.Source is IQueryable<TItemType> executableSource =>
+                    executableSource,
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
 

@@ -7,7 +7,7 @@ namespace HotChocolate.Data
         /// <summary>
         /// The current state of the executable
         /// </summary>
-        IQueryable<T> Source { get; }
+        new IQueryable<T> Source { get; }
 
         /// <summary>
         /// Is true if <see cref="IQueryableExecutable{T}.Source"/> source is a in memory query and
