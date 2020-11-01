@@ -1,0 +1,16 @@
+﻿{
+  "result": [
+    {
+      "Id": 1,
+      "Name": "Foo",
+      "Books": [
+        {
+          "Id": 1,
+          "AuthorId": 1,
+          "Title": "Foo1"
+        }
+      ]
+    }
+  ],
+  "executable": "SELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\"\nWHERE \"a\".\"Name\" = 'Foo'"
+}

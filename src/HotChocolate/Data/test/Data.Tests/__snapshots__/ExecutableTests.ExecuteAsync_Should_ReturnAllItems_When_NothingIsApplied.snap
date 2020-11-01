@@ -1,0 +1,41 @@
+﻿{
+  "result": [
+    {
+      "Id": 1,
+      "Name": "Foo",
+      "Books": [
+        {
+          "Id": 1,
+          "AuthorId": 0,
+          "Title": "Foo1",
+          "Author": null
+        }
+      ]
+    },
+    {
+      "Id": 2,
+      "Name": "Bar",
+      "Books": [
+        {
+          "Id": 2,
+          "AuthorId": 0,
+          "Title": "Bar1",
+          "Author": null
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Baz",
+      "Books": [
+        {
+          "Id": 3,
+          "AuthorId": 0,
+          "Title": "Baz1",
+          "Author": null
+        }
+      ]
+    }
+  ],
+  "executable": "HotChocolate.Data.Author[]"
+}

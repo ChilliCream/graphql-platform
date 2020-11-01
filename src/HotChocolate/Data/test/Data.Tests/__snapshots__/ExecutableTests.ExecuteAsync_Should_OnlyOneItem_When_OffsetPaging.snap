@@ -1,0 +1,23 @@
+﻿{
+  "result": {
+    "Items": [
+      {
+        "Id": 2,
+        "Name": "Bar",
+        "Books": [
+          {
+            "Id": 2,
+            "AuthorId": 0,
+            "Title": "Bar1",
+            "Author": null
+          }
+        ]
+      }
+    ],
+    "Info": {
+      "HasNextPage": true,
+      "HasPreviousPage": true
+    }
+  },
+  "executable": "HotChocolate.Data.Author[]"
+}

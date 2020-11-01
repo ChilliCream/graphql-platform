@@ -15,7 +15,7 @@ namespace HotChocolate.Data
             _dbSet = dbSet;
         }
 
-        async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
+        async ValueTask<object?> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
         {
             return await ExecuteAsync(cancellationToken);
         }

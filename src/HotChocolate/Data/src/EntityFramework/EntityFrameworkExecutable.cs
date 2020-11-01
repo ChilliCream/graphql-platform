@@ -13,6 +13,11 @@ namespace HotChocolate.Data
         {
         }
 
+        public override string Print()
+        {
+            return BuildPipeline(Source).ToQueryString();
+        }
+
         protected override async ValueTask<object> ApplyToListAsync(
             IQueryable<T> result,
             CancellationToken cancellationToken) =>

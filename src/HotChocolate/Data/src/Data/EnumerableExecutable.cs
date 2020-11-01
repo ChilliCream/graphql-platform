@@ -90,30 +90,7 @@ namespace HotChocolate.Data
 
         public virtual async ValueTask<object?> ExecuteAsync(CancellationToken cancellationToken)
         {
-            IQueryable<T> result;
-            if (Source is IQueryable<T> q)
-            {
-                result = q;
-            }
-            else
-            {
-                result = Source.AsQueryable();
-            }
-
-            if (_sortExpression is not null)
-            {
-                result = ApplySorting(result, _sortExpression);
-            }
-
-            if (_filterExpression is not null)
-            {
-                result = ApplyFiltering(result, _filterExpression);
-            }
-
-            if (_projectionExpression is not null)
-            {
-                result = ApplyProjections(result, _projectionExpression);
-            }
+            IQueryable<T> result = BuildPipeline(Source);
 
             if (_firstOrDefault)
             {
@@ -150,9 +127,39 @@ namespace HotChocolate.Data
                 .ConfigureAwait(false);
         }
 
-        public string Print()
+        public virtual string Print()
         {
-            return Source.ToString() ?? "";
+            return BuildPipeline(Source).ToString() ?? "";
+        }
+
+        protected virtual IQueryable<T> BuildPipeline(IEnumerable<T> enumerable)
+        {
+            IQueryable<T> result;
+            if (Source is IQueryable<T> q)
+            {
+                result = q;
+            }
+            else
+            {
+                result = Source.AsQueryable();
+            }
+
+            if (_sortExpression is not null)
+            {
+                result = ApplySorting(result, _sortExpression);
+            }
+
+            if (_filterExpression is not null)
+            {
+                result = ApplyFiltering(result, _filterExpression);
+            }
+
+            if (_projectionExpression is not null)
+            {
+                result = ApplyProjections(result, _projectionExpression);
+            }
+
+            return result;
         }
 
         protected virtual async Task<object?> ApplySingleOrDefaultAsync(

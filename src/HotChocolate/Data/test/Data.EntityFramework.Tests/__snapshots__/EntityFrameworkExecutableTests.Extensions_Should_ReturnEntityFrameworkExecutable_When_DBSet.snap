@@ -1,0 +1,2 @@
+﻿SELECT "a"."Id", "a"."Name"
+FROM "Authors" AS "a"

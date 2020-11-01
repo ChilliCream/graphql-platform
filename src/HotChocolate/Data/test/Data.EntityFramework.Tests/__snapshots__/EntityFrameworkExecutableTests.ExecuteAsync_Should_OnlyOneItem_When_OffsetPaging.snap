@@ -1,0 +1,22 @@
+﻿{
+  "result": {
+    "Items": [
+      {
+        "Id": 2,
+        "Name": "Bar",
+        "Books": [
+          {
+            "Id": 2,
+            "AuthorId": 2,
+            "Title": "Bar1"
+          }
+        ]
+      }
+    ],
+    "Info": {
+      "HasNextPage": true,
+      "HasPreviousPage": true
+    }
+  },
+  "executable": "SELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\""
+}

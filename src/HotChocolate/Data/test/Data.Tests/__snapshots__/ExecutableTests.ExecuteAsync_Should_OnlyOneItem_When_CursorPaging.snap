@@ -1,0 +1,30 @@
+﻿{
+  "result": {
+    "Edges": [
+      {
+        "Index": 0,
+        "Node": {
+          "Id": 1,
+          "Name": "Foo",
+          "Books": [
+            {
+              "Id": 1,
+              "AuthorId": 0,
+              "Title": "Foo1",
+              "Author": null
+            }
+          ]
+        },
+        "Cursor": "MA=="
+      }
+    ],
+    "Info": {
+      "HasNextPage": true,
+      "HasPreviousPage": false,
+      "StartCursor": "MA==",
+      "EndCursor": "MA==",
+      "TotalCount": 3
+    }
+  },
+  "executable": "HotChocolate.Data.Author[]"
+}

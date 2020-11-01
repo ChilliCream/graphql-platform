@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using HotChocolate.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Data
 {
     public static class EntityFrameworkEnumerableExtensions
     {
@@ -11,9 +10,9 @@ namespace HotChocolate.Types
         {
             return new EntityFrameworkExecutable<T>(source);
         }
-        
+
         public static IExecutable<T> AsEntityFrameworkExecutable<T>(
-            this IEnumerable<T> source) 
+            this IEnumerable<T> source)
         {
             return new EntityFrameworkExecutable<T>(source);
         }
