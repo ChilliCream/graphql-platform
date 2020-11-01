@@ -21,29 +21,32 @@ namespace HotChocolate.Data.Projections
         {
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is IAsyncEnumerable<T> ae)
+            switch (context.Result)
             {
-                await using IAsyncEnumerator<T> enumerator =
-                    ae.GetAsyncEnumerator(context.RequestAborted);
+                case IAsyncEnumerable<T> ae:
+                {
+                    await using IAsyncEnumerator<T> enumerator =
+                        ae.GetAsyncEnumerator(context.RequestAborted);
 
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = enumerator.Current;
+                    if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        context.Result = enumerator.Current;
+                    }
+                    else
+                    {
+                        context.Result = default(T)!;
+                    }
+
+                    break;
                 }
-                else
-                {
-                    context.Result = default(T)!;
-                }
-            }
-            else if (context.Result is IEnumerable<T> e)
-            {
-                context.Result = await Task
-                    .Run(() => e.FirstOrDefault(), context.RequestAborted)
-                    .ConfigureAwait(false);
-            }
-            else if (context.Result is IExecutable ex)
-            {
-                context.Result = await ex.FirstOrDefaultAsync(context.RequestAborted);
+                case IEnumerable<T> e:
+                    context.Result = await Task
+                        .Run(() => e.FirstOrDefault(), context.RequestAborted)
+                        .ConfigureAwait(false);
+                    break;
+                case IExecutable ex:
+                    context.Result = await ex.FirstOrDefaultAsync(context.RequestAborted);
+                    break;
             }
         }
     }
