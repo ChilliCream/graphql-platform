@@ -120,7 +120,6 @@ namespace HotChocolate.Stitching.Redis
             RequestExecutorSetup options =
                 await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
                     .ConfigureAwait(false);
-            options.Pipeline.Clear();
 
             factoryOptions.Add(new ConfigureRequestExecutorSetup(schemaDefinition.Name, options));
 

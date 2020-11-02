@@ -1,7 +1,9 @@
 using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.Redis;
+using HotChocolate.Stitching.Requests;
 using StackExchange.Redis;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -28,6 +30,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new RedisExecutorOptionsProvider(
                     builder.Name, configurationName, database, subscriber);
             });
+
+            // Last but not least, we will setup the stitching context which will
+            // provide access to the remote executors which in turn use the just configured
+            // request executor proxies to send requests to the downstream services.
+            builder.Services.TryAddScoped<IStitchingContext, StitchingContext>();
 
             return builder;
         }

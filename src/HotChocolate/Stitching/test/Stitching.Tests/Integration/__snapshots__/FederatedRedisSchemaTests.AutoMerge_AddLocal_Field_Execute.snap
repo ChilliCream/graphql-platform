@@ -1,16 +1,23 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
+  "data": {
+    "me": {
+      "id": 1,
+      "name": "Ada Lovelace",
+      "reviews": [
         {
-          "line": 2,
-          "column": 21
+          "body": "Love it!",
+          "product": {
+            "upc": 1
+          }
+        },
+        {
+          "body": "Too expensive.",
+          "product": {
+            "upc": 2
+          }
         }
-      ],
-      "path": [
-        "me"
       ]
-    }
-  ]
+    },
+    "local": "I am local."
+  }
 }
