@@ -230,17 +230,17 @@ namespace HotChocolate.Stitching.Requests
 
         private static Path ReplaceRoot(Path path, string responseName)
         {
-            Path[] buffer = ArrayPool<Path>.Shared.Rent(path.Depth);
-            Span<Path> paths = buffer.AsSpan().Slice(0, path.Depth);
+            var depth = path.Depth + 1;
+            Path[] buffer = ArrayPool<Path>.Shared.Rent(depth);
+            Span<Path> paths = buffer.AsSpan().Slice(0, depth);
 
             try
             {
-                var i = path.Depth;
                 Path? current = path;
 
                 do
                 {
-                    paths[--i] = current;
+                    paths[--depth] = current;
                     current = current.Parent;
                 } while (current is not null && current is not RootPathSegment);
 
@@ -248,7 +248,7 @@ namespace HotChocolate.Stitching.Requests
 
                 current = Path.New(responseName);
 
-                for (i = 0; i < paths.Length; i++)
+                for (int i = 0; i < paths.Length; i++)
                 {
                     if (paths[i] is IndexerPathSegment index)
                     {

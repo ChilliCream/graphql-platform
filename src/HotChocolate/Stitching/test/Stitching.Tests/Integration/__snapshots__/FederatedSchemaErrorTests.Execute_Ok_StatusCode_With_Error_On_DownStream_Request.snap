@@ -1,0 +1,26 @@
+﻿{
+  "errors": [
+    {
+      "message": "The argument \u0060first\u0060 is required.",
+      "extensions": {
+        "type": "Query",
+        "field": "topProducts",
+        "argument": "first",
+        "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments",
+        "remote": {
+          "message": "The argument \u0060first\u0060 is required.",
+          "extensions": {
+            "type": "Query",
+            "field": "topProducts",
+            "argument": "first",
+            "specifiedBy": "http://spec.graphql.org/June2018/#sec-Required-Arguments"
+          }
+        },
+        "schemaName": "products"
+      }
+    }
+  ],
+  "data": {
+    "topProducts": null
+  }
+}
