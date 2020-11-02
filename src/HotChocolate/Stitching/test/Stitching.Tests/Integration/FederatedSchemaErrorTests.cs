@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +15,7 @@ using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Language;
+using Snapshooter;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -111,7 +113,12 @@ namespace HotChocolate.Stitching.Integration
                 }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            Assert.Collection(
+                result.Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
+                t => Assert.Equal("/a[0]/error", t),
+                t => Assert.Equal("/b[0]/error", t),
+                t => Assert.Equal("/b[1]/error", t));
+
         }
 
         public TestServer CreateAccountsService() =>
