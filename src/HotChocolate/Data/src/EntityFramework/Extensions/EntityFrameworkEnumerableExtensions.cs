@@ -12,7 +12,7 @@ namespace HotChocolate.Data
         }
 
         public static IExecutable<T> AsEntityFrameworkExecutable<T>(
-            this IQueryable source)
+            this IQueryable<T> source)
         {
             return new EntityFrameworkExecutable<T>(source);
         }

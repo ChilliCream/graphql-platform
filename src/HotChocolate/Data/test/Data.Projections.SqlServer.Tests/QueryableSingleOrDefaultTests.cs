@@ -133,6 +133,35 @@ namespace HotChocolate.Data.Projections.Expressions
         }
 
         [Fact]
+        public async Task Create_DeepFilterObjectTwoProjections_Executable()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema(_barEntities, OnModelCreating);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            rootExecutable {
+                                foo {
+                                    objectArray {
+                                        foo {
+                                            barString
+                                            barShort
+                                        }
+                                    }
+                                }
+                            }
+                        }")
+                    .Create());
+
+            res1.MatchSqlSnapshot();
+        }
+
+        [Fact]
         public async Task Create_ListObjectDifferentLevelProjection()
         {
             // arrange

@@ -1,0 +1,14 @@
+﻿{
+  "result": {
+    "Id": 1,
+    "Name": "Foo",
+    "Books": [
+      {
+        "Id": 1,
+        "AuthorId": 1,
+        "Title": "Foo1"
+      }
+    ]
+  },
+  "executable": ".param set @__p_0 1\n\nSELECT \"a\".\"Id\", \"a\".\"Name\"\nFROM \"Authors\" AS \"a\"\nLIMIT @__p_0"
+}
