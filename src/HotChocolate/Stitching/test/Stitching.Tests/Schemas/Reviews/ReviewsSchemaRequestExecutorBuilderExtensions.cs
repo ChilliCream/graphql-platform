@@ -12,20 +12,7 @@ namespace HotChocolate.Stitching.Schemas.Reviews
                 .AddSingleton<ReviewRepository>();
 
             return builder
-                .AddQueryType<Query>()
-                .PublishSchemaDefinition(c => c
-                    .SetName("reviews")
-                    .IgnoreRootTypes()
-                    .AddTypeExtensionsFromString(
-                        @"extend type User {
-                            reviews: [Review]
-                                @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
-                        }
-
-                        extend type Product {
-                            reviews: [Review]
-                                @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
-                        }"));
+                .AddQueryType<Query>();
         }
     }
 }

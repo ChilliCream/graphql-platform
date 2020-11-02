@@ -1,38 +1,32 @@
 using System;
+using System.ComponentModel.Design;
 
 namespace HotChocolate.Execution.Configuration
 {
-    public sealed class NamedRequestExecutorFactoryOptions
-        : INamedRequestExecutorFactoryOptions
+    public sealed class ConfigureRequestExecutorSetup
+        : IConfigureRequestExecutorSetup
     {
-        private readonly Action<RequestExecutorFactoryOptions> _configure;
+        private readonly Action<RequestExecutorSetup> _configure;
 
-        public NamedRequestExecutorFactoryOptions(
+        public ConfigureRequestExecutorSetup(
             NameString schemaName,
-            Action<RequestExecutorFactoryOptions> configure)
+            Action<RequestExecutorSetup> configure)
         {
             SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
             _configure = configure ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        /*
-        public NamedRequestExecutorFactoryOptions(
+        public ConfigureRequestExecutorSetup(
             NameString schemaName,
-            RequestExecutorFactoryOptions options)
+            RequestExecutorSetup options)
         {
             SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            _configure = o =>
-            {
-                options.Pipeline
-
-
-            }
+            _configure = options.CopyTo;
         }
-        */
 
         public NameString SchemaName { get; }
 
-        public void Configure(RequestExecutorFactoryOptions options)
+        public void Configure(RequestExecutorSetup options)
         {
             if (options is null)
             {

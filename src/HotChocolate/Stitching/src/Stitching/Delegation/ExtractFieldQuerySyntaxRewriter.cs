@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Delegation
 {
     public partial class ExtractFieldQuerySyntaxRewriter
         : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
@@ -112,7 +113,7 @@ namespace HotChocolate.Stitching.Utilities
             FieldNode current = node;
 
             if (field.TryGetSourceDirective(context.Schema,
-                out SourceDirective sourceDirective))
+                out SourceDirective? sourceDirective))
             {
                 if (current.Alias == null)
                 {
@@ -162,7 +163,7 @@ namespace HotChocolate.Stitching.Utilities
 
             FieldNode current = node;
 
-            for (int i = 0; i < _rewriters.Length; i++)
+            for (var i = 0; i < _rewriters.Length; i++)
             {
                 current = _rewriters[i].OnRewriteField(
                     context.Schema,

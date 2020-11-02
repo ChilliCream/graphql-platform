@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Delegation
 {
     public class ExtractedField
     {

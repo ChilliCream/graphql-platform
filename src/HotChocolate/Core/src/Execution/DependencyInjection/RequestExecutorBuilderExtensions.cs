@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(configureSchema)));
+                    new SchemaBuilderAction((sp, sb) => configureSchema(sb))));
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(configureSchema)));
+                    new SchemaBuilderAction((sp, sb, ct) => configureSchema(sb, ct))));
         }
 
         /// <summary>
@@ -113,8 +113,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return Configure(
                 builder,
-                (services, options) => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(b => configureSchema(services, b))));
+                options => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction(configureSchema)));
         }
 
         /// <summary>
@@ -150,8 +150,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return Configure(
                 builder,
-                (services, options) => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((b, ct) => configureSchema(services, b, ct))));
+                options => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction(configureSchema)));
         }
 
         /// <summary>
@@ -407,7 +407,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
-            Action<RequestExecutorFactoryOptions> configure)
+            Action<RequestExecutorSetup> configure)
         {
             builder.Services.Configure(builder.Name, configure);
             return builder;
@@ -415,10 +415,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
-            Action<IServiceProvider, RequestExecutorFactoryOptions> configure)
+            Action<IServiceProvider, RequestExecutorSetup> configure)
         {
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(
-                services => new ConfigureNamedOptions<RequestExecutorFactoryOptions>(
+            builder.Services.AddTransient<IConfigureOptions<RequestExecutorSetup>>(
+                services => new ConfigureNamedOptions<RequestExecutorSetup>(
                     builder.Name,
                     options => configure(services, options)));
 

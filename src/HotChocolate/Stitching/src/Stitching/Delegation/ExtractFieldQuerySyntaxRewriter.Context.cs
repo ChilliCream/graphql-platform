@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Stitching.Delegation
 {
     public partial class ExtractFieldQuerySyntaxRewriter
     {

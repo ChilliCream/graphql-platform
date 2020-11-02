@@ -16,12 +16,12 @@ namespace HotChocolate.Stitching.Requests
             IBatchScheduler batchScheduler,
             IRequestContextAccessor requestContextAccessor)
         {
-            if (batchScheduler == null)
+            if (batchScheduler is null)
             {
                 throw new ArgumentNullException(nameof(batchScheduler));
             }
 
-            if (requestContextAccessor == null)
+            if (requestContextAccessor is null)
             {
                 throw new ArgumentNullException(nameof(requestContextAccessor));
             }
