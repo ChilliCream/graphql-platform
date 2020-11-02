@@ -1,10 +1,10 @@
 ﻿{
   "errors": [
     {
-      "message": "error",
+      "message": "error_message_query",
       "extensions": {
         "remote": {
-          "message": "error"
+          "message": "error_message_query"
         },
         "schemaName": "products"
       }

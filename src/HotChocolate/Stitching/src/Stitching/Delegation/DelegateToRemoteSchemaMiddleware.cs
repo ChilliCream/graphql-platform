@@ -287,7 +287,7 @@ namespace HotChocolate.Stitching.Delegation
                     }
                 }
 
-                paths = paths.Slice(depth);
+                paths = depth == 0 ? paths.Slice(1) : paths.Slice(depth);
 
                 if (paths.Length == 0)
                 {
