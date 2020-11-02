@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
-using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 
 namespace HotChocolate.Stitching.Redis
@@ -30,28 +30,28 @@ namespace HotChocolate.Stitching.Redis
             subscriber.Subscribe(configurationName.Value).OnMessage(OnChangeMessageAsync);
         }
 
-        public async ValueTask<IEnumerable<INamedRequestExecutorFactoryOptions>> GetOptionsAsync(
+        public async ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
             CancellationToken cancellationToken)
         {
             IEnumerable<RemoteSchemaDefinition> schemaDefinitions =
                 await GetSchemaDefinitionsAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-            var factoryOptions = new List<INamedRequestExecutorFactoryOptions>();
+            var factoryOptions = new List<IConfigureRequestExecutorSetup>();
 
             foreach (RemoteSchemaDefinition schemaDefinition in schemaDefinitions)
             {
                 await CreateFactoryOptionsAsync(
-                        schemaDefinition,
-                        factoryOptions,
-                        cancellationToken)
+                    schemaDefinition,
+                    factoryOptions,
+                    cancellationToken)
                     .ConfigureAwait(false);
             }
 
             return factoryOptions;
         }
 
-        public IDisposable OnChange(Action<INamedRequestExecutorFactoryOptions> listener) =>
+        public IDisposable OnChange(Action<IConfigureRequestExecutorSetup> listener) =>
             new OnChangeListener(_listeners, listener);
 
         private async Task OnChangeMessageAsync(ChannelMessage message)
@@ -62,7 +62,7 @@ namespace HotChocolate.Stitching.Redis
                 await GetRemoteSchemaDefinitionAsync(schemaName)
                     .ConfigureAwait(false);
 
-            var factoryOptions = new List<INamedRequestExecutorFactoryOptions>();
+            var factoryOptions = new List<IConfigureRequestExecutorSetup>();
             await CreateFactoryOptionsAsync(schemaDefinition, factoryOptions, default)
                 .ConfigureAwait(false);
 
@@ -70,7 +70,7 @@ namespace HotChocolate.Stitching.Redis
             {
                 foreach (OnChangeListener listener in _listeners)
                 {
-                    foreach (INamedRequestExecutorFactoryOptions options in factoryOptions)
+                    foreach (IConfigureRequestExecutorSetup options in factoryOptions)
                     {
                         listener.OnChange(options);
                     }
@@ -81,9 +81,7 @@ namespace HotChocolate.Stitching.Redis
         private async ValueTask<IEnumerable<RemoteSchemaDefinition>> GetSchemaDefinitionsAsync(
             CancellationToken cancellationToken)
         {
-            var length = await _database.ListLengthAsync(_configurationName.Value)
-                .ConfigureAwait(false);
-            RedisValue[] items = await _database.ListRangeAsync(_configurationName.Value, 0, length)
+            RedisValue[] items = await _database.SetMembersAsync(_configurationName.Value)
                 .ConfigureAwait(false);
 
             var schemaDefinitions = new List<RemoteSchemaDefinition>();
@@ -104,7 +102,7 @@ namespace HotChocolate.Stitching.Redis
 
         private async Task CreateFactoryOptionsAsync(
             RemoteSchemaDefinition schemaDefinition,
-            IList<INamedRequestExecutorFactoryOptions> factoryOptions,
+            IList<IConfigureRequestExecutorSetup> factoryOptions,
             CancellationToken cancellationToken)
         {
             await using ServiceProvider services =
@@ -119,17 +117,18 @@ namespace HotChocolate.Stitching.Redis
             IRequestExecutorOptionsMonitor optionsMonitor =
                 services.GetRequiredService<IRequestExecutorOptionsMonitor>();
 
-            RequestExecutorFactoryOptions options =
+            RequestExecutorSetup options =
                 await optionsMonitor.GetAsync(schemaDefinition.Name, cancellationToken)
                     .ConfigureAwait(false);
+            options.Pipeline.Clear();
 
-            factoryOptions.Add(new NamedRequestExecutorFactoryOptions(schemaDefinition.Name, options));
+            factoryOptions.Add(new ConfigureRequestExecutorSetup(schemaDefinition.Name, options));
 
             options =
                 await optionsMonitor.GetAsync(_schemaName, cancellationToken)
                     .ConfigureAwait(false);
 
-            factoryOptions.Add(new NamedRequestExecutorFactoryOptions(_schemaName, options));
+            factoryOptions.Add(new ConfigureRequestExecutorSetup(_schemaName, options));
         }
 
         private async Task<RemoteSchemaDefinition> GetRemoteSchemaDefinitionAsync(string schemaName)
@@ -147,11 +146,11 @@ namespace HotChocolate.Stitching.Redis
         private sealed class OnChangeListener : IDisposable
         {
             private readonly List<OnChangeListener> _listeners;
-            private readonly Action<INamedRequestExecutorFactoryOptions> _onChange;
+            private readonly Action<IConfigureRequestExecutorSetup> _onChange;
 
             public OnChangeListener(
                 List<OnChangeListener> listeners,
-                Action<INamedRequestExecutorFactoryOptions> onChange)
+                Action<IConfigureRequestExecutorSetup> onChange)
             {
                 _listeners = listeners;
                 _onChange = onChange;
@@ -162,7 +161,7 @@ namespace HotChocolate.Stitching.Redis
                 }
             }
 
-            public void OnChange(INamedRequestExecutorFactoryOptions options) =>
+            public void OnChange(IConfigureRequestExecutorSetup options) =>
                 _onChange(options);
 
             public void Dispose()

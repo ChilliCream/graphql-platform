@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <PackageId>HotChocolate.Stitching.Redis</PackageId>
-    <AssemblyName>HotChocolate.Stitching.Redis</AssemblyName>
     <RootNamespace>HotChocolate.Stitching.Redis</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
     <Nullable>enable</Nullable>

@@ -5,7 +5,7 @@ using HotChocolate.Execution.Options;
 
 namespace HotChocolate.Execution.Configuration
 {
-    public class RequestExecutorFactoryOptions
+    public class RequestExecutorSetup
     {
         private readonly List<SchemaBuilderAction> _schemaBuilderActions =
             new List<SchemaBuilderAction>();
@@ -44,7 +44,7 @@ namespace HotChocolate.Execution.Configuration
         public IList<OnRequestExecutorEvictedAction> OnRequestExecutorEvicted =>
             _onRequestExecutorEvicted;
 
-        public void CopyTo(RequestExecutorFactoryOptions options)
+        public void CopyTo(RequestExecutorSetup options)
         {
             options.Schema = Schema;
             options.SchemaBuilder = SchemaBuilder;

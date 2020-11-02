@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-#if NETSTANDARD2_0
+using System.Threading;
 using System.Threading.Tasks;
-#endif
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -17,12 +16,16 @@ namespace HotChocolate.Stitching.SchemaDefinitions
         private readonly IRequestExecutorBuilder _builder;
         private readonly string _key = Guid.NewGuid().ToString();
         private readonly List<DirectiveNode> _schemaDirectives = new List<DirectiveNode>();
+        private Func<IServiceProvider,  ISchemaDefinitionPublisher>? _publisherFactory;
         private NameString _name;
+        private RemoteSchemaDefinition? _schemaDefinition;
 
         public PublishSchemaDefinitionDescriptor(IRequestExecutorBuilder builder)
         {
             _builder = builder;
         }
+
+        public bool HasPublisher => _publisherFactory is not null;
 
         public IPublishSchemaDefinitionDescriptor SetName(NameString name)
         {
@@ -95,6 +98,13 @@ namespace HotChocolate.Stitching.SchemaDefinitions
             return this;
         }
 
+        public IPublishSchemaDefinitionDescriptor SetSchemaDefinitionPublisher(
+            Func<IServiceProvider, ISchemaDefinitionPublisher> publisherFactory)
+        {
+            _publisherFactory = publisherFactory;
+            return this;
+        }
+
         public IPublishSchemaDefinitionDescriptor IgnoreRootTypes()
         {
             _schemaDirectives.Add(new DirectiveNode(DirectiveNames.RemoveRootTypes));
@@ -150,10 +160,25 @@ namespace HotChocolate.Stitching.SchemaDefinitions
                 extensionDocuments.Add(new DocumentNode(new[] { schemaExtension }));
             }
 
-            return new RemoteSchemaDefinition(
+            _schemaDefinition = new RemoteSchemaDefinition(
                 _name.HasValue ? _name : schema.Name,
                 schema.ToDocument(),
                 extensionDocuments);
+
+            return _schemaDefinition;
+        }
+
+        public async ValueTask PublishAsync(
+            IServiceProvider applicationServices,
+            CancellationToken cancellationToken = default)
+        {
+            if (_publisherFactory is not null &&
+                _schemaDefinition is not null)
+            {
+                ISchemaDefinitionPublisher publisher = _publisherFactory(applicationServices);
+                await publisher.PublishAsync(_schemaDefinition, cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
     }
 }

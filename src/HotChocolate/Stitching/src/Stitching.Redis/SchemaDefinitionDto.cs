@@ -9,6 +9,6 @@ namespace HotChocolate.Stitching.Redis
 
         public string? Document { get; set; }
 
-        public List<string> ExtensionDocuments { get; } = new List<string>();
+        public List<string> ExtensionDocuments { get; set; } = new List<string>();
     }
 }

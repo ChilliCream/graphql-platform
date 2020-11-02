@@ -3,10 +3,10 @@ using Microsoft.Extensions.Options;
 namespace HotChocolate.Execution.Configuration
 {
     /// <summary>
-    /// Represents something that configures the <see cref="RequestExecutorFactoryOptions"/>.
+    /// Represents something that configures the <see cref="RequestExecutorSetup"/>.
     /// </summary>
-    public interface INamedRequestExecutorFactoryOptions
-        : IConfigureOptions<RequestExecutorFactoryOptions>
+    public interface IConfigureRequestExecutorSetup
+        : IConfigureOptions<RequestExecutorSetup>
     {
         /// <summary>
         /// The schema name to which this instance provides configurations to.

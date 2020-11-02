@@ -12,19 +12,7 @@ namespace HotChocolate.Stitching.Schemas.Accounts
                 .AddSingleton<UserRepository>();
 
             return builder
-                .AddGraphQLServer()
-                .AddQueryType<Query>()
-                .PublishSchemaDefinition(c => c
-                    .SetName("accounts")
-                    .IgnoreRootTypes()
-                    .AddTypeExtensionsFromString(
-                        @"extend type Query {
-                             me: User! @delegate(path: ""user(id: 1)"")
-                        }
-
-                        extend type Review {
-                            author: User @delegate(path: ""user(id: $fields:authorId)"")
-                        }"));
+                .AddQueryType<Query>();
         }
     }
 }
