@@ -8,8 +8,8 @@ namespace HotChocolate.Types.Pagination
 
         public bool? IncludeTotalCount { get; set; }
 
-        public bool? Forward { get; set; }
+        public bool Forward { get; set; }
 
-        public bool? Backward { get; set; }
+        public bool Backward { get; set; }
     }
 }

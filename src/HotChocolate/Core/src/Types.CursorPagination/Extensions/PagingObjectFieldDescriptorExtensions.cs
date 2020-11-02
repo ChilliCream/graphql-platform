@@ -41,7 +41,7 @@ namespace HotChocolate.Types
 
             resolvePagingProvider ??= ResolvePagingProvider;
 
-            descriptor.AddPagingArguments(options.Forward ?? true, options.Backward ?? true);
+            descriptor.AddPagingArguments(options.Forward, options.Backward);
 
             PagingHelper.UsePaging(
                 descriptor,
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
             }
 
             descriptor
-                .AddPagingArguments(options.Forward ?? true, options.Backward ?? true)
+                .AddPagingArguments(options.Forward, options.Backward)
                 .Extend()
                 .OnBeforeCreate(
                     (c, d) => d.Type = CreateConnectionTypeRef(c, d.Member, type, options));

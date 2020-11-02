@@ -68,18 +68,18 @@ namespace HotChocolate.Types
         /// <summary>
         /// Allow forward paging using <c>first</c> and <c>after</c>
         /// </summary>
-        public bool? Forward
+        public bool Forward
         {
-            get => _forward;
+            get => _forward ?? PagingDefaults.Forward;
             set => _forward = value;
         }
 
         /// <summary>
         /// Allow Backward paging using <c>last</c> and <c>before</c>
         /// </summary>
-        public bool? Backward
+        public bool Backward
         {
-            get => _backward;
+            get => _backward ?? PagingDefaults.Backward;
             set => _backward = value;
         }
 
@@ -99,8 +99,8 @@ namespace HotChocolate.Types
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
                             IncludeTotalCount = _includeTotalCount,
-                            Backward = _backward,
-                            Forward = _forward
+                            Backward = Backward,
+                            Forward = Forward
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -112,8 +112,8 @@ namespace HotChocolate.Types
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
                             IncludeTotalCount = _includeTotalCount,
-                            Backward = _backward,
-                            Forward = _forward
+                            Backward = Backward,
+                            Forward = Forward
                         });
                 }
             }
