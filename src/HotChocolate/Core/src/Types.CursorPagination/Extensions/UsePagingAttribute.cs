@@ -13,6 +13,8 @@ namespace HotChocolate.Types
         private int? _defaultPageSize;
         private int? _maxPageSize;
         private bool? _includeTotalCount;
+        private bool? _forward;
+        private bool? _backward;
 
         /// <summary>
         /// Applies the offset paging middleware to the annotated property.
@@ -63,6 +65,24 @@ namespace HotChocolate.Types
             set => _includeTotalCount = value;
         }
 
+        /// <summary>
+        /// Allow forward paging using <c>first</c> and <c>after</c>
+        /// </summary>
+        public bool? Forward
+        {
+            get => _forward;
+            set => _forward = value;
+        }
+
+        /// <summary>
+        /// Allow Backward paging using <c>last</c> and <c>before</c>
+        /// </summary>
+        public bool? Backward
+        {
+            get => _backward;
+            set => _backward = value;
+        }
+
         protected override void TryConfigure(
             IDescriptorContext context,
             IDescriptor descriptor,
@@ -78,7 +98,9 @@ namespace HotChocolate.Types
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            Backward = _backward,
+                            Forward = _forward
                         });
                 }
                 else if (descriptor is IInterfaceFieldDescriptor ifd)
@@ -89,7 +111,9 @@ namespace HotChocolate.Types
                         {
                             DefaultPageSize = _defaultPageSize,
                             MaxPageSize = _maxPageSize,
-                            IncludeTotalCount = _includeTotalCount
+                            IncludeTotalCount = _includeTotalCount,
+                            Backward = _backward,
+                            Forward = _forward
                         });
                 }
             }
