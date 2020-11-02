@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -13,17 +14,19 @@ using HotChocolate.Stitching.Schemas.Reviews;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Language;
+using Snapshooter;
 
 namespace HotChocolate.Stitching.Integration
 {
-    public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
+    public class FederatedSchemaErrorTests : IClassFixture<StitchingTestContext>
     {
         private const string _accounts = "accounts";
         private const string _inventory = "inventory";
         private const string _products = "products";
         private const string _reviews = "reviews";
 
-        public FederatedSchemaTests(StitchingTestContext context)
+        public FederatedSchemaErrorTests(StitchingTestContext context)
         {
             Context = context;
         }
@@ -53,7 +56,7 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
-        public async Task AutoMerge_Execute()
+        public async Task Execute_Error_StatusCode_On_DownStream_Request()
         {
             // arrange
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
@@ -72,16 +75,7 @@ namespace HotChocolate.Stitching.Integration
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
-                        }
-                    }
+                    error
                 }");
 
             // assert
@@ -89,7 +83,7 @@ namespace HotChocolate.Stitching.Integration
         }
 
         [Fact]
-        public async Task AutoMerge_AddLocal_Field_Execute()
+        public async Task Execute_Ok_StatusCode_With_Error_On_DownStream_Request()
         {
             // arrange
             IHttpClientFactory httpClientFactory = CreateDefaultRemoteSchemas();
@@ -98,7 +92,7 @@ namespace HotChocolate.Stitching.Integration
                 await new ServiceCollection()
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
-                    .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
+                    .AddQueryType(d => d.Name("Query"))
                     .AddRemoteSchema(_accounts)
                     .AddRemoteSchema(_inventory)
                     .AddRemoteSchema(_products)
@@ -108,21 +102,23 @@ namespace HotChocolate.Stitching.Integration
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
-                    me {
-                        id
-                        name
-                        reviews {
-                            body
-                            product {
-                                upc
-                            }
-                        }
+                    a: topProducts(first: 1) {
+                        upc
+                        error
                     }
-                    local
+                    b: topProducts(first: 2) {
+                        upc
+                        error
+                    }
                 }");
 
             // assert
-            result.ToJson().MatchSnapshot();
+            Assert.Collection(
+                result.Errors!.Select(t => t.Path!.ToString()).OrderBy(t => t),
+                t => Assert.Equal("/a[0]/error", t),
+                t => Assert.Equal("/b[0]/error", t),
+                t => Assert.Equal("/b[1]/error", t));
+
         }
 
         public TestServer CreateAccountsService() =>
@@ -177,12 +173,32 @@ namespace HotChocolate.Stitching.Integration
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddProductsSchema()
+                    .AddTypeExtension(new ObjectTypeExtension(d =>
+                    {
+                        d.Name("Query")
+                            .Field("error")
+                            .Type(new NonNullTypeNode(new NamedTypeNode("String")))
+                            .Resolve(() => throw new GraphQLException("error_message_query"));
+                    }))
+                    .AddTypeExtension(new ObjectTypeExtension(d =>
+                    {
+                        d.Name("Product")
+                            .Field("error")
+                            .Type(new NamedTypeNode("String"))
+                            .Resolve(ctx => throw new GraphQLException(
+                                ErrorBuilder.New()
+                                    .SetMessage("error_message_product")
+                                    .SetPath(ctx.Path)
+                                    .Build()));
+                    }))
                     .PublishSchemaDefinition(c => c
                         .SetName(_products)
                         .IgnoreRootTypes()
                         .AddTypeExtensionsFromString(
                             @"extend type Query {
                                 topProducts(first: Int = 5): [Product] @delegate
+                                auth: String! @delegate
+                                error: String! @delegate
                             }
 
                             extend type Review {
