@@ -1,13 +1,14 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 using HotChocolate.Utilities;
 
 #nullable enable
@@ -45,8 +46,10 @@ namespace HotChocolate.Stitching.Pipeline
             NameString targetSchema,
             CancellationToken cancellationToken = default)
         {
-            HttpRequestMessage requestMessage =
-                await CreateRequestAsync(request, targetSchema, cancellationToken)
+            using var writer = new ArrayWriter();
+
+            using HttpRequestMessage requestMessage =
+                await CreateRequestAsync(writer, request, targetSchema, cancellationToken)
                     .ConfigureAwait(false);
 
             return await FetchAsync(
@@ -71,12 +74,12 @@ namespace HotChocolate.Stitching.Pipeline
                     .SendAsync(requestMessage, cancellationToken)
                     .ConfigureAwait(false);
 
-                // TODO : we should rework this an try to inspect the payload for graphql errors.
-                responseMessage.EnsureSuccessStatusCode();
-
                 IQueryResult result =
-                    await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                    .ConfigureAwait(false);
+                    responseMessage.IsSuccessStatusCode
+                        ? await ParseResponseMessageAsync(responseMessage, cancellationToken)
+                            .ConfigureAwait(false)
+                        : await ParseErrorResponseMessageAsync(responseMessage, cancellationToken)
+                            .ConfigureAwait(false);
 
                 return await _requestInterceptor.OnReceivedResultAsync(
                     targetSchema,
@@ -86,15 +89,7 @@ namespace HotChocolate.Stitching.Pipeline
                     cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (HttpRequestException ex)
-            {
-                IError error = _errorHandler.CreateUnexpectedError(ex)
-                    .SetCode(ErrorCodes.Stitching.HttpRequestException)
-                    .Build();
-
-                return QueryResultBuilder.CreateError(error);
-            }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 IError error = _errorHandler.CreateUnexpectedError(ex)
                     .SetCode(ErrorCodes.Stitching.UnknownRequestException)
@@ -102,17 +97,13 @@ namespace HotChocolate.Stitching.Pipeline
 
                 return QueryResultBuilder.CreateError(error);
             }
-            finally
-            {
-                requestMessage.Dispose();
-            }
         }
 
         internal static async ValueTask<HttpRequestMessage> CreateRequestMessageAsync(
+            ArrayWriter writer,
             IQueryRequest request,
             CancellationToken cancellationToken)
         {
-            using var writer = new ArrayWriter();
             await using var jsonWriter = new Utf8JsonWriter(writer, _jsonWriterOptions);
 
             WriteJsonRequest(writer, jsonWriter, request);
@@ -130,31 +121,83 @@ namespace HotChocolate.Stitching.Pipeline
             return requestMessage;
         }
 
+        private static async ValueTask<IQueryResult> ParseErrorResponseMessageAsync(
+            HttpResponseMessage responseMessage,
+            CancellationToken cancellationToken)
+        {
+#if NET5_0
+            await using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+#else
+            using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync()
+                .ConfigureAwait(false);
+#endif
+
+            try
+            {
+                IReadOnlyDictionary<string, object?> response =
+                    await BufferHelper.ReadAsync(
+                        stream,
+                        ParseResponse,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                return HttpResponseDeserializer.Deserialize(response);
+            }
+            catch
+            {
+                string? responseBody = null;
+
+                if (stream.Length > 0)
+                {
+                    var buffer = new byte[stream.Length];
+                    stream.Seek(0, SeekOrigin.Begin);
+                    await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                        .ConfigureAwait(false);
+                    responseBody = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+                }
+
+                return QueryResultBuilder.CreateError(
+                    ErrorHelper.HttpRequestClient_HttpError(
+                        responseMessage.StatusCode,
+                        responseBody));
+            }
+        }
+
         internal static async ValueTask<IQueryResult> ParseResponseMessageAsync(
             HttpResponseMessage responseMessage,
             CancellationToken cancellationToken)
         {
+#if NET5_0
+            await using Stream stream = await responseMessage.Content
+                .ReadAsStreamAsync(cancellationToken)
+                .ConfigureAwait(false);
+#else
             using Stream stream = await responseMessage.Content
                 .ReadAsStreamAsync()
                 .ConfigureAwait(false);
+#endif
 
             IReadOnlyDictionary<string, object?> response =
                 await BufferHelper.ReadAsync(
-                        stream,
-                        ParseResponse,
-                        cancellationToken)
+                    stream,
+                    ParseResponse,
+                    cancellationToken)
                     .ConfigureAwait(false);
 
             return HttpResponseDeserializer.Deserialize(response);
         }
 
         private async ValueTask<HttpRequestMessage> CreateRequestAsync(
+            ArrayWriter writer,
             IQueryRequest request,
             NameString targetSchema,
             CancellationToken cancellationToken = default)
         {
             HttpRequestMessage requestMessage =
-                await CreateRequestMessageAsync(request, cancellationToken)
+                await CreateRequestMessageAsync(writer, request, cancellationToken)
                 .ConfigureAwait(false);
 
             await _requestInterceptor
@@ -169,7 +212,7 @@ namespace HotChocolate.Stitching.Pipeline
             Utf8GraphQLRequestParser.ParseResponse(buffer.AsSpan(0, bytesBuffered))!;
 
         private static void WriteJsonRequest(
-            IBufferWriter<byte> writer,
+            ArrayWriter writer,
             Utf8JsonWriter jsonWriter,
             IQueryRequest request)
         {
@@ -186,11 +229,11 @@ namespace HotChocolate.Stitching.Pipeline
         }
 
         private static void WriteJsonRequestVariables(
-            IBufferWriter<byte> writer,
+            ArrayWriter writer,
             Utf8JsonWriter jsonWriter,
             IReadOnlyDictionary<string, object?>? variables)
         {
-            if (variables is not null  && variables.Count > 0)
+            if (variables is not null && variables.Count > 0)
             {
                 jsonWriter.WritePropertyName("variables");
 
@@ -207,7 +250,7 @@ namespace HotChocolate.Stitching.Pipeline
         }
 
         private static void WriteValue(
-            IBufferWriter<byte> writer,
+            ArrayWriter writer,
             Utf8JsonWriter jsonWriter,
             object? value)
         {
@@ -251,17 +294,11 @@ namespace HotChocolate.Stitching.Pipeline
                         break;
 
                     case IntValueNode i:
-                        jsonWriter.WriteNumberValue(0);
-                        jsonWriter.Flush();
-                        writer.Advance(-1);
-                        writer.Write(i.AsSpan());
+                        WriterNumber(i.AsSpan(), jsonWriter, writer);
                         break;
 
                     case FloatValueNode f:
-                        jsonWriter.WriteNumberValue(0);
-                        jsonWriter.Flush();
-                        writer.Advance(-1);
-                        writer.Write(f.AsSpan());
+                        WriterNumber(f.AsSpan(), jsonWriter, writer);
                         break;
 
                     case BooleanValueNode b:
@@ -270,8 +307,26 @@ namespace HotChocolate.Stitching.Pipeline
 
                     default:
                         throw new NotSupportedException(
-                            "Unknown variable value kind.");
+                            StitchingResources.HttpRequestClient_UnknownVariableValueKind);
                 }
+            }
+        }
+
+        private static void WriterNumber(
+            ReadOnlySpan<byte> number,
+            Utf8JsonWriter jsonWriter,
+            ArrayWriter arrayWriter)
+        {
+            jsonWriter.WriteNumberValue(0);
+            jsonWriter.Flush();
+            arrayWriter.GetInternalBuffer()[arrayWriter.Length - 1] = number[0];
+
+            if (number.Length > 1)
+            {
+                number = number.Slice(1);
+                Span<byte> span = arrayWriter.GetSpan(number.Length);
+                number.CopyTo(span);
+                arrayWriter.Advance(number.Length);
             }
         }
     }

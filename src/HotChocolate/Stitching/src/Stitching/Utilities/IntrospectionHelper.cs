@@ -92,21 +92,23 @@ namespace HotChocolate.Stitching.Utilities
         private async ValueTask<RemoteSchemaDefinition?> FetchSchemaDefinitionAsync(
             CancellationToken cancellationToken)
         {
+            using var writer = new ArrayWriter();
+
             IQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery(
-                        $@"query GetSchemaDefinition($configuration: String!) {{
-                                {SchemaDefinitionFieldNames.SchemaDefinitionField}(configuration: $configuration) {{
-                                    name
-                                    document
-                                    extensionDocuments
-                                }}
-                            }}")
-                    .SetVariableValue("configuration", new StringValueNode(_configuration.Value))
+                        $@"query GetSchemaDefinition($c: String!) {{
+                            {SchemaDefinitionFieldNames.SchemaDefinitionField}(configuration: $c) {{
+                                name
+                                document
+                                extensionDocuments
+                            }}
+                        }}")
+                    .SetVariableValue("c", new StringValueNode(_configuration.Value))
                     .Create();
 
             HttpRequestMessage requestMessage = await HttpRequestClient
-                .CreateRequestMessageAsync(request, cancellationToken)
+                .CreateRequestMessageAsync(writer, request, cancellationToken)
                 .ConfigureAwait(false);
 
             HttpResponseMessage responseMessage = await _httpClient
@@ -119,15 +121,12 @@ namespace HotChocolate.Stitching.Utilities
 
             if (result.Errors is { Count: > 1 })
             {
-                // TODO : throw helper
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("Unable to fetch schema definition.")
-                        .SetExtension("errors", result.Errors)
-                        .Build());
+                throw ThrowHelper.IntrospectionHelper_UnableToFetchSchemaDefinition(result.Errors);
             }
 
-            if (result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField] is IReadOnlyDictionary<string, object?> o &&
+            if (result.Data is not null &&
+                result.Data[SchemaDefinitionFieldNames.SchemaDefinitionField]
+                    is IReadOnlyDictionary<string, object?> o &&
                 o.TryGetValue("name", out object? n) &&
                 n is StringValueNode name &&
                 o.TryGetValue("document", out object? d) &&

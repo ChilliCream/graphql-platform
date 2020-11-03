@@ -36,16 +36,4 @@ namespace HotChocolate.Stitching
         /// </summary>
         public IReadOnlyList<DocumentNode> ExtensionDocuments { get; }
     }
-
-    /*
-        extend schema
-            @_removeType(name: "abc" schema: "{optional}")
-            @_renameType(name: "abc", newName: "def" schema: "{optional}")
-            @_renameField(type: "abc" name: "abc", newName: "def" schema: "{optional}")
-            @_renameArgument(type: "abc" field: "abc" name: "abc", newName: "def" schema: "{optional}")
-            @_removeQueryType(schema: "{optional}")
-            @_removeMutationType(schema: "{optional}")
-            @_removeSubscriptionType(schema: "{optional}")
-            @_rewriteType(name: "abc", newName: "def" schema: "{optional}")
-    */
 }

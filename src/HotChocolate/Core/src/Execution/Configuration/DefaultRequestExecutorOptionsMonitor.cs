@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,38 +9,43 @@ namespace HotChocolate.Execution.Configuration
 {
     internal sealed class DefaultRequestExecutorOptionsMonitor
         : IRequestExecutorOptionsMonitor
-            , IDisposable
+        , IDisposable
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        private readonly IOptionsMonitor<RequestExecutorFactoryOptions> _optionsMonitor;
+        private readonly IOptionsMonitor<RequestExecutorSetup> _optionsMonitor;
         private readonly IRequestExecutorOptionsProvider[] _optionsProviders;
-        private readonly ConcurrentDictionary<NameString, INamedRequestExecutorFactoryOptions>
-            _options = new ConcurrentDictionary<NameString, INamedRequestExecutorFactoryOptions>();
+        private readonly Dictionary<NameString, List<IConfigureRequestExecutorSetup>> _configs =
+            new Dictionary<NameString, List<IConfigureRequestExecutorSetup>>();
         private readonly List<IDisposable> _disposables = new List<IDisposable>();
-        private readonly List<Action<RequestExecutorFactoryOptions, string>> _listeners =
-            new List<Action<RequestExecutorFactoryOptions, string>>();
+        private readonly List<Action<NameString>> _listeners = new List<Action<NameString>>();
         private bool _initialized;
         private bool _disposed;
 
         public DefaultRequestExecutorOptionsMonitor(
-            IOptionsMonitor<RequestExecutorFactoryOptions> optionsMonitor,
+            IOptionsMonitor<RequestExecutorSetup> optionsMonitor,
             IEnumerable<IRequestExecutorOptionsProvider> optionsProviders)
         {
             _optionsMonitor = optionsMonitor;
             _optionsProviders = optionsProviders.ToArray();
         }
 
-        public async ValueTask<RequestExecutorFactoryOptions> GetAsync(
+        public async ValueTask<RequestExecutorSetup> GetAsync(
             NameString schemaName,
             CancellationToken cancellationToken = default)
         {
             await InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(schemaName);
+            var options = new RequestExecutorSetup();
+             _optionsMonitor.Get(schemaName).CopyTo(options);
 
-            if (_options.TryGetValue(schemaName, out INamedRequestExecutorFactoryOptions? o))
+            if (_configs.TryGetValue(
+                schemaName,
+                out List<IConfigureRequestExecutorSetup>? configurations))
             {
-                o.Configure(options);
+                foreach (IConfigureRequestExecutorSetup configuration in configurations)
+                {
+                    configuration.Configure(options);
+                }
             }
 
             return options;
@@ -55,17 +59,27 @@ namespace HotChocolate.Execution.Configuration
 
                 if (!_initialized)
                 {
+                    _configs.Clear();
+
                     foreach (IRequestExecutorOptionsProvider provider in _optionsProviders)
                     {
                         _disposables.Add(provider.OnChange(OnChange));
 
-                        IEnumerable<INamedRequestExecutorFactoryOptions> allOptions =
+                        IEnumerable<IConfigureRequestExecutorSetup> allConfigurations =
                             await provider.GetOptionsAsync(cancellationToken)
                                 .ConfigureAwait(false);
 
-                        foreach (NamedRequestExecutorFactoryOptions options in allOptions)
+                        foreach (IConfigureRequestExecutorSetup configuration in allConfigurations)
                         {
-                            _options[options.SchemaName] = options;
+                            if (!_configs.TryGetValue(
+                                configuration.SchemaName,
+                                out List<IConfigureRequestExecutorSetup>? configurations))
+                            {
+                                configurations = new List<IConfigureRequestExecutorSetup>();
+                                _configs.Add(configuration.SchemaName, configurations);
+                            }
+
+                            configurations.Add(configuration);
                         }
                     }
 
@@ -76,21 +90,18 @@ namespace HotChocolate.Execution.Configuration
             }
         }
 
-        public IDisposable OnChange(Action<RequestExecutorFactoryOptions, string> listener) =>
+        public IDisposable OnChange(Action<NameString> listener) =>
             new Session(this, listener);
 
-        private void OnChange(INamedRequestExecutorFactoryOptions changes)
+        private void OnChange(IConfigureRequestExecutorSetup changes)
         {
-            _options[changes.SchemaName] = changes;
-
-            RequestExecutorFactoryOptions options = _optionsMonitor.Get(changes.SchemaName);
-            changes.Configure(options);
+            _initialized = false;
 
             lock (_listeners)
             {
-                foreach (Action<RequestExecutorFactoryOptions, string> listener in _listeners)
+                foreach (Action<NameString> listener in _listeners)
                 {
-                    listener.Invoke(options, changes.SchemaName);
+                    listener.Invoke(changes.SchemaName);
                 }
             }
         }
@@ -113,11 +124,11 @@ namespace HotChocolate.Execution.Configuration
         private class Session : IDisposable
         {
             private readonly DefaultRequestExecutorOptionsMonitor _monitor;
-            private readonly Action<RequestExecutorFactoryOptions, string> _listener;
+            private readonly Action<NameString> _listener;
 
             public Session(
                 DefaultRequestExecutorOptionsMonitor monitor,
-                Action<RequestExecutorFactoryOptions, string> listener)
+                Action<NameString> listener)
             {
                 lock (monitor._listeners)
                 {

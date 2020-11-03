@@ -13,8 +13,8 @@ namespace HotChocolate.Stitching.Utilities
         {
             if (definition is SchemaTypeDefinition)
             {
-                contextData[typeof(RemoteSchemaDefinition).FullName] =
-                    completionContext.ContextData[typeof(RemoteSchemaDefinition).FullName];
+                contextData[typeof(RemoteSchemaDefinition).FullName!] =
+                    completionContext.ContextData[typeof(RemoteSchemaDefinition).FullName!];
             }
         }
     }

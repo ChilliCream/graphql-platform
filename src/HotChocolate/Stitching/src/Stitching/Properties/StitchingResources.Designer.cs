@@ -278,5 +278,11 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ThrowHelper_BufferedRequest_OperationNotFound", resourceCulture);
             }
         }
+        
+        internal static string HttpRequestClient_UnknownVariableValueKind {
+            get {
+                return ResourceManager.GetString("HttpRequestClient_UnknownVariableValueKind", resourceCulture);
+            }
+        }
     }
 }
