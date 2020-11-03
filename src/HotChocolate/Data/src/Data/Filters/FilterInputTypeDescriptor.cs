@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
-            Definition.RuntimeType = entityType;
+            Definition.RuntimeType = typeof(object);
             Definition.Name = Convention.GetTypeName(entityType);
             Definition.Description = Convention.GetTypeDescription(entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
@@ -129,7 +129,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, operationId, Definition.Scope);
+                    Context,
+                    operationId,
+                    Definition.Scope);
                 Operations.Add(fieldDescriptor);
             }
 
@@ -160,7 +162,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, operationId, Definition.Scope);
+                    Context,
+                    operationId,
+                    Definition.Scope);
                 Operations.Add(fieldDescriptor);
             }
 
@@ -177,7 +181,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterFieldDescriptor.New(
-                    Context, name, Definition.Scope);
+                    Context,
+                    name,
+                    Definition.Scope);
                 Fields.Add(fieldDescriptor);
             }
 

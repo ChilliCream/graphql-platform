@@ -1,19 +1,18 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Unexpected Execution Error",
-      "locations": [
-        {
-          "line": 3,
-          "column": 29
-        }
-      ],
-      "path": [
-        "root"
-      ]
-    }
-  ],
   "data": {
-    "root": null
+    "root": [
+      {
+        "foo": {
+          "barString": "testatest",
+          "objectSet": []
+        }
+      },
+      {
+        "foo": {
+          "barString": "testbtest",
+          "objectSet": []
+        }
+      }
+    ]
   }
 }

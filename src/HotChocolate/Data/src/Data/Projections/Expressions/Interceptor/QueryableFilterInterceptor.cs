@@ -60,7 +60,8 @@ namespace HotChocolate.Data.Projections.Handlers
                 else
                 {
                     context.PushInstance(
-                        Expression.Constant(Array.CreateInstance(filterInputType.RuntimeType, 0)));
+                        Expression.Constant(
+                            Array.CreateInstance(filterInputType.EntityType.Source, 0)));
                     context.ReportError(
                         ProjectionProvider_CouldNotProjectFiltering(valueNode));
                 }

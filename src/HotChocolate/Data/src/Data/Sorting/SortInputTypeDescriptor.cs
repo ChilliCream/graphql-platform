@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Sorting
             Convention = context.GetSortConvention(scope);
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
-            Definition.RuntimeType = entityType;
+            Definition.RuntimeType = typeof(object);
             Definition.Name = Convention.GetTypeName(entityType);
             Definition.Description = Convention.GetTypeDescription(entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
@@ -140,7 +140,9 @@ namespace HotChocolate.Data.Sorting
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = SortFieldDescriptor.New(
-                    Context, name, Definition.Scope);
+                    Context,
+                    name,
+                    Definition.Scope);
                 Fields.Add(fieldDescriptor);
             }
 
