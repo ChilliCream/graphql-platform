@@ -22,7 +22,7 @@ namespace HotChocolate.Data.Filters
             Convention = context.GetFilterConvention(scope);
             Definition.EntityType = entityType ??
                 throw new ArgumentNullException(nameof(entityType));
-            Definition.RuntimeType = typeof(object);
+            Definition.RuntimeType = entityType;
             Definition.Name = Convention.GetTypeName(entityType);
             Definition.Description = Convention.GetTypeDescription(entityType);
             Definition.Fields.BindingBehavior = context.Options.DefaultBindingBehavior;
