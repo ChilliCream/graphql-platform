@@ -8,7 +8,7 @@ using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data
 {
-    public class QueryableExecutable<T> : IQueryableExecutable<T>
+    public class QueryableExecutable<T> : IExecutable<T>
     {
         public QueryableExecutable(IQueryable<T> queryable)
         {
@@ -16,12 +16,24 @@ namespace HotChocolate.Data
             InMemory = Source is EnumerableQuery;
         }
 
+        /// <summary>
+        /// The current state of the executable
+        /// </summary>
         public IQueryable<T> Source { get; }
 
         object IExecutable.Source => Source;
 
+        /// <summary>
+        /// Is true if <see cref="QueryableExecutable{T}.Source"/> source is a in memory query and
+        /// false if it is a database query
+        /// </summary>
         public bool InMemory { get; }
 
+        /// <summary>
+        /// Returns a new enumerable executable with the provided source
+        /// </summary>
+        /// <param name="source">The source that should be set</param>
+        /// <returns>The new instance of an enumerable executable</returns>
         public QueryableExecutable<T> WithSource(IQueryable<T> source)
         {
             return new QueryableExecutable<T>(source);

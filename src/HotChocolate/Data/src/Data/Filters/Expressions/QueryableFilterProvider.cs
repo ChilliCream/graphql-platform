@@ -72,7 +72,7 @@ namespace HotChocolate.Data.Filters.Expressions
                     executorObj is VisitFilterArgument executor)
                 {
                     var inMemory =
-                        context.Result is IQueryableExecutable<TEntityType> executable &&
+                        context.Result is QueryableExecutable<TEntityType> executable &&
                         executable.InMemory ||
                         context.Result is not IQueryable ||
                         context.Result is EnumerableQuery;
@@ -90,7 +90,7 @@ namespace HotChocolate.Data.Filters.Expressions
                         {
                             IQueryable<TEntityType> q => q.Where(where),
                             IEnumerable<TEntityType> e => e.AsQueryable().Where(where),
-                            IQueryableExecutable<TEntityType> ex =>
+                            QueryableExecutable<TEntityType> ex =>
                                 ex.WithSource(ex.Source.Where(where)),
                             _ => context.Result
                         };

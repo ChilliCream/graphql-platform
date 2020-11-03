@@ -48,7 +48,7 @@ namespace HotChocolate.Data.Projections.Expressions
                     {
                         IQueryable<TEntityType> q => q.Select(projection),
                         IEnumerable<TEntityType> e => e.AsQueryable().Select(projection),
-                        IQueryableExecutable<TEntityType> ex =>
+                        QueryableExecutable<TEntityType> ex =>
                             ex.WithSource(ex.Source.Select(projection)),
                         _ => context.Result
                     };

@@ -62,7 +62,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     executorObj is VisitSortArgument executor)
                 {
                     var inMemory =
-                        context.Result is IQueryableExecutable<TEntityType> executable &&
+                        context.Result is QueryableExecutable<TEntityType> executable &&
                         executable.InMemory ||
                         context.Result is not IQueryable ||
                         context.Result is EnumerableQuery;
@@ -87,7 +87,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                         {
                             IQueryable<TEntityType> q => visitorContext.Sort(q),
                             IEnumerable<TEntityType> e => visitorContext.Sort(e.AsQueryable()),
-                            IQueryableExecutable<TEntityType> ex =>
+                            QueryableExecutable<TEntityType> ex =>
                                 ex.WithSource(visitorContext.Sort(ex.Source)),
                             _ => context.Result
                         };
