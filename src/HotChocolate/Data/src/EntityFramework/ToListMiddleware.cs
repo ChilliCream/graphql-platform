@@ -24,10 +24,6 @@ namespace HotChocolate.Data
                     await queryable
                         .ToListAsync(context.RequestAborted)
                         .ConfigureAwait(false),
-                IExecutable<TEntity> executable =>
-                    await executable
-                        .ToListAsync(context.RequestAborted)
-                        .ConfigureAwait(false),
                 _ => context.Result
             };
         }

@@ -20,6 +20,11 @@ namespace HotChocolate.Data
             new Author { Id = 3, Name = "Baz", Books = { new Book { Id = 3, Title = "Baz1" } } }
         };
 
+        private static readonly SingleOrDefaultAuthor[] _singleOrDefaultAuthors =
+        {
+            new SingleOrDefaultAuthor { Id = 1, Name = "Foo" }
+        };
+
         public AuthorFixture()
         {
             BookContext context = new ServiceCollection()
@@ -35,6 +40,8 @@ namespace HotChocolate.Data
                 .GetRequiredService<BookContext>();
             context.Database.EnsureCreated();
             context.Authors.AddRange(_authors);
+            context.SaveChanges();
+            context.SingleOrDefaultAuthors.AddRange(_singleOrDefaultAuthors);
             context.SaveChanges();
             Context = context;
         }

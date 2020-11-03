@@ -1,7 +1,10 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data
 {
@@ -24,19 +27,76 @@ namespace HotChocolate.Data
             return new QueryableExecutable<T>(source);
         }
 
-        public virtual ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+        public virtual async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
-            return new ValueTask<IList>(Source.ToList());
+            if (Source is IAsyncEnumerable<T> ae)
+            {
+                var result = new List<T>();
+                await foreach (T element in ae.WithCancellation(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    result.Add(element);
+                }
+
+                return result;
+            }
+
+            return Source.ToList();
         }
 
-        public virtual ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+        public virtual async ValueTask<object?> FirstOrDefaultAsync(
+            CancellationToken cancellationToken)
         {
-            return new ValueTask<object?>(Source.FirstOrDefault());
+            if (Source is IAsyncEnumerable<T> ae)
+            {
+                await using IAsyncEnumerator<T> enumerator =
+                    ae.GetAsyncEnumerator(cancellationToken);
+
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    return enumerator.Current;
+                }
+
+                return default(T)!;
+            }
+
+            return Source.FirstOrDefault();
         }
 
-        public virtual ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+        public virtual async ValueTask<object?> SingleOrDefaultAsync(
+            CancellationToken cancellationToken)
         {
-            return new ValueTask<object?>(Source.SingleOrDefault());
+            if (Source is IAsyncEnumerable<T> ae)
+            {
+                await using IAsyncEnumerator<T> enumerator =
+                    ae.GetAsyncEnumerator(cancellationToken);
+
+                object? result;
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    result = enumerator.Current;
+                }
+                else
+                {
+                    result = default(T)!;
+                }
+
+                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    result = ProjectionProvider_CreateMoreThanOneError();
+                }
+
+                return result;
+            }
+
+            try
+            {
+                return Source.SingleOrDefault();
+            }
+            catch (InvalidOperationException)
+            {
+                return ProjectionProvider_CreateMoreThanOneError();
+            }
         }
 
         public virtual string Print()

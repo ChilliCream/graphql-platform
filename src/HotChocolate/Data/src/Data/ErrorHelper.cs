@@ -77,6 +77,12 @@ namespace HotChocolate.Data
                 .AddLocation(context.FieldSelection)
                 .Build();
 
+        public static IError ProjectionProvider_CreateMoreThanOneError() =>
+            ErrorBuilder.New()
+                .SetMessage(DataResources.ProjectionProvider_CreateMoreThanOneError)
+                .SetCode("SELECTIONS_SINGLE_MORE_THAN_ONE")
+                .Build();
+
         public static IError ProjectionProvider_CouldNotProjectFiltering(
             IValueNode node) =>
             ErrorBuilder.New()

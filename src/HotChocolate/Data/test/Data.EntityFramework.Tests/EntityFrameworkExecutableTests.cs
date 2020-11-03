@@ -89,5 +89,6 @@ namespace HotChocolate.Data
             // assert
             new { result, executable = executable.Print() }.MatchSnapshot();
         }
+
     }
 }

@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "Sequence contains more than one element.",
+      "extensions": {
+        "code": "SELECTIONS_SINGLE_MORE_THAN_ONE"
+      }
+    }
+  ]
+}
