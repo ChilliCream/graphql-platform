@@ -7,6 +7,8 @@ namespace HotChocolate.Data
 {
     public class AuthorFixture : IDisposable
     {
+        private readonly string _fileName;
+
         private static readonly Author[] _authors =
         {
             new Author
@@ -27,9 +29,10 @@ namespace HotChocolate.Data
 
         public AuthorFixture()
         {
+            _fileName = Guid.NewGuid().ToString("N") + ".db";
             BookContext context = new ServiceCollection()
                 .AddDbContext<BookContext>(
-                    b => b.UseSqlite("Data Source=authorFixture.db"))
+                    b => b.UseSqlite("Data Source=" + _fileName))
                 .AddGraphQL()
                 .AddFiltering()
                 .AddSorting()
@@ -50,7 +53,7 @@ namespace HotChocolate.Data
 
         public void Dispose()
         {
-            File.Delete("authorFixture.db");
+            File.Delete(_fileName);
         }
     }
 }
