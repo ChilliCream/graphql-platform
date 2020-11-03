@@ -13,10 +13,12 @@ namespace HotChocolate.Data
     {
         private readonly DbSet<Author> _authors;
         private readonly DbSet<SingleOrDefaultAuthor> _singleOrDefaultAuthors;
+        private readonly DbSet<ZeroAuthor> _zeroAuthors;
 
         public IntegrationTests(AuthorFixture authorFixture)
         {
             _authors = authorFixture.Context.Authors;
+            _zeroAuthors = authorFixture.Context.ZeroAuthors;
             _singleOrDefaultAuthors = authorFixture.Context.SingleOrDefaultAuthors;
         }
 
@@ -83,6 +85,76 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+        public async Task ExecuteAsync_Should_Fail_When_SingleOrDefaultMoreThanOne()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ObjectType<Author>>()
+                        .Resolve(_authors.AsExecutable())
+                        .UseSingleOrDefault()
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable {
+                        name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ReturnNull_When_SingleOrDefaultZero()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ObjectType<Author>>()
+                        .Resolve(_authors.Take(0).AsExecutable())
+                        .UseSingleOrDefault()
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable {
+                        name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault()
         {
             // arrange
@@ -98,6 +170,41 @@ namespace HotChocolate.Data
                         .Type<ObjectType<Author>>()
                         .Resolve(_authors.AsExecutable())
                         .UseFirstOrDefault())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable {
+                        name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ReturnNull_When_FirstOrDefaultZero()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ObjectType<ZeroAuthor>>()
+                        .Resolve(_zeroAuthors.Take(0).AsExecutable())
+                        .UseFirstOrDefault()
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
                 .BuildRequestExecutorAsync();
 
             // act
@@ -252,6 +359,41 @@ namespace HotChocolate.Data
         }
 
         [Fact]
+        public async Task ExecuteAsync_Should_ReturnNull_When_SingleOrDefaultZero_AsyncEnumerable()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ObjectType<ZeroAuthor>>()
+                        .Resolve(new QueryableExecutable<ZeroAuthor>(_zeroAuthors))
+                        .UseSingleOrDefault()
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable {
+                        name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteAsync_Should_OnlyOneItem_When_FirstOrDefault_AsyncEnumerable()
         {
             // arrange
@@ -266,6 +408,41 @@ namespace HotChocolate.Data
                         .Field("executable")
                         .Type<ObjectType<Author>>()
                         .Resolve(new QueryableExecutable<Author>(_authors))
+                        .UseFirstOrDefault()
+                        .UseProjection()
+                        .UseFiltering()
+                        .UseSorting())
+                .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"
+                {
+                    executable {
+                        name
+                    }
+                }
+                ");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_Should_ReturnNull_When_FirstOrDefaultZero_AsyncEnumerable()
+        {
+            // arrange
+            IRequestExecutor executor = await new ServiceCollection()
+                .AddGraphQL()
+                .AddFiltering()
+                .AddSorting()
+                .AddProjections()
+                .AddQueryType(
+                    x => x
+                        .Name("Query")
+                        .Field("executable")
+                        .Type<ObjectType<ZeroAuthor>>()
+                        .Resolve(new QueryableExecutable<ZeroAuthor>(_zeroAuthors))
                         .UseFirstOrDefault()
                         .UseProjection()
                         .UseFiltering()

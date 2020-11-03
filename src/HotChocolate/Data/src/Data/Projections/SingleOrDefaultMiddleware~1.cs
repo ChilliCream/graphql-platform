@@ -7,6 +7,9 @@ using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Projections
 {
+    /// <summary>
+    /// Returns the only element of the resolved value, or a default value if the sequence is empty.
+    /// </summary>
     public class SingleOrDefaultMiddleware<T>
     {
         private readonly FieldDelegate _next;

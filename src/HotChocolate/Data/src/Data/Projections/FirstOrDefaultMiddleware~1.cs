@@ -6,6 +6,10 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Data.Projections
 {
+    /// <summary>
+    /// Returns the first element of the sequence that satisfies a condition or a default value if
+    /// no such element is found.
+    /// </summary>
     public sealed class FirstOrDefaultMiddleware<T>
     {
         public const string ContextKey = nameof(FirstOrDefaultMiddleware<object>);

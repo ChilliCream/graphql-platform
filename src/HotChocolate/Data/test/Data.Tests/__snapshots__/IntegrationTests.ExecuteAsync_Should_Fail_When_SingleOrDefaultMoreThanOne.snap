@@ -6,5 +6,8 @@
         "code": "SELECTIONS_SINGLE_MORE_THAN_ONE"
       }
     }
-  ]
+  ],
+  "data": {
+    "executable": null
+  }
 }
