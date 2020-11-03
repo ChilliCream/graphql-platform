@@ -44,6 +44,18 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            if (definition is SortInputTypeDefinition { EntityType: { } } sortDefinition)
+            {
+                SetTypeIdentity(typeof(SortInputType<>)
+                    .MakeGenericType(sortDefinition.EntityType));
+            }
+        }
+
         protected override void OnCompleteType(
             ITypeCompletionContext context,
             InputObjectTypeDefinition definition)
@@ -69,14 +81,6 @@ namespace HotChocolate.Data.Sorting
                     fields.Add(new SortField(field));
                 }
             }
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            SetTypeIdentity(typeof(SortInputType<>));
         }
 
         // we are disabling the default configure method so
