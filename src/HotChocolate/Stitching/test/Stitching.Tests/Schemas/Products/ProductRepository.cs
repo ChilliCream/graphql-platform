@@ -17,6 +17,7 @@ namespace HotChocolate.Stitching.Schemas.Products
             }.ToDictionary(t => t.Upc);
         }
 
+        [GraphQLNonNullType]
         public IEnumerable<Product> GetTopProducts(int first) =>
             _products.Values.OrderBy(t => t.Upc).Take(first);
 

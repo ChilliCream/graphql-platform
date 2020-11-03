@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(optionsMonitor));
             _applicationServices = serviceProvider ??
                 throw new ArgumentNullException(nameof(serviceProvider));
-            _optionsMonitor.OnChange((options, name) => EvictRequestExecutor(name));
+            _optionsMonitor.OnChange(EvictRequestExecutor);
         }
 
         public async ValueTask<IRequestExecutor> GetRequestExecutorAsync(
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
 
             if (!_executors.TryGetValue(schemaName, out RegisteredExecutor? re))
             {
-                RequestExecutorFactoryOptions options =
+                RequestExecutorSetup options =
                     await _optionsMonitor.GetAsync(schemaName, cancellationToken)
                         .ConfigureAwait(false);
 
@@ -129,7 +129,7 @@ namespace HotChocolate.Execution
             Task.Run(async () =>
             {
                 foreach (OnRequestExecutorEvictedAction action in
-                    registeredExecutor.FactoryOptions.OnRequestExecutorEvicted)
+                    registeredExecutor.Setup.OnRequestExecutorEvicted)
                 {
                     action.Action?.Invoke(registeredExecutor.Executor);
 
@@ -146,7 +146,7 @@ namespace HotChocolate.Execution
 
         private async Task<IServiceProvider> CreateSchemaServicesAsync(
             NameString schemaName,
-            RequestExecutorFactoryOptions options,
+            RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
             var lazy = new SchemaBuilder.LazySchema();
@@ -233,17 +233,17 @@ namespace HotChocolate.Execution
 
         private async ValueTask<ISchema> CreateSchemaAsync(
             NameString schemaName,
-            RequestExecutorFactoryOptions options,
+            RequestExecutorSetup options,
             IServiceProvider serviceProvider,
             CancellationToken cancellationToken)
         {
-            if (options.Schema is { })
+            if (options.Schema is not null)
             {
                 AssertSchemaNameValid(options.Schema, schemaName);
                 return options.Schema;
             }
 
-            var schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
+            ISchemaBuilder schemaBuilder = options.SchemaBuilder ?? new SchemaBuilder();
 
             schemaBuilder.AddServices(serviceProvider);
 
@@ -251,12 +251,13 @@ namespace HotChocolate.Execution
             {
                 if (action.Action is { } configure)
                 {
-                    configure(schemaBuilder);
+                    configure(serviceProvider, schemaBuilder);
                 }
 
                 if (action.AsyncAction is { } configureAsync)
                 {
-                    await configureAsync(schemaBuilder, cancellationToken).ConfigureAwait(false);
+                    await configureAsync(serviceProvider, schemaBuilder, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
 
@@ -278,7 +279,7 @@ namespace HotChocolate.Execution
         }
 
         private async ValueTask<RequestExecutorOptions> CreateExecutorOptionsAsync(
-            RequestExecutorFactoryOptions options,
+            RequestExecutorSetup options,
             CancellationToken cancellationToken)
         {
             var executorOptions = options.RequestExecutorOptions ?? new RequestExecutorOptions();
@@ -339,12 +340,12 @@ namespace HotChocolate.Execution
                 IRequestExecutor executor,
                 IServiceProvider services,
                 IDiagnosticEvents diagnosticEvents,
-                RequestExecutorFactoryOptions factoryOptions)
+                RequestExecutorSetup setup)
             {
                 Executor = executor;
                 Services = services;
                 DiagnosticEvents = diagnosticEvents;
-                FactoryOptions = factoryOptions;
+                Setup = setup;
             }
 
             public IRequestExecutor Executor { get; }
@@ -353,7 +354,7 @@ namespace HotChocolate.Execution
 
             public IDiagnosticEvents DiagnosticEvents { get; }
 
-            public RequestExecutorFactoryOptions FactoryOptions { get; }
+            public RequestExecutorSetup Setup { get; }
         }
 
         private sealed class SetSchemaNameInterceptor : TypeInterceptor

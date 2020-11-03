@@ -23,8 +23,8 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.TryAddSingleton<IRequestExecutorOptionsMonitor>(
                 sp => new DefaultRequestExecutorOptionsMonitor(
-                    sp.GetRequiredService<IOptionsMonitor<RequestExecutorFactoryOptions>>(),
-                    sp.GetRequiredService<IEnumerable<IRequestExecutorOptionsProvider>>()));
+                    sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>(),
+                    sp.GetServices<IRequestExecutorOptionsProvider>()));
             return services;
         }
 

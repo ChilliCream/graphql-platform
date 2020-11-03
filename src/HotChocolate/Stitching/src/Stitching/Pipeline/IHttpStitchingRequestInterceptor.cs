@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Pipeline
 {
     public interface IHttpStitchingRequestInterceptor
     {
