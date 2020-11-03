@@ -66,6 +66,7 @@ namespace HotChocolate.Data.Filters
             {
                 fields.Add(new AndField(context.DescriptorContext, def.Scope));
             }
+            
             if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
             {
                 fields.Add(new OrField(context.DescriptorContext, defOr.Scope));

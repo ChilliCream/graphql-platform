@@ -16,6 +16,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         public NameString TypeName { get; }
+
         public NameString FieldName { get; }
 
         public bool Equals(FieldDependency other)
@@ -24,7 +25,7 @@ namespace HotChocolate.Stitching.Utilities
                 && other.FieldName.Equals(FieldName);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

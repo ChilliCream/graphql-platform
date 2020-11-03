@@ -19,19 +19,19 @@ namespace HotChocolate.Execution.Configuration
         /// <returns>
         /// Returns the configuration options of this provider.
         /// </returns>
-        ValueTask<IEnumerable<INamedRequestExecutorFactoryOptions>> GetOptionsAsync(
+        ValueTask<IEnumerable<IConfigureRequestExecutorSetup>> GetOptionsAsync(
             CancellationToken cancellationToken);
 
         /// <summary>
         /// Registers a listener to be called whenever a named
-        /// <see cref="RequestExecutorFactoryOptions"/> changes.
+        /// <see cref="RequestExecutorSetup"/> changes.
         /// </summary>
         /// <param name="listener">
-        /// The action to be invoked when <see cref="RequestExecutorFactoryOptions"/> has changed.
+        /// The action to be invoked when <see cref="RequestExecutorSetup"/> has changed.
         /// </param>
         /// <returns>
         /// An <see cref="IDisposable"/> which should be disposed to stop listening for changes.
         /// </returns>
-        IDisposable OnChange(Action<INamedRequestExecutorFactoryOptions> listener);
+        IDisposable OnChange(Action<IConfigureRequestExecutorSetup> listener);
     }
 }

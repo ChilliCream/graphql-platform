@@ -11,14 +11,23 @@ namespace HotChocolate.Stitching.SchemaDefinitions
 {
     internal class SchemaDefinitionTypeInterceptor : TypeInterceptor
     {
+        private readonly bool _publishOnSchema;
+
+        public SchemaDefinitionTypeInterceptor(bool publishOnSchema)
+        {
+            _publishOnSchema = publishOnSchema;
+        }
+
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
             DefinitionBase? definition,
             IDictionary<string, object?> contextData)
         {
             // when we are visiting the query type we will add the schema definition field.
-            if ((completionContext.IsQueryType ?? false) &&
-                definition is ObjectTypeDefinition objectTypeDefinition)
+            if (_publishOnSchema &&
+                (completionContext.IsQueryType ?? false) &&
+                definition is ObjectTypeDefinition objectTypeDefinition &&
+                !objectTypeDefinition.Fields.Any(t => t.Name.Equals(SchemaDefinitionField)))
             {
                 ObjectFieldDefinition typeNameField = objectTypeDefinition.Fields.First(
                     t => t.Name.Equals(IntrospectionFields.TypeName) && t.IsIntrospectionField);
