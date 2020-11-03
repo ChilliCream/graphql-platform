@@ -3,12 +3,26 @@
     "root": [
       {
         "foo": {
-          "objectSet": []
+          "objectSet": [
+            {
+              "foo": {
+                "barString": "a",
+                "barShort": 12
+              }
+            }
+          ]
         }
       },
       {
         "foo": {
-          "objectSet": []
+          "objectSet": [
+            {
+              "foo": {
+                "barString": "d",
+                "barShort": 14
+              }
+            }
+          ]
         }
       }
     ]

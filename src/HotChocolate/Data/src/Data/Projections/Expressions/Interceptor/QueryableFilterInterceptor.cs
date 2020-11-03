@@ -46,16 +46,22 @@ namespace HotChocolate.Data.Projections.Handlers
                     argumentVisitor(valueNode, filterInputType, false);
 
                 Expression instance = context.PopInstance();
-                if (filterContext.Errors.Count == 0 &&
-                    filterContext.TryCreateLambda(out LambdaExpression? expression))
+                if (filterContext.Errors.Count == 0)
                 {
-                    context.PushInstance(
-                        Expression.Call(
-                            typeof(Enumerable),
-                            nameof(Enumerable.Where),
-                            new[] { filterInputType.EntityType.Source },
-                            instance,
-                            (Expression)expression));
+                    if (filterContext.TryCreateLambda(out LambdaExpression? expression))
+                    {
+                        context.PushInstance(
+                            Expression.Call(
+                                typeof(Enumerable),
+                                nameof(Enumerable.Where),
+                                new[] { filterInputType.EntityType.Source },
+                                instance,
+                                (Expression)expression));
+                    }
+                    else
+                    {
+                        context.PushInstance(instance);
+                    }
                 }
                 else
                 {
