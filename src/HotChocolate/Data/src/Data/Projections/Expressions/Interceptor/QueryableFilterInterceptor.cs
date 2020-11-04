@@ -46,21 +46,28 @@ namespace HotChocolate.Data.Projections.Handlers
                     argumentVisitor(valueNode, filterInputType, false);
 
                 Expression instance = context.PopInstance();
-                if (filterContext.Errors.Count == 0 &&
-                    filterContext.TryCreateLambda(out LambdaExpression? expression))
+                if (filterContext.Errors.Count == 0)
                 {
-                    context.PushInstance(
-                        Expression.Call(
-                            typeof(Enumerable),
-                            nameof(Enumerable.Where),
-                            new[] { filterInputType.EntityType.Source },
-                            instance,
-                            (Expression)expression));
+                    if (filterContext.TryCreateLambda(out LambdaExpression? expression))
+                    {
+                        context.PushInstance(
+                            Expression.Call(
+                                typeof(Enumerable),
+                                nameof(Enumerable.Where),
+                                new[] { filterInputType.EntityType.Source },
+                                instance,
+                                (Expression)expression));
+                    }
+                    else
+                    {
+                        context.PushInstance(instance);
+                    }
                 }
                 else
                 {
                     context.PushInstance(
-                        Expression.Constant(Array.CreateInstance(filterInputType.RuntimeType, 0)));
+                        Expression.Constant(
+                            Array.CreateInstance(filterInputType.EntityType.Source, 0)));
                     context.ReportError(
                         ProjectionProvider_CouldNotProjectFiltering(valueNode));
                 }
