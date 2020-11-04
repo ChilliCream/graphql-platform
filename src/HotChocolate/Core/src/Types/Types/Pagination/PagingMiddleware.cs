@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Pagination
 
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is not null)
+            if (context.Result is not null and not IPage)
             {
                 context.Result = await _pagingHandler
                     .SliceAsync(context, context.Result)
