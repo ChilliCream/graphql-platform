@@ -8,7 +8,7 @@
     <PackageId>HotChocolate.AspNetCore.Authorization</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Authorization</RootNamespace>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
+    <Description>This package contains the ASP.NET Core authorization integrations for Hot Chocolate.</Description>
   </PropertyGroup>
 
   <ItemGroup>

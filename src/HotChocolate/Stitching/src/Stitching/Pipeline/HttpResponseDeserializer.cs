@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution;
@@ -40,14 +41,88 @@ namespace HotChocolate.Stitching.Pipeline
             IReadOnlyDictionary<string, object?> serializedResult)
         {
             if (serializedResult.TryGetValue(_errors, out object? o)
-                && o is ListValueNode l)
+                && o is IReadOnlyList<object> errors)
             {
-                foreach (var error in l.Items.OfType<ObjectValueNode>())
+                foreach (var obj in errors)
                 {
-                    Dictionary<string, object?> dict = _converter.Convert(error);
-                    result.AddError(ErrorBuilder.FromDictionary(dict).Build());
+                    IError error = ErrorBuilder
+                        .FromDictionary(DeserializeErrorObject(obj))
+                        .Build();
+
+                    result.AddError(error);
                 }
             }
+        }
+
+        private static object? DeserializeErrorValue(object? value)
+        {
+            switch (value)
+            {
+                case IReadOnlyDictionary<string, object?> obj:
+                    return DeserializeErrorObject(obj);
+
+                case IReadOnlyList<object?> list:
+                    return DeserializeErrorList(list);
+
+                case StringValueNode sv:
+                    return sv.Value;
+
+                case EnumValueNode ev:
+                    return ev.Value;
+
+                case IntValueNode iv:
+                    return iv.ToInt32();
+
+                case FloatValueNode fv:
+                    return fv.ToDouble();
+
+                case BooleanValueNode bv:
+                    return bv.Value;
+
+                case NullValueNode:
+                case null:
+                    return null;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private static Dictionary<string, object?> DeserializeErrorObject(
+            object obj)
+        {
+            if (obj is IReadOnlyDictionary<string, object?> dict)
+            {
+                return DeserializeErrorObject(dict);
+            }
+
+            throw new NotSupportedException("An error object must be a dictionary.");
+        }
+
+        private static Dictionary<string, object?> DeserializeErrorObject(
+            IReadOnlyDictionary<string, object?> obj)
+        {
+            var deserialized = new Dictionary<string, object?>();
+
+            foreach (var item in obj)
+            {
+                deserialized.Add(item.Key, DeserializeErrorValue(item.Value));
+            }
+
+            return deserialized;
+        }
+
+        private static List<object?> DeserializeErrorList(
+            IReadOnlyList<object?> list)
+        {
+            var deserialized = new List<object?>();
+
+            foreach (var item in list)
+            {
+                deserialized.Add(DeserializeErrorValue(item));
+            }
+
+            return deserialized;
         }
     }
 }

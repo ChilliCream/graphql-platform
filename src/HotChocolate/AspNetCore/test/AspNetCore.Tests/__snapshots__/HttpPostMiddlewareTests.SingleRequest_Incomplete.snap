@@ -12,7 +12,7 @@
         }
       ],
       "extensions": {
-        "code": "EXEC_SYNTAX_ERROR"
+        "code": "HC0011"
       }
     }
   ],

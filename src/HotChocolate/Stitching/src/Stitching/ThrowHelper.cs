@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Execution.Processing;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Properties;
 using static HotChocolate.Stitching.Properties.StitchingResources;
@@ -58,5 +58,22 @@ namespace HotChocolate.Stitching
                 .SetPath(path)
                 .AddLocation(fieldSelection)
                 .Build());
+
+        public static SchemaException PublishSchemaDefinitionDescriptor_ResourceNotFound(
+            string key) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "The resource `{0}` was not found!",
+                        key)
+                    .Build());
+
+        public static SchemaException IntrospectionHelper_UnableToFetchSchemaDefinition(
+            IReadOnlyList<IError> errors) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage("Unable to fetch schema definition.")
+                    .SetExtension("errors", errors)
+                    .Build());
     }
 }

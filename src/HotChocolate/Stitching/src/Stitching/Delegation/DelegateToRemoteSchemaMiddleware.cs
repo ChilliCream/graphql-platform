@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -67,7 +68,7 @@ namespace HotChocolate.Stitching.Delegation
                 context.Result = value is null or NullValueNode ? null : new SerializedData(value);
                 if (result.Errors is not null)
                 {
-                    ReportErrors(delegateDirective.Schema, context, result.Errors);
+                    ReportErrors(delegateDirective.Schema, context, path, result.Errors);
                 }
             }
 
@@ -224,24 +225,27 @@ namespace HotChocolate.Stitching.Delegation
         private static void ReportErrors(
             NameString schemaName,
             IResolverContext context,
+            IImmutableStack<SelectionPathComponent> fetchPath,
             IEnumerable<IError> errors)
         {
             foreach (IError error in errors)
             {
-                IErrorBuilder builder = ErrorBuilder.FromError(error)
+                IErrorBuilder builder = ErrorBuilder
+                    .FromError(error)
                     .SetExtension(_remoteErrorField, error.RemoveException())
                     .SetExtension(_schemaNameErrorField, schemaName.Value);
 
-                if (error.Path != null)
+                if (error.Path is not null)
                 {
-                    Path path = RewriteErrorPath(error, context.Path);
-                    builder.SetPath(path)
+                    builder
+                        .SetPath(RewriteErrorPath(error.Path, context.Path, fetchPath))
                         .ClearLocations()
                         .AddLocation(context.FieldSelection);
                 }
                 else if (IsHttpError(error))
                 {
-                    builder.SetPath(context.Path)
+                    builder
+                        .SetPath(context.Path)
                         .ClearLocations()
                         .AddLocation(context.FieldSelection);
                 }
@@ -250,40 +254,66 @@ namespace HotChocolate.Stitching.Delegation
             }
         }
 
-        private static Path RewriteErrorPath(IError error, Path path)
+        private static Path RewriteErrorPath(
+            Path errorPath,
+            Path fieldPath,
+            IImmutableStack<SelectionPathComponent> fetchPath)
         {
-            // TODO : FIX THIS
-            Path current = path;
+            var depth = errorPath.Depth + 1;
+            Path[] buffer = ArrayPool<Path>.Shared.Rent(depth);
+            Span<Path> paths = buffer.AsSpan().Slice(0, depth);
 
-            /*
-            if (error.Path.Depth > 0 &&
-                error.Path is NamePathSegment p1 &&
-                path is NamePathSegment p2 &&
-                p1.Name.Equals(p2.Name))
+            try
             {
-                while()
-            }
+                Path? current = errorPath;
 
-            if (error.Path.Depth > 0
-                && error.Path[0] is string s
-                && current.Name.Equals(s))
-            {
-                for (int i = 1; i < error.Path.Count; i++)
+                do
                 {
-                    if (error.Path[i] is string name)
-                    {
-                        current = current.Append(name);
-                    }
+                    paths[--depth] = current;
+                    current = current.Parent;
+                } while (current is not null && current is not RootPathSegment);
 
-                    if (error.Path[i] is int index)
+                depth = 0;
+                while (!fetchPath.IsEmpty)
+                {
+                    fetchPath = fetchPath.Pop(out SelectionPathComponent fp);
+                    if (paths[depth] is NamePathSegment np && np.Name.Equals(fp.Name.Value))
                     {
-                        current = current.Append(index);
+                        depth++;
+                    }
+                    else
+                    {
+                        return fieldPath;
                     }
                 }
-            }
-            */
 
-            return current;
+                paths = depth == 0 ? paths.Slice(1) : paths.Slice(depth);
+
+                if (paths.Length == 0)
+                {
+                    return fieldPath;
+                }
+
+                current = fieldPath;
+
+                for (int i = 0; i < paths.Length; i++)
+                {
+                    if (paths[i] is IndexerPathSegment index)
+                    {
+                        current = current.Append(index.Index);
+                    }
+                    else if (paths[i] is NamePathSegment name)
+                    {
+                        current = current.Append(name.Name);
+                    }
+                }
+
+                return current;
+            }
+            finally
+            {
+                ArrayPool<Path>.Shared.Return(buffer);
+            }
         }
 
         private static bool IsHttpError(IError error) =>
@@ -370,13 +400,13 @@ namespace HotChocolate.Stitching.Delegation
             return field;
         }
 
-    private static void ResolveScopedVariableArguments(
-            IResolverContext context,
-            NameString schemaName,
-            SelectionPathComponent component,
-            IOutputField field,
-            ICollection<VariableValue> variables,
-            ExtractFieldQuerySyntaxRewriter rewriter)
+        private static void ResolveScopedVariableArguments(
+                IResolverContext context,
+                NameString schemaName,
+                SelectionPathComponent component,
+                IOutputField field,
+                ICollection<VariableValue> variables,
+                ExtractFieldQuerySyntaxRewriter rewriter)
         {
             foreach (ArgumentNode argument in component.Arguments)
             {

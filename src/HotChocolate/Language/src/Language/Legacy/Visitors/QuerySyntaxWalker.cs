@@ -150,8 +150,8 @@
             VisitName(node.Name, context);
 
             VisitMany(
-                node.Directives, 
-                context, 
+                node.Directives,
+                context,
                 VisitDirective);
         }
 
@@ -165,8 +165,8 @@
             }
 
             VisitMany(
-                node.Directives, 
-                context, 
+                node.Directives,
+                context,
                 VisitDirective);
 
             if (node.SelectionSet != null)

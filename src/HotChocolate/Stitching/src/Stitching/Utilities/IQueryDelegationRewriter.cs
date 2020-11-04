@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     /// <summary>
     /// This interface provides the query delegation rewriter hooks.
@@ -23,8 +23,8 @@ namespace HotChocolate.Stitching
         /// <param name="outputField">
         /// The current output field on which this selection set is declared.
         /// </param>
-        /// <param name="selectionSet">
-        /// The list of selections that shall be added to the delegation query.
+        /// <param name="field">
+        /// The field selection syntax node.
         /// </param>
         FieldNode OnRewriteField(
            NameString targetSchemaName,

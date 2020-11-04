@@ -18,17 +18,17 @@ namespace HotChocolate.Stitching.Integration
 {
     public class FederatedSchemaTests : IClassFixture<StitchingTestContext>
     {
-        public const string Accounts = "accounts";
-        public const string Inventory = "inventory";
-        public const string Products = "products";
-        public const string Reviews = "reviews";
+        private const string _accounts = "accounts";
+        private const string _inventory = "inventory";
+        private const string _products = "products";
+        private const string _reviews = "reviews";
 
         public FederatedSchemaTests(StitchingTestContext context)
         {
             Context = context;
         }
 
-        protected StitchingTestContext Context { get; }
+        private StitchingTestContext Context { get; }
 
         [Fact]
         public async Task AutoMerge_Schema()
@@ -42,10 +42,10 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchema(Accounts)
-                    .AddRemoteSchema(Inventory)
-                    .AddRemoteSchema(Products)
-                    .AddRemoteSchema(Reviews)
+                    .AddRemoteSchema(_accounts)
+                    .AddRemoteSchema(_inventory)
+                    .AddRemoteSchema(_products)
+                    .AddRemoteSchema(_reviews)
                     .BuildSchemaAsync();
 
             // assert
@@ -63,19 +63,19 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query"))
-                    .AddRemoteSchema(Accounts)
-                    .AddRemoteSchema(Inventory)
-                    .AddRemoteSchema(Products)
-                    .AddRemoteSchema(Reviews)
+                    .AddRemoteSchema(_accounts)
+                    .AddRemoteSchema(_inventory)
+                    .AddRemoteSchema(_products)
+                    .AddRemoteSchema(_reviews)
                     .BuildRequestExecutorAsync();
-            
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
                     me {
                         id
-                        name 
-                        reviews { 
+                        name
+                        reviews {
                             body
                             product {
                                 upc
@@ -99,19 +99,19 @@ namespace HotChocolate.Stitching.Integration
                     .AddSingleton(httpClientFactory)
                     .AddGraphQL()
                     .AddQueryType(d => d.Name("Query").Field("local").Resolve("I am local."))
-                    .AddRemoteSchema(Accounts)
-                    .AddRemoteSchema(Inventory)
-                    .AddRemoteSchema(Products)
-                    .AddRemoteSchema(Reviews)
+                    .AddRemoteSchema(_accounts)
+                    .AddRemoteSchema(_inventory)
+                    .AddRemoteSchema(_products)
+                    .AddRemoteSchema(_reviews)
                     .BuildRequestExecutorAsync();
-            
+
             // act
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
                     me {
                         id
-                        name 
-                        reviews { 
+                        name
+                        reviews {
                             body
                             product {
                                 upc
@@ -131,7 +131,18 @@ namespace HotChocolate.Stitching.Integration
                     .AddRouting()
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
-                    .AddAccountsSchema(),
+                    .AddAccountsSchema()
+                    .PublishSchemaDefinition(c => c
+                        .SetName(_accounts)
+                        .IgnoreRootTypes()
+                        .AddTypeExtensionsFromString(
+                            @"extend type Query {
+                                me: User! @delegate(path: ""user(id: 1)"")
+                            }
+
+                            extend type Review {
+                                author: User @delegate(path: ""user(id: $fields:authorId)"")
+                            }")),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -143,7 +154,17 @@ namespace HotChocolate.Stitching.Integration
                     .AddRouting()
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
-                    .AddInventorySchema(),
+                    .AddInventorySchema()
+                    .PublishSchemaDefinition(c => c
+                        .SetName(_inventory)
+                        .IgnoreRootTypes()
+                        .AddTypeExtensionsFromString(
+                            @"extend type Product {
+                                inStock: Boolean
+                                    @delegate(path: ""inventoryInfo(upc: $fields:upc).isInStock"")
+                                shippingEstimate: Int
+                                    @delegate(path: ""shippingEstimate(price: $fields:price weight: $fields:weight)"")
+                            }")),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -155,7 +176,18 @@ namespace HotChocolate.Stitching.Integration
                     .AddRouting()
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
-                    .AddProductsSchema(),
+                    .AddProductsSchema()
+                    .PublishSchemaDefinition(c => c
+                        .SetName(_products)
+                        .IgnoreRootTypes()
+                        .AddTypeExtensionsFromString(
+                            @"extend type Query {
+                                topProducts(first: Int = 5): [Product] @delegate
+                            }
+
+                            extend type Review {
+                                product: Product @delegate(path: ""product(upc: $fields:upc)"")
+                            }")),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -167,7 +199,20 @@ namespace HotChocolate.Stitching.Integration
                     .AddRouting()
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
-                    .AddReviewSchema(),
+                    .AddReviewSchema()
+                    .PublishSchemaDefinition(c => c
+                        .SetName(_reviews)
+                        .IgnoreRootTypes()
+                        .AddTypeExtensionsFromString(
+                            @"extend type User {
+                                reviews: [Review]
+                                    @delegate(path:""reviewsByAuthor(authorId: $fields:id)"")
+                            }
+
+                            extend type Product {
+                                reviews: [Review]
+                                    @delegate(path:""reviewsByProduct(upc: $fields:upc)"")
+                            }")),
                 app => app
                     .UseWebSockets()
                     .UseRouting()
@@ -177,10 +222,10 @@ namespace HotChocolate.Stitching.Integration
         {
             var connections = new Dictionary<string, HttpClient>
             {
-                { Accounts, CreateAccountsService().CreateClient() },
-                { Inventory, CreateInventoryService().CreateClient() },
-                { Products, CreateProductsService().CreateClient() },
-                { Reviews, CreateReviewsService().CreateClient() },
+                { _accounts, CreateAccountsService().CreateClient() },
+                { _inventory, CreateInventoryService().CreateClient() },
+                { _products, CreateProductsService().CreateClient() },
+                { _reviews, CreateReviewsService().CreateClient() },
             };
 
             return StitchingTestContext.CreateRemoteSchemas(connections);
