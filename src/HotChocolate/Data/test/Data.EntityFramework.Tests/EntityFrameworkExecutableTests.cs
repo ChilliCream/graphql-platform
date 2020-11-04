@@ -20,7 +20,6 @@ namespace HotChocolate.Data
             _context = authorFixture.Context;
         }
 
-
         [Fact]
         public void Extensions_Should_ReturnEntityFrameworkExecutable_When_DBSet()
         {
