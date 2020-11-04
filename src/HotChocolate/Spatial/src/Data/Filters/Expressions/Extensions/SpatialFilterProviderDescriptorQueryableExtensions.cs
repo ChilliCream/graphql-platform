@@ -1,23 +1,19 @@
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public static class SpatialFilterProviderDescriptorQueryableExtensions
     {
         public static IFilterProviderDescriptor<QueryableFilterContext> AddSpatialHandlers(
-            this IFilterProviderDescriptor<QueryableFilterContext> descriptor)
-        {
-            descriptor.AddFieldHandler<QueryableSpatialGeometryDataHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialBufferDataHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialContainsOperationHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialDistanceOperationHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialIntersectsOperationHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialOverlapsOperationHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialTouchesOperationHandler>();
-            descriptor.AddFieldHandler<QueryableSpatialWithinOperationHandler>();
-
-            return descriptor;
-        }
+            this IFilterProviderDescriptor<QueryableFilterContext> descriptor) =>
+            descriptor
+                .AddFieldHandler<QueryableSpatialGeometryDataHandler>()
+                .AddFieldHandler<QueryableSpatialBufferDataHandler>()
+                .AddFieldHandler<QueryableSpatialContainsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialDistanceOperationHandler>()
+                .AddFieldHandler<QueryableSpatialIntersectsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialOverlapsOperationHandler>()
+                .AddFieldHandler<QueryableSpatialTouchesOperationHandler>()
+                .AddFieldHandler<QueryableSpatialWithinOperationHandler>();
     }
 }

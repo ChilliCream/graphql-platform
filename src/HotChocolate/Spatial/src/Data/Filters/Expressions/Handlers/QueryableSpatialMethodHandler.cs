@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Configuration;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Internal;
 using HotChocolate.Language;
@@ -10,7 +9,7 @@ using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public abstract class QueryableSpatialMethodHandler
         : FilterFieldHandler<QueryableFilterContext, Expression>
@@ -49,8 +48,8 @@ namespace HotChocolate.Data.Spatial.Filters
                 if (node.Value.IsNull())
                 {
                     context.ReportError(
-                        ErrorHelper.CreateNonNullError(field, node.Value, context));
-
+                        ErrorHelper.CreateNonNullError(
+                            field, node.Value, context));
                     action = SyntaxVisitor.Skip;
                     return true;
                 }
@@ -62,8 +61,8 @@ namespace HotChocolate.Data.Spatial.Filters
                     out Expression? nestedProperty))
                 {
                     context.ReportError(
-                        ErrorHelper.CouldNotCreateFilterForOperation(field, node.Value, context));
-
+                        ErrorHelper.CouldNotCreateFilterForOperation(
+                            field, node.Value, context));
                     action = SyntaxVisitor.Skip;
                     return true;
                 }
@@ -110,11 +109,11 @@ namespace HotChocolate.Data.Spatial.Filters
             return true;
         }
 
-        protected static bool TryGetParameter<TParameter>(
+        protected static bool TryGetParameter<T>(
             IFilterField parentField,
             IValueNode node,
             string fieldName,
-            [NotNullWhen(true)] out TParameter fieldNode)
+            [NotNullWhen(true)] out T fieldNode)
         {
             if (parentField.Type is InputObjectType inputType &&
                 node is ObjectValueNode objectValueNode)
@@ -124,8 +123,7 @@ namespace HotChocolate.Data.Spatial.Filters
                     if (objectValueNode.Fields[i].Name.Value == fieldName)
                     {
                         ObjectFieldNode field = objectValueNode.Fields[i];
-                        if (inputType.Fields[fieldName].Type.ParseLiteral(field.Value) is
-                            TParameter val)
+                        if (inputType.Fields[fieldName].Type.ParseLiteral(field.Value) is T val)
                         {
                             fieldNode = val;
                             return true;

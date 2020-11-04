@@ -1,9 +1,8 @@
 using System;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Types;
 
-namespace HotChocolate.Data.Spatial.Filters.Tests
+namespace HotChocolate.Data.Filters.Spatial.Tests
 {
     public abstract class FilterTestBase
     {

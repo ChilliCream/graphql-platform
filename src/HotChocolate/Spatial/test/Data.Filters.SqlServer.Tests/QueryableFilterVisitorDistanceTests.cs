@@ -1,39 +1,34 @@
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Spatial.Data.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class QueryableFilterVisitorDistanceTests
-        : SchemaCache,
-          IClassFixture<PostgreSqlResource<PostgisConfig>>
+        : SchemaCache
+        , IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
         private static readonly Polygon _truePolygon = new Polygon(
-            new LinearRing(
-                new[]
-                {
-                    new Coordinate(0, 0),
-                    new Coordinate(0, 2),
-                    new Coordinate(2, 2),
-                    new Coordinate(2, 0),
-                    new Coordinate(0, 0)
-                })
-        );
+            new LinearRing(new[]
+            {
+                new Coordinate(0, 0),
+                new Coordinate(0, 2),
+                new Coordinate(2, 2),
+                new Coordinate(2, 0),
+                new Coordinate(0, 0)
+            }));
 
         private static readonly Polygon _falsePolygon = new Polygon(
-            new LinearRing(
-                new[]
-                {
-                    new Coordinate(0, 0),
-                    new Coordinate(0, -2),
-                    new Coordinate(-2, -2),
-                    new Coordinate(-2, 0),
-                    new Coordinate(0, 0)
-                })
-        );
+            new LinearRing(new[]
+            {
+                new Coordinate(0, 0),
+                new Coordinate(0, -2),
+                new Coordinate(-2, -2),
+                new Coordinate(-2, 0),
+                new Coordinate(0, 0)
+            }));
 
         private static readonly Foo[] _fooEntities =
         {

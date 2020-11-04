@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using System;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public static class ToQueryStringExtensions
     {

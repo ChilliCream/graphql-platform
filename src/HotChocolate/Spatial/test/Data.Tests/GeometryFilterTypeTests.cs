@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
-using Snapshooter;
 using Xunit;
 
-namespace HotChocolate.Data.Spatial.Filters.Tests
+namespace HotChocolate.Data.Filters.Spatial.Tests
 {
     public class FilterInputTypeTest
         : FilterTestBase

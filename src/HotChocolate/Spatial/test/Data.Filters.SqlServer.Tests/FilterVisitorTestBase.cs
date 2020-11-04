@@ -2,37 +2,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GreenDonut;
-using HotChocolate.Data;
-using HotChocolate.Data.Filters;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Data.Spatial.Filters;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
-namespace HotChocolate.Spatial.Data.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class FilterVisitorTestBase
     {
-        private PostgreSqlResource<PostgisConfig> _resource;
+        private readonly PostgreSqlResource<PostgisConfig> _resource;
 
         public FilterVisitorTestBase(PostgreSqlResource<PostgisConfig> resource)
         {
             _resource = resource;
         }
 
-        private async Task<Func<IResolverContext, IEnumerable<TResult>>>
-            BuildResolverAsync<TResult>(
-                params TResult[] results)
-            where TResult : class
+        private async Task<Func<IResolverContext, IEnumerable<T>>> BuildResolverAsync<T>(
+            params T[] results)
+            where T : class
         {
             var databaseName = Guid.NewGuid().ToString("N");
-            var dbContext = new DatabaseContext<TResult>(_resource, databaseName);
+            var dbContext = new DatabaseContext<T>(_resource, databaseName);
 
             var sql = dbContext.Database.GenerateCreateScript();
             await _resource.CreateDatabaseAsync(databaseName);

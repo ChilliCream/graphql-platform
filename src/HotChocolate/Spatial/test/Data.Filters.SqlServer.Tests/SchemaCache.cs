@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Squadron;
 
-namespace HotChocolate.Spatial.Data.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class SchemaCache
-        : FilterVisitorTestBase,
-          IDisposable
+        : FilterVisitorTestBase
+        , IDisposable
     {
         private readonly ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>> _cache =
             new ConcurrentDictionary<(Type, Type, object), Task<IRequestExecutor>>();

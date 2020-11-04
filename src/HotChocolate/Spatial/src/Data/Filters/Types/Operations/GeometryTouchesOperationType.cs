@@ -1,9 +1,8 @@
-using HotChocolate.Data.Filters;
 using HotChocolate.Types;
 using HotChocolate.Types.Spatial;
-using static HotChocolate.Data.Spatial.Filters.SpatialFilterOperations;
+using static HotChocolate.Data.Filters.Spatial.SpatialFilterOperations;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class GeometryTouchesOperationType : BooleanOperationFilterInput
     {
@@ -11,7 +10,6 @@ namespace HotChocolate.Data.Spatial.Filters
         {
             descriptor.Operation(Geometry).Type<NonNullType<GeometryType>>();
             descriptor.Operation(Buffer).Type<FloatType>();
-
             base.Configure(descriptor);
         }
     }

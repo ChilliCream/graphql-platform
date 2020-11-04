@@ -1,13 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class QueryableSpatialWithinOperationHandler
         : QueryableSpatialMethodHandler
@@ -37,17 +36,14 @@ namespace HotChocolate.Data.Spatial.Filters
                     result = ExpressionBuilder.Within(
                         context.GetInstance(),
                         ExpressionBuilder.Buffer(g, buffer));
-
                     return true;
                 }
 
                 result = ExpressionBuilder.Within(context.GetInstance(), g);
-
                 return true;
             }
 
             result = null;
-
             return false;
         }
     }

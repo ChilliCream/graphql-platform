@@ -1,7 +1,7 @@
 using HotChocolate;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
-using HotChocolate.Data.Spatial.Filters;
+using HotChocolate.Data.Filters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;

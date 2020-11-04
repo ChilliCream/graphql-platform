@@ -1,10 +1,9 @@
 using System;
 using System.Linq.Expressions;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 
-namespace HotChocolate.Data.Spatial.Filters.Expressions
+namespace HotChocolate.Data.Filters.Spatial.Expressions
 {
     public class ExecutorBuilder
     {

@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     internal static class ExpressionBuilder
     {
@@ -24,95 +24,68 @@ namespace HotChocolate.Data.Spatial.Filters
         private static readonly MethodInfo _buffer =
             typeof(Geometry)
                 .GetMethods()
-                .Single(
-                    m => m.Name.Equals(nameof(Geometry.Buffer)) &&
-                        m.GetParameters().Length == 1);
+                .Single(m => m.Name.Equals(nameof(Geometry.Buffer)) &&
+                    m.GetParameters().Length == 1);
 
-        public static Expression Buffer(Geometry geometry, double buffer)
-        {
-            return Expression.Call(
+        public static Expression Buffer(Geometry geometry, double buffer) =>
+            Expression.Call(
                 CreateAndConvertParameter<Geometry>(geometry),
                 _buffer,
                 CreateAndConvertParameter<double>(buffer));
-        }
 
-        public static Expression Contains(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _contains, geometry);
-        }
+        public static Expression Contains(Expression property, Expression geometry) =>
+            Expression.Call(property, _contains, geometry);
 
-        public static Expression Contains(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Contains(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _contains,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
-        public static Expression Distance(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _distance, geometry);
-        }
+        public static Expression Distance(Expression property, Expression geometry) =>
+            Expression.Call(property, _distance, geometry);
 
-        public static Expression Distance(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Distance(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _distance,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
-        public static Expression Intersects(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _intersects, geometry);
-        }
+        public static Expression Intersects(Expression property, Expression geometry) =>
+            Expression.Call(property, _intersects, geometry);
 
-        public static Expression Intersects(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Intersects(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _intersects,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
-        public static Expression Overlaps(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _overlaps, geometry);
-        }
+        public static Expression Overlaps(Expression property, Expression geometry) =>
+            Expression.Call(property, _overlaps, geometry);
 
-        public static Expression Overlaps(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Overlaps(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _overlaps,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
-        public static Expression Touches(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _touches, geometry);
-        }
+        public static Expression Touches(Expression property, Expression geometry) =>
+            Expression.Call(property, _touches, geometry);
 
-        public static Expression Touches(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Touches(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _touches,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
-        public static Expression Within(Expression property, Expression geometry)
-        {
-            return Expression.Call(property, _within, geometry);
-        }
+        public static Expression Within(Expression property, Expression geometry) =>
+            Expression.Call(property, _within, geometry);
 
-        public static Expression Within(Expression property, Geometry geometry)
-        {
-            return Expression.Call(
+        public static Expression Within(Expression property, Geometry geometry) =>
+            Expression.Call(
                 property,
                 _within,
                 CreateAndConvertParameter<Geometry>(geometry));
-        }
 
         private static Expression CreateAndConvertParameter<T>(object value)
         {

@@ -7,7 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class QueryableSpatialDistanceOperationHandler
         : QueryableSpatialMethodHandler

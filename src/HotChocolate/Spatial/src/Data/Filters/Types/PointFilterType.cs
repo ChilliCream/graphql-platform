@@ -1,7 +1,6 @@
-using HotChocolate.Data.Filters;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class PointFilterType
         : GeometryFilterType<Point>
@@ -12,7 +11,6 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor.Field(x => x.X);
             descriptor.Field(x => x.Y);
             descriptor.Field(x => x.Z);
-
             base.Configure(descriptor);
         }
     }

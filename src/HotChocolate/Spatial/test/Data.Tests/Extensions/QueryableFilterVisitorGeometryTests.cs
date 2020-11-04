@@ -1,12 +1,11 @@
 using System;
-using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types.Spatial;
 using NetTopologySuite.Geometries;
 using Xunit;
-using static HotChocolate.Data.Spatial.Filters.Expressions.QueryableFilterVisitorGeometryTests.TestModels;
+using static HotChocolate.Data.Filters.Spatial.Expressions.QueryableFilterVisitorGeometryTests.TestModels;
 
-namespace HotChocolate.Data.Spatial.Filters.Expressions
+namespace HotChocolate.Data.Filters.Spatial.Expressions
 {
     public class QueryableFilterVisitorGeometryTests
     {
@@ -120,18 +119,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        distance: {
-                            geometry: {
-                                type: Point
-                                coordinates: [1, 1]
+                    @"{
+                        bar: {
+                            distance: {
+                                geometry: {
+                                    type: Point
+                                    coordinates: [1, 1]
+                                }
+                                eq: 1
                             }
-                            eq: 1
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -218,7 +216,7 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(new[] 
+                    Bar = new Polygon(new LinearRing(new[]
                     {
                         new Coordinate(0, 0),
                         new Coordinate(1, 2),
@@ -264,7 +262,7 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(new[] 
+                    Bar = new Polygon(new LinearRing(new[]
                     {
                         new Coordinate(0, 0),
                         new Coordinate(1, 2),

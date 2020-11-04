@@ -28,7 +28,7 @@ namespace HotChocolate.Data {
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Data.Spatial.DataResources", typeof(DataResources).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("HotChocolate.Data.DataResources", typeof(DataResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -13,8 +13,7 @@ namespace HotChocolate.Types.Spatial.Tests
     {
         private readonly ListValueNode _point = new ListValueNode(
             new IntValueNode(30),
-            new IntValueNode(10)
-        );
+            new IntValueNode(10));
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
@@ -30,20 +29,19 @@ namespace HotChocolate.Types.Spatial.Tests
         private InputObjectType CreateInputType()
         {
             ISchema schema = CreateSchema();
-
             return schema.GetType<InputObjectType>("GeoJSONPointInput");
         }
 
         private GeometryType CreateScalarType()
         {
             ISchema schema = CreateSchema();
-
             return schema.GetType<GeometryType>("Geometry");
         }
 
         [Fact]
         public void ParseLiteral_Point_With_Valid_Coordinates_Scalar()
         {
+            // arrange
             GeometryType type = CreateScalarType();
 
             // act
@@ -62,6 +60,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_With_Valid_Coordinates()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -80,6 +79,7 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_With_Valid_Coordinates_With_CRS()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
             // act
@@ -100,18 +100,24 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_Is_Null()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
             object? result = type.ParseLiteral(NullValueNode.Default);
 
+            // assert
             Assert.Null(result);
         }
 
         [Fact]
         public void ParseLiteral_Point_Is_Not_ObjectType_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<InvalidOperationException>(
                 () => type.ParseLiteral(new ListValueNode()));
         }
@@ -119,8 +125,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_With_Missing_Fields_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -131,8 +140,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_With_Empty_Coordinates_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -143,8 +155,11 @@ namespace HotChocolate.Types.Spatial.Tests
         [Fact]
         public void ParseLiteral_Point_With_Wrong_Geometry_Type_Throws()
         {
+            // arrange
             InputObjectType type = CreateInputType();
 
+            // act
+            // assert
             Assert.Throws<SerializationException>(
                 () => type.ParseLiteral(
                     new ObjectValueNode(
@@ -156,7 +171,6 @@ namespace HotChocolate.Types.Spatial.Tests
         public async Task Execution_Tests()
         {
             // arrange
-            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(
                     d => d

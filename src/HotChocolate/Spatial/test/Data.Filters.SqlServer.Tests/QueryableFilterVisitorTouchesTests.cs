@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.Spatial.Data.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public class QueryableFilterVisitorTouchesTests
         : SchemaCache

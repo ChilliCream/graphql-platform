@@ -1,12 +1,13 @@
 using System;
-using HotChocolate.Data.Filters;
 using NetTopologySuite.Geometries;
 
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     public static class SpatialFilterConventionDescriptorExtensions
     {
-        /// the default names of the spatial filter operations
+        /// <summary>
+        /// The default names of the spatial filter operations
+        /// </summary>
         public static IFilterConventionDescriptor AddSpatialOperations(
             this IFilterConventionDescriptor descriptor)
         {
@@ -27,7 +28,9 @@ namespace HotChocolate.Data.Spatial.Filters
             return descriptor;
         }
 
-        // the fields and operations available to each type
+        /// <summary>
+        /// The fields and operations available to each type
+        /// </summary>
         public static IFilterConventionDescriptor BindSpatialTypes(
             this IFilterConventionDescriptor descriptor)
         {

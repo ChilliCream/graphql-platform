@@ -1,4 +1,4 @@
-namespace HotChocolate.Data.Spatial.Filters
+namespace HotChocolate.Data.Filters.Spatial
 {
     /// <summary>
     /// All of the available spatial operations
