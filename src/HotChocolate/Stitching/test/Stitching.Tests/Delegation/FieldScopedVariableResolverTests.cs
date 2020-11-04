@@ -45,7 +45,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("fields_a", value.Name);
+            Assert.Equal("__fields_a", value.Name);
             Assert.IsType<NamedTypeNode>(value.Type);
             Assert.Equal("baz", value.Value.Value);
         }
