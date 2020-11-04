@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import styled from "styled-components";
 import { ArticleSectionsFragment } from "../../../graphql-types";
 import { closeAside } from "../../state/common";
+import { MostProminentSection } from "./doc-page-elements";
 
 interface ArticleSectionsProperties {
   data: ArticleSectionsFragment;
@@ -74,15 +75,17 @@ export const ArticleSections: FunctionComponent<ArticleSectionsProperties> = ({
   return data.tableOfContents!.length > 0 ? (
     <Container>
       <Title>In this article</Title>
-      <Content
-        onClick={handleCloseClick}
-        dangerouslySetInnerHTML={{
-          __html: data.tableOfContents!.replace(
-            /href=\"(.*?#)(.*?)\"/gi,
-            'id="toc-$2" href="/docs$1$2"'
-          ),
-        }}
-      />
+      <MostProminentSection>
+        <Content
+          onClick={handleCloseClick}
+          dangerouslySetInnerHTML={{
+            __html: data.tableOfContents!.replace(
+              /href=\"(.*?#)(.*?)\"/gi,
+              'id="toc-$2" href="/docs$1$2"'
+            ),
+          }}
+        />
+      </MostProminentSection>
     </Container>
   ) : (
     <></>
