@@ -434,6 +434,6 @@ namespace HotChocolate.Types.Pagination
             {
                 throw new NotImplementedException();
             }
-        }
+        }   
     }
 }
