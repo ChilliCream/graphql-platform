@@ -37,7 +37,8 @@ namespace HotChocolate.Spatial.Data.Filters
 
         private static readonly Foo[] _fooEntities =
         {
-            new Foo { Id = 1, Bar = _truePolygon }, new Foo { Id = 2, Bar = _falsePolygon }
+            new Foo { Id = 1, Bar = _truePolygon }, 
+            new Foo { Id = 2, Bar = _falsePolygon }
         };
 
         public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
@@ -57,20 +58,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                distance: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [1, 1]
-                                    },
-                                    gt: 1
+                            root(where: {
+                                bar: {
+                                    distance: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [1, 1]
+                                        },
+                                        gt: 1
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res1.MatchSqlSnapshot("2");
@@ -79,20 +80,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                distance: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [-1, -1]
-                                    },
-                                    gt: 1
+                            root(where: {
+                                bar: {
+                                    distance: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [-1, -1]
+                                        },
+                                        gt: 1
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res2.MatchSqlSnapshot("1");
