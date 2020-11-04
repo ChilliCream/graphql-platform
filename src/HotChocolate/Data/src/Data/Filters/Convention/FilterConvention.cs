@@ -18,8 +18,8 @@ namespace HotChocolate.Data.Filters
     /// The filter convention provides defaults for inferring filters.
     /// </summary>
     public class FilterConvention
-        : Convention<FilterConventionDefinition>,
-          IFilterConvention
+        : Convention<FilterConventionDefinition>
+        , IFilterConvention
     {
         private const string _typePostFix = "FilterInput";
 
