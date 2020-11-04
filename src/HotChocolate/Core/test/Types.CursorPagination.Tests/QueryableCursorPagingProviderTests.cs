@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +12,8 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using Xunit;
+
+#nullable  enable
 
 namespace HotChocolate.Types.Pagination
 {
@@ -276,6 +280,104 @@ namespace HotChocolate.Types.Pagination
             Assert.False(connection.Info.HasPreviousPage);
         }
 
+        [Fact]
+        public async Task Executable()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType sourceType = typeInspector.GetType(typeof(List<string>));
+
+            IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+
+            var list = new MockExecutable<string>(new []
+            {
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g"
+            });
+
+            var pagingDetails = new CursorPagingArguments(2);
+            var context = new MockContext(pagingDetails);
+
+            // act
+            var connection = (Connection)await pagingHandler.SliceAsync(context, list);
+
+            // assert
+            Assert.Collection(connection.Edges,
+                t =>
+                {
+                    Assert.Equal("a", t.Node);
+                    Assert.Equal(0, GetPositionFromCursor(t.Cursor));
+                },
+                t =>
+                {
+                    Assert.Equal("b", t.Node);
+                    Assert.Equal(1, GetPositionFromCursor(t.Cursor));
+                });
+
+            Assert.False(
+                connection.Info.HasPreviousPage,
+                "HasPreviousPage");
+
+            Assert.True(
+                connection.Info.HasNextPage,
+                "HasNextPage");
+        }
+
+        [Fact]
+        public async Task Executable_Queryable()
+        {
+            // arrange
+            var typeInspector = new DefaultTypeInspector();
+            IExtendedType sourceType = typeInspector.GetType(typeof(List<string>));
+
+            IPagingProvider pagingProvider = new QueryableCursorPagingProvider();
+            IPagingHandler pagingHandler = pagingProvider.CreateHandler(sourceType, default);
+
+            var list = new MockExecutable<string>(new []
+            {
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g"
+            }.AsQueryable());
+
+            var pagingDetails = new CursorPagingArguments(2);
+            var context = new MockContext(pagingDetails);
+
+            // act
+            var connection = (Connection)await pagingHandler.SliceAsync(context, list);
+
+            // assert
+            Assert.Collection(connection.Edges,
+                t =>
+                {
+                    Assert.Equal("a", t.Node);
+                    Assert.Equal(0, GetPositionFromCursor(t.Cursor));
+                },
+                t =>
+                {
+                    Assert.Equal("b", t.Node);
+                    Assert.Equal(1, GetPositionFromCursor(t.Cursor));
+                });
+
+            Assert.False(
+                connection.Info.HasPreviousPage,
+                "HasPreviousPage");
+
+            Assert.True(
+                connection.Info.HasNextPage,
+                "HasNextPage");
+        }
+
         private int GetPositionFromCursor(string cursor)
         {
             return int.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(cursor)));
@@ -434,6 +536,39 @@ namespace HotChocolate.Types.Pagination
             {
                 throw new NotImplementedException();
             }
-        }   
+        }
+
+        public class MockExecutable<T> : IExecutable<T>
+            where T : class
+        {
+            private readonly IEnumerable<T> _source;
+
+            public MockExecutable(IEnumerable<T> source)
+            {
+                _source = source;
+            }
+
+            public object Source => _source;
+
+            public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<IList>(_source.ToList());
+            }
+
+            public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.FirstOrDefault());
+            }
+
+            public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.SingleOrDefault());
+            }
+
+            public string Print()
+            {
+                return _source.ToString();
+            }
+        }
     }
 }
