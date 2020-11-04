@@ -51,8 +51,8 @@ namespace HotChocolate.Data.Sorting
             base.OnRegisterDependencies(context, definition);
             if (definition is SortInputTypeDefinition { EntityType: { } } sortDefinition)
             {
-                SetTypeIdentity(typeof(SortInputType<>)
-                    .MakeGenericType(sortDefinition.EntityType));
+                SetTypeIdentity(
+                    typeof(SortInputType<>).MakeGenericType(sortDefinition.EntityType));
             }
         }
 
