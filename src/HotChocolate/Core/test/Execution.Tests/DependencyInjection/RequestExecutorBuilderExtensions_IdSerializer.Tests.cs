@@ -1,10 +1,10 @@
 using System;
 using HotChocolate.Execution.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Types.Relay;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.DependencyInjection
+namespace HotChocolate.Execution.DependencyInjection
 {
     public class RequestExecutorBuilderExtensionsIdSerializerTests
     {

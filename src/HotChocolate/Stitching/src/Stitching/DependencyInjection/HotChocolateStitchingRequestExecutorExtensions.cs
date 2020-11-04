@@ -16,6 +16,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Pipeline;
 using HotChocolate.Stitching.Requests;
+using HotChocolate.Stitching.SchemaDefinitions;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Utilities;
 using HotChocolate.Utilities.Introspection;
@@ -215,7 +216,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         schemaBuilder.AddDocument(document);
 
                         // ... which will fail if any resolver is actually used ...
-                        // todo : how to bind resolvers
                         schemaBuilder.Use(next => context => throw new NotSupportedException());
                     })
                 // ... instead we are using a special request pipeline that does everything like
@@ -273,48 +273,62 @@ namespace Microsoft.Extensions.DependencyInjection
                         schemaBuilder.AddTypeExtensions(doc);
                     }
 
+                    schemaBuilder.AddTypeRewriter(
+                        new RemoveFieldRewriter(
+                            new FieldReference(
+                                autoProxy.Schema.QueryType.Name,
+                                SchemaDefinitionFieldNames.SchemaDefinitionField),
+                            schemaName));
+
+                    schemaBuilder.AddDocumentRewriter(
+                        new RemoveTypeRewriter(
+                            SchemaDefinitionType.Names.SchemaDefinition,
+                            schemaName));
+
                     foreach (var schemaAction in extensionsRewriter.SchemaActions)
                     {
                         switch (schemaAction.Name.Value)
                         {
                             case DirectiveNames.RemoveRootTypes:
-                                builder.IgnoreRootTypes(schemaName);
+                                schemaBuilder.AddDocumentRewriter(
+                                    new RemoveRootTypeRewriter(schemaName));
                                 break;
 
                             case DirectiveNames.RemoveType:
-                                builder.IgnoreType(
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RemoveType_TypeName),
-                                    schemaName);
+                                schemaBuilder.AddDocumentRewriter(
+                                    new RemoveTypeRewriter(
+                                        GetArgumentValue(
+                                            schemaAction,
+                                            DirectiveFieldNames.RemoveType_TypeName),
+                                        schemaName));
                                 break;
 
                             case DirectiveNames.RenameType:
-                                builder.RenameType(
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameType_TypeName),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameType_NewTypeName),
-                                    schemaName);
+                                schemaBuilder.AddTypeRewriter(
+                                    new RenameTypeRewriter(
+                                        GetArgumentValue(
+                                            schemaAction,
+                                            DirectiveFieldNames.RenameType_TypeName),
+                                        GetArgumentValue(
+                                            schemaAction,
+                                            DirectiveFieldNames.RenameType_NewTypeName),
+                                        schemaName));
                                 break;
 
                             case DirectiveNames.RenameField:
-                                builder.RenameField(
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameField_TypeName),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameField_TypeName),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameField_FieldName),
-                                    GetArgumentValue(
-                                        schemaAction,
-                                        DirectiveFieldNames.RenameField_NewFieldName),
-                                    schemaName);
+                                schemaBuilder.AddTypeRewriter(
+                                    new RenameFieldRewriter(
+                                        new FieldReference(
+                                            GetArgumentValue(
+                                                schemaAction,
+                                                DirectiveFieldNames.RenameField_TypeName),
+                                            GetArgumentValue(
+                                                schemaAction,
+                                                DirectiveFieldNames.RenameField_FieldName)),
+                                        GetArgumentValue(
+                                            schemaAction,
+                                            DirectiveFieldNames.RenameField_NewFieldName),
+                                        schemaName));
                                 break;
                         }
                     }
@@ -656,7 +670,7 @@ namespace Microsoft.Extensions.DependencyInjection
             schemaName?.EnsureNotEmpty(nameof(schemaName));
 
             return builder.AddDocumentRewriter(
-                new RemoveRootTypeRewriter());
+                new RemoveRootTypeRewriter(schemaName));
         }
 
         /// <summary>

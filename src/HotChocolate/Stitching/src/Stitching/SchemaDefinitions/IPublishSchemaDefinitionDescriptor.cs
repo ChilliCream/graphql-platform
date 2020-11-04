@@ -1,4 +1,6 @@
+using System;
 using System.Reflection;
+using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Stitching.SchemaDefinitions
 {
@@ -24,6 +26,9 @@ namespace HotChocolate.Stitching.SchemaDefinitions
 
         IPublishSchemaDefinitionDescriptor AddTypeExtensionsFromString(
             string schemaSdl);
+
+        IPublishSchemaDefinitionDescriptor SetSchemaDefinitionPublisher(
+            Func<IServiceProvider, ISchemaDefinitionPublisher> publisherFactory);
 
         IPublishSchemaDefinitionDescriptor IgnoreRootTypes();
 

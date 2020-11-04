@@ -13,10 +13,15 @@ namespace Microsoft.Extensions.DependencyInjection
             var descriptor = new PublishSchemaDefinitionDescriptor(builder);
             configure(descriptor);
 
+            var typeInterceptor = new SchemaDefinitionTypeInterceptor(!descriptor.HasPublisher);
+            var schemaInterceptor = new SchemaDefinitionSchemaInterceptor(descriptor);
+
             builder
                 .AddType<SchemaDefinitionType>()
-                .TryAddTypeInterceptor<SchemaDefinitionTypeInterceptor>()
-                .TryAddSchemaInterceptor(new SchemaDefinitionSchemaInterceptor(descriptor));
+                .TryAddTypeInterceptor(typeInterceptor)
+                .TryAddSchemaInterceptor(schemaInterceptor)
+                .ConfigureOnRequestExecutorCreatedAsync(
+                    async (sp, executor, ct) => await descriptor.PublishAsync(sp, ct));
 
             return builder;
         }

@@ -50,6 +50,7 @@ namespace HotChocolate.Data.Projections
             ProjectionProvider? provider = null,
             Action<ModelBuilder>? onModelCreating = null,
             bool usePaging = false,
+            bool useOffsetPaging = false,
             ObjectType<TEntity>? objectType = null)
             where TEntity : class
         {
@@ -86,6 +87,11 @@ namespace HotChocolate.Data.Projections
                                 descriptor.UsePaging<ObjectType<TEntity>>();
                             }
 
+                            if (useOffsetPaging)
+                            {
+                                descriptor.UseOffsetPaging<ObjectType<TEntity>>();
+                            }
+
                             descriptor
                                 .Use(
                                     next => async context =>
@@ -115,7 +121,7 @@ namespace HotChocolate.Data.Projections
             ISchema schema = builder.Create();
 
             return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
+                .Configure<RequestExecutorSetup>(
                     Schema.DefaultName,
                     o => o.Schema = schema)
                 .AddGraphQL()

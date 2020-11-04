@@ -80,6 +80,8 @@ namespace HotChocolate.Stitching.Integration
             Assert.Equal(
                 "PaginationAmount",
                 type.Fields["accountTransactions"].Arguments["first"].Type.NamedType().Name.Value);
+
+            Assert.True(executor.Schema.TryGetDirectiveType("translatable", out _));
         }
 
         private class DocumentRewriter : SchemaSyntaxRewriter<object>

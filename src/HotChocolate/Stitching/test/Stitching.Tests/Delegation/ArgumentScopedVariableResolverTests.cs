@@ -43,7 +43,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Equal("bar", Assert.IsType<StringValueNode>(value.DefaultValue).Value);
-            Assert.Equal("arguments_a", value.Name);
+            Assert.Equal("__arguments_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal("baz", value.Value.Value);
         }
@@ -89,7 +89,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Collection(
-                Assert.Throws<QueryException>(a).Errors,
+                Assert.Throws<GraphQLException>(a).Errors,
                 t => Assert.Equal(ErrorCodes.Stitching.ArgumentNotDefined, t.Code));
         }
 

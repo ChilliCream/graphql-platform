@@ -165,14 +165,13 @@ namespace HotChocolate.Execution.Processing
 
                 while (parent != null)
                 {
-                    if (parent is ResultMap map &&
-                        path is NamePathSegment nameSegment)
+                    if (parent is ResultMap map && path is NamePathSegment nameSegment)
                     {
-                        ResultValue value = map.GetValue(nameSegment.Name.Value, out int index);
+                        ResultValue value = map.GetValue(nameSegment.Name.Value, out var index);
 
                         if (value.IsNullable)
                         {
-                            map.SetValue(index, value.Name, null, true);
+                            map.SetValue(index, value.Name, value: null, isNullable: true);
                             break;
                         }
 
@@ -180,6 +179,7 @@ namespace HotChocolate.Execution.Processing
                         {
                             map.RemoveValue(index);
                         }
+
                         path = path.Parent;
                         parent = parent.Parent;
 
@@ -193,7 +193,6 @@ namespace HotChocolate.Execution.Processing
                     else if (parent is ResultMapList mapList &&
                         path is IndexerPathSegment mapListIndexSegment)
                     {
-
                         if (mapList.IsNullable)
                         {
                             mapList[mapListIndexSegment.Index] = null;

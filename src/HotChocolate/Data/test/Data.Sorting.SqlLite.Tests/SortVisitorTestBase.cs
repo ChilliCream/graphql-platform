@@ -74,7 +74,7 @@ namespace HotChocolate.Data.Sorting
             ISchema? schema = builder.Create();
 
             return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
+                .Configure<RequestExecutorSetup>(
                     Schema.DefaultName,
                     o => o.Schema = schema)
                 .AddGraphQL()

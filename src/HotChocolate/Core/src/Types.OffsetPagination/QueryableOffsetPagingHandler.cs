@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -52,10 +53,41 @@ namespace HotChocolate.Types.Pagination
                 items.RemoveAt(arguments.Take);
             }
 
-            return new CollectionSegment((IReadOnlyCollection<object>)items, pageInfo, CountAsync);
+            Func<CancellationToken, ValueTask<int>> getTotalCount =
+                ct => throw new InvalidOperationException();
 
-            async ValueTask<int> CountAsync(CancellationToken cancellationToken) =>
-                await Task.Run(original.Count, cancellationToken).ConfigureAwait(false);
+            // TotalCount is one of the heaviest operations. It is only necessary to load totalCount
+            // when it is enabled (IncludeTotalCount) and when it is contained in the selection set.
+            if (IncludeTotalCount &&
+                context.Field.Type is ObjectType objectType &&
+                context.FieldSelection.SelectionSet is {} selectionSet)
+            {
+                IReadOnlyList<IFieldSelection> selections = context
+                    .GetSelections(objectType, selectionSet, true);
+
+                var includeTotalCount = false;
+                for (var i = 0; i < selections.Count; i++)
+                {
+                    if (selections[i].Field.Name.Value is "totalCount")
+                    {
+                        includeTotalCount = true;
+                        break;
+                    }
+                }
+
+                // When totalCount is included in the selection set we prefetch it, then capture the
+                // count in a variable, to pass it into the clojure
+                if (includeTotalCount)
+                {
+                    var captureCount = original.Count();
+                    getTotalCount = ct => new ValueTask<int>(captureCount);
+                }
+            }
+
+            return new CollectionSegment(
+                (IReadOnlyCollection<object>)items,
+                pageInfo,
+                getTotalCount);
         }
 
         protected virtual async ValueTask<List<TItemType>> ExecuteQueryableAsync(
@@ -90,7 +122,6 @@ namespace HotChocolate.Types.Pagination
             }
 
             return list;
-
         }
     }
 }

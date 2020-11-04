@@ -28,9 +28,7 @@ namespace HotChocolate.Stitching.Utilities
             foreach (KeyValuePair<NameString, IRequestExecutor> executor in
                 context.GetRemoteExecutors())
             {
-                allSchemas.Add(
-                    executor.Key,
-                    Utf8GraphQLParser.Parse(executor.Value.Schema.Print()));
+                allSchemas.Add(executor.Key, executor.Value.Schema.ToDocument(true));
             }
 
             IReadOnlyList<DocumentNode> typeExtensions = context.GetTypeExtensions();

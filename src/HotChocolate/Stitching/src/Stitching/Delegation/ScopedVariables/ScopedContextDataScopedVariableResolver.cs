@@ -3,6 +3,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
+using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
@@ -14,25 +15,25 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             ScopedVariableNode variable,
             IInputType targetType)
         {
-            if (context == null)
+            if (context is null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (variable == null)
+            if (variable is null)
             {
                 throw new ArgumentNullException(nameof(variable));
             }
 
-            if (targetType == null)
+            if (targetType is null)
             {
                 throw new ArgumentNullException(nameof(targetType));
             }
 
             if (!ScopeNames.ScopedContextData.Equals(variable.Scope.Value))
             {
-                throw new ArgumentException(StitchingResources
-                    .ScopedCtxDataScopedVariableResolver_CannotHandleVariable,
+                throw new ArgumentException(
+                    ScopedCtxDataScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 

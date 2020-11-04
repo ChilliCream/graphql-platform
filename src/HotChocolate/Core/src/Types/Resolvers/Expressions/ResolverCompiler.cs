@@ -34,10 +34,10 @@ namespace HotChocolate.Resolvers.Expressions
         protected ParameterExpression Context { get; }
 
         protected static MethodInfo Parent { get; } =
-            typeof(IResolverContext).GetMethod(nameof(Parent))!;
+            typeof(IResolverContext).GetMethod(nameof(IResolverContext.Parent))!;
 
         protected static MethodInfo Resolver { get; } =
-            typeof(IResolverContext).GetMethod(nameof(Resolver))!;
+            typeof(IResolverContext).GetMethod(nameof(IResolverContext.Resolver))!;
 
         protected IEnumerable<Expression> CreateParameters(
             IEnumerable<ParameterInfo> parameters,

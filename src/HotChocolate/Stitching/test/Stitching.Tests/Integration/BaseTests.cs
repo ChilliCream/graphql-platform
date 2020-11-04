@@ -1,15 +1,14 @@
-using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
-using System.Collections.Generic;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Integration
 {
@@ -594,6 +593,41 @@ namespace HotChocolate.Stitching.Integration
             IExecutionResult result = await executor.ExecuteAsync(
                 @"{
                     customer(id: ""Q3VzdG9tZXIKZDE="") {
+                        int
+                    }
+                }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task AutoMerge_Execute_Customer_DoesNotExist_And_Is_Correctly_Null()
+        {
+            // arrange
+            IHttpClientFactory httpClientFactory =
+                Context.CreateDefaultRemoteSchemas();
+
+            IRequestExecutor executor =
+                await new ServiceCollection()
+                    .AddSingleton(httpClientFactory)
+                    .AddGraphQL()
+                    .AddRemoteSchema(Context.ContractSchema)
+                    .AddRemoteSchema(Context.CustomerSchema)
+                    .AddTypeExtensionsFromString(
+                        @"extend type Customer {
+                            int: Int!
+                                @delegate(
+                                    schema: ""contract"",
+                                    path: ""int(i:$fields:someInt)"")
+                        }")
+                    .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                    .BuildRequestExecutorAsync();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                @"{
+                    customer(id: ""Q3VzdG9tZXIKaTI5OTk="") {
                         int
                     }
                 }");

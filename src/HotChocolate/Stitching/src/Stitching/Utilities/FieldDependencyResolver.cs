@@ -42,7 +42,10 @@ namespace HotChocolate.Stitching.Utilities
 
             var context = Context.New(declaringType, GetFragments(document));
 
-            VisitSelectionSet(field.SelectionSet, context);
+            if (field.SelectionSet is not null)
+            {
+                VisitSelectionSet(field.SelectionSet, context);
+            }
 
             return context.Dependencies;
         }
@@ -136,7 +139,7 @@ namespace HotChocolate.Stitching.Utilities
                 {
                     if (type.Fields.TryGetField(
                         fieldName,
-                        out IOutputField dependency))
+                        out IOutputField? dependency))
                     {
                         context.Dependencies.Add(new FieldDependency(
                             type.Name, dependency.Name));
@@ -173,7 +176,7 @@ namespace HotChocolate.Stitching.Utilities
             base.VisitFragmentSpread(node, context);
 
             if (context.Fragments.TryGetValue(node.Name.Value,
-                out FragmentDefinitionNode fragment))
+                out FragmentDefinitionNode? fragment))
             {
                 VisitFragmentDefinition(fragment, context);
             }

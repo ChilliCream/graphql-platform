@@ -16,7 +16,12 @@ import {
   toggleNavigationGroup,
   toggleTOC,
 } from "../../state/common";
-import { BodyStyle, FixedContainer, Navigation } from "./doc-page-elements";
+import {
+  BodyStyle,
+  FixedContainer,
+  MostProminentSection,
+  Navigation,
+} from "./doc-page-elements";
 import { DocPagePaneHeader } from "./doc-page-pane-header";
 import { IconContainer } from "./icon-container";
 import { Link } from "./link";
@@ -250,29 +255,31 @@ export const DocPageNavigation: FunctionComponent<DocPageNavigationProperties> =
             ))}
           </ProductVersions>
         )}
-        {!productSwitcherOpen &&
-          activeVersion?.items &&
-          buildNavigationStructure(
-            activeVersion.items
-              .filter((item) => !!item)
-              .map<Item>((item) => ({
-                path: item!.path!,
-                title: item!.title!,
-                items: item!.items
-                  ? item?.items
-                      .filter((item) => !!item)
-                      .map<Item>((item) => ({
-                        path: item!.path!,
-                        title: item!.title!,
-                      }))
-                  : undefined,
-              })),
-            `/docs/${activeProduct!.path!}${
-              activeVersion?.path?.length && activeVersion.path.length > 0
-                ? "/" + activeVersion.path!
-                : ""
-            }`
-          )}
+        {!productSwitcherOpen && activeVersion?.items && (
+          <MostProminentSection>
+            {buildNavigationStructure(
+              activeVersion.items
+                .filter((item) => !!item)
+                .map<Item>((item) => ({
+                  path: item!.path!,
+                  title: item!.title!,
+                  items: item!.items
+                    ? item?.items
+                        .filter((item) => !!item)
+                        .map<Item>((item) => ({
+                          path: item!.path!,
+                          title: item!.title!,
+                        }))
+                    : undefined,
+                })),
+              `/docs/${activeProduct!.path!}${
+                activeVersion?.path?.length && activeVersion.path.length > 0
+                  ? "/" + activeVersion.path!
+                  : ""
+              }`
+            )}
+          </MostProminentSection>
+        )}
       </FixedContainer>
     </Navigation>
   );

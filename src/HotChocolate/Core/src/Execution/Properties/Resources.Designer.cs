@@ -290,5 +290,11 @@ namespace HotChocolate.Execution.Properties {
                 return ResourceManager.GetString("ExecutionRequestExecutorExtensions_ExecuteAsync_QueryCannotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        internal static string RequestExecutorBuilder_Convention_NotSuppported {
+            get {
+                return ResourceManager.GetString("RequestExecutorBuilder_Convention_NotSuppported", resourceCulture);
+            }
+        }
     }
 }
