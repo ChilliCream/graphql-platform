@@ -57,20 +57,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                contains: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [1, 1]
-                                    },
-                                    eq: true
+                            root(where: {
+                                bar: {
+                                    contains: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [1, 1]
+                                        },
+                                        eq: true
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res1.MatchSqlSnapshot("1");
@@ -79,20 +79,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                contains: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [-1, -1]
-                                    },
-                                    eq: true
+                            root(where: {
+                                bar: {
+                                    contains: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [-1, -1]
+                                        },
+                                        eq: true
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res2.MatchSqlSnapshot("2");
@@ -110,20 +110,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                contains: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [1, 1]
-                                    },
-                                    neq: true
+                            root(where: {
+                                bar: {
+                                    contains: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [1, 1]
+                                        },
+                                        neq: true
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res1.MatchSqlSnapshot("2");
@@ -132,20 +132,20 @@ namespace HotChocolate.Spatial.Data.Filters
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                        root(where: {
-                            bar: {
-                                contains: {
-                                    geometry: {
-                                        type: Point,
-                                        coordinates: [-1, -1]
-                                    },
-                                    neq: true
+                            root(where: {
+                                bar: {
+                                    contains: {
+                                        geometry: {
+                                            type: Point,
+                                            coordinates: [-1, -1]
+                                        },
+                                        neq: true
+                                    }
                                 }
+                            }){
+                                id
                             }
-                        }){
-                            id
-                        }
-                    }")
+                        }")
                     .Create());
 
             res2.MatchSqlSnapshot("1");
