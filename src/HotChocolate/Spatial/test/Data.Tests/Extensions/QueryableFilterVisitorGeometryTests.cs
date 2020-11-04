@@ -17,18 +17,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        contains: {
-                            geometry: {
-                                type: Point
-                                coordinates: [20, 20]
+                    @"{
+                        bar: {
+                            contains: {
+                                geometry: {
+                                    type: Point
+                                    coordinates: [20, 20]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -37,21 +36,23 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new LineString(
-                        new[]
-                        {
-                        new Coordinate(10, 20), new Coordinate(20, 20), new Coordinate(30, 20)
-                        })
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(10, 20),
+                        new Coordinate(20, 20),
+                        new Coordinate(30, 20)
+                    })
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new LineString(
-                        new[]
-                        {
-                        new Coordinate(10, 10), new Coordinate(20, 10), new Coordinate(30, 10)
-                        })
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(10, 10),
+                        new Coordinate(20, 10),
+                        new Coordinate(30, 10)
+                    })
                 };
                 Assert.False(func(b));
             }
@@ -61,19 +62,18 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        contains: {
-                            geometry: {
-                                type: Point
-                                coordinates: [3, 3]
+                    @"{
+                        bar: {
+                            contains: {
+                                geometry: {
+                                    type: Point
+                                    coordinates: [3, 3]
+                                }
+                                buffer: 2
+                                eq: true
                             }
-                            buffer: 2
-                            eq: true
                         }
-                    }
-                }");
+                    }");
 
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
@@ -112,8 +112,10 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
 
         public class DistanceTests : FilterVisitorTestBase
         {
+            // https://github.com/NetTopologySuite/NetTopologySuite/blob/
+            // d0dde923299674e3320e256775b1336e72379e2b/test/NetTopologySuite.
+            // Tests.NUnit/Algorithm/DistanceComputerTest.cs#L22-L28
             [Fact]
-            // https://github.com/NetTopologySuite/NetTopologySuite/blob/d0dde923299674e3320e256775b1336e72379e2b/test/NetTopologySuite.Tests.NUnit/Algorithm/DistanceComputerTest.cs#L22-L28
             public void Point_to_Line()
             {
                 // arrange
@@ -138,21 +140,23 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new LineString(
-                        new[]
-                        {
-                        new Coordinate(2, 0), new Coordinate(0, 0), new Coordinate(1, 0)
-                        })
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 0)
+                    })
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new LineString(
-                        new[]
-                        {
-                        new Coordinate(0.5, 0.5), new Coordinate(0, 0), new Coordinate(1, 0)
-                        })
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(0.5, 0.5),
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 0)
+                    })
                 };
                 Assert.False(func(b));
             }
@@ -162,18 +166,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        distance: {
-                            geometry: {
-                                type: LineString
-                                coordinates: [[0, 1], [1, 1], [2, 1]]
+                    @"{
+                        bar: {
+                            distance: {
+                                geometry: {
+                                    type: LineString
+                                    coordinates: [[0, 1], [1, 1], [2, 1]]
+                                }
+                                eq: 1
                             }
-                            eq: 1
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -182,11 +185,11 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new LineString(
-                        new[]
-                        {
-                        new Coordinate(0, 0), new Coordinate(1, 0)
-                        })
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 0)
+                    })
                 };
                 Assert.True(func(a));
             }
@@ -196,18 +199,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             [Fact]
             public void Point_in_Poly() {
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        intersects: {
-                            geometry: {
-                                type: Point
-                                coordinates: [1, 1]
+                    @"{
+                        bar: {
+                            intersects: {
+                                geometry: {
+                                    type: Point
+                                    coordinates: [1, 1]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -216,27 +218,25 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, 2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[] 
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, -2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, -2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.False(func(b));
             }
@@ -245,18 +245,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             public void Line_in_Poly()
             {
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        intersects: {
-                            geometry: {
-                                type: LineString
-                                coordinates: [[1, 1], [3, 1]]
+                    @"{
+                        bar: {
+                            intersects: {
+                                geometry: {
+                                    type: LineString
+                                    coordinates: [[1, 1], [3, 1]]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -265,27 +264,25 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, 2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[] 
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, -2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, -2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.False(func(b));
             }
@@ -294,18 +291,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             public void Poly_in_Poly()
             {
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        intersects: {
-                            geometry: {
-                                type: Polygon
-                                coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                    @"{
+                        bar: {
+                            intersects: {
+                                geometry: {
+                                    type: Polygon
+                                    coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -314,27 +310,25 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, 2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, -2),
-                            new Coordinate(2, -1),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, -2),
+                        new Coordinate(2, -1),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.False(func(b));
             }
@@ -346,18 +340,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             public void Line_and_Line()
             {
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        overlaps: {
-                            geometry: {
-                                type: LineString
-                                coordinates: [[0, 0], [1, 2], [3, 1]]
+                    @"{
+                        bar: {
+                            overlaps: {
+                                geometry: {
+                                    type: LineString
+                                    coordinates: [[0, 0], [1, 2], [3, 1]]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -366,24 +359,23 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new LineString(new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, 2),
-                            new Coordinate(2, 0)
-                        }
-                    )
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 2),
+                        new Coordinate(2, 0)
+                    })
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new LineString(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, -2),
-                            new Coordinate(2, 0)
-                        }
-                    )
+                    Bar = new LineString(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, -2),
+                        new Coordinate(2, 0)
+                    })
                 };
                 Assert.False(func(b));
             }
@@ -392,18 +384,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             public void Poly_and_Poly()
             {
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        overlaps: {
-                            geometry: {
-                                type: Polygon
-                                coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                    @"{
+                        bar: {
+                            overlaps: {
+                                geometry: {
+                                    type: Polygon
+                                    coordinates: [[1, 1], [3, 1], [2, 0], [1, 1]]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -412,27 +403,25 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
                 // assert
                 var a = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, 2),
-                            new Coordinate(2, 0),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, 2),
+                        new Coordinate(2, 0),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.True(func(a));
 
                 var b = new Foo
                 {
-                    Bar = new Polygon(new LinearRing(
-                        new[] {
-                            new Coordinate(0, 0),
-                            new Coordinate(1, -2),
-                            new Coordinate(2, -1),
-                            new Coordinate(0, 0)
-                        }
-                    ))
+                    Bar = new Polygon(new LinearRing(new[]
+                    {
+                        new Coordinate(0, 0),
+                        new Coordinate(1, -2),
+                        new Coordinate(2, -1),
+                        new Coordinate(0, 0)
+                    }))
                 };
                 Assert.False(func(b));
             }
@@ -445,18 +434,17 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        within: {
-                            geometry: {
-                                type: LineString
-                                coordinates: [[10, 20], [20, 20], [30, 20]]
+                    @"{
+                        bar: {
+                            within: {
+                                geometry: {
+                                    type: LineString
+                                    coordinates: [[10, 20], [20, 20], [30, 20]]
+                                }
+                                eq: true
                             }
-                            eq: true
                         }
-                    }
-                }");
+                    }");
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
                 // act
@@ -481,19 +469,18 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
             {
                 // arrange
                 IValueNode value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
-                    @"
-                {
-                    bar: {
-                        within: {
-                            geometry: {
-                                type: Point
-                                coordinates: [3, 3]
+                    @"{
+                        bar: {
+                            within: {
+                                geometry: {
+                                    type: Point
+                                    coordinates: [3, 3]
+                                }
+                                buffer: 5
+                                eq: true
                             }
-                            buffer: 5
-                            eq: true
                         }
-                    }
-                }");
+                    }");
 
                 ExecutorBuilder tester = CreateProviderTester(new FilterInputType<Foo>());
 
