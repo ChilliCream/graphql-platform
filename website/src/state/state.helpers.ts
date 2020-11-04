@@ -1,34 +1,32 @@
-export interface Action<Payload = unknown> {
+export interface Action<Payload = void> {
   type: string;
   payload: Payload;
 }
 
-interface ActionCreator<Payload = unknown> {
+interface ActionCreator<Payload = void> {
   type: string;
-  (payload?: Payload): Action<Payload>;
+  (payload: Payload): Action<Payload>;
 }
 
-export function createAction<Payload = unknown>(
+export function createAction<Payload = void>(
   type: string
 ): ActionCreator<Payload> {
-  const actionCreator = <ActionCreator<Payload>>function (payload?: Payload) {
-    return {
-      type,
-      payload,
-    };
-  };
+  const actionCreator: ActionCreator<Payload> = (payload: Payload) => ({
+    type,
+    payload,
+  });
 
   actionCreator.type = type;
 
   return actionCreator;
 }
 
-interface ActionReducer<State, Payload = unknown> {
+interface ActionReducer<State, Payload = void> {
   type: string;
   reduce: (state: State, payload: Payload) => State;
 }
 
-export function onAction<State, Payload = unknown>(
+export function onAction<State, Payload = void>(
   action: ActionCreator<Payload>,
   reduce: (state: State, payload: Payload) => State
 ): ActionReducer<State, Payload> {

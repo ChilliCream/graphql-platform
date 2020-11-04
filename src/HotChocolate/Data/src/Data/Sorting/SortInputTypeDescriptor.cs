@@ -140,7 +140,9 @@ namespace HotChocolate.Data.Sorting
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = SortFieldDescriptor.New(
-                    Context, name, Definition.Scope);
+                    Context,
+                    name,
+                    Definition.Scope);
                 Fields.Add(fieldDescriptor);
             }
 

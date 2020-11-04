@@ -40,6 +40,18 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
+        protected override void OnRegisterDependencies(
+            ITypeDiscoveryContext context,
+            InputObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            if (definition is FilterInputTypeDefinition { EntityType: { } } filterDefinition)
+            {
+                SetTypeIdentity(typeof(FilterInputType<>)
+                    .MakeGenericType(filterDefinition.EntityType));
+            }
+        }
+
         protected virtual void Configure(IFilterInputTypeDescriptor descriptor)
         {
         }
@@ -66,7 +78,7 @@ namespace HotChocolate.Data.Filters
             {
                 fields.Add(new AndField(context.DescriptorContext, def.Scope));
             }
-            
+
             if (definition is FilterInputTypeDefinition { UseOr: true } defOr)
             {
                 fields.Add(new OrField(context.DescriptorContext, defOr.Scope));
@@ -83,14 +95,6 @@ namespace HotChocolate.Data.Filters
                     fields.Add(new FilterField(field));
                 }
             }
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeDiscoveryContext context,
-            InputObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-            SetTypeIdentity(typeof(FilterInputType<>));
         }
 
         // we are disabling the default configure method so
