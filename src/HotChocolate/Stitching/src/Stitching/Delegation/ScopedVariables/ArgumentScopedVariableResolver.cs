@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Stitching.ThrowHelper;

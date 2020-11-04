@@ -1,8 +1,8 @@
-﻿query BuildRemoteQueryCanOverrideOperationName($fields_bar: String) {
+﻿query BuildRemoteQueryCanOverrideOperationName($__fields_bar: String) {
   a {
     b {
       c {
-        bar: d(a: $fields_bar) {
+        bar: d(a: $__fields_bar) {
           baz {
             ... on Baz {
               qux
