@@ -10,9 +10,9 @@ using static HotChocolate.Data.ThrowHelper;
 namespace HotChocolate.Data.Filters
 {
     public abstract class FilterProvider<TContext>
-        : Convention<FilterProviderDefinition>,
-          IFilterProvider,
-          IFilterProviderConvention
+        : Convention<FilterProviderDefinition>
+        , IFilterProvider
+        , IFilterProviderConvention
         where TContext : IFilterVisitorContext
     {
         private readonly List<IFilterFieldHandler<TContext>> _fieldHandlers =
@@ -109,7 +109,8 @@ namespace HotChocolate.Data.Filters
 
         protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
 
-        public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+        public abstract FieldMiddleware CreateExecutor<TEntityType>(
+            NameString argumentName);
 
         public virtual void ConfigureField(
             NameString argumentName,
