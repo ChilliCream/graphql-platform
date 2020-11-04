@@ -103,7 +103,7 @@ namespace HotChocolate.Data.Projections.Expressions
 
         private readonly SchemaCache _cache = new SchemaCache();
 
-        [Fact(Skip = "Currently not supported by SQLLite")]
+        [Fact]
         public async Task Create_DeepFilterObjectTwoProjections()
         {
             // arrange
@@ -161,7 +161,7 @@ namespace HotChocolate.Data.Projections.Expressions
             res1.MatchSqlSnapshot();
         }
 
-        [Fact(Skip = "Currently not supported by SQLLite")]
+        [Fact]
         public async Task Create_ListObjectDifferentLevelProjection()
         {
             // arrange
@@ -191,7 +191,7 @@ namespace HotChocolate.Data.Projections.Expressions
             res1.MatchSqlSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Currently not supported by SQLLite")]
         public async Task Create_DeepFilterObjectTwoProjections_Nullable()
         {
             // arrange
@@ -220,7 +220,7 @@ namespace HotChocolate.Data.Projections.Expressions
             res1.MatchSqlSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Currently not supported by SQLLite")]
         public async Task Create_ListObjectDifferentLevelProjection_Nullable()
         {
             // arrange
