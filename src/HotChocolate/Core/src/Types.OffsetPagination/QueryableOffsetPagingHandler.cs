@@ -21,18 +21,25 @@ namespace HotChocolate.Types.Pagination
         {
         }
 
-        protected override async ValueTask<CollectionSegment> SliceAsync(
+        protected override ValueTask<CollectionSegment> SliceAsync(
             IResolverContext context,
             object source,
             OffsetPagingArguments arguments)
         {
-            IQueryable<TItemType> queryable = source switch
+            return source switch
             {
-                IQueryable<TItemType> q => q,
-                IEnumerable<TItemType> e => e.AsQueryable(),
+                IQueryable<TItemType> q => ResolveAsync(context, q, arguments),
+                IEnumerable<TItemType> e => ResolveAsync(context,e.AsQueryable(),arguments),
+                IExecutable<TItemType> ex => SliceAsync(context, ex.Source, arguments),
                 _ => throw new GraphQLException("Cannot handle the specified data source.")
             };
+        }
 
+        private async ValueTask<CollectionSegment> ResolveAsync(
+            IResolverContext context,
+            IQueryable<TItemType> queryable,
+            OffsetPagingArguments arguments = default)
+        {
             IQueryable<TItemType> original = queryable;
 
             if (arguments.Skip.HasValue)

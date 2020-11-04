@@ -1,0 +1,15 @@
+﻿{
+  "data": {
+    "rootExecutable": [
+      {
+        "bar": true
+      },
+      {
+        "bar": false
+      },
+      {
+        "bar": null
+      }
+    ]
+  }
+}

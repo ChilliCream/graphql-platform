@@ -9,11 +9,11 @@
         }
       ],
       "path": [
-        "root"
+        "rootExecutable"
       ]
     }
   ],
   "data": {
-    "root": null
+    "rootExecutable": null
   }
 }
