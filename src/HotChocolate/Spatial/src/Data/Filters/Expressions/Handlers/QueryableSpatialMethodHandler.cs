@@ -18,7 +18,6 @@ namespace HotChocolate.Data.Spatial.Filters
         private readonly IExtendedType _runtimeType;
 
         protected abstract int Operation { get; }
-
         protected string GeometryFieldName { get; }
         protected string BufferFieldName { get; }
 
