@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Types;
+#if NETCOREAPP2_1
+using Snapshooter;
+#endif
 using Snapshooter.Xunit;
 using Xunit;
 
