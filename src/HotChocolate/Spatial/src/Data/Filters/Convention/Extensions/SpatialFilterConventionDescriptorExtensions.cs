@@ -4,7 +4,6 @@ using NetTopologySuite.Geometries;
 
 namespace HotChocolate.Data.Spatial.Filters
 {
-
     public static class SpatialFilterConventionDescriptorExtensions
     {
         /// the default names of the spatial filter operations
@@ -22,14 +21,13 @@ namespace HotChocolate.Data.Spatial.Filters
             descriptor.Operation(SpatialFilterOperations.Overlaps).Name("overlaps");
             descriptor.Operation(SpatialFilterOperations.Touches).Name("touches");
             descriptor.Operation(SpatialFilterOperations.Within).Name("within");
-
             descriptor.Operation(SpatialFilterOperations.Buffer).Name("buffer");
             descriptor.Operation(SpatialFilterOperations.Geometry).Name("geometry");
 
             return descriptor;
         }
 
-        /// the fields and operations available to each type
+        // the fields and operations available to each type
         public static IFilterConventionDescriptor BindSpatialTypes(
             this IFilterConventionDescriptor descriptor)
         {
@@ -39,18 +37,12 @@ namespace HotChocolate.Data.Spatial.Filters
             }
 
             descriptor
-                .BindRuntimeType<Geometry, GeometryFilterType>();
-            descriptor
-                .BindRuntimeType<Point, PointFilterType>();
-            descriptor
-                .BindRuntimeType<MultiPoint, MultiPointFilterType>();
-            descriptor
-                .BindRuntimeType<LineString, LineStringFilterType>();
-            descriptor
-                .BindRuntimeType<MultiLineString, MultiLineStringFilterType>();
-            descriptor
-                .BindRuntimeType<Polygon, PolygonFilterType>();
-            descriptor
+                .BindRuntimeType<Geometry, GeometryFilterType>()
+                .BindRuntimeType<Point, PointFilterType>()
+                .BindRuntimeType<MultiPoint, MultiPointFilterType>()
+                .BindRuntimeType<LineString, LineStringFilterType>()
+                .BindRuntimeType<MultiLineString, MultiLineStringFilterType>()
+                .BindRuntimeType<Polygon, PolygonFilterType>()
                 .BindRuntimeType<MultiPolygon, MultiPolygonFilterType>();
 
             return descriptor;
