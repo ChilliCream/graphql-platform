@@ -151,7 +151,6 @@ namespace HotChocolate.Spatial.Data.Filters
             res2.MatchSqlSnapshot("1");
         }
 
-
         public class Foo
         {
             public int Id { get; set; }
