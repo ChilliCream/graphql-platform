@@ -18,14 +18,12 @@ namespace HotChocolate.Data.Spatial.Filters.Expressions
         public Func<T, bool> Build<T>(IValueNode filter)
         {
             var visitorContext = new QueryableFilterContext(_inputType, true);
-            var visitor =
-                new FilterVisitor<QueryableFilterContext, Expression>(new QueryableCombinator());
+            var visitor = new FilterVisitor<QueryableFilterContext, Expression>(
+                new QueryableCombinator());
 
             visitor.Visit(filter, visitorContext);
 
-
-            if (visitorContext.TryCreateLambda(
-                out Expression<Func<T, bool>>? where))
+            if (visitorContext.TryCreateLambda(out Expression<Func<T, bool>>? where))
             {
                 return where.Compile();
             }
