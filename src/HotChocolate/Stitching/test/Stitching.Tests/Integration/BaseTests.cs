@@ -1,15 +1,14 @@
-using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
+using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
-using System.Collections.Generic;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Integration
 {

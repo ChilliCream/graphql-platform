@@ -33,8 +33,7 @@ namespace HotChocolate.Stitching.Requests
                     executor.Key,
                     new RemoteRequestExecutor(
                         batchScheduler,
-                        executor.Value,
-                        requestContextAccessor));
+                        executor.Value));
             }
         }
 
