@@ -1314,7 +1314,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>Assume we have a mongo database entity representation in c# that looks like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="12865113834514674000"
+              data-toaster-id="18831273764262770000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1324,7 +1324,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
     public ObjectId Id { get; set; }
     public DateTimeOffset Created { get; set; }
     public string Text { get; set; }
-}`, `12865113834514674000`)"
+}`, `18831273764262770000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1345,13 +1345,13 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>This can be done in simple cases with two lines of code:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="57389334429578350000"
+              data-toaster-id="63678085004367356000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`TypeConversion.Default.Register<string, ObjectId>(from => ObjectId.Parse(from));
-TypeConversion.Default.Register<ObjectId, string>(from => from.ToString());`, `57389334429578350000`)"
+TypeConversion.Default.Register<ObjectId, string>(from => from.ToString());`, `63678085004367356000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1367,7 +1367,7 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
 <p>The first thing you have to ensure is that your schema has access to the service provider, which can be done like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="67853559539287580000"
+              data-toaster-id="60034764302231030000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1375,7 +1375,7 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
               onClick="copyToClipboard(`service.AddGraphQL(sp => SchemaBuilder.New()
   .AddServices(sp)
   ...
-  .Create()`, `67853559539287580000`)"
+  .Create()`, `60034764302231030000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1391,12 +1391,12 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
 <p>After this is done converters can be registered like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="95421442906323290000"
+              data-toaster-id="92666218781565910000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddTypeConverter<string, ObjectId>(from => ObjectId.Parse(from));`, `95421442906323290000`)"
+              onClick="copyToClipboard(`services.AddTypeConverter<string, ObjectId>(from => ObjectId.Parse(from));`, `92666218781565910000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1409,7 +1409,7 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
 <p>Moreover, you are able to put your conversion code into a class like the follwing:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43409111668611190000"
+              data-toaster-id="58293972988469985000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1418,7 +1418,7 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
     : TypeConverter<string, ObjectId>
 {
     public ObjectId Convert(string from) => ObjectId.Parse(from);
-}`, `43409111668611190000`)"
+}`, `58293972988469985000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1436,12 +1436,12 @@ TypeConversion<span class="token punctuation">.</span>Default<span class="token 
 <p>The class can also be registered with the dependency injection like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="62106991075006830000"
+              data-toaster-id="28289904465438663000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
-              onClick="copyToClipboard(`services.AddTypeConverter<StringObjectIdConverter>();`, `62106991075006830000`)"
+              onClick="copyToClipboard(`services.AddTypeConverter<StringObjectIdConverter>();`, `28289904465438663000`)"
             >
               <div
                 class="gatsby-code-button"
