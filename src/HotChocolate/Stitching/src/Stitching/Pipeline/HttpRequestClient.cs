@@ -48,7 +48,7 @@ namespace HotChocolate.Stitching.Pipeline
         {
             using var writer = new ArrayWriter();
 
-            HttpRequestMessage requestMessage =
+            using HttpRequestMessage requestMessage =
                 await CreateRequestAsync(writer, request, targetSchema, cancellationToken)
                     .ConfigureAwait(false);
 
@@ -89,17 +89,13 @@ namespace HotChocolate.Stitching.Pipeline
                     cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 IError error = _errorHandler.CreateUnexpectedError(ex)
                     .SetCode(ErrorCodes.Stitching.UnknownRequestException)
                     .Build();
 
                 return QueryResultBuilder.CreateError(error);
-            }
-            finally
-            {
-                requestMessage.Dispose();
             }
         }
 
@@ -141,8 +137,14 @@ namespace HotChocolate.Stitching.Pipeline
 
             try
             {
-                return await ParseResponseMessageAsync(responseMessage, cancellationToken)
-                    .ConfigureAwait(false);
+                IReadOnlyDictionary<string, object?> response =
+                    await BufferHelper.ReadAsync(
+                        stream,
+                        ParseResponse,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+
+                return HttpResponseDeserializer.Deserialize(response);
             }
             catch
             {
@@ -231,7 +233,7 @@ namespace HotChocolate.Stitching.Pipeline
             Utf8JsonWriter jsonWriter,
             IReadOnlyDictionary<string, object?>? variables)
         {
-            if (variables is not null  && variables.Count > 0)
+            if (variables is not null && variables.Count > 0)
             {
                 jsonWriter.WritePropertyName("variables");
 
