@@ -8,8 +8,8 @@ using Xunit;
 namespace HotChocolate.Spatial.Data.Filters
 {
     public class QueryableFilterVisitorContainsTests
-        : SchemaCache,
-          IClassFixture<PostgreSqlResource<PostgisConfig>>
+        : SchemaCache
+        , IClassFixture<PostgreSqlResource<PostgisConfig>>
     {
         private static readonly Polygon _truePolygon = new Polygon(
             new LinearRing(
