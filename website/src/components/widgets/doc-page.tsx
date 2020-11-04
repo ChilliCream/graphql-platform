@@ -40,8 +40,6 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
 
-  console.log(path);
-
   const handleToggleTOC = useCallback(() => {
     dispatch(toggleTOC());
   }, []);
