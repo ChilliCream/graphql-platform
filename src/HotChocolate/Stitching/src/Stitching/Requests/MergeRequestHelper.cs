@@ -13,12 +13,11 @@ namespace HotChocolate.Stitching.Requests
     internal class MergeRequestHelper
     {
         public static IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> MergeRequests(
-            IEnumerable<BufferedRequest> requests,
-            ISet<string> requestVariableNames)
+            IEnumerable<BufferedRequest> requests)
         {
             foreach (var group in requests.GroupBy(t => t.Operation.Operation))
             {
-                var rewriter = new MergeRequestRewriter(requestVariableNames);
+                var rewriter = new MergeRequestRewriter();
                 var variableValues = new Dictionary<string, object?>();
 
                 var operationName = group
@@ -36,7 +35,7 @@ namespace HotChocolate.Stitching.Requests
                 BufferedRequest first = null!;
                 foreach (BufferedRequest request in group)
                 {
-                    first = request;
+                    first ??= request;
                     MergeRequest(request, rewriter, variableValues, $"__{i++}_");
                 }
 
