@@ -4,7 +4,7 @@ title: Batching
 
 Hot Chocolate supports operation batching and request batching. But before we get into the details lets reflect on what batching is and what you can do with it.
 
-[![Batching](/docs/shared/batching.png)](https://youtu.be/ViXL0YQnioU?t=626)
+[![Batching](../../../shared/batching.png)](https://youtu.be/ViXL0YQnioU?t=626)
 
 # Introduction
 
