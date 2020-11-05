@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Sorting
         {
             private bool _orderingMethodFound = false;
 
-            public override Expression Visit(Expression node)
+            public override Expression? Visit(Expression? node)
             {
                 if (_orderingMethodFound)
                 {

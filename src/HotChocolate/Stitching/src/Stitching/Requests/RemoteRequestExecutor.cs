@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.Execution;
-using static HotChocolate.Stitching.WellKnownContextData;
 
 namespace HotChocolate.Stitching.Requests
 {
@@ -13,25 +11,20 @@ namespace HotChocolate.Stitching.Requests
         : IRemoteRequestExecutor
         , IDisposable
     {
-        private static readonly HashSet<string> _empty = new HashSet<string>();
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly List<BufferedRequest> _bufferedRequests = new List<BufferedRequest>();
         private readonly IBatchScheduler _batchScheduler;
         private readonly IRequestExecutor _executor;
-        private readonly IRequestContextAccessor _requestContextAccessor;
         private bool _taskRegistered;
 
         public RemoteRequestExecutor(
             IBatchScheduler batchScheduler,
-            IRequestExecutor executor,
-            IRequestContextAccessor requestContextAccessor)
+            IRequestExecutor executor)
         {
             _batchScheduler = batchScheduler ??
                 throw new ArgumentNullException(nameof(batchScheduler));
             _executor = executor ??
                 throw new ArgumentNullException(nameof(executor));
-            _requestContextAccessor = requestContextAccessor ??
-                throw new ArgumentNullException(nameof(requestContextAccessor));
         }
 
         /// <iniheritdoc />
@@ -122,7 +115,7 @@ namespace HotChocolate.Stitching.Requests
             // we however have to group requests by operation type. This means we should
             // end up with one or two requests (query and mutation).
             foreach ((IQueryRequest Merged, IEnumerable<BufferedRequest> Requests) batch in
-                MergeRequestHelper.MergeRequests(_bufferedRequests, GetRequestVariableNames()))
+                MergeRequestHelper.MergeRequests(_bufferedRequests))
             {
                 // now we take this merged request and run it against the executor.
                 IExecutionResult result = await _executor
@@ -146,32 +139,6 @@ namespace HotChocolate.Stitching.Requests
                     }
                 }
             }
-        }
-
-        private ISet<string> GetRequestVariableNames()
-        {
-            IRequestContext context = _requestContextAccessor.RequestContext;
-
-            if (context.ContextData is ConcurrentDictionary<string, object?> optimized)
-            {
-                return (ISet<string>)optimized.GetOrAdd(RequestVarNames, key =>
-                {
-                    if (context.Request.VariableValues is { Count: > 0 } variables)
-                    {
-                        return new HashSet<string>(variables.Keys);
-                    }
-                    return _empty;
-                })!;
-            }
-
-            if(!context.ContextData.TryGetValue(RequestVarNames, out object? value))
-            {
-                value = context.Request.VariableValues is { Count: > 0 } variables
-                    ? new HashSet<string>(variables.Keys)
-                    : _empty;
-            }
-
-            return (ISet<string>)value!;
         }
 
         public void Dispose()

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 
@@ -9,65 +10,89 @@ namespace HotChocolate.Execution.Processing
     internal sealed partial class ResolverTask : IExecutionTask
     {
         private readonly MiddlewareContext _context = new MiddlewareContext();
-        private ValueTask _task;
         private IOperationContext _operationContext = default!;
         private ISelection _selection = default!;
+        private ValueTask _task;
 
         public bool IsCompleted => _task.IsCompleted;
 
-        public void BeginExecute()
+        public bool IsCanceled { get; private set; }
+
+        public void BeginExecute(CancellationToken cancellationToken)
         {
             _operationContext.Execution.TaskStats.TaskStarted();
-            _task = TryExecuteAndCompleteAsync();
+            _task = TryExecuteAndCompleteAsync(cancellationToken);
         }
 
-        private async ValueTask TryExecuteAndCompleteAsync()
+        private async ValueTask TryExecuteAndCompleteAsync(CancellationToken cancellationToken)
         {
             try
             {
                 using (_operationContext.DiagnosticEvents.ResolveFieldValue(_context))
                 {
-                    bool success = await TryExecuteAsync().ConfigureAwait(false);
-                    CompleteValue(success);
+                    var success = await TryExecuteAsync(cancellationToken).ConfigureAwait(false);
+                    CompleteValue(success, cancellationToken);
+                }
+            }
+            catch
+            {
+                IsCanceled = true;
+
+                // we suppress any exception if the cancellation was requested.
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    throw;
                 }
             }
             finally
             {
-                _operationContext.Execution.TaskStats.TaskCompleted();
-                _operationContext.Execution.TaskPool.Return(this);
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    IsCanceled = true;
+                }
+                else
+                {
+                    _operationContext.Execution.TaskStats.TaskCompleted();
+                    _operationContext.Execution.TaskPool.Return(this);
+                }
             }
         }
 
-        private async ValueTask<bool> TryExecuteAsync()
+        private async ValueTask<bool> TryExecuteAsync(CancellationToken cancellationToken)
         {
             try
             {
-                if (_selection.Arguments.TryCoerceArguments(
+                if (!cancellationToken.IsCancellationRequested &&
+                    _selection.Arguments.TryCoerceArguments(
                     _context.Variables,
                     _context.ReportError,
                     out IReadOnlyDictionary<NameString, ArgumentValue>? coercedArgs))
                 {
                     _context.Arguments = coercedArgs;
-                    await ExecuteResolverPipelineAsync().ConfigureAwait(false);
+                    await ExecuteResolverPipelineAsync(cancellationToken).ConfigureAwait(false);
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                _context.ReportError(ex);
-                _context.Result = null;
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    _context.ReportError(ex);
+                    _context.Result = null;
+                }
             }
+
             return false;
         }
 
-        private async ValueTask ExecuteResolverPipelineAsync()
+        private async ValueTask ExecuteResolverPipelineAsync(CancellationToken cancellationToken)
         {
             await _context.ResolverPipeline(_context).ConfigureAwait(false);
 
             switch (_context.Result)
             {
                 case IExecutable executable:
-                    _context.Result = await executable.ExecuteAsync(_context.RequestAborted);
+                    _context.Result = await executable.ToListAsync(cancellationToken);
                     break;
 
                 case IQueryable queryable:
@@ -77,9 +102,14 @@ namespace HotChocolate.Execution.Processing
                         foreach (object? o in queryable)
                         {
                             items.Add(o);
+
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                break;
+                            }
                         }
                         return items;
-                    });
+                    }, cancellationToken);
                     break;
 
                 case IError error:
@@ -97,7 +127,7 @@ namespace HotChocolate.Execution.Processing
             }
         }
 
-        private void CompleteValue(bool success)
+        private void CompleteValue(bool success, CancellationToken cancellationToken)
         {
             object? completedValue = null;
 
@@ -120,8 +150,21 @@ namespace HotChocolate.Execution.Processing
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // If we run into this exception the request was aborted.
+                // In this case we do nothing and just return.
+                return;
+            }
             catch (Exception ex)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // if cancellation is request we do no longer report errors to the
+                    // operation context.
+                    return;
+                }
+
                 _context.ReportError(ex);
                 _context.Result = null;
             }

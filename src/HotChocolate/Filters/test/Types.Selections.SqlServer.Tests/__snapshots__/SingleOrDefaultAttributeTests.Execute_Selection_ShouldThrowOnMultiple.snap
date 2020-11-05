@@ -1,1 +1,0 @@
-﻿{"errors":[{"message":"Sequence contains more than one element.","locations":[{"line":1,"column":3}],"path":["foos"],"extensions":{"code":"SELECTIONS_SINGLE_MORE_THAN_ONE"}}],"data":{"foos":null}}

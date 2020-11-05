@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Properties;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
+using static HotChocolate.Stitching.Properties.StitchingResources;
 
 namespace HotChocolate.Stitching.Delegation.ScopedVariables
 {
@@ -31,8 +28,7 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
             if (!ScopeNames.Fields.Equals(variable.Scope.Value))
             {
                 throw new ArgumentException(
-                    StitchingResources
-                        .FieldScopedVariableResolver_CannotHandleVariable,
+                    FieldScopedVariableResolver_CannotHandleVariable,
                     nameof(variable));
             }
 
@@ -64,14 +60,10 @@ namespace HotChocolate.Stitching.Delegation.ScopedVariables
                 );
             }
 
-            throw new QueryException(ErrorBuilder.New()
-                .SetMessage(
-                    StitchingResources.FieldScopedVariableResolver_InvalidFieldName,
-                    variable.Name.Value)
-                .SetCode(ErrorCodes.Stitching.FieldNotDefined)
-                .SetPath(context.Path)
-                .AddLocation(context.FieldSelection)
-                .Build());
+            throw ThrowHelper.FieldScopedVariableResolver_InvalidFieldName(
+                variable.Name.Value,
+                context.FieldSelection,
+                context.Path);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace HotChocolate.Data.Filters
         /// <param name="runtimeType">The runtime type.</param>
         /// <param name="filterType">GraphQL filter type.</param>
         IFilterConventionDescriptor BindRuntimeType(Type runtimeType, Type filterType);
-        
+
         /// <summary>
         /// Provides additional configuration for a filter type.
         /// </summary>
@@ -94,5 +94,22 @@ namespace HotChocolate.Data.Filters
         /// <see cref="string.Empty"/>.
         /// </exception>
         IFilterConventionDescriptor ArgumentName(NameString argumentName);
+
+        /// <summary>
+        /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>
+        /// </summary>
+        /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
+        IFilterConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, IFilterProviderExtension;
+
+        /// <summary>
+        /// Add a extensions that is applied to <see cref="FilterProvider{TContext}"/>
+        /// </summary>
+        /// <param name="provider">
+        /// The concrete filter provider extension that shall be used.
+        /// </param>
+        /// <typeparam name="TExtension">The filter provider extension type.</typeparam>
+        IFilterConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, IFilterProviderExtension;
     }
 }

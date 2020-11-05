@@ -1,11 +1,11 @@
 ﻿[
   {
     "Message": "Variable `abc` is required.",
-    "Code": "EXEC_NON_NULL_VIOLATION",
+    "Code": "HC0018",
     "Path": null,
     "Locations": null,
     "Extensions": {
-      "code": "EXEC_NON_NULL_VIOLATION",
+      "code": "HC0018",
       "variable": "abc"
     },
     "Exception": null

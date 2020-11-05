@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Data.Projections</PackageId>
+    <AssemblyName>HotChocolate.Data.Projections</AssemblyName>
+    <RootNamespace>HotChocolate.Data.Projections</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Core\HotChocolate.Core.csproj" />
+    <ProjectReference Include="..\..\..\Core\src\Types\HotChocolate.Types.csproj" />
+    <ProjectReference Include="..\Types.Filters\HotChocolate.Types.Filters.csproj" />
+    <ProjectReference Include="..\Types.Sorting\HotChocolate.Types.Sorting.csproj" />
+  </ItemGroup>
+
+</Project>

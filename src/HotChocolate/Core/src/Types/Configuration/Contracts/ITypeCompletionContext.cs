@@ -52,7 +52,7 @@ namespace HotChocolate.Configuration
         /// </returns>
         /// <exception cref="SchemaException">
         /// The type could not be resolved for the given <paramref name="typeRef" />.
-        /// </exception cref="SchemaException">
+        /// </exception>
         T GetType<T>(ITypeReference typeRef) where T : IType;
 
         IEnumerable<T> GetTypes<T>() where T : IType;

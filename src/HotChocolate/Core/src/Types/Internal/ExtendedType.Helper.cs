@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 #nullable enable
 
@@ -137,6 +138,13 @@ namespace HotChocolate.Internal
                     if (IsSupportedCollectionInterface(interfaceType))
                     {
                         return interfaceType.GetGenericArguments()[0];
+                    }
+
+                    if (interfaceType == typeof(IPage) &&
+                        type.IsGenericType &&
+                        type.GenericTypeArguments.Length == 1)
+                    {
+                        return type.GenericTypeArguments[0];
                     }
                 }
 

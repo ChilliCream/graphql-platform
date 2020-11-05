@@ -30,8 +30,8 @@ namespace HotChocolate
             new Dictionary<OperationType, CreateRef>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly Dictionary<(Type, string), CreateConvention> _conventions =
-            new Dictionary<(Type, string), CreateConvention>();
+        private readonly Dictionary<(Type, string), List<CreateConvention>> _conventions =
+            new Dictionary<(Type, string), List<CreateConvention>>();
         private readonly Dictionary<Type, (CreateRef, CreateRef)> _clrTypes =
             new Dictionary<Type, (CreateRef, CreateRef)>();
         private readonly List<object> _schemaInterceptors = new List<object>();
@@ -190,8 +190,13 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(convention));
             }
 
-            _conventions[(convention, scope)] = factory ??
-                throw new ArgumentNullException(nameof(factory));
+            if(!_conventions.TryGetValue((convention, scope), out List<CreateConvention> factories))
+            {
+                factories = new List<CreateConvention>();
+                _conventions[(convention, scope)] = factories;
+            }
+
+            factories.Add(factory);
 
             return this;
         }

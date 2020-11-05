@@ -34,7 +34,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                ResultValue value = GetValue(key, out int index);
+                ResultValue value = GetValue(key, out var index);
                 if (index == -1)
                 {
                     throw new KeyNotFoundException(key);
@@ -101,6 +101,8 @@ namespace HotChocolate.Execution.Processing
             var length = _capacity;
             ref ResultValue searchSpace = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
+            // TODO : There is sometimes an issue with the last item of a batch
+            /*
             while (length >= 8)
             {
                 length -= 8;
@@ -136,6 +138,7 @@ namespace HotChocolate.Execution.Processing
 
                 i += 4;
             }
+            */
 
             while (length > 0)
             {

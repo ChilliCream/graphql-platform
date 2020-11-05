@@ -16,12 +16,12 @@ namespace HotChocolate.Data.Filters
 
         public override void OnBeforeRegisterDependencies(
             ITypeDiscoveryContext discoveryContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (definition is FilterInputTypeDefinition def)
             {
-                IFilterConvention? convention = GetConvention(
+                IFilterConvention convention = GetConvention(
                     discoveryContext.DescriptorContext,
                     def.Scope);
 
@@ -69,13 +69,13 @@ namespace HotChocolate.Data.Filters
 
         public override void OnBeforeCompleteName(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if (definition is FilterInputTypeDefinition def &&
                 def.Scope != null)
             {
-                definition.Name = completionContext?.Scope +
+                definition.Name = completionContext.Scope +
                     "_" +
                     definition.Name;
             }

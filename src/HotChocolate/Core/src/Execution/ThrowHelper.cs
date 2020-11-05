@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
 
@@ -16,7 +15,7 @@ namespace HotChocolate.Execution
                     .SetMessage(
                         ThrowHelper_VariableIsNotAnInputType_Message,
                         variableDefinition.Variable.Name.Value)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetCode(ErrorCodes.Execution.MustBeInputType)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
                     .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
@@ -277,5 +276,14 @@ namespace HotChocolate.Execution
                 .SetMessage("The operation has no selections.")
                 .AddLocation(syntaxNode)
                 .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.",
+                        convention.FullName ?? convention.Name)
+                    .Build());
     }
 }

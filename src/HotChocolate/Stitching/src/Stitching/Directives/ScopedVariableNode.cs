@@ -177,7 +177,7 @@ namespace HotChocolate.Stitching
 
         public string ToVariableName()
         {
-            return Scope.Value + "_" + Name.Value;
+            return "__" + Scope.Value + "_" + Name.Value;
         }
     }
 }
