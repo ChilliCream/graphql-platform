@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Sorting
 
         void ISortProviderConvention.OnComplete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
         protected override SortProviderDefinition CreateDefinition(IConventionContext context)

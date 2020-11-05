@@ -75,7 +75,7 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -126,7 +126,7 @@ namespace HotChocolate.Data.Sorting
 
             // It is important to always call base to continue the cleanup and the disposal of the
             // definition
-            base.OnComplete(context);
+            base.Complete(context);
         }
 
 

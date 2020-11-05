@@ -67,10 +67,10 @@ namespace HotChocolate.Data.Projections
 
         void IProjectionProviderConvention.OnComplete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition.Handlers.Count == 0)
             {

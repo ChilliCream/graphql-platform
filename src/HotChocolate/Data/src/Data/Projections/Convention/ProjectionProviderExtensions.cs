@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Projections
 
         void IProjectionProviderConvention.OnComplete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
         protected override ProjectionProviderDefinition CreateDefinition(IConventionContext context)

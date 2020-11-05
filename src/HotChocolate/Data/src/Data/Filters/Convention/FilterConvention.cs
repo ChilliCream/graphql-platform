@@ -8,7 +8,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -69,7 +68,7 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -108,7 +107,7 @@ namespace HotChocolate.Data.Filters
 
             // It is important to always call base to continue the cleanup and the disposal of the
             // definition
-            base.OnComplete(context);
+            base.Complete(context);
         }
 
 

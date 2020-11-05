@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Descriptors
 
                 init.Initialize(conventionContext);
                 MergeExtensions(conventionContext, init, extensions);
-                init.OnComplete(conventionContext);
+                init.Complete(conventionContext);
             }
 
             if (createdConvention is T createdConventionOfT)
@@ -176,7 +176,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     extensionConvention.Initialize(context);
                     extensions[m].Merge(context, convention);
-                    extensionConvention.OnComplete(context);
+                    extensionConvention.Complete(context);
                 }
             }
         }

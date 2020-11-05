@@ -30,7 +30,7 @@ namespace HotChocolate.Data.Filters
 
         void IFilterProviderConvention.OnComplete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
         protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
