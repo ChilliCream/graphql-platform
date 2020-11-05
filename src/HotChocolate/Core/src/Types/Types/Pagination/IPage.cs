@@ -21,6 +21,13 @@ namespace HotChocolate.Types.Pagination
         /// </summary>
         IPageInfo Info { get; }
 
+        /// <summary>
+        /// Gets the total count of the data set.
+        /// </summary>
+        /// <param name="cancellationToken">
+        /// The <see cref="CancellationToken" />
+        /// </param>
+        /// <returns></returns>
         ValueTask<int> GetTotalCountAsync(CancellationToken cancellationToken);
     }
 }

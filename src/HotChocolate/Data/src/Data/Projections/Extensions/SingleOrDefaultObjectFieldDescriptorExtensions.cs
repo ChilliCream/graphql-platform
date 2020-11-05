@@ -55,9 +55,6 @@ namespace HotChocolate.Types
 
                         Type selectionType = typeInfo.NamedType;
                         definition.ResultType = selectionType;
-                        definition.Type = RewriteToNonNullableType(
-                            context.TypeInspector,
-                            definition.Type);
 
                         ILazyTypeConfiguration lazyConfiguration =
                             LazyTypeConfigurationBuilder
@@ -91,21 +88,6 @@ namespace HotChocolate.Types
             FieldMiddleware middleware = FieldClassMiddlewareFactory.Create(middlewareType);
             var index = definition.MiddlewareComponents.IndexOf(placeholder);
             definition.MiddlewareComponents[index] = middleware;
-        }
-
-        private static ITypeReference RewriteToNonNullableType(
-            ITypeInspector typeInspector,
-            ITypeReference reference)
-        {
-            if (reference is ExtendedTypeReference extendedTypeRef)
-            {
-                return extendedTypeRef.Type.IsNullable
-                    ? extendedTypeRef.WithType(
-                        typeInspector.ChangeNullability(extendedTypeRef.Type, false))
-                    : extendedTypeRef;
-            }
-
-            throw new NotSupportedException();
         }
     }
 }

@@ -276,5 +276,14 @@ namespace HotChocolate.Execution
                 .SetMessage("The operation has no selections.")
                 .AddLocation(syntaxNode)
                 .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.",
+                        convention.FullName ?? convention.Name)
+                    .Build());
     }
 }

@@ -47,29 +47,17 @@ namespace HotChocolate.Data.Sorting
                 .AddConvention<ISortConvention>(convention)
                 .AddSorting()
                 .AddQueryType(
-                    c => c
-                        .Name("Query")
-                        .Field("root")
-                        .Resolver(resolver)
-                        .Use(
-                            next => async context =>
-                            {
-                                await next(context);
+                    c =>
+                    {
+                        ApplyConfigurationToField<TEntity, T>(
+                            c.Name("Query").Field("root").Resolver(resolver), false);
 
-                                if (context.Result is IQueryable<TEntity> queryable)
-                                {
-                                    try
-                                    {
-                                        context.ContextData["sql"] = queryable.ToQueryString();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        context.ContextData["sql"] =
-                                            "EF Core 3.1 does not support ToQuerString offically";
-                                    }
-                                }
-                            })
-                        .UseSorting<T>());
+                        ApplyConfigurationToField<TEntity, T>(
+                            c.Name("Query")
+                                .Field("rootExecutable")
+                                .Resolver(
+                                    ctx => resolver(ctx).AsExecutable()), false);
+                    });
 
             ISchema? schema = builder.Create();
 
@@ -98,6 +86,39 @@ namespace HotChocolate.Data.Sorting
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
                 .Result;
+        }
+
+        private void ApplyConfigurationToField<TEntity, TType>(
+            IObjectFieldDescriptor field,
+            bool withPaging)
+            where TEntity : class
+            where TType : SortInputType<TEntity>
+        {
+            field.Use(
+                next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Result is IQueryable<TEntity> queryable)
+                    {
+                        try
+                        {
+                            context.ContextData["sql"] = queryable.ToQueryString();
+                        }
+                        catch (Exception)
+                        {
+                            context.ContextData["sql"] =
+                                "EF Core 3.1 does not support ToQueryString";
+                        }
+                    }
+                });
+
+            if (withPaging)
+            {
+                field.UsePaging<ObjectType<TEntity>>();
+            }
+
+            field.UseSorting<TType>();
         }
     }
 }

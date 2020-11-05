@@ -49,7 +49,7 @@ namespace HotChocolate.AspNetCore
                     false);
                 var config = new BananaCakePopConfiguration(schemaEndpoint)
                 {
-                    EndpointEditable = false,
+                    EndpointEditable = true,
                 };
                 ISchema schema = await ExecutorProxy.GetSchemaAsync(context.RequestAborted);
 

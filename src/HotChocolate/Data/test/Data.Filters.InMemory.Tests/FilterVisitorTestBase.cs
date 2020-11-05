@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Filters
         {
             convention ??= new FilterConvention(x => x.AddDefaults().BindRuntimeType<TEntity, T>());
 
-            Func<IResolverContext, IEnumerable<TEntity>>? resolver = BuildResolver(entities);
+            Func<IResolverContext, IEnumerable<TEntity>> resolver = BuildResolver(entities);
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
@@ -46,6 +46,18 @@ namespace HotChocolate.Data.Filters
                             .Name("Query")
                             .Field("root")
                             .Resolver(resolver);
+
+                        if (withPaging)
+                        {
+                            field.UsePaging<ObjectType<TEntity>>();
+                        }
+
+                        field.UseFiltering<T>();
+
+                        field = c
+                            .Name("Query")
+                            .Field("rootExecutable")
+                            .Resolver(ctx => resolver(ctx).AsExecutable());
 
                         if (withPaging)
                         {
