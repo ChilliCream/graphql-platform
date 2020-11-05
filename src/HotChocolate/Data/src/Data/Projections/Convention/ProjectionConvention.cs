@@ -78,7 +78,7 @@ namespace HotChocolate.Data.Projections
                     CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
                 MergeExtensions(context, init, extensions);
-                init.OnComplete(context);
+                init.Complete(context);
             }
         }
 
@@ -120,7 +120,7 @@ namespace HotChocolate.Data.Projections
                     {
                         extensionConvention.Initialize(context);
                         extensions[m].Merge(context, providerConvention);
-                        extensionConvention.OnComplete(context);
+                        extensionConvention.Complete(context);
                     }
                 }
             }

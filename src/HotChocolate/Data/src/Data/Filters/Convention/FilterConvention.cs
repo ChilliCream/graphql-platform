@@ -100,7 +100,7 @@ namespace HotChocolate.Data.Filters
                     CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
                 MergeExtensions(context, init, extensions);
-                init.OnComplete(context);
+                init.Complete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
@@ -295,7 +295,7 @@ namespace HotChocolate.Data.Filters
                     {
                         extensionConvention.Initialize(context);
                         extensions[m].Merge(context, providerConvention);
-                        extensionConvention.OnComplete(context);
+                        extensionConvention.Complete(context);
                     }
                 }
             }

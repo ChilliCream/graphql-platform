@@ -28,7 +28,7 @@ namespace HotChocolate.Data.Filters
             base.Initialize(context);
         }
 
-        void IFilterProviderConvention.OnComplete(IConventionContext context)
+        void IFilterProviderConvention.Complete(IConventionContext context)
         {
             Complete(context);
         }

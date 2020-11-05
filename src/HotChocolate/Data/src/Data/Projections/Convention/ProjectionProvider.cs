@@ -65,7 +65,7 @@ namespace HotChocolate.Data.Projections
         {
         }
 
-        void IProjectionProviderConvention.OnComplete(IConventionContext context)
+        void IProjectionProviderConvention.Complete(IConventionContext context)
         {
             Complete(context);
         }
