@@ -7,6 +7,9 @@ using static HotChocolate.Data.ErrorHelper;
 
 namespace HotChocolate.Data.Projections
 {
+    /// <summary>
+    /// Returns the only element of the resolved value, or a default value if the sequence is empty.
+    /// </summary>
     public class SingleOrDefaultMiddleware<T>
     {
         private readonly FieldDelegate _next;
@@ -20,42 +23,49 @@ namespace HotChocolate.Data.Projections
         {
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is IAsyncEnumerable<T> ae)
+            switch (context.Result)
             {
-                await using IAsyncEnumerator<T> enumerator =
-                    ae.GetAsyncEnumerator(context.RequestAborted);
+                case IAsyncEnumerable<T> ae:
+                {
+                    await using IAsyncEnumerator<T> enumerator =
+                        ae.GetAsyncEnumerator(context.RequestAborted);
 
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = enumerator.Current;
-                }
-                else
-                {
-                    context.Result = default(T)!;
-                }
+                    if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        context.Result = enumerator.Current;
+                    }
+                    else
+                    {
+                        context.Result = default(T)!;
+                    }
 
-                if (await enumerator.MoveNextAsync().ConfigureAwait(false))
-                {
-                    context.Result = ProjectionProvider_CreateMoreThanOneError(context);
+                    if (await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        context.Result = ProjectionProvider_CreateMoreThanOneError(context);
+                    }
+
+                    break;
                 }
-            }
-            else if (context.Result is IEnumerable<T> e)
-            {
-                context.Result = await Task
-                    .Run<object?>(
-                        () =>
-                        {
-                            try
+                case IEnumerable<T> e:
+                    context.Result = await Task
+                        .Run<object?>(
+                            () =>
                             {
-                                return e.SingleOrDefault();
-                            }
-                            catch (InvalidOperationException)
-                            {
-                                return ProjectionProvider_CreateMoreThanOneError(context);
-                            }
-                        },
-                        context.RequestAborted)
-                    .ConfigureAwait(false);
+                                try
+                                {
+                                    return e.SingleOrDefault();
+                                }
+                                catch (InvalidOperationException)
+                                {
+                                    return ProjectionProvider_CreateMoreThanOneError(context);
+                                }
+                            },
+                            context.RequestAborted)
+                        .ConfigureAwait(false);
+                    break;
+                case IExecutable ex:
+                    context.Result = await ex.SingleOrDefaultAsync(context.RequestAborted);
+                    break;
             }
         }
     }

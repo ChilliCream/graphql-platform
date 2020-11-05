@@ -129,7 +129,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, operationId, Definition.Scope);
+                    Context,
+                    operationId,
+                    Definition.Scope);
                 Operations.Add(fieldDescriptor);
             }
 
@@ -160,7 +162,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterOperationFieldDescriptor.New(
-                    Context, operationId, Definition.Scope);
+                    Context,
+                    operationId,
+                    Definition.Scope);
                 Operations.Add(fieldDescriptor);
             }
 
@@ -177,7 +181,9 @@ namespace HotChocolate.Data.Filters
             if (fieldDescriptor is null)
             {
                 fieldDescriptor = FilterFieldDescriptor.New(
-                    Context, name, Definition.Scope);
+                    Context,
+                    name,
+                    Definition.Scope);
                 Fields.Add(fieldDescriptor);
             }
 

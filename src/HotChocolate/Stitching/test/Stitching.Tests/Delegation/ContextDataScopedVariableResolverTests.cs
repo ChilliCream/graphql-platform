@@ -43,7 +43,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("contextData_a", value.Name);
+            Assert.Equal("__contextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal("AbcDef", value.Value.Value);
         }
@@ -79,7 +79,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("contextData_a", value.Name);
+            Assert.Equal("__contextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal(NullValueNode.Default, value.Value);
         }

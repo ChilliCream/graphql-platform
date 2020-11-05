@@ -38,6 +38,18 @@ namespace HotChocolate.Data
                     .SetExtension(nameof(scope), scope)
                     .Build());
 
+        public static SchemaException FilterConvention_ProviderHasToBeInitializedByConvention(
+            Type provider,
+            string? scope) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        DataResources.FilterConvention_ProviderHasToBeInitializedByConvention,
+                        provider.FullName ?? provider.Name,
+                        scope is null ? "" : "in scope " + scope)
+                    .SetExtension(nameof(scope), scope)
+                    .Build());
+
         public static SchemaException FilterProvider_NoHandlersConfigured(
             IFilterProvider filterProvider) =>
             new SchemaException(
