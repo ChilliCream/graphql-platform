@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Data.Filters;
 using HotChocolate.Data.Projections.Expressions;
-using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
