@@ -23,7 +23,9 @@ namespace HotChocolate.Data.Filters
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        void IFilterProviderConvention.Initialize(IConventionContext context)
+        void IFilterProviderConvention.Initialize(
+            IConventionContext context,
+            IFilterConvention convention)
         {
             base.Initialize(context);
         }

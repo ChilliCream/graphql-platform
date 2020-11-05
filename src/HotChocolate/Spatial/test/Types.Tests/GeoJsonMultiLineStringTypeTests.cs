@@ -12,21 +12,19 @@ namespace HotChocolate.Types.Spatial
         private readonly MultiLineString _geom = new MultiLineString(
             new[]
             {
-                new LineString(
-                    new[]
-                    {
-                        new Coordinate(10, 10),
-                        new Coordinate(20, 20),
-                        new Coordinate(10, 40)
-                    }),
-                new LineString(
-                    new[]
-                    {
-                        new Coordinate(40, 40),
-                        new Coordinate(30, 30),
-                        new Coordinate(40, 20),
-                        new Coordinate(30, 10)
-                    })
+                new LineString(new[]
+                {
+                    new Coordinate(10, 10),
+                    new Coordinate(20, 20),
+                    new Coordinate(10, 40)
+                }),
+                new LineString(new[]
+                {
+                    new Coordinate(40, 40),
+                    new Coordinate(30, 30),
+                    new Coordinate(40, 20),
+                    new Coordinate(30, 10)
+                })
             });
 
         [Fact]
@@ -37,11 +35,10 @@ namespace HotChocolate.Types.Spatial
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonMultiLineStringType>()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Resolver(_geom))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(_geom))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -61,12 +58,11 @@ namespace HotChocolate.Types.Spatial
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .AddSpatialTypes()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Type<GeoJsonMultiLineStringType>()
-                        .Resolver(_geom))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Type<GeoJsonMultiLineStringType>()
+                    .Resolver(_geom))
                 .Create();
             IRequestExecutor executor = schema.MakeExecutable();
 
@@ -84,11 +80,10 @@ namespace HotChocolate.Types.Spatial
                 .AddConvention<INamingConventions, MockNamingConvention>()
                 .BindClrType<Coordinate, GeoJsonPositionType>()
                 .AddType<GeoJsonMultiLineStringType>()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Resolver(_geom))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(_geom))
                 .Create()
                 .Print()
                 .MatchSnapshot();
