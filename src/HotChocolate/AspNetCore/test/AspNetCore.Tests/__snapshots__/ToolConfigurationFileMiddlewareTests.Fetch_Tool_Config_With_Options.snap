@@ -1,5 +1,5 @@
 ﻿{
-  "Content": "{\"schemaEndpoint\":\"http://localhost:5000/graphql\",\"subscriptionEndpoint\":\"ws://localhost:5000/graphql\",\"endpointEditable\":false,\"document\":\"# foo\",\"credentials\":\"same-origin\",\"httpHeaders\":{\"Content-Type\":\"application/json\"},\"httpMethod\":\"GET\"}",
+  "Content": "{\"schemaEndpoint\":\"http://localhost:5000/graphql\",\"subscriptionEndpoint\":\"ws://localhost:5000/graphql\",\"endpointEditable\":true,\"document\":\"# foo\",\"credentials\":\"same-origin\",\"httpHeaders\":{\"Content-Type\":\"application/json\"},\"httpMethod\":\"GET\"}",
   "ContentType": {
     "CharSet": "utf-8",
     "Parameters": [
