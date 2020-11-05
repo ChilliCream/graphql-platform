@@ -17,10 +17,10 @@
 trigger:
   branches: 
     include: 
-      - master
+      - main
 
 pr:
-- master
+- main
 
 stages:
   - stage: ubuntu_latest
