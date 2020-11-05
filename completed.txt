@@ -26,3 +26,4 @@ HotChocolate.Data.EntityFramework
 HotChocolate.Data.Spatial
 HotChocolate.Execution
 HotChocolate.Execution.Benchmarks
+HotChocolate.Fetching

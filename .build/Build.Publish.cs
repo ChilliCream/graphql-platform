@@ -189,8 +189,10 @@ partial class Build : NukeBuild
 
                     stopwatch.Restart();
                 }
-
-                key++;
+                else
+                {
+                    key++;
+                }
             } while (!complete);
 
             Logger.Success("All packages cleaned up.");
