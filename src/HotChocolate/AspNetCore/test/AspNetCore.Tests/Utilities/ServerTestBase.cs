@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Xunit;
+using System;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -16,8 +17,11 @@ namespace HotChocolate.AspNetCore.Utilities
 
         protected TestServerFactory ServerFactory { get; }
 
-        protected virtual TestServer CreateStarWarsServer(string pattern = "/graphql") =>
-            ServerFactory.Create(
+        protected virtual TestServer CreateStarWarsServer(
+            string pattern = "/graphql",
+            Action<IEndpointConventionBuilder> configureConventions = default)
+        {
+            return ServerFactory.Create(
                 services => services
                     .AddRouting()
                     .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
@@ -53,9 +57,16 @@ namespace HotChocolate.AspNetCore.Utilities
                     .UseRouting()
                     .UseEndpoints(endpoints =>
                     {
-                        endpoints.MapGraphQL(pattern);
+                        IEndpointConventionBuilder builder = endpoints.MapGraphQL(pattern);
+
+                        if (configureConventions is { })
+                        {
+                            configureConventions(builder);
+                        }
+
                         endpoints.MapGraphQL("/evict", "evict");
                         endpoints.MapGraphQL("/arguments", "arguments");
                     }));
+        }
     }
 }

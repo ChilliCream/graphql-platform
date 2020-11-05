@@ -76,11 +76,11 @@ namespace HotChocolate.Types.Relay.Descriptors
         public IObjectFieldDescriptor ResolveNodeWith<TResolver>() =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 Definition.NodeType ?? typeof(TResolver),
-                typeof(TResolver)));
+                typeof(TResolver))!);
 
         public IObjectFieldDescriptor ResolveNodeWith(Type type) =>
             ResolveNodeWith(Context.TypeInspector.GetNodeResolverMethod(
                 Definition.NodeType ?? type,
-                type));
+                type)!);
     }
 }

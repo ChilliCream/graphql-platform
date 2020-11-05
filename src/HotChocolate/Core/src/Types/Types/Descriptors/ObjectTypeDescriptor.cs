@@ -278,7 +278,7 @@ namespace HotChocolate.Types.Descriptors
                     Context,
                     propertyOrMethod,
                     Definition.RuntimeType,
-                    propertyOrMethod.DeclaringType ?? Definition.RuntimeType);
+                    propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }

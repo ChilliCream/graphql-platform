@@ -1369,30 +1369,6 @@ namespace HotChocolate
 
 
         [Fact]
-        public void AddConvention_Override_TypeOverType()
-        {
-            // arrange
-            // act
-            ISchema schema = SchemaBuilder.New()
-                .AddConvention(typeof(ITestConvention), typeof(TestConvention))
-                .AddConvention(typeof(ITestConvention), typeof(TestConvention2))
-                .AddType<ConventionTestType>()
-                .AddQueryType(d => d
-                    .Name("Query")
-                    .Field("foo")
-                    .Resolver("bar"))
-                .Create();
-
-            // assert
-            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
-                new TestConvention());
-            Assert.NotNull(convention);
-            Assert.IsType<TestConvention2>(convention);
-        }
-
-
-        [Fact]
         public void AddConvention_ServiceDependency()
         {
             // arrange
@@ -1589,6 +1565,633 @@ namespace HotChocolate
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void Convention_Should_AddConvention_When_CalledWithInstance()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConvention_When_CalledWithGeneric()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention, MockConvention>()
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConvention_When_CalledWithFactory()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(sp => convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConvention_When_CalledWithType()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(typeof(MockConvention))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConvention_When_CalledWithInstance()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention<IMockConvention>(convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConvention_When_CalledWithGeneric()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention<IMockConvention, MockConvention>()
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConvention_When_CalledWithFactory()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention<IMockConvention>(sp => convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConvention_When_CalledWithType()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention<IMockConvention>(typeof(MockConvention))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConventionType_When_CalledWithInstance()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention(typeof(IMockConvention), convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConventionType_When_CalledWithFactory()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention(typeof(IMockConvention),sp => convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_AddConventionType_When_CalledWithType()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention(typeof(IMockConvention),typeof(MockConvention))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConventionType_When_CalledWithInstance()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention(typeof(IMockConvention),convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConventionType_When_CalledWithFactory()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention(typeof(IMockConvention), sp => convention)
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_TryAddConventionType_When_CalledWithType()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .TryAddConvention<IMockConvention>(typeof(MockConvention))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.IsType<MockConvention>(result);
+        }
+
+        [Fact]
+        public void ConventionExtension_Should_AddConvention_When_CalledWithInstance()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(convention)
+                .AddConvention<IMockConvention>(new MockConventionExtension())
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.True(convention.IsExtended);
+        }
+
+        [Fact]
+        public void ConventionExtension_Should_AddConvention_When_CalledWithGeneric()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention, MockConvention>()
+                .AddConvention<IMockConvention, MockConventionExtension>()
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.True(Assert.IsType<MockConvention>(result).IsExtended);
+        }
+
+        [Fact]
+        public void ConventionExtension_Should_AddConvention_When_CalledWithFactory()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(sp => convention)
+                .AddConvention<IMockConvention>(sp => new MockConventionExtension())
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.True(Assert.IsType<MockConvention>(result).IsExtended);
+        }
+
+        [Fact]
+        public void ConventionExtension_Should_AddConvention_When_CalledWithType()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(typeof(MockConvention))
+                .AddConvention<IMockConvention>(typeof(MockConventionExtension))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => throw new InvalidOperationException());
+
+            // assert
+            Assert.True(Assert.IsType<MockConvention>(result).IsExtended);
+        }
+
+        [Fact]
+        public void Convention_Should_Throw_When_DuplicatedConvention()
+        {
+            // arrange
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(typeof(MockConvention))
+                .AddConvention<IMockConvention>(typeof(MockConvention))
+                .Create();
+
+            // assert
+            SchemaException schemaException = Assert.Throws<SchemaException>(
+                () => context.GetConventionOrDefault<IMockConvention>(
+                    () => throw new InvalidOperationException()));
+            schemaException.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convention_Should_UseDefault_When_NotRegistered()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend().OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => convention);
+
+            // assert
+            Assert.Equal(convention, result);
+        }
+
+        [Fact]
+        public void Convention_Should_UseDefault_When_NotRegisteredAndApplyExtensions()
+        {
+            // arrange
+            var convention = new MockConvention();
+            IDescriptorContext context = null!;
+
+            // act
+            SchemaBuilder.New()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("foo")
+                        .Resolver("bar")
+                        .Extend()
+                        .OnBeforeCreate(
+                            (ctx, def) =>
+                            {
+                                context = ctx;
+                            }))
+                .AddConvention<IMockConvention>(typeof(MockConventionExtension))
+                .Create();
+            IMockConvention result = context.GetConventionOrDefault<IMockConvention>(
+                () => convention);
+
+            // assert
+            Assert.Equal(result, convention);
+            Assert.True(Assert.IsType<MockConvention>(result).IsExtended);
+        }
+
+        public interface IMockConvention : IConvention
+        {
+        }
+
+        public class MockConventionDefinition
+        {
+            public bool IsExtended { get; set; }
+        }
+
+        public class MockConvention : Convention<MockConventionDefinition>, IMockConvention
+        {
+            public bool IsExtended { get; set; }
+            public new MockConventionDefinition Definition => base.Definition;
+            protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+            {
+                return new MockConventionDefinition();
+            }
+
+            protected internal override void OnComplete(IConventionContext context)
+            {
+                IsExtended = Definition.IsExtended;
+                base.OnComplete(context);
+            }
+        }
+
+        public class MockConventionExtension : ConventionExtension<MockConventionDefinition>
+        {
+            protected override MockConventionDefinition CreateDefinition(IConventionContext context)
+            {
+                return new MockConventionDefinition();
+            }
+
+            public override void Merge(IConventionContext context, Convention convention)
+            {
+                if (convention is MockConvention mockConvention)
+                {
+                    mockConvention.Definition.IsExtended = true;
+                }
+            }
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1760,7 +2363,7 @@ namespace HotChocolate
             }
         }
 
-        public class DummySchemaInterceptor : SchemaInterceptor 
+        public class DummySchemaInterceptor : SchemaInterceptor
         {
             private readonly Action<IDescriptorContext> _onBeforeCreate;
 
@@ -1770,7 +2373,7 @@ namespace HotChocolate
             }
 
             public override void OnBeforeCreate(
-                IDescriptorContext context, 
+                IDescriptorContext context,
                 ISchemaBuilder schemaBuilder) =>
                 _onBeforeCreate(context);
         }

@@ -15,9 +15,9 @@ namespace HotChocolate.Stitching.Merge
 
         ObjectTypeDefinitionNode QueryType { get; }
 
-        ObjectTypeDefinitionNode MutationType { get; }
+        ObjectTypeDefinitionNode? MutationType { get; }
 
-        ObjectTypeDefinitionNode SubscriptionType { get; }
+        ObjectTypeDefinitionNode? SubscriptionType { get; }
 
         bool IsRootType(ITypeDefinitionNode typeDefinition);
 

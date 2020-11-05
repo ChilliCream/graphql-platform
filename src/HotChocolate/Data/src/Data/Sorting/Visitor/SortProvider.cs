@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
@@ -34,6 +35,8 @@ namespace HotChocolate.Data.Sorting
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        internal new SortProviderDefinition? Definition => base.Definition;
+
         public IReadOnlyCollection<ISortFieldHandler> FieldHandlers => _fieldHandlers;
 
         public IReadOnlyCollection<ISortOperationHandler> OperationHandlers => _operationHandlers;
@@ -58,28 +61,36 @@ namespace HotChocolate.Data.Sorting
             return descriptor.CreateDefinition();
         }
 
-        protected override void OnComplete(
-            IConventionContext context,
-            SortProviderDefinition definition)
+        void ISortProviderConvention.Initialize(IConventionContext context)
         {
-            if (definition.Handlers.Count == 0)
+            base.Initialize(context);
+        }
+
+        void ISortProviderConvention.OnComplete(IConventionContext context)
+        {
+            OnComplete(context);
+        }
+
+        protected override void OnComplete(IConventionContext context)
+        {
+            if (Definition?.Handlers.Count == 0)
             {
                 throw SortProvider_NoFieldHandlersConfigured(this);
             }
 
-            if (definition.Handlers.Count == 0)
+            if (Definition.OperationHandlers.Count == 0)
             {
                 throw SortProvider_NoOperationHandlersConfigured(this);
             }
 
             IServiceProvider services = new DictionaryServiceProvider(
-                    (typeof(ISortProvider), this),
-                    (typeof(IConventionContext), context),
-                    (typeof(IDescriptorContext), context.DescriptorContext),
-                    (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
+                (typeof(ISortProvider), this),
+                (typeof(IConventionContext), context),
+                (typeof(IDescriptorContext), context.DescriptorContext),
+                (typeof(ITypeInspector), context.DescriptorContext.TypeInspector))
                 .Include(context.Services);
 
-            foreach ((Type Type, ISortFieldHandler? Instance) handler in definition.Handlers)
+            foreach ((Type Type, ISortFieldHandler? Instance) handler in Definition.Handlers)
             {
                 switch (handler.Instance)
                 {
@@ -88,10 +99,10 @@ namespace HotChocolate.Data.Sorting
                         out ISortFieldHandler<TContext>? service):
                         _fieldHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
-                            SortProvider_UnableToCreateFieldHandler(this, handler.Type));
-                        break;
+                        throw SortProvider_UnableToCreateFieldHandler(this, handler.Type);
+                        
                     case ISortFieldHandler<TContext> casted:
                         _fieldHandlers.Add(casted);
                         break;
@@ -99,7 +110,7 @@ namespace HotChocolate.Data.Sorting
             }
 
             foreach ((Type Type, ISortOperationHandler? Instance) handler
-                in definition.OperationHandlers)
+                in Definition.OperationHandlers)
             {
                 switch (handler.Instance)
                 {
@@ -108,10 +119,10 @@ namespace HotChocolate.Data.Sorting
                         out ISortOperationHandler<TContext>? service):
                         _operationHandlers.Add(service);
                         break;
+
                     case null:
-                        context.ReportError(
-                            SortProvider_UnableToCreateOperationHandler(this, handler.Type));
-                        break;
+                        throw SortProvider_UnableToCreateOperationHandler(this, handler.Type);
+                        
                     case ISortOperationHandler<TContext> casted:
                         _operationHandlers.Add(casted);
                         break;
@@ -122,5 +133,11 @@ namespace HotChocolate.Data.Sorting
         protected virtual void Configure(ISortProviderDescriptor<TContext> descriptor) { }
 
         public abstract FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName);
+
+        public virtual void ConfigureField(
+            NameString argumentName,
+            IObjectFieldDescriptor descriptor)
+        {
+        }
     }
 }

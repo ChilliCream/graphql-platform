@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Data.Filters;
@@ -243,6 +244,55 @@ namespace HotChocolate.Data.Tests
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegistered()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseFiltering("Foo"));
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_ThrowException_WhenNoConventionIsRegisteredDefault()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(
+                    c =>
+                        c.Name("Query")
+                            .Field("foo")
+                            .Resolve(new List<Foo>())
+                            .UseFiltering());
+
+            // act
+            // assert
+            SchemaException exception = Assert.Throws<SchemaException>(() => builder.Create());
+            exception.Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void FilterInputType_Should_UseCustomFilterType_When_Nested()
+        {
+            // arrange
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddFiltering()
+                .AddQueryType<UserQueryType>();
+
+            // act
+            // assert
+            builder.Create().Print().MatchSnapshot();
+        }
+
         public class FooDirectiveType
             : DirectiveType<FooDirective>
         {
@@ -298,6 +348,35 @@ namespace HotChocolate.Data.Tests
 
             [GraphQLNonNullType]
             public string Name { get; set; }
+        }
+
+        public class User
+        {
+            public int Id { get; set; }
+
+            public string Name { get; set; } = default!;
+
+            public List<User> Friends { get; set; } = default!;
+        }
+
+        public class UserFilterInputType : FilterInputType<User>
+        {
+            protected override void Configure(IFilterInputTypeDescriptor<User> descriptor)
+            {
+                descriptor.Ignore(x => x.Id);
+            }
+        }
+
+        public class UserQueryType : ObjectType<User>
+        {
+            protected override void Configure(IObjectTypeDescriptor<User> descriptor)
+            {
+                descriptor.Name(nameof(Query));
+                descriptor
+                    .Field("foo")
+                    .Resolve(new List<User>())
+                    .UseFiltering<UserFilterInputType>();
+            }
         }
     }
 }

@@ -38,13 +38,12 @@ namespace HotChocolate.Stitching.Delegation
                 .SelectionSet.Selections
                 .OfType<FieldNode>().Single();
 
-
             // act
             DocumentNode newQuery = RemoteQueryBuilder.New()
                 .SetOperation(null, OperationType.Query)
                 .SetSelectionPath(path)
                 .SetRequestField(field)
-                .AddVariable("fields_bar", new NamedTypeNode(null, new NameNode("String")))
+                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
                 .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert
@@ -88,7 +87,7 @@ namespace HotChocolate.Stitching.Delegation
                     OperationType.Query)
                 .SetSelectionPath(path)
                 .SetRequestField(field)
-                .AddVariable("fields_bar", new NamedTypeNode(null, new NameNode("String")))
+                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
                 .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert

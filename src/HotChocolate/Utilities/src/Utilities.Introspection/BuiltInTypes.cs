@@ -35,6 +35,8 @@ namespace HotChocolate.Utilities.Introspection
                 Stream
             };
 
+        public static bool IsBuiltInType(string name) => _typeNames.Contains(name);
+
         public static DocumentNode RemoveBuiltInTypes(this DocumentNode schema)
         {
             if (schema is null)

@@ -23,8 +23,6 @@ namespace HotChocolate.Stitching.Requests
                     .AddCustomerSchema()
                     .BuildSchemaAsync();
 
-            var variableNames = new HashSet<string> { "id" };
-
             var queryA = "query abc($id: ID) { customer(id: $id) { name } }";
             var queryB = "query abc($id: ID) { customer(id: $id) { id } }";
 
@@ -46,8 +44,7 @@ namespace HotChocolate.Stitching.Requests
             // act
             IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> mergeResult =
                 MergeRequestHelper.MergeRequests(
-                    new[] { bufferedRequestA, bufferedRequestB },
-                    variableNames);
+                    new[] { bufferedRequestA, bufferedRequestB });
 
             // assert
             string.Join(Environment.NewLine + "-------" + Environment.NewLine,
@@ -67,8 +64,6 @@ namespace HotChocolate.Stitching.Requests
                     .AddCustomerSchema()
                     .BuildSchemaAsync();
 
-            var variableNames = new HashSet<string> { "id" };
-
             var queryA = "query abc($id: ID) { customer(id: $id) { name } }";
             var queryB = "query abc($id: ID) { customer(id: $id) { id } }";
 
@@ -92,8 +87,7 @@ namespace HotChocolate.Stitching.Requests
             // act
             IEnumerable<(IQueryRequest, IEnumerable<BufferedRequest>)> mergeResult =
                 MergeRequestHelper.MergeRequests(
-                    new[] { bufferedRequestA, bufferedRequestB },
-                    variableNames);
+                    new[] { bufferedRequestA, bufferedRequestB });
 
             // assert
             string.Join(Environment.NewLine + "-------" + Environment.NewLine,
@@ -112,8 +106,6 @@ namespace HotChocolate.Stitching.Requests
                     .AddGraphQL()
                     .AddCustomerSchema()
                     .BuildSchemaAsync();
-
-            var variableNames = new HashSet<string> { "id" };
 
             var queryA = "query abc($id: ID) { customer(id: $id) { name } }";
             var queryB = "query abc($id: ID) { customer(id: $id) { id } }";
@@ -147,8 +139,7 @@ namespace HotChocolate.Stitching.Requests
                     bufferedRequestA,
                     bufferedRequestB,
                     bufferedRequestC
-                },
-                variableNames);
+                });
 
             // assert
             string.Join(Environment.NewLine + "-------" + Environment.NewLine,
