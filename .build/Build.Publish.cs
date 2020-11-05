@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NuGet.Versioning;
 using Nuke.Common;
 using Nuke.Common.CI;
 using Nuke.Common.IO;
@@ -18,6 +19,22 @@ using static Nuke.Common.Tools.NuGet.NuGetTasks;
 
 partial class Build : NukeBuild
 {
+    HashSet<string> ProtectedVersions = new HashSet<string>
+    {
+        "11.0.0-preview.182",
+        "11.0.0-preview.183",
+        "11.0.0-preview.184",
+        "11.0.0-rc.0",
+        "11.0.0-rc.1",
+        "11.0.0-rc.2",
+        "11.0.0-rc.3",
+        "11.0.0-rc.4",
+        "11.0.0-rc.5",
+        "11.0.0-rc.6",
+        "11.0.0-rc.7",
+        "11.0.0-rc.8"
+    };
+
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
     [Parameter("NuGet Source for Packages")] readonly string NuGetSource = "https://api.nuget.org/v3/index.json";
     [Parameter("NuGet Api Key")] readonly string NuGetApiKey;
@@ -92,51 +109,63 @@ partial class Build : NukeBuild
     Target CleanVersions => _ => _
         .Executes(async () =>
         {
-            var requestInfo = new RequestInfo();
+            var complete = true;
 
             ISet<string> completed = File.Exists(RootDirectory / "completed.txt")
-                ? File.ReadLines(RootDirectory / "completed.txt").Select(t => t.Trim()).Distinct()
+                ? File.ReadLines(RootDirectory / "completed.txt").Select(t => t.Trim())
+                    .Distinct()
                     .OrderBy(t => t).ToHashSet()
                 : new HashSet<string>();
 
-            ISet<string> completedVersions = File.Exists(RootDirectory / "completed_versions.txt")
-                ? File.ReadLines(RootDirectory / "completed_versions.txt")
-                    .Select(t => t.Trim()).Distinct().OrderBy(t => t).ToHashSet()
-                : new HashSet<string>();
+            ISet<string> completedVersions =
+                File.Exists(RootDirectory / "completed_versions.txt")
+                    ? File.ReadLines(RootDirectory / "completed_versions.txt")
+                        .Select(t => t.Trim()).Distinct().OrderBy(t => t).ToHashSet()
+                    : new HashSet<string>();
 
-            var httpClient = new HttpClient();
-
-            var complete = true;
-
-            foreach (var packagedId in File.ReadLines(RootDirectory / "packages.txt")
-                .Select(t => t.Trim()).Distinct().OrderBy(t => t))
+            do
             {
-                if (!completed.Contains(packagedId))
+                var requestInfo = new RequestInfo();
+                using var httpClient = new HttpClient();
+
+                foreach (var packagedId in File.ReadLines(RootDirectory / "packages.txt")
+                    .Select(t => t.Trim()).Distinct().OrderBy(t => t))
                 {
-                    string[] versions = await TryGetVersions(httpClient, packagedId);
-
-                    if (!await TryRemovePreviewVersions(httpClient, packagedId, versions,
-                        requestInfo, completedVersions))
+                    if (!completed.Contains(packagedId))
                     {
-                        complete = false;
-                        break;
+                        string[] versions = await TryGetVersions(httpClient, packagedId);
+
+                        if (!await TryRemovePreviewVersions(httpClient, packagedId, versions,
+                            requestInfo, completedVersions))
+                        {
+                            complete = false;
+                            break;
+                        }
+
+                        completed.Add(packagedId);
                     }
-
-                    completed.Add(packagedId);
                 }
-            }
 
-            File.WriteAllText(
-                RootDirectory / "completed.txt",
-                string.Join(Environment.NewLine, completed.OrderBy(t => t)));
+                File.WriteAllText(
+                    RootDirectory / "completed.txt",
+                    string.Join(Environment.NewLine, completed.OrderBy(t => t)));
 
-            File.WriteAllText(
-                RootDirectory / "completed_versions.txt",
-                string.Join(Environment.NewLine, completedVersions.OrderBy(t => t)));
+                File.WriteAllText(
+                    RootDirectory / "completed_versions.txt",
+                    string.Join(Environment.NewLine, completedVersions.OrderBy(t => t)));
 
-            Logger.Success(complete
-                ? "All packages cleaned up."
-                : $"Batch Completed, next run at: {DateTime.Now.AddHours(1)}");
+                DateTime nextRun = DateTime.Now.AddHours(1);
+
+                Logger.Success(complete
+                    ? "All packages cleaned up."
+                    : $"Batch Completed, next run at: {DateTime.Now.AddHours(1)}");
+
+                while (nextRun > DateTime.Now)
+                {
+                    Logger.Info($"Next run in {(nextRun - DateTime.Now).Minutes} minutes.");
+                    await Task.Delay(TimeSpan.FromMinutes(1));
+                }
+            } while (!complete);
         });
 
     async Task<string[]> TryGetVersions(HttpClient httpClient, string packagedId)
@@ -151,7 +180,11 @@ partial class Build : NukeBuild
                 JsonConvert.DeserializeObject<VersionInfo>(
                     await responseMessage.Content.ReadAsStringAsync());
 
-            return versionInfo.Versions.Where(s => s.Contains("-")).ToArray();
+            return versionInfo.Versions
+                .Where(s => s.Contains("-"))
+                .Where(v => !ProtectedVersions.Contains(v))
+                .OrderBy(SemanticVersion.Parse)
+                .ToArray();
         }
 
         return null;
@@ -166,39 +199,40 @@ partial class Build : NukeBuild
     {
         var completed = true;
 
-        foreach (var version in versions)
+        var versionInfos = versions.Select(v => (Version: v, Key: $"{packagedId}.{v}"))
+            .Where(vi => !completedVersions.Contains(vi.Key)).ToArray();
+
+        Logger.Info($"{packagedId} has {versionInfos.Length} left to remove.");
+
+        foreach (var info in versionInfos)
         {
-            var key = $"{packagedId}.{version}";
-            if (!completedVersions.Contains(key))
+            if (requestInfo.Add())
             {
-                if (requestInfo.Add())
+                var apiKey = Environment.GetEnvironmentVariable("NUGET_API_KEY");
+                using var response = new HttpRequestMessage(
+                    HttpMethod.Delete,
+                    $"https://www.nuget.org/api/v2/package/{packagedId}/{info.Version}");
+                response.Headers.Add("X-NuGet-ApiKey", apiKey);
+
+                using HttpResponseMessage responseMessage = await httpClient.SendAsync(response);
+
+                if (responseMessage.IsSuccessStatusCode)
                 {
-                    var apiKey = Environment.GetEnvironmentVariable("NUGET_API_KEY");
-                    using var response = new HttpRequestMessage(
-                        HttpMethod.Delete,
-                        $"https://www.nuget.org/api/v2/package/{packagedId}/{version}");
-                    response.Headers.Add("X-NuGet-ApiKey", apiKey);
-
-                    using HttpResponseMessage responseMessage = await httpClient.SendAsync(response);
-
-                    if (responseMessage.IsSuccessStatusCode)
-                    {
-                        Logger.Success($"{requestInfo.Count} Unlisted {key}");
-                        completedVersions.Add(key);
-                    }
-                    else
-                    {
-                        Logger.Warn($"Request Failed: {responseMessage.StatusCode}");
-                        completed = false;
-                        break;
-                    }
+                    Logger.Success($"{requestInfo.Count} Unlisted {info.Key}");
+                    completedVersions.Add(info.Key);
                 }
                 else
                 {
-                    Logger.Warn($"Limit used up.");
+                    Logger.Warn($"Request Failed: {responseMessage.StatusCode}");
                     completed = false;
                     break;
                 }
+            }
+            else
+            {
+                Logger.Warn($"Limit used up.");
+                completed = false;
+                break;
             }
         }
 
