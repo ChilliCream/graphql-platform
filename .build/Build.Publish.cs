@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -33,6 +34,20 @@ partial class Build : NukeBuild
         "11.0.0-rc.6",
         "11.0.0-rc.7",
         "11.0.0-rc.8"
+    };
+
+    List<string> Keys = new List<string>
+    {
+        Environment.GetEnvironmentVariable("NUGET_API_KEY0"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY1"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY2"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY3"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY4"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY5"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY6"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY7"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY8"),
+        Environment.GetEnvironmentVariable("NUGET_API_KEY9")
     };
 
     // IEnumerable<string> ChangelogSectionNotes => ExtractChangelogSectionNotes(ChangelogFile);
@@ -109,7 +124,9 @@ partial class Build : NukeBuild
     Target CleanVersions => _ => _
         .Executes(async () =>
         {
+            var stopwatch = Stopwatch.StartNew();
             var complete = true;
+            var key = 0;
 
             ISet<string> completed = File.Exists(RootDirectory / "completed.txt")
                 ? File.ReadLines(RootDirectory / "completed.txt").Select(t => t.Trim())
@@ -128,6 +145,8 @@ partial class Build : NukeBuild
                 var requestInfo = new RequestInfo();
                 using var httpClient = new HttpClient();
 
+                Logger.Info($"Current key: {key}.");
+
                 foreach (var packagedId in File.ReadLines(RootDirectory / "packages.txt")
                     .Select(t => t.Trim()).Distinct().OrderBy(t => t))
                 {
@@ -136,7 +155,7 @@ partial class Build : NukeBuild
                         string[] versions = await TryGetVersions(httpClient, packagedId);
 
                         if (!await TryRemovePreviewVersions(httpClient, packagedId, versions,
-                            requestInfo, completedVersions))
+                            requestInfo, completedVersions, key))
                         {
                             complete = false;
                             break;
@@ -154,18 +173,27 @@ partial class Build : NukeBuild
                     RootDirectory / "completed_versions.txt",
                     string.Join(Environment.NewLine, completedVersions.OrderBy(t => t)));
 
-                DateTime nextRun = DateTime.Now.AddHours(1);
+                Logger.Success("Batch Completed.");
 
-                Logger.Success(complete
-                    ? "All packages cleaned up."
-                    : $"Batch Completed, next run at: {DateTime.Now.AddHours(1)}");
-
-                while (nextRun > DateTime.Now)
+                if (!complete && key == Keys.Count - 1)
                 {
-                    Logger.Info($"Next run in {(nextRun - DateTime.Now).Minutes} minutes.");
-                    await Task.Delay(TimeSpan.FromMinutes(1));
+                    key = 0;
+                    TimeSpan waitTime = TimeSpan.FromHours(1) - stopwatch.Elapsed;
+                    DateTime nextRun = DateTime.Now.Add(waitTime);
+
+                    while (nextRun > DateTime.Now)
+                    {
+                        Logger.Info($"Next run in {(nextRun - DateTime.Now).Minutes} minutes.");
+                        await Task.Delay(TimeSpan.FromMinutes(1));
+                    }
+
+                    stopwatch.Restart();
                 }
+
+                key++;
             } while (!complete);
+
+            Logger.Success("All packages cleaned up.");
         });
 
     async Task<string[]> TryGetVersions(HttpClient httpClient, string packagedId)
@@ -195,7 +223,8 @@ partial class Build : NukeBuild
         string packagedId,
         string[] versions,
         RequestInfo requestInfo,
-        ISet<string> completedVersions)
+        ISet<string> completedVersions,
+        int key)
     {
         var completed = true;
 
@@ -208,7 +237,7 @@ partial class Build : NukeBuild
         {
             if (requestInfo.Add())
             {
-                var apiKey = Environment.GetEnvironmentVariable("NUGET_API_KEY");
+                var apiKey = Keys[key];
                 using var response = new HttpRequestMessage(
                     HttpMethod.Delete,
                     $"https://www.nuget.org/api/v2/package/{packagedId}/{info.Version}");
@@ -251,7 +280,7 @@ partial class Build : NukeBuild
     class RequestInfo
     {
         public int Count { get; set; }
-        public int Limit { get; set; } = 400;
+        public int Limit { get; set; } = 300 * 10;
 
         public bool Add()
         {
