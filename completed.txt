@@ -27,3 +27,5 @@ HotChocolate.Data.Spatial
 HotChocolate.Execution
 HotChocolate.Execution.Benchmarks
 HotChocolate.Fetching
+HotChocolate.Language
+HotChocolate.Language.SyntaxTree
