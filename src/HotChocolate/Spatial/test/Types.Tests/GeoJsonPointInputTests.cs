@@ -7,13 +7,36 @@ using NetTopologySuite.Geometries;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Spatial
+namespace HotChocolate.Types.Spatial.Tests
 {
     public class GeoJsonPointInputTests
     {
         private readonly ListValueNode _point = new ListValueNode(
             new IntValueNode(30),
             new IntValueNode(10));
+
+        private ISchema CreateSchema() => SchemaBuilder.New()
+            .AddConvention<INamingConventions, MockNamingConvention>()
+            .AddType<MockObjectType>()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonPointInputType>())
+                    .Resolver("ghi"))
+            .Create();
+
+        private InputObjectType CreateInputType()
+        {
+            ISchema schema = CreateSchema();
+            return schema.GetType<InputObjectType>("GeoJSONPointInput");
+        }
+
+        private GeometryType CreateScalarType()
+        {
+            ISchema schema = CreateSchema();
+            return schema.GetType<GeometryType>("Geometry");
+        }
 
         [Fact]
         public void ParseLiteral_Point_With_Valid_Coordinates_Scalar()
@@ -171,36 +194,11 @@ namespace HotChocolate.Types.Spatial
         public void Schema_Tests()
         {
             // arrange
+            // act
             ISchema schema = CreateSchema();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
-        }
-
-        private ISchema CreateSchema() => SchemaBuilder.New()
-            .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddType<MockObjectType>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonPointInputType>())
-                    .Resolver("ghi"))
-            .Create();
-
-        private InputObjectType CreateInputType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<InputObjectType>("GeoJSONPointInput");
-        }
-
-        private GeometryType CreateScalarType()
-        {
-            ISchema schema = CreateSchema();
-
-            return schema.GetType<GeometryType>("Geometry");
         }
     }
 }
