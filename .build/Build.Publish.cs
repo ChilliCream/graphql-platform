@@ -2,41 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Nuke.Common;
 using Nuke.Common.CI;
-using Nuke.Common.CI.AppVeyor;
-using Nuke.Common.CI.AzurePipelines;
-using Nuke.Common.CI.GitHubActions;
-using Nuke.Common.CI.TeamCity;
-using Nuke.Common.Execution;
-using Nuke.Common.Git;
 using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
-using Nuke.Common.Tools.Coverlet;
-using Nuke.Common.Tools.DotCover;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.GitHub;
-using Nuke.Common.Tools.GitVersion;
-using Nuke.Common.Tools.InspectCode;
 using Nuke.Common.Tools.NuGet;
-using Nuke.Common.Tools.ReportGenerator;
-using Nuke.Common.Tools.Slack;
-using Nuke.Common.Tools.SonarScanner;
-using Nuke.Common.Utilities;
-using Nuke.Common.Utilities.Collections;
-using static Nuke.Common.ChangeLog.ChangelogTasks;
-using static Nuke.Common.ControlFlow;
-using static Nuke.Common.Gitter.GitterTasks;
-using static Nuke.Common.IO.CompressionTasks;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
-using static Nuke.Common.Tools.Git.GitTasks;
-using static Nuke.Common.Tools.InspectCode.InspectCodeTasks;
-using static Nuke.Common.IO.FileSystemTasks;
-using static Nuke.Common.Tools.ReportGenerator.ReportGeneratorTasks;
-using static Nuke.Common.Tools.Slack.SlackTasks;
-using static Nuke.Common.Tools.SonarScanner.SonarScannerTasks;
 using static Helpers;
 using static Nuke.Common.Tools.NuGet.NuGetTasks;
 
@@ -113,4 +88,142 @@ partial class Build : NukeBuild
                 degreeOfParallelism: 2,
                 completeOnFailure: true);
         });
+
+
+    Target CleanVersions => _ => _
+        .Executes(async () =>
+        {
+            var requestInfo = new RequestInfo();
+
+            ISet<string> completed = File.Exists(RootDirectory / "completed.txt")
+                ? File.ReadLines(RootDirectory / "completed.txt").Select(t => t.Trim()).Distinct()
+                    .OrderBy(t => t).ToHashSet()
+                : new HashSet<string>();
+
+            ISet<string> completedVersions = File.Exists(RootDirectory / "completed_versions.txt")
+                ? File.ReadLines(RootDirectory / "completed_versions.txt")
+                    .Select(t => t.Trim()).Distinct().OrderBy(t => t).ToHashSet()
+                : new HashSet<string>();
+
+            var httpClient = new HttpClient();
+
+            var complete = true;
+
+            foreach (var packagedId in File.ReadLines(RootDirectory / "packages.txt")
+                .Select(t => t.Trim()).Distinct().OrderBy(t => t))
+            {
+                if (!completed.Contains(packagedId))
+                {
+                    string[] versions = await TryGetVersions(httpClient, packagedId);
+
+                    if (!await TryRemovePreviewVersions(httpClient, packagedId, versions,
+                        requestInfo, completedVersions))
+                    {
+                        complete = false;
+                        break;
+                    }
+
+                    completed.Add(packagedId);
+                }
+            }
+
+            File.WriteAllText(RootDirectory / "completed.txt", string.Join(Environment.NewLine, completed));
+            File.WriteAllText(RootDirectory / "completed_versions.txt", string.Join(Environment.NewLine, completedVersions));
+
+            Logger.Success(complete
+                ? "All packages cleaned up."
+                : $"Batch Completed, next run at: {DateTime.Now.AddHours(1)}");
+        });
+
+    async Task<string[]> TryGetVersions(HttpClient httpClient, string packagedId)
+    {
+        HttpResponseMessage responseMessage =
+            await httpClient.GetAsync(
+                $"https://api.nuget.org/v3-flatcontainer/{packagedId.ToLower()}/index.json");
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            VersionInfo versionInfo =
+                JsonConvert.DeserializeObject<VersionInfo>(
+                    await responseMessage.Content.ReadAsStringAsync());
+
+            return versionInfo.Versions.Where(s => s.Contains("-")).ToArray();
+        }
+
+        return null;
+    }
+
+    async Task<bool> TryRemovePreviewVersions(
+        HttpClient httpClient,
+        string packagedId,
+        string[] versions,
+        RequestInfo requestInfo,
+        ISet<string> completedVersions)
+    {
+        var completed = true;
+
+        foreach (var version in versions)
+        {
+            var key = $"{packagedId}.{version}";
+            if (!completedVersions.Contains(key))
+            {
+                if (requestInfo.Add())
+                {
+                    var apiKey = Environment.GetEnvironmentVariable("NUGET_API_KEY");
+                    using var response = new HttpRequestMessage(
+                        HttpMethod.Delete,
+                        $"https://www.nuget.org/api/v2/package/{packagedId}/{version}");
+                    response.Headers.Add("X-NuGet-ApiKey", apiKey);
+
+                    using HttpResponseMessage responseMessage = await httpClient.SendAsync(response);
+
+                    if (responseMessage.IsSuccessStatusCode)
+                    {
+                        Logger.Success($"{requestInfo.Count} Unlisted {key}");
+                        completedVersions.Add(key);
+                    }
+                    else
+                    {
+                        Logger.Warn($"Request Failed: {responseMessage.StatusCode}");
+                        completed = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    Logger.Warn($"Limit used up.");
+                    completed = false;
+                    break;
+                }
+            }
+        }
+
+        await File.WriteAllTextAsync(
+            RootDirectory / "completed_versions.txt",
+            string.Join(Environment.NewLine, completedVersions));
+
+        return completed;
+    }
+
+    class VersionInfo
+    {
+        public string[] Versions { get; set; }
+    }
+
+    class RequestInfo
+    {
+        public int Count { get; set; }
+        public int Limit { get; set; } = 250;
+
+        public bool Add()
+        {
+            if (Count < Limit)
+            {
+                Count++;
+                return true;
+            }
+
+            return false;
+        }
+    }
 }
