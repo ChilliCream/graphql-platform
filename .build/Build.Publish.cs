@@ -55,7 +55,6 @@ partial class Build : NukeBuild
                     t => t.SetTargetPath(StarWarsTemplateNuSpec),
                     t => t.SetTargetPath(EmptyServerTemplateNuSpec)));
 
-
             /*
             NuGetPack(c => c
                 .SetVersion(GitVersion.SemVer)
@@ -218,7 +217,7 @@ partial class Build : NukeBuild
     class RequestInfo
     {
         public int Count { get; set; }
-        public int Limit { get; set; } = 250;
+        public int Limit { get; set; } = 400;
 
         public bool Add()
         {
