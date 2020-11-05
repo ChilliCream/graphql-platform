@@ -41,6 +41,8 @@ namespace HotChocolate.Data.Projections
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        internal new ProjectionProviderDefinition? Definition => base.Definition;
+
         protected override ProjectionProviderDefinition CreateDefinition(
             IConventionContext context)
         {

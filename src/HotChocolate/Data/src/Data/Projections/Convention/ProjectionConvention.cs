@@ -28,6 +28,8 @@ namespace HotChocolate.Data.Projections
                 throw new ArgumentNullException(nameof(configure));
         }
 
+        internal new ProjectionConventionDefinition? Definition => base.Definition;
+
         protected override ProjectionConventionDefinition CreateDefinition(
             IConventionContext context)
         {
@@ -62,7 +64,7 @@ namespace HotChocolate.Data.Projections
             {
                 _provider =
                     context.Services.GetOrCreateService<IProjectionProvider>(Definition.Provider) ??
-                        throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
+                    throw ProjectionConvention_NoProviderFound(GetType(), Definition.Scope);
             }
             else
             {
@@ -83,3 +85,4 @@ namespace HotChocolate.Data.Projections
             new ProjectionOptimizer(_provider);
     }
 }
+

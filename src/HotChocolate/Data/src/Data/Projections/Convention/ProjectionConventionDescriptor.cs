@@ -57,6 +57,23 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
+        /// <inheritdoc />
+        public IProjectionConventionDescriptor AddProviderExtension<TExtension>()
+            where TExtension : class, IProjectionProviderExtension
+        {
+            Definition.ProviderExtensionsTypes.Add(typeof(TExtension));
+            return this;
+        }
+
+        /// <inheritdoc />
+        public IProjectionConventionDescriptor AddProviderExtension<TExtension>(TExtension provider)
+            where TExtension : class, IProjectionProviderExtension
+        {
+            Definition.ProviderExtensions.Add(provider);
+            return this;
+        }
+
+
         /// <summary>
         /// Creates a new descriptor for <see cref="ProjectionConvention"/>
         /// </summary>
