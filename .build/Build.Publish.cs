@@ -127,8 +127,13 @@ partial class Build : NukeBuild
                 }
             }
 
-            File.WriteAllText(RootDirectory / "completed.txt", string.Join(Environment.NewLine, completed));
-            File.WriteAllText(RootDirectory / "completed_versions.txt", string.Join(Environment.NewLine, completedVersions));
+            File.WriteAllText(
+                RootDirectory / "completed.txt",
+                string.Join(Environment.NewLine, completed.OrderBy(t => t)));
+
+            File.WriteAllText(
+                RootDirectory / "completed_versions.txt",
+                string.Join(Environment.NewLine, completedVersions.OrderBy(t => t)));
 
             Logger.Success(complete
                 ? "All packages cleaned up."
