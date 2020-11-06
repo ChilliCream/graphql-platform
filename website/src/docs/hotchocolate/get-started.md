@@ -30,7 +30,7 @@ dotnet add ./Demo package HotChocolate.AspNetCore --version 11.0.0-rc.0
 
 # Step 2: Create a GraphQL schema
 
-Next we want to create a GraphQL schema. The GraphQL schema defines how we expose data to our consumer. In order to define the schema open your favorite C# editor and let us get started.
+Next, we want to create a GraphQL schema. The GraphQL schema defines how we expose data to our consumers. To define the schema, open your favorite C# editor and let us get started.
 
 1. Add a new class `Author`.
 
@@ -58,7 +58,7 @@ namespace Demo
 }
 ```
 
-With the two classes we have a nice and simple model that we can use to build our GraphQL schema. We now need to define a query root type. The query root type exposes all the possible queries that a user can drill into. A query root type can be defined like our models just with C#.
+We have a nice and simple model with these two classes that we can use to build our GraphQL schema. We now need to define a query root type. The query root type exposes all the possible queries that a user can drill into. A query root type can be defined as our models just with C#.
 
 3. Add a new class `Query`.
 
@@ -70,7 +70,7 @@ namespace Demo
         public Book GetBook() =>
             new Book
             {
-                Title = "C# in depth.",
+                Title = "C# in depth.",
                 Author = new Author
                 {
                     Name = "Jon Skeet"
@@ -93,7 +93,7 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
-5. Lastly, we need something to execute our code, for this we will head over to the `Configure` method of our `Startup.cs` and add `MapGraphQL` to `UseEndpoints`.
+5. Lastly, we need something to execute our code; for this, we will head over to the `Configure` method of our `Startup.cs` and add `MapGraphQL` to `UseEndpoints`.
 
 ```csharp
 public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -109,7 +109,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 
 # Step 3: Execute a GraphQL query
 
-Now, that your server is finished, let us try it out by executing a simple GraphQL query.
+Now that your server is finished let us try it out by executing a simple GraphQL query.
 
 1. Start your GraphQL server.
 
@@ -121,11 +121,11 @@ dotnet run --project ./Demo
 
 ![GraphQL IDE](../../images/get-started-bcp.png)
 
-3. Next, click on the `Book` icon on the left hand navigation bar to explore the server GraphQL schema. In the schema explorer we can see that we have one query root field exposed. By clicking on the field we are able to drill into the schema structure.
+3. Next, click on the `Book` icon on the left-hand navigation bar to explore the server GraphQL schema. In the schema explorer, we can see that we have one query root field exposed. By clicking on the field, we can drill into the schema structure.
 
 ![GraphQL IDE Schema Explorer](../../images/get-started-bcp-schema-explorer.png)
 
-4. Head back to the query tab and execute your first GraphQL query by clicking in the play button.
+4. Head back to the query tab and execute your first GraphQL query by clicking the play button.
 
 ```graphql
 {
