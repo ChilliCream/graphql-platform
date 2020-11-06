@@ -24,18 +24,16 @@ namespace HotChocolate.Types.Spatial
 
         private ISchema CreateSchema() => SchemaBuilder.New()
             .AddConvention<INamingConventions, MockNamingConvention>()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("test")
-                    .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
-                    .Resolver("ghi"))
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("test")
+                .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
+                .Resolver("ghi"))
             .Create();
 
         private InputObjectType CreateInputType()
         {
             ISchema schema = CreateSchema();
-
             return schema.GetType<InputObjectType>("GeoJSONLineStringInput");
         }
 
@@ -53,7 +51,6 @@ namespace HotChocolate.Types.Spatial
 
             // assert
             Assert.Equal(3, Assert.IsType<LineString>(result).NumPoints);
-
             Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[0].X);
             Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[0].Y);
             Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[1].X);
@@ -77,7 +74,6 @@ namespace HotChocolate.Types.Spatial
 
             // assert
             Assert.Equal(3, Assert.IsType<LineString>(result).NumPoints);
-
             Assert.Equal(30, Assert.IsType<LineString>(result).Coordinates[0].X);
             Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[0].Y);
             Assert.Equal(10, Assert.IsType<LineString>(result).Coordinates[1].X);
@@ -164,12 +160,11 @@ namespace HotChocolate.Types.Spatial
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
-                        .Resolver(ctx => ctx.ArgumentValue<LineString>("arg").ToString()))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
+                    .Resolver(ctx => ctx.ArgumentValue<LineString>("arg").ToString()))
                 .Create();
 
             IRequestExecutor executor = schema.MakeExecutable();
@@ -193,12 +188,11 @@ namespace HotChocolate.Types.Spatial
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType(
-                    d => d
-                        .Name("Query")
-                        .Field("test")
-                        .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
-                        .Resolver("ghi"))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("test")
+                    .Argument("arg", a => a.Type<GeoJsonLineStringInputType>())
+                    .Resolver("ghi"))
                 .Create();
 
             InputObjectType type = schema.GetType<InputObjectType>("GeoJSONLineStringInput");

@@ -123,4 +123,7 @@
   <data name="SortObjectTypeVisitor_InvalidType" xml:space="preserve">
     <value>The visited type is invalid. Only InputObjectType is allowed.</value>
   </data>
+  <data name="SortInputTypeDescriptor_Ignore_OnlyPopertiesAreAllowed" xml:space="preserve">
+    <value>Only properties are allowed for input types.</value>
+  </data>
 </root>
