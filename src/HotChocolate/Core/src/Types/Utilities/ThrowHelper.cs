@@ -183,6 +183,15 @@ namespace HotChocolate.Utilities
                         conventionType.FullName ?? conventionType.Name,
                         scope ?? "default")
                     .Build());
+
+        public static SchemaException DataLoader_InvalidType(
+            Type dataLoaderType) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "The provided type {0} is not a dataloader",
+                        dataLoaderType.FullName ?? dataLoaderType.Name)
+                    .Build());
 #nullable disable
     }
 }
