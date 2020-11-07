@@ -243,8 +243,8 @@
             "title": "Introduction"
           },
           {
-            "path": "getting-started",
-            "title": "Getting Started"
+            "path": "get-started",
+            "title": "Get Started"
           },
           {
             "path": "defining-a-schema",
