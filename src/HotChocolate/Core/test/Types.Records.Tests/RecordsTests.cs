@@ -45,12 +45,62 @@ namespace HotChocolate.Types
         {
             Snapshot.FullName();
 
-            await ExpectValid
-            (
-                @"{ person { id name } }",
-                b => b.AddQueryType<Query>()
-            )
-            .MatchSnapshotAsync();
+            await ExpectValid(
+                    @"{ person { id name } }",
+                    b => b.AddQueryType<Query>()
+                )
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Records_GraphQLNameAttribute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x.Name("Query")
+                        .Field("person")
+                        .Resolve(new RenameRecordTest(1, "Michael")))
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Records_GraphQLDescriptionAttribute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x.Name("Query")
+                        .Field("person")
+                        .Resolve(new DescriptionRecordTest(1, "Michael")))
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync()
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task Records_GraphQLDeprecatedAttribute()
+        {
+            Snapshot.FullName();
+
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(
+                    x => x.Name("Query")
+                        .Field("person")
+                        .Resolve(new DeprecatedRecordTest(1, "Michael")))
+                .Services
+                .BuildServiceProvider()
+                .GetSchemaAsync()
+                .MatchSnapshotAsync();
         }
 
         public class Query
@@ -67,5 +117,19 @@ namespace HotChocolate.Types
         }
 
         public record DefaultValueTest([ID] int Id, string Name = "ShouldBeDefaultValue");
+
+        [GraphQLName("Person")]
+        public record RenameRecordTest(
+            [ID] int Id,
+            [GraphQLName("Foo")] string Name = "ShouldBeDefaultValue");
+
+        [GraphQLDescription("Person")]
+        public record DescriptionRecordTest(
+            [ID] int Id,
+            [GraphQLDescription("Foo")] string Name = "ShouldBeDefaultValue");
+
+        public record DeprecatedRecordTest(
+            [ID] int Id,
+            [GraphQLDeprecated("Foo")] string Name = "ShouldBeDefaultValue");
     }
 }

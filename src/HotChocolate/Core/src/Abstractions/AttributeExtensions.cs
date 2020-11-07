@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -30,10 +31,17 @@ namespace HotChocolate
 
         public static string GetGraphQLName(this PropertyInfo property)
         {
-            string name = property.IsDefined(
-                typeof(GraphQLNameAttribute), false)
-                ? property.GetCustomAttribute<GraphQLNameAttribute>().Name
-                : NormalizeName(property.Name);
+            string name;
+            if (AttributeHelper.TryGetAttribute(
+                property,
+                out GraphQLNameAttribute nameAttribute))
+            {
+                name = nameAttribute.Name;
+            }
+            else
+            {
+                name = NormalizeName(property.Name);
+            }
             return NameUtils.MakeValidGraphQLName(name);
         }
 
@@ -117,15 +125,10 @@ namespace HotChocolate
         public static string GetGraphQLDescription(
             this ICustomAttributeProvider attributeProvider)
         {
-            if (attributeProvider.IsDefined(
-                typeof(GraphQLDescriptionAttribute),
-                false))
+            if (AttributeHelper.TryGetAttribute(
+                attributeProvider,
+                out GraphQLDescriptionAttribute attribute))
             {
-                GraphQLDescriptionAttribute attribute =
-                    (GraphQLDescriptionAttribute)
-                        attributeProvider.GetCustomAttributes(
-                            typeof(GraphQLDescriptionAttribute),
-                            false)[0];
                 return attribute.Description;
             }
 
@@ -136,20 +139,17 @@ namespace HotChocolate
             this ICustomAttributeProvider attributeProvider,
             out string reason)
         {
-            var deprecatedAttribute =
-                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
-                    attributeProvider);
-
-            if (deprecatedAttribute != null)
+            if (AttributeHelper.TryGetAttribute(
+                attributeProvider,
+                out GraphQLDeprecatedAttribute attribute))
             {
-                reason = deprecatedAttribute.DeprecationReason;
+                reason = attribute.DeprecationReason;
                 return true;
             }
 
-            var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
-                attributeProvider);
-
-            if (obsoleteAttribute != null)
+            if (AttributeHelper.TryGetAttribute(
+                attributeProvider,
+                out ObsoleteAttribute obsoleteAttribute))
             {
                 reason = obsoleteAttribute.Message;
                 return true;
@@ -186,21 +186,6 @@ namespace HotChocolate
                     name.Substring(1);
             }
             return name.ToLowerInvariant();
-        }
-
-        private static TAttribute GetAttributeIfDefined<TAttribute>(
-            ICustomAttributeProvider attributeProvider)
-            where TAttribute : Attribute
-        {
-            Type attributeType = typeof(TAttribute);
-
-            if (attributeProvider.IsDefined(attributeType, false))
-            {
-                return (TAttribute)attributeProvider
-                    .GetCustomAttributes(attributeType, false)[0];
-            }
-
-            return null;
         }
     }
 }

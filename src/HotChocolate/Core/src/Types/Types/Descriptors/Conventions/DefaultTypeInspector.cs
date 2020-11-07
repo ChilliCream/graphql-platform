@@ -349,7 +349,7 @@ namespace HotChocolate.Types.Descriptors
             ICustomAttributeProvider attributeProvider)
         {
             foreach (var attribute in
-                GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
+                AttributeHelper.GetCustomAttributes<DescriptorAttribute>(attributeProvider, true))
             {
                 attribute.TryConfigure(context, descriptor, attributeProvider);
             }
@@ -377,7 +377,7 @@ namespace HotChocolate.Types.Descriptors
         /// <inheritdoc />
         public virtual bool TryGetDefaultValue(PropertyInfo property, out object? defaultValue)
         {
-            if (TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
+            if (AttributeHelper.TryGetAttribute(property, out CompDefaultValueAttribute? attribute))
             {
                 defaultValue = attribute.Value;
                 return true;
@@ -533,12 +533,16 @@ namespace HotChocolate.Types.Descriptors
             IExtendedType type,
             ICustomAttributeProvider attributeProvider)
         {
-            if (TryGetAttribute(attributeProvider, out GraphQLTypeAttribute? typeAttribute))
+            if (AttributeHelper.TryGetAttribute(
+                attributeProvider,
+                out GraphQLTypeAttribute? typeAttribute))
             {
                 return GetType(typeAttribute.Type);
             }
 
-            if (TryGetAttribute(attributeProvider, out GraphQLNonNullTypeAttribute? nullAttribute))
+            if (AttributeHelper.TryGetAttribute(
+                attributeProvider,
+                out GraphQLNonNullTypeAttribute? nullAttribute))
             {
                 return ChangeNullabilityInternal(
                     type,
@@ -546,40 +550,12 @@ namespace HotChocolate.Types.Descriptors
             }
 
             if (!IgnoreRequiredAttribute &&
-                TryGetAttribute(attributeProvider, out RequiredAttribute? _))
+                AttributeHelper.TryGetAttribute(attributeProvider, out RequiredAttribute? _))
             {
                 return ChangeNullability(type, false);
             }
 
             return type;
-        }
-
-        private bool TryGetAttribute<T>(
-            ICustomAttributeProvider attributeProvider,
-            [NotNullWhen(true)] out T? attribute)
-            where T : Attribute
-        {
-            if (attributeProvider is PropertyInfo p &&
-                p.DeclaringType is not null &&
-                IsRecord(p.DeclaringType))
-            {
-                if (IsDefinedOnRecord<T>(p, true))
-                {
-                    attribute = GetCustomAttributeFromRecord<T>(p, true)!;
-                    return true;
-                }
-            }
-            else if (attributeProvider.IsDefined(typeof(T), true))
-            {
-                attribute = attributeProvider
-                    .GetCustomAttributes(typeof(T), true)
-                    .OfType<T>()
-                    .First();
-                return true;
-            }
-
-            attribute = null;
-            return false;
         }
 
         private static bool CanBeHandled(MemberInfo member)
@@ -617,8 +593,8 @@ namespace HotChocolate.Types.Descriptors
                 }
 
                 if ((method.ReturnType == typeof(object)
-                    || method.ReturnType == typeof(Task<object>)
-                    || method.ReturnType == typeof(ValueTask<object>))
+                        || method.ReturnType == typeof(Task<object>)
+                        || method.ReturnType == typeof(ValueTask<object>))
                     && !HasConfiguration(method))
                 {
                     return false;
@@ -696,105 +672,6 @@ namespace HotChocolate.Types.Descriptors
         private static bool IsCloneMember(MemberInfo member) =>
             member.Name.EqualsOrdinal(_clone);
 
-        private IEnumerable<T> GetCustomAttributes<T>(
-            ICustomAttributeProvider attributeProvider,
-            bool inherit)
-            where T : Attribute
-        {
-            if (attributeProvider is PropertyInfo p &&
-                p.DeclaringType is not null &&
-                IsRecord(p.DeclaringType))
-            {
-                return GetCustomAttributesFromRecord<T>(p, inherit);
-            }
-            else
-            {
-                return attributeProvider.GetCustomAttributes(true).OfType<T>();
-            }
-        }
-
-        private IEnumerable<T> GetCustomAttributesFromRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            IEnumerable<T> attributes = Enumerable.Empty<T>();
-
-            if (property.IsDefined(typeof(T)))
-            {
-                attributes = attributes.Concat(property.GetCustomAttributes<T>(inherit));
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        attributes = attributes.Concat(parameter.GetCustomAttributes<T>(inherit));
-                    }
-                }
-            }
-
-            return attributes;
-        }
-
-        private T? GetCustomAttributeFromRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            if (property.IsDefined(typeof(T)))
-            {
-                return property.GetCustomAttribute<T>(inherit);
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        return parameter.GetCustomAttribute<T>(inherit);
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private static bool IsDefinedOnRecord<T>(
-            PropertyInfo property,
-            bool inherit)
-            where T : Attribute
-        {
-            Type recordType = property.DeclaringType!;
-            ConstructorInfo[] constructors = recordType.GetConstructors();
-
-            if (property.IsDefined(typeof(T), inherit))
-            {
-                return true;
-            }
-
-            if (constructors.Length == 1)
-            {
-                foreach (ParameterInfo parameter in constructors[0].GetParameters())
-                {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
-                    {
-                        return parameter.IsDefined(typeof(T));
-                    }
-                }
-            }
-
-            return false;
-        }
 
         private bool TryGetDefaultValueFromConstructor(
             PropertyInfo property,
