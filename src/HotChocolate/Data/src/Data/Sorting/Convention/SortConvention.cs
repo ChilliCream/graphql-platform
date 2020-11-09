@@ -75,7 +75,7 @@ namespace HotChocolate.Data.Sorting
         {
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -119,14 +119,14 @@ namespace HotChocolate.Data.Sorting
                     CollectExtensions(context.Services, Definition);
                 init.Initialize(context);
                 MergeExtensions(context, init, extensions);
-                init.OnComplete(context);
+                init.Complete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
 
             // It is important to always call base to continue the cleanup and the disposal of the
             // definition
-            base.OnComplete(context);
+            base.Complete(context);
         }
 
 
@@ -336,7 +336,7 @@ namespace HotChocolate.Data.Sorting
                     {
                         extensionConvention.Initialize(context);
                         extensions[m].Merge(context, providerConvention);
-                        extensionConvention.OnComplete(context);
+                        extensionConvention.Complete(context);
                     }
                 }
             }
