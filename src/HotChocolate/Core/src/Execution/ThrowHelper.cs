@@ -285,5 +285,9 @@ namespace HotChocolate.Execution
                         "Unable to create a convention instance from {0}.",
                         convention.FullName ?? convention.Name)
                     .Build());
+
+        public static ObjectDisposedException Object_Returned_To_Pool() =>
+            new ObjectDisposedException(
+                "The specified object was returned to the pool and is no longer usable.");
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing
@@ -7,7 +8,7 @@ namespace HotChocolate.Execution.Processing
     {
         private readonly OperationContext _operationContext;
         private readonly ObjectPool<OperationContext> _operationContextPool;
-        private bool _disposed;
+        private int _disposed;
 
         public OperationContextOwner(
             OperationContext operationContext,
@@ -21,7 +22,7 @@ namespace HotChocolate.Execution.Processing
         {
             get
             {
-                if (_disposed)
+                if (_disposed == 1)
                 {
                     throw new ObjectDisposedException(nameof(OperationContextOwner));
                 }
@@ -32,10 +33,12 @@ namespace HotChocolate.Execution.Processing
 
         public void Dispose()
         {
-            if (!_disposed)
+            if (_disposed == 0)
             {
-                _operationContextPool.Return(_operationContext);
-                _disposed = false;
+                if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
+                {
+                    _operationContextPool.Return(_operationContext);
+                }
             }
         }
     }
