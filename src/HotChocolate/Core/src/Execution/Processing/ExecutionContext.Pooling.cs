@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using HotChocolate.Fetching;
 using Microsoft.Extensions.ObjectPool;
+using static HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Processing
 {
@@ -102,8 +103,7 @@ namespace HotChocolate.Execution.Processing
         {
             if (_isPooled)
             {
-                throw new ObjectDisposedException(
-                    "The specified object was returned to the pool and is no longer usable.");
+                throw Object_Returned_To_Pool();
             }
         }
     }
