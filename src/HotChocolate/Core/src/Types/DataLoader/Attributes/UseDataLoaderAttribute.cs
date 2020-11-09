@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
+#nullable enable
+
 namespace HotChocolate.Types
 {
     public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
