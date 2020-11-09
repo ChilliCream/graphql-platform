@@ -17,15 +17,16 @@ namespace HotChocolate.Execution.Integration.DataLoader
         {
             // arrange
             // act
-            // assert
-            SchemaException exception = Assert.Throws<SchemaException>(
-                () => SchemaBuilder.New()
-                    .AddQueryType<Query>(
-                        x => x.BindFieldsExplicitly()
+            SchemaException exception = 
+                Assert.Throws<SchemaException>(
+                    () => SchemaBuilder.New()
+                        .AddQueryType<Query>(x => x
+                            .BindFieldsExplicitly()
                             .Field(y => y.Single)
                             .UseDataloader(typeof(Foo)))
-                    .Create());
+                        .Create());
 
+            // assert
             exception.Message.MatchSnapshot();
         }
 
@@ -33,14 +34,14 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoader_Schema_BatchDataloader_Single()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(
-                    x => x.BindFieldsExplicitly()
-                        .Field(y => y.Single)
-                        .UseDataloader<TestBatchLoader>())
+                .AddQueryType<Query>(x => x
+                    .BindFieldsExplicitly()
+                    .Field(y => y.Single)
+                    .UseDataloader<TestBatchLoader>())
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -49,14 +50,14 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoader_Schema_BatchDataloader_Many()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(
-                    x => x.BindFieldsExplicitly()
-                        .Field(y => y.Multiple)
-                        .UseDataloader<TestBatchLoader>())
+                .AddQueryType<Query>(x => x
+                    .BindFieldsExplicitly()
+                    .Field(y => y.Multiple)
+                    .UseDataloader<TestBatchLoader>())
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -65,14 +66,14 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoader_Schema_GroupedDataloader_Single()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(
-                    x => x.BindFieldsExplicitly()
-                        .Field(y => y.Single)
-                        .UseDataloader<TestGroupedLoader>())
+                .AddQueryType<Query>(x => x
+                    .BindFieldsExplicitly()
+                    .Field(y => y.Single)
+                    .UseDataloader<TestGroupedLoader>())
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -81,14 +82,14 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoader_Schema_GroupedDataloader_Many()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(
-                    x => x.BindFieldsExplicitly()
-                        .Field(y => y.Multiple)
-                        .UseDataloader<TestGroupedLoader>())
+                .AddQueryType<Query>(x => x
+                    .BindFieldsExplicitly()
+                    .Field(y => y.Multiple)
+                    .UseDataloader<TestGroupedLoader>())
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -97,13 +98,13 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoaderAttribute_Schema_BatchDataloader_Single()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<BatchQuery>(
                     x => x.BindFieldsExplicitly()
                         .Field(y => y.Single))
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -112,13 +113,13 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoaderAttribute_Schema_BatchDataloader_Many()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<BatchQuery>(
                     x => x.BindFieldsExplicitly()
                         .Field(y => y.Multiple))
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -127,13 +128,13 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoaderAttribute_Schema_GroupedDataloader_Single()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<GroupedQuery>(
                     x => x.BindFieldsExplicitly()
                         .Field(y => y.Single))
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
@@ -142,13 +143,13 @@ namespace HotChocolate.Execution.Integration.DataLoader
         public void UseDataLoaderAttribute_Schema_GroupedDataloader_Many()
         {
             // arrange
+            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<GroupedQuery>(
                     x => x.BindFieldsExplicitly()
                         .Field(y => y.Multiple))
                 .Create();
 
-            // act
             // assert
             schema.ToString().MatchSnapshot();
         }
