@@ -192,6 +192,5 @@ namespace HotChocolate.Utilities
                         "The provided type {0} is not a dataloader",
                         dataLoaderType.FullName ?? dataLoaderType.Name)
                     .Build());
-#nullable disable
     }
 }
