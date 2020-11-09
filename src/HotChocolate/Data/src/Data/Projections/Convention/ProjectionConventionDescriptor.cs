@@ -73,7 +73,6 @@ namespace HotChocolate.Data.Projections
             return this;
         }
 
-
         /// <summary>
         /// Creates a new descriptor for <see cref="ProjectionConvention"/>
         /// </summary>
