@@ -6,7 +6,7 @@ using System.Reflection;
 
 #nullable  enable
 
-namespace HotChocolate
+namespace HotChocolate.Utilities
 {
     internal static class AttributeHelper
     {
@@ -59,7 +59,7 @@ namespace HotChocolate
         }
 
         private static bool IsCloneMember(MemberInfo member) =>
-            member.Name.EqualsOrdinal(_clone);
+            EqualsOrdinal(member.Name, _clone);
 
         public static IEnumerable<T> GetCustomAttributes<T>(
             ICustomAttributeProvider attributeProvider,
@@ -95,7 +95,7 @@ namespace HotChocolate
             {
                 foreach (ParameterInfo parameter in constructors[0].GetParameters())
                 {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    if (EqualsOrdinal(parameter.Name, property.Name))
                     {
                         attributes = attributes.Concat(parameter.GetCustomAttributes<T>(inherit));
                     }
@@ -122,7 +122,7 @@ namespace HotChocolate
             {
                 foreach (ParameterInfo parameter in constructors[0].GetParameters())
                 {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    if (EqualsOrdinal(parameter.Name, property.Name))
                     {
                         return parameter.GetCustomAttribute<T>(inherit);
                     }
@@ -149,7 +149,7 @@ namespace HotChocolate
             {
                 foreach (ParameterInfo parameter in constructors[0].GetParameters())
                 {
-                    if (parameter.Name.EqualsOrdinal(property.Name))
+                    if (EqualsOrdinal(parameter.Name, property.Name))
                     {
                         return parameter.IsDefined(typeof(T));
                     }

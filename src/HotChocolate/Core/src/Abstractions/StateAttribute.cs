@@ -5,8 +5,7 @@ namespace HotChocolate
 {
     [Obsolete("Use GlobalStateAttribute or ScopedStateAttribute.")]
     [AttributeUsage(AttributeTargets.Parameter)]
-    public class StateAttribute
-        : Attribute
+    public class StateAttribute : Attribute
     {
         public StateAttribute(string key)
         {

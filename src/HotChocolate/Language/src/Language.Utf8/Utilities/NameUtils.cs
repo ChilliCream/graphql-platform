@@ -16,9 +16,9 @@ namespace HotChocolate.Language
         /// <c>true</c>, if the name is a valid GraphQL name;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsValidGraphQLName(string name)
+        public static bool IsValidGraphQLName(string? name)
         {
-            if (name == null || name.Length == 0)
+            if (string.IsNullOrEmpty(name))
             {
                 return false;
             }
@@ -63,7 +63,7 @@ namespace HotChocolate.Language
             {
                 if (name.Length > 1)
                 {
-                    for (int i = 1; i < name.Length; i++)
+                    for (var i = 1; i < name.Length; i++)
                     {
                         if (!name[i].IsLetterOrDigitOrUnderscore())
                         {
@@ -86,32 +86,32 @@ namespace HotChocolate.Language
         /// A name that shall be made a value GraphQL name.
         /// </param>
         /// <returns>Returns a valid GraphQL name.</returns>
-        public static string? MakeValidGraphQLName(string name)
+        public static string? MakeValidGraphQLName(string? name)
         {
-            if (name == null || name.Length == 0)
+            if (string.IsNullOrEmpty(name))
             {
                 return name;
             }
 
-            char[] namearray = name.ToCharArray();
+            char[] nameArray = name.ToCharArray();
 
-            if (!namearray[0].IsLetterOrUnderscore())
+            if (!nameArray[0].IsLetterOrUnderscore())
             {
-                namearray[0] = '_';
+                nameArray[0] = '_';
             }
 
-            if (namearray.Length > 1)
+            if (nameArray.Length > 1)
             {
-                for (int i = 1; i < namearray.Length; i++)
+                for (var i = 1; i < nameArray.Length; i++)
                 {
-                    if (!namearray[i].IsLetterOrDigitOrUnderscore())
+                    if (!nameArray[i].IsLetterOrDigitOrUnderscore())
                     {
-                        namearray[i] = '_';
+                        nameArray[i] = '_';
                     }
                 }
             }
 
-            return new string(namearray);
+            return new string(nameArray);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -22,7 +23,7 @@ namespace HotChocolate
             }
 
             TypeInfo typeInfo = type.GetTypeInfo();
-            string name = typeInfo.IsDefined(
+            var name = typeInfo.IsDefined(
                 typeof(GraphQLNameAttribute), false)
                 ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : GetFromType(typeInfo);
@@ -47,7 +48,7 @@ namespace HotChocolate
 
         public static string GetGraphQLName(this MethodInfo method)
         {
-            string name = method.IsDefined(
+            var name = method.IsDefined(
                 typeof(GraphQLNameAttribute), false)
                 ? method.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeMethodName(method);
@@ -56,7 +57,7 @@ namespace HotChocolate
 
         public static string GetGraphQLName(this ParameterInfo parameter)
         {
-            string name = parameter.IsDefined(
+            var name = parameter.IsDefined(
                 typeof(GraphQLNameAttribute), false)
                 ? parameter.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeName(parameter.Name);
@@ -86,7 +87,7 @@ namespace HotChocolate
 
         private static string NormalizeMethodName(MethodInfo method)
         {
-            string name = method.Name;
+            var name = method.Name;
 
             if (name.StartsWith(_get, StringComparison.Ordinal)
                 && name.Length > _get.Length)
