@@ -33,7 +33,7 @@ Our GraphQL server to create GraphQL endpoints and merge schemas.
 
 ### Marshmellow Pie
 
-Our schema registry for any GrapQL client and server.
+Our schema registry for any GraphQL client and server.
 
 [Readme](src/MarshmallowPie)
 
