@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class SchemaFirstTests
     {

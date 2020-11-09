@@ -32,11 +32,20 @@ namespace HotChocolate.Data.Sorting
                 .AddConvention<ISortConvention>(convention)
                 .AddSorting()
                 .AddQueryType(
-                    c => c
-                        .Name("Query")
-                        .Field("root")
-                        .Resolver(resolver)
-                        .UseSorting<T>());
+                    c =>
+                    {
+                        c
+                            .Name("Query")
+                            .Field("root")
+                            .Resolver(resolver)
+                            .UseSorting<T>();
+
+                        c
+                            .Name("Query")
+                            .Field("rootExecutable")
+                            .Resolver(ctx => resolver(ctx).AsExecutable())
+                            .UseSorting<T>();
+                    });
 
             ISchema? schema = builder.Create();
 

@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
             MarkInitialized();
         }
 
-        protected internal virtual void OnComplete(IConventionContext context)
+        protected internal virtual void Complete(IConventionContext context)
         {
         }
 

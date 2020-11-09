@@ -33,12 +33,14 @@ namespace Microsoft.AspNetCore.Builder
             NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
             IFileProvider fileProvider = CreateFileProvider();
 
-            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
-            requestPipeline.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
-            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
-            requestPipeline.UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path);
-            requestPipeline.UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path);
-            requestPipeline.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
+            requestPipeline
+                .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
+                .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
+                .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
+                .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())

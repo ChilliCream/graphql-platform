@@ -1,3 +1,0 @@
-﻿SELECT "f"."BarShort"
-FROM "Data" AS "d"
-LEFT JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"

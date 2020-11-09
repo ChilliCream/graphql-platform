@@ -92,7 +92,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                    bool success = MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer);
+                    var success = MemoryMarshal.TryGetArray(memory, out ArraySegment<byte> buffer);
 
                     if (success)
                     {

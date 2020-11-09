@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class CodeFirstTests
     {
@@ -286,7 +286,7 @@ namespace HotChocolate
 
             public IExecutable<string> GetQuery()
             {
-                return MockQuery<string>.From("foo", "bar");
+                return new MockExecutable<string>(new []{ "foo", "bar" }.AsQueryable());
             }
 
             public string TestProp => "Hello World!";
@@ -462,31 +462,36 @@ namespace HotChocolate
             }
         }
 
-        public class MockQuery<T> : IExecutable<T>
+        public class MockExecutable<T> : IExecutable<T>
         {
-            private readonly IReadOnlyList<T> _list;
+            private readonly IQueryable<T> _source;
 
-            private MockQuery(IEnumerable<T> list)
+            public MockExecutable(IQueryable<T> source)
             {
-                _list = list.ToArray();
+                _source = source;
             }
 
-            async ValueTask<object> IExecutable.ExecuteAsync(CancellationToken cancellationToken)
+            public object Source =>_source;
+
+            public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
             {
-                return await ExecuteAsync(cancellationToken);
+                return new ValueTask<IList>(_source.ToList());
             }
 
-            public ValueTask<IReadOnlyList<T>> ExecuteAsync(CancellationToken cancellationToken)
+            public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
             {
-                return new ValueTask<IReadOnlyList<T>>(_list);
+                return new ValueTask<object?>(_source.FirstOrDefault());
+            }
+
+            public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.SingleOrDefault());
             }
 
             public string Print()
             {
-                return _list.ToString();
+                return _source.ToString();
             }
-
-            public static MockQuery<T> From(params T[] items) => new MockQuery<T>(items);
         }
     }
 }

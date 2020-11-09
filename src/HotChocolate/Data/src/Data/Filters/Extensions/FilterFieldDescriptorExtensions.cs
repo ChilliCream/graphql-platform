@@ -1,9 +1,10 @@
 using System;
+using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Types
 {
     public static class FilterFieldDescriptorExtensions
     {

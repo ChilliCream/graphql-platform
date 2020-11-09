@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
@@ -9,55 +8,11 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Data.Projections;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using static HotChocolate.Data.Projections.ProjectionProvider;
 using static HotChocolate.Execution.Processing.SelectionOptimizerHelper;
 
 namespace HotChocolate.Types
 {
-    public class ProjectionOptimizer : ISelectionOptimizer
-    {
-        private readonly IProjectionProvider _convention;
-
-        public ProjectionOptimizer(
-            IProjectionProvider convention)
-        {
-            _convention = convention;
-        }
-
-        public void OptimizeSelectionSet(SelectionOptimizerContext context)
-        {
-            var processedFields = new HashSet<string>();
-            while (!processedFields.SetEquals(context.Fields.Keys))
-            {
-                var fieldsToProcess = new HashSet<string>(context.Fields.Keys);
-                fieldsToProcess.ExceptWith(processedFields);
-                foreach (var field in fieldsToProcess)
-                {
-                    context.Fields[field] =
-                        _convention.RewriteSelection(context, context.Fields[field]);
-                    processedFields.Add(field);
-                }
-            }
-        }
-
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            InlineFragmentNode fragment)
-        {
-            return false;
-        }
-
-        public bool AllowFragmentDeferral(
-            SelectionOptimizerContext context,
-            FragmentSpreadNode fragmentSpread,
-            FragmentDefinitionNode fragmentDefinition)
-        {
-            return false;
-        }
-    }
-
     public static class ProjectionObjectFieldDescriptorExtensions
     {
         private static readonly MethodInfo _factoryTemplate =
@@ -157,9 +112,9 @@ namespace HotChocolate.Types
             ITypeCompletionContext context,
             string? scope)
         {
-            IProjectionProvider convention =
+            IProjectionConvention convention =
                 context.DescriptorContext.GetProjectionConvention(scope);
-            RegisterOptimizer(definition.ContextData, new ProjectionOptimizer(convention));
+            RegisterOptimizer(definition.ContextData, convention.CreateOptimizer());
 
             definition.ContextData[ProjectionContextIdentifier] = true;
 
@@ -170,7 +125,7 @@ namespace HotChocolate.Types
         }
 
         private static FieldMiddleware CreateMiddleware<TEntity>(
-            IProjectionProvider convention) =>
+            IProjectionConvention convention) =>
             convention.CreateExecutor<TEntity>();
     }
 }

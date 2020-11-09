@@ -40,8 +40,6 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
   const selectedVersion = (result && result[2]) || "";
   const title = frontmatter!.title!;
 
-  console.log(path);
-
   const handleToggleTOC = useCallback(() => {
     dispatch(toggleTOC());
   }, []);
@@ -70,7 +68,7 @@ export const DocPage: FunctionComponent<DocPageProperties> = ({
                 <NewspaperIconSvg /> About this article
               </Button>
             </ResponsiveMenu>
-            <ArticleTitle>{title}</ArticleTitle>
+            <DocArticleTitle>{title}</DocArticleTitle>
           </ArticleHeader>
           <ArticleContent dangerouslySetInnerHTML={{ __html: html! }} />
         </Article>
@@ -123,14 +121,28 @@ const Container = styled.div`
 `;
 
 const ResponsiveMenu = styled.div`
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 30px 20px 20px;
+  background: linear-gradient(
+    180deg,
+    #ffffff 30%,
+    rgba(255, 255, 255, 0.75) 100%
+  );
 
   @media only screen and (min-width: 820px) {
+    position: initial;
+    right: initial;
+    left: initial;
+    z-index: initial;
     padding-right: 50px;
     padding-left: 50px;
+    background: initial;
   }
 
   @media only screen and (min-width: 1070px) {
@@ -141,6 +153,14 @@ const ResponsiveMenu = styled.div`
 
   @media only screen and (min-width: 1320px) {
     display: none;
+  }
+`;
+
+const DocArticleTitle = styled(ArticleTitle)`
+  margin-top: 68px;
+
+  @media only screen and (min-width: 820px) {
+    margin-top: 20px;
   }
 `;
 

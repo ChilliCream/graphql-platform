@@ -4,6 +4,8 @@ namespace HotChocolate.Data.Projections
 {
     internal interface IProjectionProviderConvention
     {
-        void Initialize(IConventionContext context);
+        internal void Initialize(IConventionContext context);
+
+        internal void Complete(IConventionContext context);
     }
 }

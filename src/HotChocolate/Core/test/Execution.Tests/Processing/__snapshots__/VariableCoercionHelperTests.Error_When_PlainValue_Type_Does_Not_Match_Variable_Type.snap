@@ -1,11 +1,11 @@
 ﻿[
   {
     "Message": "Variable `abc` got an invalid value.",
-    "Code": "EXEC_INVALID_TYPE",
+    "Code": "HC0016",
     "Path": null,
     "Locations": null,
     "Extensions": {
-      "code": "EXEC_INVALID_TYPE",
+      "code": "HC0016",
       "variable": "abc"
     },
     "Exception": null

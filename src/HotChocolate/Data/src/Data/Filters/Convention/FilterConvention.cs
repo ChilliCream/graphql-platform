@@ -8,7 +8,6 @@ using HotChocolate.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
@@ -69,7 +68,7 @@ namespace HotChocolate.Data.Filters
         {
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition?.Provider is null)
             {
@@ -99,16 +98,16 @@ namespace HotChocolate.Data.Filters
             {
                 IReadOnlyList<IFilterProviderExtension> extensions =
                     CollectExtensions(context.Services, Definition);
-                init.Initialize(context);
+                init.Initialize(context, this);
                 MergeExtensions(context, init, extensions);
-                init.OnComplete(context);
+                init.Complete(context);
             }
 
             _typeInspector = context.DescriptorContext.TypeInspector;
 
             // It is important to always call base to continue the cleanup and the disposal of the
             // definition
-            base.OnComplete(context);
+            base.Complete(context);
         }
 
 
@@ -283,7 +282,7 @@ namespace HotChocolate.Data.Filters
             return extensions;
         }
 
-        private static void MergeExtensions(
+        private void MergeExtensions(
             IConventionContext context,
             IFilterProviderConvention provider,
             IReadOnlyList<IFilterProviderExtension> extensions)
@@ -294,9 +293,9 @@ namespace HotChocolate.Data.Filters
                 {
                     if (extensions[m] is IFilterProviderConvention extensionConvention)
                     {
-                        extensionConvention.Initialize(context);
+                        extensionConvention.Initialize(context, this);
                         extensions[m].Merge(context, providerConvention);
-                        extensionConvention.OnComplete(context);
+                        extensionConvention.Complete(context);
                     }
                 }
             }

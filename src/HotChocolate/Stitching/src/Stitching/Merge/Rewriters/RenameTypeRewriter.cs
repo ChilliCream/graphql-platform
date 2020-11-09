@@ -7,32 +7,19 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     {
         public RenameTypeRewriter(
             NameString originalTypeName,
-            NameString newTypeName)
+            NameString newTypeName,
+            NameString? schemaName = null)
         {
-            OriginalTypeName = originalTypeName
-                .EnsureNotEmpty(nameof(originalTypeName));
-            NewTypeName = newTypeName
-                .EnsureNotEmpty(nameof(newTypeName));
+            OriginalTypeName = originalTypeName.EnsureNotEmpty(nameof(originalTypeName));
+            NewTypeName = newTypeName.EnsureNotEmpty(nameof(newTypeName));
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
         }
-
-        public RenameTypeRewriter(
-            NameString schemaName,
-            NameString originalTypeName,
-            NameString newTypeName)
-        {
-            SchemaName = schemaName
-                .EnsureNotEmpty(nameof(schemaName));
-            OriginalTypeName = originalTypeName
-                .EnsureNotEmpty(nameof(originalTypeName));
-            NewTypeName = newTypeName
-                .EnsureNotEmpty(nameof(newTypeName));
-        }
-
-        public NameString? SchemaName { get; }
-
+        
         public NameString OriginalTypeName { get; }
 
         public NameString NewTypeName { get; }
+
+        public NameString? SchemaName { get; }
 
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,

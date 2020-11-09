@@ -43,9 +43,9 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("scopedContextData_a", value.Name);
+            Assert.Equal("__scopedContextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
-            Assert.Equal("AbcDef", value.Value.Value);
+            Assert.Equal("AbcDef", value.Value!.Value);
         }
 
         [Fact]
@@ -60,7 +60,8 @@ namespace HotChocolate.Stitching.Delegation
                     c.Options.StrictValidation = false;
                 });
 
-            var contextData = ImmutableDictionary<string, object>.Empty;
+            ImmutableDictionary<string, object> contextData =
+                ImmutableDictionary<string, object>.Empty;
 
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
             context.SetupGet(t => t.ScopedContextData).Returns(contextData);
@@ -79,7 +80,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("scopedContextData_a", value.Name);
+            Assert.Equal("__scopedContextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal(NullValueNode.Default, value.Value);
         }
@@ -104,13 +105,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ScopedContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
-                null,
+            void Action() => resolver.Resolve(
+                null!,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("context", Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("context", Assert.Throws<ArgumentNullException>(Action).ParamName);
         }
 
         [Fact]
@@ -129,27 +130,19 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ScopedContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
+            void Action() => resolver.Resolve(
                 context.Object,
-                null,
+                null!,
                 schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("variable", Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("variable", Assert.Throws<ArgumentNullException>(Action).ParamName);
         }
 
         [Fact]
         public void TargetTypeIsNull()
         {
             // arrange
-            var schema = Schema.Create(
-                "type Query { foo(a: String = \"bar\") : String }",
-                c =>
-                {
-                    c.Use(next => context => default);
-                    c.Options.StrictValidation = false;
-                });
-
             var context = new Mock<IMiddlewareContext>();
 
             var scopedVariable = new ScopedVariableNode(
@@ -159,13 +152,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ScopedContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
+            void Action() => resolver.Resolve(
                 context.Object,
                 scopedVariable,
-                null);
+                null!);
 
             // assert
-            Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(a).ParamName);
+            Assert.Equal("targetType", Assert.Throws<ArgumentNullException>(Action).ParamName);
         }
 
         [Fact]
@@ -189,13 +182,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             var resolver = new ScopedContextDataScopedVariableResolver();
-            Action a = () => resolver.Resolve(
+            void Action() => resolver.Resolve(
                 context.Object,
                 scopedVariable,
                 schema.GetType<StringType>("String"));
 
             // assert
-            Assert.Equal("variable", Assert.Throws<ArgumentException>(a).ParamName);
+            Assert.Equal("variable", Assert.Throws<ArgumentException>(Action).ParamName);
         }
     }
 }
