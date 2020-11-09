@@ -2,13 +2,16 @@
   "data": {
     "root": [
       {
+        "foo": null
+      },
+      {
         "foo": {
-          "barShort": 12
+          "id": 1
         }
       },
       {
         "foo": {
-          "barShort": 14
+          "id": 2
         }
       }
     ]

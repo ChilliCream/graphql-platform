@@ -1,10 +1,10 @@
 ﻿.param set @__p_0 'a'
 
-SELECT "d"."Id", "f"."Id", "t"."BarString", "t"."BarShort", "t"."Id", "t"."Id0"
+SELECT "f"."Id" IS NOT NULL, "d"."Id", "f"."Id", "t"."c", "t"."BarString", "t"."BarShort", "t"."Id", "t"."Id0"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
 LEFT JOIN (
-    SELECT "f0"."BarString", "f0"."BarShort", "b"."Id", "f0"."Id" AS "Id0", "b"."FooNullableId"
+    SELECT "f0"."Id" IS NOT NULL AS "c", "f0"."BarString", "f0"."BarShort", "b"."Id", "f0"."Id" AS "Id0", "b"."FooNullableId"
     FROM "BarNullableDeep" AS "b"
     LEFT JOIN "FooDeep" AS "f0" ON "b"."FooId" = "f0"."Id"
     WHERE "f0"."BarString" = @__p_0
