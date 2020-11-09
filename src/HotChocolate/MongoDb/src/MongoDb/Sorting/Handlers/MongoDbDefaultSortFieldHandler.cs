@@ -3,6 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
+using HotChocolate.MongoDb.Data;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -10,7 +11,7 @@ using MongoDB.Driver;
 namespace HotChocolate.MongoDb.Sorting.Handlers
 {
     public class MongoDbDefaultSortFieldHandler
-        : SortFieldHandler<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>
+        : SortFieldHandler<MongoDbSortVisitorContext, MongoDbSortDefinition>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,

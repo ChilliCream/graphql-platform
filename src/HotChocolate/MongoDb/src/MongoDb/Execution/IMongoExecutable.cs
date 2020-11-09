@@ -1,6 +1,4 @@
-using HotChocolate.MongoDb.Data.Filters;
-using MongoDB.Bson;
-using MongoDB.Driver;
+using HotChocolate.MongoDb.Data;
 
 namespace HotChocolate.MongoDb.Execution
 {
@@ -8,6 +6,6 @@ namespace HotChocolate.MongoDb.Execution
     {
         IMongoExecutable WithFiltering(MongoDbFilterDefinition filters);
 
-        IMongoExecutable WithSorting(SortDefinition<BsonDocument> sorting);
+        IMongoExecutable WithSorting(MongoDbSortDefinition sorting);
     }
 }

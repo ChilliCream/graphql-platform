@@ -1,11 +1,10 @@
-using System;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-namespace HotChocolate.MongoDb.Data.Filters
+namespace HotChocolate.MongoDb.Data
 {
-    public abstract class MongoDbFilterDefinition : FilterDefinition<BsonDocument>
+    public abstract class MongoDbSortDefinition : SortDefinition<BsonDocument>
     {
         public abstract BsonDocument Render(
             IBsonSerializer documentSerializer,
@@ -15,7 +14,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             IBsonSerializer<BsonDocument> documentSerializer,
             IBsonSerializerRegistry serializerRegistry)
         {
-            throw new InvalidOperationException();
+            return Render(documentSerializer, serializerRegistry);
         }
     }
 }

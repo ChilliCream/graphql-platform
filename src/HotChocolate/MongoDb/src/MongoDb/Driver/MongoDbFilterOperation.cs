@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 
-namespace HotChocolate.MongoDb.Data.Filters
+namespace HotChocolate.MongoDb.Data
 {
     internal class MongoDbFilterOperation : MongoDbFilterDefinition
     {
@@ -23,7 +23,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             StringFieldDefinitionHelper.Resolve(
                 _path,
                 documentSerializer,
-                out string resolvedFieldName,
+                out string? resolvedFieldName,
                 out IBsonSerializer? resolvedFieldSerializer);
 
             resolvedFieldSerializer ??= documentSerializer;
@@ -68,14 +68,6 @@ namespace HotChocolate.MongoDb.Data.Filters
             bsonWriter.WriteEndDocument();
 
             return document;
-        }
-
-
-        public override BsonDocument Render(
-            IBsonSerializer<BsonDocument> documentSerializer,
-            IBsonSerializerRegistry serializerRegistry)
-        {
-            return Render(documentSerializer, serializerRegistry);
         }
     }
 }

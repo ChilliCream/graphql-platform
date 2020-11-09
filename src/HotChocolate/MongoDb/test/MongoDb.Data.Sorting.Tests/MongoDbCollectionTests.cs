@@ -1,9 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Data;
-using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.MongoDb.Sorting.Convention.Extensions;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -14,9 +15,9 @@ using MongoDB.Driver;
 using Squadron;
 using Xunit;
 
-namespace HotChocolate.MongoDb.Data.Filters
+namespace HotChocolate.MongoDb.Data.Sorting
 {
-    public class MongoDbCollectionTests : IClassFixture<MongoResource>
+    public class MongoDbSortCollectionTests : IClassFixture<MongoResource>
     {
         private static readonly Foo[] _fooEntities =
         {
@@ -31,7 +32,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
         private readonly MongoResource _resource;
 
-        public MongoDbCollectionTests(MongoResource resource)
+        public MongoDbSortCollectionTests(MongoResource resource)
         {
             _resource = resource;
         }
@@ -51,24 +52,23 @@ namespace HotChocolate.MongoDb.Data.Filters
                 });
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: true}}){ bar}}")
+                    .SetQuery("{ root(order: { bar: ASC}){ bar}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("true");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { bar: { eq: false}}){ bar}}")
+                    .SetQuery("{ root(order: { bar: DESC}){ bar}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("false");
+            // assert
+            res1.MatchDocumentSnapshot("ASC");
+            res2.MatchDocumentSnapshot("DESC");
         }
 
         [Fact]
-        public async Task Collection_Serializer()
+        public async Task Collection_Configuration()
         {
             // arrange
             BsonClassMap.RegisterClassMap<Bar>(
@@ -87,20 +87,19 @@ namespace HotChocolate.MongoDb.Data.Filters
                 });
 
             // act
-            // assert
             IExecutionResult res1 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-11\"}}){ baz}}")
+                    .SetQuery("{ root(order: { baz: ASC}){ baz}}")
                     .Create());
-
-            res1.MatchDocumentSnapshot("2020-01-11");
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
-                    .SetQuery("{ root(where: { baz: { eq: \"2020-01-12\"}}){ baz}}")
+                    .SetQuery("{ root(order: { baz: DESC}){ baz}}")
                     .Create());
 
-            res2.MatchDocumentSnapshot("2020-01-12");
+            // assert
+            res1.MatchDocumentSnapshot("ASC");
+            res2.MatchDocumentSnapshot("DESC");
         }
 
         public class Foo
@@ -125,7 +124,7 @@ namespace HotChocolate.MongoDb.Data.Filters
             where TEntity : class
         {
             ISchemaBuilder builder = SchemaBuilder.New()
-                .AddFiltering(x => x.AddMongoDbDefaults())
+                .AddSorting(x => x.AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
                         .Name("Query")
@@ -142,7 +141,7 @@ namespace HotChocolate.MongoDb.Data.Filters
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseFiltering<FilterInputType<TEntity>>());
+                        .UseSorting<SortInputType<TEntity>>());
 
             ISchema schema = builder.Create();
 

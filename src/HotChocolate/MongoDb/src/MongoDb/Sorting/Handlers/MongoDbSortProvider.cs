@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Language;
+using HotChocolate.MongoDb.Data;
 using HotChocolate.MongoDb.Data.Sorting;
 using HotChocolate.MongoDb.Execution;
 using HotChocolate.Resolvers;
@@ -24,9 +25,9 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
         {
         }
 
-        protected virtual SortVisitor<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>
+        protected virtual SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>
             Visitor { get; } =
-            new SortVisitor<MongoDbSortVisitorContext, SortDefinition<BsonDocument>>();
+            new SortVisitor<MongoDbSortVisitorContext, MongoDbSortDefinition>();
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {
@@ -41,7 +42,6 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
                 IValueNode filter = context.ArgumentLiteral<IValueNode>(argumentName);
 
                 if (filter is not NullValueNode &&
-
                     argument.Type is ListType listType &&
                     listType.ElementType is SortInputType sortInputType)
                 {
@@ -49,7 +49,7 @@ namespace HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out BsonDocument? order)||
+                    if (!visitorContext.TryCreateQuery(out MongoDbSortDefinition? order) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();

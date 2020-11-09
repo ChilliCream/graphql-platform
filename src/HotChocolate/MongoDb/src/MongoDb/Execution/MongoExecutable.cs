@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.MongoDb.Data.Filters;
-using MongoDB.Bson;
+using HotChocolate.MongoDb.Data;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 
 namespace HotChocolate.MongoDb.Execution
 {
@@ -12,9 +10,9 @@ namespace HotChocolate.MongoDb.Execution
         : IExecutable<T>
         , IMongoExecutable
     {
-        protected MongoDbFilterDefinition Filters { get; private set; }
+        protected MongoDbFilterDefinition? Filters { get; private set; }
 
-        protected SortDefinition<BsonDocument>? Sorting { get; private set; }
+        protected MongoDbSortDefinition? Sorting { get; private set; }
 
         protected FindOptions<T>? Options { get; private set; }
 
@@ -30,7 +28,7 @@ namespace HotChocolate.MongoDb.Execution
             return this;
         }
 
-        public IMongoExecutable WithSorting(SortDefinition<BsonDocument> sorting)
+        public IMongoExecutable WithSorting(MongoDbSortDefinition sorting)
         {
             Sorting = sorting;
             return this;

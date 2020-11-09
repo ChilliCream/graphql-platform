@@ -23,13 +23,17 @@ namespace HotChocolate.MongoDb.Execution
             IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
 
             FindOptions<T> options = Options ?? new FindOptions<T>();
+            BsonDocument filters = new BsonDocument();
 
             if (Sorting is not null)
             {
-                options.Sort = Sorting.DefaultRender();
+                options.Sort = Sorting.Render(bsonSerializer, serializers);
             }
 
-            BsonDocument filters = Filters.Render(bsonSerializer, serializers);
+            if (Filters is not null)
+            {
+                filters = Filters.Render(bsonSerializer, serializers);
+            }
 
             IAsyncCursor<T> cursor = await _collection
                 .FindAsync(filters, options, cancellationToken)
@@ -43,13 +47,18 @@ namespace HotChocolate.MongoDb.Execution
             IBsonSerializerRegistry serializers = _collection.Settings.SerializerRegistry;
             IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
 
-            BsonDocument filters = Filters.Render(bsonSerializer, serializers);
+            BsonDocument filters = new BsonDocument();
+
+            if (Filters is not null)
+            {
+                filters = Filters.Render(bsonSerializer, serializers);
+            }
 
             var aggregations = new BsonDocument { { "$match", filters } };
 
             if (Sorting is not null)
             {
-                aggregations["$sort"] = Sorting.DefaultRender();
+                aggregations["$sort"] = Sorting.Render(bsonSerializer, serializers);
             }
 
             return aggregations.ToString();

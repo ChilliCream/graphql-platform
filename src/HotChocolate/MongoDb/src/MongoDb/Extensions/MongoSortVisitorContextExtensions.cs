@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions.Handlers;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Sorting
 {
@@ -13,7 +11,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
 
         public static bool TryCreateQuery(
             this MongoDbSortVisitorContext context,
-            [NotNullWhen(true)] out BsonDocument? query)
+            [NotNullWhen(true)] out MongoDbSortDefinition? query)
         {
             query = null;
 
@@ -22,7 +20,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
                 return false;
             }
 
-            query = Builders<BsonDocument>.Sort.Combine(context.Operations).DefaultRender();
+            query = new MongoDbCombinedSortDefinition(context.Operations.ToArray());
             return true;
         }
     }

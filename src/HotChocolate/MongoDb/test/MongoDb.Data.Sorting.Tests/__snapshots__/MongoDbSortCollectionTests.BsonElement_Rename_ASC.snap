@@ -3,6 +3,9 @@
     "root": [
       {
         "bar": false
+      },
+      {
+        "bar": true
       }
     ]
   }

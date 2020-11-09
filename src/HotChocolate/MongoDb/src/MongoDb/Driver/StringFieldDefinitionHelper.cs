@@ -2,7 +2,7 @@ using System.Linq;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
-namespace HotChocolate.MongoDb.Data.Filters
+namespace HotChocolate.MongoDb.Data
 {
     /// <summary>
     /// This class was ported over from the official mongo db driver
