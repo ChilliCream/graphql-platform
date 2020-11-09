@@ -1,48 +1,47 @@
 using System;
 using HotChocolate.Types.Descriptors;
-using static HotChocolate.Data.DataResources;
 
-namespace HotChocolate.Data.Filters
+namespace HotChocolate.Data.Projections
 {
-    public abstract class FilterProviderExtensions<TContext>
-        : ConventionExtension<FilterProviderDefinition>,
-          IFilterProviderExtension,
-          IFilterProviderConvention
-        where TContext : IFilterVisitorContext
+    public abstract class ProjectionProviderExtensions
+        : ConventionExtension<ProjectionProviderDefinition>,
+          IProjectionProviderExtension,
+          IProjectionProviderConvention
     {
-        private Action<IFilterProviderDescriptor<TContext>>? _configure;
+        private Action<IProjectionProviderDescriptor>? _configure;
 
-        protected FilterProviderExtensions()
+        protected ProjectionProviderExtensions()
         {
             _configure = Configure;
         }
 
-        public FilterProviderExtensions(Action<IFilterProviderDescriptor<TContext>> configure)
+        public ProjectionProviderExtensions(Action<IProjectionProviderDescriptor> configure)
         {
             _configure = configure ??
                 throw new ArgumentNullException(nameof(configure));
         }
 
-        void IFilterProviderConvention.Initialize(
-            IConventionContext context,
-            IFilterConvention convention)
+        void IProjectionProviderConvention.Initialize(IConventionContext context)
         {
             base.Initialize(context);
         }
 
-        void IFilterProviderConvention.Complete(IConventionContext context)
+        void IProjectionProviderConvention.Complete(IConventionContext context)
         {
             Complete(context);
         }
 
-        protected override FilterProviderDefinition CreateDefinition(IConventionContext context)
+        protected override ProjectionProviderDefinition CreateDefinition(IConventionContext context)
         {
             if (_configure is null)
             {
-                throw new InvalidOperationException(FilterProvider_NoConfigurationSpecified);
+                throw new InvalidOperationException(
+                    DataResources.ProjectionProvider_NoConfigurationSpecified);
             }
 
-            var descriptor = FilterProviderDescriptor<TContext>.New();
+            var descriptor = ProjectionProviderDescriptor.New(
+                context.DescriptorContext,
+                context.Scope);
 
             _configure(descriptor);
             _configure = null;
@@ -50,12 +49,12 @@ namespace HotChocolate.Data.Filters
             return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(IFilterProviderDescriptor<TContext> descriptor) { }
+        protected virtual void Configure(IProjectionProviderDescriptor descriptor) { }
 
         public override void Merge(IConventionContext context, Convention convention)
         {
             if (Definition is not null &&
-                convention is FilterProvider<TContext> conv &&
+                convention is ProjectionProvider conv &&
                 conv.Definition is {} target)
             {
                 // Provider extensions should be applied by default before the default handlers, as
