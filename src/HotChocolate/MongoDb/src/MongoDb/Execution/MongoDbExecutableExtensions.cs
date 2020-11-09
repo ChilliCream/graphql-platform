@@ -10,5 +10,11 @@ namespace HotChocolate.MongoDb
         {
             return new MongoCollectionExecutable<T>(collection);
         }
+
+        public static MongoFluentExecutable<T> AsExecutable<T>(
+            this IAggregateFluent<T> collection)
+        {
+            return new MongoFluentExecutable<T>(collection);
+        }
     }
 }

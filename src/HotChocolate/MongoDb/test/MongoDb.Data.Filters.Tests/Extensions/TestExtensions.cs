@@ -15,9 +15,11 @@ namespace HotChocolate.MongoDb.Data.Filters
             {
                 result.MatchSnapshot(snapshotName);
                 if (result.ContextData is { } &&
-                    result.ContextData.TryGetValue("query", out object? queryResult))
+                    result.ContextData.TryGetValue("query", out object? queryResult) &&
+                    queryResult is string queryString &&
+                    !string.IsNullOrWhiteSpace(queryString))
                 {
-                    queryResult.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_query"));
+                    queryString.MatchSnapshot(new SnapshotNameExtension(snapshotName + "_query"));
                 }
             }
         }

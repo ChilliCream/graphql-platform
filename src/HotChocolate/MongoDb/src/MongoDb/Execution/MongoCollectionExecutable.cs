@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.MongoDb.Data;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -62,6 +63,84 @@ namespace HotChocolate.MongoDb.Execution
             }
 
             return aggregations.ToString();
+        }
+    }
+
+    public class MongoFluentExecutable<T> : MongoExecutable<T>
+    {
+        private readonly IAggregateFluent<T> _aggregate;
+
+        public MongoFluentExecutable(IAggregateFluent<T> aggregate)
+        {
+            _aggregate = aggregate;
+        }
+
+        public override async ValueTask<IReadOnlyList<T>> ExecuteAsync(
+            CancellationToken cancellationToken)
+        {
+            IAggregateFluent<T> pipeline = _aggregate;
+            if (Sorting is not null)
+            {
+                pipeline = pipeline.Sort(new MongoDbAggregateFluentSortDefinition<T>(Sorting));
+            }
+
+            if (Filters is not null)
+            {
+                pipeline = pipeline.Match(new MongoDbAggregateFluentFilterDefinition<T>(Filters));
+            }
+
+            return await pipeline.ToListAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        public override string Print()
+        {
+            IAggregateFluent<T> pipeline = _aggregate;
+
+            if (Filters is not null)
+            {
+                pipeline = pipeline.Match(new MongoDbAggregateFluentFilterDefinition<T>(Filters));
+            }
+
+            if (Sorting is not null)
+            {
+                pipeline = pipeline.Sort(new MongoDbAggregateFluentSortDefinition<T>(Sorting));
+            }
+
+            return pipeline.ToString() ?? "";
+        }
+
+        private class MongoDbAggregateFluentFilterDefinition<T> : FilterDefinition<T>
+        {
+            private readonly MongoDbFilterDefinition _filter;
+
+            public MongoDbAggregateFluentFilterDefinition(MongoDbFilterDefinition filter)
+            {
+                _filter = filter;
+            }
+
+            public override BsonDocument Render(
+                IBsonSerializer<T> documentSerializer,
+                IBsonSerializerRegistry serializerRegistry)
+            {
+                return _filter.Render(documentSerializer, serializerRegistry);
+            }
+        }
+
+        private class MongoDbAggregateFluentSortDefinition<T> : SortDefinition<T>
+        {
+            private readonly MongoDbSortDefinition _filter;
+
+            public MongoDbAggregateFluentSortDefinition(MongoDbSortDefinition filter)
+            {
+                _filter = filter;
+            }
+
+            public override BsonDocument Render(
+                IBsonSerializer<T> documentSerializer,
+                IBsonSerializerRegistry serializerRegistry)
+            {
+                return _filter.Render(documentSerializer, serializerRegistry);
+            }
         }
     }
 }
