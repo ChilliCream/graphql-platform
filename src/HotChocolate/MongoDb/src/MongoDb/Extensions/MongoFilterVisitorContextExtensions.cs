@@ -13,18 +13,9 @@ namespace HotChocolate.MongoDb.Data.Filters
 
         public static bool TryCreateQuery(
             this MongoDbFilterVisitorContext context,
-            [NotNullWhen(true)] out BsonDocument? query)
+            [NotNullWhen(true)] out MongoDbFilterDefinition? query)
         {
-            if (context.GetMongoFilterScope()
-                .TryCreateQuery(
-                    out FilterDefinition<BsonDocument>? bsonQuery))
-            {
-                query = bsonQuery.DefaultRender();
-                return true;
-            }
-
-            query = null;
-            return false;
+            return context.GetMongoFilterScope().TryCreateQuery(out query);
         }
     }
 }

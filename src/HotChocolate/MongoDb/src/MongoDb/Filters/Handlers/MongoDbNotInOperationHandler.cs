@@ -18,19 +18,15 @@ namespace HotChocolate.MongoDb.Data.Filters
                 operationField.Id is DefaultOperations.NotIn;
         }
 
-        public override FilterDefinition<BsonDocument> HandleOperation(
+        public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
             object? parsedValue)
         {
-            var doc = new BsonDocument(
-                "$nin",
-                BsonValue.Create(parsedValue));
+            var doc = new MongoDbFilterOperation("$nin", parsedValue);
 
-            return new BsonDocument(
-                context.GetMongoFilterScope().GetPath(),
-                doc);
+            return new MongoDbFilterOperation(context.GetMongoFilterScope().GetPath(), doc);
         }
     }
 }

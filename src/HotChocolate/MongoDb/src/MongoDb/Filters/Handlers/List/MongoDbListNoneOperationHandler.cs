@@ -10,22 +10,21 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         protected override int Operation => DefaultOperations.None;
 
-        protected override FilterDefinition<BsonDocument> HandleListOperation(
+        protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
             IFilterField field,
             ObjectFieldNode node,
             Type closureType,
             MongoDbFilterScope scope,
             string path,
-            BsonDocument? bsonDocument)
+            MongoDbFilterDefinition? bsonDocument)
         {
-            return new BsonDocument(
+            return new MongoDbFilterOperation(
                 path,
-                new BsonDocument(
-                    "$not",
-                    new BsonDocument(
+                new NotMongoDbFilterDefinition(
+                    new MongoDbFilterOperation(
                         "$elemMatch",
-                        GetFilters(context, scope).DefaultRender())));
+                        GetFilters(context, scope))));
         }
     }
 }

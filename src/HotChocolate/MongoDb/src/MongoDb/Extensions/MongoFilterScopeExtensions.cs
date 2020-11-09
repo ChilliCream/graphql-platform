@@ -12,7 +12,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
         public static bool TryCreateQuery(
             this MongoDbFilterScope scope,
-            [NotNullWhen(true)] out FilterDefinition<BsonDocument>? query)
+            [NotNullWhen(true)] out MongoDbFilterDefinition? query)
         {
             query = null;
 
@@ -21,8 +21,8 @@ namespace HotChocolate.MongoDb.Data.Filters
                 return false;
             }
 
-            query = scope.Context.Builder.And(
-                scope.Level.Peek().ToArray());
+
+            query = new AndFilterDefinition(scope.Level.Peek().ToArray());
 
             return true;
         }

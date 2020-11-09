@@ -6,13 +6,11 @@ using HotChocolate.Data.Filters;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
     public abstract class MongoDbListOperationHandlerBase
-        : FilterFieldHandler<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
+        : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
         protected abstract int Operation { get; }
 
@@ -64,11 +62,11 @@ namespace HotChocolate.MongoDb.Data.Filters
         {
             IExtendedType runtimeType = context.RuntimeTypes.Pop();
 
-            if (context.TryCreateQuery(out BsonDocument? lambda) &&
+            if (context.TryCreateQuery(out MongoDbFilterDefinition? lambda) &&
                 context.Scopes.Pop() is MongoDbFilterScope scope)
             {
                 var path = context.GetMongoFilterScope().GetPath();
-                FilterDefinition<BsonDocument> expression = HandleListOperation(
+                MongoDbFilterDefinition expression = HandleListOperation(
                     context,
                     field,
                     node,
@@ -85,26 +83,26 @@ namespace HotChocolate.MongoDb.Data.Filters
             return true;
         }
 
-        protected abstract FilterDefinition<BsonDocument> HandleListOperation(
+        protected abstract MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
             IFilterField field,
             ObjectFieldNode node,
             Type closureType,
             MongoDbFilterScope scope,
             string path,
-            BsonDocument? bsonDocument);
+            MongoDbFilterDefinition? bsonDocument);
 
-        protected static FilterDefinition<BsonDocument> GetFilters(
+        protected static MongoDbFilterDefinition GetFilters(
             MongoDbFilterVisitorContext context,
             MongoDbFilterScope scope)
         {
-            Queue<FilterDefinition<BsonDocument>> level = scope.Level.Peek();
+            Queue<MongoDbFilterDefinition> level = scope.Level.Peek();
             if (level.Count == 1)
             {
                 return level.Peek();
             }
 
-            return context.Builder.And(level.ToArray());
+            return new AndFilterDefinition(level.ToArray());
         }
     }
 }

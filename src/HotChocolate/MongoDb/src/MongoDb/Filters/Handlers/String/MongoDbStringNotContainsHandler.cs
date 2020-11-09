@@ -17,7 +17,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
         protected override int Operation => DefaultOperations.NotContains;
 
-        public override FilterDefinition<BsonDocument> HandleOperation(
+        public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
@@ -25,15 +25,12 @@ namespace HotChocolate.MongoDb.Data.Filters
         {
             if (parsedValue is string str)
             {
-                var doc = new BsonDocument(
-                    "$not",
-                    new BsonDocument(
+                var doc = new NotMongoDbFilterDefinition(
+                    new MongoDbFilterOperation(
                         "$regex",
                         new BsonRegularExpression($"/{Regex.Escape(str)}/")));
 
-                return new BsonDocument(
-                    context.GetMongoFilterScope().GetPath(),
-                    doc);
+                return new MongoDbFilterOperation(context.GetMongoFilterScope().GetPath(), doc);
             }
 
             throw new InvalidOperationException();

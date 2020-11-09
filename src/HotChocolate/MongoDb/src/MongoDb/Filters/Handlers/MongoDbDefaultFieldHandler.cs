@@ -3,13 +3,11 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbDefaultFieldHandler
-        : FilterFieldHandler<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
+        : FilterFieldHandler<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
         public override bool CanHandle(
             ITypeDiscoveryContext context,
@@ -26,8 +24,7 @@ namespace HotChocolate.MongoDb.Data.Filters
         {
             if (node.Value.IsNull())
             {
-                context.ReportError(
-                    ErrorHelper.CreateNonNullError(field, node.Value, context));
+                context.ReportError(ErrorHelper.CreateNonNullError(field, node.Value, context));
 
                 action = SyntaxVisitor.Skip;
                 return true;

@@ -7,7 +7,7 @@ using MongoDB.Driver;
 namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbFilterVisitorContext
-        : FilterVisitorContext<FilterDefinition<BsonDocument>>
+        : FilterVisitorContext<MongoDbFilterDefinition>
     {
         public MongoDbFilterVisitorContext(IFilterInputType initialType)
             : base(initialType)
@@ -19,10 +19,9 @@ namespace HotChocolate.MongoDb.Data.Filters
         public FilterDefinitionBuilder<BsonDocument> Builder { get; } =
             new FilterDefinitionBuilder<BsonDocument>();
 
-        //Todo Remove
         public Stack<IExtendedType> RuntimeTypes { get; }
 
-        public override FilterScope<FilterDefinition<BsonDocument>> CreateScope() =>
+        public override FilterScope<MongoDbFilterDefinition> CreateScope() =>
             new MongoDbFilterScope(this);
     }
 }

@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
@@ -8,7 +6,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Squadron;
 
@@ -54,15 +51,15 @@ namespace HotChocolate.MongoDb.Data.Filters
                         .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
-                        .Use(next => async context =>
-                        {
-                            await next(context);
-                            if (context.Result is IExecutable executable)
+                        .Use(
+                            next => async context =>
                             {
-                                context.ContextData["query"] = executable.Print();
-                            }
-
-                        })
+                                await next(context);
+                                if (context.Result is IExecutable executable)
+                                {
+                                    context.ContextData["query"] = executable.Print();
+                                }
+                            })
                         .UseFiltering<T>());
 
             ISchema schema = builder.Create();

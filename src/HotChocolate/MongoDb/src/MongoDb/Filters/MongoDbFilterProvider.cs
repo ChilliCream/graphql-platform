@@ -23,9 +23,9 @@ namespace HotChocolate.MongoDb.Data.Filters
         {
         }
 
-        protected virtual FilterVisitor<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
+        protected virtual FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
             Visitor { get; } =
-            new FilterVisitor<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>(
+            new FilterVisitor<MongoDbFilterVisitorContext, MongoDbFilterDefinition>(
                 new MongoDbFilterCombinator());
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
@@ -46,7 +46,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
                     Visitor.Visit(filter, visitorContext);
 
-                    if (!visitorContext.TryCreateQuery(out BsonDocument? whereQuery) ||
+                    if (!visitorContext.TryCreateQuery(out MongoDbFilterDefinition? whereQuery) ||
                         visitorContext.Errors.Count > 0)
                     {
                         context.Result = Array.Empty<TEntityType>();

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
@@ -11,53 +9,54 @@ namespace HotChocolate.MongoDb.Data.Filters
     {
         protected override int Operation => DefaultOperations.All;
 
-        protected override FilterDefinition<BsonDocument> HandleListOperation(
+        protected override MongoDbFilterDefinition HandleListOperation(
             MongoDbFilterVisitorContext context,
             IFilterField field,
             ObjectFieldNode node,
             Type closureType,
             MongoDbFilterScope scope,
             string path,
-            BsonDocument? bsonDocument) =>
+            MongoDbFilterDefinition? bsonDocument) =>
             field.Type is IComparableOperationFilterInput
                 ? CreateArrayAllScalar(scope, path)
                 : CreateArrayAll(scope, path);
 
-        private static BsonDocument CreateArrayAll(
+        private static MongoDbFilterDefinition CreateArrayAll(
             MongoDbFilterScope scope,
             string path)
         {
-            var negatedChilds = new BsonArray();
-            Queue<FilterDefinition<BsonDocument>> level = scope.Level.Peek();
+            var negatedChilds = new List<MongoDbFilterDefinition>();
+            Queue<MongoDbFilterDefinition> level = scope.Level.Peek();
             while (level.Count > 0)
             {
-                negatedChilds.Add(level.Dequeue().DefaultRender());
+                negatedChilds.Add(level.Dequeue());
             }
 
-            return new BsonDocument(
+            return new MongoDbFilterOperation(
                 path,
-                new BsonDocument(
-                    "$not",
-                    new BsonDocument(
+                new NotMongoDbFilterDefinition(
+                    new MongoDbFilterOperation(
                         "$elemMatch",
-                        new BsonDocument("$nor", negatedChilds))));
+                        new NotMongoDbFilterDefinition(
+                            new OrMongoDbFilterDefinition(negatedChilds)))));
         }
 
-        private static BsonDocument CreateArrayAllScalar(
+        private static MongoDbFilterDefinition CreateArrayAllScalar(
             MongoDbFilterScope scope,
             string path)
         {
-            var negatedChilds = new BsonArray();
-            Queue<FilterDefinition<BsonDocument>> level = scope.Level.Peek();
+            var negatedChilds = new List<MongoDbFilterDefinition>();
+            Queue<MongoDbFilterDefinition> level = scope.Level.Peek();
             while (level.Count > 0)
             {
                 negatedChilds.Add(
-                    new BsonDocument(
+                    new MongoDbFilterOperation(
                         path,
-                        new BsonDocument("$not", level.Dequeue().DefaultRender())));
+                        new NotMongoDbFilterDefinition(level.Dequeue())));
             }
 
-            return new BsonDocument("$nor", negatedChilds);
+            return new NotMongoDbFilterDefinition(
+                new OrMongoDbFilterDefinition(negatedChilds));
         }
     }
 }

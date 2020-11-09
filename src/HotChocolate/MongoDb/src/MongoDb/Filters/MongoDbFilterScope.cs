@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using HotChocolate.Data.Filters;
-using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbFilterScope
-        : FilterScope<FilterDefinition<BsonDocument>>
+        : FilterScope<MongoDbFilterDefinition>
     {
         public MongoDbFilterScope(MongoDbFilterVisitorContext context)
         {

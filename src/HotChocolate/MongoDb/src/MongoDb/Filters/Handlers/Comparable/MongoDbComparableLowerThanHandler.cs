@@ -16,7 +16,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
         protected override int Operation => DefaultOperations.LowerThan;
 
-        public override FilterDefinition<BsonDocument> HandleOperation(
+        public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
@@ -24,13 +24,9 @@ namespace HotChocolate.MongoDb.Data.Filters
         {
             if (parsedValue is {})
             {
-                var doc = new BsonDocument(
-                    "$lt",
-                    BsonValue.Create(parsedValue));
+                var doc = new MongoDbFilterOperation("$lt", parsedValue);
 
-                return new BsonDocument(
-                    context.GetMongoFilterScope().GetPath(),
-                    doc);
+                return new MongoDbFilterOperation(context.GetMongoFilterScope().GetPath(), doc);
             }
 
             throw new InvalidOperationException();

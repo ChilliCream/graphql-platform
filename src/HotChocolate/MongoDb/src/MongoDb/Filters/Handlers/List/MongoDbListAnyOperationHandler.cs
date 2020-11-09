@@ -3,7 +3,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Data.Filters;
 using HotChocolate.Language;
 using MongoDB.Bson;
-using MongoDB.Driver;
 
 namespace HotChocolate.MongoDb.Data.Filters
 {
@@ -25,7 +24,7 @@ namespace HotChocolate.MongoDb.Data.Filters
                 operationField.Id is DefaultOperations.Any;
         }
 
-        public override FilterDefinition<BsonDocument> HandleOperation(
+        public override MongoDbFilterDefinition HandleOperation(
             MongoDbFilterVisitorContext context,
             IFilterOperationField field,
             IValueNode value,
@@ -40,7 +39,7 @@ namespace HotChocolate.MongoDb.Data.Filters
 
                 if (parsedBool)
                 {
-                    return new BsonDocument(
+                    return new MongoDbFilterOperation(
                         path,
                         new BsonDocument
                         {
@@ -49,7 +48,7 @@ namespace HotChocolate.MongoDb.Data.Filters
                         });
                 }
 
-                return new BsonDocument(
+                return new MongoDbFilterOperation(
                     path,
                     new BsonDocument
                     {

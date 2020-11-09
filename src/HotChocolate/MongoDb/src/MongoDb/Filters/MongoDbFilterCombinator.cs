@@ -8,13 +8,13 @@ using MongoDB.Driver;
 namespace HotChocolate.MongoDb.Data.Filters
 {
     public class MongoDbFilterCombinator
-        : FilterOperationCombinator<MongoDbFilterVisitorContext, FilterDefinition<BsonDocument>>
+        : FilterOperationCombinator<MongoDbFilterVisitorContext, MongoDbFilterDefinition>
     {
         public override bool TryCombineOperations(
             MongoDbFilterVisitorContext context,
-            Queue<FilterDefinition<BsonDocument>> operations,
+            Queue<MongoDbFilterDefinition> operations,
             FilterCombinator combinator,
-            [NotNullWhen(true)] out FilterDefinition<BsonDocument> combined)
+            [NotNullWhen(true)] out MongoDbFilterDefinition combined)
         {
             if (operations.Count < 1)
             {
@@ -31,28 +31,28 @@ namespace HotChocolate.MongoDb.Data.Filters
             return true;
         }
 
-        private static FilterDefinition<BsonDocument> CombineWithAnd(
+        private static MongoDbFilterDefinition CombineWithAnd(
             MongoDbFilterVisitorContext context,
-            Queue<FilterDefinition<BsonDocument>> operations)
+            Queue<MongoDbFilterDefinition> operations)
         {
             if (operations.Count < 0)
             {
                 throw new InvalidOperationException();
             }
 
-            return context.Builder.And(operations.ToArray());
+            return new AndFilterDefinition(operations.ToArray());
         }
 
-        private static FilterDefinition<BsonDocument> CombineWithOr(
+        private static MongoDbFilterDefinition CombineWithOr(
             MongoDbFilterVisitorContext context,
-            Queue<FilterDefinition<BsonDocument>> operations)
+            Queue<MongoDbFilterDefinition> operations)
         {
             if (operations.Count < 0)
             {
                 throw new InvalidOperationException();
             }
 
-            return context.Builder.Or(operations.ToArray());
+            return new OrMongoDbFilterDefinition(operations.ToArray());
         }
     }
 }
