@@ -28,6 +28,7 @@ namespace HotChocolate.Execution.Processing
         {
             var current = Thread.CurrentThread.ManagedThreadId;
             ResolverTask? resolverTask = null;
+            SpinWait spin = default;
 
             while (true)
             {
@@ -41,6 +42,12 @@ namespace HotChocolate.Execution.Processing
                     Interlocked.Exchange(ref _sync, 0);
                     break;
                 }
+
+#if NETSTANDARD2_0
+                spin.SpinOnce();
+#else
+                spin.SpinOnce(sleep1Threshold: -1);
+#endif
             }
 
             resolverTask ??= new ResolverTask();
@@ -56,6 +63,7 @@ namespace HotChocolate.Execution.Processing
             if (obj.Reset())
             {
                 var current = Thread.CurrentThread.ManagedThreadId;
+                SpinWait spin = default;
 
                 while (true)
                 {
@@ -68,6 +76,12 @@ namespace HotChocolate.Execution.Processing
                         Interlocked.Exchange(ref _sync, 0);
                         break;
                     }
+
+#if NETSTANDARD2_0
+                    spin.SpinOnce();
+#else
+                    spin.SpinOnce(sleep1Threshold: -1);
+#endif
                 }
             }
         }
