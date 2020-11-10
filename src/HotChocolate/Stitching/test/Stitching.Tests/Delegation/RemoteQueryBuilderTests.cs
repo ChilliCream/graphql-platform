@@ -1,11 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
-using ChilliCream.Testing;
 using HotChocolate.Language;
-using HotChocolate.Stitching.Delegation;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -42,15 +38,13 @@ namespace HotChocolate.Stitching.Delegation
                 .SelectionSet.Selections
                 .OfType<FieldNode>().Single();
 
-
             // act
             DocumentNode newQuery = RemoteQueryBuilder.New()
                 .SetOperation(null, OperationType.Query)
                 .SetSelectionPath(path)
                 .SetRequestField(field)
-                .AddVariable("fields_bar",
-                    new NamedTypeNode(null, new NameNode("String")))
-                .Build();
+                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
+                .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert
             QuerySyntaxSerializer.Serialize(newQuery).MatchSnapshot();
@@ -88,12 +82,13 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             DocumentNode newQuery = RemoteQueryBuilder.New()
-                .SetOperation(new NameNode(nameof(BuildRemoteQueryCanOverrideOperationName)), OperationType.Query)
+                .SetOperation(new NameNode(
+                    nameof(BuildRemoteQueryCanOverrideOperationName)), 
+                    OperationType.Query)
                 .SetSelectionPath(path)
                 .SetRequestField(field)
-                .AddVariable("fields_bar",
-                    new NamedTypeNode(null, new NameNode("String")))
-                .Build();
+                .AddVariable("__fields_bar", new NamedTypeNode(null, new NameNode("String")))
+                .Build("abc", new Dictionary<(NameString Type, NameString Schema), NameString>());
 
             // assert
             QuerySyntaxSerializer.Serialize(newQuery).MatchSnapshot();

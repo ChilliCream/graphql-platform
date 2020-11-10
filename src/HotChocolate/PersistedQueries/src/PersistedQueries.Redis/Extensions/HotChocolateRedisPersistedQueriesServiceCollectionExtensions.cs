@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using HotChocolate.Execution;
-using HotChocolate.PersistedQueries.FileSystem;
+using HotChocolate.PersistedQueries.Redis;
 
 namespace HotChocolate
 {

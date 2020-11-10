@@ -52,6 +52,28 @@ namespace HotChocolate.Data.Sorting
         }
 
         [Fact]
+        public async Task Create_Boolean_OrderBy_List()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema<Foo, FooSortType>(_fooEntities);
+
+            // act
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(order: [{ bar: ASC}]){ bar}}")
+                    .Create());
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root(order: [{ bar: DESC}]){ bar}}")
+                    .Create());
+
+            // assert
+            res1.MatchSnapshot("ASC");
+            res2.MatchSnapshot("DESC");
+        }
+
+        [Fact]
         public async Task Create_Boolean_OrderBy_Nullable()
         {
             // arrange

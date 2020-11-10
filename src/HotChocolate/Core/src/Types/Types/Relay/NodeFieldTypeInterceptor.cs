@@ -2,10 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Types.WellKnownContextData;
 
 #nullable enable
 
@@ -13,13 +16,13 @@ namespace HotChocolate.Types.Relay
 {
     internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     {
-        private const string _node = "node";
-        private const string _id = "id";
+        private static NameString Node { get; } = "node";
+        private static NameString Id { get; } = "id";
 
         public override void OnBeforeCompleteType(
             ITypeCompletionContext completionContext,
-            DefinitionBase definition,
-            IDictionary<string, object> contextData)
+            DefinitionBase? definition,
+            IDictionary<string, object?> contextData)
         {
             if ((completionContext.IsQueryType ?? false) &&
                 definition is ObjectTypeDefinition objectTypeDefinition)
@@ -30,34 +33,30 @@ namespace HotChocolate.Types.Relay
 
                 var descriptor = ObjectFieldDescriptor.New(
                     completionContext.DescriptorContext,
-                    _node);
+                    Node);
 
                 IIdSerializer serializer =
                     completionContext.Services.GetService<IIdSerializer>() ??
                         new IdSerializer();
 
                 descriptor
-                    .Argument(_id, a => a.Type<NonNullType<IdType>>())
+                    .Argument(Id, a => a.Type<NonNullType<IdType>>().ID())
                     .Type<NodeType>()
                     .Resolve(async ctx =>
                     {
-                        var id = ctx.ArgumentValue<string>(_id);
-                        IdValue deserializedId = serializer.Deserialize(id);
+                        StringValueNode id = ctx.ArgumentLiteral<StringValueNode>(Id);
+                        IdValue deserializedId = serializer.Deserialize(id.Value);
 
-                        ctx.LocalContextData = ctx.LocalContextData
-                            .SetItem(WellKnownContextData.Id, deserializedId.Value)
-                            .SetItem(WellKnownContextData.Type, deserializedId.TypeName);
+                        ctx.SetLocalValue(NodeId, id.Value);
+                        ctx.SetLocalValue(InternalId, deserializedId.Value);
+                        ctx.SetLocalValue(InternalType, deserializedId.TypeName);
+                        ctx.SetLocalValue(WellKnownContextData.IdValue, deserializedId);
 
-                        if (ctx.Schema.TryGetType(deserializedId.TypeName,
-                                out ObjectType type)
-                            && type.ContextData.TryGetValue(
-                                RelayConstants.NodeResolverFactory,
-                                out object? o)
-                            && o is Func<IServiceProvider, INodeResolver> factory)
+                        if (ctx.Schema.TryGetType(deserializedId.TypeName, out ObjectType type) &&
+                            type.ContextData.TryGetValue(NodeResolver, out object? o) &&
+                            o is FieldResolverDelegate resolver)
                         {
-                            INodeResolver resolver = factory.Invoke(ctx.Services);
-                            return await resolver.ResolveAsync(ctx, deserializedId.Value)
-                                .ConfigureAwait(false);
+                            return await resolver.Invoke(ctx).ConfigureAwait(false);
                         }
 
                         return null;

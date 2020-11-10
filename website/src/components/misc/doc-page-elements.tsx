@@ -43,6 +43,10 @@ export const FixedContainer = styled.div`
   }
 `;
 
+export const MostProminentSection = styled.div`
+  overflow-y: initial;
+`;
+
 export const Aside = styled.aside`
   ${PaneBase}
   z-index: 2;
@@ -60,6 +64,10 @@ export const Aside = styled.aside`
     > ${FixedContainer} {
       ${FullSize};
       right: initial;
+
+      ${MostProminentSection} {
+        height: calc(100vh - 280px);
+      }
     }
   }
 `;
@@ -81,6 +89,10 @@ export const Navigation = styled.nav`
     > ${FixedContainer} {
       ${FullSize};
       left: initial;
+
+      ${MostProminentSection} {
+        height: calc(100vh - 220px);
+      }
     }
   }
 `;

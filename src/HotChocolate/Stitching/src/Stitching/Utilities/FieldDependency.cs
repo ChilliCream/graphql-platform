@@ -16,6 +16,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         public NameString TypeName { get; }
+
         public NameString FieldName { get; }
 
         public bool Equals(FieldDependency other)
@@ -24,7 +25,7 @@ namespace HotChocolate.Stitching.Utilities
                 && other.FieldName.Equals(FieldName);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -37,7 +38,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             unchecked
             {
-                int hash = TypeName.GetHashCode() * 397;
+                var hash = TypeName.GetHashCode() * 397;
                 hash = hash ^ (FieldName.GetHashCode() * 7);
                 return hash;
             }

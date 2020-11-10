@@ -15,7 +15,8 @@ namespace HotChocolate.Configuration
         public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
             var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
@@ -26,7 +27,6 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(FooType), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is FooType);
 
@@ -61,7 +61,8 @@ namespace HotChocolate.Configuration
         public void Register_ClrType_InferSchemaTypes()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
             var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
@@ -72,7 +73,6 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -107,7 +107,8 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaResolver_Is_Null()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
             var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
@@ -118,7 +119,6 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
                 t => t is ObjectType<Foo>);
 
@@ -133,7 +133,8 @@ namespace HotChocolate.Configuration
         public void Initializer_SchemaOptions_Are_Null()
         {
             // arrange
-            IDescriptorContext context = DescriptorContext.Create();
+            IDescriptorContext context = DescriptorContext.Create(
+                typeInterceptor: new AggregateTypeInterceptor(new IntrospectionTypeInterceptor()));
             var typeRegistry = new TypeRegistry();
 
             var typeInitializer = new TypeInitializer(
@@ -144,7 +145,6 @@ namespace HotChocolate.Configuration
                     context.TypeInspector.GetTypeRef(typeof(Foo), TypeContext.Output)
                 },
                 new List<Type>(),
-                new AggregateTypeInitializationInterceptor(new IntrospectionTypeInterceptor()),
                 null!,
                 t => t is ObjectType<Foo>);
 

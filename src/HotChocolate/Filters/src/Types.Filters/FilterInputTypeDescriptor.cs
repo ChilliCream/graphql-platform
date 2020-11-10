@@ -153,6 +153,7 @@ namespace HotChocolate.Types.Filters
             if (type == typeof(string))
             {
                 var field = new StringFilterFieldDescriptor(Context, property);
+                field.BindFilters(Definition.Fields.BindingBehavior);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -162,6 +163,7 @@ namespace HotChocolate.Types.Filters
                 var field = new BooleanFilterFieldDescriptor(
                     Context,
                     property);
+                field.BindFilters(Definition.Fields.BindingBehavior);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -171,6 +173,7 @@ namespace HotChocolate.Types.Filters
                 var field = new ComparableFilterFieldDescriptor(
                     Context,
                     property);
+                field.BindFilters(Definition.Fields.BindingBehavior);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -194,6 +197,7 @@ namespace HotChocolate.Types.Filters
                     field = new ArrayFilterFieldDescriptor(Context, property, elementType);
                 }
 
+                field.BindFilters(Definition.Fields.BindingBehavior);
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -204,6 +208,7 @@ namespace HotChocolate.Types.Filters
                     Context,
                     property,
                     property.PropertyType);
+                field.BindFilters(Definition.Fields.BindingBehavior);
                 definition = field.CreateDefinition();
                 return true;
             }

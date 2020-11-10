@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution.Properties;
 using HotChocolate.Language;
 using static HotChocolate.Execution.Properties.Resources;
 
@@ -16,7 +15,7 @@ namespace HotChocolate.Execution
                     .SetMessage(
                         ThrowHelper_VariableIsNotAnInputType_Message,
                         variableDefinition.Variable.Name.Value)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
+                    .SetCode(ErrorCodes.Execution.MustBeInputType)
                     .SetExtension("variable", variableDefinition.Variable.Name.Value)
                     .SetExtension("type", variableDefinition.Type.ToString()!)
                     .AddLocation(variableDefinition)
@@ -254,5 +253,41 @@ namespace HotChocolate.Execution
         public static GraphQLException OperationExecutionMiddleware_NoBatchDispatcher() =>
             new GraphQLException(
                 ThrowHelper_OperationExecutionMiddleware_NoBatchDispatcher_Message);
+
+        public static GraphQLException OperationCompiler_FragmentNoSelections(
+            ISyntaxNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("Fragment selection set is empty.")
+                .AddLocation(syntaxNode)
+                .Build());
+
+        public static GraphQLException OperationCompiler_NoCompositeSelections(
+            FieldNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage(
+                    "The composite field `{0}` has no selections.",
+                    syntaxNode.Alias?.Value ?? syntaxNode.Name.Value)
+                .AddLocation(syntaxNode)
+                .Build());
+
+        public static GraphQLException OperationCompiler_NoOperationSelections(
+            OperationDefinitionNode syntaxNode) =>
+            new GraphQLException(ErrorBuilder.New()
+                .SetMessage("The operation has no selections.")
+                .AddLocation(syntaxNode)
+                .Build());
+
+        public static SchemaException Convention_UnableToCreateConvention(
+            Type convention) =>
+            new SchemaException(
+                SchemaErrorBuilder.New()
+                    .SetMessage(
+                        "Unable to create a convention instance from {0}.",
+                        convention.FullName ?? convention.Name)
+                    .Build());
+
+        public static ObjectDisposedException Object_Returned_To_Pool() =>
+            new ObjectDisposedException(
+                "The specified object was returned to the pool and is no longer usable.");
     }
 }

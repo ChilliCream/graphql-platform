@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using static HotChocolate.AspNetCore.Properties.AspNetCoreResources;
 
 namespace HotChocolate.AspNetCore.Utilities
 {
@@ -8,7 +9,8 @@ namespace HotChocolate.AspNetCore.Utilities
         public static GraphQLRequestException DefaultHttpRequestParser_QueryAndIdMissing() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("Either the parameter query or id has to be set.")
+                    .SetMessage(ThrowHelper_DefaultHttpRequestParser_QueryAndIdMissing)
+                    .SetCode(ErrorCodes.Server.QueryAndIdMissing)
                     .Build());
 
         public static GraphQLRequestException DefaultHttpRequestParser_SyntaxError(
@@ -16,8 +18,8 @@ namespace HotChocolate.AspNetCore.Utilities
             new GraphQLRequestException(
                 ErrorBuilder.New()
                     .SetMessage(ex.Message)
-                    .SetCode(ErrorCodes.Execution.SyntaxError)
                     .AddLocation(ex.Line, ex.Column)
+                    .SetCode(ErrorCodes.Server.SyntaxError)
                     .Build());
 
         public static GraphQLRequestException DefaultHttpRequestParser_UnexpectedError(
@@ -26,23 +28,24 @@ namespace HotChocolate.AspNetCore.Utilities
                 ErrorBuilder.New()
                     .SetMessage(ex.Message)
                     .SetException(ex)
+                    .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
                     .Build());
 
         public static GraphQLRequestException DefaultHttpRequestParser_RequestIsEmpty() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("The GraphQL request is empty.")
+                    .SetMessage(ThrowHelper_DefaultHttpRequestParser_RequestIsEmpty)
                     .SetCode(ErrorCodes.Server.RequestInvalid)
                     .Build());
 
         public static GraphQLRequestException DefaultHttpRequestParser_MaxRequestSizeExceeded() =>
             new GraphQLRequestException(
                 ErrorBuilder.New()
-                    .SetMessage("Max GraphQL request size reached.")
+                    .SetMessage(ThrowHelper_DefaultHttpRequestParser_MaxRequestSizeExceeded)
                     .SetCode(ErrorCodes.Server.MaxRequestSize)
                     .Build());
 
         public static NotSupportedException  DataStartMessageHandler_RequestTypeNotSupported() =>
-            new NotSupportedException("The response type is not supported.");
+            new NotSupportedException(ThrowHelper_DataStartMessageHandler_RequestTypeNotSupported);
     }
 }

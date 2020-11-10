@@ -311,7 +311,7 @@ namespace HotChocolate.Execution
         public static QueryRequestBuilder New() =>
             new QueryRequestBuilder();
 
-        public static QueryRequestBuilder From(IReadOnlyQueryRequest request)
+        public static QueryRequestBuilder From(IQueryRequest request)
         {
             var builder = new QueryRequestBuilder
             {

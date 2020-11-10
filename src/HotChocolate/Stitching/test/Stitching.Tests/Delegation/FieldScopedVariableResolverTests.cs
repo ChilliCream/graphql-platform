@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -19,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String a: String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching.Delegation
                 schema.GetType<ObjectType>("Query"));
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Parent<IReadOnlyDictionary<string, object>>())
+            context.Setup(t => t.Parent<object>())
                 .Returns(new Dictionary<string, object> { { "a", "baz" } });
 
             var scopedVariable = new ScopedVariableNode(
@@ -45,7 +45,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("fields_a", value.Name);
+            Assert.Equal("__fields_a", value.Name);
             Assert.IsType<NamedTypeNode>(value.Type);
             Assert.Equal("baz", value.Value.Value);
         }
@@ -58,7 +58,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -93,8 +93,8 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Collection(
-                Assert.Throws<QueryException>(a).Errors,
-                t => Assert.Equal(ErrorCodes.FieldNotDefined, t.Code));
+                Assert.Throws<GraphQLException>(a).Errors,
+                t => Assert.Equal(ErrorCodes.Stitching.FieldNotDefined, t.Code));
         }
 
         [Fact]
@@ -105,7 +105,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -133,14 +133,14 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>(It.IsAny<NameString>()))
+            context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
 
             // act
@@ -162,14 +162,14 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>(It.IsAny<NameString>()))
+            context.Setup(t => t.ArgumentValue<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
 
             var scopedVariable = new ScopedVariableNode(

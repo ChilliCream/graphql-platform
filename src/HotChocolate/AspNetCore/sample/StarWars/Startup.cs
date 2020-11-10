@@ -19,6 +19,7 @@ namespace StarWars
                     .AddStarWarsTypes()
                     .AddStarWarsRepositories()
                     .AddTypeExtension<SlowTypeExtension>()
+                    .AddTypeExtension<SlowHumanTypeExtension>()
                 .AddGraphQLServer("hello_world")
                     .AddQueryType(d => d
                         .Name("Query")
@@ -38,14 +39,14 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGraphQL();
-                endpoints.MapGraphQL("/hello", schemaName: "hello_world");
-                endpoints.MapGraphQL("/filtering", schemaName: "filtering");
-            });
+            app
+                .UseRouting()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGraphQL();
+                    endpoints.MapGraphQL("/hello", schemaName: "hello_world");
+                    endpoints.MapGraphQL("/filtering", schemaName: "filtering");
+                });
         }
     }
 
@@ -54,8 +55,18 @@ namespace StarWars
     {
         public async Task<string> SlowAsync()
         {
-            await Task.Delay(3000);
-            return "hello";
+            await Task.Delay(600);
+            return "droid";
+        }
+    }
+
+    [ExtendObjectType("Human")]
+    public class SlowHumanTypeExtension
+    {
+        public async Task<string> SlowAsync()
+        {
+            await Task.Delay(600);
+            return "human";
         }
     }
 }

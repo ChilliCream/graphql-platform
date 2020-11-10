@@ -257,6 +257,37 @@ namespace HotChocolate.Types.Descriptors
             Expression<Func<TResolver, object>> propertyOrMethod) =>
             Field<TResolver, object>(propertyOrMethod);
 
+        public IObjectFieldDescriptor Field(
+            MemberInfo propertyOrMethod)
+        {
+            if (propertyOrMethod is null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            if (propertyOrMethod is PropertyInfo || propertyOrMethod is MethodInfo)
+            {
+                ObjectFieldDescriptor fieldDescriptor =
+                    Fields.FirstOrDefault(t => t.Definition.Member == propertyOrMethod);
+                if (fieldDescriptor is { })
+                {
+                    return fieldDescriptor;
+                }
+
+                fieldDescriptor = ObjectFieldDescriptor.New(
+                    Context,
+                    propertyOrMethod,
+                    Definition.RuntimeType,
+                    propertyOrMethod.ReflectedType ?? Definition.RuntimeType);
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            throw new ArgumentException(
+                ObjectTypeDescriptor_MustBePropertyOrMethod,
+                nameof(propertyOrMethod));
+        }
+
         public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
             Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
         {

@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Filters
@@ -58,41 +57,22 @@ namespace HotChocolate.Data.Filters
                 .AddQueryType(
                     c =>
                     {
-                        IObjectFieldDescriptor field = c
-                            .Name("Query")
-                            .Field("root")
-                            .Resolver(resolver)
-                            .Use(
-                                next => async context =>
-                                {
-                                    await next(context);
+                        ApplyConfigurationToField<TEntity, T>(
+                            c.Name("Query").Field("root").Resolver(resolver),
+                            withPaging);
 
-                                    if (context.Result is IQueryable<TEntity> queryable)
-                                    {
-                                        try
-                                        {
-                                            context.ContextData["sql"] = queryable.ToQueryString();
-                                        }
-                                        catch (Exception)
-                                        {
-                                            context.ContextData["sql"] =
-                                                "EF Core 3.1 does not support ToQueryString";
-                                        }
-                                    }
-                                });
-
-                        if (withPaging)
-                        {
-                            field.UsePaging<ObjectType<TEntity>>();
-                        }
-
-                        field.UseFiltering<T>();
+                        ApplyConfigurationToField<TEntity, T>(
+                            c.Name("Query")
+                                .Field("rootExecutable")
+                                .Resolver(
+                                    ctx => resolver(ctx).AsExecutable()),
+                            withPaging);
                     });
 
             ISchema schema = builder.Create();
 
             return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
+                .Configure<RequestExecutorSetup>(
                     Schema.DefaultName,
                     o => o.Schema = schema)
                 .AddGraphQL()
@@ -116,6 +96,39 @@ namespace HotChocolate.Data.Filters
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
                 .Result;
+        }
+
+        private void ApplyConfigurationToField<TEntity, TType>(
+            IObjectFieldDescriptor field,
+            bool withPaging)
+            where TEntity : class
+            where TType : FilterInputType<TEntity>
+        {
+            field.Use(
+                next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Result is IQueryable<TEntity> queryable)
+                    {
+                        try
+                        {
+                            context.ContextData["sql"] = queryable.ToQueryString();
+                        }
+                        catch (Exception)
+                        {
+                            context.ContextData["sql"] =
+                                "EF Core 3.1 does not support ToQueryString";
+                        }
+                    }
+                });
+
+            if (withPaging)
+            {
+                field.UsePaging<ObjectType<TEntity>>();
+            }
+
+            field.UseFiltering<TType>();
         }
     }
 }

@@ -29,10 +29,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // core services
             services
+                .TryAddRequestExecutorFactoryOptionsMonitor()
                 .TryAddTypeConverter()
                 .TryAddDefaultCaches()
                 .TryAddDefaultDocumentHashProvider()
                 .TryAddDefaultBatchDispatcher()
+                .TryAddRequestContextAccessor()
                 .TryAddDefaultDataLoaderRegistry()
                 .TryAddIdSerializer();
 

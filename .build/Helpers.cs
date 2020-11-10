@@ -10,7 +10,7 @@ class Helpers
     static readonly string[] _directories = new string[]
     {
         "GreenDonut",
-        Path.Combine("HotChocolate", "ApolloFederation"),
+        // Path.Combine("HotChocolate", "ApolloFederation"),
         Path.Combine("HotChocolate", "AspNetCore"),
         Path.Combine("HotChocolate", "Core"),
         Path.Combine("HotChocolate", "Language"),
@@ -18,6 +18,7 @@ class Helpers
         Path.Combine("HotChocolate", "Utilities"),
         Path.Combine("HotChocolate", "Data"),
         Path.Combine("HotChocolate", "Filters"),
+        Path.Combine("HotChocolate", "Stitching"),
         Path.Combine("HotChocolate", "Spatial")
     };
 
@@ -29,6 +30,8 @@ class Helpers
             foreach (var file in Directory.EnumerateFiles(fullDirectory, "*.csproj", SearchOption.AllDirectories))
             {
                 if (file.Contains("benchmark", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("demo", StringComparison.OrdinalIgnoreCase)
+                    || file.Contains("sample", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("HotChocolate.Core.Tests", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("HotChocolate.Utilities.Introspection.Tests", StringComparison.OrdinalIgnoreCase)
                     || file.Contains("HotChocolate.Types.Selection", StringComparison.OrdinalIgnoreCase))

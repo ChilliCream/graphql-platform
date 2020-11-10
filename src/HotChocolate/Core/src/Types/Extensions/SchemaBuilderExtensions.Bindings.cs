@@ -1,24 +1,19 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Types;
+
+#nullable enable
 
 namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
         public static ISchemaBuilder BindResolver<TResolver>(
-            this ISchemaBuilder builder)
-            where TResolver : class =>
-            BindResolver<TResolver>(
-                builder,
-                BindingBehavior.Implicit,
-                null);
-
-        public static ISchemaBuilder BindResolver<TResolver>(
             this ISchemaBuilder builder,
-            Action<IBindResolver<TResolver>> configure)
+            Action<IBindResolver<TResolver>>? configure = default)
             where TResolver : class =>
-            BindResolver<TResolver>(
+            BindResolver(
                 builder,
                 BindingBehavior.Implicit,
                 configure);
@@ -26,7 +21,7 @@ namespace HotChocolate
         public static ISchemaBuilder BindResolver<TResolver>(
             this ISchemaBuilder builder,
             BindingBehavior bindingBehavior,
-            Action<IBindResolver<TResolver>> configure)
+            Action<IBindResolver<TResolver>>? configure)
             where TResolver : class
         {
             if (builder is null)
@@ -45,27 +40,15 @@ namespace HotChocolate
                     .SetFieldBinding(bindingBehavior)
                     .SetResolverType(typeof(TResolver));
 
-            if (configure != null)
-            {
-                configure(new BindResolver<TResolver>(bindingBuilder));
-            }
-
+            configure?.Invoke(new BindResolver<TResolver>(bindingBuilder));
             return builder.AddBinding(bindingBuilder.Create());
         }
 
         public static ISchemaBuilder BindComplexType<T>(
-            this ISchemaBuilder builder)
-            where T : class =>
-            BindComplexType<T>(
-                builder,
-                BindingBehavior.Implicit,
-                null);
-
-        public static ISchemaBuilder BindComplexType<T>(
             this ISchemaBuilder builder,
-            Action<IBindType<T>> configure)
+            Action<IBindType<T>>? configure = default)
             where T : class =>
-            BindComplexType<T>(
+            BindComplexType(
                 builder,
                 BindingBehavior.Implicit,
                 configure);
@@ -73,7 +56,7 @@ namespace HotChocolate
         public static ISchemaBuilder BindComplexType<T>(
             this ISchemaBuilder builder,
             BindingBehavior bindingBehavior,
-            Action<IBindType<T>> configure)
+            Action<IBindType<T>>? configure)
             where T : class
         {
             if (builder is null)
@@ -92,12 +75,40 @@ namespace HotChocolate
                     .SetFieldBinding(bindingBehavior)
                     .SetType(typeof(T));
 
-            if (configure != null)
-            {
-                configure(new BindType<T>(bindingBuilder));
-            }
-
+            configure?.Invoke(new BindType<T>(bindingBuilder));
             return builder.AddBinding(bindingBuilder.Create());
+        }
+
+        public static ISchemaBuilder BindEnumType<T>(
+            this ISchemaBuilder builder,
+            Action<IEnumTypeBindingDescriptor>? configure = default) =>
+            BindEnumType(builder, typeof(T), configure);
+
+        public static ISchemaBuilder BindEnumType(
+            this ISchemaBuilder builder,
+            Type runtimeType,
+            Action<IEnumTypeBindingDescriptor>? configure = default)
+        {
+            configure ??= _ => { };
+
+            return builder
+                .SetContextData(
+                    SchemaFirstContextData.EnumTypeConfigs,
+                    o =>
+                    {
+                        if (o is List<EnumTypeBindingConfiguration> configs)
+                        {
+                            configs.Add(new EnumTypeBindingConfiguration(runtimeType, configure));
+                            return o;
+                        }
+
+                        return new List<EnumTypeBindingConfiguration>
+                        {
+                            new EnumTypeBindingConfiguration(runtimeType, configure)
+                        };
+                    })
+                .TryAddTypeInterceptor<SchemaFirstTypeInterceptor>()
+                .TryAddSchemaInterceptor<SchemaFirstSchemaInterceptor>();
         }
     }
 }

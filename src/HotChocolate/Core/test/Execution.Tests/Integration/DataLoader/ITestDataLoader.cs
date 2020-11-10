@@ -1,6 +1,6 @@
 using GreenDonut;
 
-namespace HotChocolate.Integration.DataLoader
+namespace HotChocolate.Execution.Integration.DataLoader
 {
     public interface ITestDataLoader
         : IDataLoader<string, string>
