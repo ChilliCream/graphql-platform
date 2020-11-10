@@ -1,6 +1,6 @@
 ---
-path: "/blog/2020/09/16/new-filtering-api"
-date: "2020-09-16"
+path: "/blog/2020/11/10/new-filtering-api"
+date: "2020-11-10"
 title: "The new Filtering API"
 tags: ["hotchocolate", "graphql", "dotnet", "aspnetcore", "filtering"]
 featuredImage: "banner-new-filtering-api.png"
