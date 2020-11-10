@@ -3,6 +3,7 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.StarWars</AssemblyName>
     <RootNamespace>HotChocolate.StarWars</RootNamespace>
+    <TargetFrameworks>$(LibraryTargetFrameworks)</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,3 +1,4 @@
+#if NETCOREAPP3_1 || NET5_0
 using HotChocolate.AspNetCore;
 
 namespace Microsoft.AspNetCore.Builder
@@ -11,3 +12,4 @@ namespace Microsoft.AspNetCore.Builder
         }
     }
 }
+#endif
