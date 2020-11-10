@@ -62,14 +62,14 @@ namespace HotChocolate.MongoDb.Execution
 
             if (Filters is not null)
             {
-                filters = new MongoDbFilterDefinition<T>(Filters);
+                filters = Filters.ToFilterDefinition<T>();
             }
 
             IFindFluent<T, T> pipeline = _collection.Find(filters, options);
 
             if (Sorting is not null)
             {
-                pipeline = pipeline.Sort(new MongoDbSortDefinition<T>(Sorting));
+                pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
             }
 
             return pipeline;

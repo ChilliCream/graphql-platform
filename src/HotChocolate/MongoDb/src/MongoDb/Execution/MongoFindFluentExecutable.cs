@@ -15,7 +15,6 @@ namespace HotChocolate.MongoDb.Execution
             _findFluent = findFluent;
         }
 
-
         public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
             await BuildPipeline()
                 .ToListAsync(cancellationToken)
@@ -42,10 +41,8 @@ namespace HotChocolate.MongoDb.Execution
             if (Filters is not null)
             {
                 pipeline.Filter =
-                    new MongoDbFilterDefinition<T>(
-                        new AndFilterDefinition(
-                            new MongoDbFilterDefinitionWrapper<T>(_findFluent.Filter),
-                            Filters));
+                    new AndFilterDefinition(_findFluent.Filter.Wrap(), Filters)
+                        .ToFilterDefinition<T>();
             }
 
             if (Sorting is not null)
@@ -53,14 +50,12 @@ namespace HotChocolate.MongoDb.Execution
                 if (pipeline.Options?.Sort is {} sortDefinition)
                 {
                     pipeline.Sort(
-                        new MongoDbSortDefinition<T>(
-                            new MongoDbCombinedSortDefinition(
-                                new MongoDbSortDefinitionWrapper<T>(sortDefinition),
-                                Sorting)));
+                        new MongoDbCombinedSortDefinition(sortDefinition.Wrap(), Sorting)
+                            .ToSortDefinition<T>());
                 }
                 else
                 {
-                    pipeline = pipeline.Sort(new MongoDbSortDefinition<T>(Sorting));
+                    pipeline = pipeline.Sort(Sorting.ToSortDefinition<T>());
                 }
             }
 
