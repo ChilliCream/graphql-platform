@@ -46,7 +46,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
                         _resource.CreateCollection<Foo>("data_" + Guid.NewGuid().ToString("N"));
 
                     collection.InsertMany(_fooEntities);
-                    return collection.AsExecutable();
+                    return collection.Aggregate().AsExecutable();
                 });
 
             // act
@@ -81,7 +81,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
                         _resource.CreateCollection<Bar>("data_" + Guid.NewGuid().ToString("N"));
 
                     collection.InsertMany(_barEntities);
-                    return collection.AsExecutable();
+                    return collection.Aggregate().AsExecutable();
                 });
 
             // act

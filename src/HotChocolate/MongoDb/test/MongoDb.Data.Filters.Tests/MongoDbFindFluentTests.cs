@@ -122,8 +122,8 @@ namespace HotChocolate.MongoDb.Data.Filters
 
                     collection.InsertMany(_bazEntities);
 
-                    return collection.Find(
-                            x => x.Bar > new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero))
+                    return collection
+                        .Find(x => x.Bar > new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero))
                         .AsExecutable();
                 });
 

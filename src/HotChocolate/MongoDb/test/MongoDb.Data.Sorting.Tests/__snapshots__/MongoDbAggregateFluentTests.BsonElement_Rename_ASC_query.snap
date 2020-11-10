@@ -1,1 +1,1 @@
-﻿find({ }).sort({ "renameTest" : 1 })
+﻿aggregate([{ "$sort" : { "renameTest" : 1 } }])
