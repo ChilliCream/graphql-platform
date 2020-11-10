@@ -6,6 +6,6 @@ namespace HotChocolate.Data.Filters
     {
         internal void Initialize(IConventionContext context, IFilterConvention convention);
 
-        internal void OnComplete(IConventionContext context);
+        internal void Complete(IConventionContext context);
     }
 }

@@ -1,0 +1,24 @@
+﻿{
+  "data": {
+    "root": [
+      {
+        "id": 1,
+        "foo": null
+      },
+      {
+        "id": 2,
+        "foo": {
+          "id": 1,
+          "barEnum": "FOO"
+        }
+      },
+      {
+        "id": 3,
+        "foo": {
+          "id": 2,
+          "barEnum": "BAR"
+        }
+      }
+    ]
+  }
+}

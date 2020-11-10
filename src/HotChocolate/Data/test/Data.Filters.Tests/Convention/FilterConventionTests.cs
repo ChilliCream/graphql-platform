@@ -366,7 +366,7 @@ namespace HotChocolate.Data.Filters
 
             // assert
             SchemaException exception =
-                Assert.Throws<SchemaException>(() => provider.OnComplete(context));
+                Assert.Throws<SchemaException>(() => provider.Complete(context));
             exception.Message.MatchSnapshot();
         }
 

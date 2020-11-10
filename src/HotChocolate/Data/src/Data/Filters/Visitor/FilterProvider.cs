@@ -60,12 +60,12 @@ namespace HotChocolate.Data.Filters
             base.Initialize(context);
         }
 
-        void IFilterProviderConvention.OnComplete(IConventionContext context)
+        void IFilterProviderConvention.Complete(IConventionContext context)
         {
-            OnComplete(context);
+            Complete(context);
         }
 
-        protected override void OnComplete(IConventionContext context)
+        protected override void Complete(IConventionContext context)
         {
             if (Definition.Handlers.Count == 0)
             {
