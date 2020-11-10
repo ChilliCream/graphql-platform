@@ -3,14 +3,18 @@ using Xunit;
 
 namespace HotChocolate.Types.SDL
 {
-    public class ObjectTypeSchemaFirstTests
+    public class InputObjectTypeSchemaFirstTests
     {
         [Fact]
-        public void Declare_Simple_Query_Type()
+        public void Declare_Simple_Input_Type()
         {
             // arrange
             var sdl =
                 @"type Query {
+                    hello(input: HelloInput): String
+                }
+                
+                input HelloInput {
                     hello: String
                 }";
 
@@ -19,21 +23,26 @@ namespace HotChocolate.Types.SDL
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
                 .BindComplexType<Query>()
+                .BindComplexType<HelloInput>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
         }
 
         [Fact]
-        public void Declare_Query_Type_With_Type_Extension()
+        public void Declare_Input_Type_With_Type_Extension()
         {
             // arrange
             var sdl =
                 @"type Query {
+                    hello(input: HelloInput): String
+                }
+                
+                input HelloInput {
                     hello: String
                 }
-
-                extend type Query {
+                
+                extend input HelloInput {
                     world: String
                 }";
 
@@ -42,6 +51,7 @@ namespace HotChocolate.Types.SDL
             SchemaBuilder.New()
                 .AddDocumentFromString(sdl)
                 .BindComplexType<Query>()
+                .BindComplexType<HelloInput>()
                 .Create()
                 .Print()
                 .MatchSnapshot();
@@ -53,14 +63,18 @@ namespace HotChocolate.Types.SDL
             // arrange
             var sdl =
                 @"type Query {
-                    hello: String
-                }
-
-                extend type Query {
-                    hello: String @foo
+                    hello(input: HelloInput): String
                 }
                 
-                directive @foo on FIELD_DEFINITION";
+                input HelloInput {
+                    hello: String
+                }
+                
+                extend input HelloInput {
+                    world: String @foo
+                }
+                
+                directive @foo on INPUT_FIELD_DEFINITION";
 
             // act
             // assert
@@ -78,12 +92,16 @@ namespace HotChocolate.Types.SDL
             // arrange
             var sdl =
                 @"type Query {
+                    hello(input: HelloInput): String
+                }
+                
+                input HelloInput {
                     hello: String
                 }
-
-                extend type Query @foo
                 
-                directive @foo on OBJECT";
+                extend input HelloInput @foo
+                
+                directive @foo on INPUT_OBJECT";
 
             // act
             // assert
@@ -97,9 +115,13 @@ namespace HotChocolate.Types.SDL
 
         public class Query
         {
-            public string Hello() => "Hello";
+            public string Hello(HelloInput input) => "Hello";
+        }
 
-            public string World() => "World";
+        public class HelloInput
+        {
+            public string Hello { get; set; }
+            public string World { get; set; }
         }
     }
 }
