@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.MongoDb.Data;
@@ -17,13 +17,12 @@ namespace HotChocolate.MongoDb.Execution
             _collection = collection;
         }
 
-        public override async ValueTask<IReadOnlyList<T>> ExecuteAsync(
-            CancellationToken cancellationToken)
+        public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
         {
             IBsonSerializerRegistry serializers = _collection.Settings.SerializerRegistry;
             IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
 
-            FindOptions<T> options = Options ?? new FindOptions<T>();
+            FindOptions<T> options = Options as FindOptions<T> ?? new FindOptions<T>();
             BsonDocument filters = new BsonDocument();
 
             if (Sorting is not null)
@@ -43,104 +42,145 @@ namespace HotChocolate.MongoDb.Execution
             return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        public override string Print()
-        {
-            IBsonSerializerRegistry serializers = _collection.Settings.SerializerRegistry;
-            IBsonSerializer bsonSerializer = _collection.DocumentSerializer;
+        public override async ValueTask<object?> FirstOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .FirstOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            BsonDocument filters = new BsonDocument();
+        public override async ValueTask<object?> SingleOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .SingleOrDefaultAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override string Print() => BuildPipeline().ToString() ?? "";
+
+        public IFindFluent<T, T> BuildPipeline()
+        {
+            FindOptions options = Options as FindOptions ?? new FindOptions();
+            FilterDefinition<T> filters = FilterDefinition<T>.Empty;
 
             if (Filters is not null)
             {
-                filters = Filters.Render(bsonSerializer, serializers);
+                filters = new MongoDbFilterDefinition<T>(Filters);
             }
 
-            var aggregations = new BsonDocument { { "$match", filters } };
+            IFindFluent<T, T> pipeline = _collection.Find(filters, options);
 
             if (Sorting is not null)
             {
-                aggregations["$sort"] = Sorting.Render(bsonSerializer, serializers);
+                pipeline = pipeline.Sort(new MongoDbSortDefinition<T>(Sorting));
             }
 
-            return aggregations.ToString();
+            return pipeline;
         }
     }
 
-    public class MongoFluentExecutable<T> : MongoExecutable<T>
+    public class MongoFindFluentExecutable<T> : MongoExecutable<T>
+    {
+        private readonly IFindFluent<T, T> _findFluent;
+
+        public MongoFindFluentExecutable(IFindFluent<T, T> findFluent)
+        {
+            _findFluent = findFluent;
+        }
+
+
+        public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override async ValueTask<object?> FirstOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override async ValueTask<object?> SingleOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override string Print() => BuildPipeline().ToString() ?? "";
+
+        public IFindFluent<T, T> BuildPipeline()
+        {
+            IFindFluent<T, T> pipeline = _findFluent;
+
+            if (Filters is not null)
+            {
+                pipeline.Filter =
+                    new MongoDbFilterDefinition<T>(
+                        new AndFilterDefinition(
+                            new MongoDbFilterDefinitionWrapper<T>(_findFluent.Filter),
+                            Filters));
+            }
+
+            if (Sorting is not null)
+            {
+                if (pipeline.Options?.Sort is {} sortDefinition)
+                {
+                    pipeline.Sort(
+                        new MongoDbSortDefinition<T>(
+                            new MongoDbCombinedSortDefinition(
+                                new MongoDbSortDefinitionWrapper<T>(sortDefinition),
+                                Sorting)));
+                }
+                else
+                {
+                    pipeline = pipeline.Sort(new MongoDbSortDefinition<T>(Sorting));
+                }
+            }
+
+            return pipeline;
+        }
+    }
+
+    public class MongoAggregateFluentExecutable<T> : MongoExecutable<T>
     {
         private readonly IAggregateFluent<T> _aggregate;
 
-        public MongoFluentExecutable(IAggregateFluent<T> aggregate)
+        public MongoAggregateFluentExecutable(IAggregateFluent<T> aggregate)
         {
             _aggregate = aggregate;
         }
 
-        public override async ValueTask<IReadOnlyList<T>> ExecuteAsync(
-            CancellationToken cancellationToken)
+        public override async ValueTask<IList> ToListAsync(CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override async ValueTask<object?> FirstOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override async ValueTask<object?> SingleOrDefaultAsync(
+            CancellationToken cancellationToken) =>
+            await BuildPipeline()
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+        public override string Print() => BuildPipeline().ToString() ?? "";
+
+        private IAggregateFluent<T> BuildPipeline()
         {
             IAggregateFluent<T> pipeline = _aggregate;
             if (Sorting is not null)
             {
-                pipeline = pipeline.Sort(new MongoDbAggregateFluentSortDefinition<T>(Sorting));
+                pipeline = pipeline.Sort(new MongoDbSortDefinition<T>(Sorting));
             }
 
             if (Filters is not null)
             {
-                pipeline = pipeline.Match(new MongoDbAggregateFluentFilterDefinition<T>(Filters));
+                pipeline = pipeline.Match(new MongoDbFilterDefinition<T>(Filters));
             }
 
-            return await pipeline.ToListAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        public override string Print()
-        {
-            IAggregateFluent<T> pipeline = _aggregate;
-
-            if (Filters is not null)
-            {
-                pipeline = pipeline.Match(new MongoDbAggregateFluentFilterDefinition<T>(Filters));
-            }
-
-            if (Sorting is not null)
-            {
-                pipeline = pipeline.Sort(new MongoDbAggregateFluentSortDefinition<T>(Sorting));
-            }
-
-            return pipeline.ToString() ?? "";
-        }
-
-        private class MongoDbAggregateFluentFilterDefinition<T> : FilterDefinition<T>
-        {
-            private readonly MongoDbFilterDefinition _filter;
-
-            public MongoDbAggregateFluentFilterDefinition(MongoDbFilterDefinition filter)
-            {
-                _filter = filter;
-            }
-
-            public override BsonDocument Render(
-                IBsonSerializer<T> documentSerializer,
-                IBsonSerializerRegistry serializerRegistry)
-            {
-                return _filter.Render(documentSerializer, serializerRegistry);
-            }
-        }
-
-        private class MongoDbAggregateFluentSortDefinition<T> : SortDefinition<T>
-        {
-            private readonly MongoDbSortDefinition _filter;
-
-            public MongoDbAggregateFluentSortDefinition(MongoDbSortDefinition filter)
-            {
-                _filter = filter;
-            }
-
-            public override BsonDocument Render(
-                IBsonSerializer<T> documentSerializer,
-                IBsonSerializerRegistry serializerRegistry)
-            {
-                return _filter.Render(documentSerializer, serializerRegistry);
-            }
+            return pipeline;
         }
     }
 }

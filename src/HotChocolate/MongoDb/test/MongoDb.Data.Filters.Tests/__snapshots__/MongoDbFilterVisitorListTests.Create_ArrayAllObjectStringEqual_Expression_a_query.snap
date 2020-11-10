@@ -1,1 +1,1 @@
-﻿{ "$match" : { "FooNested" : { "$not" : { "$elemMatch" : { "$nor" : [{ "Bar" : { "$eq" : "a" } }] } } } } }
+﻿find({ "FooNested" : { "$not" : { "$elemMatch" : { "$nor" : [{ "Bar" : { "$eq" : "a" } }] } } } })

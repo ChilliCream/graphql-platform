@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Data;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
@@ -126,7 +124,8 @@ namespace HotChocolate.MongoDb.Data.Filters
             Func<IExecutable<TEntity>> resolver)
             where TEntity : class
         {
-            ISchemaBuilder builder = SchemaBuilder.New()
+            return new ServiceCollection()
+                .AddGraphQL()
                 .AddFiltering(x => x.AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
@@ -144,15 +143,7 @@ namespace HotChocolate.MongoDb.Data.Filters
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseFiltering<FilterInputType<TEntity>>());
-
-            ISchema schema = builder.Create();
-
-            return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
-                .AddGraphQL()
+                        .UseFiltering<FilterInputType<TEntity>>())
                 .UseRequest(
                     next => async context =>
                     {
@@ -172,7 +163,8 @@ namespace HotChocolate.MongoDb.Data.Filters
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
-                .Result;
+                .GetAwaiter()
+                .GetResult();
         }
     }
 }

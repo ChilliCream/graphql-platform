@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Bar" : { "$ne" : false } } }
+﻿find({ "Bar" : { "$ne" : false } })

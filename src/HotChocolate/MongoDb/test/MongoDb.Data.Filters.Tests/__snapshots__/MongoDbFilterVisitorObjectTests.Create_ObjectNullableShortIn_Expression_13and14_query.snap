@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Foo.BarShort" : { "$in" : [13, 14] } } }
+﻿find({ "Foo.BarShort" : { "$in" : [13, 14] } })

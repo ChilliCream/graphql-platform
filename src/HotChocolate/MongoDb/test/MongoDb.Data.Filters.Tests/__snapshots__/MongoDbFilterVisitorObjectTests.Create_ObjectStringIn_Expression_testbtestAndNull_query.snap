@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Foo.BarString" : { "$in" : ["testbtest", null] } } }
+﻿find({ "Foo.BarString" : { "$in" : ["testbtest", null] } })

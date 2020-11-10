@@ -1,1 +1,1 @@
-﻿{ "$match" : { "BarShort" : { "$not" : { "$gt" : 13 } } } }
+﻿find({ "BarShort" : { "$not" : { "$gt" : 13 } } })

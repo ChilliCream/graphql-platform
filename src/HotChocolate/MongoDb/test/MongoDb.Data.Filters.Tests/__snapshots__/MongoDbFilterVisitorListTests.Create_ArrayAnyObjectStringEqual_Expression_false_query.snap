@@ -1,1 +1,1 @@
-﻿{ "$match" : { "FooNested" : { "$exists" : true, "$ne" : null, "$eq" : [] } } }
+﻿find({ "FooNested" : { "$exists" : true, "$ne" : null, "$eq" : [] } })

@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Bar" : { "$nin" : ["testbtest", null] } } }
+﻿find({ "Bar" : { "$nin" : ["testbtest", null] } })

@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Bar" : { "$eq" : "testatest" } } }
+﻿find({ "Bar" : { "$eq" : "testatest" } })

@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Data;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.MongoDb.Sorting.Convention.Extensions;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -123,7 +121,8 @@ namespace HotChocolate.MongoDb.Data.Sorting
             Func<IExecutable<TEntity>> resolver)
             where TEntity : class
         {
-            ISchemaBuilder builder = SchemaBuilder.New()
+            return new ServiceCollection()
+                .AddGraphQL()
                 .AddSorting(x => x.AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
@@ -141,15 +140,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseSorting<SortInputType<TEntity>>());
-
-            ISchema schema = builder.Create();
-
-            return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
-                .AddGraphQL()
+                        .UseSorting<SortInputType<TEntity>>())
                 .UseRequest(
                     next => async context =>
                     {
@@ -169,7 +160,8 @@ namespace HotChocolate.MongoDb.Data.Sorting
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
-                .Result;
+                .GetAwaiter()
+                .GetResult();
         }
     }
 }

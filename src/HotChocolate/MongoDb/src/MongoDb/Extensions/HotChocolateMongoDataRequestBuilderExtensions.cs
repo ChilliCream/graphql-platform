@@ -1,4 +1,4 @@
-using HotChocolate.Data.Filters;
+using HotChocolate;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.MongoDb.Data.Filters;
 

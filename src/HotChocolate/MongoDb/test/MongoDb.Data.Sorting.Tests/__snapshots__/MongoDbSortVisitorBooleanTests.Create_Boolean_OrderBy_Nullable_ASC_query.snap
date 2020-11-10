@@ -1,1 +1,1 @@
-﻿{ "$match" : { }, "$sort" : { "Bar" : 1 } }
+﻿find({ }).sort({ "Bar" : 1 })

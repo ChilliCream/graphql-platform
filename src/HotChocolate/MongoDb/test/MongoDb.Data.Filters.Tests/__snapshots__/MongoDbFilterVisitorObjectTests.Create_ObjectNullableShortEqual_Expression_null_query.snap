@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Foo.BarShort" : { "$eq" : null } } }
+﻿find({ "Foo.BarShort" : { "$eq" : null } })

@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Bar" : { "$eq" : null } } }
+﻿find({ "Bar" : { "$eq" : null } })

@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Bar" : { "$regex" : /^testb/ } } }
+﻿find({ "Bar" : { "$regex" : /^testb/ } })

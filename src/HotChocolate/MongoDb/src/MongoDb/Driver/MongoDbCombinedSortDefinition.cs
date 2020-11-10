@@ -11,11 +11,16 @@ namespace HotChocolate.MongoDb.Data
     /// </summary>
     internal sealed class MongoDbCombinedSortDefinition : MongoDbSortDefinition
     {
-        private readonly List<MongoDbSortDefinition> _sorts;
+        private readonly MongoDbSortDefinition[] _sorts;
+
+        public MongoDbCombinedSortDefinition(params MongoDbSortDefinition[] sorts)
+        {
+            _sorts = sorts;
+        }
 
         public MongoDbCombinedSortDefinition(IEnumerable<MongoDbSortDefinition> sorts)
         {
-            _sorts = Ensure.IsNotNull(sorts, nameof(sorts)).ToList();
+            _sorts = Ensure.IsNotNull(sorts, nameof(sorts)).ToArray();
         }
 
         public override BsonDocument Render(

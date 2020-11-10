@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Foo.ObjectArray" : { "$elemMatch" : { "Foo.BarString" : { "$eq" : "d" } } } } }
+﻿find({ "Foo.ObjectArray" : { "$elemMatch" : { "Foo.BarString" : { "$eq" : "d" } } } })

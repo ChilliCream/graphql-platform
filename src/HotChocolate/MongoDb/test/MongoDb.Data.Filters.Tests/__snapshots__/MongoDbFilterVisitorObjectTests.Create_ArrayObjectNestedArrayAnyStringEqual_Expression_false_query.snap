@@ -1,1 +1,1 @@
-﻿{ "$match" : { "Foo.ObjectArray" : { "$exists" : true, "$ne" : null, "$eq" : [] } } }
+﻿find({ "Foo.ObjectArray" : { "$exists" : true, "$ne" : null, "$eq" : [] } })

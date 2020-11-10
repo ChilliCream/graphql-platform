@@ -1,1 +1,1 @@
-﻿{ "$match" : { "BarEnum" : { "$nin" : [1, 0] } } }
+﻿find({ "BarEnum" : { "$nin" : [1, 0] } })

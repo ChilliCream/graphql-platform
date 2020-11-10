@@ -48,7 +48,8 @@ namespace HotChocolate.MongoDb.Data.Sorting
                 mongoResource,
                 entities);
 
-            ISchemaBuilder builder = SchemaBuilder.New()
+            return new ServiceCollection()
+                .AddGraphQL()
                 .AddSorting(x => x.BindRuntimeType<TEntity, T>().AddMongoDbDefaults())
                 .AddQueryType(
                     c => c
@@ -64,15 +65,7 @@ namespace HotChocolate.MongoDb.Data.Sorting
                                     context.ContextData["query"] = executable.Print();
                                 }
                             })
-                        .UseSorting<T>());
-
-            ISchema schema = builder.Create();
-
-            return new ServiceCollection()
-                .Configure<RequestExecutorFactoryOptions>(
-                    Schema.DefaultName,
-                    o => o.Schema = schema)
-                .AddGraphQL()
+                        .UseSorting<T>())
                 .UseRequest(
                     next => async context =>
                     {
@@ -92,7 +85,8 @@ namespace HotChocolate.MongoDb.Data.Sorting
                 .BuildServiceProvider()
                 .GetRequiredService<IRequestExecutorResolver>()
                 .GetRequestExecutorAsync()
-                .Result;
+                .GetAwaiter()
+                .GetResult();
         }
     }
 }

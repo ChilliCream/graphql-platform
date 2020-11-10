@@ -19,18 +19,23 @@ namespace HotChocolate.MongoDb.Data
 
         #endregion
 
-        private readonly List<MongoDbFilterDefinition> _filters;
+        private readonly MongoDbFilterDefinition[] _filters;
+
+        public AndFilterDefinition(params MongoDbFilterDefinition[] filters)
+        {
+            _filters = filters;
+        }
 
         public AndFilterDefinition(IEnumerable<MongoDbFilterDefinition> filters)
         {
-            _filters = filters.ToList();
+            _filters = filters.ToArray();
         }
 
         public override BsonDocument Render(
             IBsonSerializer documentSerializer,
             IBsonSerializerRegistry serializerRegistry)
         {
-            if (_filters.Count == 0)
+            if (_filters.Length == 0)
             {
                 return new BsonDocument("$and", new BsonArray(0));
             }
