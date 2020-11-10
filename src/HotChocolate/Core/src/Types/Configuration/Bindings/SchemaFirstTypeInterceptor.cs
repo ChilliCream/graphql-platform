@@ -16,11 +16,10 @@ namespace HotChocolate.Configuration.Bindings
             DefinitionBase? definition,
             IDictionary<string, object?>? contextData)
         {
-            if (discoveryContext.Type is EnumType &&
-                definition is EnumTypeDefinition enumTypeDef &&
-                discoveryContext.ContextData.TryGetValue(EnumTypes, out object o) &&
+            if (definition is EnumTypeDefinition enumTypeDef &&
+                discoveryContext.ContextData.TryGetValue(EnumTypes, out object? o) &&
                 o is IDictionary<NameString, EnumTypeBindingDefinition> bindings &&
-                bindings.TryGetValue(enumTypeDef.Name, out EnumTypeBindingDefinition binding))
+                bindings.TryGetValue(enumTypeDef.Name, out EnumTypeBindingDefinition? binding))
             {
                 enumTypeDef.RuntimeType = binding.RuntimeType;
                 IDictionary<NameString, object?> values =

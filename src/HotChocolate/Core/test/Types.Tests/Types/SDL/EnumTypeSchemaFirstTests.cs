@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Tests;
 using Snapshooter.Xunit;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Types.SDL
 {
@@ -96,6 +95,91 @@ namespace HotChocolate.Types.SDL
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public async Task RequestBuilder_Declare_EnumType_With_Explicit_Value_Binding()
+        {
+            // arrange
+            Snapshot.FullName();
+            
+            var sdl =
+                @"type Query {
+                    hello(greetings: Greetings): Greetings
+                }
+                
+                enum Greetings {
+                    GOOD
+                }";
+
+            // act
+            // assert
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(sdl)
+                .BindComplexType<Query>()
+                .BindEnumType<Greetings>(c => c.Value(Greetings.GoodMorning).To("GOOD"))
+                .ExecuteRequestAsync("{ hello(greetings: GOOD) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task  RequestBuilder_Declare_EnumType_With_Implicit_Value_Binding()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            var sdl =
+                @"type Query {
+                    hello(greetings: Greetings): Greetings
+                }
+                
+                enum Greetings {
+                    GOOD_MORNING
+                }";
+
+            // act
+            // assert
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(sdl)
+                .BindComplexType<Query>()
+                .BindEnumType<Greetings>(c => c.Value(Greetings.GoodMorning))
+                .ExecuteRequestAsync("{ hello(greetings: GOOD_MORNING) }")
+                .MatchSnapshotAsync();
+        }
+
+        [Fact]
+        public async Task  RequestBuilder_Declare_EnumType_With_Type_Extension()
+        {
+            // arrange
+            Snapshot.FullName();
+
+            var sdl =
+                @"type Query {
+                    hello(greetings: Greetings): Greetings
+                }
+                
+                enum Greetings {
+                    GOOD_MORNING
+                }
+                
+                extend enum Greetings {
+                    GOOD_EVENING
+                }";
+
+            // act
+            // assert
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddDocumentFromString(sdl)
+                .BindComplexType<Query>()
+                .BindEnumType<Greetings>(c => 
+                {
+                    c.Value(Greetings.GoodMorning);
+                    c.Value(Greetings.GoodEvening);
+                })
+                .ExecuteRequestAsync("{ hello(greetings: GOOD_EVENING) }")
+                .MatchSnapshotAsync();
+        }
 
         public class Query
         {
@@ -106,23 +190,6 @@ namespace HotChocolate.Types.SDL
         {
             GoodMorning,
             GoodEvening
-        }
-
-        public class SchemaFirstEnumTypeInterceptor : TypeInterceptor
-        {
-            public override void OnAfterInitialize(
-                ITypeDiscoveryContext discoveryContext,
-                DefinitionBase definition,
-                IDictionary<string, object> contextData)
-            {
-                if (discoveryContext.Type is EnumType &&
-                    definition is EnumTypeDefinition enumTypeDefinition &&
-                    enumTypeDefinition.Name.Equals("Greetings"))
-                {
-                    enumTypeDefinition.RuntimeType = typeof(Greetings);
-                    enumTypeDefinition.Values.First(t => t.Name.Equals("GOOD_MORNING")).Value = Greetings.GoodEvening;
-                }
-            }
         }
     }
 }
