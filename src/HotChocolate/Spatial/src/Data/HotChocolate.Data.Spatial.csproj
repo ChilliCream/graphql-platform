@@ -29,4 +29,8 @@
       <DependentUpon>DataResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Projections" />
+  </ItemGroup>
 </Project>
