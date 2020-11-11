@@ -1,6 +1,6 @@
 # Examples
 
-We recommend starting with our GraphQL workshop that guides you through various concepts of building a GraphQL server and is more comprehensible.
+We recommend starting with our GraphQL workshop that guides you through various concepts of building a GraphQL server.
 
 The GraphQL workshop is located here:
 https://github.com/ChilliCream/graphql-workshop
