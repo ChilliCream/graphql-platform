@@ -1,10 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/template",
   "author": "Michael Staib",
-  "classifications": [
-    "Web",
-    "GraphQL"
-  ],
+  "classifications": ["Web", "GraphQL"],
   "identity": "HotChocolate.Templates.Server",
   "name": "HotChocolate GraphQL Server",
   "shortName": "graphql",
@@ -18,20 +15,24 @@
   },
   "sourceName": "HotChocolate.Server.Template",
   "preferNameDirectory": true,
-  "guids": [
-    "cda1e237-360b-4df0-a0c8-fde64fe62562"
+  "guids": ["cda1e237-360b-4df0-a0c8-fde64fe62562"],
+  "primaryOutputs": [
+    {
+      "path": "HotChocolate.Server.Template.csproj"
+    }
   ],
-  "primaryOutputs": [{
-    "path": "HotChocolate.Server.Template.csproj"
-  }],
-  "defaultName": "GraphQL1",
-  "postActions": [{
-    "condition": "(!skipRestore)",
-    "description": "Restore NuGet packages required by this project.",
-    "manualInstructions": [{
-      "text": "Run 'dotnet restore'"
-    }],
-    "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
-    "continueOnError": true
-  }]
+  "defaultName": "GraphQL",
+  "postActions": [
+    {
+      "condition": "(!skipRestore)",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    }
+  ]
 }
