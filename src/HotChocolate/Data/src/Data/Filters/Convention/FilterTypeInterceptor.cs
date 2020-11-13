@@ -88,12 +88,12 @@ namespace HotChocolate.Data.Filters
             IDescriptorContext context,
             string? scope)
         {
-            if (!_conventions.TryGetValue(
-                scope ?? "",
-                out IFilterConvention? convention))
+            scope ??= string.Empty;
+            
+            if (!_conventions.TryGetValue(scope, out IFilterConvention? convention))
             {
                 convention = context.GetFilterConvention(scope);
-                _conventions[scope ?? ""] = convention;
+                _conventions[scope] = convention;
             }
 
             return convention;
