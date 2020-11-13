@@ -9,8 +9,8 @@ namespace HotChocolate.Data.Filters
     public class FilterTypeInterceptor
         : TypeInterceptor
     {
-        private readonly Dictionary<string, IFilterConvention> _conventions
-            = new Dictionary<string, IFilterConvention>();
+        private readonly Dictionary<string, IFilterConvention> _conventions =
+            new Dictionary<string, IFilterConvention>();
 
         public override bool CanHandle(ITypeSystemObjectContext context) => true;
 
@@ -41,8 +41,8 @@ namespace HotChocolate.Data.Filters
                     if (field is FilterFieldDefinition filterFieldDefinition)
                     {
                         if (discoveryContext.TryPredictTypeKind(
-                                filterFieldDefinition.Type,
-                                out TypeKind kind) &&
+                            filterFieldDefinition.Type,
+                            out TypeKind kind) &&
                             kind != TypeKind.Scalar && kind != TypeKind.Enum)
                         {
                             field.Type = field.Type.With(scope: discoveryContext.Scope);
