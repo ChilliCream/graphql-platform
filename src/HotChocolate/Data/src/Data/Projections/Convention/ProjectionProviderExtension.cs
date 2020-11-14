@@ -4,9 +4,9 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Data.Projections
 {
     public class ProjectionProviderExtension
-        : ConventionExtension<ProjectionProviderDefinition>,
-          IProjectionProviderExtension,
-          IProjectionProviderConvention
+        : ConventionExtension<ProjectionProviderDefinition>
+        , IProjectionProviderExtension
+        , IProjectionProviderConvention
     {
         private Action<IProjectionProviderDescriptor>? _configure;
 
