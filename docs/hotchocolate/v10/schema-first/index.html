@@ -1300,14 +1300,14 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>OK, let us get started by defining a simple hello world schema:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="58623036607759450000"
+              data-toaster-id="53095995470217720000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
               data-toaster-duration="3500"
               onClick="copyToClipboard(`type Query {
   hello: String
-}`, `58623036607759450000`)"
+}`, `53095995470217720000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1322,7 +1322,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 <p>In order to host the above schema we have to use the SchemaBuilder to load it and then bind a resolver to the <code class="language-text">hello</code> field.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="92313205797052040000"
+              data-toaster-id="52086967683756870000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1338,7 +1338,7 @@ data-styled.g149[id="sc-global-kRXqdP2"]{content:"sc-global-kRXqdP2,"}/*!sc*/
 
 var executor = schema.MakeExecutable();
 
-Console.WriteLine(executor.Execute(&quot;{ hello }&quot;).ToJson());`, `92313205797052040000`)"
+Console.WriteLine(executor.Execute(&quot;{ hello }&quot;).ToJson());`, `52086967683756870000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1363,7 +1363,7 @@ Console<span class="token punctuation">.</span><span class="token function">Writ
 <p>The easier way in these cases is to write classes that contain your resolvers and bind those to the various types.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="82959242823067440000"
+              data-toaster-id="71565255036383380000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1380,7 +1380,7 @@ Console<span class="token punctuation">.</span><span class="token function">Writ
 public class Query
 {
     public string GetHello() => &quot;world&quot;;
-}`, `82959242823067440000`)"
+}`, `71565255036383380000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1406,7 +1406,7 @@ public class Query
 <p>In these cases you can easily tell the <code class="language-text">SchemaBuilder</code> how it can map your business object to the schema type.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44297042923577150000"
+              data-toaster-id="723590875094970500"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1423,7 +1423,7 @@ public class Query
 public class Query
 {
     public string GetGreetings() => &quot;world&quot;;
-}`, `44297042923577150000`)"
+}`, `723590875094970500`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1448,7 +1448,7 @@ public class Query
 <p>Furthermore, we can add new functionality on top of our business objects without changing them. This is done by adding a new type that basically contains only resolvers. Hot Chocolate differentiates between the data objects and the resolver objects and lets you bind both to the schema.</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="44798169641597215000"
+              data-toaster-id="46519324275422470000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1456,7 +1456,7 @@ public class Query
               onClick="copyToClipboard(`public class QueryResolvers
 {
     public string GetHello([Parent]Query query) => query.GetGreetings();
-}`, `44798169641597215000`)"
+}`, `46519324275422470000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1472,7 +1472,7 @@ public class Query
 <p>Our schema would now be declared like the following:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="43127827980821180000"
+              data-toaster-id="85490437415121620000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1485,7 +1485,7 @@ public class Query
         }&quot;)
     .BindComplexType<Query>(c => c.Field(t => t.GetGreetings()))
     .BindResolver<QueryResolvers>(c => c.To<Query>())
-    .Create();`, `43127827980821180000`)"
+    .Create();`, `85490437415121620000`)"
             >
               <div
                 class="gatsby-code-button"
@@ -1506,7 +1506,7 @@ public class Query
 <p>You can also mix and match resolvers binding, type bindings, delegate resolver or even bring in some code-first:</p>
 <div
               class="gatsby-code-button-container"
-              data-toaster-id="48532967314568356000"
+              data-toaster-id="95445935130329020000"
               data-toaster-class="gatsby-code-button-toaster"
               data-toaster-text-class="gatsby-code-button-toaster-text"
               data-toaster-text="Copied code example"
@@ -1522,7 +1522,7 @@ public class Query
     .BindResolver<QueryResolvers>(c => c.To<Query>())
     .AddResolver(&quot;Query&quot;, &quot;foo&quot;, () => new Bar())
     .AddType<BarType>()
-    .Create();`, `48532967314568356000`)"
+    .Create();`, `95445935130329020000`)"
             >
               <div
                 class="gatsby-code-button"
