@@ -4,8 +4,7 @@ using Squadron;
 
 namespace HotChocolate.Data.Projections.Spatial
 {
-    public class DatabaseContext<T> : DbContext
-        where T : class
+    public class DatabaseContext<T> : DbContext where T : class
     {
         private readonly PostgreSqlResource<PostgisConfig> _resource;
         private readonly string _databaseName;
