@@ -17,7 +17,7 @@ namespace HotChocolate.Data.Projections.Spatial
             IEnumerator<TEntity>? enumerator = query
                 .Provider
                 .Execute<IEnumerable<TEntity>>(query.Expression)
-               .GetEnumerator();
+                .GetEnumerator();
 
             var relationalCommandCache = enumerator.Private("_relationalCommandCache");
 
@@ -30,8 +30,7 @@ namespace HotChocolate.Data.Projections.Spatial
             QuerySqlGenerator? sqlGenerator = factory.Create();
             IRelationalCommand? command = sqlGenerator.GetCommand(selectExpression);
 
-            var sql = command.CommandText;
-            return sql;
+            return command.CommandText;
         }
 
         private static object Private(
