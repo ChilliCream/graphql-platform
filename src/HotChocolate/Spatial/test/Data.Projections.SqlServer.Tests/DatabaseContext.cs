@@ -23,8 +23,7 @@ namespace HotChocolate.Data.Projections.Spatial
         {
             optionsBuilder.UseNpgsql(
                 _resource.GetConnectionString(_databaseName),
-                o =>
-                    o.UseNetTopologySuite());
+                o => o.UseNetTopologySuite());
         }
 
         public override async ValueTask DisposeAsync()
