@@ -56,38 +56,37 @@ namespace HotChocolate.Data.Projections.Spatial
                         .Name("Query")
                         .Field("root")
                         .Resolver(resolver)
-                        .Use(
-                            next => async context =>
-                            {
-                                await next(context);
-
-                                if (context.Result is IQueryable<TEntity> queryable)
-                                {
-                                    try
-                                    {
-                                        context.ContextData["sql"] = queryable.ToQueryString();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        context.ContextData["sql"] =
-                                            "EF Core 3.1 does not support ToQueryString officially";
-                                    }
-                                }
-                            }))
-                .UseRequest(
-                    next => async context =>
-                    {
-                        await next(context);
-                        if (context.Result is IReadOnlyQueryResult result &&
-                            context.ContextData.TryGetValue("sql", out var queryString))
+                        .Use(next => async context =>
                         {
-                            context.Result =
-                                QueryResultBuilder
-                                    .FromResult(result)
-                                    .SetContextData("sql", queryString)
-                                    .Create();
-                        }
-                    })
+                            await next(context);
+
+                            if (context.Result is IQueryable<TEntity> queryable)
+                            {
+                                try
+                                {
+                                    context.ContextData["sql"] = queryable.ToQueryString();
+                                }
+                                catch (Exception)
+                                {
+                                    context.ContextData["sql"] =
+                                        "EF Core 3.1 does not support ToQueryString officially";
+                                }
+                            }
+                        }))
+                .UseRequest(next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Result is IReadOnlyQueryResult result &&
+                        context.ContextData.TryGetValue("sql", out var queryString))
+                    {
+                        context.Result =
+                            QueryResultBuilder
+                                .FromResult(result)
+                                .SetContextData("sql", queryString)
+                                .Create();
+                    }
+                })
                 .UseDefaultPipeline()
                 .BuildRequestExecutorAsync();
         }
