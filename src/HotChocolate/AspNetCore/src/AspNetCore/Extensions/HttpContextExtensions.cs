@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace HotChocolate.AspNetCore.Extensions
+namespace HotChocolate.AspNetCore
 {
     internal static class HttpContextExtensions
     {

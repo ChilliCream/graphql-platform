@@ -57,7 +57,8 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.IsGetOrHeadMethod() &&
                 context.Request.AcceptHeaderContainsHtml() &&
-                context.Request.TryMatchPath(_matchUrl, true, out PathString subPath))
+                context.Request.TryMatchPath(_matchUrl, true, out PathString subPath) &&
+                (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
                 var dirContents = _fileProvider.GetDirectoryContents(subPath.Value);
 

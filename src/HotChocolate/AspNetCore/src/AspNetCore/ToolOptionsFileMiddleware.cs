@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Extensions;
 using Microsoft.Extensions.Primitives;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
@@ -37,7 +36,8 @@ namespace HotChocolate.AspNetCore
         {
             if (context.Request.IsGetOrHeadMethod() &&
                 context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
-                subPath.Value == _configFile)
+                subPath.Value == _configFile &&
+                (context.GetGraphQLToolOptions()?.Enable ?? true))
             {
                 GraphQLToolOptions? options = context.GetGraphQLToolOptions();
                 string endpointPath = context.Request.Path.Value!.Replace(_configFile, "");

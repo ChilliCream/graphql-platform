@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
