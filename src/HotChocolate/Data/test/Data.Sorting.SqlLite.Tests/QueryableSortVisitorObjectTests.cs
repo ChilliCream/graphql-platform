@@ -358,7 +358,7 @@ namespace HotChocolate.Data.Sorting.Expressions
                     .SetQuery(
                         "{ root(order: { foo: { barBool: ASC}}) " +
                         "{ foo{ barBool}}}")
-                    .Create());            
+                    .Create());
 
             IExecutionResult res2 = await tester.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -370,6 +370,211 @@ namespace HotChocolate.Data.Sorting.Expressions
             // assert
             res1.MatchSqlSnapshot("ASC");
             res2.MatchSqlSnapshot("13");
+        }
+
+        [Fact]
+        public async Task Create_ObjectString_OrderBy_TwoProperties()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
+                        "{ foo{ barBool barShort}}}")
+                    .Create());
+
+            res1.MatchSnapshot("ASC");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root(order: [
+                                { foo: { barBool: ASC } },
+                                { foo: { barShort: ASC } }]) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }
+                        ")
+                    .Create());
+
+            res2.MatchSnapshot("ASC");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
+                        "{ foo{ barBool barShort}}}")
+                    .Create());
+
+            res3.MatchSnapshot("DESC");
+
+            IExecutionResult res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root(order: [
+                                { foo: { barBool: DESC } },
+                                { foo: { barShort: DESC } }]) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }
+                        ")
+                    .Create());
+
+            res4.MatchSnapshot("DESC");
+        }
+
+        [Fact]
+        public async Task Create_ObjectString_OrderBy_TwoProperties_Variables()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                         query testSort($order: [BarSortInput]) {
+                            root(order: $order) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }")
+                    .SetVariableValue(
+                        "order",
+                        new List<Dictionary<string,object>>
+                        {
+                            new Dictionary<string,object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string,object>
+                                    {
+                                         { "barShort", "ASC" },{ "barBool", "ASC" }
+                                    }
+                                }
+                            }
+                        })
+                    .Create());
+
+            res1.MatchSqlSnapshot("ASC");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                         query testSort($order: [BarSortInput]) {
+                            root(order: $order) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }")
+                    .SetVariableValue(
+                        "order",
+                        new List<Dictionary<string,object>>
+                        {
+                            new Dictionary<string,object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string,object> { { "barShort", "ASC" } }
+                                }
+                            },
+                            new Dictionary<string,object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string,object> { { "barBool", "ASC" } }
+                                }
+                            }
+                        })
+                    .Create());
+            res2.MatchSqlSnapshot("ASC");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                         query testSort($order: [BarSortInput]) {
+                            root(order: $order) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }")
+                    .SetVariableValue(
+                        "order",
+                        new List<Dictionary<string,object>>
+                        {
+                            new Dictionary<string,object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string,object>
+                                    {
+                                        { "barShort", "DESC" },{ "barBool", "DESC" }
+                                    }
+                                }
+                            }
+                        })
+                    .Create());
+
+            res3.MatchSqlSnapshot("DESC");
+
+            IExecutionResult res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                         query testSort($order: [BarSortInput]) {
+                            root(order: $order) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }")
+                    .SetVariableValue(
+                        "order",
+                        new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string, object> { { "barShort", "DESC" } }
+                                }
+                            },
+                            new Dictionary<string, object>
+                            {
+                                {
+                                    "foo",
+                                    new Dictionary<string, object> { { "barBool", "DESC" } }
+                                }
+                            }
+                        })
+                    .Create());
+
+            res4.MatchSqlSnapshot("DESC");
         }
 
         public class Foo

@@ -24,9 +24,9 @@ namespace HotChocolate.Execution
 
         public override bool Equals(object? obj)
         {
-            return obj is FieldValue value &&
+            return obj is ResultValue value &&
                 HasValue == value.HasValue &&
-                Name == value.Key &&
+                Name == value.Name &&
                 Value == value.Value;
         }
 
@@ -55,8 +55,8 @@ namespace HotChocolate.Execution
         {
             unchecked
             {
-                int hash = (Name?.GetHashCode() ?? 0) * 3;
-                hash = hash ^ ((Value?.GetHashCode() ?? 0) * 7);
+                var hash = (Name?.GetHashCode() ?? 0) * 3;
+                hash ^= (Value?.GetHashCode() ?? 0) * 7;
                 return hash;
             }
         }

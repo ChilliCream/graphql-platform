@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using HotChocolate;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Options;
 
@@ -43,18 +44,62 @@ namespace Microsoft.Extensions.DependencyInjection
             return Configure(
                 builder,
                 options => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(configureSchema)));
+                    new SchemaBuilderAction((sp, sb) => configureSchema(sb))));
         }
 
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ConfigureSchemaAsync(
             this IRequestExecutorBuilder builder,
             Func<ISchemaBuilder, CancellationToken, ValueTask> configureSchema)
+        {
+            if (builder is null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configureSchema is null)
+            {
+                throw new ArgumentNullException(nameof(configureSchema));
+            }
+
+            return Configure(
+                builder,
+                options => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction((sp, sb, ct) => configureSchema(sb, ct))));
+        }
+
+        /// <summary>
+        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
+        /// </summary>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
+        /// <remarks>
+        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/>
+        /// will be the same application's root service provider instance.
+        /// </remarks>
+        public static IRequestExecutorBuilder ConfigureSchema(
+            this IRequestExecutorBuilder builder,
+            Action<IServiceProvider, ISchemaBuilder> configureSchema)
         {
             if (builder is null)
             {
@@ -75,42 +120,19 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
         /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="builder">
+        /// The <see cref="IRequestExecutorBuilder"/>.
+        /// </param>
+        /// <param name="configureSchema">
+        /// A delegate that is used to configure an <see cref="ISchema"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
-        /// </remarks>
-        public static IRequestExecutorBuilder ConfigureSchema(
-            this IRequestExecutorBuilder builder,
-            Action<IServiceProvider, ISchemaBuilder> configureSchema)
-        {
-            if (builder is null)
-            {
-                throw new ArgumentNullException(nameof(builder));
-            }
-
-            if (configureSchema is null)
-            {
-                throw new ArgumentNullException(nameof(configureSchema));
-            }
-
-            return Configure(
-                builder,
-                (services, options) => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction(b => configureSchema(services, b))));
-        }
-
-        /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ISchema"/>.
-        /// </summary>
-        /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="configureSchema">A delegate that is used to configure an <see cref="ISchema"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
-        /// <remarks>
-        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/> will be the
-        /// same application's root service provider instance.
+        /// The <see cref="IServiceProvider"/> provided to <paramref name="configureSchema"/>
+        /// will be the same application's root service provider instance.
         /// </remarks>
         public static IRequestExecutorBuilder ConfigureSchemaAsync(
             this IRequestExecutorBuilder builder,
@@ -128,16 +150,21 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return Configure(
                 builder,
-                (services, options) => options.SchemaBuilderActions.Add(
-                    new SchemaBuilderAction((b, ct) => configureSchema(services, b, ct))));
+                options => options.SchemaBuilderActions.Add(
+                    new SchemaBuilderAction(configureSchema)));
         }
 
         /// <summary>
         /// Adds a delegate that will be used to modify the <see cref="RequestExecutorOptions"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IRequestExecutorBuilder"/>.</param>
-        /// <param name="modify">A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.</param>
-        /// <returns>An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.</returns>
+        /// <param name="modify">
+        /// A delegate that is used to modify the <see cref="RequestExecutorOptions"/>.
+        /// </param>
+        /// <returns>
+        /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema
+        /// and its execution.
+        /// </returns>
         public static IRequestExecutorBuilder ModifyRequestOptions(
             this IRequestExecutorBuilder builder,
             Action<RequestExecutorOptions> modify)
@@ -306,9 +333,81 @@ namespace Microsoft.Extensions.DependencyInjection
                 options => options.SchemaServices.Add(configureServices));
         }
 
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
+            this IRequestExecutorBuilder builder,
+            Action<IRequestExecutor> action)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return builder.Configure(o => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(action)));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreated(
+            this IRequestExecutorBuilder builder,
+            Action<IServiceProvider, IRequestExecutor> action)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(e => action(s, e))));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
+            this IRequestExecutorBuilder builder,
+            Func<IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+
+            return builder.Configure(o => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction(asyncAction)));
+        }
+
+        public static IRequestExecutorBuilder ConfigureOnRequestExecutorCreatedAsync(
+            this IRequestExecutorBuilder builder,
+            Func<IServiceProvider, IRequestExecutor, CancellationToken, ValueTask> asyncAction)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (asyncAction == null)
+            {
+                throw new ArgumentNullException(nameof(asyncAction));
+            }
+
+            return builder.Configure((s, o) => o.OnRequestExecutorCreated.Add(
+                new OnRequestExecutorCreatedAction((e, ct) => asyncAction(s, e, ct))));
+        }
+
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
-            Action<RequestExecutorFactoryOptions> configure)
+            Action<RequestExecutorSetup> configure)
         {
             builder.Services.Configure(builder.Name, configure);
             return builder;
@@ -316,15 +415,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IRequestExecutorBuilder Configure(
             this IRequestExecutorBuilder builder,
-            Action<IServiceProvider, RequestExecutorFactoryOptions> configure)
+            Action<IServiceProvider, RequestExecutorSetup> configure)
         {
-            builder.Services.AddTransient<IConfigureOptions<RequestExecutorFactoryOptions>>(
-                services => new ConfigureNamedOptions<RequestExecutorFactoryOptions>(
+            builder.Services.AddTransient<IConfigureOptions<RequestExecutorSetup>>(
+                services => new ConfigureNamedOptions<RequestExecutorSetup>(
                     builder.Name,
-                    options =>
-                    {
-                        configure(services, options);
-                    }));
+                    options => configure(services, options)));
 
             return builder;
         }

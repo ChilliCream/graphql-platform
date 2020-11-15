@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using static HotChocolate.Utilities.ThrowHelper;
 
 #nullable enable
 
@@ -29,10 +25,11 @@ namespace HotChocolate.Types.Pagination
 
             await _next(context).ConfigureAwait(false);
 
-            if (context.Result is not null)
+            if (context.Result is not null and not IPage)
             {
-                context.Result =
-                    await _pagingHandler.SliceAsync(context, context.Result).ConfigureAwait(false);
+                context.Result = await _pagingHandler
+                    .SliceAsync(context, context.Result)
+                    .ConfigureAwait(false);
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 
 #nullable enable
 
@@ -138,6 +139,13 @@ namespace HotChocolate.Internal
                     {
                         return interfaceType.GetGenericArguments()[0];
                     }
+
+                    if (interfaceType == typeof(IPage) &&
+                        type.IsGenericType &&
+                        type.GenericTypeArguments.Length == 1)
+                    {
+                        return type.GenericTypeArguments[0];
+                    }
                 }
 
                 return null;
@@ -166,7 +174,8 @@ namespace HotChocolate.Internal
                         || typeDefinition == typeof(ImmutableList<>)
                         || typeDefinition == typeof(ImmutableQueue<>)
                         || typeDefinition == typeof(ImmutableStack<>)
-                        || typeDefinition == typeof(ImmutableHashSet<>))
+                        || typeDefinition == typeof(ImmutableHashSet<>)
+                        || typeDefinition == typeof(IExecutable<>))
                     {
                         return true;
                     }

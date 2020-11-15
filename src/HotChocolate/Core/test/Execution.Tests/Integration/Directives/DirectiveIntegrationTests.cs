@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 using static HotChocolate.Tests.TestHelper;
 
-namespace HotChocolate.Integration.Directives
+namespace HotChocolate.Execution.Integration.Directives
 {
     public class DirectiveIntegrationTests
     {

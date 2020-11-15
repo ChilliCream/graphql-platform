@@ -14,8 +14,8 @@ namespace HotChocolate.Data.Filters.Expressions
 
         public override bool CanHandle(
             ITypeDiscoveryContext context,
-            FilterInputTypeDefinition typeDefinition,
-            FilterFieldDefinition fieldDefinition)
+            IFilterInputTypeDefinition typeDefinition,
+            IFilterFieldDefinition fieldDefinition)
         {
             return context.Type is IEnumOperationFilterInput &&
                 fieldDefinition is FilterOperationFieldDefinition operationField &&

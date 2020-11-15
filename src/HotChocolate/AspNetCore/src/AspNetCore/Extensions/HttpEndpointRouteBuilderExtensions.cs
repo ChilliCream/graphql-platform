@@ -1,10 +1,10 @@
 using System;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.Extensions.FileProviders;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -12,31 +12,35 @@ namespace Microsoft.AspNetCore.Builder
     {
         public static IEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
-            string pattern = "/graphql",
+            string path = "/graphql",
             NameString schemaName = default) =>
-            MapGraphQL(endpointRouteBuilder, RoutePatternFactory.Parse(pattern), schemaName);
+            MapGraphQL(endpointRouteBuilder, new PathString(path), schemaName);
 
         public static IEndpointConventionBuilder MapGraphQL(
             this IEndpointRouteBuilder endpointRouteBuilder,
-            RoutePattern pattern,
+            PathString path,
             NameString schemaName = default)
         {
-            if (endpointRouteBuilder == null)
+            if (endpointRouteBuilder is null)
             {
                 throw new ArgumentNullException(nameof(endpointRouteBuilder));
             }
 
-            IApplicationBuilder requestPipeline =
-                endpointRouteBuilder.CreateApplicationBuilder();
+            path = path.ToString().TrimEnd('/');
 
-            requestPipeline.UseMiddleware<WebSocketSubscriptionMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpPostMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpGetSchemaMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
-            requestPipeline.UseMiddleware<HttpGetMiddleware>(
-                schemaName.HasValue ? schemaName : Schema.DefaultName);
+            RoutePattern pattern = RoutePatternFactory.Parse(path + "/{**slug}");
+            IApplicationBuilder requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
+            IFileProvider fileProvider = CreateFileProvider();
+
+            requestPipeline
+                .UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault)
+                .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
+                .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
+                .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
+                .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())
@@ -49,24 +53,30 @@ namespace Microsoft.AspNetCore.Builder
             PathString pathMatch = default,
             NameString schemaName = default)
         {
-            if (applicationBuilder == null)
+            if (applicationBuilder is null)
             {
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
+
+            NameString schemaNameOrDefault = schemaName.HasValue ? schemaName : Schema.DefaultName;
 
             return applicationBuilder.Map(
                 pathMatch,
                 app =>
                 {
-                    app.UseMiddleware<WebSocketSubscriptionMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpPostMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpGetSchemaMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
-                    app.UseMiddleware<HttpGetMiddleware>(
-                        schemaName.HasValue ? schemaName : Schema.DefaultName);
+                    app.UseMiddleware<WebSocketSubscriptionMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpPostMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpGetSchemaMiddleware>(schemaNameOrDefault);
+                    app.UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
                 });
+        }
+
+        private static IFileProvider CreateFileProvider()
+        {
+            Type type = typeof(HttpEndpointRouteBuilderExtensions);
+            string resourceNamespace = typeof(MiddlewareBase).Namespace + ".Resources";
+
+            return new EmbeddedFileProvider(type.Assembly, resourceNamespace);
         }
     }
 }

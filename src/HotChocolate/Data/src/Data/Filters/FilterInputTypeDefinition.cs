@@ -7,6 +7,7 @@ namespace HotChocolate.Data.Filters
     public class FilterInputTypeDefinition
         : InputObjectTypeDefinition
         , IHasScope
+        , IFilterInputTypeDefinition
     {
         public Type? EntityType { get; set; }
 

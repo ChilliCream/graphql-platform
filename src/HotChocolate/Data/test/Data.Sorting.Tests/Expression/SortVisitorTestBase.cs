@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<ISortConvention>(convention)
-                .AddTypeInterceptor<SortTypeInterceptor>()
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
                 .AddQueryType(
                     c =>
                         c.Name("Query")
@@ -34,7 +34,7 @@ namespace HotChocolate.Data.Sorting.Expressions
             var convention = new SortConvention(x => x.AddDefaults());
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<ISortConvention>(convention)
-                .AddTypeInterceptor<SortTypeInterceptor>()
+                .TryAddTypeInterceptor<SortTypeInterceptor>()
                 .AddQueryType(c => c
                     .Name("Query")
                     .Field("foo")

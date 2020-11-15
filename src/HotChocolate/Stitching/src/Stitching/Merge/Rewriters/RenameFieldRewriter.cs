@@ -10,27 +10,19 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     {
         public RenameFieldRewriter(
             FieldReference field,
-            NameString newFieldName)
+            NameString newFieldName,
+            NameString? schemaName = null)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
             NewFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
+            SchemaName = schemaName?.EnsureNotEmpty(nameof(schemaName));
         }
-
-        public RenameFieldRewriter(
-            NameString schemaName,
-            FieldReference field,
-            NameString newFieldName)
-        {
-            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
-            Field = field ?? throw new ArgumentNullException(nameof(field));
-            NewFieldName = newFieldName.EnsureNotEmpty(nameof(newFieldName));
-        }
-
-        public NameString? SchemaName { get; }
 
         public FieldReference Field { get; }
 
         public NameString NewFieldName { get; }
+
+        public NameString? SchemaName { get; }
 
         public ITypeDefinitionNode Rewrite(
             ISchemaInfo schema,
@@ -75,15 +67,10 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
             foreach (FieldDefinitionNode field in typeDefinition.Fields)
             {
-                if (Field.FieldName.Equals(field.Name.Value))
-                {
-                    renamedFields.Add(
-                        field.Rename(NewFieldName, schemaName));
-                }
-                else
-                {
-                    renamedFields.Add(field);
-                }
+                renamedFields.Add(
+                    Field.FieldName.Equals(field.Name.Value)
+                        ? field.Rename(NewFieldName, schemaName)
+                        : field);
             }
 
             return rewrite(renamedFields);
@@ -97,15 +84,10 @@ namespace HotChocolate.Stitching.Merge.Rewriters
 
             foreach (InputValueDefinitionNode field in typeDefinition.Fields)
             {
-                if (Field.FieldName.Equals(field.Name.Value))
-                {
-                    renamedFields.Add(
-                        field.Rename(NewFieldName, schemaName));
-                }
-                else
-                {
-                    renamedFields.Add(field);
-                }
+                renamedFields.Add(
+                    Field.FieldName.Equals(field.Name.Value)
+                        ? field.Rename(NewFieldName, schemaName)
+                        : field);
             }
 
             return typeDefinition.WithFields(renamedFields);

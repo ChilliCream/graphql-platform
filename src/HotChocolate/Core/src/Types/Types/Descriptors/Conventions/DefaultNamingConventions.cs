@@ -159,13 +159,14 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Type enumType = value.GetType();
+
             if (enumType.IsEnum)
             {
                 MemberInfo? enumMember = enumType
                     .GetMember(value.ToString()!)
                     .FirstOrDefault();
 
-                if (enumMember is not null && 
+                if (enumMember is not null &&
                     enumMember.IsDefined(typeof(GraphQLNameAttribute)))
                 {
                     return enumMember.GetCustomAttribute<GraphQLNameAttribute>()!.Name;
@@ -180,12 +181,26 @@ namespace HotChocolate.Types.Descriptors
                 return char.ToUpper(name[0]).ToString();
             }
 
+            bool allUpper = true;
+
             for (var i = 0; i < name.Length; i++)
             {
-                if (i > 0 && char.IsUpper(name[i]))
+                var c = name[i];
+
+                if (i > 0 && char.IsUpper(c))
                 {
                     underscores++;
                 }
+
+                if (char.IsLetter(c) && char.IsLower(c))
+                {
+                    allUpper = false;
+                }
+            }
+
+            if (allUpper)
+            {
+                return value.ToString();
             }
 
             if (underscores == name.Length - 1 && char.IsUpper(name[0]))

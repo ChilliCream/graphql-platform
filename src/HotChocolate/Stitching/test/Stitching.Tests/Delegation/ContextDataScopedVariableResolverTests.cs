@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation.ScopedVariables;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -18,7 +19,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -42,7 +43,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("contextData_a", value.Name);
+            Assert.Equal("__contextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal("AbcDef", value.Value.Value);
         }
@@ -55,7 +56,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -78,7 +79,7 @@ namespace HotChocolate.Stitching.Delegation
 
             // assert
             Assert.Null(value.DefaultValue);
-            Assert.Equal("contextData_a", value.Name);
+            Assert.Equal("__contextData_a", value.Name);
             Assert.Equal("String", Assert.IsType<NamedTypeNode>(value.Type).Name.Value);
             Assert.Equal(NullValueNode.Default, value.Value);
         }
@@ -92,7 +93,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -120,7 +121,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -145,7 +146,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 
@@ -175,7 +176,7 @@ namespace HotChocolate.Stitching.Delegation
                 "type Query { foo(a: String = \"bar\") : String }",
                 c =>
                 {
-                    c.UseNullResolver();
+                    c.Use(next => context => default);
                     c.Options.StrictValidation = false;
                 });
 

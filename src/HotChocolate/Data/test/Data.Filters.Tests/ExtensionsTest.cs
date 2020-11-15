@@ -23,7 +23,7 @@ namespace HotChocolate.Data.Tests
 
             ISchemaBuilder builder = SchemaBuilder.New()
                 .AddConvention<IFilterConvention>(convention)
-                .AddTypeInterceptor<FilterTypeInterceptor>()
+                .TryAddTypeInterceptor<FilterTypeInterceptor>()
                 .AddQueryType(
                     c =>
                         c.Name("Query")

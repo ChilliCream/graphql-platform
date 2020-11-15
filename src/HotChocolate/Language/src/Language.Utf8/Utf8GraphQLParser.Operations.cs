@@ -14,13 +14,11 @@ namespace HotChocolate.Language
         private static readonly List<ArgumentNode> _emptyArguments =
             new List<ArgumentNode>();
 
-
         /// <summary>
         /// Parses an operation definition.
         /// <see cref="OperationDefinitionNode" />:
         /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseOperationDefinition()
         {
@@ -53,7 +51,6 @@ namespace HotChocolate.Language
         /// <see cref="OperationDefinitionNode" />:
         /// SelectionSet
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseShortOperationDefinition()
         {
@@ -75,7 +72,6 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses the <see cref="OperationType" />.
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationType ParseOperationType()
         {
@@ -108,7 +104,6 @@ namespace HotChocolate.Language
         /// <see cref="IEnumerable{VariableDefinitionNode}" />:
         /// ( VariableDefinition+ )
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<VariableDefinitionNode> ParseVariableDefinitions()
         {
@@ -138,7 +133,6 @@ namespace HotChocolate.Language
         /// <see cref="VariableDefinitionNode" />:
         /// $variable : Type = DefaultValue?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableDefinitionNode ParseVariableDefinition()
         {
@@ -170,7 +164,6 @@ namespace HotChocolate.Language
         /// <see cref="VariableNode" />:
         /// $Name
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableNode ParseVariable()
         {
@@ -191,7 +184,6 @@ namespace HotChocolate.Language
         /// <see cref="SelectionSetNode" />:
         /// { Selection+ }
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private SelectionSetNode ParseSelectionSet()
         {
@@ -236,7 +228,6 @@ namespace HotChocolate.Language
         /// - FragmentSpread
         /// - InlineFragment
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ISelectionNode ParseSelection()
         {
@@ -252,7 +243,6 @@ namespace HotChocolate.Language
         /// <see cref="FieldNode"  />:
         /// Alias? : Name Arguments? Directives? SelectionSet?
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private FieldNode ParseField()
         {
@@ -291,7 +281,6 @@ namespace HotChocolate.Language
         /// <see cref="ArgumentNode" />:
         /// Name : Value[isConstant]
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private List<ArgumentNode> ParseArguments(bool isConstant)
         {
@@ -321,7 +310,6 @@ namespace HotChocolate.Language
         /// <see cref="ArgumentNode" />:
         /// Name : Value[isConstant]
         /// </summary>
-        /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ArgumentNode ParseArgument(bool isConstant)
         {

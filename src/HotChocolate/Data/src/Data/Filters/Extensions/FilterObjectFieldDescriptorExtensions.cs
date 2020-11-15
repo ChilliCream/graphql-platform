@@ -11,7 +11,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using static HotChocolate.Data.DataResources;
 using static HotChocolate.Data.ThrowHelper;
 
-namespace HotChocolate.Data
+namespace HotChocolate.Types
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
@@ -219,6 +219,9 @@ namespace HotChocolate.Data
         {
             IFilterInputType type = context.GetType<IFilterInputType>(argumentTypeReference);
             IFilterConvention convention = context.DescriptorContext.GetFilterConvention(scope);
+
+            var fieldDescriptor = ObjectFieldDescriptor.From(context.DescriptorContext, definition);
+            convention.ConfigureField(fieldDescriptor);
 
             MethodInfo factory = _factoryTemplate.MakeGenericMethod(type.EntityType.Source);
             var middleware = (FieldMiddleware)factory.Invoke(null, new object[] { convention })!;

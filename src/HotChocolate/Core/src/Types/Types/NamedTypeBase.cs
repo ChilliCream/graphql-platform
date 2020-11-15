@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Introspection;
 
 #nullable enable
 
@@ -80,23 +81,20 @@ namespace HotChocolate.Types
             _directives = directives;
         }
 
-        protected void SetTypeIdentity(Type typeDefinition)
+        protected void SetTypeIdentity(Type typeDefinitionOrIdentity)
         {
-            if (typeDefinition is null)
+            if (typeDefinitionOrIdentity is null)
             {
-                throw new ArgumentNullException(nameof(typeDefinition));
+                throw new ArgumentNullException(nameof(typeDefinitionOrIdentity));
             }
 
-            if (!typeDefinition.IsGenericTypeDefinition)
+            if (!typeDefinitionOrIdentity.IsGenericTypeDefinition)
             {
-                throw new ArgumentException(
-                    "The type definition must be a generic type definition.",
-                    nameof(typeDefinition));
+                TypeIdentity = typeDefinitionOrIdentity;
             }
-
-            if (RuntimeType != typeof(object))
+            else if (RuntimeType != typeof(object))
             {
-                TypeIdentity = typeDefinition.MakeGenericType(RuntimeType);
+                TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
             }
         }
     }

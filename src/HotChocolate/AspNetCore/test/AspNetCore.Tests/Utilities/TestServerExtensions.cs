@@ -209,10 +209,12 @@ namespace HotChocolate.AspNetCore.Utilities
         public static string CreateUrl(string path)
         {
             var url = "http://localhost:5000";
+
             if (path != null)
             {
                 url += "/" + path.TrimStart('/');
             }
+
             return url;
         }
     }

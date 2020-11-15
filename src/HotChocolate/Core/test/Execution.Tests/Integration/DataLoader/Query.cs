@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using HotChocolate.Language;
 
-namespace HotChocolate.Integration.DataLoader
+namespace HotChocolate.Execution.Integration.DataLoader
 {
     public class Query
     {

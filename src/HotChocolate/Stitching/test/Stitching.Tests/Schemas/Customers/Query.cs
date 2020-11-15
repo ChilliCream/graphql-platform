@@ -34,6 +34,9 @@ namespace HotChocolate.Stitching.Schemas.Customers
             return customers;
         }
 
+        public Customer[] GetAllCustomers() =>
+            _repository.Customers.ToArray();
+
         public Consultant GetConsultant(string id)
         {
             IdValue value = _idSerializer.Deserialize(id);

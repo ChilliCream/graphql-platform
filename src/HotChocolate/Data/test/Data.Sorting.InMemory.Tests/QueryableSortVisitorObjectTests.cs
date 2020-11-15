@@ -273,6 +273,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             res2.MatchSnapshot("13");
         }
+
         [Fact]
         public async Task Create_ObjectString_OrderBy()
         {
@@ -327,6 +328,7 @@ namespace HotChocolate.Data.Sorting.Expressions
 
             res2.MatchSnapshot("13");
         }
+
         [Fact]
         public async Task Create_ObjectBool_OrderBy()
         {
@@ -380,6 +382,71 @@ namespace HotChocolate.Data.Sorting.Expressions
                     .Create());
 
             res2.MatchSnapshot("13");
+        }
+
+        [Fact]
+        public async Task Create_ObjectString_OrderBy_TwoProperties()
+        {
+            // arrange
+            IRequestExecutor tester = _cache.CreateSchema<Bar, BarSortType>(_barEntities);
+
+            // act
+            // assert
+            IExecutionResult res1 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(order: { foo: { barBool: ASC, barShort: ASC }}) " +
+                        "{ foo{ barBool barShort}}}")
+                    .Create());
+
+            res1.MatchSnapshot("ASC");
+
+            IExecutionResult res2 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root(order: [
+                                { foo: { barBool: ASC } },
+                                { foo: { barShort: ASC } }]) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }
+                        ")
+                    .Create());
+
+            res2.MatchSnapshot("ASC");
+
+            IExecutionResult res3 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        "{ root(order: { foo: { barBool: DESC, barShort: DESC}}) " +
+                        "{ foo{ barBool barShort}}}")
+                    .Create());
+
+            res3.MatchSnapshot("DESC");
+
+            IExecutionResult res4 = await tester.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"
+                        {
+                            root(order: [
+                                { foo: { barBool: DESC } },
+                                { foo: { barShort: DESC } }]) {
+                                foo {
+                                    barBool
+                                    barShort
+                                }
+                            }
+                        }
+                        ")
+                    .Create());
+
+            res4.MatchSnapshot("DESC");
         }
 
         public class Foo

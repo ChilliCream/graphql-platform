@@ -1,13 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate
+namespace HotChocolate.Execution
 {
     public class CodeFirstTests
     {
@@ -44,6 +46,22 @@ namespace HotChocolate
         }
 
         [Fact]
+        public async Task ExecuteOneFieldQueryWithQuery()
+        {
+            // arrange
+            var schema = Schema.Create(
+                c => c.RegisterType<QueryTypeWithMethod>());
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync("{ query }");
+
+            // assert
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ExecuteWithUnionType()
         {
             // arrange
@@ -51,13 +69,16 @@ namespace HotChocolate
 
             // act
             IExecutionResult result =
-                await schema.MakeExecutable().ExecuteAsync(
-                    @"{
-                        fooOrBar {
-                            ... on Bar { nameBar }
-                            ... on Foo { nameFoo }
+                await schema.MakeExecutable()
+                    .ExecuteAsync(
+                        @"
+                        {
+                            fooOrBar {
+                                ... on Bar { nameBar }
+                                ... on Foo { nameFoo }
+                            }
                         }
-                    }");
+                        ");
 
             // assert
             Assert.Null(result.Errors);
@@ -263,6 +284,11 @@ namespace HotChocolate
                 return "Hello World!";
             }
 
+            public IExecutable<string> GetQuery()
+            {
+                return new MockExecutable<string>(new []{ "foo", "bar" }.AsQueryable());
+            }
+
             public string TestProp => "Hello World!";
         }
 
@@ -285,6 +311,7 @@ namespace HotChocolate
             {
                 descriptor.Name("Query");
                 descriptor.Field(t => t.GetTest()).Name("test");
+                descriptor.Field(t => t.GetQuery()).Name("query");
             }
         }
 
@@ -432,6 +459,38 @@ namespace HotChocolate
                     .Type<NonNullType<BooleanType>>();
                 descriptor.Field(t => t.GetNames())
                     .Type<ListType<StringType>>();
+            }
+        }
+
+        public class MockExecutable<T> : IExecutable<T>
+        {
+            private readonly IQueryable<T> _source;
+
+            public MockExecutable(IQueryable<T> source)
+            {
+                _source = source;
+            }
+
+            public object Source =>_source;
+
+            public ValueTask<IList> ToListAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<IList>(_source.ToList());
+            }
+
+            public ValueTask<object?> FirstOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.FirstOrDefault());
+            }
+
+            public ValueTask<object?> SingleOrDefaultAsync(CancellationToken cancellationToken)
+            {
+                return new ValueTask<object?>(_source.SingleOrDefault());
+            }
+
+            public string Print()
+            {
+                return _source.ToString();
             }
         }
     }
