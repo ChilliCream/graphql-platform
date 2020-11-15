@@ -24,15 +24,25 @@ namespace HotChocolate
             {
                 var lazySchema = new LazySchema();
                 DescriptorContext context = CreateContext(builder, lazySchema);
-                IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                IReadOnlyList<ITypeReference> typeReferences =
-                    CreateTypeReferences(builder, context, bindingLookup);
+                try
+                {
+                    IBindingLookup bindingLookup = builder._bindingCompiler.Compile(context);
 
-                TypeRegistry typeRegistry =
-                    InitializeTypes(builder, context, bindingLookup, typeReferences, lazySchema);
+                    IReadOnlyList<ITypeReference> typeReferences =
+                        CreateTypeReferences(builder, context, bindingLookup);
 
-                return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                    TypeRegistry typeRegistry =
+                        InitializeTypes(builder, context, bindingLookup, typeReferences,
+                            lazySchema);
+
+                    return CompleteSchema(builder, context, lazySchema, typeRegistry);
+                }
+                catch (Exception ex)
+                {
+                    context.SchemaInterceptor.OnError(context, ex);
+                    throw;
+                }
             }
 
             private static DescriptorContext CreateContext(
