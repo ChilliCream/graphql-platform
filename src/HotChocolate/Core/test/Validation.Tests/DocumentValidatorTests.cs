@@ -631,6 +631,22 @@ namespace HotChocolate.Validation
         }
 
         [Fact]
+        public void GoodBooleanArgDefault2()
+        {
+            ExpectValid(@"
+                query {
+                    arguments {
+                        ... goodBooleanArgDefault
+                    }
+                }
+
+                fragment goodBooleanArgDefault on Arguments {
+                    optionalNonNullBooleanArgField2
+                }
+            ");
+        }
+
+        [Fact]
         public void StarWars_Query_Is_Valid()
         {
             ExpectValid(
