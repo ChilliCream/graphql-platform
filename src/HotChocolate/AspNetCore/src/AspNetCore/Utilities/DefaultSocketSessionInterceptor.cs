@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore.Utilities
 
             if (connection.HttpContext.IsTracingEnabled())
             {
-                requestBuilder.TryAddProperty(ContextDataKeys.EnableTracing, true);
+                requestBuilder.TryAddProperty(WellKnownContextData.EnableTracing, true);
             }
 
             return default;

@@ -74,9 +74,11 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IRequestExecutor requestExecutor,
             IHttpRequestInterceptor requestInterceptor,
-            GraphQLRequest request)
+            GraphQLRequest request,
+            OperationType[]? allowedOperations = null)
         {
             QueryRequestBuilder requestBuilder = QueryRequestBuilder.From(request);
+            requestBuilder.SetAllowedOperations(allowedOperations);
 
             await requestInterceptor.OnCreateAsync(
                 context, requestExecutor, requestBuilder, context.RequestAborted);

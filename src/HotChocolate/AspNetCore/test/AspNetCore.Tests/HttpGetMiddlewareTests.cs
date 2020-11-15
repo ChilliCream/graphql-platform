@@ -458,10 +458,7 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }",
-                    Variables = new Dictionary<string, object>
-                    {
-                        { "episode", "NEW_HOPE" }
-                    }
+                    Variables = new Dictionary<string, object> {{"episode", "NEW_HOPE"}}
                 });
 
             // assert
@@ -484,6 +481,43 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }"
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SingleRequest_Mutation_ByDefault_NotAllowed_OnGet()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        mutation CreateReviewForEpisode(
+                            $ep: Episode!
+                            $review: ReviewInput!) {
+                            createReview(episode: $ep, review: $review) {
+                                stars
+                                commentary
+                            }
+                        }",
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "ep", "EMPIRE" },
+                        {
+                            "review",
+                            new Dictionary<string, object>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
+                        }
+                    }
                 });
 
             // assert

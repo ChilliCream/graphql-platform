@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Extensions;
+using Microsoft.Extensions.Primitives;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
-using Microsoft.AspNetCore.StaticFiles;
 
 namespace HotChocolate.AspNetCore
 {
@@ -15,7 +16,6 @@ namespace HotChocolate.AspNetCore
         : MiddlewareBase
     {
         private const string _configFile = "/bcp-config.json";
-        private readonly IContentTypeProvider _contentTypeProvider;
         private readonly PathString _matchUrl;
 
         public ToolOptionsFileMiddleware(
@@ -26,7 +26,6 @@ namespace HotChocolate.AspNetCore
             PathString matchUrl)
             : base(next, executorResolver, resultSerializer, schemaName)
         {
-            _contentTypeProvider = new FileExtensionContentTypeProvider();
             _matchUrl = matchUrl;
         }
 
@@ -40,7 +39,7 @@ namespace HotChocolate.AspNetCore
                 context.Request.TryMatchPath(_matchUrl, false, out PathString subPath) &&
                 subPath.Value == _configFile)
             {
-                ToolOptions? options = context.GetEndpoint()?.Metadata.GetMetadata<ToolOptions>();
+                GraphQLToolOptions? options = context.GetGraphQLToolOptions();
                 string endpointPath = context.Request.Path.Value!.Replace(_configFile, "");
                 string schemaEndpoint = CreateEndpointUri(
                     context.Request.Host.Value,
@@ -78,9 +77,9 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        private string? ConvertCredentialsToString(DefaultCredentials? credentials)
+        private static string? ConvertCredentialsToString(DefaultCredentials? credentials)
         {
-            if (credentials is { })
+            if (credentials is not null)
             {
                 switch (credentials)
                 {
@@ -96,13 +95,14 @@ namespace HotChocolate.AspNetCore
             return null;
         }
 
-        private IDictionary<string, string>? ConvertHttpHeadersToDictionary(IHeaderDictionary? httpHeaders)
+        private static IDictionary<string, string>? ConvertHttpHeadersToDictionary(
+            IHeaderDictionary? httpHeaders)
         {
-            if (httpHeaders is { })
+            if (httpHeaders is not null)
             {
                 var result = new Dictionary<string, string>();
 
-                foreach (var (key, value) in httpHeaders)
+                foreach ((var key, StringValues value) in httpHeaders)
                 {
                     result.Add(key, value.ToString());
                 }
@@ -115,7 +115,7 @@ namespace HotChocolate.AspNetCore
 
         private string? ConvertHttpMethodToString(DefaultHttpMethod? httpMethod)
         {
-            if (httpMethod is { })
+            if (httpMethod is not null)
             {
                 switch (httpMethod)
                 {

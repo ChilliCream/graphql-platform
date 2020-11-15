@@ -11,12 +11,9 @@ namespace HotChocolate.AspNetCore.Utilities
 {
     public class DefaultHttpResultSerializer : IHttpResultSerializer
     {
-        private readonly JsonQueryResultSerializer _jsonSerializer =
-            new JsonQueryResultSerializer();
-        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer =
-            new JsonArrayResponseStreamSerializer();
-        private readonly MultiPartResponseStreamSerializer _multiPartSerializer =
-            new MultiPartResponseStreamSerializer();
+        private readonly JsonQueryResultSerializer _jsonSerializer = new();
+        private readonly JsonArrayResponseStreamSerializer _jsonArraySerializer = new();
+        private readonly MultiPartResponseStreamSerializer _multiPartSerializer = new();
 
         private readonly HttpResultSerialization _batchSerialization;
         private readonly HttpResultSerialization _deferSerialization;
@@ -58,23 +55,36 @@ namespace HotChocolate.AspNetCore.Utilities
 
         public virtual HttpStatusCode GetStatusCode(IExecutionResult result)
         {
-            switch (result)
+            return result switch
             {
-                case QueryResult queryResult:
-                    return queryResult.Data is null
-                        ? queryResult.ContextData is not null &&
-                          queryResult.ContextData.ContainsKey(ContextDataKeys.ValidationErrors)
-                            ? HttpStatusCode.BadRequest
-                            : HttpStatusCode.InternalServerError
-                        : HttpStatusCode.OK;
+                QueryResult queryResult => GetStatusCode(queryResult),
+                DeferredQueryResult => HttpStatusCode.OK,
+                BatchQueryResult => HttpStatusCode.OK,
+                _ => HttpStatusCode.InternalServerError
+            };
+        }
 
-                case DeferredQueryResult:
-                case BatchQueryResult:
-                    return HttpStatusCode.OK;
-
-                default:
-                    return HttpStatusCode.InternalServerError;
+        private HttpStatusCode GetStatusCode(IQueryResult result)
+        {
+            if (result.Data is not null)
+            {
+                return HttpStatusCode.OK;
             }
+
+            if (result.ContextData is not null)
+            {
+                if (result.ContextData.ContainsKey(WellKnownContextData.ValidationErrors))
+                {
+                    return HttpStatusCode.BadRequest;
+                }
+
+                if (result.ContextData.ContainsKey(WellKnownContextData.OperationNotAllowed))
+                {
+                    return HttpStatusCode.MethodNotAllowed;
+                }
+            }
+
+            return HttpStatusCode.InternalServerError;
         }
 
         public virtual async ValueTask SerializeAsync(
