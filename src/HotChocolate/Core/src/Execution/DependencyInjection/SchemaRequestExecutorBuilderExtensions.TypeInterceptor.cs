@@ -365,7 +365,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IRequestExecutorBuilder OnSchemaError(
-            IRequestExecutorBuilder builder,
+            this IRequestExecutorBuilder builder,
             Action<IDescriptorContext, Exception> onError)
         {
             if (builder is null)
