@@ -5,7 +5,7 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 15,
+        "Line": 16,
         "Column": 25
       },
       {
@@ -13,7 +13,6 @@
         "Column": 29
       }
     ],
-    "Exception": null,
     "Extensions": {
       "declaringTypeA": "Node",
       "declaringTypeB": "Node",
@@ -24,6 +23,7 @@
       "responseNameA": "id",
       "responseNameB": "id",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
-    }
+    },
+    "Exception": null
   }
 ]

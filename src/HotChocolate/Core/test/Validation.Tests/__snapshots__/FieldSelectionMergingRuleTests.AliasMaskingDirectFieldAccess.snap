@@ -5,23 +5,23 @@
     "Path": null,
     "Locations": [
       {
-        "Line": 5,
-        "Column": 29
+        "Line": 9,
+        "Column": 21
       },
       {
-        "Line": 8,
-        "Column": 29
+        "Line": 10,
+        "Column": 21
       }
     ],
     "Extensions": {
-      "declaringTypeA": "IntBox",
-      "declaringTypeB": "NonNullStringBox1",
-      "fieldA": "scalar",
-      "fieldB": "scalar",
-      "typeA": "Int",
+      "declaringTypeA": "Dog",
+      "declaringTypeB": "Dog",
+      "fieldA": "nickname",
+      "fieldB": "name",
+      "typeA": "String",
       "typeB": "String!",
-      "responseNameA": "scalar",
-      "responseNameB": "scalar",
+      "responseNameA": "name",
+      "responseNameB": "name",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
     "Exception": null

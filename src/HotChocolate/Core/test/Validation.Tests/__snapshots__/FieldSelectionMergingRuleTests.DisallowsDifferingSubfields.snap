@@ -6,22 +6,22 @@
     "Locations": [
       {
         "Line": 5,
-        "Column": 29
+        "Column": 33
       },
       {
-        "Line": 8,
-        "Column": 29
+        "Line": 6,
+        "Column": 33
       }
     ],
     "Extensions": {
-      "declaringTypeA": "IntBox",
-      "declaringTypeB": "NonNullStringBox1",
+      "declaringTypeA": "StringBox",
+      "declaringTypeB": "StringBox",
       "fieldA": "scalar",
-      "fieldB": "scalar",
-      "typeA": "Int",
-      "typeB": "String!",
-      "responseNameA": "scalar",
-      "responseNameB": "scalar",
+      "fieldB": "unrelatedField",
+      "typeA": "String",
+      "typeB": "String",
+      "responseNameA": "val",
+      "responseNameB": "val",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
     },
     "Exception": null

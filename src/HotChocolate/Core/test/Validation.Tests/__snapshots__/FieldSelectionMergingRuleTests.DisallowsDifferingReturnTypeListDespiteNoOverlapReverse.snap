@@ -13,7 +13,6 @@
         "Column": 29
       }
     ],
-    "Exception": null,
     "Extensions": {
       "declaringTypeA": "IntBox",
       "declaringTypeB": "StringBox",
@@ -24,6 +23,7 @@
       "responseNameA": "box",
       "responseNameB": "box",
       "specifiedBy": "http://spec.graphql.org/June2018/#sec-Field-Selection-Merging"
-    }
+    },
+    "Exception": null
   }
 ]
