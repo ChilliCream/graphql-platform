@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
+using HotChocolate.AspNetCore.Utilities;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -270,7 +271,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_With_ObjectVariable()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -307,7 +313,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_Omit_NonNull_Variable()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -343,7 +354,12 @@ namespace HotChocolate.AspNetCore
         public async Task SingleRequest_CreateReviewForEpisode_Variables_In_ObjectValue()
         {
             // arrange
-            TestServer server = CreateStarWarsServer();
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
 
             // act
             ClientQueryResult result =
@@ -518,6 +534,75 @@ namespace HotChocolate.AspNetCore
                             }
                         }
                     }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+         [Fact]
+        public async Task SingleRequest_Mutation_Set_To_Be_Allowed_on_Get()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions
+                    { 
+                        AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+                    }));
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                        mutation CreateReviewForEpisode(
+                            $ep: Episode!
+                            $review: ReviewInput!) {
+                            createReview(episode: $ep, review: $review) {
+                                stars
+                                commentary
+                            }
+                        }",
+                    Variables = new Dictionary<string, object>
+                    {
+                        { "ep", "EMPIRE" },
+                        {
+                            "review",
+                            new Dictionary<string, object>
+                            {
+                                { "stars", 5 },
+                                { "commentary", "This is a great movie!" },
+                            }
+                        }
+                    }
+                });
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Get_Middleware_Is_Disabled()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        EnableGetRequest = false
+                    }));
+
+            // act
+            ClientQueryResult result =
+                await server.GetAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    {
+                        hero {
+                            name
+                        }
+                    }"
                 });
 
             // assert

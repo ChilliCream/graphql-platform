@@ -22,7 +22,8 @@ namespace HotChocolate.AspNetCore
         public async Task InvokeAsync(HttpContext context)
         {
             if (HttpMethods.IsGet(context.Request.Method) &&
-                context.Request.Query.ContainsKey("SDL"))
+                context.Request.Query.ContainsKey("SDL") &&
+                (context.GetGraphQLServerOptions()?.EnableSchemaRequest ?? true))
             {
                 await HandleRequestAsync(context);
             }

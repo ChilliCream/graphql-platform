@@ -1,13 +1,13 @@
-using System.Net.Http.Headers;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
+using HotChocolate.AspNetCore.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
 {
@@ -24,6 +24,24 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateStarWarsServer();
+
+            // act
+            Result result = await GetAsync(server);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Fetch_Tool_When_Disabled()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(
+                configureConventions: e => e.WithOptions(
+                    new GraphQLServerOptions 
+                    {
+                        Tool = { Enable = false }
+                    }));
 
             // act
             Result result = await GetAsync(server);

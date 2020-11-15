@@ -30,7 +30,8 @@ namespace HotChocolate.AspNetCore
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if (HttpMethods.IsGet(context.Request.Method))
+            if (HttpMethods.IsGet(context.Request.Method) &&
+                (context.GetGraphQLServerOptions()?.EnableGetRequest ?? true))
             {
                 await HandleRequestAsync(context);
             }

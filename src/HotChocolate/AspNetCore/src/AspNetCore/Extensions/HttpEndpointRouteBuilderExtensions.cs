@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;
@@ -40,7 +41,12 @@ namespace Microsoft.AspNetCore.Builder
                 .UseMiddleware<ToolDefaultFileMiddleware>(fileProvider, path)
                 .UseMiddleware<ToolOptionsFileMiddleware>(schemaNameOrDefault, path)
                 .UseMiddleware<ToolStaticFileMiddleware>(fileProvider, path)
-                .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault);
+                .UseMiddleware<HttpGetMiddleware>(schemaNameOrDefault)
+                .Use(next => context => 
+                {
+                    context.Response.StatusCode = 404;
+                    return Task.CompletedTask;
+                });
 
             return endpointRouteBuilder
                 .Map(pattern, requestPipeline.Build())

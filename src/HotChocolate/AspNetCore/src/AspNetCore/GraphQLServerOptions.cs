@@ -17,6 +17,18 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         public AllowedGetOperations AllowedGetOperations { get; set; } =
             AllowedGetOperations.Query;
+
+        /// <summary>
+        /// Defines if GraphQL HTTP GET requests are allowed.
+        /// </summary>
+        /// <value></value>
+        public bool EnableGetRequest { get; set; } = true;
+
+        /// <summary>
+        /// Defines if the GraphQL schema SDL can be downloaded.
+        /// </summary>
+        /// <value></value>
+        public bool EnableSchemaRequest { get; set; } = true;
     }
 
     /// <summary>
