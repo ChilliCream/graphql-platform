@@ -683,8 +683,10 @@ namespace HotChocolate.Execution.DependencyInjection
             // act
             try
             {
-                await CreateSchemaAsync(
-                    c => c.OnSchemaError((_, exception) => ex = exception));
+                await new ServiceCollection()
+                    .AddGraphQL()
+                    .OnSchemaError((_, exception) => ex = exception)
+                    .BuildSchemaAsync();
             }
             catch
             {
