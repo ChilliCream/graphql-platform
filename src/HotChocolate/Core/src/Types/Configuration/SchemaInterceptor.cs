@@ -1,6 +1,8 @@
 using System;
 using HotChocolate.Types.Descriptors;
 
+#nullable  enable
+
 namespace HotChocolate.Configuration
 {
     public class SchemaInterceptor : ISchemaInterceptor
