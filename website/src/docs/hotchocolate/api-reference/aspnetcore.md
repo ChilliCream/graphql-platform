@@ -1,73 +1,147 @@
----
-title: "ASP.NET Core"
----
+Hot Chocolate comes with integration to the ASP.NET Core endpoints API. The middleware implementation follows the current GraphQL over HTTP Spec.
 
-# HTTP Usage
-
-Hot Chocolate has implemented the [recommendations](https://graphql.org/learn/serving-over-http/) for serving GraphQL over HTTP. We are also supporting request batching over HTTP and subscriptions over websocket.
-
-# HTTP POST
-
-The post request is the most used variant for GraphQL request over HTTP.
-
-application/json: the POST body will be parsed as a JSON object of parameters.
-
-```json
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 {
-    # The query document.
-    "query": "query getHero { hero { name } }",
+    app.UseRouting()
 
-    # The name of the operation that shall be executed.
-    "operationName": "getHero",
-
-    # A key under which a query document was saved on the server.
-    "id": "W5vrrAIypCbniaIYeroNnw==",
-
-    # The variable values for this request.
-    "variables": {
-        "a": 1,
-        "b": "abc"
-    },
-
-    # Custom properties that can be passed to the execution engine context data.
-    "extensions": {
-        "a": 1,
-        "b": "abc"
-    }
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapGraphQL();
+    });
 }
 ```
 
-application/graphql: The POST body will be parsed as GraphQL query string, which provides the query parameter.
+# GraphQL over HTTP Spec
+
+The following GraphQL requests follow the current GraphQL over HTTP spec draft.
+
+If no path is specified the GraphQL middleware will follow the spec recommendation to map the endpoint to `/graphql`.
+
+`http://example.com/graphql`
+
+`http://product.example.com/graphql`
+
+`http://example.com/product/graphql`
+
+## GraphQL HTTP POST requests
+
+The GraphQL HTTP POST request is the most commonly used variant for GraphQL requests over HTTP and is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#post).
+
+For example if the `Content-Type` is `application/json` then the request body may be:
+
+```json
+{
+  "query": "query($id: ID!){user(id:$id){name}}",
+  "variables": { "id": "QVBJcy5ndXJ1" }
+}
+```
+
+The response is by default returned as a JSON result with `Content-Type` `application/json`:
+
+```json
+{
+  "data": {
+    "user": {
+      "name": "Jon Doe"
+    }
+  }
+}
+```
+
+## GraphQL HTTP GET request
+
+GraphQL can also be served through an HTTP GET request. You have the same options as the HTTP POST request, just that the request properties are provided as query parameters. GraphQL HTTP GET requests can be a good choice if you are looking to cache GraphQL requests.
+
+For example, if we wanted to execute the following GraphQL query:
 
 ```graphql
-query getHero {
-  hero {
+query($id: ID!) {
+  user(id: $id) {
     name
   }
 }
 ```
 
-The response in both cases will be JSON by default. The response serializers can be swapped out and you could for instance go protobuf.
+With the following query variables:
+
+```json
+{
+  "id": "QVBJcy5ndXJ1"
+}
+```
+
+This request could be sent via an HTTP GET as follows:
+
+`http://example.com/graphql?query=query(%24id%3A%20ID!)%7Buser(id%3A%24id)%7Bname%7D%7D&variables=%7B%22id%22%3A%22QVBJcy5ndXJ1%22%7D`
+
+> Note: {query} and {operationName} parameters are encoded as raw strings in the query component. Therefore if the query string contained operationName=null then it should be interpreted as the {operationName} being the string "null". If a literal null is desired, the parameter (e.g. {operationName}) should be omitted.
+
+The response is by default returned as a JSON result with `Content-Type` `application/json`:
 
 ```json
 {
   "data": {
-    "hero": {
-      "name": "R2-D2"
+    "user": {
+      "name": "Jon Doe"
     }
   }
 }
 ```
 
-# HTTP GET
+The GraphQL HTTP GET request is specified [here](https://github.com/graphql/graphql-over-http/blob/master/spec/GraphQLOverHTTP.md#get).
 
-GraphQL can also be served through an HTTP GET request. You have the same options as with the POST request just that the request properties are provided as query parameters. GET request can be a good choice if you are looking to cache GraphQL requests.
+By default, Hot Chocolate will only serve query operations when HTTP GET requests are used. You can change this default by specifying the GraphQL server options.
 
-`http://localhost/graphql?query=query+getUser($id:ID){user(id:$id){name}}&variables={"id":"4"}`
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    app.UseRouting()
 
-# HTTP GET Schema
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints
+            .MapGraphQL()
+            .WithOptions(new GraphQLServerOptions
+            {
+                AllowedGetOperations = AllowedGetOperations.QueryAndMutation
+            });
+    });
+}
+```
 
-Although you can get access to the schema metadata through introspection, we also support fetching the GraphQL schema SDL. The GraphQL schema SDL is richer with information and easier to read.
+You can also entirely deactivate HTTP GET request handling.
+
+```csharp
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    app.UseRouting()
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints
+            .MapGraphQL()
+            .WithOptions(new GraphQLServerOptions
+            {
+                EnableGetRequests = false
+            });
+    });
+}
+```
+
+## Incremental Delivery over HTTP
+
+The Hot Chocolate GraphQL server also supports incremental delivery over HTTP which essentially uses HTTP chunked transfer encoding in combination with [specification of multipart content defined by the W3 in rfc1341](https://www.w3.org/Protocols/rfc1341/7_2_Multipart.html).
+
+The incremental delivery is at the moment at the RFC stage and are specified [here](https://github.com/graphql/graphql-over-http/blob/master/rfcs/IncrementalDelivery.md).
+
+# Additional ....
+
+Apart from the requests that are specified
+
+# Grap Schema
+
+Although you can access and query the schema definition through introspection, we support fetching the GraphQL schema SDL as a file. The GraphQL schema SDL is richer with more information and easier to read.
 
 `http://localhost/graphql?sdl`
 
