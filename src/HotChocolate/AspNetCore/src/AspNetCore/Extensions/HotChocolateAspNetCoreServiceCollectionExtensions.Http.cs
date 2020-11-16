@@ -91,7 +91,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
         /// </returns>
-        public static IServiceCollection AddHttpRequestSerializer(
+        public static IServiceCollection AddHttpResultSerializer(
             this IServiceCollection services,
             HttpResultSerialization batchSerialization = HttpResultSerialization.MultiPartChunked,
             HttpResultSerialization deferSerialization = HttpResultSerialization.MultiPartChunked)
@@ -116,7 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// Returns the <see cref="IServiceCollection"/> so that configuration can be chained.
         /// </returns>
-        public static IServiceCollection AddHttpRequestSerializer<T>(
+        public static IServiceCollection AddHttpResultSerializer<T>(
             this IServiceCollection services)
             where T : class, IHttpResultSerializer
         {

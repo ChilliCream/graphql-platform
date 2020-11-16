@@ -24,7 +24,7 @@ namespace HotChocolate.Stitching.Integration
             ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddCustomerSchema(),
                 app => app
@@ -36,7 +36,7 @@ namespace HotChocolate.Stitching.Integration
             ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddContractSchema(),
                 app => app

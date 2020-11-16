@@ -17,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // act
             HotChocolateAspNetCoreServiceCollectionExtensions
-                .AddHttpRequestSerializer<DefaultHttpResultSerializer>(serviceCollection);
+                .AddHttpResultSerializer<DefaultHttpResultSerializer>(serviceCollection);
 
             // assert
             Assert.Collection(

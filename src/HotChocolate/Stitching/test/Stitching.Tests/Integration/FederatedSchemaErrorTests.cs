@@ -126,7 +126,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddAccountsSchema()
                     .PublishSchemaDefinition(c => c
@@ -149,7 +149,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddInventorySchema()
                     .PublishSchemaDefinition(c => c
@@ -171,7 +171,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddProductsSchema()
                     .AddTypeExtension(new ObjectTypeExtension(d =>
@@ -214,7 +214,7 @@ namespace HotChocolate.Stitching.Integration
             Context.ServerFactory.Create(
                 services => services
                     .AddRouting()
-                    .AddHttpRequestSerializer(HttpResultSerialization.JsonArray)
+                    .AddHttpResultSerializer(HttpResultSerialization.JsonArray)
                     .AddGraphQLServer()
                     .AddReviewSchema()
                     .PublishSchemaDefinition(c => c
